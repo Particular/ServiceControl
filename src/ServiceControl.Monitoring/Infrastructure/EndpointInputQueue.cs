@@ -2,7 +2,11 @@
 {
     using System;
 
+    // it's not entirely clear whether we can rename this type or not, given that it seems to be used for storage
+    // all references seem to indicate it should be called something like QueueId
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public readonly struct EndpointInputQueue : IEquatable<EndpointInputQueue>
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         public EndpointInputQueue(string endpointName, string inputQueue)
         {

@@ -36,7 +36,7 @@
             endpointRegistry.Record(instanceId);
             activityTracker.Record(instanceId, DateTime.UtcNow);
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         readonly EndpointInstanceActivityTracker activityTracker;

@@ -20,7 +20,7 @@
         }
 
         public UpgradeAuditInstanceCommand(
-            IWindowManagerEx windowManager,
+            IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
             ServiceControlInstanceInstaller serviceControlInstaller,
             ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
@@ -127,7 +127,7 @@
         }
 
         readonly IEventAggregator eventAggregator;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
     }

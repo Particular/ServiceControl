@@ -12,7 +12,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
     class ServiceControlEditAttachment : Attachment<ServiceControlEditViewModel>
     {
-        public ServiceControlEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
+        public ServiceControlEditAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -97,7 +97,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly ServiceControlInstanceInstaller installer;
     }

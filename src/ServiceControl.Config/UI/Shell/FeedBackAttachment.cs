@@ -8,7 +8,7 @@
     {
         public FeedBackAttachment(
             RaygunFeedback raygunFeedBack,
-            IWindowManagerEx windowManager,
+            IServiceControlWindowManager windowManager,
             Func<FeedBackViewModel> feedBackFactory,
             Func<FeedBackResultViewModel> feedBackResultFactory,
             Func<FeedBackNoticeViewModel> feedBackNoticeFactory)
@@ -47,6 +47,6 @@
         readonly Func<FeedBackNoticeViewModel> feedBackNoticeFactory;
         readonly Func<FeedBackResultViewModel> feedBackResultFactory;
         readonly RaygunFeedback raygunFeedBack;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }

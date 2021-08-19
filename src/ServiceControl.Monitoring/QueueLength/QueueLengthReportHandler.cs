@@ -22,7 +22,7 @@
                 queueLengthStore.Store(message.Entries, new EndpointInputQueue(endpointName, message.TagValue));
             }
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
 

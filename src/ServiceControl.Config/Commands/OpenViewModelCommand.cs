@@ -5,7 +5,7 @@
 
     class OpenViewModelCommand<T> : AbstractCommand<object>
     {
-        public OpenViewModelCommand(IWindowManagerEx windowManager, T screen)
+        public OpenViewModelCommand(IServiceControlWindowManager windowManager, T screen)
         {
             this.screen = screen;
             this.windowManager = windowManager;
@@ -17,6 +17,6 @@
         }
 
         readonly T screen;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }

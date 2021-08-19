@@ -8,7 +8,7 @@
 
     class AddMonitoringInstanceCommand : AbstractCommand<object>
     {
-        public AddMonitoringInstanceCommand(IWindowManagerEx windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
+        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
@@ -35,7 +35,7 @@
         }
 
         readonly Func<MonitoringAddViewModel> addInstance;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly MonitoringInstanceInstaller installer;
     }
 }

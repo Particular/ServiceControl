@@ -9,7 +9,7 @@ namespace ServiceControl.Config.Commands
 
     class AdvancedMonitoringOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public AdvancedMonitoringOptionsCommand(IWindowManagerEx windowManager, Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel)
+        public AdvancedMonitoringOptionsCommand(IServiceControlWindowManager windowManager, Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel)
         {
             this.windowManager = windowManager;
             this.advancedOptionsModel = advancedOptionsModel;
@@ -23,6 +23,6 @@ namespace ServiceControl.Config.Commands
         }
 
         readonly Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }

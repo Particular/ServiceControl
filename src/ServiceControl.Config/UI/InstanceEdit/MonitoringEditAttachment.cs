@@ -12,7 +12,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
     class MonitoringEditAttachment : Attachment<MonitoringEditViewModel>
     {
-        public MonitoringEditAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public MonitoringEditAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -91,7 +91,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
     }

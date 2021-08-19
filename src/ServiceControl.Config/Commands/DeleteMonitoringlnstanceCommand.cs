@@ -12,7 +12,7 @@
 
     class DeleteMonitoringlnstanceCommand : AwaitableAbstractCommand<MonitoringAdvancedViewModel>
     {
-        public DeleteMonitoringlnstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
+        public DeleteMonitoringlnstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
         {
             this.windowManager = windowManager;
             this.deleteInstanceConfirmation = deleteInstanceConfirmation;
@@ -47,6 +47,6 @@
         readonly Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation;
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }

@@ -32,7 +32,7 @@
                     break;
             }
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         readonly ProcessingTimeStore processingTimeStore;

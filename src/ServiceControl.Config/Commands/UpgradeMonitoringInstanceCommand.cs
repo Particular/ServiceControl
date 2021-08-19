@@ -18,7 +18,7 @@
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -94,6 +94,6 @@
 
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }
