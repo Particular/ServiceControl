@@ -13,7 +13,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
     class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
     {
-        public ServiceControlAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller serviceControlinstaller, ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
+        public ServiceControlAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller serviceControlinstaller, ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
         {
             this.windowManager = windowManager;
             this.serviceControlInstaller = serviceControlinstaller;
@@ -169,7 +169,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             return result;
         }
 
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;

@@ -6,9 +6,9 @@
 
     public class AddNewAuditInstanceAttachment : Attachment<AddNewAuditInstanceViewModel>
     {
-        IWindowManagerEx windowManager;
+        IServiceControlWindowManager windowManager;
 
-        public AddNewAuditInstanceAttachment(IWindowManagerEx windowManager)
+        public AddNewAuditInstanceAttachment(IServiceControlWindowManager windowManager)
         {
             this.windowManager = windowManager;
         }

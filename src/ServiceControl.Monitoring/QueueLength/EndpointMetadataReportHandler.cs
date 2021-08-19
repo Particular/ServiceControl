@@ -18,7 +18,7 @@
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(endpointName, message.LocalAddress));
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         IProvideQueueLength queueLengthProvider;

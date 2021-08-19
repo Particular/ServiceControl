@@ -10,7 +10,7 @@
 
     class StartServiceControlInMaintenanceModeCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
-        public StartServiceControlInMaintenanceModeCommand(IWindowManagerEx windowManager, IEventAggregator eventAggregator) : base(model => !(model.IsRunning && model.InMaintenanceMode))
+        public StartServiceControlInMaintenanceModeCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator) : base(model => !(model.IsRunning && model.InMaintenanceMode))
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -54,7 +54,7 @@
             }
         }
 
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
     }
 }

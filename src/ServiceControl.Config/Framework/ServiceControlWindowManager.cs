@@ -10,7 +10,7 @@
     using UI.MessageBox;
     using UI.Shell;
 
-    public interface IWindowManagerEx : IWindowManager
+    public interface IServiceControlWindowManager : IWindowManager
     {
         void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
@@ -33,9 +33,9 @@
         void ScrollFirstErrorIntoView(object viewModel, object context = null);
     }
 
-    class WindowManagerEx : WindowManager, IWindowManagerEx
+    class ServiceControlWindowManager : WindowManager, IServiceControlWindowManager
     {
-        public WindowManagerEx(Func<ReportCard, ReportCardViewModel> reportCardViewModelFactory)
+        public ServiceControlWindowManager(Func<ReportCard, ReportCardViewModel> reportCardViewModelFactory)
         {
             this.reportCardViewModelFactory = reportCardViewModelFactory;
         }

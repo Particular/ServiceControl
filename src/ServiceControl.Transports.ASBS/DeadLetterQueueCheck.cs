@@ -6,9 +6,9 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
 
-    public class CheckDeadLetterQueue : CustomCheck
+    public class DeadLetterQueueCheck : CustomCheck
     {
-        public CheckDeadLetterQueue(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
+        public DeadLetterQueueCheck(TransportSettings settings) : base(id: "Dead Letter Queue", category: "Transport", repeatAfter: TimeSpan.FromHours(1))
         {
             Logger.Debug("Azure Service Bus Dead Letter Queue custom check starting");
 
@@ -55,6 +55,6 @@
         bool runCheck;
 
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(DeadLetterQueueCheck));
     }
 }

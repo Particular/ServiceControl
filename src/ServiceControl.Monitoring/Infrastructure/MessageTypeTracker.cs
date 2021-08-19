@@ -17,7 +17,7 @@
 
             registry.Record(new EndpointMessageType(endpointName, message.TagValue));
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         readonly MessageTypeRegistry registry;

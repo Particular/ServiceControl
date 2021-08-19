@@ -8,7 +8,7 @@
 
     class AddServiceControlInstanceCommand : AbstractCommand<object>
     {
-        public AddServiceControlInstanceCommand(IWindowManagerEx windowManager, Func<ServiceControlAddViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
+        public AddServiceControlInstanceCommand(IServiceControlWindowManager windowManager, Func<ServiceControlAddViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
@@ -35,7 +35,7 @@
         }
 
         readonly Func<ServiceControlAddViewModel> addInstance;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller installer;
     }
 }

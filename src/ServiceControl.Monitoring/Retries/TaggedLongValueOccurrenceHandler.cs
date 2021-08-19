@@ -22,7 +22,7 @@
                 store.Store(message.Entries, instanceId, new EndpointMessageType(instanceId.EndpointName, message.TagValue));
             }
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         readonly RetriesStore store;

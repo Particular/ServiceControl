@@ -8,9 +8,9 @@
     using NServiceBus.Logging;
     using Transports;
 
-    public class CheckDeadLetterQueue : CustomCheck
+    public class DeadLetterQueueCheck : CustomCheck
     {
-        public CheckDeadLetterQueue(TransportSettings settings) :
+        public DeadLetterQueueCheck(TransportSettings settings) :
             base("Dead Letter Queue", "Transport", TimeSpan.FromHours(1))
         {
             runCheck = settings.RunCustomChecks;
@@ -122,6 +122,6 @@
         string counterInstanceName;
         bool runCheck;
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckDeadLetterQueue));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(DeadLetterQueueCheck));
     }
 }

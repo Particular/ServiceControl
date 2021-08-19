@@ -15,7 +15,7 @@
     using NoInstances;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ShellViewModel : RxConductor<RxScreen>.Collection.OneActive, IHandle<RefreshInstances>
+    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<RefreshInstances>
     {
         public ShellViewModel(
             NoInstancesViewModel noInstances,

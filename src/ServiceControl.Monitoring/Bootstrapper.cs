@@ -103,7 +103,7 @@
             config.DefineCriticalErrorAction(c =>
             {
                 onCriticalError(c);
-                return TaskEx.Completed;
+                return Task.CompletedTask;
             });
 
             config.GetSettings().Set(settings);

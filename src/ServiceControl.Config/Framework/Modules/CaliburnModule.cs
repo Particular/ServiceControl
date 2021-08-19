@@ -9,7 +9,7 @@
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<WindowManagerEx>().As<IWindowManager>().As<IWindowManagerEx>().InstancePerLifetimeScope();
+            builder.RegisterType<ServiceControlWindowManager>().As<IWindowManager>().As<IServiceControlWindowManager>().InstancePerLifetimeScope();
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().InstancePerLifetimeScope();
 
             // register view models

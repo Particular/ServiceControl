@@ -25,7 +25,7 @@
                 Logger.Warn($"Legacy queue length report received from {endpointInstanceId.InstanceName} instance of {endpointInstanceId.EndpointName}");
             }
 
-            return TaskEx.Completed;
+            return Task.CompletedTask;
         }
 
         LegacyQueueLengthEndpoints legacyEndpoints;

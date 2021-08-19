@@ -13,7 +13,7 @@
 
     class MonitoringAddAttachment : Attachment<MonitoringAddViewModel>
     {
-        public MonitoringAddAttachment(IWindowManagerEx windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public MonitoringAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -98,7 +98,7 @@
             return result;
         }
 
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
     }

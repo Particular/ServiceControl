@@ -9,7 +9,7 @@ namespace ServiceControl.Config.Commands
 
     class AdvancedServiceControlOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
     {
-        public AdvancedServiceControlOptionsCommand(IWindowManagerEx windowManager, Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel)
+        public AdvancedServiceControlOptionsCommand(IServiceControlWindowManager windowManager, Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel)
         {
             this.windowManager = windowManager;
             this.advancedOptionsModel = advancedOptionsModel;
@@ -36,6 +36,6 @@ namespace ServiceControl.Config.Commands
         }
 
         readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;
-        readonly IWindowManagerEx windowManager;
+        readonly IServiceControlWindowManager windowManager;
     }
 }
