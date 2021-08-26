@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.7" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.1.1" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
-    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Autofac" Version="6.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.2" />
