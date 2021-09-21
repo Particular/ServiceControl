@@ -7,7 +7,6 @@
     using Contracts.Operations;
     using MessageFailures;
     using NUnit.Framework;
-    using ServiceControl.ExternalIntegrations;
     using ServiceControl.Recoverability.ExternalIntegration;
 
     [TestFixture]
@@ -87,11 +86,22 @@
         public void Body_is_mapped_from_metadata_of_last_processing_attempt()
         {
             var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
-                .AddProcessingAttempt(pa => { pa.MessageMetadata["Body"] = "Beautiful Body"; })
+                .AddProcessingAttempt(pa => { pa.MessageMetadata["Body"] = "Hello!"; })
                 .Build();
 
             var result = failedMessage.ToEvent();
-            Assert.AreEqual("Beautiful Body", result.MessageDetails.Body);
+            Assert.AreEqual("Hello!", result.MessageDetails.Body);
+        }
+
+        [Test]
+        public void Body_is_mapped_from_property_of_last_processing_attempt()
+        {
+            var failedMessage = new FailedMessageBuilder(FailedMessageStatus.Unresolved)
+                .AddProcessingAttempt(pa => { pa.Body = "Hello!"; })
+                .Build();
+
+            var result = failedMessage.ToEvent();
+            Assert.AreEqual("Hello!", result.MessageDetails.Body);
         }
 
         class FailedMessageBuilder

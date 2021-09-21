@@ -76,7 +76,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
                 return (string)body;
             }
 
-            return null;
+            return last.Body;
         }
     }
 }
