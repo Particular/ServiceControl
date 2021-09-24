@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Particular.Licensing.Sources" Version="3.5.0" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="3.6.0" />
   </ItemGroup>
 
   <ItemGroup>
