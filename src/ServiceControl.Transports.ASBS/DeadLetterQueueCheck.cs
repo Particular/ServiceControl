@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.ServiceBus.Management;
+    using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
 
@@ -25,27 +25,20 @@
             }
 
             Logger.Debug("Checking Dead Letter Queue length");
-            var managementClient = new ManagementClient(connectionString);
+            var managementClient = new ServiceBusAdministrationClient(connectionString);
 
-            try
+            var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue).ConfigureAwait(false);
+            var deadLetterMessageCount = queueRuntimeInfo.Value.DeadLetterMessageCount;
+
+            if (deadLetterMessageCount > 0)
             {
-                var queueRuntimeInfo = await managementClient.GetQueueRuntimeInfoAsync(stagingQueue).ConfigureAwait(false);
-                var deadLetterMessageCount = queueRuntimeInfo.MessageCountDetails.DeadLetterMessageCount;
+                var result = $"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
 
-                if (deadLetterMessageCount > 0)
-                {
-                    var result = $"{deadLetterMessageCount} messages in the Dead Letter Queue '{stagingQueue}'. This could indicate a problem with ServiceControl's retries. Please submit a support ticket to Particular using support@particular.net if you would like help from our engineers to ensure no message loss while resolving these dead letter messages.";
-
-                    Logger.Warn(result);
-                    return CheckResult.Failed(result);
-                }
-
-                Logger.Debug("No messages in Dead Letter Queue");
+                Logger.Warn(result);
+                return CheckResult.Failed(result);
             }
-            finally
-            {
-                await managementClient.CloseAsync().ConfigureAwait(false);
-            }
+
+            Logger.Debug("No messages in Dead Letter Queue");
 
             return CheckResult.Pass;
         }
