@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -10,7 +10,9 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.0" />
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.6.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
   </ItemGroup>
 
 </Project>
