@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
     <PackageReference Include="Microsoft.Data.SqlClient.SNI" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Transport.SqlServer" Version="6.2.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" />
   </ItemGroup>
 
 </Project>
