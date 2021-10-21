@@ -4,10 +4,9 @@ namespace ServiceControl.Transports.ASBS
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Data.Common;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.ServiceBus.Management;
+    using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus.Logging;
 
     class QueueLengthProvider : IProvideQueueLength
@@ -29,7 +28,7 @@ namespace ServiceControl.Transports.ASBS
             }
 
             this.store = store;
-            this.managementClient = new ManagementClient(connectionString);
+            managementClient = new ServiceBusAdministrationClient(connectionString);
         }
 
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
@@ -78,35 +77,29 @@ namespace ServiceControl.Transports.ASBS
             return Task.CompletedTask;
         }
 
-        async Task<IReadOnlyDictionary<string, QueueRuntimeInfo>> GetQueueList(CancellationToken cancellationToken)
+        async Task<IReadOnlyDictionary<string, QueueRuntimeProperties>> GetQueueList(CancellationToken cancellationToken)
         {
-            const int pageSize = 100; //This is the maximal page size for GetQueueAsync
-            var pageNo = 0;
+            var queuePathToRuntimeInfo = new Dictionary<string, QueueRuntimeProperties>(StringComparer.InvariantCultureIgnoreCase);
 
-            var queuePathToRuntimeInfo = new Dictionary<string, QueueRuntimeInfo>(StringComparer.InvariantCultureIgnoreCase);
-
-            while (true)
+            var queuesRuntimeProperties = managementClient.GetQueuesRuntimePropertiesAsync(cancellationToken);
+            var enumerator = queuesRuntimeProperties.GetAsyncEnumerator(cancellationToken);
+            try
             {
-                var pageOfQueueRuntimeInfo = await managementClient.GetQueuesRuntimeInfoAsync(count: pageSize, skip: pageNo * pageSize, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
-
-                foreach (var queueRuntimeInfo in pageOfQueueRuntimeInfo)
+                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    queuePathToRuntimeInfo.Add(queueRuntimeInfo.Path, queueRuntimeInfo);
+                    var queueRuntimeProperties = enumerator.Current;
+                    queuePathToRuntimeInfo.Add(queueRuntimeProperties.Name, queueRuntimeProperties);
                 }
-
-                if (pageOfQueueRuntimeInfo.Count < pageSize)
-                {
-                    break;
-                }
-
-                pageNo++;
+            }
+            finally
+            {
+                await enumerator.DisposeAsync().ConfigureAwait(false);
             }
 
             return queuePathToRuntimeInfo;
         }
 
-        void UpdateAllQueueLengths(IReadOnlyDictionary<string, QueueRuntimeInfo> queues)
+        void UpdateAllQueueLengths(IReadOnlyDictionary<string, QueueRuntimeProperties> queues)
         {
             foreach (var eq in endpointQueueMappings)
             {
@@ -114,7 +107,7 @@ namespace ServiceControl.Transports.ASBS
             }
         }
 
-        void UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, IReadOnlyDictionary<string, QueueRuntimeInfo> queues)
+        void UpdateQueueLength(KeyValuePair<string, string> monitoredEndpoint, IReadOnlyDictionary<string, QueueRuntimeProperties> queues)
         {
             var endpointName = monitoredEndpoint.Value;
             var queueName = monitoredEndpoint.Key;
@@ -129,7 +122,7 @@ namespace ServiceControl.Transports.ASBS
                 new QueueLengthEntry
                 {
                     DateTicks =  DateTime.UtcNow.Ticks,
-                    Value = runtimeInfo.MessageCountDetails.ActiveMessageCount
+                    Value = runtimeInfo.ActiveMessageCount
                 }
             };
 
@@ -140,12 +133,11 @@ namespace ServiceControl.Transports.ASBS
         {
             stop.Cancel();
             await poller.ConfigureAwait(false);
-            await managementClient.CloseAsync().ConfigureAwait(false);
         }
 
         ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();
         Action<QueueLengthEntry[], EndpointToQueueMapping> store;
-        ManagementClient managementClient;
+        ServiceBusAdministrationClient managementClient;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;
 
