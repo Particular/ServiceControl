@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Config.Xaml.Behaviours
 {
     using System.Windows;
-    using System.Windows.Interactivity;
+    using Microsoft.Xaml.Behaviors;
     using PropertyChanged;
 
     public class StylizedBehaviors
