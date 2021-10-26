@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using System;
+    using System.Threading.Tasks;
     using FeedBack;
     using Framework;
 
@@ -22,24 +23,25 @@
 
         protected override void OnAttach()
         {
-            viewModel.OpenFeedBack = Command.Create(() => FeedBack());
+            viewModel.OpenFeedBack = Command.Create(async () => await FeedBack());
         }
 
-        void FeedBack()
+        async Task FeedBack()
         {
             if (raygunFeedBack.Enabled)
             {
                 var feedBackViewModel = feedBackFactory();
-                if (windowManager.ShowDialog(feedBackViewModel) == true)
+
+                if (await windowManager.ShowDialogAsync(feedBackViewModel) == true)
                 {
                     var result = feedBackResultFactory();
                     result.SetResult(feedBackViewModel.Success);
-                    windowManager.ShowDialog(result);
+                    await windowManager.ShowDialogAsync(result);
                 }
             }
             else
             {
-                windowManager.ShowDialog(feedBackNoticeFactory());
+                await windowManager.ShowDialogAsync(feedBackNoticeFactory());
             }
         }
 

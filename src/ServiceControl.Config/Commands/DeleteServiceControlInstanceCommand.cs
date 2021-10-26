@@ -24,7 +24,8 @@
         {
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;
-            if (windowManager.ShowDialog(confirmation) == true)
+            var isConfirmed = await windowManager.ShowDialogAsync(confirmation);
+            if (isConfirmed == true)
             {
                 using (var progress = model.GetProgressObject("REMOVING " + model.Name))
                 {

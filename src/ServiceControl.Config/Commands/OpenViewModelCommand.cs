@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Config.Commands
 {
+    using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
 
-    class OpenViewModelCommand<T> : AbstractCommand<object>
+    class OpenViewModelCommand<T> : AwaitableAbstractCommand<object>
     {
         public OpenViewModelCommand(IServiceControlWindowManager windowManager, T screen)
         {
@@ -11,10 +12,7 @@
             this.windowManager = windowManager;
         }
 
-        public override void Execute(object obj)
-        {
-            windowManager.ShowDialog(screen);
-        }
+        public override Task ExecuteAsync(object obj) => windowManager.ShowDialogAsync(screen);
 
         readonly T screen;
         readonly IServiceControlWindowManager windowManager;
