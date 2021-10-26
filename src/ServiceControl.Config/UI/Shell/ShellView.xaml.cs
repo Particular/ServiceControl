@@ -28,8 +28,8 @@
 
                 window.LocationChanged += Window_LocationChanged;
                 window.SizeChanged += Window_SizeChanged;
-                window.LostKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = false });
-                window.GotKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = true });
+                window.LostKeyboardFocus += async (s, e) => await IoC.Get<IEventAggregator>().PublishOnUIThreadAsync(new FocusChanged { HasFocus = false });
+                window.GotKeyboardFocus += async (s, e) => await IoC.Get<IEventAggregator>().PublishOnUIThreadAsync(new FocusChanged { HasFocus = true });
             };
         }
 
