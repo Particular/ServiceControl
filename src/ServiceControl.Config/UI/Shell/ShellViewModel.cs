@@ -93,9 +93,10 @@
             return Task.CompletedTask;
         }
 
-        protected override void OnInitialize()
+        protected override Task OnInitialize()
         {
             RefreshInstances();
+            return Task.CompletedTask;
         }
 
         protected override async Task OnActivate()

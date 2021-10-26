@@ -60,7 +60,7 @@
             if (!IsInitialized)
             {
                 IsInitialized = initialized = true;
-                OnInitialize();
+                await OnInitialize();
             }
 
             IsActive = true;
@@ -119,9 +119,7 @@
         /// <summary>
         /// Called when initializing.
         /// </summary>
-        protected virtual void OnInitialize()
-        {
-        }
+        protected virtual Task OnInitialize() => Task.CompletedTask;
 
         /// <summary>
         /// Called when activating.
