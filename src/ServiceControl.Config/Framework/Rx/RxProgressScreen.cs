@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -48,7 +47,7 @@
             }
         }
 
-        public override Task CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(!InProgress);
+        public override Task<bool> CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(!InProgress);
 
         void NotifyUpdates()
         {
