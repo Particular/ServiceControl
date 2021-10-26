@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using EnumerableExtensions = EnumerableExtensions;
@@ -121,39 +122,44 @@
                 return default;
             }
 
-            public override void CanClose(Action<bool> callback)
+            public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
             {
-                CloseStrategy.Execute(items.ToList(), (canClose, closable) =>
+                var result = await CloseStrategy.ExecuteAsync(items.ToList(), cancellationToken);
+                var canClose = result.CloseCanOccur;
+                var closable = result.Children.ToList();
+
+                if (!canClose && closable.Any())
                 {
-                    if (!canClose && closable.Any())
+                    if (closable.Contains(ActiveItem))
                     {
-                        if (closable.Contains(ActiveItem))
+                        var list = items.ToList();
+                        var next = ActiveItem;
+                        do
                         {
-                            var list = items.ToList();
-                            var next = ActiveItem;
-                            do
-                            {
-                                var previous = next;
-                                next = DetermineNextItemToActivate(list, list.IndexOf(previous));
-                                list.Remove(previous);
-                            }
-                            while (closable.Contains(next));
-
-                            var previousActive = ActiveItem;
-                            ChangeActiveItem(next, true);
-                            items.Remove(previousActive);
-
-                            var stillToClose = closable.ToList();
-                            stillToClose.Remove(previousActive);
-                            closable = stillToClose;
+                            var previous = next;
+                            next = DetermineNextItemToActivate(list, list.IndexOf(previous));
+                            list.Remove(previous);
                         }
+                        while (closable.Contains(next));
 
-                        EnumerableExtensions.Apply(closable.OfType<IDeactivate>(), x => x.Deactivate(true));
-                        items.RemoveRange(closable);
+                        var previousActive = ActiveItem;
+                        ChangeActiveItem(next, true);
+                        items.Remove(previousActive);
+
+                        var stillToClose = closable.ToList();
+                        stillToClose.Remove(previousActive);
+                        closable = stillToClose;
                     }
 
-                    callback(canClose);
-                });
+                    await Task.WhenAll(
+                        from deactivatable in closable.OfType<IDeactivate>()
+                        select deactivatable.DeactivateAsync(true)
+                    );
+
+                    items.RemoveRange(closable);
+                }
+
+                return canClose;
             }
 
             protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);

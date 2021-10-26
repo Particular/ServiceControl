@@ -103,20 +103,17 @@
         /// Called to check whether or not this instance can close.
         /// </summary>
         /// <param name="callback">The implementor calls this action with the result of the close check.</param>
-        public virtual void CanClose(Action<bool> callback)
-        {
-            callback(true);
-        }
+        public virtual Task<bool> CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(true);
 
         /// <summary>
         /// Tries to close this instance by asking its Parent to initiate shutdown or by asking its corresponding view to close.
         /// Also provides an opportunity to pass a dialog result to it's corresponding view.
         /// </summary>
         /// <param name="dialogResult">The dialog result.</param>
-        public virtual void TryClose(bool? dialogResult = null)
+        public virtual Task TryCloseAsync(bool? dialogResult = null)
         {
             Result = dialogResult;
-            PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult).OnUIThread();
+            return PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult).Invoke(CancellationToken.None);
         }
 
         /// <summary>

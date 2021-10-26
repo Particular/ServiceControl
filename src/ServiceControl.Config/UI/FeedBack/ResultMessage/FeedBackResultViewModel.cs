@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
     using Framework;
-    using Framework.Commands;
     using Framework.Rx;
 
     class FeedBackResultViewModel : RxScreen
@@ -10,13 +9,13 @@
         public FeedBackResultViewModel(bool showSuccess = false)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            OK = Command.Create(() => TryClose(false));
+            OK = Command.Create(async () => await TryCloseAsync(false));
         }
 
         public string Title { get; private set; }
         public string Message { get; private set; }
 
-        public ICommand OK { get; }
+        public System.Windows.Input.ICommand OK { get; }
 
         public void SetResult(bool showSuccess)
         {

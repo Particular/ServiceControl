@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.FeedBack
 {
+    using System.Threading.Tasks;
     using System.Windows.Input;
     using Framework;
     using Framework.Rx;
@@ -13,8 +14,8 @@
         {
             feedBack = raygunFeedBack;
             validationTemplate = new ValidationTemplate(this);
-            Cancel = Command.Create(() => TryClose(false));
-            SendFeedBack = Command.Create(() => Send());
+            Cancel = Command.Create(async () => await TryCloseAsync(false));
+            SendFeedBack = Command.Create(async () => await Send());
         }
 
         public string EmailAddress { get; set; }
@@ -29,7 +30,7 @@
 
         public bool SubmitAttempted { get; set; }
 
-        void Send()
+        async Task Send()
         {
             SubmitAttempted = true;
             if (!validationTemplate.Validate())
@@ -49,7 +50,7 @@
                 Success = false;
             }
 
-            TryClose(true);
+            await TryCloseAsync(true);
         }
 
         RaygunFeedback feedBack;

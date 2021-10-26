@@ -18,10 +18,10 @@
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Cancel = Command.Create(() =>
+            viewModel.Cancel = Command.Create(async () =>
             {
                 viewModel.Result = null;
-                viewModel.TryClose(false);
+                await viewModel.TryCloseAsync(false);
             });
 
             viewModel.Continue = ReactiveCommand.Create(Continue);
@@ -40,7 +40,7 @@
                 return;
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
         }
     }
 }

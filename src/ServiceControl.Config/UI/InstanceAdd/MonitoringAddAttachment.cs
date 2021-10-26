@@ -28,7 +28,7 @@
             viewModel.Save = ReactiveCommand.CreateFromTask(Add);
             viewModel.Cancel = Command.Create(async () =>
             {
-                viewModel.TryClose(false);
+                await viewModel.TryCloseAsync(false);
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, IsInProgress);
         }
@@ -84,7 +84,7 @@
                 }
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }

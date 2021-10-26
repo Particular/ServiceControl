@@ -36,7 +36,7 @@
                     }
                     else
                     {
-                        model.TryClose(true);
+                        await model.TryCloseAsync(true);
                     }
                 }
 

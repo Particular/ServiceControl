@@ -21,7 +21,7 @@
 
             Cancel = Command.Create(async () =>
             {
-                TryClose(false);
+                await TryCloseAsync(false);
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, () => !InProgress);
         }

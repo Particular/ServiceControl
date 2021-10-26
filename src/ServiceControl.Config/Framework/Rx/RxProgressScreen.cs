@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class RxProgressScreen : RxScreen, IProgressViewModel
     {
@@ -46,10 +48,7 @@
             }
         }
 
-        public override void CanClose(Action<bool> callback)
-        {
-            callback(!InProgress);
-        }
+        public override Task CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(!InProgress);
 
         void NotifyUpdates()
         {

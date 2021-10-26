@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
@@ -50,9 +51,10 @@
               });
         }
 
-        public override void CanClose(Action<bool> callback)
+        public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
         {
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) => callback(canClose));
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem }, cancellationToken);
+            return result.CloseCanOccur;
         }
 
         protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);

@@ -27,7 +27,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             viewModel.Save = ReactiveCommand.CreateFromTask(Save);
             viewModel.Cancel = Command.Create(async () =>
             {
-                viewModel.TryClose(false);
+                await viewModel.TryCloseAsync(false);
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, IsInProgress);
         }
@@ -86,7 +86,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 progress.Report(0, 0, "Update Complete");
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
