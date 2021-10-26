@@ -27,10 +27,10 @@ namespace ServiceControl.Config.UI.InstanceAdd
             viewModel.ValidationTemplate = validationTemplate;
 
             viewModel.Save = ReactiveCommand.CreateFromTask(Add);
-            viewModel.Cancel = Command.Create(() =>
+            viewModel.Cancel = Command.Create(async () =>
             {
                 viewModel.TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, IsInProgress);
         }
 

@@ -25,7 +25,7 @@
             StartServiceInMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
             {
                 await maintenanceModeCommand.ExecuteAsync(this);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
             DeleteCommand = deleteInstanceCommand;
             OpenUrl = new OpenURLCommand();
@@ -33,12 +33,12 @@
             StopMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
             {
                 await StopService();
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
                 TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, () => !InProgress);
         }
 

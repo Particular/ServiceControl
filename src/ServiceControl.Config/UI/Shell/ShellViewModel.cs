@@ -40,11 +40,11 @@
             addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
-            RefreshInstancesCmd = Command.Create(() =>
+            RefreshInstancesCmd = Command.Create(async () =>
             {
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                 // Used to "blink" the refresh button to indicate the refresh actually ran.
-                return Task.Delay(500);
+                await Task.Delay(500);
             });
         }
 

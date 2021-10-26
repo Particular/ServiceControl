@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
     using Framework;
@@ -9,7 +10,7 @@ namespace ServiceControl.Config.Commands
     using UI.InstanceDetails;
     using UI.InstanceEdit;
 
-    class EditMonitoringInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
+    class EditMonitoringInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         public EditMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringInstance, MonitoringEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(null)
         {
@@ -18,14 +19,14 @@ namespace ServiceControl.Config.Commands
             this.eventAggregator = eventAggregator;
         }
 
-        public override void Execute(InstanceDetailsViewModel viewModel)
+        public override async Task ExecuteAsync(InstanceDetailsViewModel viewModel)
         {
             var editVM = editViewModel((MonitoringInstance)viewModel.ServiceInstance);
 
             if (windowManager.ShowInnerDialog(editVM) ?? false)
             {
                 editVM.UpdateInstanceFromViewModel((MonitoringInstance)viewModel.ServiceInstance);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }
         }
 
