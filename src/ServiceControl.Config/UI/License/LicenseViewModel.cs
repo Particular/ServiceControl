@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
     using Commands;
@@ -25,7 +26,7 @@
 
         public ICommand OpenUrl => new OpenURLCommand();
 
-        public ICommand BrowseForFile => new SelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
+        public ICommand BrowseForFile => new AwaitableSelectPathCommand(OpenLicenseFile, "Select License File", filters: new[] { new CommonFileDialogFilter("License File", "xml") });
 
         public bool CanExtendTrial { get; set; }
 
@@ -47,14 +48,14 @@
             ExtendLicenseUrl = $"https://particular.net/license/nservicebus?t={(license.IsEvaluationLicense ? 0 : 1)}&p=servicecontrol";
         }
 
-        void OpenLicenseFile(string path)
+        async Task OpenLicenseFile(string path)
         {
             if (LicenseManager.TryImportLicense(path, out var importError))
             {
                 ApplyLicenseError = null;
                 RefreshLicenseInfo();
                 ApplyLicenseSuccess = "License imported successfully";
-                EventAggregator.PublishOnUIThread(new LicenseUpdated());
+                await EventAggregator.PublishOnUIThreadAsync(new LicenseUpdated());
             }
             else
             {
