@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config
 {
     using System;
+    using System.Threading.Tasks;
     using System.Windows.Threading;
     using Caliburn.Micro;
 
@@ -11,7 +12,11 @@
             try
             {
                 var frame = new DispatcherFrame();
-                item.Deactivated += (sender, e) => { frame.Continue = false; };
+                item.Deactivated += (sender, e) =>
+                {
+                    frame.Continue = false;
+                    return Task.CompletedTask;
+                };
                 Dispatcher.PushFrame(frame);
             }
             catch (Exception ex)

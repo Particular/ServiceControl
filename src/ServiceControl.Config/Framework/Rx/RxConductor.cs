@@ -57,10 +57,7 @@
 
         protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
-        protected override void OnDeactivate(bool close)
-        {
-            ScreenExtensions.TryDeactivate(ActiveItem, close);
-        }
+        protected override Task OnDeactivate(bool close) => ScreenExtensions.TryDeactivateAsync(ActiveItem, close);
 
         public override IEnumerable<T> GetChildren()
         {

@@ -158,16 +158,22 @@
 
             protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
-            protected override void OnDeactivate(bool close)
+            protected override async Task OnDeactivate(bool close)
             {
                 if (close)
                 {
-                    EnumerableExtensions.Apply(items.OfType<IDeactivate>(), x => x.Deactivate(true));
+                    foreach (var item in items)
+                    {
+                        if (item is IDeactivate deactivatable)
+                        {
+                            await deactivatable.DeactivateAsync(true);
+                        }
+                    }
                     items.Clear();
                 }
                 else
                 {
-                    ScreenExtensions.TryDeactivate(ActiveItem, false);
+                    await ScreenExtensions.TryDeactivateAsync(ActiveItem, false);
                 }
             }
 

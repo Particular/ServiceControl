@@ -46,7 +46,7 @@
         /// <summary>
         /// Raised after deactivation.
         /// </summary>
-        public event EventHandler<DeactivationEventArgs> Deactivated = (sender, e) => { };
+        public event AsyncEventHandler<DeactivationEventArgs> Deactivated = (sender, e) => Task.CompletedTask;
 
         async Task IActivate.ActivateAsync(CancellationToken cancellationToken)
         {
@@ -73,7 +73,7 @@
             });
         }
 
-        void IDeactivate.Deactivate(bool close)
+        async Task IDeactivate.DeactivateAsync(bool close, CancellationToken cancellationToken)
         {
             if (IsActive || (IsInitialized && close))
             {
@@ -84,9 +84,9 @@
 
                 IsActive = false;
                 Log.Info("Deactivating {0}.", this);
-                OnDeactivate(close);
+                await OnDeactivate(close);
 
-                Deactivated(this, new DeactivationEventArgs
+                await Deactivated(this, new DeactivationEventArgs
                 {
                     WasClosed = close
                 });
@@ -135,9 +135,7 @@
         /// Called when deactivating.
         /// </summary>
         /// <param name="close">Inidicates whether this instance will be closed.</param>
-        protected virtual void OnDeactivate(bool close)
-        {
-        }
+        protected virtual Task OnDeactivate(bool close) => Task.CompletedTask;
 
         static readonly ILog Log = LogManager.GetLog(typeof(Screen));
     }
