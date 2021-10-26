@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
+    using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 
     public partial class RxConductor<T> : RxConductorBaseWithActiveItem<T> where T : class
     {
@@ -53,10 +55,7 @@
             CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) => callback(canClose));
         }
 
-        protected override void OnActivate()
-        {
-            ScreenExtensions.TryActivate(ActiveItem);
-        }
+        protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
         protected override void OnDeactivate(bool close)
         {

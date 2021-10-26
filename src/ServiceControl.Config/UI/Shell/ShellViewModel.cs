@@ -98,9 +98,9 @@
             RefreshInstances();
         }
 
-        protected override async void OnActivate()
+        protected override async Task OnActivate()
         {
-            base.OnActivate();
+            await base.OnActivate();
 
             await CheckForUpdates();
         }

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
     using EnumerableExtensions = EnumerableExtensions;
 
@@ -155,10 +156,7 @@
                 });
             }
 
-            protected override void OnActivate()
-            {
-                ScreenExtensions.TryActivate(ActiveItem);
-            }
+            protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
             protected override void OnDeactivate(bool close)
             {

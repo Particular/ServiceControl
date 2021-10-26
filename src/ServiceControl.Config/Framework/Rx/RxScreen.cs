@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public class RxScreen : RxViewAware, IScreen, IChild, IModalResult
@@ -46,7 +48,7 @@
         /// </summary>
         public event EventHandler<DeactivationEventArgs> Deactivated = (sender, e) => { };
 
-        void IActivate.Activate()
+        async Task IActivate.ActivateAsync(CancellationToken cancellationToken)
         {
             if (IsActive)
             {
@@ -63,7 +65,7 @@
 
             IsActive = true;
             Log.Info("Activating {0}.", this);
-            OnActivate();
+            await OnActivate();
 
             Activated(this, new ActivationEventArgs
             {
@@ -127,9 +129,7 @@
         /// <summary>
         /// Called when activating.
         /// </summary>
-        protected virtual void OnActivate()
-        {
-        }
+        protected virtual Task OnActivate() => Task.CompletedTask;
 
         /// <summary>
         /// Called when deactivating.

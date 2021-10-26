@@ -32,9 +32,10 @@
 
         public string ExtendLicenseUrl { get; set; }
 
-        protected override void OnActivate()
+        protected override Task OnActivate()
         {
             RefreshLicenseInfo();
+            return Task.CompletedTask;
         }
 
         void RefreshLicenseInfo()
