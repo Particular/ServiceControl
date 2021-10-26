@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -252,7 +253,7 @@
 
         public ICommand UpgradeToNewVersionCommand { get; private set; }
 
-        public void Handle(RefreshInstances message)
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             UpdateServiceProperties();
 
@@ -266,6 +267,7 @@
             NotifyOfPropertyChange("HasNewVersion");
             NotifyOfPropertyChange("Transport");
             NotifyOfPropertyChange("BrowsableUrl");
+            return Task.CompletedTask;
         }
 
         public async Task<bool> StartService(IProgressObject progress = null)

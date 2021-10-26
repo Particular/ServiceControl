@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -86,9 +87,10 @@
 
         public string AvailableUpgradeReleaseLink { get; set; }
 
-        public void Handle(RefreshInstances message)
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             RefreshInstances();
+            return Task.CompletedTask;
         }
 
         protected override void OnInitialize()

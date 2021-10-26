@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -113,12 +114,13 @@
             }
         }
 
-        public void Handle(RefreshInstances message)
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
+            return Task.CompletedTask;
         }
 
         public async Task<bool> StartServiceInMaintenanceMode(IProgressObject progress)

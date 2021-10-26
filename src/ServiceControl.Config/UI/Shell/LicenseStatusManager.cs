@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
     using Commands;
@@ -35,14 +37,16 @@
         public bool IsSerious { get; set; }
         public bool HasFocus { get; set; }
 
-        public void Handle(FocusChanged message)
+        public Task HandleAsync(FocusChanged message, CancellationToken cancellationToken)
         {
             HasFocus = message.HasFocus;
+            return Task.CompletedTask;
         }
 
-        public void Handle(LicenseUpdated message)
+        public Task HandleAsync(LicenseUpdated message, CancellationToken cancellationToken)
         {
             RefreshStatus(false);
+            return Task.CompletedTask;
         }
 
         void RefreshStatus(bool updatePopupDisplay)
