@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
+    using System.Threading.Tasks;
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
