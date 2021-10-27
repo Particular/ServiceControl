@@ -350,12 +350,12 @@ namespace ServiceControl.Config.Framework.Modules
             return instance.ReportCard;
         }
 
-        internal ReportCard Update(MonitoringInstance instance, bool startService)
+        internal async Task<ReportCard> Update(MonitoringInstance instance, bool startService)
         {
             try
             {
                 instance.ReportCard = new ReportCard();
-                instance.ValidateChanges();
+                await instance.ValidateChanges();
                 if (instance.ReportCard.HasErrors)
                 {
                     instance.ReportCard.Status = Status.FailedValidation;

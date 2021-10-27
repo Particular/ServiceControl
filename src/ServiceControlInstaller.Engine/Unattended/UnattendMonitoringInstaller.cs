@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.ServiceProcess;
+    using System.Threading.Tasks;
     using FileSystem;
     using Instances;
     using ServiceControl.LicenseManagement;
@@ -27,7 +28,7 @@
 
         public PlatformZipInfo ZipInfo { get; }
 
-        public bool Add(MonitoringNewInstance details, Func<PathInfo, bool> promptToProceed)
+        public async Task<bool> Add(MonitoringNewInstance details, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -42,7 +43,7 @@
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)
@@ -152,10 +153,10 @@
             return true;
         }
 
-        internal bool Update(MonitoringInstance instance, bool startService)
+        internal async Task<bool> Update(MonitoringInstance instance, bool startService)
         {
             instance.ReportCard = new ReportCard();
-            instance.ValidateChanges();
+            await instance.ValidateChanges().ConfigureAwait(false);
             if (instance.ReportCard.HasErrors)
             {
                 foreach (var error in instance.ReportCard.Errors)

@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.ServiceProcess;
+    using System.Threading.Tasks;
     using FileSystem;
     using Instances;
     using ReportCard;
@@ -27,7 +28,7 @@
 
         public PlatformZipInfo ZipInfo { get; }
 
-        public bool Add(ServiceControlAuditNewInstance details, Func<PathInfo, bool> promptToProceed)
+        public async Task<bool> Add(ServiceControlAuditNewInstance details, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -43,7 +44,7 @@
             instanceInstaller.Version = ZipInfo.Version;
 
             //Validation
-            instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
             if (instanceInstaller.ReportCard.HasErrors)
             {
                 foreach (var error in instanceInstaller.ReportCard.Errors)

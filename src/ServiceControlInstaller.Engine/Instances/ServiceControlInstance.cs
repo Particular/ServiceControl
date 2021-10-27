@@ -65,11 +65,11 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        protected override void ValidatePaths()
+        protected override async Task ValidatePaths()
         {
             try
             {
-                new PathsValidator(this).RunValidation(false);
+                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

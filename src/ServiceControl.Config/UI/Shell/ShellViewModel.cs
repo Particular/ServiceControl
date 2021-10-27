@@ -87,17 +87,9 @@
 
         public string AvailableUpgradeReleaseLink { get; set; }
 
-        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
-        {
-            RefreshInstances();
-            return Task.CompletedTask;
-        }
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
 
-        protected override Task OnInitialize()
-        {
-            RefreshInstances();
-            return Task.CompletedTask;
-        }
+        protected override Task OnInitialize() => RefreshInstances();
 
         protected override async Task OnActivate()
         {
@@ -106,7 +98,7 @@
             await CheckForUpdates();
         }
 
-        public void RefreshInstances()
+        public async Task RefreshInstances()
         {
             if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
             {
@@ -117,11 +109,11 @@
 
             if (HasInstances)
             {
-                ActivateItem(listInstances);
+                await ActivateItem(listInstances);
             }
             else
             {
-                ActivateItem(noInstances);
+                await ActivateItem(noInstances);
             }
         }
 

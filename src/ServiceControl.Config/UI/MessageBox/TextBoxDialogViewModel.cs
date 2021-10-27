@@ -22,15 +22,15 @@
             Value = currentValue;
             Validator = validator;
             Header = header;
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
                 Result = null;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
-            Save = Command.Create(() =>
+            Save = Command.Create(async () =>
             {
                 Result = true;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             }, () => Validator.Validate(new ValidationContext<TextBoxDialogViewModel>(this)).IsValid);
         }
 

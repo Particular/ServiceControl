@@ -14,20 +14,20 @@ namespace ServiceControl.Config.UI.MessageBox
             YesText = yesText;
             NoText = noText;
             Question = question;
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
                 Result = null;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
-            No = Command.Create(() =>
+            No = Command.Create(async () =>
             {
                 Result = false;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
-            Yes = Command.Create(() =>
+            Yes = Command.Create(async () =>
             {
                 Result = true;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
             ShowCancelButton = true;
         }

@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using Accounts;
     using Configuration;
     using Configuration.ServiceControl;
@@ -363,9 +364,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
         }
 
-        protected virtual void ValidatePaths()
-        {
-        }
+        protected virtual Task ValidatePaths() => Task.CompletedTask;
 
         protected virtual void ValidateQueueNames()
         {

@@ -14,10 +14,10 @@ namespace ServiceControl.Config.UI.MessageBox
             Warnings = reportCard.Warnings;
             Errors = reportCard.Errors;
 
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
                 Result = false;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
         }
 
