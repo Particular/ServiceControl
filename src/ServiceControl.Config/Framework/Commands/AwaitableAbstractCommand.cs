@@ -18,7 +18,7 @@ namespace ServiceControl.Config.Framework.Commands
         {
             using (StartExecuting())
             {
-                OnCommandExecuting();
+                OnExecuting();
                 await ExecuteAsync(obj);
 
             }
