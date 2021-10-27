@@ -134,12 +134,12 @@ namespace ServiceControl.Config.Framework.Modules
             upgradeOptions.ApplyChangesToInstance(instance);
         }
 
-        internal ReportCard Update(ServiceControlBaseService instance, bool startService)
+        internal async Task<ReportCard> Update(ServiceControlBaseService instance, bool startService)
         {
             try
             {
                 instance.ReportCard = new ReportCard();
-                instance.ValidateChanges();
+                await instance.ValidateChanges().ConfigureAwait(false);
                 if (instance.ReportCard.HasErrors)
                 {
                     instance.ReportCard.Status = Status.FailedValidation;

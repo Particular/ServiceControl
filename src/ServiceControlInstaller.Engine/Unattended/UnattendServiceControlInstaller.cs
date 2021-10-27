@@ -158,10 +158,10 @@
             return true;
         }
 
-        internal bool Update(ServiceControlInstance instance, bool startService)
+        internal async Task<bool> Update(ServiceControlInstance instance, bool startService)
         {
             instance.ReportCard = new ReportCard();
-            instance.ValidateChanges();
+            await instance.ValidateChanges().ConfigureAwait(false);
             if (instance.ReportCard.HasErrors)
             {
                 return false;

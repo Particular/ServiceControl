@@ -430,9 +430,9 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void ValidateChanges()
+        public async Task ValidateChanges()
         {
-            ValidatePaths();
+            await ValidatePaths().ConfigureAwait(false);
 
             ValidateQueueNames();
 

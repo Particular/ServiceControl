@@ -1,0 +1,5 @@
+﻿[*.cs]
+
+# may be enabled in future
+dotnet_diagnostic.PS0013.severity = none # Require Cancellation
+dotnet_diagnostic.PS0018.severity = none # Require Cancellation
