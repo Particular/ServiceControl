@@ -1,13 +1,14 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using UI.AdvancedOptions;
     using UI.InstanceDetails;
 
-    class AdvancedServiceControlOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
+    class AdvancedServiceControlOptionsCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         public AdvancedServiceControlOptionsCommand(IServiceControlWindowManager windowManager, Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel)
         {
@@ -15,10 +16,10 @@ namespace ServiceControl.Config.Commands
             this.advancedOptionsModel = advancedOptionsModel;
         }
 
-        public override void Execute(InstanceDetailsViewModel viewModel)
+        public override Task ExecuteAsync(InstanceDetailsViewModel viewModel)
         {
             var screen = CreateAdvancedScreen(viewModel);
-            windowManager.ShowInnerDialog(screen);
+            return windowManager.ShowInnerDialog(screen);
         }
 
         ServiceControlAdvancedViewModel CreateAdvancedScreen(InstanceDetailsViewModel viewModel)

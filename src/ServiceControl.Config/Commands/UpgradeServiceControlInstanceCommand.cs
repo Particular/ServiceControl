@@ -50,7 +50,7 @@
                 var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
                 if (!licenseCheckResult.Valid)
                 {
-                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
+                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
                     return;
                 }
             }
@@ -69,7 +69,7 @@
 
             if (instance.Version < upgradeInfo.CurrentMinimumVersion)
             {
-                windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                     "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
                     $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
                     "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
@@ -87,7 +87,7 @@
 
             if (instance.IsErrorQueueDisabled())
             {
-                windowManager.ShowMessage("UPGRADE INCOMPATIBLE",
+                await windowManager.ShowMessage("UPGRADE INCOMPATIBLE",
                     "You cannot upgrade the instance of ServiceControl with error ingestion disabled. Please contact support.",
                     hideCancel: true);
 
@@ -96,7 +96,7 @@
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {
-                var result = windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
+                var result = await windowManager.ShowYesNoCancelDialog("UPGRADE QUESTION - DISABLE ERROR FORWARDING", "Error messages can be forwarded to a secondary error queue known as the Error Forwarding Queue. This queue exists to allow external tools to receive error messages. If you do not have a tool processing messages from the Error Forwarding Queue this setting should be disabled.", "So what do you want to do ?", "Do NOT forward", "Yes I want to forward");
                 if (!result.HasValue)
                 {
                     //Dialog was cancelled
@@ -133,7 +133,7 @@
                     1,
                     SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
 
-                if (windowManager.ShowSliderDialog(viewModel))
+                if (await windowManager.ShowSliderDialog(viewModel))
                 {
                     upgradeOptions.ErrorRetentionPeriod = viewModel.Period;
                 }
@@ -153,7 +153,7 @@
                     "Please specify an open port that will be used as the maintenance port",
                     new PortValidator());
 
-                if (windowManager.ShowTextBoxDialog(viewModel))
+                if (await windowManager.ShowTextBoxDialog(viewModel))
                 {
                     upgradeOptions.MaintenancePort = int.Parse(viewModel.Value);
                 }
@@ -167,7 +167,7 @@
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableFullTextSearchOnBodies.Name))
             {
-                var dialogResult = windowManager.ShowYesNoCancelDialog(
+                var dialogResult = await windowManager.ShowYesNoCancelDialog(
                     "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
                     "ServiceControl indexes message bodies to enable searching for messages by their contents in ServiceInsight. This has a performance impact on the ServiceControl instance and the feature can be disabled if it is not required.", "Do you want to disable full text search for message bodies?", "YES", "NO");
                 if (dialogResult.HasValue)
@@ -193,7 +193,7 @@
                     instance.EnableFullTextSearchOnBodies
                     && !upgradeOptions.DisableFullTextSearchOnBodies);
 
-                if (windowManager.ShowInnerDialog(auditViewModel) != true)
+                if (await windowManager.ShowInnerDialog(auditViewModel) != true)
                 {
                     //Dialog was cancelled
                     await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
@@ -202,7 +202,7 @@
             }
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
+                !await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
                     $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
                     "Do you want to proceed?",
                     "Yes, I want to proceed", "No"))
@@ -275,7 +275,7 @@
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
             {
-                windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
                 return true;
             }
 
@@ -302,7 +302,7 @@
 
                     reportCard.Errors.Add("Failed to stop the service");
                     reportCard.SetStatus();
-                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
                     return;
                 }
@@ -311,7 +311,7 @@
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
                 }
                 else
                 {
@@ -321,18 +321,18 @@
                         if (!serviceStarted)
                         {
                             reportCard.Errors.Add("The Service failed to start. Please consult the ServiceControl logs for this instance");
-                            windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
+                            await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                         }
                     }
                 }
             }
         }
 
-        bool PromptToProceed(PathInfo pathInfo)
+        async Task<bool> PromptToProceed(PathInfo pathInfo)
         {
             var result = false;
 
-            Execute.OnUIThread(() => { result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
+            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
 
             return result;
         }

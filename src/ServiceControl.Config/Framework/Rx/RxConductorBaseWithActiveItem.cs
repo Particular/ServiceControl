@@ -1,5 +1,6 @@
 namespace ServiceControl.Config.Framework.Rx
 {
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public abstract class RxConductorBaseWithActiveItem<T> : RxConductorBase<T>, IConductActiveItem where T : class
@@ -16,15 +17,15 @@ namespace ServiceControl.Config.Framework.Rx
             set { ActiveItem = (T)value; }
         }
 
-        protected virtual void ChangeActiveItem(T newItem, bool closePrevious)
+        protected virtual async Task ChangeActiveItem(T newItem, bool closePrevious)
         {
-            ScreenExtensions.TryDeactivate(activeItem, closePrevious);
+            await ScreenExtensions.TryDeactivateAsync(activeItem, closePrevious);
 
             newItem = EnsureItem(newItem);
 
             if (IsActive)
             {
-                ScreenExtensions.TryActivate(newItem);
+                await ScreenExtensions.TryActivateAsync(newItem);
             }
 
             activeItem = newItem;

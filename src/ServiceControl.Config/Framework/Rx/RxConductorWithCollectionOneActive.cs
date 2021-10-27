@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
-    using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
@@ -49,7 +48,7 @@
                 return items;
             }
 
-            public override void ActivateItem(T item)
+            public override async Task ActivateItem(T item)
             {
                 if (item != null && item.Equals(ActiveItem))
                 {
@@ -62,10 +61,10 @@
                     return;
                 }
 
-                ChangeActiveItem(item, false);
+                await ChangeActiveItem(item, false);
             }
 
-            public override void DeactivateItem(T item, bool close)
+            public override async Task DeactivateItem(T item, bool close)
             {
                 if (item == null)
                 {
@@ -78,28 +77,26 @@
                 }
                 else
                 {
-                    CloseStrategy.Execute(new[] { item }, (canClose, closable) =>
-                      {
-                          if (canClose)
-                          {
-                              CloseItemCore(item);
-                          }
-                      });
+                    var result = await CloseStrategy.ExecuteAsync(new[] { item });
+                    if (result.CloseCanOccur)
+                    {
+                        await CloseItemCore(item);
+                    }
                 }
             }
 
-            void CloseItemCore(T item)
+            async Task CloseItemCore(T item)
             {
                 if (item.Equals(ActiveItem))
                 {
                     var index = items.IndexOf(item);
                     var next = DetermineNextItemToActivate(items, index);
 
-                    ChangeActiveItem(next, true);
+                   await ChangeActiveItem(next, true);
                 }
                 else
                 {
-                    ScreenExtensions.TryDeactivate(item, true);
+                    await ScreenExtensions.TryDeactivateAsync(item, true);
                 }
 
                 items.Remove(item);
@@ -143,7 +140,7 @@
                         while (closable.Contains(next));
 
                         var previousActive = ActiveItem;
-                        ChangeActiveItem(next, true);
+                        await ChangeActiveItem(next, true);
                         items.Remove(previousActive);
 
                         var stillToClose = closable.ToList();

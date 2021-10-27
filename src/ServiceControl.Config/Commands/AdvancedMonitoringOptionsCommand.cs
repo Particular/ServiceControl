@@ -1,13 +1,14 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using UI.AdvancedOptions;
     using UI.InstanceDetails;
 
-    class AdvancedMonitoringOptionsCommand : AbstractCommand<InstanceDetailsViewModel>
+    class AdvancedMonitoringOptionsCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         public AdvancedMonitoringOptionsCommand(IServiceControlWindowManager windowManager, Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel)
         {
@@ -15,11 +16,11 @@ namespace ServiceControl.Config.Commands
             this.advancedOptionsModel = advancedOptionsModel;
         }
 
-        public override void Execute(InstanceDetailsViewModel viewModel)
+        public override Task ExecuteAsync(InstanceDetailsViewModel viewModel)
         {
             var screen = advancedOptionsModel(viewModel.MonitoringInstance);
 
-            windowManager.ShowInnerDialog(screen);
+            return windowManager.ShowInnerDialog(screen);
         }
 
         readonly Func<BaseService, MonitoringAdvancedViewModel> advancedOptionsModel;

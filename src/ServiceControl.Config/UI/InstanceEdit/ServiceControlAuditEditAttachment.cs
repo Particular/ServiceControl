@@ -51,7 +51,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
             var instance = viewModel.ServiceControlInstance;
             if (instance.Service.Status == ServiceControllerStatus.Running)
             {
-                if (!windowManager.ShowMessage("STOP INSTANCE AND MODIFY", $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed."))
+                var shouldProceed = await windowManager.ShowMessage("STOP INSTANCE AND MODIFY",
+                    $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed.");
+                if (!shouldProceed)
                 {
                     return;
                 }
@@ -84,7 +86,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
                     return;
                 }
 

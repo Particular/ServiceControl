@@ -3,6 +3,7 @@ namespace ServiceControl.Config.Framework.Modules
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Autofac;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
@@ -43,7 +44,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public PlatformZipInfo ZipInfo { get; protected set; }
 
-        internal ReportCard Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+        internal async Task<ReportCard> Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -51,7 +52,7 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed);
             if (instanceInstaller.ReportCard.HasErrors || instanceInstaller.ReportCard.CancelRequested)
             {
                 instanceInstaller.ReportCard.Status = Status.FailedValidation;
@@ -269,7 +270,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         public PlatformZipInfo ZipInfo { get; }
 
-        internal ReportCard Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, bool> promptToProceed)
+        internal async Task<ReportCard> Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
 
@@ -277,7 +278,7 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.ReportCard = new ReportCard();
 
             //Validation
-            instanceInstaller.Validate(promptToProceed);
+            await instanceInstaller.Validate(promptToProceed);
             if (instanceInstaller.ReportCard.HasErrors || instanceInstaller.ReportCard.CancelRequested)
             {
                 instanceInstaller.ReportCard.Status = Status.FailedValidation;

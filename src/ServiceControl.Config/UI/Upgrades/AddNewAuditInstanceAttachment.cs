@@ -40,6 +40,7 @@
                 return;
             }
 
+            // TODO: Figure out how to create an async reactive command
             await viewModel.TryCloseAsync(true);
         }
     }

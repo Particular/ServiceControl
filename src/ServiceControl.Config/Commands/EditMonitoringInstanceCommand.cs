@@ -23,7 +23,7 @@ namespace ServiceControl.Config.Commands
         {
             var editVM = editViewModel((MonitoringInstance)viewModel.ServiceInstance);
 
-            if (windowManager.ShowInnerDialog(editVM) ?? false)
+            if (await windowManager.ShowInnerDialog(editVM) ?? false)
             {
                 editVM.UpdateInstanceFromViewModel((MonitoringInstance)viewModel.ServiceInstance);
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());

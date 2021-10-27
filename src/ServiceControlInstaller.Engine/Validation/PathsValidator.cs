@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Validation
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     class PathsValidator
     {
@@ -51,12 +52,12 @@ namespace ServiceControlInstaller.Engine.Validation
             paths = pathList.Where(p => !string.IsNullOrWhiteSpace(p.Path)).ToList();
         }
 
-        public void RunValidation(bool includeNewInstanceChecks)
+        public Task RunValidation(bool includeNewInstanceChecks)
         {
-            RunValidation(includeNewInstanceChecks, info => false);
+            return RunValidation(includeNewInstanceChecks, info => Task.FromResult(false));
         }
 
-        public bool RunValidation(bool includeNewInstanceChecks, Func<PathInfo, bool> promptToProceed)
+        public async Task<bool> RunValidation(bool includeNewInstanceChecks, Func<PathInfo, Task<bool>> promptToProceed)
         {
             try
             {
@@ -68,7 +69,7 @@ namespace ServiceControlInstaller.Engine.Validation
                 //Do Checks that only make sense on add instance
                 if (includeNewInstanceChecks)
                 {
-                    cancelRequested = CheckPathsAreEmpty(promptToProceed);
+                    cancelRequested = await CheckPathsAreEmpty(promptToProceed).ConfigureAwait(false);
                 }
 
                 return cancelRequested;
@@ -83,7 +84,7 @@ namespace ServiceControlInstaller.Engine.Validation
             }
         }
 
-        bool CheckPathsAreEmpty(Func<PathInfo, bool> promptToProceed)
+        async Task<bool> CheckPathsAreEmpty(Func<PathInfo, Task<bool>> promptToProceed)
         {
             foreach (var pathInfo in paths)
             {
@@ -103,7 +104,8 @@ namespace ServiceControlInstaller.Engine.Validation
 
                     if (directory.EnumerateFileSystemInfos().Any())
                     {
-                        if (!promptToProceed(pathInfo))
+                        var shouldProceed = await promptToProceed(pathInfo).ConfigureAwait(false);
+                        if (!shouldProceed)
                         {
                             return true;
                         }
