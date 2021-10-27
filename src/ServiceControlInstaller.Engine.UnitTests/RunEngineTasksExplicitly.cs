@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Messaging;
     using System.ServiceProcess;
+    using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
     using Instances;
     using NUnit.Framework;
@@ -43,7 +44,7 @@
 
         [Test]
         [Explicit]
-        public void CreateInstanceMSMQ()
+        public async Task CreateInstanceMSMQ()
         {
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
@@ -75,18 +76,18 @@
             // but this fails for unit tests as the deploymentCache path is not used
             details.Version = installer.ZipInfo.Version;
 
-            details.Validate(s => false);
+            await details.Validate(s => Task.FromResult(false)).ConfigureAwait(false);
             if (details.ReportCard.HasErrors)
             {
                 throw new Exception($"Validation errors:  {string.Join("\r\n", details.ReportCard.Errors)}");
             }
 
-            Assert.DoesNotThrow(() => installer.Add(details, s => false));
+            Assert.DoesNotThrowAsync(() => installer.Add(details, s => Task.FromResult(false)));
         }
 
         [Test]
         [Explicit]
-        public void ChangeConfigTests()
+        public async Task ChangeConfigTests()
         {
             var logger = new TestLogger();
             var installer = new UnattendServiceControlInstaller(logger, DeploymentCache);
@@ -98,27 +99,27 @@
             RemoveAltMSMQQueues();
 
             logger.Info("Recreating the MSMQ instance");
-            CreateInstanceMSMQ();
+            await CreateInstanceMSMQ().ConfigureAwait(false);
 
             logger.Info("Changing the URLACL");
             var msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.HostName = Environment.MachineName;
             msmqTestInstance.Port = 33338;
             msmqTestInstance.DatabaseMaintenancePort = 33339;
-            installer.Update(msmqTestInstance, true);
+            await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update URL change failed");
 
             logger.Info("Changing LogPath");
             msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.LogPath = @"c:\temp\testloggingchange";
-            installer.Update(msmqTestInstance, true);
+            await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Logging changed failed");
 
             logger.Info("Updating Queue paths");
             msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
             msmqTestInstance.AuditQueue = "alternateAudit";
             msmqTestInstance.ErrorQueue = "alternateError";
-            installer.Update(msmqTestInstance, true);
+            await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Queues changed failed");
         }
 

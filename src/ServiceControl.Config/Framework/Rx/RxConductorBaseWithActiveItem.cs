@@ -8,7 +8,7 @@ namespace ServiceControl.Config.Framework.Rx
         public T ActiveItem
         {
             get { return activeItem; }
-            set { ActivateItem(value); }
+            set { ActivateItem(value).Wait(); }
         }
 
         object IHaveActiveItem.ActiveItem

@@ -2,6 +2,7 @@ namespace ServiceControlInstaller.PowerShell
 {
     using System;
     using System.Management.Automation;
+    using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
     using Engine.Instances;
     using Engine.Unattended;
@@ -74,7 +75,7 @@ namespace ServiceControlInstaller.PowerShell
                     PerformUpgrade(instance, installer);
                     break;
                 case RequiredUpgradeAction.SplitOutAudit:
-                    PerformSplit(instance, logger, zipFolder);
+                    PerformSplit(instance, logger, zipFolder).Wait();
                     break;
                 case RequiredUpgradeAction.ConvertToAudit:
                 default:
@@ -83,7 +84,7 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        void PerformSplit(ServiceControlInstance instance, PSLogger logger, string zipFolder)
+        async Task PerformSplit(ServiceControlInstance instance, PSLogger logger, string zipFolder)
         {
             AssertValidForAuditSplit(instance.Name);
 
@@ -100,7 +101,7 @@ namespace ServiceControlInstaller.PowerShell
                 DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies
             };
 
-            var result = serviceControlSplitter.Split(instance, options, PromptToProceed);
+            var result = await serviceControlSplitter.Split(instance, options, PromptToProceed).ConfigureAwait(false);
 
             WriteObject(result.Succeeded);
 
@@ -154,11 +155,11 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        bool PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             if (!Force.ToBool())
@@ -167,7 +168,7 @@ namespace ServiceControlInstaller.PowerShell
             }
 
             WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
-            return false;
+            return Task.FromResult(false);
         }
     }
 }
