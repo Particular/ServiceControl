@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.Upgrades
 {
+    using System.Threading.Tasks;
     using Framework;
     using ReactiveUI;
     using Validation;
@@ -24,10 +25,10 @@
                 await viewModel.TryCloseAsync(false);
             });
 
-            viewModel.Continue = ReactiveCommand.Create(Continue);
+            viewModel.Continue = ReactiveCommand.CreateFromTask(Continue);
         }
 
-        void Continue()
+        async Task Continue()
         {
             viewModel.SubmitAttempted = true;
 
@@ -40,7 +41,6 @@
                 return;
             }
 
-            // TODO: Figure out how to create an async reactive command
             await viewModel.TryCloseAsync(true);
         }
     }
