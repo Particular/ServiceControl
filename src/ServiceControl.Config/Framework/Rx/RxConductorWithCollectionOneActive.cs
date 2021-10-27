@@ -54,7 +54,7 @@
                 {
                     if (IsActive)
                     {
-                        ScreenExtensions.TryActivate(item);
+                        await ScreenExtensions.TryActivateAsync(item);
                         OnActivationProcessed(item, true);
                     }
 
@@ -73,7 +73,7 @@
 
                 if (!close)
                 {
-                    ScreenExtensions.TryDeactivate(item, false);
+                    await ScreenExtensions.TryDeactivateAsync(item, false);
                 }
                 else
                 {
@@ -92,7 +92,7 @@
                     var index = items.IndexOf(item);
                     var next = DetermineNextItemToActivate(items, index);
 
-                   await ChangeActiveItem(next, true);
+                    await ChangeActiveItem(next, true);
                 }
                 else
                 {
