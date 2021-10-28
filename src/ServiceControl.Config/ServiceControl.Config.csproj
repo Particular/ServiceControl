@@ -7,6 +7,7 @@
     <ApplicationIcon>App.ico</ApplicationIcon>
     <UseWpf>true</UseWpf>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,7 @@
     <PackageReference Include="PropertyChanging.Fody" Version="1.30.2" PrivateAssets="All" />
     <PackageReference Include="Validar.Fody" Version="1.9.0" PrivateAssets="All" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Caliburn.Micro" Version="3.2.0" />
