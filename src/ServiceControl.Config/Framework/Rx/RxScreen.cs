@@ -113,7 +113,13 @@
         public virtual Task TryCloseAsync(bool? dialogResult = null)
         {
             Result = dialogResult;
-            return PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult).Invoke(CancellationToken.None);
+            if (Parent is IConductor conductor)
+            {
+                return conductor.CloseItemAsync(this);
+            }
+
+            var closeAction = PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult);
+            return closeAction.Invoke(CancellationToken.None);
         }
 
         /// <summary>
