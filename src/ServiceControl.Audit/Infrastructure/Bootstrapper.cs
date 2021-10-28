@@ -19,7 +19,6 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using RavenDB;
-    using ServiceControl.SagaAudit;
     using Settings;
     using Transports;
     using WebApi;
@@ -76,8 +75,10 @@ namespace ServiceControl.Audit.Infrastructure
 
                     services.Configure<RavenStartup>(database =>
                     {
-                        database.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
-                        database.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
+                        foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
+                        {
+                            database.AddIndexAssembly(indexAssembly);
+                        }
                     });
                 })
                 .UseMetrics(settings.PrintMetrics)
