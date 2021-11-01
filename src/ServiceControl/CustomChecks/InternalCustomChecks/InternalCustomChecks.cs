@@ -7,6 +7,7 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using Operations;
+    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class InternalCustomChecks
@@ -19,6 +20,7 @@
                 collection.AddCustomCheck<CheckRemotes>();
                 collection.AddCustomCheck<CheckFreeDiskSpace>();
                 collection.AddCustomCheck<FailedAuditImportCustomCheck>();
+                collection.AddCustomCheck<AuditRetentionCheck>();
 
                 collection.AddHostedService(provider => new InternalCustomChecksHostedService(
                     provider.GetServices<ICustomCheck>().ToList(),

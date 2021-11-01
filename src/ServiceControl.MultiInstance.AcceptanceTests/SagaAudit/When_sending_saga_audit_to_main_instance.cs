@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -22,9 +23,14 @@
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             var appSettings = (AppSettingsSection)config.GetSection("appSettings");
             appSettings.Settings.Add("ServiceControl/Queue", ServiceControlInstanceName);
+            MimicSettingsOfAnUpgradedOldMainInstanceThatHasNeverHadAuditRetentionSetting(appSettings);
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
         }
+
+        static void MimicSettingsOfAnUpgradedOldMainInstanceThatHasNeverHadAuditRetentionSetting(
+            AppSettingsSection appSettings) =>
+            appSettings.Settings.Remove("ServiceControl/AuditRetentionPeriod");
 
         [TearDown]
         public void ConfigTeardown()
@@ -64,6 +70,51 @@
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
+        }
+
+        [Test]
+        public async Task
+            Audit_retention_internal_check_failes_when_saga_data_exists_in_main_instance_and_no_audit_retention_is_configured()
+        {
+
+            CustomServiceControlSettings = settings =>
+            {
+                settings.DisableHealthChecks = false;
+            };
+
+            await WriteSagaAuditDataIntoMainInstance();
+
+            EventLogItem entry = null;
+
+            await Define<MyContext>()
+                .Done(async c =>
+                {
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == "CustomCheckFailed" && e.Description == "Saga Audit Message Ingestion: Audit retention is not set");
+                    entry = result;
+                    return result;
+                })
+                .Run();
+
+            Assert.IsTrue(entry.RelatedTo.Any(item => item == "/customcheck/Saga Audit Message Ingestion"), "Event log entry should be related to the Primary instance health Custom Check");
+            Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), "Event log entry should be related to the ServiceControl endpoint");
+        }
+
+        async Task WriteSagaAuditDataIntoMainInstance()
+        {
+            var context = await Define<MyContext>()
+                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
+                .Done(async c =>
+                {
+                    if (!c.SagaId.HasValue)
+                    {
+                        return false;
+                    }
+
+                    var sagaAudiDatatInMainInstanceIsAvailableForQuery =
+                        await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
+                    return sagaAudiDatatInMainInstanceIsAvailableForQuery;
+                })
+                .Run();
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
