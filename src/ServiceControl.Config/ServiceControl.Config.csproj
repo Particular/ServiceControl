@@ -33,7 +33,7 @@
     <PackageReference Include="Caliburn.Micro" Version="3.2.0" />
     <PackageReference Include="FluentValidation" Version="9.5.4" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.13.0" />
-    <PackageReference Include="reactiveui" Version="13.2.18" />
+    <PackageReference Include="reactiveui" Version="16.3.5" />
     <PackageReference Include="ReactiveUI.WPF" Version="13.2.18" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
