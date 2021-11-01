@@ -20,7 +20,7 @@
                 collection.AddCustomCheck<CheckRemotes>();
                 collection.AddCustomCheck<CheckFreeDiskSpace>();
                 collection.AddCustomCheck<FailedAuditImportCustomCheck>();
-                collection.AddCustomCheck<AuditRetentionCheck>();
+                collection.AddCustomCheck<AuditRetentionCustomCheck>();
 
                 collection.AddHostedService(provider => new InternalCustomChecksHostedService(
                     provider.GetServices<ICustomCheck>().ToList(),
