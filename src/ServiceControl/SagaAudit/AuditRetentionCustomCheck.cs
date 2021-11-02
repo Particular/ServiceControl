@@ -25,14 +25,13 @@
             {
                 return CheckResult.Pass;
             }
-            else if (await DetectSagaAuditData().ConfigureAwait(false))
+
+            if (await DetectSagaAuditData().ConfigureAwait(false))
             {
                 return CheckResult.Failed("Saga snapshot data detected without an audit retention period configured. If saga audit data is allowed to accumulate, it can result in degraded performance.");
             }
-            else
-            {
-                return CheckResult.Pass;
-            }
+
+            return CheckResult.Pass;
         }
 
         async Task<bool> DetectSagaAuditData()
