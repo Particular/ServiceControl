@@ -79,7 +79,7 @@
 
         [Test]
         public async Task
-            Audit_retention_internal_check_fails_when_saga_data_exists_in_main_instance_and_no_audit_retention_is_configured()
+        Check_fails_if_no_audit_retention_is_configured()
         {
 
             CustomServiceControlSettings = settings =>
@@ -91,7 +91,7 @@
             {
                 config.RegisterComponents(registration =>
                 {
-                    registration.ConfigureComponent<AuditRetentionCustomCheck>((builder) =>
+                    registration.ConfigureComponent((builder) =>
                     {
                         return new AuditRetentionCustomCheck(builder.Build<IDocumentStore>(), builder.Build<Settings>(), TimeSpan.FromSeconds(10));
                     }, DependencyLifecycle.SingleInstance);
