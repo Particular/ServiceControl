@@ -10,6 +10,8 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
+    using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
     using TestSupport;
     using TestSupport.EndpointTemplates;
@@ -27,6 +29,8 @@
             MimicSettingsOfAnUpgradedOldMainInstanceThatHasNeverHadAuditRetentionSetting(appSettings);
             config.Save();
             ConfigurationManager.RefreshSection("appSettings");
+
+
         }
 
         static void MimicSettingsOfAnUpgradedOldMainInstanceThatHasNeverHadAuditRetentionSetting(
@@ -81,6 +85,17 @@
             CustomServiceControlSettings = settings =>
             {
                 settings.DisableHealthChecks = false;
+            };
+
+            CustomEndpointConfiguration = config =>
+            {
+                config.RegisterComponents(registration =>
+                {
+                    registration.ConfigureComponent<AuditRetentionCustomCheck>((builder) =>
+                    {
+                        return new AuditRetentionCustomCheck(builder.Build<IDocumentStore>(), builder.Build<Settings>(), TimeSpan.FromSeconds(10));
+                    }, DependencyLifecycle.SingleInstance);
+                });
             };
 
             var scenarioContext = await WriteSagaAuditDataIntoMainInstance();
