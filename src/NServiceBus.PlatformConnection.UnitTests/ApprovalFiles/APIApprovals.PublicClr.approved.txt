@@ -1,0 +1,45 @@
+namespace NServiceBus
+{
+    public class ServicePlatformConnectionConfiguration
+    {
+        public ServicePlatformConnectionConfiguration() { }
+        public string AuditQueue { get; set; }
+        public NServiceBus.ServicePlatformCustomChecksConfiguration CustomChecks { get; set; }
+        public string ErrorQueue { get; set; }
+        public NServiceBus.ServicePlatformHeartbeatConfiguration Heartbeats { get; set; }
+        public NServiceBus.ServicePlatformMetricsConfiguration Metrics { get; set; }
+        public NServiceBus.ServicePlatformSagaAuditConfiguration SagaAudit { get; set; }
+        public static NServiceBus.ServicePlatformConnectionConfiguration Parse(string jsonConfiguration) { }
+    }
+    public static class ServicePlatformConnectionExtensions
+    {
+        public static void ConnectToServicePlatform(this NServiceBus.EndpointConfiguration endpointConfiguration, NServiceBus.ServicePlatformConnectionConfiguration servicePlatformConnectionConfiguration) { }
+    }
+    public class ServicePlatformCustomChecksConfiguration
+    {
+        public ServicePlatformCustomChecksConfiguration() { }
+        public string CustomCheckQueue { get; set; }
+        public System.TimeSpan? TimeToLive { get; set; }
+    }
+    public class ServicePlatformHeartbeatConfiguration
+    {
+        public ServicePlatformHeartbeatConfiguration() { }
+        public System.TimeSpan? Frequency { get; set; }
+        public string HeartbeatQueue { get; set; }
+        public System.TimeSpan? TimeToLive { get; set; }
+    }
+    public class ServicePlatformMetricsConfiguration
+    {
+        public ServicePlatformMetricsConfiguration() { }
+        public string InstanceId { get; set; }
+        public System.TimeSpan Interval { get; set; }
+        public string MetricsQueue { get; set; }
+        public System.TimeSpan? TimeToBeReceived { get; set; }
+    }
+    public class ServicePlatformSagaAuditConfiguration
+    {
+        public ServicePlatformSagaAuditConfiguration() { }
+        public System.Func<object, System.Collections.Generic.Dictionary<string, string>> CustomSagaEntitySerialization { get; set; }
+        public string SagaAuditQueue { get; set; }
+    }
+}

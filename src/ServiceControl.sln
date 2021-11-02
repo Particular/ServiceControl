@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31815.197
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
@@ -118,6 +118,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{76C0AC5A-E7CD-4E6B-88DC-B473C4C25295}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{927A078A-E271-4878-A153-86D71AE510E2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Connections", "Connections", "{12AC2B58-BC49-4630-B8ED-BA1AEDCF464A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.PlatformConnection", "NServiceBus.PlatformConnection\NServiceBus.PlatformConnection.csproj", "{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.PlatformConnection.UnitTests", "NServiceBus.PlatformConnection.UnitTests\NServiceBus.PlatformConnection.UnitTests.csproj", "{1B01BC22-068A-432D-9D83-2029F6FCAEDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -281,6 +287,14 @@ Global
 		{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56422C80-6A26-46B4-AF5C-84AF08BAB1D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B01BC22-068A-432D-9D83-2029F6FCAEDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B01BC22-068A-432D-9D83-2029F6FCAEDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B01BC22-068A-432D-9D83-2029F6FCAEDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B01BC22-068A-432D-9D83-2029F6FCAEDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -333,6 +347,8 @@ Global
 		{350F72AB-142D-4AAD-9EF1-1A83DC991D87} = {CD6E567B-C17B-4C90-87CA-F6CB941EC307}
 		{76C0AC5A-E7CD-4E6B-88DC-B473C4C25295} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{927A078A-E271-4878-A153-86D71AE510E2} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
+		{3C50BD45-9574-40FC-88C9-69A7CAB3AF1E} = {12AC2B58-BC49-4630-B8ED-BA1AEDCF464A}
+		{1B01BC22-068A-432D-9D83-2029F6FCAEDB} = {12AC2B58-BC49-4630-B8ED-BA1AEDCF464A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

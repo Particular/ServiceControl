@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    <!-- TODO: Ensure package is signed -->
+    <!--<SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(SolutionDir)NServiceBus.snk</AssemblyOriginatorKeyFile>-->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NServiceBus.ServicePlatformConnection</PackageId>
+    <Description>Support for connecting NServiceBus endpoints to the Particular Service Plaform</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="[7.0.1,8)" />
+    <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.Metrics.ServiceControl" Version="3.0.6" />
+    <PackageReference Include="NServiceBus.Metrics" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Particular.Packaging" Version="1.3.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
