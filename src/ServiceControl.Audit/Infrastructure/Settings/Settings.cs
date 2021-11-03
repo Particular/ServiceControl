@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
