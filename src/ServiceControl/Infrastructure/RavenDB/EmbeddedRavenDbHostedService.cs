@@ -24,7 +24,9 @@
             this.setupContext = setupContext;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken) => SetupDatabase();
+
+        public async Task SetupDatabase()
         {
             documentStore.Initialize();
 

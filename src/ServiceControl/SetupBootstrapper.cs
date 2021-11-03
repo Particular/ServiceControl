@@ -1,7 +1,6 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
@@ -44,8 +43,7 @@ namespace Particular.ServiceControl
                 {
                     RavenBootstrapper.Configure(documentStore, settings);
                     var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
-                    await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
-                    await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                    await service.SetupDatabase().ConfigureAwait(false);
                 }
             }
             EventSourceCreator.Create();

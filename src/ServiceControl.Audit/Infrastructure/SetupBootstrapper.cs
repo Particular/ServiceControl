@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
     using NServiceBus;
@@ -112,8 +111,7 @@ namespace ServiceControl.Audit.Infrastructure
                 }
 
                 var service = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
-                await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
-                await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                await service.SetupDatabase().ConfigureAwait(false);
             }
         }
 

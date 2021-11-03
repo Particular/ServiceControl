@@ -27,7 +27,9 @@
             this.dataMigrations = dataMigrations;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken) => SetupDatabase();
+
+        public async Task SetupDatabase()
         {
             Logger.Info("Database initialization starting");
             documentStore.Initialize();
