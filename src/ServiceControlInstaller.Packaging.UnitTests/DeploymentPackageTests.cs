@@ -22,6 +22,8 @@ namespace Tests
 
                 CollectionAssert.IsNotEmpty(mainEntries, $"Expected a {deploymentPackage.ServiceName} folder in {deploymentPackage.FullName}");
 
+                var entriesToValidate = zip.Entries.Except(mainEntries).ToList();
+
                 CollectionAssert.IsEmpty(
                     from mainEntry in mainEntries
                     join entry in zip.Entries.Except(mainEntries) on mainEntry.Name equals entry.Name
