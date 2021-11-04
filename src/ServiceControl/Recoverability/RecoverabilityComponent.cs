@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Connection;
     using CustomChecks;
     using ExternalIntegration;
     using ExternalIntegrations;
@@ -29,6 +30,8 @@
         {
             hostBuilder.ConfigureServices(collection =>
             {
+                collection.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
+
                 //Archiving
                 collection.AddSingleton<ArchivingManager>();
                 collection.AddSingleton<ArchiveDocumentManager>();

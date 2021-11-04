@@ -1,0 +1,15 @@
+{
+  "audit_queue": "audit",
+  "heartbeats": {
+    "heartbeats_queue": "particular-servicecontrol",
+    "frequency": "00:00:10",
+    "time_to_live": "00:00:40"
+  },
+  "custom_checks": {
+    "custom_checks_queue": "particular-servicecontrol"
+  },
+  "error_queue": "error",
+  "saga_audit": {
+    "saga_audit_queue": "audit"
+  }
+}

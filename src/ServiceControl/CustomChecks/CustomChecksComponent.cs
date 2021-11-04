@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.CustomChecks
 {
+    using Connection;
     using ExternalIntegrations;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -17,6 +18,8 @@
 
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
+
+                serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             });
         }
 
