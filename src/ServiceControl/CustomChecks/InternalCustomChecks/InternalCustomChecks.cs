@@ -7,7 +7,6 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using Operations;
-    using SagaAudit;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class InternalCustomChecks
