@@ -24,7 +24,8 @@
         {
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;
-            if (windowManager.ShowDialog(confirmation) == true)
+            var isConfirmed = await windowManager.ShowDialogAsync(confirmation);
+            if (isConfirmed == true)
             {
                 using (var progress = model.GetProgressObject("REMOVING " + model.Name))
                 {
@@ -32,11 +33,11 @@
 
                     if (reportCard.HasErrors || reportCard.HasWarnings)
                     {
-                        windowManager.ShowActionReport(reportCard, "ISSUES REMOVING INSTANCE", "Could not remove instance because of the following errors:", "There were some warnings while deleting the instance:");
+                        await windowManager.ShowActionReport(reportCard, "ISSUES REMOVING INSTANCE", "Could not remove instance because of the following errors:", "There were some warnings while deleting the instance:");
                     }
                     else
                     {
-                        model.TryClose(true);
+                        await model.TryCloseAsync(true);
                     }
                 }
 

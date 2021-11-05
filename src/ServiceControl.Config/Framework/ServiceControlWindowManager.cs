@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using System.Windows;
     using Caliburn.Micro;
     using Extensions;
@@ -12,23 +13,23 @@
 
     public interface IServiceControlWindowManager : IWindowManager
     {
-        void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
+        Task NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
-        bool? ShowInnerDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
+        Task<bool?> ShowInnerDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
-        bool? ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
+        Task<bool?> ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null);
 
-        bool ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false);
+        Task<bool> ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false);
 
-        bool? ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText);
+        Task<bool?> ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText);
 
-        bool ShowYesNoDialog(string title, string message, string question, string yesText, string noText);
+        Task<bool> ShowYesNoDialog(string title, string message, string question, string yesText, string noText);
 
-        bool ShowSliderDialog(SliderDialogViewModel viewModel);
+        Task<bool> ShowSliderDialog(SliderDialogViewModel viewModel);
 
-        bool ShowTextBoxDialog(TextBoxDialogViewModel viewModel);
+        Task<bool> ShowTextBoxDialog(TextBoxDialogViewModel viewModel);
 
-        bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "");
+        Task<bool> ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "");
 
         void ScrollFirstErrorIntoView(object viewModel, object context = null);
     }
@@ -40,22 +41,22 @@
             this.reportCardViewModelFactory = reportCardViewModelFactory;
         }
 
-        public void NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
+        public Task NavigateTo(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
         {
             var shell = GetShell();
 
             shell.ActiveContext = context;
-            shell.ActivateItem(screen);
+            return shell.ActivateItem(screen);
         }
 
-        public bool? ShowInnerDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
+        public async Task<bool?> ShowInnerDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
         {
             var shell = GetShell();
 
             var previousContext = shell.ActiveContext;
             shell.IsModal = true;
             shell.ActiveContext = context;
-            shell.ActivateItem(screen);
+            await shell.ActivateItem(screen);
             screen.RunModal();
             shell.IsModal = false;
             shell.ActiveContext = previousContext;
@@ -68,61 +69,62 @@
             return true;
         }
 
-        public bool? ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
+        public async Task<bool?> ShowOverlayDialog(RxScreen screen, object context = null, IDictionary<string, object> settings = null)
         {
             var shell = GetShell();
 
             var previousContext = shell.ActiveContext;
             shell.Overlay = screen;
             shell.ActiveContext = context;
-            ((IActivate)screen).Activate();
+            await ((IActivate)screen).ActivateAsync();
             screen.RunModal();
             shell.Overlay = null;
             shell.ActiveContext = previousContext;
             return screen.Result;
         }
 
-        public bool ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false)
+        public async Task<bool> ShowMessage(string title, string message, string acceptText = "Ok", bool hideCancel = false)
         {
             var messageBox = new MessageBoxViewModel(title, message, acceptText, hideCancel);
-            var result = ShowOverlayDialog(messageBox);
+            var result = await ShowOverlayDialog(messageBox);
             return result ?? false;
         }
 
-        public bool? ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText)
+        public Task<bool?> ShowYesNoCancelDialog(string title, string message, string question, string yesText, string noText)
         {
             var messageBox = new YesNoCancelViewModel(title, message, question, yesText, noText);
             return ShowOverlayDialog(messageBox);
         }
 
-        public bool ShowYesNoDialog(string title, string message, string question, string yesText, string noText)
+        public async Task<bool> ShowYesNoDialog(string title, string message, string question, string yesText, string noText)
         {
             var messageBox = new YesNoCancelViewModel(title, message, question, yesText, noText)
             {
                 ShowCancelButton = false
             };
-            return ShowOverlayDialog(messageBox).Value;
+            var result = await ShowOverlayDialog(messageBox);
+            return result.Value;
         }
 
-        public bool ShowSliderDialog(SliderDialogViewModel viewModel)
+        public async Task<bool> ShowSliderDialog(SliderDialogViewModel viewModel)
         {
-            var result = ShowOverlayDialog(viewModel);
+            var result = await ShowOverlayDialog(viewModel);
             return result ?? false;
         }
 
-        public bool ShowTextBoxDialog(TextBoxDialogViewModel viewModel)
+        public async Task<bool> ShowTextBoxDialog(TextBoxDialogViewModel viewModel)
         {
-            var result = ShowOverlayDialog(viewModel);
+            var result = await ShowOverlayDialog(viewModel);
             return result ?? false;
         }
 
-        public bool ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "")
+        public async Task<bool> ShowActionReport(ReportCard reportcard, string title, string errorsMessage = "", string warningsMessage = "")
         {
             var messageBox = reportCardViewModelFactory(reportcard);
             messageBox.Title = title;
             messageBox.ErrorsMessage = errorsMessage;
             messageBox.WarningsMessage = warningsMessage;
-            var result = ShowOverlayDialog(messageBox);
+            var result = await ShowOverlayDialog(messageBox);
             return result ?? false;
         }
 

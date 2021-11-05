@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -39,11 +40,11 @@
             addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 
-            RefreshInstancesCmd = Command.Create(() =>
+            RefreshInstancesCmd = Command.Create(async () =>
             {
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                 // Used to "blink" the refresh button to indicate the refresh actually ran.
-                return Task.Delay(500);
+                await Task.Delay(500);
             });
         }
 
@@ -86,24 +87,18 @@
 
         public string AvailableUpgradeReleaseLink { get; set; }
 
-        public void Handle(RefreshInstances message)
-        {
-            RefreshInstances();
-        }
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
 
-        protected override void OnInitialize()
-        {
-            RefreshInstances();
-        }
+        protected override Task OnInitialize() => RefreshInstances();
 
-        protected override async void OnActivate()
+        protected override async Task OnActivate()
         {
-            base.OnActivate();
+            await base.OnActivate();
 
             await CheckForUpdates();
         }
 
-        public void RefreshInstances()
+        public async Task RefreshInstances()
         {
             if (ActiveItem != null && !(ActiveItem == listInstances || ActiveItem == noInstances))
             {
@@ -114,11 +109,11 @@
 
             if (HasInstances)
             {
-                ActivateItem(listInstances);
+                await ActivateItem(listInstances);
             }
             else
             {
-                ActivateItem(noInstances);
+                await ActivateItem(noInstances);
             }
         }
 

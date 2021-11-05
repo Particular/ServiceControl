@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.Shell
 {
     using System;
+    using System.Threading.Tasks;
     using System.Windows;
     using Caliburn.Micro;
     using Events;
@@ -11,10 +12,10 @@
         {
             InitializeComponent();
 
-            Activated += (s, e) =>
+            Activated += async (s, e) =>
             {
                 //IoC.Get<IEventAggregator>().PublishOnUIThread(new RefreshInstances());
-                Model?.RefreshInstances();
+                await (Model?.RefreshInstances() ?? Task.CompletedTask);
             };
 
             Loaded += (sender, args) =>
@@ -28,8 +29,8 @@
 
                 window.LocationChanged += Window_LocationChanged;
                 window.SizeChanged += Window_SizeChanged;
-                window.LostKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = false });
-                window.GotKeyboardFocus += (s, e) => IoC.Get<IEventAggregator>().PublishOnUIThread(new FocusChanged { HasFocus = true });
+                window.LostKeyboardFocus += async (s, e) => await IoC.Get<IEventAggregator>().PublishOnUIThreadAsync(new FocusChanged { HasFocus = false });
+                window.GotKeyboardFocus += async (s, e) => await IoC.Get<IEventAggregator>().PublishOnUIThreadAsync(new FocusChanged { HasFocus = true });
             };
         }
 

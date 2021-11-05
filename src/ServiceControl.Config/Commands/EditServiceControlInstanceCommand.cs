@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
     using Framework;
@@ -9,7 +10,7 @@ namespace ServiceControl.Config.Commands
     using UI.InstanceDetails;
     using UI.InstanceEdit;
 
-    class EditServiceControlInstanceCommand : AbstractCommand<InstanceDetailsViewModel>
+    class EditServiceControlInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
     {
         public EditServiceControlInstanceCommand(IServiceControlWindowManager windowManager, Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel, IEventAggregator eventAggregator) : base(CanEditInstance)
         {
@@ -24,14 +25,14 @@ namespace ServiceControl.Config.Commands
             return instance.VersionHasServiceControlAuditFeatures;
         }
 
-        public override void Execute(InstanceDetailsViewModel viewModel)
+        public override async Task ExecuteAsync(InstanceDetailsViewModel viewModel)
         {
             var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
 
-            if (windowManager.ShowInnerDialog(editVM) ?? false)
+            if (await windowManager.ShowInnerDialog(editVM) ?? false)
             {
                 editVM.UpdateInstanceFromViewModel((ServiceControlInstance)viewModel.ServiceInstance);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }
         }
 

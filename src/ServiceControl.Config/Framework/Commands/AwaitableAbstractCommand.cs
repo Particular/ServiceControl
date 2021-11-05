@@ -18,7 +18,9 @@ namespace ServiceControl.Config.Framework.Commands
         {
             using (StartExecuting())
             {
+                OnExecuting();
                 await ExecuteAsync(obj);
+
             }
         }
 
@@ -28,5 +30,12 @@ namespace ServiceControl.Config.Framework.Commands
         }
 
         public abstract Task ExecuteAsync(T obj);
+
+        protected virtual void OnExecuting()
+        {
+            OnCommandExecuting();
+        }
+
+        public Action OnCommandExecuting = () => { };
     }
 }

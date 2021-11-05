@@ -7,6 +7,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using System.Xml;
     using System.Xml.Serialization;
     using Accounts;
@@ -384,7 +385,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        public void Validate(Func<PathInfo, bool> promptToProceed)
+        public async Task Validate(Func<PathInfo, Task<bool>> promptToProceed)
         {
             RunValidation(ValidateTransport);
             RunValidation(ValidatePort);
@@ -392,7 +393,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             try
             {
-                ReportCard.CancelRequested = ValidatePaths(promptToProceed);
+                ReportCard.CancelRequested = await ValidatePaths(promptToProceed).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {
@@ -433,7 +434,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
         }
 
-        protected virtual bool ValidatePaths(Func<PathInfo, bool> promptToProceed)
+        protected virtual Task<bool> ValidatePaths(Func<PathInfo, Task<bool>> promptToProceed)
         {
             return new PathsValidator(this).RunValidation(true, promptToProceed);
         }

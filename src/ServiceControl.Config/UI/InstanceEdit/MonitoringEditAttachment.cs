@@ -25,10 +25,10 @@ namespace ServiceControl.Config.UI.InstanceEdit
             viewModel.ValidationTemplate = validationTemplate;
 
             viewModel.Save = ReactiveCommand.CreateFromTask(Save);
-            viewModel.Cancel = Command.Create(() =>
+            viewModel.Cancel = Command.Create(async () =>
             {
-                viewModel.TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await viewModel.TryCloseAsync(false);
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, IsInProgress);
         }
 
@@ -52,7 +52,9 @@ namespace ServiceControl.Config.UI.InstanceEdit
             var instance = viewModel.MonitoringInstance;
             if (instance.Service.Status == ServiceControllerStatus.Running)
             {
-                if (!windowManager.ShowMessage("STOP INSTANCE AND MODIFY", $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed."))
+                var shouldProceed = await windowManager.ShowMessage("STOP INSTANCE AND MODIFY",
+                    $"{instance.Name} needs to be stopped in order to modify the settings. Do you want to proceed.");
+                if (!shouldProceed)
                 {
                     return;
                 }
@@ -79,14 +81,14 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES MODIFYING INSTANCE", "Could not modify instance because of the following errors:", "There were some warnings while modifying the instance:");
                     return;
                 }
 
                 progress.Report(0, 0, "Update Complete");
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }

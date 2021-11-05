@@ -35,7 +35,7 @@
                 var licenseCheckResult = installer.CheckLicenseIsValid();
                 if (!licenseCheckResult.Valid)
                 {
-                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
+                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
                     return;
                 }
             }
@@ -46,7 +46,7 @@
             instance.Service.Refresh();
 
             var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes, I want to proceed", "No");
+                          await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes, I want to proceed", "No");
 
             if (confirm)
             {
@@ -63,7 +63,7 @@
 
                         reportCard.Errors.Add("Failed to stop the service");
                         reportCard.SetStatus();
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+                        await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
                         return;
                     }
@@ -72,7 +72,7 @@
 
                     if (reportCard.HasErrors || reportCard.HasWarnings)
                     {
-                        windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                        await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
                     }
                     else
                     {
@@ -82,7 +82,7 @@
                             if (!serviceStarted)
                             {
                                 reportCard.Errors.Add("The Service failed to start. Please consult the  logs for this instance");
-                                windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
+                                await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                             }
                         }
                     }

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove=".editorconfig" />
     <None Remove="CustomAction.config" />
     <Content Include="CustomAction.config" />
   </ItemGroup>

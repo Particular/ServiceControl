@@ -26,10 +26,10 @@
             viewModel.ValidationTemplate = validationTemplate;
 
             viewModel.Save = ReactiveCommand.CreateFromTask(Add);
-            viewModel.Cancel = Command.Create(() =>
+            viewModel.Cancel = Command.Create(async () =>
             {
-                viewModel.TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await viewModel.TryCloseAsync(false);
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, IsInProgress);
         }
 
@@ -74,7 +74,7 @@
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
                     return;
                 }
 
@@ -84,16 +84,16 @@
                 }
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
-        bool PromptToProceed(PathInfo pathInfo)
+        async Task<bool> PromptToProceed(PathInfo pathInfo)
         {
             var result = false;
 
-            Execute.OnUIThread(() => { result = windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
+            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
 
             return result;
         }

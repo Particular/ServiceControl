@@ -1,9 +1,9 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Management.Automation;
+    using System.Threading.Tasks;
     using Cmdlets.Instances;
     using Engine.Instances;
     using Engine.Unattended;
@@ -124,7 +124,9 @@ namespace ServiceControlInstaller.PowerShell
             try
             {
                 logger.Info("Installing Monitoring instance...");
-                if (installer.Add(details, PromptToProceed))
+                var result = installer.Add(details, PromptToProceed);
+                result.Wait();
+                if (result.Result)
                 {
                     var instance = InstanceFinder.FindMonitoringInstance(details.Name);
                     if (instance != null)
@@ -143,11 +145,11 @@ namespace ServiceControlInstaller.PowerShell
             }
         }
 
-        bool PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             if (!Force.ToBool())
@@ -156,7 +158,7 @@ namespace ServiceControlInstaller.PowerShell
             }
 
             WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
-            return false;
+            return Task.FromResult(false);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.Upgrades
 {
+    using System.Threading.Tasks;
     using Framework;
     using ReactiveUI;
     using Validation;
@@ -18,16 +19,16 @@
             var validationTemplate = new ValidationTemplate(viewModel);
             viewModel.ValidationTemplate = validationTemplate;
 
-            viewModel.Cancel = Command.Create(() =>
+            viewModel.Cancel = Command.Create(async () =>
             {
                 viewModel.Result = null;
-                viewModel.TryClose(false);
+                await viewModel.TryCloseAsync(false);
             });
 
-            viewModel.Continue = ReactiveCommand.Create(Continue);
+            viewModel.Continue = ReactiveCommand.CreateFromTask(Continue);
         }
 
-        void Continue()
+        async Task Continue()
         {
             viewModel.SubmitAttempted = true;
 
@@ -40,7 +41,7 @@
                 return;
             }
 
-            viewModel.TryClose(true);
+            await viewModel.TryCloseAsync(true);
         }
     }
 }

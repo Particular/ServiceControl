@@ -8,8 +8,8 @@
     {
         public DeleteServiceControlConfirmationViewModel()
         {
-            RemoveCommand = Command.Create(() => TryClose(true));
-            CancelCommand = Command.Create(() => TryClose(false));
+            RemoveCommand = Command.Create(async () => await TryCloseAsync(true));
+            CancelCommand = Command.Create(async () => await TryCloseAsync(false));
         }
 
         public string InstanceName { get; set; }

@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public class RxScreen : RxViewAware, IScreen, IChild, IModalResult
@@ -44,9 +46,9 @@
         /// <summary>
         /// Raised after deactivation.
         /// </summary>
-        public event EventHandler<DeactivationEventArgs> Deactivated = (sender, e) => { };
+        public event AsyncEventHandler<DeactivationEventArgs> Deactivated = (sender, e) => Task.CompletedTask;
 
-        void IActivate.Activate()
+        async Task IActivate.ActivateAsync(CancellationToken cancellationToken)
         {
             if (IsActive)
             {
@@ -58,12 +60,12 @@
             if (!IsInitialized)
             {
                 IsInitialized = initialized = true;
-                OnInitialize();
+                await OnInitialize();
             }
 
             IsActive = true;
             Log.Info("Activating {0}.", this);
-            OnActivate();
+            await OnActivate();
 
             Activated(this, new ActivationEventArgs
             {
@@ -71,7 +73,7 @@
             });
         }
 
-        void IDeactivate.Deactivate(bool close)
+        async Task IDeactivate.DeactivateAsync(bool close, CancellationToken cancellationToken)
         {
             if (IsActive || (IsInitialized && close))
             {
@@ -82,9 +84,9 @@
 
                 IsActive = false;
                 Log.Info("Deactivating {0}.", this);
-                OnDeactivate(close);
+                await OnDeactivate(close);
 
-                Deactivated(this, new DeactivationEventArgs
+                await Deactivated(this, new DeactivationEventArgs
                 {
                     WasClosed = close
                 });
@@ -101,43 +103,40 @@
         /// Called to check whether or not this instance can close.
         /// </summary>
         /// <param name="callback">The implementor calls this action with the result of the close check.</param>
-        public virtual void CanClose(Action<bool> callback)
-        {
-            callback(true);
-        }
+        public virtual Task<bool> CanCloseAsync(CancellationToken cancellationToken) => Task.FromResult(true);
 
         /// <summary>
         /// Tries to close this instance by asking its Parent to initiate shutdown or by asking its corresponding view to close.
         /// Also provides an opportunity to pass a dialog result to it's corresponding view.
         /// </summary>
         /// <param name="dialogResult">The dialog result.</param>
-        public virtual void TryClose(bool? dialogResult = null)
+        public virtual Task TryCloseAsync(bool? dialogResult = null)
         {
             Result = dialogResult;
-            PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult).OnUIThread();
+            if (Parent is IConductor conductor)
+            {
+                return conductor.CloseItemAsync(this);
+            }
+
+            var closeAction = PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult);
+            return closeAction.Invoke(CancellationToken.None);
         }
 
         /// <summary>
         /// Called when initializing.
         /// </summary>
-        protected virtual void OnInitialize()
-        {
-        }
+        protected virtual Task OnInitialize() => Task.CompletedTask;
 
         /// <summary>
         /// Called when activating.
         /// </summary>
-        protected virtual void OnActivate()
-        {
-        }
+        protected virtual Task OnActivate() => Task.CompletedTask;
 
         /// <summary>
         /// Called when deactivating.
         /// </summary>
         /// <param name="close">Inidicates whether this instance will be closed.</param>
-        protected virtual void OnDeactivate(bool close)
-        {
-        }
+        protected virtual Task OnDeactivate(bool close) => Task.CompletedTask;
 
         static readonly ILog Log = LogManager.GetLog(typeof(Screen));
     }

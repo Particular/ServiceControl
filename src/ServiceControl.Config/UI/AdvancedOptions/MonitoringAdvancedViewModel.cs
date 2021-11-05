@@ -19,10 +19,10 @@
 
             CopyToClipboard = new CopyToClipboardCommand();
 
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
-                TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await TryCloseAsync(false);
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, () => !InProgress);
         }
 

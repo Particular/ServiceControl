@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using Accounts;
     using Configuration;
     using Configuration.Monitoring;
@@ -115,11 +116,11 @@
             return ServiceControlCoreTransports.All.First(p => p.Default);
         }
 
-        public void ValidateChanges()
+        public async Task ValidateChanges()
         {
             try
             {
-                new PathsValidator(this).RunValidation(false);
+                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

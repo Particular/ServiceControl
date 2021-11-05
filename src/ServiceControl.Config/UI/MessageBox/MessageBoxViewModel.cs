@@ -13,15 +13,15 @@
             Message = message;
             AcceptText = acceptText;
 
-            Ok = Command.Create(() =>
+            Ok = Command.Create(async () =>
             {
                 Result = true;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
                 Result = false;
-                ((IDeactivate)this).Deactivate(true);
+                await ((IDeactivate)this).DeactivateAsync(true);
             });
             HideCancel = hideCancel;
         }

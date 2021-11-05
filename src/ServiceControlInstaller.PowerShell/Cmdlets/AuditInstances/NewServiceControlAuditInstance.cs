@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Management.Automation;
+    using System.Threading.Tasks;
     using Engine.Instances;
     using Engine.Unattended;
     using Engine.Validation;
@@ -155,7 +156,9 @@
             try
             {
                 logger.Info("Installing Service Control Audit instance...");
-                if (installer.Add(details, PromptToProceed))
+                var result = installer.Add(details, PromptToProceed);
+                result.Wait();
+                if (result.Result)
                 {
                     var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(details.Name);
                     if (instance != null)
@@ -174,11 +177,11 @@
             }
         }
 
-        bool PromptToProceed(PathInfo pathInfo)
+        Task<bool> PromptToProceed(PathInfo pathInfo)
         {
             if (!pathInfo.CheckIfEmpty)
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             if (!Force.ToBool())
@@ -187,7 +190,7 @@
             }
 
             WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");
-            return false;
+            return Task.FromResult(false);
         }
     }
 }

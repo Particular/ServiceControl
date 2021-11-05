@@ -3,6 +3,8 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public abstract class RxConductorBase<T> : RxScreen, IConductor, IParent<T> where T : class
@@ -13,14 +15,14 @@
             set { closeStrategy = value; }
         }
 
-        void IConductor.ActivateItem(object item)
+        Task IConductor.ActivateItemAsync(object item, CancellationToken cancellationToken)
         {
-            ActivateItem((T)item);
+            return ActivateItem((T)item);
         }
 
-        void IConductor.DeactivateItem(object item, bool close)
+        Task IConductor.DeactivateItemAsync(object item, bool close, CancellationToken cancellationToken)
         {
-            DeactivateItem((T)item, close);
+            return DeactivateItem((T)item, close);
         }
 
         IEnumerable IParent.GetChildren()
@@ -32,9 +34,9 @@
 
         public abstract IEnumerable<T> GetChildren();
 
-        public abstract void ActivateItem(T item);
+        public abstract Task ActivateItem(T item);
 
-        public abstract void DeactivateItem(T item, bool close);
+        public abstract Task DeactivateItem(T item, bool close);
 
         protected virtual void OnActivationProcessed(T item, bool success)
         {

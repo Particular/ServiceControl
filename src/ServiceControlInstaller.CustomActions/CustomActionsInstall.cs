@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
     using Engine.FileSystem;
     using Engine.Instances;
@@ -28,7 +29,7 @@
             }
 
             UpgradeInstances(session, zipInfo, logger, unattendedInstaller);
-            UnattendedInstall(session, logger, unattendedInstaller);
+            UnattendedInstall(session, logger, unattendedInstaller).Wait();
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
@@ -137,7 +138,7 @@
             }
         }
 
-        static void UnattendedInstall(Session session, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
+        static async Task UnattendedInstall(Session session, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             logger.Info("Checking for unattended file");
 
@@ -166,7 +167,8 @@
                     instanceToInstallDetails.ServiceAccountPwd = password;
                 }
 
-                unattendedInstaller.Add(instanceToInstallDetails, s => false);
+                await unattendedInstaller.Add(instanceToInstallDetails, s => Task.FromResult(false))
+                    .ConfigureAwait(false);
             }
             else
             {

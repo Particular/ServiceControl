@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
+    using System.Threading.Tasks;
     using Accounts;
     using Configuration.Monitoring;
     using FileSystem;
@@ -144,7 +145,7 @@
             }
         }
 
-        public void Validate(Func<PathInfo, bool> promptToProceed)
+        public async Task Validate(Func<PathInfo, Task<bool>> promptToProceed)
         {
             if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
@@ -169,7 +170,7 @@
 
             try
             {
-                ReportCard.CancelRequested = new PathsValidator(this).RunValidation(true, promptToProceed);
+                ReportCard.CancelRequested = await new PathsValidator(this).RunValidation(true, promptToProceed).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

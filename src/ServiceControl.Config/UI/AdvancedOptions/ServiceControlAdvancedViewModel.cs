@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.ServiceProcess;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
@@ -24,7 +25,7 @@
             StartServiceInMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
             {
                 await maintenanceModeCommand.ExecuteAsync(this);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
             DeleteCommand = deleteInstanceCommand;
             OpenUrl = new OpenURLCommand();
@@ -32,12 +33,12 @@
             StopMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
             {
                 await StopService();
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
-            Cancel = Command.Create(() =>
+            Cancel = Command.Create(async () =>
             {
-                TryClose(false);
-                eventAggregator.PublishOnUIThread(new RefreshInstances());
+                await TryCloseAsync(false);
+                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }, () => !InProgress);
         }
 
@@ -113,12 +114,13 @@
             }
         }
 
-        public void Handle(RefreshInstances message)
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("IsRunning");
             NotifyOfPropertyChange("IsStopped");
             NotifyOfPropertyChange("InMaintenanceMode");
+            return Task.CompletedTask;
         }
 
         public async Task<bool> StartServiceInMaintenanceMode(IProgressObject progress)

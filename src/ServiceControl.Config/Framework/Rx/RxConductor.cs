@@ -1,67 +1,59 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
-    using System;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
 
     public partial class RxConductor<T> : RxConductorBaseWithActiveItem<T> where T : class
     {
-        public override void ActivateItem(T item)
+        public override async Task ActivateItem(T item)
         {
             if (item != null && item.Equals(ActiveItem))
             {
                 if (IsActive)
                 {
-                    ScreenExtensions.TryActivate(item);
+                    await ScreenExtensions.TryActivateAsync(item);
                     OnActivationProcessed(item, true);
                 }
 
                 return;
             }
 
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
-              {
-                  if (canClose)
-                  {
-                      ChangeActiveItem(item, true);
-                  }
-                  else
-                  {
-                      OnActivationProcessed(item, false);
-                  }
-              });
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem });
+            if (result.CloseCanOccur)
+            {
+                await ChangeActiveItem(item, true);
+            }
+            else
+            {
+                OnActivationProcessed(item, false);
+            }
         }
 
-        public override void DeactivateItem(T item, bool close)
+        public override async Task DeactivateItem(T item, bool close)
         {
             if (item == null || !item.Equals(ActiveItem))
             {
                 return;
             }
 
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) =>
-              {
-                  if (canClose)
-                  {
-                      ChangeActiveItem(default, close);
-                  }
-              });
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem });
+            if (result.CloseCanOccur)
+            {
+                await ChangeActiveItem(default, close);
+            }
         }
 
-        public override void CanClose(Action<bool> callback)
+        public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
         {
-            CloseStrategy.Execute(new[] { ActiveItem }, (canClose, items) => callback(canClose));
+            var result = await CloseStrategy.ExecuteAsync(new[] { ActiveItem }, cancellationToken);
+            return result.CloseCanOccur;
         }
 
-        protected override void OnActivate()
-        {
-            ScreenExtensions.TryActivate(ActiveItem);
-        }
+        protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
-        protected override void OnDeactivate(bool close)
-        {
-            ScreenExtensions.TryDeactivate(ActiveItem, close);
-        }
+        protected override Task OnDeactivate(bool close) => ScreenExtensions.TryDeactivateAsync(ActiveItem, close);
 
         public override IEnumerable<T> GetChildren()
         {

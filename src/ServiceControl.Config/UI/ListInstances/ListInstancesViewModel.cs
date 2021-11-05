@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -29,7 +30,7 @@
         [AlsoNotifyFor(nameof(OrderedInstances))]
         IList<InstanceDetailsViewModel> Instances { get; }
 
-        public void Handle(LicenseUpdated licenseUpdatedEvent)
+        public Task HandleAsync(LicenseUpdated licenseUpdatedEvent, CancellationToken cancellationToken)
         {
             // on license change inform each instance to refresh the license (1.23.0 and below don't support this)
             foreach (var instance in Instances)
@@ -56,16 +57,19 @@
                     {
                         // Ignored
                     }
-                });
+                }, cancellationToken);
             }
+
+            return Task.CompletedTask;
         }
 
-        public void Handle(RefreshInstances message)
+        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             AddMissingInstances();
+            return Task.CompletedTask;
         }
 
-        public void Handle(ResetInstances message)
+        public Task HandleAsync(ResetInstances message, CancellationToken cancellationToken)
         {
             Instances.Clear();
             foreach (var item in InstanceFinder.AllInstances().OrderBy(i => i.Name))
@@ -73,6 +77,7 @@
                 Instances.Add(instanceDetailsFunc(item));
             }
             NotifyOfPropertyChange(nameof(OrderedInstances));
+            return Task.CompletedTask;
         }
 
         void AddMissingInstances()

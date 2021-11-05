@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
+    using System.Threading.Tasks;
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
@@ -65,11 +66,11 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        protected override void ValidatePaths()
+        protected override async Task ValidatePaths()
         {
             try
             {
-                new PathsValidator(this).RunValidation(false);
+                await new PathsValidator(this).RunValidation(false).ConfigureAwait(false);
             }
             catch (EngineValidationException ex)
             {

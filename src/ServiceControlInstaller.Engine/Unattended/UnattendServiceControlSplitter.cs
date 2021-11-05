@@ -1,6 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
+    using System.Threading.Tasks;
     using Accounts;
     using Configuration.ServiceControl;
     using Instances;
@@ -19,7 +20,7 @@
             auditInstaller = new UnattendAuditInstaller(loggingInstance, deploymentCachePath);
         }
 
-        public Result Split(ServiceControlInstance instance, Options options, Func<PathInfo, bool> pathToProceed)
+        public async Task<Result> Split(ServiceControlInstance instance, Options options, Func<PathInfo, Task<bool>> pathToProceed)
         {
             var result = ValidateLicense();
             if (!result.Succeeded)
@@ -63,7 +64,7 @@
             }
 
             log.Info($"Creating new audit instance {newAuditInstance.Name}...");
-            if (!auditInstaller.Add(newAuditInstance, pathToProceed))
+            if (!await auditInstaller.Add(newAuditInstance, pathToProceed).ConfigureAwait(false))
             {
                 return Result.Failed("Unable to create new audit instance");
             }

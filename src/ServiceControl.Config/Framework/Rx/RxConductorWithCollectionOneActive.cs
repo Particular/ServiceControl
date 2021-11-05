@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
-    using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Caliburn.Micro;
     using EnumerableExtensions = EnumerableExtensions;
 
@@ -47,23 +48,23 @@
                 return items;
             }
 
-            public override void ActivateItem(T item)
+            public override async Task ActivateItem(T item)
             {
                 if (item != null && item.Equals(ActiveItem))
                 {
                     if (IsActive)
                     {
-                        ScreenExtensions.TryActivate(item);
+                        await ScreenExtensions.TryActivateAsync(item);
                         OnActivationProcessed(item, true);
                     }
 
                     return;
                 }
 
-                ChangeActiveItem(item, false);
+                await ChangeActiveItem(item, false);
             }
 
-            public override void DeactivateItem(T item, bool close)
+            public override async Task DeactivateItem(T item, bool close)
             {
                 if (item == null)
                 {
@@ -72,32 +73,30 @@
 
                 if (!close)
                 {
-                    ScreenExtensions.TryDeactivate(item, false);
+                    await ScreenExtensions.TryDeactivateAsync(item, false);
                 }
                 else
                 {
-                    CloseStrategy.Execute(new[] { item }, (canClose, closable) =>
-                      {
-                          if (canClose)
-                          {
-                              CloseItemCore(item);
-                          }
-                      });
+                    var result = await CloseStrategy.ExecuteAsync(new[] { item });
+                    if (result.CloseCanOccur)
+                    {
+                        await CloseItemCore(item);
+                    }
                 }
             }
 
-            void CloseItemCore(T item)
+            async Task CloseItemCore(T item)
             {
                 if (item.Equals(ActiveItem))
                 {
                     var index = items.IndexOf(item);
                     var next = DetermineNextItemToActivate(items, index);
 
-                    ChangeActiveItem(next, true);
+                    await ChangeActiveItem(next, true);
                 }
                 else
                 {
-                    ScreenExtensions.TryDeactivate(item, true);
+                    await ScreenExtensions.TryDeactivateAsync(item, true);
                 }
 
                 items.Remove(item);
@@ -120,56 +119,64 @@
                 return default;
             }
 
-            public override void CanClose(Action<bool> callback)
+            public override async Task<bool> CanCloseAsync(CancellationToken cancellationToken)
             {
-                CloseStrategy.Execute(items.ToList(), (canClose, closable) =>
+                var result = await CloseStrategy.ExecuteAsync(items.ToList(), cancellationToken);
+                var canClose = result.CloseCanOccur;
+                var closable = result.Children.ToList();
+
+                if (!canClose && closable.Any())
                 {
-                    if (!canClose && closable.Any())
+                    if (closable.Contains(ActiveItem))
                     {
-                        if (closable.Contains(ActiveItem))
+                        var list = items.ToList();
+                        var next = ActiveItem;
+                        do
                         {
-                            var list = items.ToList();
-                            var next = ActiveItem;
-                            do
-                            {
-                                var previous = next;
-                                next = DetermineNextItemToActivate(list, list.IndexOf(previous));
-                                list.Remove(previous);
-                            }
-                            while (closable.Contains(next));
-
-                            var previousActive = ActiveItem;
-                            ChangeActiveItem(next, true);
-                            items.Remove(previousActive);
-
-                            var stillToClose = closable.ToList();
-                            stillToClose.Remove(previousActive);
-                            closable = stillToClose;
+                            var previous = next;
+                            next = DetermineNextItemToActivate(list, list.IndexOf(previous));
+                            list.Remove(previous);
                         }
+                        while (closable.Contains(next));
 
-                        EnumerableExtensions.Apply(closable.OfType<IDeactivate>(), x => x.Deactivate(true));
-                        items.RemoveRange(closable);
+                        var previousActive = ActiveItem;
+                        await ChangeActiveItem(next, true);
+                        items.Remove(previousActive);
+
+                        var stillToClose = closable.ToList();
+                        stillToClose.Remove(previousActive);
+                        closable = stillToClose;
                     }
 
-                    callback(canClose);
-                });
+                    await Task.WhenAll(
+                        from deactivatable in closable.OfType<IDeactivate>()
+                        select deactivatable.DeactivateAsync(true)
+                    );
+
+                    items.RemoveRange(closable);
+                }
+
+                return canClose;
             }
 
-            protected override void OnActivate()
-            {
-                ScreenExtensions.TryActivate(ActiveItem);
-            }
+            protected override Task OnActivate() => ScreenExtensions.TryActivateAsync(ActiveItem);
 
-            protected override void OnDeactivate(bool close)
+            protected override async Task OnDeactivate(bool close)
             {
                 if (close)
                 {
-                    EnumerableExtensions.Apply(items.OfType<IDeactivate>(), x => x.Deactivate(true));
+                    foreach (var item in items)
+                    {
+                        if (item is IDeactivate deactivatable)
+                        {
+                            await deactivatable.DeactivateAsync(true);
+                        }
+                    }
                     items.Clear();
                 }
                 else
                 {
-                    ScreenExtensions.TryDeactivate(ActiveItem, false);
+                    await ScreenExtensions.TryDeactivateAsync(ActiveItem, false);
                 }
             }
 

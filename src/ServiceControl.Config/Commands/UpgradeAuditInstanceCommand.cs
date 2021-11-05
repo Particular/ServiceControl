@@ -41,7 +41,7 @@
                 var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
                 if (!licenseCheckResult.Valid)
                 {
-                    windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
+                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
                     return;
                 }
             }
@@ -54,7 +54,7 @@
 
             if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name))
             {
-                var dialogResult = windowManager.ShowYesNoCancelDialog(
+                var dialogResult = await windowManager.ShowYesNoCancelDialog(
                     "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
                     "ServiceControl Audit indexes message bodies to enable searching for messages by their contents in ServiceInsight. This has a performance impact on the ServiceControl Audit instance and the feature can be disabled if it is not required.", "Do you want to disable full text search for message bodies?", "YES", "NO");
                 if (dialogResult.HasValue)
@@ -73,7 +73,7 @@
             }
 
             if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                !windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
+                !await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
                     $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
                     "Do you want to proceed?",
                     "Yes, I want to proceed", "No"))
@@ -101,7 +101,7 @@
 
                     reportCard.Errors.Add("Failed to stop the service");
                     reportCard.SetStatus();
-                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
                     return;
                 }
@@ -110,7 +110,7 @@
 
                 if (reportCard.HasErrors || reportCard.HasWarnings)
                 {
-                    windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
                     return;
                 }
 
@@ -120,7 +120,7 @@
                     if (!serviceStarted)
                     {
                         reportCard.Errors.Add("The Service failed to start. Please consult the ServiceControl logs for this instance");
-                        windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
+                        await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                     }
                 }
             }

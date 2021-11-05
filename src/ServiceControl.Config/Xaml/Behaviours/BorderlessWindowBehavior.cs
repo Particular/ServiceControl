@@ -2,8 +2,8 @@
 {
     using System;
     using System.Windows;
-    using System.Windows.Interactivity;
     using System.Windows.Interop;
+    using Microsoft.Xaml.Behaviors;
     using Native;
 
     public class BorderlessWindowBehavior : Behavior<Window>
