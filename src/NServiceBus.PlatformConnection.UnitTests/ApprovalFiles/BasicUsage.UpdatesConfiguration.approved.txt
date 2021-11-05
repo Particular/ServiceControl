@@ -1,10 +1,10 @@
 [
-  "NServiceBus.Heartbeat.HeartbeatsFeature",
-  "NServiceBus.AuditConfigReader+Result",
-  "NServiceBus.MetricsOptions",
-  "NServiceBus.Heartbeat.Queue",
   "errorQueue",
-  "NServiceBus.SagaAudit.Queue",
+  "MetricsFeature",
+  "NServiceBus.AuditConfigReader+Result",
   "NServiceBus.Features.SagaAuditFeature",
-  "MetricsFeature"
+  "NServiceBus.Heartbeat.HeartbeatsFeature",
+  "NServiceBus.Heartbeat.Queue",
+  "NServiceBus.MetricsOptions",
+  "NServiceBus.SagaAudit.Queue"
 ]

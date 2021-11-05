@@ -46,7 +46,9 @@
             endpointConfig.ConnectToServicePlatform(connectionConfig);
 
             var afterSettings = GetExplicitSettings(endpointConfig);
-            var changes = afterSettings.Except(beforeSettings);
+            var changes = afterSettings.Except(beforeSettings)
+                .OrderBy(x => x)
+                .ToArray();
 
             Approver.Verify(changes);
         }
@@ -80,7 +82,9 @@
 
                     var afterSettings = GetExplicitSettings(configuration);
 
-                    settingChanges = afterSettings.Except(beforeSettings);
+                    settingChanges = afterSettings.Except(beforeSettings)
+                        .OrderBy(x => x)
+                        .ToArray();
 
                     return configuration;
                 });
