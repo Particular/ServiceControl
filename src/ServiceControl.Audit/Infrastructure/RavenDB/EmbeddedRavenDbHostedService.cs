@@ -16,13 +16,20 @@
         readonly IEnumerable<IDataMigration> dataMigrations;
 
         public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IOptions<RavenStartup> ravenStartup, IEnumerable<IDataMigration> dataMigrations)
+        : this(documentStore, ravenStartup.Value, dataMigrations)
+        {
+        }
+
+        public EmbeddedRavenDbHostedService(IDocumentStore documentStore, RavenStartup ravenStartup, IEnumerable<IDataMigration> dataMigrations)
         {
             this.documentStore = documentStore;
-            this.ravenStartup = ravenStartup.Value;
+            this.ravenStartup = ravenStartup;
             this.dataMigrations = dataMigrations;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken) => SetupDatabase();
+
+        public async Task SetupDatabase()
         {
             Logger.Info("Database initialization starting");
             documentStore.Initialize();

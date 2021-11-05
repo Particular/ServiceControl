@@ -102,6 +102,16 @@ namespace ServiceControl.Audit.Infrastructure
 
                 await Endpoint.Create(configuration)
                     .ConfigureAwait(false);
+
+
+                var ravenOptions = new RavenStartup();
+                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
+                {
+                    ravenOptions.AddIndexAssembly(indexAssembly);
+                }
+
+                var service = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
+                await service.SetupDatabase().ConfigureAwait(false);
             }
         }
 
