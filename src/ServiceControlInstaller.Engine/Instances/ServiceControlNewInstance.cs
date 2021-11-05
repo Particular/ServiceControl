@@ -40,6 +40,17 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void AddRemoteInstance(string apiUri)
         {
+            //Secondary instance can be configured with * or + as the hostname to ensure
+            //that the api is bound to all available network interfaces. This is problematic
+            //from the main instance perspective as it requires concrete hostname.
+            //Remote instances settings are added only via UI when all instances are deployed
+            //on the same machine so it is safe to replace * or + with localhost.
+            if (apiUri.Contains("*") || apiUri.Contains("+"))
+            {
+                apiUri = apiUri.Replace("*", "localhost")
+                    .Replace("+", "localhost");
+            }
+
             if (RemoteInstances.All(x => string.Compare(x.ApiUri, apiUri, StringComparison.InvariantCultureIgnoreCase) != 0))
             {
                 RemoteInstances.Add(new RemoteInstanceSetting
