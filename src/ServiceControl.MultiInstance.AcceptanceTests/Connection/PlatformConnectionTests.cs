@@ -53,32 +53,39 @@
 
             if (!string.IsNullOrWhiteSpace(TransportIntegration.ConnectionString))
             {
-                var builder = new DbConnectionStringBuilder { ConnectionString = TransportIntegration.ConnectionString };
-
-                // SQS
-                if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+                try
                 {
-                    var queueNamePrefixAsString = (string)queueNamePrefix;
-                    if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                    var builder = new DbConnectionStringBuilder { ConnectionString = TransportIntegration.ConnectionString };
+
+                    // SQS
+                    if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
                     {
-                        result = result.Replace(
-                            queueNamePrefixAsString,
-                            "queue-prefix-"
-                        );
+                        var queueNamePrefixAsString = (string)queueNamePrefix;
+                        if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                        {
+                            result = result.Replace(
+                                queueNamePrefixAsString,
+                                "queue-prefix-"
+                            );
+                        }
+                    }
+
+                    // SQL
+                    if (builder.TryGetValue("Database", out var database))
+                    {
+                        var databaseAsString = (string)database;
+                        if (!string.IsNullOrEmpty(databaseAsString))
+                        {
+                            result = result.Replace(
+                                $"[{databaseAsString}]",
+                                "[DATABASE]"
+                            );
+                        }
                     }
                 }
-
-                // SQL
-                if (builder.TryGetValue("Database", out var database))
+                catch
                 {
-                    var databaseAsString = (string)database;
-                    if (!string.IsNullOrEmpty(databaseAsString))
-                    {
-                        result = result.Replace(
-                            $"[{databaseAsString}]",
-                            "[DATABASE]"
-                        );
-                    }
+                    // NOTE: Learning Transport has a connection string in an invalid format
                 }
             }
 
