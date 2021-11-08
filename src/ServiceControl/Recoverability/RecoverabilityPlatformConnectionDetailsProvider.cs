@@ -12,7 +12,7 @@
 
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
         {
-            connection.Add("errorQueue", settings.ErrorQueue);
+            connection.Add("ErrorQueue", settings.ErrorQueue);
             return Task.CompletedTask;
         }
     }

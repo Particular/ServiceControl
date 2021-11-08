@@ -26,7 +26,7 @@
             // TODO: Figure out if we should even provide this. The default in the plugin is 4xFrequency
             var timeToLive = TimeSpan.FromTicks(frequency.Ticks * 4);
             connection.Add(
-                "heartbeats",
+                "Heartbeats",
                 new
                 {
                     HeartbeatsQueue = instanceMainQueue,

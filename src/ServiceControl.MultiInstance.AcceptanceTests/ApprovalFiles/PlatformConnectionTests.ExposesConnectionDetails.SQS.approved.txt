@@ -1,15 +1,15 @@
 {
-  "audit_queue": "audit",
-  "heartbeats": {
-    "heartbeats_queue": "mikeminutillo-Particular-ServiceControl",
-    "frequency": "00:00:10",
-    "time_to_live": "00:00:40"
+  "Heartbeats": {
+    "HeartbeatsQueue": "mikeminutillo-Particular-ServiceControl",
+    "Frequency": "00:00:10",
+    "TimeToLive": "00:00:40"
   },
-  "custom_checks": {
-    "custom_checks_queue": "mikeminutillo-Particular-ServiceControl"
+  "CustomChecks": {
+    "CustomChecksQueue": "mikeminutillo-Particular-ServiceControl"
   },
-  "error_queue": "error",
-  "saga_audit": {
-    "saga_audit_queue": "audit"
-  }
+  "ErrorQueue": "error",
+  "SagaAudit": {
+    "SagaAuditQueue": "audit"
+  },
+  "AuditQueue": "audit"
 }

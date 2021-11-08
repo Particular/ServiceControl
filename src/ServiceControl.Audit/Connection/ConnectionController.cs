@@ -1,26 +1,27 @@
 namespace ServiceControl.Audit.Connection
 {
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.Settings;
+    using Newtonsoft.Json;
 
     public class ConnectionController : ApiController
     {
         readonly Settings settings;
+        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
         public ConnectionController(Settings settings) => this.settings = settings;
 
         [Route("connection")]
         [HttpGet]
-        public Task<HttpResponseMessage> GetConnectionDetails() => Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, new
-        {
-            settings.AuditQueue,
-            SagaAudit = new
+        public IHttpActionResult GetConnectionDetails() =>
+            Json(new
             {
-                SagaAuditQueue = settings.AuditQueue
-            }
-        }));
+                settings.AuditQueue,
+                SagaAudit = new
+                {
+                    SagaAuditQueue = settings.AuditQueue
+                }
+            },
+            jsonSerializerSettings);
     }
 }

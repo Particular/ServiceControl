@@ -15,7 +15,7 @@
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
         {
             connection.Add(
-                "customChecks",
+                "CustomChecks",
                 new
                 {
                     CustomChecksQueue = instanceMainQueue
