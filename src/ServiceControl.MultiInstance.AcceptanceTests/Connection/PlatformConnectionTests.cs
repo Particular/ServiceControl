@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests
 {
     using System;
+    using System.Data.Common;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NServiceBus.AcceptanceTesting;
@@ -38,11 +39,38 @@
             Approver.Verify(
                 formatted,
                 scenario: ScenarioName,
-                scrubber: input => input.Replace(
-                    Environment.MachineName,
-                    "MACHINE_NAME"
-                    )
-                );
+                scrubber: Scrub
+            );
+        }
+
+        string Scrub(string input)
+        {
+            // MSMQ
+            var result = input.Replace(
+                Environment.MachineName,
+                "MACHINE_NAME"
+            );
+
+            // SQS
+            if (!string.IsNullOrWhiteSpace(TransportIntegration.ConnectionString))
+            {
+                var builder = new DbConnectionStringBuilder { ConnectionString = TransportIntegration.ConnectionString };
+
+                if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+                {
+                    var queueNamePrefixAsString = (string)queueNamePrefix;
+                    if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                    {
+                        result = result.Replace(
+                            queueNamePrefixAsString,
+                            "queue-prefix-"
+                        );
+                    }
+                }
+
+            }
+
+            return result;
         }
 
         string ScenarioName
