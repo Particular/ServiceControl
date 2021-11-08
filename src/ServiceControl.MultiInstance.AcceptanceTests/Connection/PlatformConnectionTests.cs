@@ -51,11 +51,11 @@
                 "MACHINE_NAME"
             );
 
-            // SQS
             if (!string.IsNullOrWhiteSpace(TransportIntegration.ConnectionString))
             {
                 var builder = new DbConnectionStringBuilder { ConnectionString = TransportIntegration.ConnectionString };
 
+                // SQS
                 if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
                 {
                     var queueNamePrefixAsString = (string)queueNamePrefix;
@@ -68,6 +68,18 @@
                     }
                 }
 
+                // SQL
+                if (builder.TryGetValue("Database", out var database))
+                {
+                    var databaseAsString = (string)database;
+                    if (!string.IsNullOrEmpty(databaseAsString))
+                    {
+                        result = result.Replace(
+                            $"[{databaseAsString}]",
+                            "[DATABASE]"
+                        );
+                    }
+                }
             }
 
             return result;

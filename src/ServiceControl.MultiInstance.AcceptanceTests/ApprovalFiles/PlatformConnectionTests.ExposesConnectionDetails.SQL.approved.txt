@@ -1,11 +1,11 @@
 {
   "Heartbeats": {
-    "HeartbeatsQueue": "Particular.ServiceControl@[dbo]@[ServiceControl]",
+    "HeartbeatsQueue": "Particular.ServiceControl@[dbo]@[DATABASE]",
     "Frequency": "00:00:10",
     "TimeToLive": "00:00:40"
   },
   "CustomChecks": {
-    "CustomChecksQueue": "Particular.ServiceControl@[dbo]@[ServiceControl]"
+    "CustomChecksQueue": "Particular.ServiceControl@[dbo]@[DATABASE]"
   },
   "ErrorQueue": "error",
   "SagaAudit": {
