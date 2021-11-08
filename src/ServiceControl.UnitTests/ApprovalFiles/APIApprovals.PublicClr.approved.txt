@@ -254,7 +254,7 @@ namespace ServiceControl.Connection
         public ConnectionController(ServiceControl.Connection.IPlatformConnectionBuilder connectionBuilder) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("connection")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetConnectionDetails() { }
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> GetConnectionDetails() { }
     }
     public interface IPlatformConnectionBuilder
     {

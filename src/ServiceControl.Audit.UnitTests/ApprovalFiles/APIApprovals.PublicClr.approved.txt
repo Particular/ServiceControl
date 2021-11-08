@@ -138,7 +138,7 @@ namespace ServiceControl.Audit.Connection
         public ConnectionController(ServiceControl.Audit.Infrastructure.Settings.Settings settings) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("connection")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetConnectionDetails() { }
+        public System.Web.Http.IHttpActionResult GetConnectionDetails() { }
     }
 }
 namespace ServiceControl.Audit.Infrastructure.Installers
