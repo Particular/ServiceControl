@@ -28,7 +28,7 @@
 
             if (await DetectSagaAuditData().ConfigureAwait(false))
             {
-                return CheckResult.Failed("Saga snapshot data detected without an audit retention period configured. If saga audit data is allowed to accumulate, it can result in degraded performance.");
+                return CheckResult.Failed("Saga snapshot data detected without an audit retention period configured. If saga audit data is allowed to accumulate, it can result in degraded performance.  Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
