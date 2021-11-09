@@ -5,5 +5,5 @@ ServiceControl Health: Error Database Index Errors
 ServiceControl Health: Error Database Index Lag
 ServiceControl Health: Error Message Ingestion
 ServiceControl Health: Error Message Ingestion Process
-ServiceControl Health: Saga audit data retention check
+ServiceControl Health: Saga Audit Data Retention
 Storage space: ServiceControl database

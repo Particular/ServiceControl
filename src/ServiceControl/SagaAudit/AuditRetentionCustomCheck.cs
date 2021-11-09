@@ -13,7 +13,7 @@
         readonly bool _auditRetentionPeriodIsSet;
 
         public AuditRetentionCustomCheck(IDocumentStore documentStore, Settings settings, TimeSpan? repeatAfter = null)
-            : base("Saga audit data retention check", "ServiceControl Health", repeatAfter.HasValue ? repeatAfter : TimeSpan.FromHours(24))
+            : base("Saga Audit Data Retention", "ServiceControl Health", repeatAfter.HasValue ? repeatAfter : TimeSpan.FromHours(1))
         {
             _documentStore = documentStore;
             _auditRetentionPeriodIsSet = settings.AuditRetentionPeriod.HasValue;
