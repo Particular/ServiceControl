@@ -103,8 +103,7 @@
             };
 
             SingleResult<EventLogItem> customCheckEventEntry = default;
-
-            SingleResult<SagaHistory> sagaAudiDataInMainInstanceIsAvailableForQuery = default;
+            bool sagaAudiDataInMainInstanceIsAvailableForQuery = false;
 
             await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
@@ -115,11 +114,11 @@
                         return false;
                     }
 
-                    if (sagaAudiDataInMainInstanceIsAvailableForQuery?.HasResult == false)
+                    if (sagaAudiDataInMainInstanceIsAvailableForQuery == false)
                     {
-                        sagaAudiDataInMainInstanceIsAvailableForQuery =
+                        var sagaData =
                             await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
-
+                        sagaAudiDataInMainInstanceIsAvailableForQuery = sagaData.HasResult;
                         return false;
                     }
 
