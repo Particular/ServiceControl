@@ -10,6 +10,7 @@
     using System.Reactive.Subjects;
     using Extensions;
     using FluentValidation;
+    using FluentValidation.Internal;
     using FluentValidation.Results;
     using Framework.Rx;
 
@@ -99,7 +100,12 @@
             if (properties.Contains(e.PropertyName))
             {
                 validationResults.RemoveAll(x => x.PropertyName == e.PropertyName);
-                var validationResult = validator.Validate(target, e.PropertyName);
+                var validationContext = new ValidationContext<RxPropertyChanged>(
+                    target,
+                    new PropertyChain(),
+                    ValidatorOptions.Global.ValidatorSelectors.MemberNameValidatorSelectorFactory(new[] { e.PropertyName })
+                );
+                var validationResult = validator.Validate(validationContext);
                 validationResults.AddRange(validationResult.Errors);
             }
             else
