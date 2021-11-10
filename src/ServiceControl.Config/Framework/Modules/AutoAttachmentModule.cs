@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Config.Framework.Modules
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Autofac;
     using Autofac.Core;
     using Autofac.Core.Registration;
+    using Autofac.Core.Resolving.Pipeline;
     using Caliburn.Micro;
 
     public class AutoAttachmentModule : Module
@@ -12,40 +14,41 @@
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterAssemblyTypes(AssemblySource.Instance.ToArray())
-                .Where(type => type.Name.EndsWith("Attachment") && type.IsAssignableTo<IAttachment>())
-                .AsSelf()
+                .Where(type => type.Name.EndsWith("Attachment"))
+                .AsClosedTypesOf(typeof(Attachment<>))
                 .InstancePerDependency();
         }
 
         protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistry, IComponentRegistration registration)
         {
-            registration.Activated += OnComponentActivated;
+            registration.PipelineBuilding +=
+                (sender, pipeline) => pipeline.Use(new WireAttachmentsMiddleware());
         }
 
-        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        class WireAttachmentsMiddleware : IResolveMiddleware
         {
-            var vmType = e.Instance.GetType();
-
-            if (!vmType.FullName.EndsWith("ViewModel"))
+            public void Execute(ResolveRequestContext context, Action<ResolveRequestContext> next)
             {
-                return;
+                next(context);
+
+                var vmType = context.Instance?.GetType();
+
+                if (vmType == null || !vmType.FullName.EndsWith("ViewModel"))
+                {
+                    return;
+                }
+
+                var attachmentBaseType = typeof(Attachment<>).MakeGenericType(vmType);
+                var collectionType = typeof(IEnumerable<>).MakeGenericType(attachmentBaseType);
+                var attachments = (IEnumerable<IAttachment>)context.Resolve(collectionType);
+
+                foreach (var attachment in attachments)
+                {
+                    attachment.AttachTo(context.Instance);
+                }
             }
 
-            var attachmentBaseType = typeof(Attachment<>).MakeGenericType(vmType);
-
-            var attachments = ThisAssembly.GetTypes()
-                .Where(t => InheritsFrom(t, attachmentBaseType) && e.Context.IsRegistered(t))
-                .Select(t => (IAttachment)e.Context.Resolve(t));
-
-            foreach (var attachment in attachments)
-            {
-                attachment.AttachTo(e.Instance);
-            }
-        }
-
-        bool InheritsFrom(Type type, Type baseType)
-        {
-            return type.BaseType != null && (type.BaseType == baseType || InheritsFrom(type.BaseType, baseType));
+            public PipelinePhase Phase => PipelinePhase.Activation;
         }
     }
 }

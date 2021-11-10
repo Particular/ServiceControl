@@ -6,6 +6,7 @@
     using Autofac;
     using Autofac.Core;
     using Autofac.Core.Registration;
+    using Autofac.Core.Resolving.Pipeline;
     using Module = Autofac.Module;
 
     public class FeatureTogglesModule : Module
@@ -19,43 +20,51 @@
 
         protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistry, IComponentRegistration registration)
         {
-            registration.Activated += OnComponentActivated;
+            registration.PipelineBuilding += (sender, builder) => builder.Use(new FeatureToggleMiddleware());
         }
 
-        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        class FeatureToggleMiddleware : IResolveMiddleware
         {
-            var instanceType = e.Instance.GetType();
-
-            if (instanceType == typeof(FeatureToggles))
+            public void Execute(ResolveRequestContext context, Action<ResolveRequestContext> next)
             {
-                return;
-            }
+                next(context);
 
-            var featureToggles = e.Context.Resolve<FeatureToggles>();
+                var instanceType = context.Instance?.GetType();
 
-            var featureProperties = from prop in instanceType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                    let attribute = prop.GetCustomAttributes<FeatureToggleAttribute>().SingleOrDefault()
-                                    where attribute != null
-                                    select new
-                                    {
-                                        attribute.Feature,
-                                        Property = prop
-                                    };
-
-            foreach (var featureProp in featureProperties)
-            {
-                if (featureProp.Property.PropertyType != typeof(bool))
+                if (instanceType == null || instanceType == typeof(FeatureToggles))
                 {
-                    throw new InvalidOperationException($"Prerelease Property must be a bool {instanceType.FullName}.{featureProp.Property.Name}");
+                    return;
                 }
 
-                if (!featureProp.Property.CanWrite)
+                var featureToggles = context.Resolve<FeatureToggles>();
+
+                var featureProperties = from prop in instanceType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                        let attribute = prop.GetCustomAttributes<FeatureToggleAttribute>().SingleOrDefault()
+                                        where attribute != null
+                                        select new
+                                        {
+                                            attribute.Feature,
+                                            Property = prop
+                                        };
+
+                foreach (var featureProp in featureProperties)
                 {
-                    throw new InvalidOperationException($"Prerelease Property must be writeable {instanceType.FullName}.{featureProp.Property.Name}");
+                    if (featureProp.Property.PropertyType != typeof(bool))
+                    {
+                        throw new InvalidOperationException($"Prerelease Property must be a bool {instanceType.FullName}.{featureProp.Property.Name}");
+                    }
+
+                    if (!featureProp.Property.CanWrite)
+                    {
+                        throw new InvalidOperationException($"Prerelease Property must be writeable {instanceType.FullName}.{featureProp.Property.Name}");
+                    }
+
+                    featureProp.Property.SetValue(context.Instance, featureToggles.IsEnabled(featureProp.Feature));
                 }
 
-                featureProp.Property.SetValue(e.Instance, featureToggles.IsEnabled(featureProp.Feature));
             }
+
+            public PipelinePhase Phase => PipelinePhase.Activation;
         }
     }
 }
