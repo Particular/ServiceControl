@@ -5,6 +5,7 @@
     using System.Reflection;
     using Autofac;
     using Autofac.Core;
+    using Autofac.Core.Registration;
     using Module = Autofac.Module;
 
     public class FeatureTogglesModule : Module
@@ -16,7 +17,7 @@
             builder.RegisterType<FeatureToggleDefaults>().AsImplementedInterfaces();
         }
 
-        protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistry, IComponentRegistration registration)
         {
             registration.Activated += OnComponentActivated;
         }

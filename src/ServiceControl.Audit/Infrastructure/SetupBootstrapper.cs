@@ -2,11 +2,9 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Autofac;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using Raven.Client;
     using Raven.Client.Embedded;
     using RavenDB;
     using LicenseManagement;
@@ -76,26 +74,12 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.DoNotCreateQueues();
             }
 
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
 
             using (documentStore)
             {
                 RavenBootstrapper.Configure(documentStore, settings);
-
-                var container = containerBuilder.Build();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore CS0618 // Type or member is obsolete
 
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                     ctx => { }, configuration, false);

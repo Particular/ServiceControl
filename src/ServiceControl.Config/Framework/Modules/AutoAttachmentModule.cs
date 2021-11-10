@@ -4,6 +4,7 @@
     using System.Linq;
     using Autofac;
     using Autofac.Core;
+    using Autofac.Core.Registration;
     using Caliburn.Micro;
 
     public class AutoAttachmentModule : Module
@@ -16,7 +17,7 @@
                 .InstancePerDependency();
         }
 
-        protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistry, IComponentRegistration registration)
         {
             registration.Activated += OnComponentActivated;
         }
