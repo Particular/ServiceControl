@@ -9,7 +9,7 @@
     using System.Web.Http;
     using System.Web.Http.Results;
     using NServiceBus;
-    using NServiceBus.Logging;
+    //using NServiceBus.Logging;
     using Raven.Client;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -77,7 +77,7 @@
 
             if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
             {
-                logging.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
+                //logging.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
@@ -144,7 +144,7 @@
         Settings settings;
         IDocumentStore documentStore;
         IMessageSession messageSession;
-        static ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
+        //static ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
     }
 
     public class EditConfigurationModel
