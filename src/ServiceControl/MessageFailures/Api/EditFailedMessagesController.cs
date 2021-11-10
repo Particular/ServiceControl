@@ -16,7 +16,11 @@
 
     public class EditFailedMessagesController : ApiController
     {
-        internal EditFailedMessagesController(Settings settings, IDocumentStore documentStore, IMessageSession messageSession)
+        internal EditFailedMessagesController(
+            Settings settings,
+             IDocumentStore documentStore,
+             IMessageSession messageSession
+        )
         {
             this.messageSession = messageSession;
             this.documentStore = documentStore;
@@ -33,7 +37,7 @@
         {
             if (!settings.AllowMessageEditing)
             {
-                logging.Info("Message edit-retry has not been enabled.");
+                //logging.Info("Message edit-retry has not been enabled.");
                 return StatusCode(HttpStatusCode.NotFound);
             }
 
@@ -51,7 +55,7 @@
 
             if (failedMessage == null)
             {
-                logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
+                //logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
@@ -67,7 +71,7 @@
 
             if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x => x.Value), failedMessage.ProcessingAttempts.Last().Headers))
             {
-                logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
+                //logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
@@ -140,7 +144,6 @@
         Settings settings;
         IDocumentStore documentStore;
         IMessageSession messageSession;
-
         static ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
     }
 
