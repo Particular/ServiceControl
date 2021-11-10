@@ -8,6 +8,7 @@
     <PackageReference Include="NServiceBus.Raw" Version="3.2.4" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.1" />
     <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
   </ItemGroup>
 
