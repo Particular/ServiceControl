@@ -1,0 +1,282 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+  pull_request_target:
+  workflow_dispatch:
+env:
+  DOTNET_NOLOGO: true
+jobs:
+  build:
+    if:
+      (github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]') ||
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-2019
+    steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - name: Checkout for Dependabot
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/pull/${{ github.event.number }}/merge"
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1.8.2
+        with:
+          dotnet-version: 5.0.x
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Build
+        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - name: Upload packages
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: assets
+          path: |
+            nugets/
+            zip/
+            assets/
+          retention-days: 1
+      - name: Run unit tests
+        shell: pwsh
+        run: |
+          $exitCode = 0
+          Get-ChildItem src -Filter *.UnitTests | ForEach-Object {
+            echo "------------------------------------"
+            $testPath = "src/$($_.Name)"
+            dotnet test $testPath --configuration Release --no-build --logger "GitHubActions;report-warnings=false" -m:1 -- RunConfiguration.TargetPlatform=x64
+            $testExit = $LASTEXITCODE
+            echo "Test Exit Code = $testExit"
+            if ($testExit -ne 0) {
+              $exitCode = 1
+            }
+          }
+          
+          echo "------------------------------------"
+          Write-Output "Exit code = $exitCode"
+          exit $exitCode
+      - name: Upload acceptance tests
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: acceptance-tests
+          path: src/*.AcceptanceTests/bin/Release/
+          retention-days: 1
+
+  acceptance-tests:
+    needs: build
+    name: AcceptanceTests-${{ matrix.name }}
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        include:
+          - name: LearningTransport
+            transport: LearningTransport
+            customization: ConfigureEndpointLearningTransport
+          - name: Msmq
+            transport: Msmq
+            customization: ConfigureEndpointMsmqTransport
+          - name: SqlServer
+            transport: SqlServer
+            customization: ConfigureEndpointSqlServerTransport
+          - name: RabbitMQ-Conventional
+            transport: RabbitMQ
+            customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
+          - name: RabbitMQ-Direct
+            transport: RabbitMQ
+            customization: ConfigureEndpointRabbitMQDirectRoutingTransport
+          - name: AzureServiceBusNetStandard
+            transport: AzureServiceBusNetStandard
+            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
+          - name: AzureServiceBus-ForwardingTopology
+            transport: AzureServiceBus
+            customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
+          - name: AzureServiceBus-EndpointTopology
+            transport: AzureServiceBus
+            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
+          - name: AzureStorageQueues
+            transport: AzureStorageQueues
+            customization: ConfigureEndpointAzureStorageQueueTransport
+          - name: SQS
+            transport: SQS
+            customization: ConfigureEndpointSQSTransport
+      fail-fast: false
+    env:
+      ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
+      ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
+      ServiceControl/LicenseText: ${{ secrets.SERVICECONTROL_LICENSETEXT }}
+      ServiceControl.Audit/LicenseText: ${{ secrets.AUDIT_LICENSETEXT }}
+      Monitoring/LicenseText: ${{ secrets.MONITORING_LICENSETEXT }}
+    steps:
+      - name: Download acceptance tests
+        uses: actions/download-artifact@v2.0.10
+        with:
+          name: acceptance-tests
+      - name: Azure login
+        uses: azure/login@v1.3.0
+        with:
+          creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
+      - name: Setup SQL Server
+        if: matrix.transport == 'SqlServer'
+        uses: Particular/install-sql-server-action@v1.0.0
+        with:
+          connection-string-env-var: ServiceControl.AcceptanceTests.ConnectionString
+          catalog: nservicebus
+      - name: Setup RabbitMQ
+        if: matrix.transport == 'RabbitMQ'
+        id: setup-rabbitmq
+        shell: pwsh
+        run: |
+          # Retrieve the Azure region in which this workflow is running. This region should be used to create addtional resources.
+          $hostInfo = curl -H Metadata:true "169.254.169.254/metadata/instance?api-version=2017-08-01" | ConvertFrom-Json
+          $region = $hostInfo.compute.location
+
+          $hostname = "psw-rabbitmq-$(Get-Random)"
+          echo "::set-output name=hostname::$hostname"
+          echo "Creating RabbitMQ container $hostname in $region (This can take a while.)"
+          $jsonResult = az container create --image rabbitmq:3-management --name $hostname --location $region --dns-name-label $hostname --resource-group GitHubActions-RG --cpu 4 --memory 16 --ports 5672 15672 --ip-address public
+          if(!$jsonResult)
+          {
+            Write-Output "Failed to create RabbitMQ container"
+            exit 1;
+          }
+          $details = $jsonResult | ConvertFrom-Json
+          if (!$details.ipAddress) {
+            Write-Output "Failed to create RabbitMQ container $hostname in $region"
+            Write-Output $jsonResult
+            exit 1;
+          }
+          $ip=$details.ipAddress.ip
+          echo "::add-mask::$ip"
+          echo "Tagging container image"
+          $dateTag = "Created=$(Get-Date -Format "yyyy-MM-dd")"
+          $ignore = az tag create --resource-id $details.id --tags Package=ServiceControl RunnerOS=${{ runner.os }} $dateTag
+          echo "ServiceControl.AcceptanceTests.ConnectionString=host=$ip" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+          $uri = "http://" + $ip + ":15672/api/health/checks/virtual-hosts"
+          $tries = 0
+          do
+          {
+            $response = curl $uri -u guest:guest | ConvertFrom-Json
+            $tries++
+            if(!$response.status)
+            {
+              Write-Output "No response, retrying..."
+              Start-Sleep -m 5000
+            }
+          } until (($response.status) -or ($tries -ge 10))
+          if($response.status -ne "ok")
+          {
+            Write-Output "Failed to connect after 10 attempts";
+            exit 1
+          }
+      - name: Setup Azure Service Bus
+        if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
+        id: setup-asb
+        shell: pwsh
+        run: |
+          # Retrieve the Azure region in which this workflow is running. This region should be used to create addtional resources.
+          $hostInfo = curl -H Metadata:true "169.254.169.254/metadata/instance?api-version=2017-08-01" | ConvertFrom-Json
+          $region = $hostInfo.compute.location
+
+          $name = "psw-asb-$(Get-Random)"
+          echo "::set-output name=name::$name"
+          $dateTag = "Created=$(Get-Date -Format "yyyy-MM-dd")"
+
+          echo "Creating Azure Service Bus namespace $name (This can take awhile.)"
+          $details = az servicebus namespace create --resource-group GitHubActions-RG --location $region --name $name --tags Package=ServiceControl RunnerOS=${{ runner.os }} $dateTag | ConvertFrom-Json
+
+          echo "Getting connection string"
+          $keys = az servicebus namespace authorization-rule keys list --resource-group GitHubActions-RG --namespace-name $name --name RootManageSharedAccessKey | ConvertFrom-Json
+          $connectString = $keys.primaryConnectionString
+          echo "::add-mask::$connectString"
+
+          echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      - name: Setup Azure Storage Queues
+        if: matrix.transport == 'AzureStorageQueues'
+        id: setup-asq
+        shell: pwsh
+        run: |
+          # Retrieve the Azure region in which this workflow is running. This region should be used to create addtional resources.
+          $hostInfo = curl -H Metadata:true "169.254.169.254/metadata/instance?api-version=2017-08-01" | ConvertFrom-Json
+          $region = $hostInfo.compute.location
+
+          $rand = Get-Random
+          $accountname = "pswasq$($rand)"
+          echo "::set-output name=accountname::$accountname"
+          echo "Creating storage account"
+          $details = az storage account create --name $accountname --resource-group GitHubActions-RG --location $region --sku Standard_LRS | ConvertFrom-Json
+
+          echo "Getting account access keys"
+          $keys = az storage account keys list --account-name $accountname --resource-group GitHubActions-RG | ConvertFrom-Json
+          $key = $keys[0].value
+          echo "::add-mask::$key"
+
+          echo "Tagging storage accounts"
+          $dateTag = "Created=$(Get-Date -Format "yyyy-MM-dd")"
+          $ignore = az tag create --resource-id $details.id --tags Package=ServiceControl RunnerOS=${{ runner.os }} $dateTag
+
+          $connectString = "DefaultEndpointsProtocol=https;AccountName=$accountname;AccountKey=$key"
+
+          echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+      - name: Setup SQS environment variables
+        if: matrix.Transport == 'SQS'
+        shell: pwsh
+        run: |
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          
+          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }}"
+          echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+      
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $exitCode = 0
+          Get-ChildItem -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
+            echo "------------------------------------"
+            $testPath = $_.FullName
+            echo "Running dotnet test for $testPath"
+            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -- RunConfiguration.TargetPlatform=x64
+            $testExit = $LASTEXITCODE
+            echo "Finished $testPath"
+            echo "Test Exit Code = $testExit"
+            if ($testExit -ne 0) {
+              $exitCode = 1
+            }
+          }
+
+          echo "------------------------------------"
+          Write-Output "Exit code = $exitCode"
+          exit $exitCode
+
+      - name: Teardown infrastructure
+        if: ${{ always() }}
+        shell: pwsh
+        run: |
+          if ('${{ matrix.transport }}' -eq 'RabbitMQ') {
+            $ignore = az container delete --resource-group GitHubActions-RG --name ${{ steps.setup-rabbitmq.outputs.hostname }} --yes
+          }
+
+          if ('${{ matrix.transport }}' -eq 'AzureServiceBus' -Or '${{ matrix.transport }}' -eq 'AzureServiceBusNetStandard') {
+            $ignore = az servicebus namespace delete --resource-group GitHubActions-RG --name ${{ steps.setup-asb.outputs.name }}
+          }
+
+          if ('${{ matrix.transport }}' -eq 'AzureStorageQueues') {
+            $ignore = az storage account delete --resource-group GitHubActions-RG --name ${{ steps.setup-asq.outputs.accountname }} --yes
+          }
