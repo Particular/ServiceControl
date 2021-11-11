@@ -234,7 +234,7 @@ jobs:
         shell: pwsh
         run: |
           $exitCode = 0
-          Get-ChildItem src -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
+          Get-ChildItem -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
             echo "------------------------------------"
             $testPath = $_.FullName
             dotnet test $testPath --logger "GitHubActions;report-warnings=false" -m:1 -- RunConfiguration.TargetPlatform=x64
