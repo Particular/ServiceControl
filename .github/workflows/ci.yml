@@ -58,11 +58,14 @@ jobs:
             echo "------------------------------------"
             $testPath = "src/$($_.Name)"
             dotnet test $testPath --configuration Release --no-build --logger "GitHubActions;report-warnings=false" -m:1 -- RunConfiguration.TargetPlatform=x64
-            if ($LASTEXITCODE -ne 0) {
+            $testExit = $LASTEXITCODE
+            echo "Test Exit Code = $testExit"
+            if ($testExit -ne 0) {
               $exitCode = 1
             }
           }
-
+          
+          echo "------------------------------------"
           Write-Output "Exit code = $exitCode"
           exit $exitCode
       - name: Upload acceptance tests
@@ -116,6 +119,9 @@ jobs:
       ServiceControl/LicenseText: ${{ secrets.SERVICECONTROL_LICENSETEXT }}
       ServiceControl.Audit/LicenseText: ${{ secrets.AUDIT_LICENSETEXT }}
       Monitoring/LicenseText: ${{ secrets.MONITORING_LICENSETEXT }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Download acceptance tests
         uses: actions/download-artifact@v2.0.10
@@ -237,12 +243,17 @@ jobs:
           Get-ChildItem -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
             echo "------------------------------------"
             $testPath = $_.FullName
+            echo "Running dotnet test for $testPath"
             dotnet test $testPath --logger "GitHubActions;report-warnings=false" -- RunConfiguration.TargetPlatform=x64
-            if ($LASTEXITCODE -ne 0) {
+            $testExit = $LASTEXITCODE
+            echo "Finished $testPath"
+            echo "Test Exit Code = $testExit"
+            if ($testExit -ne 0) {
               $exitCode = 1
             }
           }
 
+          echo "------------------------------------"
           Write-Output "Exit code = $exitCode"
           exit $exitCode
 
