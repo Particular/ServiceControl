@@ -57,7 +57,7 @@ jobs:
           Get-ChildItem src -Filter *.UnitTests | ForEach-Object {
             echo "Running unit test project $($_.Name)"
             $testPath = "src/$($_.Name)"
-            dotnet test $testPath --configuration Release --no-build --logger "GitHubActions;report-warnings=false" -m:1
+            dotnet test $testPath --configuration Release --no-build --logger "GitHubActions;report-warnings=false" -m:1 -- TargetPlatform=x64
             if ($LASTEXITCODE -ne 0) {
               $exitCode = 1
             }
@@ -237,7 +237,7 @@ jobs:
           Get-ChildItem src -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
             echo "Running acceptance test project $($_.Name)"
             $testPath = $_.FullName
-            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -m:1
+            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -m:1 -- TargetPlatform=x64
             if ($LASTEXITCODE -ne 0) {
               $exitCode = 1
             }
