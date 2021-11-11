@@ -158,7 +158,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" CustomToolPath="C:\Users\Administrator\.dotnet\tools\azuresigntool.exe" CustomToolCmdLine="sign -d ServiceControl -kvu https://particularcodesigning.vault.azure.net -kvi %AZURE_KEY_VAULT_CLIENT_ID% -kvs %AZURE_KEY_VAULT_CLIENT_SECRET% -kvc %AZURE_KEY_VAULT_CERTIFICATE_NAME% -tr http://timestamp.digicert.com -v " KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
