@@ -237,7 +237,7 @@ jobs:
           Get-ChildItem -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
             echo "------------------------------------"
             $testPath = $_.FullName
-            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -m:1 -- RunConfiguration.TargetPlatform=x64
+            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -- RunConfiguration.TargetPlatform=x64
             if ($LASTEXITCODE -ne 0) {
               $exitCode = 1
             }
