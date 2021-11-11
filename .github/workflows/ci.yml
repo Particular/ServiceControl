@@ -97,21 +97,21 @@ jobs:
           - name: RabbitMQ-Direct
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQDirectRoutingTransport
-          - name: AzureServiceBus-EndpointTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
+          - name: AzureServiceBusNetStandard
+            transport: AzureServiceBusNetStandard
+            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
           - name: AzureServiceBus-ForwardingTopology
             transport: AzureServiceBus
             customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
+          - name: AzureServiceBus-EndpointTopology
+            transport: AzureServiceBus
+            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
           - name: AzureStorageQueues
             transport: AzureStorageQueues
             customization: ConfigureEndpointAzureStorageQueueTransport
           - name: SQS
             transport: SQS
             customization: ConfigureEndpointSQSTransport
-          - name: AzureServiceBusNetStandard
-            transport: AzureServiceBusNetStandard
-            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
       fail-fast: false
     env:
       ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
@@ -124,7 +124,6 @@ jobs:
         uses: actions/download-artifact@v2.0.10
         with:
           name: acceptance-tests
-      - run: ls -R
       - name: Azure login
         uses: azure/login@v1.3.0
         with:
