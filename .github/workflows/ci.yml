@@ -87,39 +87,39 @@ jobs:
 #    name: AcceptanceTests-${{ matrix.name }}
 #    runs-on: windows-2019
 #    strategy:
-      matrix:
-        include:
-          - name: LearningTransport
-            transport: LearningTransport
-            customization: ConfigureEndpointLearningTransport
-          - name: Msmq
-            transport: Msmq
-            customization: ConfigureEndpointMsmqTransport
-          - name: SqlServer
-            transport: SqlServer
-            customization: ConfigureEndpointSqlServerTransport
-          - name: RabbitMQ-Conventional
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
-          - name: RabbitMQ-Direct
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQDirectRoutingTransport
-          - name: AzureServiceBus-EndpointTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
-          - name: AzureServiceBus-ForwardingTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
-          - name: AzureStorageQueues
-            transport: AzureStorageQueues
-            customization: ConfigureEndpointAzureStorageQueueTransport
-          - name: SQS
-            transport: SQS
-            customization: ConfigureEndpointSQSTransport
-          - name: AzureServiceBusNetStandard
-            transport: AzureServiceBusNetStandard
-            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
-      fail-fast: false
+#      matrix:
+#        include:
+#          - name: LearningTransport
+#            transport: LearningTransport
+#            customization: ConfigureEndpointLearningTransport
+#          - name: Msmq
+#            transport: Msmq
+#            customization: ConfigureEndpointMsmqTransport
+#          - name: SqlServer
+#            transport: SqlServer
+#            customization: ConfigureEndpointSqlServerTransport
+#          - name: RabbitMQ-Conventional
+#            transport: RabbitMQ
+#            customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
+#          - name: RabbitMQ-Direct
+#            transport: RabbitMQ
+#            customization: ConfigureEndpointRabbitMQDirectRoutingTransport
+#          - name: AzureServiceBus-EndpointTopology
+#            transport: AzureServiceBus
+#            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
+#          - name: AzureServiceBus-ForwardingTopology
+#            transport: AzureServiceBus
+#            customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
+#          - name: AzureStorageQueues
+#            transport: AzureStorageQueues
+#            customization: ConfigureEndpointAzureStorageQueueTransport
+#          - name: SQS
+#            transport: SQS
+#            customization: ConfigureEndpointSQSTransport
+#          - name: AzureServiceBusNetStandard
+#            transport: AzureServiceBusNetStandard
+#            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
+#      fail-fast: false
 #    env:
 #      ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
 #      ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
