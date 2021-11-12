@@ -197,6 +197,8 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path ServiceControl.Monitoring/bin/Release/net472
           Copy-Item -Path "unzip\Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\*" -Destination "ServiceControl.Monitoring\bin\Release\net472" -Recurse
+      - name: Setup caching for Docker image
+        uses: satackey/action-docker-layer-caching@v0.0.11
       - name: Build dockerfiles
         shell: pwsh
         run: |
