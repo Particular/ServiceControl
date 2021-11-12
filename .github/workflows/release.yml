@@ -14,7 +14,8 @@ jobs:
   release:
     runs-on: windows-2019 # Code signing requirement https://github.com/NuGet/Home/issues/7939
     outputs:
-      version: ${{ steps.save-version.outputs.version }}
+      semver: ${{ steps.save-version.outputs.semver }}
+      majorminorpatch: ${{ steps.save-version.outputs.majorminorpatch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.0
@@ -50,7 +51,9 @@ jobs:
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - id: save-version
         name: Save GitVersion_SemVer version
-        run: echo "::set-output name=version::${{env.GitVersion_SemVer}}"
+        run: |
+          echo "::set-output name=semver::${{env.GitVersion_SemVer}}"
+          echo "::set-output name=majorminorpatch::${{env.GitVersion_MajorMinorPatch}}"
       - name: Sign NuGet Packages
         run: |
           NuGetKeyVaultSignTool sign nugets\*.nupkg `
@@ -169,9 +172,9 @@ jobs:
       - name: Prepare directory structure
         shell: pwsh
         run: |
-          Expand-Archive -Force "zip\Particular.ServiceControl-${{ needs.release.outputs.version }}.zip" -DestinationPath "unzip\Particular.ServiceControl"
-          Expand-Archive -Force "zip\Particular.ServiceControl.Audit-${{ needs.release.outputs.version }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Audit"
-          Expand-Archive -Force "zip\Particular.ServiceControl.Monitoring-${{ needs.release.outputs.version }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Monitoring"
+          Expand-Archive -Force "zip\Particular.ServiceControl-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl"
+          Expand-Archive -Force "zip\Particular.ServiceControl.Audit-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Audit"
+          Expand-Archive -Force "zip\Particular.ServiceControl.Monitoring-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Monitoring"
 
           $transport = ${{ matrix.transport }}
       
@@ -192,7 +195,7 @@ jobs:
           Get-ChildItem -Path .\src\docker\ -Filter "${{ matrix.filter }}" | ForEach-Object {
               $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
               
-              $dockerbuildcmd = "docker build -t particular/" + $dockerImageName +":${{ needs.release.outputs.version }}" + " -f .\src\docker\" + $_.Name + " ."
+              $dockerbuildcmd = "docker build -t particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}" + " -f .\src\docker\" + $_.Name + " ."
               Invoke-Expression $dockerbuildcmd.ToLower()
           }
       #- name: Login to Docker Hub
@@ -206,7 +209,7 @@ jobs:
           Get-ChildItem -Path .\src\docker\ -Filter "${{ matrix.filter }}" | ForEach-Object {
               $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
               
-              $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ needs.release.outputs.version }}"
+              $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}"
               echo "Docker Push Command: $dockerpushcmd"
               # Invoke-Expression $dockerpushcmd.ToLower()
           }
