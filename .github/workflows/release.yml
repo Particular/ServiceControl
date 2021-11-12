@@ -176,7 +176,7 @@ jobs:
           Expand-Archive -Force "zip\Particular.ServiceControl.Audit-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Audit"
           Expand-Archive -Force "zip\Particular.ServiceControl.Monitoring-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Monitoring"
 
-          $transport = ${{ matrix.transport }}
+          $transport = "${{ matrix.transport }}"
       
           New-Item -ItemType Directory -Force -Path ServiceControl.Transports.$transport/bin/Release/net472
           Copy-Item -Path "unzip\Particular.ServiceControl\Transports\$transport\*" -Destination "ServiceControl.Transports.$transport\bin\Release\net472" -Recurse
