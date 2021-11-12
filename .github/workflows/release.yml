@@ -152,12 +152,15 @@ jobs:
           - name: asq-windows
             filter: '*azurestoragequeues*'
             transport: ASQ
+            transport-source: AzureStorageQueue
           - name: sqs-windows
             filter: '*amazonsqs*'
             transport: SQS
+            transport-source: AmazonSQS
           - name: asb-windows
             filter: '*azureservicebus*'
             transport: ASBS
+            transport-source: NetStandardAzureServiceBus
       fail-fast: false
     steps:
       - name: Checkout
@@ -177,6 +180,11 @@ jobs:
           Expand-Archive -Force "zip\Particular.ServiceControl.Monitoring-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Monitoring"
 
           $transport = "${{ matrix.transport }}"
+          $srcTransport = "${{ matrix.transport-source}}"
+
+          if ( $srcTransport -eq $null -Or $srcTransport -eq "" ) {
+            $srcTransport = $transport
+          }
       
           New-Item -ItemType Directory -Force -Path ServiceControl.Transports.$transport/bin/Release/net472
           Copy-Item -Path "unzip\Particular.ServiceControl\Transports\$transport\*" -Destination "ServiceControl.Transports.$transport\bin\Release\net472" -Recurse
