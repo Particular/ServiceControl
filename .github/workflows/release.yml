@@ -187,7 +187,7 @@ jobs:
           }
       
           New-Item -ItemType Directory -Force -Path ServiceControl.Transports.$transport/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl\Transports\$transport\*" -Destination "ServiceControl.Transports.$transport\bin\Release\net472" -Recurse
+          Copy-Item -Path "unzip\Particular.ServiceControl\Transports\$srcTransport\*" -Destination "ServiceControl.Transports.$transport\bin\Release\net472" -Recurse
 
           New-Item -ItemType Directory -Force -Path ServiceControl/bin/Release/net472
           Copy-Item -Path "unzip\Particular.ServiceControl\ServiceControl\*" -Destination "ServiceControl\bin\Release\net472" -Recurse
