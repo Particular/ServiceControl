@@ -1,11 +1,9 @@
 name: Release
 on:
-  # Eventually - commented out for testing in a PR
-  #push:
-  #  tags:
-  #    - '[0-9]+.[0-9]+.[0-9]+'
-  #    - '[0-9]+.[0-9]+.[0-9]+-*'
-  pull_request:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-*'
 env:
   DOTNET_NOLOGO: true
   # Signals build to create the installer
@@ -118,21 +116,21 @@ jobs:
           name: octopus-package
           path: octopus-package/*
           retention-days: 1
-      #- name: Push package to Octopus Deploy
-      #  uses: OctopusDeploy/push-package-action@v1.1.1
-      #  with:
-      #    server: https://deploy.particular.net
-      #    api_key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-      #    packages: octopus-package/${{env.PARTICULAR_REPO_NAME}}.Deploy.${{env.GitVersion_SemVer}}.nupkg
-      #- name: Create Octopus Deploy release
-      #  uses: OctopusDeploy/create-release-action@v1.1.1
-      #  with:
-      #    server: https://deploy.particular.net
-      #    api_key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-      #    project: ${{env.PARTICULAR_REPO_NAME}}
-      #    release_number: ${{env.GitVersion_SemVer}}
-      #    package_version: ${{env.GitVersion_SemVer}}
-      #    package: "GitReleaseManager:0.11.0"
+      - name: Push package to Octopus Deploy
+        uses: OctopusDeploy/push-package-action@v1.1.1
+        with:
+          server: https://deploy.particular.net
+          api_key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+          packages: octopus-package/${{env.PARTICULAR_REPO_NAME}}.Deploy.${{env.GitVersion_SemVer}}.nupkg
+      - name: Create Octopus Deploy release
+        uses: OctopusDeploy/create-release-action@v1.1.1
+        with:
+          server: https://deploy.particular.net
+          api_key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+          project: ${{env.PARTICULAR_REPO_NAME}}
+          release_number: ${{env.GitVersion_SemVer}}
+          package_version: ${{env.GitVersion_SemVer}}
+          package: "GitReleaseManager:0.11.0"
   docker:
     needs: release
     name: docker-${{ matrix.name }}
@@ -170,8 +168,6 @@ jobs:
         with:
           name: zips
           path: zip
-      - name: Temp ls -R
-        run: ls -R ./zip
       - name: Prepare directory structure
         shell: pwsh
         run: |
@@ -206,11 +202,16 @@ jobs:
               $dockerbuildcmd = "docker build -t particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}" + " -f .\src\docker\" + $_.Name + " ."
               Invoke-Expression $dockerbuildcmd.ToLower()
           }
-      #- name: Login to Docker Hub
-      #  uses: docker/login-action@v1.10.0
-      #  with:
-      #    username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #    password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1.10.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Diagnostics
+        shell: pwsh
+        run: |
+          # List out the docker images on the system
+          docker images
       - name: Push Docker images
         shell: pwsh
         run: |
@@ -219,10 +220,5 @@ jobs:
               
               $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}"
               echo "Docker Push Command: $dockerpushcmd"
-              # Invoke-Expression $dockerpushcmd.ToLower()
+              Invoke-Expression $dockerpushcmd.ToLower()
           }
-      - name: Diagnostics
-        shell: pwsh
-        run: |
-          # List out the docker images on the system
-          docker images
