@@ -13,9 +13,8 @@
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.*" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.15" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.15" />
+    <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />    
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.7" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.0" />
