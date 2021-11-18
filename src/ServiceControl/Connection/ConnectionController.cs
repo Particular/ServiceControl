@@ -18,7 +18,11 @@
             var connectionDetails = await connectionBuilder.BuildPlatformConnection().ConfigureAwait(false);
 
             return Json(
-                connectionDetails.ToDictionary(),
+                new
+                {
+                    Settings = connectionDetails.ToDictionary(),
+                    QueryStatus = connectionDetails.Status
+                },
                 jsonSerializerSettings
             );
         }

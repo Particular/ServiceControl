@@ -48,7 +48,11 @@
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Unable to get connection details from ${remote.ApiUri}/connection", ex);
+                    var message = $"Unable to get connection details from ${remote.ApiUri}/connection";
+                    connection.Status.Exceptions.Add(message);
+                    connection.Status.IsSuccess = false;
+
+                    Log.Error(message, ex);
                 }
             }
         }
