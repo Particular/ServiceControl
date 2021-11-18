@@ -49,8 +49,8 @@
                 catch (Exception ex)
                 {
                     var message = $"Unable to get connection details from ${remote.ApiUri}/connection";
-                    connection.Status.Exceptions.Add(message);
-                    connection.Status.IsSuccess = false;
+
+                    connection.Errors.Add(message);
 
                     Log.Error(message, ex);
                 }

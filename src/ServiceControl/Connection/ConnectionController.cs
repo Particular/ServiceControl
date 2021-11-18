@@ -20,8 +20,8 @@
             return Json(
                 new
                 {
-                    Settings = connectionDetails.ToDictionary(),
-                    QueryStatus = connectionDetails.Status
+                    settings = connectionDetails.ToDictionary(),
+                    errors = connectionDetails.Errors
                 },
                 jsonSerializerSettings
             );

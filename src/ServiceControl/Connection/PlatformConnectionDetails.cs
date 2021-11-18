@@ -24,6 +24,6 @@
 
         public IDictionary<string, object> ToDictionary() => values;
 
-        public PlatformConnectionQueryStatus Status { get; } = new PlatformConnectionQueryStatus();
+        public ConcurrentBag<string> Errors { get; } = new ConcurrentBag<string>();
     }
 }
