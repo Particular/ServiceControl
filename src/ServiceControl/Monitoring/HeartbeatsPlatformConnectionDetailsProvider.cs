@@ -29,6 +29,7 @@
                 "Heartbeats",
                 new
                 {
+                    Enabled = true,
                     HeartbeatsQueue = instanceMainQueue,
                     Frequency = frequency,
                     TimeToLive = timeToLive

@@ -18,10 +18,12 @@ namespace ServiceControl.Audit.Connection
             {
                 MessageAudit = new
                 {
+                    Enabled = true,
                     settings.AuditQueue
                 },
                 SagaAudit = new
                 {
+                    Enabled = true,
                     SagaAuditQueue = settings.AuditQueue
                 }
             },

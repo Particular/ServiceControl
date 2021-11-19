@@ -1,18 +1,22 @@
 {
   "settings": {
     "Heartbeats": {
+      "Enabled": true,
       "HeartbeatsQueue": "Particular.ServiceControl@MACHINE_NAME",
       "Frequency": "00:00:10",
       "TimeToLive": "00:00:40"
     },
     "MessageAudit": {
+      "Enabled": true,
       "AuditQueue": "audit"
     },
     "CustomChecks": {
+      "Enabled": true,
       "CustomChecksQueue": "Particular.ServiceControl@MACHINE_NAME"
     },
     "ErrorQueue": "error",
     "SagaAudit": {
+      "Enabled": true,
       "SagaAuditQueue": "audit"
     }
   },

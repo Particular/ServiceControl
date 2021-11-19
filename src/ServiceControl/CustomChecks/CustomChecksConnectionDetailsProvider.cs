@@ -18,6 +18,7 @@
                 "CustomChecks",
                 new
                 {
+                    Enabled = true,
                     CustomChecksQueue = instanceMainQueue
                 });
             return Task.CompletedTask;

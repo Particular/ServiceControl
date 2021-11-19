@@ -22,6 +22,7 @@
                 {
                     Metrics = new
                     {
+                        Enabled = true,
                         MetricsQueue = mainInputQueue,
                         Interval = defaultInterval
                     }
