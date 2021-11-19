@@ -1,15 +1,20 @@
 {
-  "Heartbeats": {
-    "HeartbeatsQueue": "Particular.ServiceControl",
-    "Frequency": "00:00:10",
-    "TimeToLive": "00:00:40"
+  "settings": {
+    "Heartbeats": {
+      "HeartbeatsQueue": "Particular.ServiceControl",
+      "Frequency": "00:00:10",
+      "TimeToLive": "00:00:40"
+    },
+    "MessageAudit": {
+      "AuditQueue": "audit"
+    },
+    "CustomChecks": {
+      "CustomChecksQueue": "Particular.ServiceControl"
+    },
+    "ErrorQueue": "error",
+    "SagaAudit": {
+      "SagaAuditQueue": "audit"
+    }
   },
-  "CustomChecks": {
-    "CustomChecksQueue": "Particular.ServiceControl"
-  },
-  "ErrorQueue": "error",
-  "SagaAudit": {
-    "SagaAuditQueue": "audit"
-  },
-  "AuditQueue": "audit"
+  "errors": []
 }

@@ -16,7 +16,10 @@ namespace ServiceControl.Audit.Connection
         public IHttpActionResult GetConnectionDetails() =>
             Json(new
             {
-                settings.AuditQueue,
+                MessageAudit = new
+                {
+                    settings.AuditQueue
+                },
                 SagaAudit = new
                 {
                     SagaAuditQueue = settings.AuditQueue
