@@ -14,7 +14,11 @@
                 throw new ArgumentNullException(nameof(queue));
             }
 
-            var s = queueNamePrefix + queue;
+            var s = queue;
+            if (!string.IsNullOrWhiteSpace(queueNamePrefix) && !s.StartsWith(queueNamePrefix))
+            {
+                s = queueNamePrefix + queue;
+            }
 
             if (s.Length > 80)
             {
