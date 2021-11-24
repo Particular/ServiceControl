@@ -16,17 +16,31 @@ namespace ServiceControl.Audit.Connection
         public IHttpActionResult GetConnectionDetails() =>
             Json(new
             {
-                MessageAudit = new
+                MessageAudit = new MessageAuditConnectionDetails
                 {
                     Enabled = true,
-                    settings.AuditQueue
+                    AuditQueue = settings.AuditQueue
                 },
-                SagaAudit = new
+                SagaAudit = new SagaAuditConnectionDetails
                 {
                     Enabled = true,
                     SagaAuditQueue = settings.AuditQueue
                 }
             },
             jsonSerializerSettings);
+    }
+
+    // HINT: This should match the type in the PlatformConnector package
+    class MessageAuditConnectionDetails
+    {
+        public bool Enabled { get; set; }
+        public string AuditQueue { get; set; }
+    }
+
+    // HINT: This should match the type in the PlatformConnector package
+    class SagaAuditConnectionDetails
+    {
+        public bool Enabled { get; set; }
+        public string SagaAuditQueue { get; set; }
     }
 }

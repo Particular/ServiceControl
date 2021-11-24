@@ -16,12 +16,19 @@
         {
             connection.Add(
                 "CustomChecks",
-                new
+                new CustomChecksConnectionDetails
                 {
                     Enabled = true,
                     CustomChecksQueue = instanceMainQueue
                 });
             return Task.CompletedTask;
+        }
+
+        // HINT: This should match the type in the PlatformConnector package
+        class CustomChecksConnectionDetails
+        {
+            public bool Enabled { get; set; }
+            public string CustomChecksQueue { get; set; }
         }
     }
 }

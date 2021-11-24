@@ -27,7 +27,7 @@
             var timeToLive = TimeSpan.FromTicks(frequency.Ticks * 4);
             connection.Add(
                 "Heartbeats",
-                new
+                new HeartbeatsConnectionDetails
                 {
                     Enabled = true,
                     HeartbeatsQueue = instanceMainQueue,
@@ -36,6 +36,15 @@
                 });
 
             return Task.CompletedTask;
+        }
+
+        // HINT: This should match the type in the PlatformConnector package
+        class HeartbeatsConnectionDetails
+        {
+            public bool Enabled { get; set; }
+            public string HeartbeatsQueue { get; set; }
+            public TimeSpan Frequency { get; set; }
+            public TimeSpan TimeToLive { get; set; }
         }
     }
 }

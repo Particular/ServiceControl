@@ -20,7 +20,7 @@
             Json(
                 new
                 {
-                    Metrics = new
+                    Metrics = new MetricsConnectionDetails
                     {
                         Enabled = true,
                         MetricsQueue = mainInputQueue,
@@ -29,5 +29,13 @@
                 },
                 jsonSerializerSettings
         );
+
+        // HINT: This should match the type in the PlatformConnector package
+        class MetricsConnectionDetails
+        {
+            public bool Enabled { get; set; }
+            public string MetricsQueue { get; set; }
+            public TimeSpan Interval { get; set; }
+        }
     }
 }
