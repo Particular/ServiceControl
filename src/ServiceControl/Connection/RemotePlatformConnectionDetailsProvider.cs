@@ -37,7 +37,7 @@
                     var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
                     if (dictionary == null)
                     {
-                        Log.Warn($"Unexpected response from ${remote.ApiUri}/connection: ${result}");
+                        Log.Warn($"Unexpected response from {remote.ApiUri}/connection: {result}");
                         return;
                     }
 
@@ -48,7 +48,7 @@
                 }
                 catch (Exception ex)
                 {
-                    var message = $"Unable to get connection details from ${remote.ApiUri}/connection";
+                    var message = $"Unable to get connection details from ServiceControl Audit instance at {remote.ApiUri}/connection.";
 
                     connection.Errors.Add(message);
 
