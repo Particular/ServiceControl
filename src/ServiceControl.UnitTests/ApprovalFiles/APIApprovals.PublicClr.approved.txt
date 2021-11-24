@@ -267,11 +267,6 @@ namespace ServiceControl.Connection
         public void Add(string key, object value) { }
         public System.Collections.Generic.IDictionary<string, object> ToDictionary() { }
     }
-    public class PlatformConnectionQueryStatus
-    {
-        public PlatformConnectionQueryStatus() { }
-        public System.Collections.Concurrent.ConcurrentBag<string> Exceptions { get; set; }
-    }
 }
 namespace ServiceControl.Contracts.CustomChecks
 {
