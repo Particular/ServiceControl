@@ -14,7 +14,7 @@
                 return;
             }
 
-            // Add a numeric suffix to duplicated keys
+            // Add a numeric suffix to duplicated keys e.g. can happen when there are two audit instances configured
             var suffix = 0;
             do
             {
