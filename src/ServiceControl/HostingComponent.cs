@@ -12,7 +12,7 @@ namespace Particular.ServiceControl
             hostBuilder.ConfigureServices(services =>
             {
                 services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
-                services.AddTransient<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
+                services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
             });
 
         public override void Setup(Settings settings, IComponentSetupContext context)
