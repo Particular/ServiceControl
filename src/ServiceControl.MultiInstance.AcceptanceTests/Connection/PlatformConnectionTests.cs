@@ -39,57 +39,8 @@
             Approver.Verify(
                 formatted,
                 scenario: ScenarioName,
-                scrubber: Scrub
+                scrubber: TransportIntegration.ScrubPlatformConnection
             );
-        }
-
-        string Scrub(string input)
-        {
-            // MSMQ
-            var result = input.Replace(
-                Environment.MachineName,
-                "MACHINE_NAME"
-            );
-
-            if (!string.IsNullOrWhiteSpace(TransportIntegration.ConnectionString))
-            {
-                try
-                {
-                    var builder = new DbConnectionStringBuilder { ConnectionString = TransportIntegration.ConnectionString };
-
-                    // SQS
-                    if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
-                    {
-                        var queueNamePrefixAsString = (string)queueNamePrefix;
-                        if (!string.IsNullOrEmpty(queueNamePrefixAsString))
-                        {
-                            result = result.Replace(
-                                queueNamePrefixAsString,
-                                "queue-prefix-"
-                            );
-                        }
-                    }
-
-                    // SQL
-                    if (builder.TryGetValue("Database", out var database))
-                    {
-                        var databaseAsString = (string)database;
-                        if (!string.IsNullOrEmpty(databaseAsString))
-                        {
-                            result = result.Replace(
-                                $"[{databaseAsString}]",
-                                "[DATABASE]"
-                            );
-                        }
-                    }
-                }
-                catch
-                {
-                    // NOTE: Learning Transport has a connection string in an invalid format
-                }
-            }
-
-            return result;
         }
 
         string ScenarioName

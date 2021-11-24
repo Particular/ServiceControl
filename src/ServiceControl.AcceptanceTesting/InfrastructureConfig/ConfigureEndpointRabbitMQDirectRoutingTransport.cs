@@ -37,6 +37,7 @@
         public string Name => TransportNames.RabbitMQDirectRoutingTopology;
         public string TypeName => $"{typeof(RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
+        public string ScrubPlatformConnection(string input) => input;
 
         void PurgeQueues()
         {
