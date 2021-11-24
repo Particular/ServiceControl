@@ -28,32 +28,32 @@
 
         async Task UpdateFromRemote(RemoteInstanceSetting remote, PlatformConnectionDetails connection)
         {
-            using (var client = httpClientFactory())
+            var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
+
+            var client = httpClientFactory();
+            try
             {
-                try
+                var result = await client.GetStringAsync(remoteConnectionUri)
+                    .ConfigureAwait(false);
+                var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
+                if (dictionary == null)
                 {
-                    var result = await client.GetStringAsync($"{remote.ApiUri}/connection")
-                        .ConfigureAwait(false);
-                    var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
-                    if (dictionary == null)
-                    {
-                        Log.Warn($"Unexpected response from {remote.ApiUri}/connection: {result}");
-                        return;
-                    }
-
-                    foreach (var kvp in dictionary)
-                    {
-                        connection.Add(kvp.Key, kvp.Value);
-                    }
+                    Log.Warn($"Unexpected response from {remoteConnectionUri}: {result}");
+                    return;
                 }
-                catch (Exception ex)
+
+                foreach (var kvp in dictionary)
                 {
-                    var message = $"Unable to get connection details from ServiceControl Audit instance at {remote.ApiUri}/connection.";
-
-                    connection.Errors.Add(message);
-
-                    Log.Error(message, ex);
+                    connection.Add(kvp.Key, kvp.Value);
                 }
+            }
+            catch (Exception ex)
+            {
+                var message = $"Unable to get connection details from ServiceControl Audit instance at {remoteConnectionUri}.";
+
+                connection.Errors.Add(message);
+
+                Log.Error(message, ex);
             }
         }
 
