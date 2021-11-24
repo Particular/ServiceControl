@@ -14,7 +14,6 @@
         {
             var connectionDetails = new PlatformConnectionDetails();
 
-            // TODO: Handle errors in providers (including timeouts?)
             await Task.WhenAll(
                 from provider in platformConnectionProviders
                 select provider.ProvideConnectionDetails(connectionDetails)
