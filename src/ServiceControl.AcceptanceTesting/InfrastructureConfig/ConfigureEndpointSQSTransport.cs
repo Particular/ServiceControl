@@ -58,6 +58,27 @@
 
         public string ConnectionString { get; set; }
 
+        public string ScrubPlatformConnection(string input)
+        {
+            var result = input;
+
+            var builder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
+
+            if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+            {
+                var queueNamePrefixAsString = (string)queueNamePrefix;
+                if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                {
+                    result = result.Replace(
+                        queueNamePrefixAsString,
+                        "queue-prefix-"
+                    );
+                }
+            }
+
+            return result;
+        }
+
         static IAmazonSQS CreateSQSClient()
         {
             var credentials = new EnvironmentVariablesAWSCredentials();

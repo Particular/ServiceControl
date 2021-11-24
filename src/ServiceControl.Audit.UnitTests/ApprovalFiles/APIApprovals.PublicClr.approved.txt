@@ -131,6 +131,16 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
     }
 }
+namespace ServiceControl.Audit.Connection
+{
+    public class ConnectionController : System.Web.Http.ApiController
+    {
+        public ConnectionController(ServiceControl.Audit.Infrastructure.Settings.Settings settings) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("connection")]
+        public System.Web.Http.IHttpActionResult GetConnectionDetails() { }
+    }
+}
 namespace ServiceControl.Audit.Infrastructure.Installers
 {
     public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething

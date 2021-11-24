@@ -7,5 +7,6 @@
         string Name { get; }
         string TypeName { get; }
         string ConnectionString { get; set; }
+        string ScrubPlatformConnection(string input);
     }
 }

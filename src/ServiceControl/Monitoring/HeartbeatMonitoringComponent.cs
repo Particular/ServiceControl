@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using Connection;
     using EndpointControl.Handlers;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
@@ -25,6 +26,8 @@
 
                 collection.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
                 collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
+
+                collection.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             });
         }
 

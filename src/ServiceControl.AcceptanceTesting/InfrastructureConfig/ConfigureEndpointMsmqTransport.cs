@@ -81,6 +81,16 @@
             return Task.FromResult(0);
         }
 
+        public string ScrubPlatformConnection(string input)
+        {
+            var result = input.Replace(
+                Environment.MachineName,
+                "MACHINE_NAME"
+            );
+
+            return result;
+        }
+
         public string Name => TransportNames.MSMQ;
         public string TypeName => $"{typeof(MsmqTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }

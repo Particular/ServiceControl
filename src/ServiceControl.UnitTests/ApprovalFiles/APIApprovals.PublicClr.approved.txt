@@ -247,6 +247,27 @@ namespace ServiceControl.CompositeViews.Messages
         }
     }
 }
+namespace ServiceControl.Connection
+{
+    public class ConnectionController : System.Web.Http.ApiController
+    {
+        public ConnectionController(ServiceControl.Connection.IPlatformConnectionBuilder connectionBuilder) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("connection")]
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> GetConnectionDetails() { }
+    }
+    public interface IPlatformConnectionBuilder
+    {
+        System.Threading.Tasks.Task<ServiceControl.Connection.PlatformConnectionDetails> BuildPlatformConnection();
+    }
+    public class PlatformConnectionDetails
+    {
+        public PlatformConnectionDetails() { }
+        public System.Collections.Concurrent.ConcurrentBag<string> Errors { get; }
+        public void Add(string key, object value) { }
+        public System.Collections.Generic.IDictionary<string, object> ToDictionary() { }
+    }
+}
 namespace ServiceControl.Contracts.CustomChecks
 {
     public class CustomCheckFailed : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent

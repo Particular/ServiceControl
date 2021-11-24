@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "Heartbeats": {
+      "Enabled": true,
+      "HeartbeatsQueue": "Particular.ServiceControl@[dbo]@[DATABASE]",
+      "Frequency": "00:00:10",
+      "TimeToLive": "00:00:40"
+    },
+    "MessageAudit": {
+      "Enabled": true,
+      "AuditQueue": "audit"
+    },
+    "CustomChecks": {
+      "Enabled": true,
+      "CustomChecksQueue": "Particular.ServiceControl@[dbo]@[DATABASE]"
+    },
+    "ErrorQueue": "error",
+    "SagaAudit": {
+      "Enabled": true,
+      "SagaAuditQueue": "audit"
+    }
+  },
+  "errors": []
+}

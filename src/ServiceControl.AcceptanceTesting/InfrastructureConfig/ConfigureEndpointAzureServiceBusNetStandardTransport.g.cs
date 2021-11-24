@@ -35,5 +35,6 @@
         public string Name => TransportNames.AzureServiceBus;
         public string TypeName => $"{typeof(ServiceControl.Transports.ASBS.ASBSTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
+        public string ScrubPlatformConnection(string input) => input;
     }
 }
