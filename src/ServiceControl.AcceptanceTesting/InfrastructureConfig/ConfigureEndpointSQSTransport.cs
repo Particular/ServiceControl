@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
     using System;
+    using System.Data.Common;
     using System.Threading.Tasks;
     using Amazon.Runtime;
     using Amazon.S3;
@@ -27,6 +28,20 @@
             {
                 var s3Configuration = transportConfig.S3(S3BucketName, S3Prefix);
                 s3Configuration.ClientFactory(CreateS3Client);
+            }
+
+            if (string.IsNullOrWhiteSpace(ConnectionString) == false)
+            {
+                var builder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
+
+                if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+                {
+                    var queueNamePrefixAsString = (string)queueNamePrefix;
+                    if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+                    {
+                        transportConfig.QueueNamePrefix(queueNamePrefixAsString);
+                    }
+                }
             }
 
             return Task.FromResult(0);
