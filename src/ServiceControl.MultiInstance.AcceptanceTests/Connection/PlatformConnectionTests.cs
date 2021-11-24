@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests
 {
-    using System;
-    using System.Data.Common;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using NServiceBus.AcceptanceTesting;
