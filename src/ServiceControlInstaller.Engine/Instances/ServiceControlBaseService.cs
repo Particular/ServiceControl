@@ -71,7 +71,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://+:{DatabaseMaintenancePort}/";
+                //RavenDB when provided with localhost as the hostname will try to open ports on all interfaces
+                //by using + http binding. This in turn requires a matching UrlAcl registration.
+                var baseUrl = string.Equals("localhost", HostName, StringComparison.OrdinalIgnoreCase)
+                    ? $"http://+:{DatabaseMaintenancePort}/"
+                    : $"http://{HostName}:{DatabaseMaintenancePort}/";
+
                 return baseUrl;
             }
         }
@@ -212,13 +217,19 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             //This is an old aclurl registration for embedded RavenDB instance that includes the hostname.
             //We need that to make sure we can clean-up old registration when removing instances created
-            //using pre 4.17 versions of ServiceControl.
-            var legacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+            //by previous versions of ServiceControl
+
+            //pre 4.17 versions of ServiceControl were using hostnames in all cases 
+            var pre417LegacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
+
+            //pre 4.21 version of ServiceControl were using + in all cases
+            var pre421LegacyAclMaintenanceUlr = $"http://+:{DatabaseMaintenancePort}";
 
             bool IsServiceControlAclUrl(UrlReservation r) =>
                 r.Url.StartsWith(AclUrl, StringComparison.OrdinalIgnoreCase) ||
                 r.Url.StartsWith(AclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
-                r.Url.StartsWith(legacyAclMaintenanceUrl, StringComparison.OrdinalIgnoreCase);
+                r.Url.StartsWith(pre417LegacyAclMaintenanceUrl, StringComparison.OrdinalIgnoreCase) ||
+                r.Url.StartsWith(pre421LegacyAclMaintenanceUlr, StringComparison.OrdinalIgnoreCase);
 
             foreach (var urlReservation in UrlReservation.GetAll().Where(IsServiceControlAclUrl))
             {
