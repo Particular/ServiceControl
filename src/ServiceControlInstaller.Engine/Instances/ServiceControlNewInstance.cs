@@ -237,7 +237,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                var baseUrl = $"http://+:{DatabaseMaintenancePort}/";
+                //RavenDB when provided with localhost as the hostname will try to open ports on all interfaces
+                //by using + http binding. This in turn requires a matching UrlAcl registration.
+                var baseUrl = string.Equals("localhost", HostName, StringComparison.OrdinalIgnoreCase)
+                    ? $"http://+:{DatabaseMaintenancePort}/"
+                    : $"http://{HostName}:{DatabaseMaintenancePort}/";
+
                 return baseUrl;
             }
         }
