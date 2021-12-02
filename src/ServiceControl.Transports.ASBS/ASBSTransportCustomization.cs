@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
     using System.Data.Common;
+    using Azure.Messaging.ServiceBus;
     using NServiceBus;
     using NServiceBus.Raw;
 
@@ -84,8 +86,14 @@
             {
                 transport.TopicName((string)topicName);
             }
+
+            if (builder.TryGetValue(TransportTypePart, out var transportTypeString) && Enum.TryParse((string)transportTypeString, true, out ServiceBusTransportType transportType) && transportType == ServiceBusTransportType.AmqpWebSockets)
+            {
+                transport.UseWebSockets();
+            }
         }
 
         static string TopicNamePart = "TopicName";
+        static string TransportTypePart = "TransportType";
     }
 }
