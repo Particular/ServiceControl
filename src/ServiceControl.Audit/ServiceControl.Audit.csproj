@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ByteSize" Version="2.1.0" />
+    <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
@@ -34,7 +34,7 @@
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.2" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.5" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.0" />    
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
