@@ -38,7 +38,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.9.4" />
     <PackageReference Include="Caliburn.Micro" Version="4.0.173" />
-    <PackageReference Include="FluentValidation" Version="10.3.4" />
+    <PackageReference Include="FluentValidation" Version="10.3.5" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.13.0" />
     <PackageReference Include="reactiveui" Version="16.3.5" />
     <PackageReference Include="ReactiveUI.WPF" Version="13.2.18" />
