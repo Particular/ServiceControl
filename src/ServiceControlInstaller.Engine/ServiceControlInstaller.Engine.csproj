@@ -12,9 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.15.0" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.1" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="6.0.0" />
     <PackageReference Update="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
