@@ -9,7 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
+     <!-- This is needed to force the same System.Text.Json version as in the other parts of the solution-->
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <!-- This is needed to force the same System.Diagnostics.DiagnosticSource version as in the other parts of the solution-->
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
+    <!-- Direct reference to SNI is needed to make sure it's copied to the output directory-->
     <PackageReference Include="Microsoft.Data.SqlClient.SNI" Version="4.0.0" />
     <PackageReference Include="NServiceBus.Transport.SqlServer" Version="6.3.2" />    
   </ItemGroup>
