@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.1" />
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.2" />
   </ItemGroup>
 
   <ItemGroup Label="ServiceControl compatibility transient dependencies">
