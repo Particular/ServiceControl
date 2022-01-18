@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
-    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
@@ -9,7 +8,7 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using RavenAttachments;
+    using FileSystemStorage;
 
     class BodyStorageFeature : Feature
     {
@@ -22,7 +21,8 @@
         {
             if (!context.Container.HasComponent<IBodyStorage>())
             {
-                context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
+                // context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<FileSystemBodyStorage>(DependencyLifecycle.SingleInstance);
             }
 
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
@@ -75,9 +75,9 @@
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-                if (isBelowMaxSize)
+                if (isBelowMaxSize || settings.ForceBodyStorage)
                 {
-                    var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+                    var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary && !settings.ForceBodyStorage;
                     var useBodyStore = !useEmbeddedBody;
 
                     if (useEmbeddedBody)

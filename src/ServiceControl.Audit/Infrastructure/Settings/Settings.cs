@@ -88,6 +88,8 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
+        public string FileSystemBodyStoragePath => SettingsReader<string>.Read("FileSystemBodyStoragePath", Directory.GetCurrentDirectory());
+
         public string TransportCustomizationType { get; set; }
 
         public string DbPath { get; set; }
@@ -158,6 +160,8 @@
             }
             set => maxBodySizeToStore = value;
         }
+
+        public bool ForceBodyStorage { get; set; } = SettingsReader<bool>.Read("ForceBodyStorage", ForceBodyStorageDefault);
 
         public string ServiceName { get; }
 
@@ -426,5 +430,6 @@
         const int ExpirationProcessBatchSizeMinimum = 10240;
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;
+        const bool ForceBodyStorageDefault = false;
     }
 }
