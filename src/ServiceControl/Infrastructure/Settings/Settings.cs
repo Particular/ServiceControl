@@ -203,6 +203,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
 
+        public bool ForceBodyStorage { get; set; } = SettingsReader<bool>.Read("ForceBodyStorage", ForceBodyStorageDefault);
+
+        public string FileSystemBodyStoragePath => SettingsReader<string>.Read("FileSystemBodyStoragePath", Directory.GetCurrentDirectory());
+
         public TransportCustomization LoadTransportCustomization()
         {
             try
@@ -533,5 +537,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;
         const int DataSpaceRemainingThresholdDefault = 20;
+        const bool ForceBodyStorageDefault = false;
     }
 }

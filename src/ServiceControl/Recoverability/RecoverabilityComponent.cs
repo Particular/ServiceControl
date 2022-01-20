@@ -23,6 +23,7 @@
     using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Operations.BodyStorage.FileSystemStorage;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
@@ -93,7 +94,8 @@
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
 
                 //Body storage
-                collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+                // collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+                collection.AddSingleton<IBodyStorage, FileSystemBodyStorage>();
                 collection.AddSingleton<BodyStorageEnricher>();
 
                 //Health checks

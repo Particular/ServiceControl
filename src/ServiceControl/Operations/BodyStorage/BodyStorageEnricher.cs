@@ -50,7 +50,7 @@
             var isBinary = contentType.Contains("binary");
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-            var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+            var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary && !settings.ForceBodyStorage;
             var useBodyStore = !useEmbeddedBody;
 
             if (useEmbeddedBody)
