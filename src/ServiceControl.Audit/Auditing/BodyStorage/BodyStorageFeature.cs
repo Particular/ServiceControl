@@ -8,7 +8,7 @@
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using FileSystemStorage;
+    using ServiceControl.Audit.Auditing.BodyStorage.AzureBlobStorage;
 
     class BodyStorageFeature : Feature
     {
@@ -22,7 +22,8 @@
             if (!context.Container.HasComponent<IBodyStorage>())
             {
                 // context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
-                context.Container.ConfigureComponent<FileSystemBodyStorage>(DependencyLifecycle.SingleInstance);
+                // context.Container.ConfigureComponent<FileSystemBodyStorage>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<AzureBlobBodyStorage>(DependencyLifecycle.SingleInstance);
             }
 
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
