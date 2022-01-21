@@ -38,7 +38,7 @@
     <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.1" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.2.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="OwinHttpMessageHandler" Version="2.0.2" />
   </ItemGroup>
 
