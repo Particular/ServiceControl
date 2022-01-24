@@ -18,11 +18,6 @@
 
         public AzureBlobBodyStorage(Settings settings)
         {
-            if (string.IsNullOrWhiteSpace(FileSystemBodyStoragePath))
-            {
-                FileSystemBodyStoragePath = settings.FileSystemBodyStoragePath;
-            }
-
             blobStorageConnectionString = Environment.GetEnvironmentVariable(settings.BlobStorageConnectionStringEnvironmentVariable);
             blobStorageContainerName = settings.BlobStorageContainerName;
         }
@@ -113,17 +108,6 @@
 
                 return blobStorageClient;
             }
-        }
-
-        static string FileSystemBodyStoragePath;
-
-        class BodyStorageRecord
-        {
-            public string ContentType { get; set; }
-
-            public int BodySize { get; set; }
-
-            public byte[] Data { get; set; }
         }
     }
 }
