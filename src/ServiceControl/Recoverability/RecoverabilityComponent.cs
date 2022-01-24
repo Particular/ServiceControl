@@ -18,12 +18,11 @@
     using NServiceBus.Raw;
     using Operations;
     using Operations.BodyStorage;
-    using Operations.BodyStorage.RavenAttachments;
     using Particular.ServiceControl;
     using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Operations.BodyStorage.FileSystemStorage;
+    using ServiceControl.Operations.BodyStorage.AzureBlobStorage;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
@@ -95,7 +94,9 @@
 
                 //Body storage
                 // collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
-                collection.AddSingleton<IBodyStorage, FileSystemBodyStorage>();
+                // collection.AddSingleton<IBodyStorage, FileSystemBodyStorage>();
+                collection.AddSingleton<IBodyStorage, AzureBlobBodyStorage>();
+
                 collection.AddSingleton<BodyStorageEnricher>();
 
                 //Health checks

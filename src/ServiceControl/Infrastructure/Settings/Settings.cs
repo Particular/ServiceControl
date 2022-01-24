@@ -207,6 +207,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string FileSystemBodyStoragePath => SettingsReader<string>.Read("FileSystemBodyStoragePath", Directory.GetCurrentDirectory());
 
+        public string BlobStorageConnectionStringEnvironmentVariable { get; internal set; } = SettingsReader<string>.Read("BlobStorageConnectionStringEnvironmentVariable", "AzureStorage_ConnectionString");
+        public string BlobStorageContainerName { get; internal set; } = SettingsReader<string>.Read("BlobContainerName", "scbodystorage");
+
         public TransportCustomization LoadTransportCustomization()
         {
             try
