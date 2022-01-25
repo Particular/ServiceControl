@@ -41,10 +41,10 @@
             {
                 var bodySize = body?.Length ?? 0;
                 processedMessage.MessageMetadata.Add("ContentLength", bodySize);
-                if (bodySize == 0)
-                {
-                    return;
-                }
+                //if (bodySize == 0)
+                //{
+                //    return;
+                //}
 
                 var contentType = GetContentType(processedMessage.Headers, "text/xml");
                 processedMessage.MessageMetadata.Add("ContentType", contentType);
@@ -103,8 +103,12 @@
 
                     if (useBodyStore)
                     {
-                        await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                            .ConfigureAwait(false);
+                        if (body.Length > 0)
+                        {
+                            await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                                .ConfigureAwait(false);
+                        }
+
                         storedInBodyStorage = true;
                     }
                 }
