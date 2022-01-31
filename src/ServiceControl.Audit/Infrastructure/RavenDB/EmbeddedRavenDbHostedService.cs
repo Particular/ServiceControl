@@ -57,6 +57,5 @@
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(EmbeddedRavenDbHostedService));
-
     }
 }

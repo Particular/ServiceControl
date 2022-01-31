@@ -86,16 +86,10 @@
 
             var deletedAuditDocuments = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} audit documents.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} audit documents.");
 
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} audit documents completed.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} audit documents completed.");
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, cancellationToken);
@@ -103,10 +97,7 @@
             var deletedAttachments = Chunker.ExecuteInChunks(attachments.Count, (att, db, s, e) =>
             {
                 var deleted = 0;
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} attachment audit documents.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} attachment audit documents.");
 
                 db.TransactionalStorage.Batch(accessor =>
                 {
@@ -119,27 +110,18 @@
                         deleted++;
                     }
                 });
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} attachment audit documents completed.");
 
                 return deleted;
             }, attachments, database, cancellationToken);
 
             if (deletedAttachments + deletedAuditDocuments == 0)
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug("No expired audit documents found");
-                }
+                logger.Debug("No expired audit documents found");
             }
             else
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Deleted {deletedAuditDocuments} expired audit documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
-                }
+                logger.Debug($"Deleted {deletedAuditDocuments} expired audit documents and {deletedAttachments} message body attachments. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 
