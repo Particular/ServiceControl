@@ -77,33 +77,21 @@
 
             var deletionCount = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} saga history documents.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} saga history documents.");
 
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Batching deletion of {s}-{e} saga history documents completed.");
-                }
+                logger.Debug($"Batching deletion of {s}-{e} saga history documents completed.");
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, cancellationToken);
 
             if (deletionCount == 0)
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug("No expired saga history documents found");
-                }
+                logger.Debug("No expired saga history documents found");
             }
             else
             {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"Deleted {deletionCount} expired saga history documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
-                }
+                logger.Debug($"Deleted {deletionCount} expired saga history documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
             }
         }
 

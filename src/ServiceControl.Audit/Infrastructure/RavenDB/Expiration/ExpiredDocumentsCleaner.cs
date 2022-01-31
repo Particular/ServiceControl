@@ -3,8 +3,8 @@
     using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using Raven.Abstractions;
-    using Raven.Abstractions.Logging;
     using Raven.Database;
     using ServiceControl.SagaAudit;
     using Settings;
@@ -15,7 +15,7 @@
         {
             var threshold = SystemTime.UtcNow.Add(-settings.AuditRetentionPeriod);
 
-            logger.Debug("Trying to find expired ProcessedMessage, SagaHistory and KnownEndpoint documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
+            logger.DebugFormat("Trying to find expired ProcessedMessage, SagaHistory and KnownEndpoint documents to delete (with threshold {0})", threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture));
             AuditMessageCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
             KnownEndpointsCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
             SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);

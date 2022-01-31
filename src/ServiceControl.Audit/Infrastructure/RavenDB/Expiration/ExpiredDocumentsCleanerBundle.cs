@@ -3,7 +3,7 @@
     using System;
     using System.ComponentModel.Composition;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Logging;
+    using NServiceBus.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
 
@@ -50,12 +50,12 @@
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
             var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
 
-            logger.Info("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
-            logger.Info("Deletion batch size set to {0}", deletionBatchSize);
-            logger.Info("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
+            logger.InfoFormat("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
+            logger.InfoFormat("Deletion batch size set to {0}", deletionBatchSize);
+            logger.InfoFormat("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
 
             timer = new AsyncTimer(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.ErrorException("Error when trying to find expired documents", e); });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
