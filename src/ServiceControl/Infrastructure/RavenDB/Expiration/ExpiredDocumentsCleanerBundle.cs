@@ -51,9 +51,9 @@
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
             var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
 
-            logger.InfoFormat("Running deletion of expired documents every {0} seconds", deleteFrequencyInSeconds);
-            logger.InfoFormat("Deletion batch size set to {0}", deletionBatchSize);
-            logger.InfoFormat("Retention period for errors is {0}", RavenBootstrapper.Settings.ErrorRetentionPeriod);
+            logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds");
+            logger.Info($"Deletion batch size set to {deletionBatchSize}");
+            logger.Info($"Retention period for errors is {RavenBootstrapper.Settings.ErrorRetentionPeriod}");
 
             var auditRetention = RavenBootstrapper.Settings.AuditRetentionPeriod;
 
