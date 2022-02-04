@@ -15,7 +15,7 @@
     <PackageReference Include="DotNetZip" Version="1.16.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="6.0.0" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.1" />
     <PackageReference Update="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
