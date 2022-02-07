@@ -59,6 +59,7 @@ namespace ServiceControl.Audit.Infrastructure
                     builder.ClearProviders();
                     //HINT: configuration used by NLog comes from LoggingConfigurator.cs
                     builder.AddNLog();
+                    builder.SetMinimumLevel(loggingSettings.ToHostLogLevel());
                 })
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>

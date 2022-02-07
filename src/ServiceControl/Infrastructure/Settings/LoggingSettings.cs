@@ -51,5 +51,35 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{serviceName}\\logs");
         }
+
+        public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel()
+        {
+            if (LoggingLevel == LogLevel.Debug)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Debug;
+            }
+            if (LoggingLevel == LogLevel.Error)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Error;
+            }
+            if (LoggingLevel == LogLevel.Fatal)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Critical;
+            }
+            if (LoggingLevel == LogLevel.Warn)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Warning;
+            }
+            if (LoggingLevel == LogLevel.Info)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Information;
+            }
+            if (LoggingLevel == LogLevel.Trace)
+            {
+                return Microsoft.Extensions.Logging.LogLevel.Trace;
+            }
+
+            return Microsoft.Extensions.Logging.LogLevel.None;
+        }
     }
 }
