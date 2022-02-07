@@ -77,10 +77,16 @@
 
             var deleteKnownEndpointDocuments = Chunker.ExecuteInChunks(items.Count, (itemsForBatch, db, s, e) =>
             {
-                logger.Debug($"Batching deletion of {s}-{e} known endpoint documents.");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} known endpoint documents.");
+                }
 
                 var results = db.Batch(itemsForBatch.GetRange(s, e - s + 1), CancellationToken.None);
-                logger.Debug($"Batching deletion of {s}-{e} known endpoint documents completed.");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Batching deletion of {s}-{e} known endpoint documents completed.");
+                }
 
                 return results.Count(x => x.Deleted == true);
             }, items, database, cancellationToken);
@@ -88,11 +94,17 @@
 
             if (deleteKnownEndpointDocuments == 0)
             {
-                logger.Debug("No expired known endpoints documents found");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("No expired known endpoints documents found");
+                }
             }
             else
             {
-                logger.Debug($"Deleted {deleteKnownEndpointDocuments} expired known endpoint documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Deleted {deleteKnownEndpointDocuments} expired known endpoint documents. Batch execution took {stopwatch.ElapsedMilliseconds} ms");
+                }
             }
         }
 
