@@ -15,7 +15,10 @@
         {
             var threshold = SystemTime.UtcNow.Add(-settings.AuditRetentionPeriod);
 
-            logger.Debug($"Trying to find expired ProcessedMessage, SagaHistory and KnownEndpoint documents to delete (with threshold {threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture)})");
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"Trying to find expired ProcessedMessage, SagaHistory and KnownEndpoint documents to delete (with threshold {threshold.ToString(Default.DateTimeFormatsToWrite, CultureInfo.InvariantCulture)})");
+            }
             AuditMessageCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
             KnownEndpointsCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
             SagaHistoryCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
