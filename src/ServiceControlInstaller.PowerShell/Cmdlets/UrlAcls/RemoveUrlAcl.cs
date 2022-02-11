@@ -1,5 +1,6 @@
 namespace ServiceControlInstaller.PowerShell
 {
+    using System;
     using System.Management.Automation;
     using Engine.UrlAcl;
 
@@ -12,6 +13,8 @@ namespace ServiceControlInstaller.PowerShell
 
         protected override void BeginProcessing()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
+
             Account.TestIfAdmin();
         }
 
