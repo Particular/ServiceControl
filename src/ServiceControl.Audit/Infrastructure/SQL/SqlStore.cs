@@ -15,7 +15,9 @@
         {
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public SqlBulkInsertOperation CreateBulkInsertOperation(bool overrideExistingRows, bool chunked, int chunkSize)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return new SqlBulkInsertOperation(connectionString);
         }
@@ -28,7 +30,9 @@
 
     class SqlBulkInsertOperation
     {
+#pragma warning disable IDE0052 // Remove unread private members
         readonly string connectionString;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public SqlBulkInsertOperation(string connectionString)
         {
@@ -37,22 +41,22 @@
 
         public Task StoreAsync(ProcessedMessage processedMessage)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task StoreAsync(SagaSnapshot sagaSnapshot)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task StoreAsync(KnownEndpoint sagaSnapshot)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task DisposeAsync()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

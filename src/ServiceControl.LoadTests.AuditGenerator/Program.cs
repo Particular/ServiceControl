@@ -48,64 +48,56 @@
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");
             config.EnableInstallers();
-            config.RegisterComponents(c => c.RegisterSingleton(new LoadGenerators(GenerateMessages, minLength, maxLength)));
+            //config.RegisterComponents(c => c.RegisterSingleton(new LoadGenerators(GenerateMessages, minLength, maxLength)));
 
             endpointInstance = await Endpoint.Start(config);
+
+            await GenerateMessages("audit").ConfigureAwait(false);
 
             Console.ReadLine();
         }
 
 
-        static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken cancellationToken)
+        static async Task GenerateMessages(string destination)
         {
             var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
             var bodySize = SettingsReader<int>.Read(ConfigRoot, "BodySize", 0);
 
             var random = new Random();
 
-            var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
-
-            while (!cancellationToken.IsCancellationRequested)
+            //await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
+            // We don't need to wait for this task
+            try
             {
-                await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
-                // We don't need to wait for this task
-                var sendTask = Task.Run(async () =>
+                var ops = new SendOptions();
+
+                ops.SetHeader(Headers.HostId, HostId);
+                ops.SetHeader(Headers.HostDisplayName, "Load Generator");
+
+                ops.SetHeader(Headers.ProcessingMachine, RuntimeEnvironment.MachineName);
+                ops.SetHeader(Headers.ProcessingEndpoint, "LoadGenerator");
+
+                var now = DateTime.UtcNow;
+                ops.SetHeader(Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(now));
+                ops.SetHeader(Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(now));
+
+                ops.SetDestination(destination);
+
+                var auditMessage = new AuditMessage
                 {
-                    try
-                    {
-                        var ops = new SendOptions();
+                    Data = new byte[bodySize]
+                };
+                random.NextBytes(auditMessage.Data);
 
-                        ops.SetHeader(Headers.HostId, HostId);
-                        ops.SetHeader(Headers.HostDisplayName, "Load Generator");
-
-                        ops.SetHeader(Headers.ProcessingMachine, RuntimeEnvironment.MachineName);
-                        ops.SetHeader(Headers.ProcessingEndpoint, "LoadGenerator");
-
-                        var now = DateTime.UtcNow;
-                        ops.SetHeader(Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(now));
-                        ops.SetHeader(Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(now));
-
-                        ops.SetDestination(destination);
-
-                        var auditMessage = new AuditMessage
-                        {
-                            Data = new byte[bodySize]
-                        };
-                        random.NextBytes(auditMessage.Data);
-
-                        await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);
-                        queueInfo.Sent();
-                        sendMeter.Mark();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                    finally
-                    {
-                        throttle.Release();
-                    }
-                }, cancellationToken);
+                await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                throttle.Release();
             }
         }
 
