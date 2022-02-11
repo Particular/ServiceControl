@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" Version="2.1.1" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Autofac.WebApi2" Version="4.3.1" />
@@ -46,7 +47,7 @@
     <PackageReference Include="Particular.Licensing.Sources" Version="3.6.0" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />    
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
   </ItemGroup>
 
   <ItemGroup>

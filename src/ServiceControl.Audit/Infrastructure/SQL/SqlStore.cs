@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.SQL
 {
     using System;
+    using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
+    using Dapper;
     using Monitoring;
     using ServiceControl.SagaAudit;
 
@@ -49,17 +51,19 @@
             */
         }
 
-        public Task Initialize()
+        public async Task Initialize()
         {
-            return Task.CompletedTask;
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync(SqlConstants.CreateMessageViewTable).ConfigureAwait(false);
+                await connection.ExecuteAsync(SqlConstants.CreateKnownEndpoints).ConfigureAwait(false);
+            }
         }
     }
 
     class SqlBulkInsertOperation
     {
-#pragma warning disable IDE0052 // Remove unread private members
         readonly string connectionString;
-#pragma warning restore IDE0052 // Remove unread private members
 
         public SqlBulkInsertOperation(string connectionString)
         {
@@ -67,29 +71,46 @@
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        public Task StoreAsync(ProcessedMessage processedMessage)
+        public async Task StoreAsync(ProcessedMessage processedMessage)
         {
-            //throw new NotImplementedException();
-            return Task.CompletedTask;
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var endpointDetails = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"];
+
+                await connection.ExecuteAsync(SqlConstants.InsertMessageView,
+                    new
+                    {
+                        MessageId = (string)processedMessage.MessageMetadata["MessageId"],
+                        MessageType = (string)processedMessage.MessageMetadata["MessageType"],
+                        IsSystemMessage = (bool)processedMessage.MessageMetadata["IsSystemMessage"],
+                        IsRetried = (bool)processedMessage.MessageMetadata["IsRetried"],
+                        TimeSent = (DateTime)processedMessage.MessageMetadata["TimeSent"],
+                        processedMessage.ProcessedAt,
+                        EndpointName = endpointDetails.Name,
+                        EndpointHostId = endpointDetails.HostId,
+                        EndpointHost = endpointDetails.Host,
+                        CriticalTime = ((TimeSpan?)processedMessage.MessageMetadata["CriticalTime"])?.Ticks,
+                        ProcessingTime = ((TimeSpan?)processedMessage.MessageMetadata["ProcessingTime"])?.Ticks,
+                        DeliveryTime = ((TimeSpan?)processedMessage.MessageMetadata["DeliveryTime"])?.Ticks,
+                        //Query = processedMessage.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
+                        ConversationId = (string)processedMessage.MessageMetadata["ConversationId"]
+
+                    }).ConfigureAwait(false);
+            }
         }
 
-        public Task StoreAsync(SagaSnapshot sagaSnapshot)
+        public async Task StoreAsync(KnownEndpoint endpoint)
         {
-            //throw new NotImplementedException();
-            return Task.CompletedTask;
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync(SqlConstants.UpdateKnownEndpoint, endpoint).ConfigureAwait(false);
+            }
         }
 
-        public Task StoreAsync(KnownEndpoint sagaSnapshot)
-        {
-            //throw new NotImplementedException();
-            return Task.CompletedTask;
-        }
+        public Task StoreAsync(SagaSnapshot sagaSnapshot) => throw new NotImplementedException();
 
-        public Task DisposeAsync()
-        {
-            //throw new NotImplementedException();
-            return Task.CompletedTask;
-        }
+
+        public Task DisposeAsync() => Task.CompletedTask;
 
 #pragma warning restore IDE0060 // Remove unused parameter
 

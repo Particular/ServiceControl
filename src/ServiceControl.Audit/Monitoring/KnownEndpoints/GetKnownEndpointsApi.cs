@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Monitoring
 
         protected override async Task<QueryResult<IList<KnownEndpointsView>>> Query(HttpRequestMessage request)
         {
-            var result = await Store.GetKnownEndpoints(out var totalCount).ConfigureAwait(false);
+            var (result, totalCount) = await Store.GetKnownEndpoints().ConfigureAwait(false);
 
             return new QueryResult<IList<KnownEndpointsView>>(result, new QueryStatsInfo(string.Empty, totalCount));
         }

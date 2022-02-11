@@ -2,18 +2,10 @@
 {
     using System.IO;
     using System.Threading.Tasks;
+    using Auditing.BodyStorage;
 
-    class SqlBodyStore
+    class SqlBodyStore : IBodyStorage
     {
-#pragma warning disable IDE0052 // Remove unread private members
-        readonly string connectionString;
-#pragma warning restore IDE0052 // Remove unread private members
-
-        public SqlBodyStore(string connectionString)
-        {
-            this.connectionString = connectionString;
-        }
-
         public Task Store(string bodyId, string contentType, int bodySize, MemoryStream bodyStream)
         {
             throw new System.NotImplementedException();
@@ -23,5 +15,9 @@
         {
             return Task.CompletedTask;
         }
+
+        public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream) => throw new System.NotImplementedException();
+
+        public Task<StreamResult> TryFetch(string bodyId) => throw new System.NotImplementedException();
     }
 }

@@ -8,14 +8,13 @@ namespace ServiceControl.Audit.Infrastructure.SQL
     static class SqlHostBuilderExtensions
     {
         public static IHostBuilder UseSqlDb(this IHostBuilder hostBuilder,
-            Func<HostBuilderContext, (SqlQueryStore, SqlBodyStore, SqlStore)> sqlStoreBuilder)
+            Func<HostBuilderContext, (SqlQueryStore, SqlStore)> sqlStoreBuilder)
         {
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
-                var (queryStore, bodyStore, writeStore) = sqlStoreBuilder(ctx);
+                var (queryStore, writeStore) = sqlStoreBuilder(ctx);
 
                 serviceCollection.AddSingleton(queryStore);
-                serviceCollection.AddSingleton(bodyStore);
                 serviceCollection.AddSingleton(writeStore);
                 serviceCollection.AddHostedService<SqlDbHostedService>();
             });

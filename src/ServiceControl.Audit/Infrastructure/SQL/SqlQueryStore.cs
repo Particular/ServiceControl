@@ -2,27 +2,57 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data.SqlClient;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Auditing;
     using Auditing.MessagesView;
+    using Dapper;
     using Monitoring;
+    using Raven.Database.Linq.PrivateExtensions;
     using ServiceControl.SagaAudit;
 
     class SqlQueryStore
     {
-#pragma warning disable IDE0052 // Remove unread private members
         readonly string connectionString;
-#pragma warning restore IDE0052 // Remove unread private members
 
         public SqlQueryStore(string connectionString)
         {
             this.connectionString = connectionString;
         }
 
-        public Task<IList<MessagesView>> GetAllMessages(HttpRequestMessage request, out QueryStatsInfo stats)
+#pragma warning disable IDE0060 // Remove unused parameter
+        public async Task<(IList<MessagesView>, QueryStatsInfo)> GetAllMessages(HttpRequestMessage request)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            throw new NotImplementedException();
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var results = await connection.QueryAsync(SqlConstants.QueryMessagesView, new { PageSize = 50 }).ConfigureAwait(false);
+
+                var view = results.Select(o => new MessagesView
+                {
+                    MessageId = o.MessageId,
+                    MessageType = o.MessageType,
+                    IsSystemMessage = o.IsSystemMessage,
+                    Status = o.IsRetried ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
+                    TimeSent = o.TimeSent,
+                    ProcessedAt = o.ProcessedAt,
+                    ReceivingEndpoint = new EndpointDetails
+                    {
+                        Name = o.EndpointName,
+                        Host = o.EndpointHost,
+                        HostId = o.EndpointHostId
+                    },
+                    CriticalTime = o.CriticalTime != null ? TimeSpan.FromTicks(o.CriticalTime) : TimeSpan.Zero,
+                    ProcessingTime = o.ProcessingTime != null ? TimeSpan.FromTicks(o.ProcessingTime) : TimeSpan.Zero,
+                    DeliveryTime = o.DeliveryTime != null ? TimeSpan.FromTicks(o.DeliveryTime) : TimeSpan.Zero,
+                    //Query = processedMessage.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
+                    ConversationId = o.ConversationId
+                }).ToArray();
+
+                return (view, new QueryStatsInfo());
+            }
 
             /*
              using (var session = Store.OpenAsyncSession())
@@ -61,9 +91,17 @@
             */
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public Task<IList<MessagesView>> MessagesByConversation(HttpRequestMessage request, out QueryStatsInfo stats)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            throw new NotImplementedException();
+            IList<MessagesView> result = new MessagesView[0].ToList();
+
+            stats = QueryStatsInfo.Zero;
+
+            return Task.FromResult(result);
+
+            //throw new NotImplementedException();
 
             /*
             using (var session = Store.OpenAsyncSession())
@@ -144,9 +182,26 @@
             */
         }
 
-        public Task<IList<KnownEndpointsView>> GetKnownEndpoints(out int totalCount)
+        public async Task<(IList<KnownEndpointsView>, int)> GetKnownEndpoints()
         {
-            throw new NotImplementedException();
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var result = await connection.QueryAsync<KnownEndpoint>(SqlConstants.QueryKnownEndpoints, new { PageSize = 1024 }).ConfigureAwait(false);
+
+                var view = result.Select(ke => new KnownEndpointsView
+                {
+                    Id = DeterministicGuid.MakeId(ke.Name, ke.HostId.ToString()),
+                    EndpointDetails = new EndpointDetails
+                    {
+                        Host = ke.Host,
+                        HostId = ke.HostId,
+                        Name = ke.Name
+                    }
+                }).ToArray();
+
+                return (view, view.Length);
+            }
+
 
             /*
             using (var session = Store.OpenAsyncSession())
