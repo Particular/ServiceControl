@@ -94,6 +94,8 @@
 
         protected override void BeginProcessing()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
+
             if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
