@@ -9,9 +9,15 @@
 
     class SqlStore
     {
+        static string connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
+
+        public SqlStore()
+        {
+        }
+
         public SqlBulkInsertOperation CreateBulkInsertOperation(bool overrideExistingRows, bool chunked, int chunkSize)
         {
-            throw new NotImplementedException();
+            return new SqlBulkInsertOperation(connectionString);
         }
 
         public Task RemoveFailedAuditImport(Guid failedImportId, CancellationToken cancellationToken)
@@ -22,6 +28,13 @@
 
     class SqlBulkInsertOperation
     {
+        readonly string connectionString;
+
+        public SqlBulkInsertOperation(string connectionString)
+        {
+            this.connectionString = connectionString;
+        }
+
         public Task StoreAsync(ProcessedMessage processedMessage)
         {
             throw new System.NotImplementedException();

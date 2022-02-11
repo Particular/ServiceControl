@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="$(SolutionDir)TransitiveDependencies.Build.props" />
 
@@ -56,6 +56,10 @@
   <ItemGroup>
     <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Infrastructure\SQL\" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
