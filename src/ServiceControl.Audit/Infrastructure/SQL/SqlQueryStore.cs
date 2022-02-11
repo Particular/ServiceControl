@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Auditing;
     using Auditing.MessagesView;
     using Monitoring;
     using ServiceControl.SagaAudit;
@@ -183,6 +184,11 @@
 
             return CheckResult.Pass;
             */
+        }
+
+        public Task<IEnumerable<FailedAuditImport>> GetFailedAuditImports()
+        {
+            throw new NotImplementedException();
         }
     }
 }

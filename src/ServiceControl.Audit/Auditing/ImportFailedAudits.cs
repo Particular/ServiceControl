@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.Auditing
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
+    using Infrastructure.SQL;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -13,9 +14,10 @@ namespace ServiceControl.Audit.Auditing
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
+        public ImportFailedAudits(SqlStore writeStore, SqlQueryStore queryStore, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
         {
-            this.store = store;
+            this.writeStore = writeStore;
+            this.queryStore = queryStore;
             this.auditIngestor = auditIngestor;
             this.rawEndpointFactory = rawEndpointFactory;
         }
@@ -31,43 +33,43 @@ namespace ServiceControl.Audit.Auditing
             {
                 var succeeded = 0;
                 var failed = 0;
-                using (var session = store.OpenAsyncSession())
+
+                var failedImports = await queryStore.GetFailedAuditImports().ConfigureAwait(false);
+
+                foreach (var failedImport in failedImports)
                 {
-                    var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                    using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                        .ConfigureAwait(false))
+                    if (!cancellationToken.IsCancellationRequested)
                     {
-                        while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
+                        break;
+                    }
+
+                    FailedTransportMessage transportMessage = failedImport.Message;
+                    try
+                    {
+                        var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                        var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                        messageContext.SetTaskCompletionSource(taskCompletionSource);
+
+                        await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+
+                        await taskCompletionSource.Task.ConfigureAwait(false);
+
+                        await writeStore.RemoveFailedAuditImport(failedImport.Id, cancellationToken)
+                            .ConfigureAwait(false);
+                        succeeded++;
+                        if (Logger.IsDebugEnabled)
                         {
-                            FailedTransportMessage transportMessage = stream.Current.Document.Message;
-                            try
-                            {
-                                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
-                                var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                                messageContext.SetTaskCompletionSource(taskCompletionSource);
-
-                                await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
-
-                                await taskCompletionSource.Task.ConfigureAwait(false);
-
-                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken)
-                                    .ConfigureAwait(false);
-                                succeeded++;
-                                if (Logger.IsDebugEnabled)
-                                {
-                                    Logger.Debug($"Successfully re-imported failed audit message {transportMessage.Id}.");
-                                }
-                            }
-                            catch (OperationCanceledException)
-                            {
-                                // no-op
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Error($"Error while attempting to re-import failed audit message {transportMessage.Id}.", e);
-                                failed++;
-                            }
+                            Logger.Debug($"Successfully re-imported failed audit message {transportMessage.Id}.");
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // no-op
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error($"Error while attempting to re-import failed audit message {transportMessage.Id}.", e);
+                        failed++;
                     }
                 }
 
@@ -84,7 +86,8 @@ namespace ServiceControl.Audit.Auditing
             }
         }
 
-        readonly IDocumentStore store;
+        readonly SqlQueryStore queryStore;
+        readonly SqlStore writeStore;
         readonly AuditIngestor auditIngestor;
         readonly RawEndpointFactory rawEndpointFactory;
 

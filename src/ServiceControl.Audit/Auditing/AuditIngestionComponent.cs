@@ -77,7 +77,8 @@
                 dispatcher => ingestor.Initialize(dispatcher),
                 settings.AuditQueue, rawEndpointFactory, errorHandlingPolicy, OnCriticalError);
 
-            failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
+            //failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
+            failedImporter = new ImportFailedAudits(new SqlStore(), new SqlQueryStore(), ingestor, rawEndpointFactory);
 
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
                 ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "audit message ingestion");

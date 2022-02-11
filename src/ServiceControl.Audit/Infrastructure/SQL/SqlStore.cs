@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.SQL
 {
+    using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
     using Monitoring;
@@ -9,7 +11,12 @@
     {
         public SqlBulkInsertOperation CreateBulkInsertOperation(bool overrideExistingRows, bool chunked, int chunkSize)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveFailedAuditImport(Guid failedImportId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 
