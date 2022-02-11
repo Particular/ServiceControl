@@ -12,12 +12,12 @@
 
     class AuditIngestionFaultPolicy : IErrorHandlingPolicy
     {
-        SqlStore store;
+        SqlWriteStore store;
         string logPath;
         Func<FailedTransportMessage, FailedAuditImport> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public AuditIngestionFaultPolicy(SqlStore store, LoggingSettings settings, Func<FailedTransportMessage, FailedAuditImport> messageBuilder, Func<string, Exception, Task> onCriticalError)
+        public AuditIngestionFaultPolicy(SqlWriteStore store, LoggingSettings settings, Func<FailedTransportMessage, FailedAuditImport> messageBuilder, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
             logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");

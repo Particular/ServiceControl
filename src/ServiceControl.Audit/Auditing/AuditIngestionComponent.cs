@@ -34,7 +34,7 @@
         public AuditIngestionComponent(
             Metrics metrics,
             Settings settings,
-            SqlStore sqlStore,
+            SqlWriteStore sqlStore,
             SqlQueryStore sqlQueryStore,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,

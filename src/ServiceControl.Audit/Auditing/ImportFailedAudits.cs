@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Auditing
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(SqlStore writeStore, SqlQueryStore queryStore, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
+        public ImportFailedAudits(SqlWriteStore writeStore, SqlQueryStore queryStore, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
         {
             this.writeStore = writeStore;
             this.queryStore = queryStore;
@@ -87,7 +87,7 @@ namespace ServiceControl.Audit.Auditing
         }
 
         readonly SqlQueryStore queryStore;
-        readonly SqlStore writeStore;
+        readonly SqlWriteStore writeStore;
         readonly AuditIngestor auditIngestor;
         readonly RawEndpointFactory rawEndpointFactory;
 

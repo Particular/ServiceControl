@@ -9,10 +9,10 @@
     class SqlDbHostedService : IHostedService
     {
         readonly SqlQueryStore queryStore;
-        readonly SqlStore writeStore;
+        readonly SqlWriteStore writeStore;
         readonly SqlBodyStore bodyStore;
 
-        public SqlDbHostedService(SqlQueryStore queryStore, SqlStore writeStore, SqlBodyStore bodyStore)
+        public SqlDbHostedService(SqlQueryStore queryStore, SqlWriteStore writeStore, SqlBodyStore bodyStore)
         {
             this.queryStore = queryStore;
             this.writeStore = writeStore;

@@ -9,11 +9,11 @@
     using Monitoring;
     using ServiceControl.SagaAudit;
 
-    class SqlStore
+    class SqlWriteStore
     {
         readonly string connectionString;
 
-        public SqlStore(string connectionString)
+        public SqlWriteStore(string connectionString)
         {
             this.connectionString = connectionString;
         }
