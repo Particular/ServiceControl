@@ -47,6 +47,11 @@
             }
             */
         }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
+        }
     }
 
     class SqlBulkInsertOperation

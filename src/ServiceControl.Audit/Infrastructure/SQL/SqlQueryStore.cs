@@ -17,7 +17,7 @@
 
         public Task<IList<MessagesView>> GetAllMessages(HttpRequestMessage request, out QueryStatsInfo stats)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
 
             /*
              using (var session = Store.OpenAsyncSession())
@@ -37,7 +37,7 @@
 
         public Task<IList<MessagesView>> GetAllMessagesForEndpoint(HttpRequestMessage reqeust, out QueryStatsInfo stats)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
 
             /*
             using (var session = Store.OpenAsyncSession())
@@ -58,7 +58,7 @@
 
         public Task<IList<MessagesView>> MessagesByConversation(HttpRequestMessage request, out QueryStatsInfo stats)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
 
             /*
             using (var session = Store.OpenAsyncSession())
@@ -78,7 +78,7 @@
 
         public Task<IList<MessagesView>> FullTextSearch(HttpRequestMessage request, out QueryStatsInfo stats)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
 
             /*
             using (var session = Store.OpenAsyncSession())
@@ -98,7 +98,7 @@
 
         public Task<IList<MessagesView>> SearchEndpoint(HttpRequestMessage request, SearchEndpointApi.Input input, out QueryStatsInfo queryStatsInfo)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
 
             /*
             using (var session = Store.OpenAsyncSession())
@@ -194,6 +194,11 @@
         public Task<IEnumerable<FailedAuditImport>> GetFailedAuditImports()
         {
             throw new NotImplementedException();
+        }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
         }
     }
 }

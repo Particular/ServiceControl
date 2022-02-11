@@ -13,5 +13,10 @@
         {
             throw new System.NotImplementedException();
         }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
+        }
     }
 }
