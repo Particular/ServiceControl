@@ -92,7 +92,12 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return documentStore;
                 })
-                .UseSqlDb(context => (new SqlQueryStore(), new SqlBodyStore(), new SqlStore()))
+                .UseSqlDb(context =>
+                {
+                    var connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
+
+                    return (new SqlQueryStore(connectionString), new SqlBodyStore(connectionString), new SqlStore(connectionString));
+                })
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);

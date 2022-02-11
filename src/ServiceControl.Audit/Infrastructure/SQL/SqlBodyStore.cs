@@ -5,8 +5,13 @@
 
     class SqlBodyStore
     {
-        public SqlBodyStore()
+#pragma warning disable IDE0052 // Remove unread private members
+        readonly string connectionString;
+#pragma warning restore IDE0052 // Remove unread private members
+
+        public SqlBodyStore(string connectionString)
         {
+            this.connectionString = connectionString;
         }
 
         public Task Store(string bodyId, string contentType, int bodySize, MemoryStream bodyStream)

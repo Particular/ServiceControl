@@ -11,8 +11,13 @@
 
     class SqlQueryStore
     {
-        public SqlQueryStore()
+#pragma warning disable IDE0052 // Remove unread private members
+        readonly string connectionString;
+#pragma warning restore IDE0052 // Remove unread private members
+
+        public SqlQueryStore(string connectionString)
         {
+            this.connectionString = connectionString;
         }
 
         public Task<IList<MessagesView>> GetAllMessages(HttpRequestMessage request, out QueryStatsInfo stats)

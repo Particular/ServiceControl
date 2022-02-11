@@ -9,10 +9,11 @@
 
     class SqlStore
     {
-        static string connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
+        readonly string connectionString;
 
-        public SqlStore()
+        public SqlStore(string connectionString)
         {
+            this.connectionString = connectionString;
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
