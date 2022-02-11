@@ -11,6 +11,10 @@
 
     class SqlQueryStore
     {
+        public SqlQueryStore()
+        {
+        }
+
         public Task<IList<MessagesView>> GetAllMessages(HttpRequestMessage request, out QueryStatsInfo stats)
         {
             throw new System.NotImplementedException();
@@ -165,7 +169,8 @@
 
         public Task<bool> FailedAuditImportsExist()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(false);
+            //throw new NotImplementedException();
 
             /*
             using (var session = store.OpenAsyncSession())

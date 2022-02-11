@@ -20,6 +20,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Raven.Client.Embedded;
     using RavenDB;
     using Settings;
+    using SQL;
     using Transports;
     using WebApi;
 
@@ -91,6 +92,7 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return documentStore;
                 })
+                .UseSqlDb(context => (new SqlQueryStore(), new SqlBodyStore(), new SqlStore()))
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);

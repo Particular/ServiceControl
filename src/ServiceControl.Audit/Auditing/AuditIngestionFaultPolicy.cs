@@ -6,18 +6,18 @@
     using System.Threading.Tasks;
     using Infrastructure.Installers;
     using Infrastructure.Settings;
+    using Infrastructure.SQL;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
 
     class AuditIngestionFaultPolicy : IErrorHandlingPolicy
     {
-        IDocumentStore store;
+        SqlStore store;
         string logPath;
-        Func<FailedTransportMessage, object> messageBuilder;
+        Func<FailedTransportMessage, FailedAuditImport> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
+        public AuditIngestionFaultPolicy(SqlStore store, LoggingSettings settings, Func<FailedTransportMessage, FailedAuditImport> messageBuilder, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
             logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
@@ -43,7 +43,7 @@
 
         Task StoreFailedMessageDocument(ErrorContext errorContext)
         {
-            var failure = (dynamic)messageBuilder(new FailedTransportMessage
+            var failure = messageBuilder(new FailedTransportMessage
             {
                 Id = errorContext.Message.MessageId,
                 Headers = errorContext.Message.Headers,
@@ -53,7 +53,7 @@
             return Handle(errorContext.Exception, failure);
         }
 
-        async Task Handle(Exception exception, dynamic failure)
+        async Task Handle(Exception exception, FailedAuditImport failure)
         {
             try
             {
@@ -66,21 +66,9 @@
             }
         }
 
-        async Task DoLogging(Exception exception, dynamic failure)
+        async Task DoLogging(Exception exception, FailedAuditImport failure)
         {
-            var id = Guid.NewGuid();
-
-            // Write to Raven
-            using (var session = store.OpenAsyncSession())
-            {
-                failure.Id = id;
-
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
-
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            await store.StoreFailure(failure).ConfigureAwait(false);
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");

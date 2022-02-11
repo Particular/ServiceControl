@@ -26,6 +26,27 @@
         {
             throw new NotImplementedException();
         }
+
+        public Task StoreFailure(FailedAuditImport failure)
+        {
+            throw new NotImplementedException();
+
+            /*
+            var id = Guid.NewGuid();
+
+            // Write to Raven
+            using (var session = store.OpenAsyncSession())
+            {
+                failure.Id = id;
+
+                await session.StoreAsync(failure)
+                    .ConfigureAwait(false);
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+            */
+        }
     }
 
     class SqlBulkInsertOperation
@@ -39,24 +60,32 @@
             this.connectionString = connectionString;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public Task StoreAsync(ProcessedMessage processedMessage)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task StoreAsync(SagaSnapshot sagaSnapshot)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task StoreAsync(KnownEndpoint sagaSnapshot)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task DisposeAsync()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return Task.CompletedTask;
         }
+
+#pragma warning restore IDE0060 // Remove unused parameter
+
     }
 }

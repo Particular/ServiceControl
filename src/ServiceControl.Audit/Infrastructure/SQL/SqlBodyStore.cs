@@ -5,6 +5,10 @@
 
     class SqlBodyStore
     {
+        public SqlBodyStore()
+        {
+        }
+
         public Task Store(string bodyId, string contentType, int bodySize, MemoryStream bodyStream)
         {
             throw new System.NotImplementedException();

@@ -13,7 +13,6 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestionComponent
@@ -35,7 +34,8 @@
         public AuditIngestionComponent(
             Metrics metrics,
             Settings settings,
-            IDocumentStore documentStore,
+            SqlStore sqlStore,
+            SqlQueryStore sqlQueryStore,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
             BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
@@ -53,9 +53,10 @@
             batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", FrequencyInMilliseconds);
 
             this.settings = settings;
-            var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
+            //var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
+            var errorHandlingPolicy = new AuditIngestionFaultPolicy(sqlStore, loggingSettings, FailedMessageFactory, OnCriticalError);
             //auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
-            auditPersister = new AuditPersister(new SqlStore(), bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
+            auditPersister = new AuditPersister(sqlStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
             ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
@@ -78,7 +79,7 @@
                 settings.AuditQueue, rawEndpointFactory, errorHandlingPolicy, OnCriticalError);
 
             //failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
-            failedImporter = new ImportFailedAudits(new SqlStore(), new SqlQueryStore(), ingestor, rawEndpointFactory);
+            failedImporter = new ImportFailedAudits(sqlStore, sqlQueryStore, ingestor, rawEndpointFactory);
 
             watchdog = new Watchdog(ingestion.EnsureStarted, ingestion.EnsureStopped, ingestionState.ReportError,
                 ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, log, "audit message ingestion");
