@@ -15,8 +15,6 @@
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client.Document;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -52,15 +50,13 @@
             }
 
             var storedContexts = new List<MessageContext>(contexts.Count);
-            BulkInsertOperation bulkInsert = null;
+            SqlBulkInsertOperation bulkInsert = null;
             try
             {
-                bulkInsert = store.CreateBuldInsertOperation(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true,
-                    ChunkedBulkInsertOptions = null,
-                    BatchSize = contexts.Count
-                });
+                bulkInsert = store.CreateBulkInsertOperation(
+                    overrideExistingRows: true,
+                    chunked: false,
+                    chunkSize: contexts.Count);
 
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)

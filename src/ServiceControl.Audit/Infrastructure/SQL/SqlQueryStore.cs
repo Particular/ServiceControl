@@ -161,5 +161,28 @@
             }
             */
         }
+
+        public Task<bool> FailedAuditImportsExist()
+        {
+            throw new NotImplementedException();
+
+            /*
+            using (var session = store.OpenAsyncSession())
+            {
+                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
+                using (var ie = await session.Advanced.StreamAsync(query)
+                           .ConfigureAwait(false))
+                {
+                    if (await ie.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        Logger.Warn(message);
+                        return CheckResult.Failed(message);
+                    }
+                }
+            }
+
+            return CheckResult.Pass;
+            */
+        }
     }
 }
