@@ -6,37 +6,20 @@ namespace ServiceControl.Audit.Monitoring
     using System.Threading.Tasks;
     using Auditing.MessagesView;
     using Infrastructure;
+    using Infrastructure.SQL;
     using Raven.Client;
 
     class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
     {
-        public GetKnownEndpointsApi(IDocumentStore documentStore) : base(documentStore)
+        public GetKnownEndpointsApi(SqlQueryStore queryStore) : base(queryStore)
         {
         }
 
         protected override async Task<QueryResult<IList<KnownEndpointsView>>> Query(HttpRequestMessage request)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
-                    .ConfigureAwait(false);
+            var result = await Store.GetKnownEndpoints(out var totalCount).ConfigureAwait(false);
 
-                var knownEndpoints = endpoints
-                    .Select(x => new KnownEndpointsView
-                    {
-                        Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                        EndpointDetails = new EndpointDetails
-                        {
-                            Host = x.Host,
-                            HostId = x.HostId,
-                            Name = x.Name
-                        },
-                        HostDisplayName = x.Host
-                    })
-                    .ToList();
-
-                return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
-            }
+            return new QueryResult<IList<KnownEndpointsView>>(result, new QueryStatsInfo(string.Empty, totalCount));
         }
     }
 }

@@ -5,10 +5,10 @@
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Infrastructure.SQL;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Logging;
-    using RavenAttachments;
 
     class BodyStorageFeature : Feature
     {
@@ -21,7 +21,7 @@
         {
             if (!context.Container.HasComponent<IBodyStorage>())
             {
-                context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent<SqlBodyStore>(DependencyLifecycle.SingleInstance);
             }
 
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
@@ -29,7 +29,7 @@
 
         public class BodyStorageEnricher
         {
-            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+            public BodyStorageEnricher(SqlBodyStore bodyStorage, Settings settings)
             {
                 this.bodyStorage = bodyStorage;
                 this.settings = settings;
@@ -122,7 +122,7 @@
 
             static readonly Encoding enc = new UTF8Encoding(true, true);
             static readonly ILog log = LogManager.GetLogger<BodyStorageFeature>();
-            IBodyStorage bodyStorage;
+            SqlBodyStore bodyStorage;
             Settings settings;
 
             // large object heap starts above 85000 bytes and not above 85 KB!

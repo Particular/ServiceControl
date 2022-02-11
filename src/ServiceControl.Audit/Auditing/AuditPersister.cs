@@ -8,6 +8,7 @@
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
+    using Infrastructure.SQL;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -15,7 +16,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Abstractions.Data;
-    using Raven.Client;
     using Raven.Client.Document;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
@@ -23,7 +23,7 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
+        public AuditPersister(SqlStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter, Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter)
         {
             this.store = store;
@@ -55,13 +55,13 @@
             BulkInsertOperation bulkInsert = null;
             try
             {
-                // deliberately not using the using statement because we dispose async explicitly
-                bulkInsert = store.BulkInsert(options: new BulkInsertOptions
+                bulkInsert = store.CreateBuldInsertOperation(options: new BulkInsertOptions
                 {
                     OverwriteExisting = true,
                     ChunkedBulkInsertOptions = null,
                     BatchSize = contexts.Count
                 });
+
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
@@ -328,7 +328,7 @@
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
-        readonly IDocumentStore store;
+        readonly SqlStore store;
         readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();

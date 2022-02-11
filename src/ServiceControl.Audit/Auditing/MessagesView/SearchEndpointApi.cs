@@ -3,33 +3,19 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure.Extensions;
-    using Raven.Client;
-    using Raven.Client.Linq;
-    using ServiceControl.Infrastructure.Extensions;
+    using Infrastructure.SQL;
 
     class SearchEndpointApi : ApiBase<SearchEndpointApi.Input, IList<MessagesView>>
     {
-        public SearchEndpointApi(IDocumentStore documentStore) : base(documentStore)
+        public SearchEndpointApi(SqlQueryStore queryStore) : base(queryStore)
         {
         }
 
         protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, Input input)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, input.Keyword)
-                    .Where(m => m.ReceivingEndpointName == input.Endpoint)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var results = await Store.SearchEndpoint(request, input, out var stats).ConfigureAwait(false);
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats);
         }
 
         public class Input
