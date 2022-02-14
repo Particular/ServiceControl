@@ -172,5 +172,12 @@ BEGIN
     ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 ";
+
+        public static string InsertBody = @"
+IF NOT EXISTS (SELECT * FROM [dbo].[Bodies] 
+               WHERE [MessageId] = @MessageId)
+BEGIN 
+    INSERT INTO [dbo].[Bodies] (MessageId, BodyText) VALUES (@MessageId, @BodyText)
+END";
     }
 }

@@ -30,14 +30,7 @@
             {
                 await connection.OpenAsync().ConfigureAwait(false);
 
-                string insertText = @"
-IF NOT EXISTS (SELECT * FROM [dbo].[Bodies] 
-               WHERE [MessageId] = @MessageId)
-BEGIN 
-    INSERT INTO [dbo].[Bodies] (MessageId, BodyText) VALUES (@MessageId, @BodyText)
-END";
-
-                using (var command = new SqlCommand(insertText, connection))
+                using (var command = new SqlCommand(SqlConstants.InsertBody, connection))
                 {
                     command.Parameters.Add("@MessageId", SqlDbType.NVarChar, 100).Value = bodyId;
                     command.Parameters.Add("@BodyText", SqlDbType.NVarChar, -1).Value = new StreamReader(bodyStream);
