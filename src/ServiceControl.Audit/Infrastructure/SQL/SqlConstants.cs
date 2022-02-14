@@ -88,8 +88,7 @@ BEGIN
 END";
 
         public static string QueryMessagesView = @"
-SELECT TOP (@PageSize) * FROM [dbo].[MessagesView]
-";
+SELECT * FROM [dbo].[MessagesView] ORDER BY [@SortColumn] @SortDirection OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
         public static string CreateMessageViewTable = @"
 IF (NOT EXISTS (SELECT * 
