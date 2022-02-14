@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
@@ -19,9 +20,11 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
+
             if (!context.Container.HasComponent<IBodyStorage>())
             {
-                context.Container.ConfigureComponent<SqlBodyStore>(DependencyLifecycle.SingleInstance);
+                context.Container.ConfigureComponent(() => new SqlBodyStore(connectionString), DependencyLifecycle.SingleInstance);
             }
 
             context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
@@ -70,12 +73,13 @@
                 var bodyId = processedMessage.Headers.MessageId();
                 var storedInBodyStorage = false;
                 var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-                var isBinary = contentType.Contains("binary");
+                //var isBinary = contentType.Contains("binary");
                 var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
-                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+                //var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
                 if (isBelowMaxSize)
                 {
+                    /*
                     var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
                     var useBodyStore = !useEmbeddedBody;
 
@@ -101,10 +105,11 @@
 
                     if (useBodyStore)
                     {
-                        await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                            .ConfigureAwait(false);
-                        storedInBodyStorage = true;
-                    }
+                    */
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
+                        .ConfigureAwait(false);
+                    storedInBodyStorage = true;
+                    //}
                 }
 
                 processedMessage.MessageMetadata.Add("BodyUrl", bodyUrl);
@@ -120,13 +125,13 @@
                 }
             }
 
-            static readonly Encoding enc = new UTF8Encoding(true, true);
-            static readonly ILog log = LogManager.GetLogger<BodyStorageFeature>();
+            //static readonly Encoding enc = new UTF8Encoding(true, true);
+            //static readonly ILog log = LogManager.GetLogger<BodyStorageFeature>();
             SqlBodyStore bodyStorage;
             Settings settings;
 
             // large object heap starts above 85000 bytes and not above 85 KB!
-            internal const int LargeObjectHeapThreshold = 85 * 1000;
+            //internal const int LargeObjectHeapThreshold = 85 * 1000;
             internal const string BodyUrlFormatString = "/messages/{0}/body";
         }
     }

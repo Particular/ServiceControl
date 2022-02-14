@@ -90,7 +90,11 @@ BEGIN
 END";
 
         public static string QueryMessagesView = @"
-SELECT * FROM [dbo].[MessagesView] ORDER BY [@SortColumn] @SortDirection OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+SELECT messages.*, headers.HeadersText
+FROM [dbo].[MessagesView] AS messages
+INNER JOIN [dbo].[Headers] AS headers ON messages.[Id] = headers.[ProcessingId]
+ORDER BY [@SortColumn] @SortDirection 
+OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
         public static string CreateMessageViewTable = @"
 IF (NOT EXISTS (SELECT * 
@@ -159,11 +163,11 @@ IF (NOT EXISTS (SELECT *
                  AND  TABLE_NAME = 'Bodies'))
 BEGIN
     CREATE TABLE [dbo].[Bodies](
-	    [ProcessingId] [nvarchar](100) NOT NULL,
+	    [MessageId] [nvarchar](100) NOT NULL,
 	    [BodyText] [nvarchar](max) NOT NULL,
      CONSTRAINT [PK_Bodies] PRIMARY KEY CLUSTERED 
     (
-	    [ProcessingId] ASC
+	    [MessageId] ASC
     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END

@@ -40,6 +40,7 @@
 
                 var view = results.Select(o => new MessagesView
                 {
+                    Id = o.Id,
                     MessageId = o.MessageId,
                     MessageType = o.MessageType,
                     IsSystemMessage = o.IsSystemMessage,
@@ -55,7 +56,7 @@
                     CriticalTime = o.CriticalTime != null ? TimeSpan.FromTicks(o.CriticalTime) : TimeSpan.Zero,
                     ProcessingTime = o.ProcessingTime != null ? TimeSpan.FromTicks(o.ProcessingTime) : TimeSpan.Zero,
                     DeliveryTime = o.DeliveryTime != null ? TimeSpan.FromTicks(o.DeliveryTime) : TimeSpan.Zero,
-                    //Query = processedMessage.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
+                    Headers = ((string)o.HeadersText).FromJson(),
                     ConversationId = o.ConversationId
                 }).ToArray();
 

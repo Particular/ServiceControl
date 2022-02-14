@@ -71,15 +71,20 @@
             {
                 var ops = new SendOptions();
 
+                ops.SetMessageId(Guid.NewGuid().ToString());
                 ops.SetHeader(Headers.HostId, HostId);
                 ops.SetHeader(Headers.HostDisplayName, "Load Generator");
 
                 ops.SetHeader(Headers.ProcessingMachine, RuntimeEnvironment.MachineName);
                 ops.SetHeader(Headers.ProcessingEndpoint, "LoadGenerator");
 
-                var now = DateTime.UtcNow;
-                ops.SetHeader(Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(now));
-                ops.SetHeader(Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(now));
+                var processingStart = DateTime.UtcNow;
+                var processingEnd = processingStart.AddMilliseconds(random.Next(10, 1000));
+
+                ops.SetHeader(Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(processingStart.Subtract(TimeSpan.FromMilliseconds(random.Next(10, 2000)))));
+                ops.SetHeader(Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStart));
+                ops.SetHeader(Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(processingEnd));
+                ops.SetHeader("NServiceBus.ProcessingTime", (processingEnd - processingStart).ToString());
 
                 ops.SetDestination(destination);
 
