@@ -10,7 +10,6 @@
     using Auditing.MessagesView;
     using Dapper;
     using Monitoring;
-    using Raven.Database.Linq.PrivateExtensions;
     using ServiceControl.SagaAudit;
 
     class SqlQueryStore
@@ -22,13 +21,22 @@
             this.connectionString = connectionString;
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         public async Task<(IList<MessagesView>, QueryStatsInfo)> GetAllMessages(HttpRequestMessage request)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                var results = await connection.QueryAsync(SqlConstants.QueryMessagesView, new { PageSize = 50 }).ConfigureAwait(false);
+                var (sortColumn, sortDirection) = GetSortOptions(request);
+                var (pageNo, maxResultsPerPage) = GetPagingOptions(request);
+
+                var query = SqlConstants.QueryMessagesView
+                    .Replace("@SortColumn", sortColumn)
+                    .Replace("@SortDirection", sortDirection);
+
+                var results = await connection.QueryAsync(query, new
+                {
+                    Offset = (pageNo - 1) * maxResultsPerPage,
+                    PageSize = maxResultsPerPage
+                }).ConfigureAwait(false);
 
                 var view = results.Select(o => new MessagesView
                 {
@@ -259,6 +267,70 @@
         public Task Initialize()
         {
             return Task.CompletedTask;
+        }
+
+        static T GetQueryStringValue<T>(HttpRequestMessage request, string key, T defaultValue = default)
+        {
+            Dictionary<string, string> queryStringDictionary;
+            if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))
+            {
+                queryStringDictionary = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+                request.Properties["QueryStringAsDictionary"] = queryStringDictionary;
+            }
+            else
+            {
+                queryStringDictionary = (Dictionary<string, string>)dictionaryAsObject;
+            }
+
+            queryStringDictionary.TryGetValue(key, out var value);
+            if (string.IsNullOrEmpty(value))
+            {
+                return defaultValue;
+            }
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+        static (string, string) GetSortOptions(HttpRequestMessage request)
+        {
+            var sort = GetQueryStringValue(request, "sort", "time_sent");
+
+            var columnNames = new Dictionary<string, string>()
+            {
+                {"processed_at", "ProcessedAt"},
+                { "id", "MessageId" }, //TODO: figure out what is this id
+                { "message_type", "MessageType" },
+                { "time_sent", "TimeSent" },
+                { "critical_time", "CriticalTime" },
+                { "delivery_time", "DeliveryTime" },
+                { "processing_time", "ProcessingTime" },
+                { "status", "IsRetried" },
+                { "message_id", "MessageId" }
+            };
+
+            var direction = GetQueryStringValue(request, "direction", "DESC");
+            if (direction != "ASC" && direction != "DESC")
+            {
+                direction = "DESC";
+            }
+
+            return (columnNames[sort], direction);
+        }
+
+        static (int, int) GetPagingOptions(HttpRequestMessage request)
+        {
+            var maxResultsPerPage = GetQueryStringValue(request, "per_page", 50);
+            if (maxResultsPerPage < 1)
+            {
+                maxResultsPerPage = 50;
+            }
+
+            var page = GetQueryStringValue(request, "page", 1);
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            return (page, maxResultsPerPage);
         }
     }
 }

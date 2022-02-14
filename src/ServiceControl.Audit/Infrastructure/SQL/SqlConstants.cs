@@ -39,7 +39,8 @@ IF NOT EXISTS (SELECT * FROM [dbo].[MessagesView]
                WHERE [MessageId] = @MessageId)
 BEGIN       
     INSERT INTO [dbo].[MessagesView]
-               ([MessageId]
+               ([Id]
+               ,[MessageId]
                ,[MessageType]
                ,[IsSystemMessage]
                ,[IsRetried]
@@ -53,7 +54,8 @@ BEGIN
                ,[DeliveryTime]
                ,[ConversationId])
          VALUES
-               (@MessageId
+               (@Id
+               ,@MessageId
                ,@MessageType
                ,@IsSystemMessage
                ,@IsRetried
@@ -97,7 +99,8 @@ IF (NOT EXISTS (SELECT *
                  AND  TABLE_NAME = 'MessagesView'))
 BEGIN
     CREATE TABLE [dbo].[MessagesView](
-	    [MessageId] [nvarchar](100) NOT NULL,
+	    [Id] [nvarchar](100) NOT NULL,
+        [MessageId] [nvarchar](100) NOT NULL,
 	    [MessageType] [nvarchar](500) NOT NULL,
 	    [IsSystemMessage] [bit] NOT NULL,
 	    [IsRetried] [bit] NOT NULL,
@@ -112,10 +115,41 @@ BEGIN
 	    [ConversationId] [nvarchar](100) NOT NULL,
      CONSTRAINT [PK_MessagesView] PRIMARY KEY CLUSTERED 
     (
-	    [MessageId] ASC
+	    [Id] ASC
     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
     ) ON [PRIMARY]
 END";
 
+        public static string CreateHeadersTable = @"
+IF (NOT EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Headers'))
+BEGIN
+    CREATE TABLE [dbo].[Headers](
+	    [ProcessingId] [nvarchar](100) NOT NULL,
+	    [HeadersText] [nvarchar](max) NOT NULL,
+	    [Query] [nvarchar](max) NOT NULL,
+     CONSTRAINT [PK_Headers] PRIMARY KEY CLUSTERED 
+    (
+	    [ProcessingId] ASC
+    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+    ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END";
+
+        public static string InsertHeaders = @"
+IF NOT EXISTS (SELECT * FROM [dbo].[Headers] 
+               WHERE [ProcessingId] = @ProcessingId)
+BEGIN   
+    INSERT INTO [dbo].[Headers]
+               ([ProcessingId]
+               ,[HeadersText]
+               ,[Query])
+         VALUES
+               (@ProcessingId
+               ,@HeadersText
+               ,@Query)
+END
+";
     }
 }

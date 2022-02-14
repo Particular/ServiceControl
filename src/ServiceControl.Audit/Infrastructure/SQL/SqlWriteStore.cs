@@ -2,6 +2,7 @@
 {
     using System;
     using System.Data.SqlClient;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
@@ -57,6 +58,7 @@
             {
                 await connection.ExecuteAsync(SqlConstants.CreateMessageViewTable).ConfigureAwait(false);
                 await connection.ExecuteAsync(SqlConstants.CreateKnownEndpoints).ConfigureAwait(false);
+                await connection.ExecuteAsync(SqlConstants.CreateHeadersTable).ConfigureAwait(false);
             }
         }
     }
@@ -77,9 +79,13 @@
             {
                 var endpointDetails = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"];
 
+                //TODO: this can be simplified by changing the ingestor
+                var processingId = processedMessage.Id.Split('/')[1];
+
                 await connection.ExecuteAsync(SqlConstants.InsertMessageView,
                     new
                     {
+                        Id = processingId,
                         MessageId = (string)processedMessage.MessageMetadata["MessageId"],
                         MessageType = (string)processedMessage.MessageMetadata["MessageType"],
                         IsSystemMessage = (bool)processedMessage.MessageMetadata["IsSystemMessage"],
@@ -95,6 +101,14 @@
                         //Query = processedMessage.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
                         ConversationId = (string)processedMessage.MessageMetadata["ConversationId"]
 
+                    }).ConfigureAwait(false);
+
+                await connection.ExecuteAsync(SqlConstants.InsertHeaders,
+                    new
+                    {
+                        ProcessingId = processingId,
+                        HeadersText = processedMessage.Headers.ToJson(),
+                        Query = string.Join(" ", processedMessage.Headers.Select(x => x.Value))
                     }).ConfigureAwait(false);
             }
         }
@@ -113,6 +127,9 @@
         public Task DisposeAsync() => Task.CompletedTask;
 
 #pragma warning restore IDE0060 // Remove unused parameter
+
+
+
 
     }
 }
