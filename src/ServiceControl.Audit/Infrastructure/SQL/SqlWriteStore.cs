@@ -79,7 +79,7 @@
             {
                 var endpointDetails = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"];
 
-                //TODO: this can be simplified by changing the ingestor
+                //HINT: this can be simplified by changing the ingestor
                 var processingId = processedMessage.Id.Split('/')[1];
 
                 await connection.ExecuteAsync(SqlConstants.InsertMessageView,
@@ -98,11 +98,12 @@
                         CriticalTime = ((TimeSpan?)processedMessage.MessageMetadata["CriticalTime"])?.Ticks,
                         ProcessingTime = ((TimeSpan?)processedMessage.MessageMetadata["ProcessingTime"])?.Ticks,
                         DeliveryTime = ((TimeSpan?)processedMessage.MessageMetadata["DeliveryTime"])?.Ticks,
-                        //Query = processedMessage.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", message.Headers.Select(x => x.Value)) }).ToArray(),
                         ConversationId = (string)processedMessage.MessageMetadata["ConversationId"]
 
                     }).ConfigureAwait(false);
 
+                //HINT: In Raven, Query property is on the ProcessedMessage. With SQL it's on a dedicated Headers table
+                //      Secondly, it does not include Metadata values which in Raven were used to store message body
                 await connection.ExecuteAsync(SqlConstants.InsertHeaders,
                     new
                     {

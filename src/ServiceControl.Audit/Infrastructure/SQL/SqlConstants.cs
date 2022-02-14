@@ -151,5 +151,22 @@ BEGIN
                ,@Query)
 END
 ";
+
+        public static string CreateBodiesTable = @"
+IF (NOT EXISTS (SELECT * 
+                 FROM INFORMATION_SCHEMA.TABLES 
+                 WHERE TABLE_SCHEMA = 'dbo' 
+                 AND  TABLE_NAME = 'Bodies'))
+BEGIN
+    CREATE TABLE [dbo].[Bodies](
+	    [ProcessingId] [nvarchar](100) NOT NULL,
+	    [BodyText] [nvarchar](max) NOT NULL,
+     CONSTRAINT [PK_Bodies] PRIMARY KEY CLUSTERED 
+    (
+	    [ProcessingId] ASC
+    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+    ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+";
     }
 }
