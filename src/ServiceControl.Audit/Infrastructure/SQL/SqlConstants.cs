@@ -179,5 +179,7 @@ IF NOT EXISTS (SELECT * FROM [dbo].[Bodies]
 BEGIN 
     INSERT INTO [dbo].[Bodies] (MessageId, BodyText) VALUES (@MessageId, @BodyText)
 END";
+
+        public static string QueryTotalMessagesViews = "SELECT Count(*) FROM [dbo].[MessagesView] WITH (nolock)";
     }
 }

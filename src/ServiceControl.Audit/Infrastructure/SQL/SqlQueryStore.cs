@@ -60,7 +60,9 @@
                     ConversationId = o.ConversationId
                 }).ToArray();
 
-                return (view, new QueryStatsInfo());
+                var totalCount = await connection.QueryFirstAsync<int>(SqlConstants.QueryTotalMessagesViews).ConfigureAwait(false);
+
+                return (view, new QueryStatsInfo(Guid.Empty.ToString(), totalCount));
             }
 
             /*
