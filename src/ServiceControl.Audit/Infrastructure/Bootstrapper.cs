@@ -84,14 +84,14 @@ namespace ServiceControl.Audit.Infrastructure
                     });
                 })
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(context =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
+                //.UseEmbeddedRavenDb(context =>
+                //{
+                //    var documentStore = new EmbeddableDocumentStore();
 
-                    RavenBootstrapper.Configure(documentStore, settings);
+                //    RavenBootstrapper.Configure(documentStore, settings);
 
-                    return documentStore;
-                })
+                //    return documentStore;
+                //})
                 .UseSqlDb(context =>
                 {
                     var connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
