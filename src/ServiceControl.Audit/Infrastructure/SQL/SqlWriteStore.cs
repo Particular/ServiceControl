@@ -77,20 +77,21 @@
         {
             using (var connection = new SqlConnection(connectionString))
             {
-                var endpointDetails = (EndpointDetails)processedMessage.MessageMetadata["ReceivingEndpoint"];
+                var endpointDetails = processedMessage.MessageMetadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint");
 
                 //HINT: this can be simplified by changing the ingestor
                 var processingId = processedMessage.Id.Split('/')[1];
 
+                //HINT: in reality all the values except MessageId and MessageIntent can be null
                 await connection.ExecuteAsync(SqlConstants.InsertMessageView,
                     new
                     {
                         Id = processingId,
-                        MessageId = (string)processedMessage.MessageMetadata["MessageId"],
-                        MessageType = (string)processedMessage.MessageMetadata["MessageType"],
-                        IsSystemMessage = (bool)processedMessage.MessageMetadata["IsSystemMessage"],
-                        IsRetried = (bool)processedMessage.MessageMetadata["IsRetried"],
-                        TimeSent = (DateTime)processedMessage.MessageMetadata["TimeSent"],
+                        MessageId = (string)processedMessage.MessageMetadata["MessageId"] ?? Guid.NewGuid().ToString(),
+                        MessageType = processedMessage.MessageMetadata.GetOrDefault<string>("MessageType"),
+                        IsSystemMessage = processedMessage.MessageMetadata.GetOrDefault<bool>("IsSystemMessage"),
+                        IsRetried = processedMessage.MessageMetadata.GetOrDefault<bool>("IsRetried"),
+                        TimeSent = processedMessage.MessageMetadata.GetOrDefault<DateTime>("TimeSent"),
                         processedMessage.ProcessedAt,
                         EndpointName = endpointDetails.Name,
                         EndpointHostId = endpointDetails.HostId,
@@ -98,7 +99,7 @@
                         CriticalTime = ((TimeSpan?)processedMessage.MessageMetadata["CriticalTime"])?.Ticks,
                         ProcessingTime = ((TimeSpan?)processedMessage.MessageMetadata["ProcessingTime"])?.Ticks,
                         DeliveryTime = ((TimeSpan?)processedMessage.MessageMetadata["DeliveryTime"])?.Ticks,
-                        ConversationId = (string)processedMessage.MessageMetadata["ConversationId"]
+                        ConversationId = processedMessage.MessageMetadata.GetOrDefault<string>("ConversationId")
 
                     }).ConfigureAwait(false);
 
