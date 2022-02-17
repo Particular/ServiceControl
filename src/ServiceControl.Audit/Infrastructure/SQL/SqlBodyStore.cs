@@ -26,6 +26,8 @@
 
         public async Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
+            //var stopwatch = Stopwatch.StartNew();
+
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync().ConfigureAwait(false);
@@ -38,6 +40,8 @@
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
             }
+
+            //Console.WriteLine($"Body stored in {stopwatch.ElapsedMilliseconds}");
         }
 
         public Task<StreamResult> TryFetch(string bodyId) => throw new System.NotImplementedException();

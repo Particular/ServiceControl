@@ -70,7 +70,8 @@
 
             async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
             {
-                var bodyId = processedMessage.Headers.MessageId();
+                //HINT: messageId, if null, should be derived from the message content and available headers
+                var bodyId = processedMessage.Headers.MessageId() ?? Guid.NewGuid().ToString();
                 var storedInBodyStorage = false;
                 var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
                 //var isBinary = contentType.Contains("binary");

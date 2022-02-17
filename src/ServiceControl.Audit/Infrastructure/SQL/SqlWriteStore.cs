@@ -62,76 +62,76 @@
             }
         }
     }
+#pragma warning disable IDE0060 // Remove unused parameter
 
     class SqlBulkInsertOperation
     {
-        readonly string connectionString;
+        string connectionString;
+        DynamicParameters parameters;
 
         public SqlBulkInsertOperation(string connectionString)
         {
             this.connectionString = connectionString;
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        public async Task StoreAsync(ProcessedMessage processedMessage)
+        public Task StoreAsync(ProcessedMessage processedMessage)
         {
-            using (var connection = new SqlConnection(connectionString))
+            var endpointDetails = processedMessage.MessageMetadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint");
+
+            //HINT: this can be simplified by changing the ingestor
+            var processingId = DeterministicGuid.MakeId(processedMessage.Id.Split('/')[1]);
+            var messageId = DeterministicGuid.MakeId((string)processedMessage.MessageMetadata["MessageId"] ?? Guid.NewGuid().ToString());
+
+            //HINT: in reality all the values except MessageId and MessageIntent can be null
+            parameters = new DynamicParameters(new
             {
-                var endpointDetails = processedMessage.MessageMetadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint");
-
-                //HINT: this can be simplified by changing the ingestor
-                var processingId = processedMessage.Id.Split('/')[1];
-
-                //HINT: in reality all the values except MessageId and MessageIntent can be null
-                await connection.ExecuteAsync(SqlConstants.InsertMessageView,
-                    new
-                    {
-                        Id = processingId,
-                        MessageId = (string)processedMessage.MessageMetadata["MessageId"] ?? Guid.NewGuid().ToString(),
-                        MessageType = processedMessage.MessageMetadata.GetOrDefault<string>("MessageType"),
-                        IsSystemMessage = processedMessage.MessageMetadata.GetOrDefault<bool>("IsSystemMessage"),
-                        IsRetried = processedMessage.MessageMetadata.GetOrDefault<bool>("IsRetried"),
-                        TimeSent = processedMessage.MessageMetadata.GetOrDefault<DateTime>("TimeSent"),
-                        processedMessage.ProcessedAt,
-                        EndpointName = endpointDetails.Name,
-                        EndpointHostId = endpointDetails.HostId,
-                        EndpointHost = endpointDetails.Host,
-                        CriticalTime = ((TimeSpan?)processedMessage.MessageMetadata["CriticalTime"])?.Ticks,
-                        ProcessingTime = ((TimeSpan?)processedMessage.MessageMetadata["ProcessingTime"])?.Ticks,
-                        DeliveryTime = ((TimeSpan?)processedMessage.MessageMetadata["DeliveryTime"])?.Ticks,
-                        ConversationId = processedMessage.MessageMetadata.GetOrDefault<string>("ConversationId")
-
-                    }).ConfigureAwait(false);
+                MV_MessageId = messageId,
+                MV_MessageType = processedMessage.MessageMetadata.GetOrDefault<string>("MessageType") ?? string.Empty,
+                MV_IsSystemMessage = processedMessage.MessageMetadata.GetOrDefault<bool>("IsSystemMessage"),
+                MV_IsRetried = processedMessage.MessageMetadata.GetOrDefault<bool>("IsRetried"),
+                MV_TimeSent = processedMessage.MessageMetadata.TryGetValue("TimeSent", out var timeSent) ? (DateTime)timeSent : DateTime.Now,
+                MV_ProcessedAt = processedMessage.ProcessedAt,
+                MV_EndpointName = endpointDetails.Name,
+                MV_EndpointHostId = endpointDetails.HostId,
+                MV_EndpointHost = endpointDetails.Host,
+                MV_CriticalTime = ((TimeSpan?)processedMessage.MessageMetadata["CriticalTime"])?.Ticks,
+                MV_ProcessingTime = ((TimeSpan?)processedMessage.MessageMetadata["ProcessingTime"])?.Ticks,
+                MV_DeliveryTime = ((TimeSpan?)processedMessage.MessageMetadata["DeliveryTime"])?.Ticks,
+                MV_ConversationId = processedMessage.MessageMetadata.GetOrDefault<string>("ConversationId") ?? string.Empty,
 
                 //HINT: In Raven, Query property is on the ProcessedMessage. With SQL it's on a dedicated Headers table
                 //      Secondly, it does not include Metadata values which in Raven were used to store message body
-                await connection.ExecuteAsync(SqlConstants.InsertHeaders,
-                    new
-                    {
-                        ProcessingId = processingId,
-                        HeadersText = processedMessage.Headers.ToJson(),
-                        Query = string.Join(" ", processedMessage.Headers.Select(x => x.Value))
-                    }).ConfigureAwait(false);
-            }
+                MH_ProcessingId = processingId,
+                MH_HeadersText = processedMessage.Headers.ToJson(),
+                MH_Query = string.Join(" ", processedMessage.Headers.Select(x => x.Value))
+            });
+
+            return Task.CompletedTask;
         }
 
-        public async Task StoreAsync(KnownEndpoint endpoint)
+        public Task StoreAsync(KnownEndpoint endpoint)
         {
-            using (var connection = new SqlConnection(connectionString))
+            parameters.AddDynamicParams(new
             {
-                await connection.ExecuteAsync(SqlConstants.UpdateKnownEndpoint, endpoint).ConfigureAwait(false);
-            }
+                KE_Id = endpoint.Id,
+                KE_Name = endpoint.Name,
+                KE_HostId = endpoint.HostId,
+                KE_Host = endpoint.Host,
+                KE_LastSeen = endpoint.LastSeen
+            });
+
+            return Task.CompletedTask;
         }
 
         public Task StoreAsync(SagaSnapshot sagaSnapshot) => throw new NotImplementedException();
 
 
-        public Task DisposeAsync() => Task.CompletedTask;
-
-#pragma warning restore IDE0060 // Remove unused parameter
-
-
-
-
+        public async Task DisposeAsync()
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.ExecuteAsync(SqlConstants.BatchMessageInsert, parameters).ConfigureAwait(false);
+            }
+        }
     }
 }

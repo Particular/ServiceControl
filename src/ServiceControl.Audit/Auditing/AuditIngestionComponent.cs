@@ -125,6 +125,7 @@
         async Task Loop()
         {
             var contexts = new List<MessageContext>(settings.MaximumConcurrencyLevel);
+            var tasks = new List<Task>();
 
             while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
             {
@@ -134,13 +135,16 @@
                     // as long as there is something to read this will fetch up to MaximumConcurrency items
                     while (channel.Reader.TryRead(out var context))
                     {
+                        tasks.Add(ingestor.Ingest(new List<MessageContext> { context }));
                         contexts.Add(context);
                     }
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await ingestor.Ingest(contexts).ConfigureAwait(false);
+                        //await ingestor.Ingest(contexts).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) // show must go on
@@ -159,6 +163,7 @@
                 finally
                 {
                     contexts.Clear();
+                    tasks.Clear();
                 }
             }
             // will fall out here when writer is completed
