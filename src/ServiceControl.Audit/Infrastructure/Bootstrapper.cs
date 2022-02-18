@@ -96,7 +96,7 @@ namespace ServiceControl.Audit.Infrastructure
                 {
                     var connectionString = Environment.GetEnvironmentVariable("PlatformSpike_AzureSQLConnectionString");
 
-                    return (new SqlQueryStore(connectionString), new SqlWriteStore(connectionString));
+                    return (new SqlQueryStore(connectionString), new SqlWriteStore(connectionString), connectionString);
                 })
                 .UseNServiceBus(context =>
                 {

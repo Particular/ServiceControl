@@ -91,10 +91,14 @@ END";
 
         public static string QueryMessagesView = @"
 SELECT messages.*, headers.HeadersText
-FROM [dbo].[MessagesView] AS messages
-INNER JOIN [dbo].[Headers] AS headers ON messages.[Id] = headers.[ProcessingId]
-ORDER BY [@SortColumn] @SortDirection 
-OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+FROM [dbo].[Headers] AS headers with (nolock)
+INNER JOIN (
+	SELECT *
+	FROM [dbo].[MessagesView] as messages with (nolock)
+	ORDER BY [@SortColumn] @SortDirection
+	OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY) messages	
+ON messages.[MessageId] = headers.[MessageId]
+";
 
         public static string CreateMessageViewTable = @"
 IF (NOT EXISTS (SELECT * 
@@ -175,7 +179,7 @@ END";
 BEGIN TRY
     INSERT INTO [dbo].[Headers]
                ([ProcessingId]
-                [MessageId]
+               ,[MessageId]
                ,[HeadersText]
                ,[Query])
          VALUES
@@ -228,5 +232,27 @@ END CATCH";
         public static string QueryTotalMessagesViews = "SELECT isnull(cast(max([Id]) - min([Id]) + 1 AS int), 0) Id FROM [dbo].[Headers] WITH (nolock)";
 
         public static string BatchMessageInsert = InsertMessageView + InsertHeaders + UpdateKnownEndpoint;
+
+
+        public static string RemoveOutdatedMessages = @"
+DECLARE @deletedMessages table (Id int, MessageId uniqueidentifier);
+
+DELETE FROM [dbo].MessagesView
+OUTPUT deleted.Id, deleted.MessageId into @deletedMessages
+WHERE [Id] IN (
+	Select [Id] FROM [dbo].[MessagesView]
+	WHERE ProcessedAt < @ProcessedAt
+	ORDER BY ProcessedAt Asc 
+	OFFSET 0 ROWS FETCH NEXT @TotalRows ROWS ONLY
+)
+
+DELETE [Headers]
+FROM [dbo].[Headers] AS [Headers]
+INNER JOIN @deletedMessages as [Deleted] ON [Headers].[MessageId] = [Deleted].[MessageId]
+
+DELETE [Bodies]
+FROM  [dbo].[Bodies] AS [Bodies]
+INNER JOIN @deletedMessages as [Deleted] ON [Bodies].[MessageId] = [Deleted].[MessageId]
+";
     }
 }
