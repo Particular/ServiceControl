@@ -63,7 +63,7 @@ BEGIN TRY
                ,@MV_ConversationId)
 END TRY
 BEGIN CATCH
-    IF ERROR_NUMBER() <> 2627
+    IF ERROR_NUMBER() <> 2601
     BEGIN
 	    THROW
     END
@@ -154,6 +154,7 @@ IF (NOT EXISTS (SELECT *
 BEGIN
     CREATE TABLE [dbo].[Headers](
 	    [Id] [int] IDENTITY(1,1) NOT NULL ,
+        [MessageId] [uniqueidentifier] NOT NULL,
 	    [ProcessingId] [uniqueidentifier] NOT NULL,
 	    [HeadersText] [nvarchar](max) NOT NULL,
 	    [Query] [nvarchar](max) NOT NULL,
@@ -174,15 +175,17 @@ END";
 BEGIN TRY
     INSERT INTO [dbo].[Headers]
                ([ProcessingId]
+                [MessageId]
                ,[HeadersText]
                ,[Query])
          VALUES
                (@MH_ProcessingId
+               ,@MH_MessageId
                ,@MH_HeadersText
                ,@MH_Query)
 END TRY
 BEGIN CATCH
-    IF ERROR_NUMBER() <> 2627
+    IF ERROR_NUMBER() <> 2601
     BEGIN
 	    THROW
     END
@@ -216,7 +219,7 @@ BEGIN TRY
     INSERT INTO [dbo].[Bodies] (MessageId, BodyText) VALUES (@MessageId, @BodyText)
 END TRY
 BEGIN CATCH
-    IF ERROR_NUMBER() <> 2627
+    IF ERROR_NUMBER() <> 2601
     BEGIN
 	    THROW
     END

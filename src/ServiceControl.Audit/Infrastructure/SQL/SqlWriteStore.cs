@@ -102,6 +102,7 @@
                 //HINT: In Raven, Query property is on the ProcessedMessage. With SQL it's on a dedicated Headers table
                 //      Secondly, it does not include Metadata values which in Raven were used to store message body
                 MH_ProcessingId = processingId,
+                MH_MessageId = messageId,
                 MH_HeadersText = processedMessage.Headers.ToJson(),
                 MH_Query = string.Join(" ", processedMessage.Headers.Select(x => x.Value))
             });
