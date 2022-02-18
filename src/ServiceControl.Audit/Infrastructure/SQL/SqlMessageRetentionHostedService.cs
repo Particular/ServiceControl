@@ -17,6 +17,7 @@
         {
             this.connectionString = connectionString;
             retentionPeriod = settings.AuditRetentionPeriod;
+            batchSize = settings.ExpirationProcessBatchSize;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -54,7 +55,7 @@
                     new
                     {
                         ProcessedAt = DateTime.Now.Subtract(retentionPeriod),
-                        TotalRows = 2000
+                        TotalRows = batchSize
                     }).ConfigureAwait(false);
             }
 
@@ -64,6 +65,7 @@
         AsyncTimer timer;
         TimeSpan retentionPeriod;
         string connectionString;
+        int batchSize;
 
         static ILog log = LogManager.GetLogger<SqlMessageRetentionHostedService>();
     }

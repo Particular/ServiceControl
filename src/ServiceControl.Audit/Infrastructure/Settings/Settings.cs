@@ -350,12 +350,12 @@
 
             if (TimeSpan.TryParse(valueRead, out var result))
             {
-                if (ValidateConfiguration && result < TimeSpan.FromHours(1))
-                {
-                    message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
-                    InternalLogger.Fatal(message);
-                    throw new Exception(message);
-                }
+                //if (ValidateConfiguration && result < TimeSpan.FromHours(1))
+                //{
+                //    message = "AuditRetentionPeriod settings is invalid, value should be minimum 1 hour.";
+                //    InternalLogger.Fatal(message);
+                //    throw new Exception(message);
+                //}
 
                 if (ValidateConfiguration && result > TimeSpan.FromDays(365))
                 {
