@@ -225,7 +225,7 @@ BEGIN CATCH
     END
 END CATCH";
 
-        public static string QueryTotalMessagesViews = "SELECT Count(*) FROM [dbo].[MessagesView] WITH (nolock)";
+        public static string QueryTotalMessagesViews = "SELECT isnull(cast(max([Id]) - min([Id]) + 1 AS int), 0) Id FROM [dbo].[Headers] WITH (nolock)";
 
         public static string BatchMessageInsert = InsertMessageView + InsertHeaders + UpdateKnownEndpoint;
     }
