@@ -134,11 +134,11 @@
                     return ExpirationProcessBatchSizeDefault;
                 }
 
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
+                //if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                //{
+                //    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                //    return ExpirationProcessBatchSizeDefault;
+                //}
 
                 return expirationProcessBatchSize;
             }
@@ -423,7 +423,7 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
         const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
+        //const int ExpirationProcessBatchSizeMinimum = 10240;
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;
     }

@@ -18,13 +18,14 @@
             this.connectionString = connectionString;
             retentionPeriod = settings.AuditRetentionPeriod;
             batchSize = settings.ExpirationProcessBatchSize;
+            expirationIntervalInSeconds = settings.ExpirationProcessTimerInSeconds;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
             timer = new AsyncTimer(
                 token => Cleanup(),
                 TimeSpan.Zero,
-                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(expirationIntervalInSeconds),
                 e => { log.Error("Error when trying to find expired documents", e); });
 
             return Task.CompletedTask;
@@ -49,6 +50,9 @@
                 log.Debug($"Staring retention query. Retention Period = {retentionPeriod}");
             }
 
+            Console.WriteLine($"Staring retention query. Retention Period = {retentionPeriod}");
+            Console.WriteLine($"Staring retention query. Processed At = {DateTime.Now.Subtract(retentionPeriod)}");
+
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.ExecuteAsync(SqlConstants.RemoveOutdatedMessages,
@@ -66,6 +70,7 @@
         TimeSpan retentionPeriod;
         string connectionString;
         int batchSize;
+        int expirationIntervalInSeconds;
 
         static ILog log = LogManager.GetLogger<SqlMessageRetentionHostedService>();
     }

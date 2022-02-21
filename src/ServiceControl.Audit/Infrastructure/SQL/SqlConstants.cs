@@ -81,7 +81,7 @@ BEGIN
 	    [Name] [nvarchar](100) NOT NULL,
 	    [HostId] [uniqueidentifier] NOT NULL,
 	    [Host] [nvarchar](100) NOT NULL,
-	    [LastSeen] [datetime] NOT NULL,
+	    [LastSeen] [datetimeoffset] NOT NULL,
      CONSTRAINT [PK_KnownEndpoints] PRIMARY KEY CLUSTERED 
     (
 	    [Id] ASC
@@ -112,8 +112,8 @@ BEGIN
 	    [MessageType] [nvarchar](500) NOT NULL,
 	    [IsSystemMessage] [bit] NOT NULL,
 	    [IsRetried] [bit] NOT NULL,
-	    [TimeSent] [datetime] NOT NULL,
-	    [ProcessedAt] [datetime] NOT NULL,
+	    [TimeSent] [datetimeoffset] NOT NULL,
+	    [ProcessedAt] [datetimeoffset] NOT NULL,
 	    [EndpointName] [nvarchar](100) NOT NULL,
 	    [EndpointHostId] [uniqueidentifier] NOT NULL,
 	    [EndpointHost] [nvarchar](100) NOT NULL,
@@ -173,6 +173,11 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Headers_ProcessingId] ON [dbo].[Headers]
 	[ProcessingId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Headers_MessageId] ON [dbo].[Headers]
+(
+	[MessageId] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+
 END";
 
         public static string InsertHeaders = @"
@@ -204,7 +209,7 @@ IF (NOT EXISTS (SELECT *
 BEGIN
     CREATE TABLE [dbo].[Bodies](
 	    [Id] [int] IDENTITY(1,1) NOT NULL,
-	    [MessageId] [nvarchar](100) NOT NULL,
+	    [MessageId] [uniqueidentifier] NOT NULL,
 	    [BodyText] [nvarchar](max) NOT NULL,
         CONSTRAINT [PK_Bodies] PRIMARY KEY CLUSTERED 
         (

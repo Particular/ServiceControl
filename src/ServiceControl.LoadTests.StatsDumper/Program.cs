@@ -25,7 +25,7 @@
         }
 
         const string DumpStats = @"
-SELECT CURRENT_TIMESTAMP as [Time], SELECT isnull(cast(max([Id]) - min([Id]) + 1 AS int), 0) as [Count] FROM [dbo].[Headers] WITH (nolock)
+SELECT CURRENT_TIMESTAMP as [Time], isnull(cast(max([Id]) - min([Id]) + 1 AS int), 0) as [Count] FROM [dbo].[Headers] WITH (nolock)
 ";
 
     }

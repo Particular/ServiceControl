@@ -80,7 +80,7 @@
 
             //HINT: this can be simplified by changing the ingestor
             var processingId = DeterministicGuid.MakeId(processedMessage.Id.Split('/')[1]);
-            var messageId = DeterministicGuid.MakeId((string)processedMessage.MessageMetadata["MessageId"] ?? Guid.NewGuid().ToString());
+            var messageId = processedMessage.MessageMetadata["MessageId"];
 
             //HINT: in reality all the values except MessageId and MessageIntent can be null
             parameters = new DynamicParameters(new
