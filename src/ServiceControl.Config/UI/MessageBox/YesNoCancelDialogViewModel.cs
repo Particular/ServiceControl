@@ -17,17 +17,17 @@ namespace ServiceControl.Config.UI.MessageBox
             Cancel = Command.Create(async () =>
             {
                 Result = null;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
             No = Command.Create(async () =>
             {
                 Result = false;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
             Yes = Command.Create(async () =>
             {
                 Result = true;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
             ShowCancelButton = true;
         }

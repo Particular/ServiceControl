@@ -17,7 +17,7 @@ namespace ServiceControl.Config.UI.MessageBox
             Cancel = Command.Create(async () =>
             {
                 Result = false;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
         }
 
