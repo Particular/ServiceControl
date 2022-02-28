@@ -12,7 +12,6 @@
             transport.ConfigureNameShorteners();
 
             transport.Transactions(transportTransactionMode);
-            transport.ConnectionString(transportSettings.ConnectionString);
         }
 
         public static void ConfigureNameShorteners(this TransportExtensions<AzureServiceBusTransport> transport)

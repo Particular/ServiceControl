@@ -101,28 +101,37 @@ Both ASB transports cannot use MI on-premises
 
         void CustomizeEndpoint(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
-            var shouldUseAI = true;
-
-            if (shouldUseAI)
-            {
-                var customClientIdSpecified = true;
-
-                if (customClientIdSpecified)
-                {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential("client id we parse from our connstring"));
-                }
-                else
-                {
-                    transport.CustomTokenCredential(new DefaultAzureCredential());
-                }
-
-                return;
-            }
-
-
             var connectionString = transportSettings.ConnectionString;
 
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
+
+            if (shouldUseManagedIdentity)
+            {
+                if (builder.TryGetValue("ClientId", out var clientId))
+                {
+                    transport.CustomTokenCredential(new ManagedIdentityCredential((string)clientId));
+                }
+                else
+                {
+                    transport.CustomTokenCredential(new ManagedIdentityCredential());
+                }
+
+                var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
+                if (!hasEndpoint)
+                {
+                    throw new Exception("Endpoint property is mandatory on the connection string");
+                }
+
+                var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
+                transport.ConnectionString(fullyQualifiedNamespace);
+            }
+            else
+            {
+                transport.ConnectionString(transportSettings.ConnectionString);
+            }
+            //TODO check for SharedAccessKeyName and SharedAccessKey and if not present, use DefaultAzureCredentials 
 
             if (builder.TryGetValue(TopicNamePart, out var topicName))
             {
