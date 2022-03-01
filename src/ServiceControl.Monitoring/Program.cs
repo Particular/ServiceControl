@@ -3,31 +3,24 @@ namespace ServiceControl.Monitoring
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
 
     static class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
 
-            try
-            {
-                var arguments = new HostArguments(args);
+            var arguments = new HostArguments(args);
 
-                var settings = LoadSettings(arguments);
+            var settings = LoadSettings(arguments);
 
-                var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
-                MonitorLogs.Configure(settings, !runAsWindowsService);
+            var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
+            MonitorLogs.Configure(settings, !runAsWindowsService);
 
-                var runner = new CommandRunner(arguments.Commands);
-
-                runner.Run(settings).GetAwaiter().GetResult();
-            }
-            catch (Exception exception)
-            {
-                Console.Error.WriteLine(exception);
-                Environment.Exit(-1);
-            }
+            await new CommandRunner(arguments.Commands)
+                .Run(settings)
+                .ConfigureAwait(false);
         }
 
         static Settings LoadSettings(HostArguments args)
