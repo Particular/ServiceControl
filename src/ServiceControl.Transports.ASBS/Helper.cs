@@ -7,13 +7,6 @@
 
     public static class Helper
     {
-        public static void ConfigureTransport(this TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
-        {
-            transport.ConfigureNameShorteners();
-
-            transport.Transactions(transportTransactionMode);
-        }
-
         public static void ConfigureNameShorteners(this TransportExtensions<AzureServiceBusTransport> transport)
         {
 #pragma warning disable 618

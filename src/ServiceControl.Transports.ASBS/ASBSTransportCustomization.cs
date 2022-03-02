@@ -95,7 +95,8 @@
                 transport.UseWebSockets();
             }
 
-            transport.ConfigureTransport(transportSettings, transportTransactionMode);
+            transport.ConfigureNameShorteners();
+            transport.Transactions(transportTransactionMode);
         }
     }
 }
