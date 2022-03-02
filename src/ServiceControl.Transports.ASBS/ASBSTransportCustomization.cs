@@ -30,8 +30,6 @@ Both ASB transports cannot use MI on-premises
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
-            //
-
             CustomizeEndpoint(transport, transportSettings);
 
             transport.ConfigureTransport(transportSettings, TransportTransactionMode.ReceiveOnly);
