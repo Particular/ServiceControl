@@ -1,10 +1,21 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
+    using System.Data.Common;
+
     public class ConnectionStringParser
     {
         public ConnectionSettings Parse(string connectionString)
         {
-            return new ConnectionSettings();
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
+            if (!hasEndpoint)
+            {
+                throw new Exception("Endpoint property is mandatory on the connection string");
+            }
+
+            return new ConnectionSettings(connectionString, false, endpoint.ToString().TrimEnd('/').Replace("sb://", ""));
         }
 
 

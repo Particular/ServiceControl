@@ -12,7 +12,8 @@
         {
             get
             {
-                yield return new TestCaseData("", new ConnectionSettings("test"));
+                yield return new TestCaseData("test", new ConnectionSettings("test"));
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/", new ConnectionSettings("Endpoint=sb://some.endpoint.name/", false, "some.endpoint.name"));
             }
         }
 
