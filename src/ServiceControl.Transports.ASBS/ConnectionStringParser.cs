@@ -4,15 +4,20 @@
     using System.Data.Common;
     using Azure.Messaging.ServiceBus;
 
-    public class ConnectionStringParser
+    public static class ConnectionStringParser
     {
-        public ConnectionSettings Parse(string connectionString)
+        public static ConnectionSettings Parse(string connectionString)
         {
             if (!connectionString.Contains("="))
             {
                 if (connectionString.Contains("sb://"))
                 {
-                    throw new Exception("When using fully-qualified namespace name 'sb://' prefix is not allowed");
+                    throw new Exception("When using a fully-qualified namespace the'sb://' prefix is not allowed");
+                }
+
+                if (connectionString.EndsWith("/"))
+                {
+                    throw new Exception("When using a fully-qualified namespace a trailing '/' is not allowed");
                 }
 
                 return new ConnectionSettings(connectionString, false, connectionString, useDefaultCredentials: true);
@@ -42,7 +47,7 @@
             var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
             if (!hasEndpoint)
             {
-                throw new Exception("Endpoint property is mandatory on the connection string");
+                throw new Exception("The Endpoint property is mandatory on the connection string");
             }
 
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
@@ -56,6 +61,7 @@
             {
                 throw new Exception("ClientId is only allowed when using Managed Identity (Authentication Type=Managed Identity)");
             }
+
             return new ConnectionSettings(connectionString, false, endpoint.ToString().TrimEnd('/').Replace("sb://", ""), null, topicNameString, useWebSockets);
         }
     }

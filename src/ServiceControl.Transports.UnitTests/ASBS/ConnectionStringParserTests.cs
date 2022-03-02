@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
-    using Azure.Identity;
     using NUnit.Framework;
     using ServiceControl.Transports.ASBS;
 
@@ -45,13 +44,15 @@
                 yield return new TestCaseData("Authentication=Managed Identity");
                 //Fully-qualified namespace with prefix
                 yield return new TestCaseData("sb://some.endpoint.name/");
+                //Fully-qualified namespace with trailing slash
+                yield return new TestCaseData("some.endpoint.name/");
             }
         }
 
         [TestCaseSource("SupportedConnectionStrings")]
         public void VerifySupported(string connectionString, ConnectionSettings expected)
         {
-            var actual = new ConnectionStringParser().Parse(connectionString);
+            var actual = ConnectionStringParser.Parse(connectionString);
 
             Assert.AreEqual(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual));
         }
@@ -59,7 +60,7 @@
         [TestCaseSource("NotSupportedConnectionStrings")]
         public void VerifyNotSupported(string connectionString)
         {
-            Assert.Throws<Exception>(() => new ConnectionStringParser().Parse(connectionString));
+            Assert.Throws<Exception>(() => ConnectionStringParser.Parse(connectionString));
         }
     }
 }
