@@ -99,7 +99,11 @@ Both ASB transports cannot use MI on-premises
             var connectionSettings = new ConnectionStringParser()
                 .Parse(transportSettings.ConnectionString);
 
-            if (connectionSettings.UseManagedIdentity)
+            if (connectionSettings.UseDefaultCredentials)
+            {
+                transport.CustomTokenCredential(new DefaultAzureCredential());
+            }
+            else if (connectionSettings.UseManagedIdentity)
             {
                 if (connectionSettings.ClientId != null)
                 {
@@ -109,13 +113,8 @@ Both ASB transports cannot use MI on-premises
                 {
                     transport.CustomTokenCredential(new ManagedIdentityCredential());
                 }
-
-                transport.ConnectionString(connectionSettings.FullyQualifiedNamespace);
             }
-            else
-            {
-                transport.ConnectionString(connectionSettings.ConnectionString);
-            }
+            transport.ConnectionString(connectionSettings.TransportConnectionString);
 
             if (connectionSettings.TopicName != null)
             {

@@ -2,12 +2,42 @@
 {
     using System;
     using System.Data.Common;
+    using Azure.Messaging.ServiceBus;
 
     public class ConnectionStringParser
     {
         public ConnectionSettings Parse(string connectionString)
         {
+            if (!connectionString.Contains("="))
+            {
+                if (connectionString.Contains("sb://"))
+                {
+                    throw new Exception("When using fully-qualified namespace name 'sb://' prefix is not allowed");
+                }
+
+                return new ConnectionSettings(connectionString, false, connectionString, useDefaultCredentials: true);
+            }
+
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            string topicNameString = null;
+            var useWebSockets = false;
+            string clientIdString = null;
+
+            if (builder.TryGetValue("TopicName", out var topicName))
+            {
+                topicNameString = (string)topicName;
+            }
+
+            if (builder.TryGetValue("TransportType", out var transportTypeString) && Enum.TryParse((string)transportTypeString, true, out ServiceBusTransportType transportType) && transportType == ServiceBusTransportType.AmqpWebSockets)
+            {
+                useWebSockets = true;
+            }
+
+            if (builder.TryGetValue("ClientId", out var clientId))
+            {
+                clientIdString = (string)clientId;
+            }
 
             var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
             if (!hasEndpoint)
@@ -15,54 +45,18 @@
                 throw new Exception("Endpoint property is mandatory on the connection string");
             }
 
-            return new ConnectionSettings(connectionString, false, endpoint.ToString().TrimEnd('/').Replace("sb://", ""));
-        }
-
-
-        //static string TopicNamePart = "TopicName";
-        //static string TransportTypePart = "TransportType";
-        /*
-         *
-         *
-         *  var connectionString = transportSettings.ConnectionString;
-
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
-
             if (shouldUseManagedIdentity)
             {
-                if (builder.TryGetValue("ClientId", out var clientId))
-                {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential((string)clientId));
-                }
-                else
-                {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential());
-                }
-
-                var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
-                if (!hasEndpoint)
-                {
-                    throw new Exception("Endpoint property is mandatory on the connection string");
-                }
-
                 var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
-                transport.ConnectionString(fullyQualifiedNamespace);
-            }
-            else
-            {
-                transport.ConnectionString(transportSettings.ConnectionString);
-            }
-                    if (builder.TryGetValue(TopicNamePart, out var topicName))
-            {
-                transport.TopicName((string)topicName);
+                return new ConnectionSettings(fullyQualifiedNamespace, true, fullyQualifiedNamespace, clientIdString, topicNameString, useWebSockets);
             }
 
-            if (builder.TryGetValue(TransportTypePart, out var transportTypeString) && Enum.TryParse((string)transportTypeString, true, out ServiceBusTransportType transportType) && transportType == ServiceBusTransportType.AmqpWebSockets)
+            if (clientIdString != null)
             {
-                transport.UseWebSockets();
+                throw new Exception("ClientId is only allowed when using Managed Identity (Authentication Type=Managed Identity)");
             }
-         */
+            return new ConnectionSettings(connectionString, false, endpoint.ToString().TrimEnd('/').Replace("sb://", ""), null, topicNameString, useWebSockets);
+        }
     }
 }
