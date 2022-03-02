@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    using System;
-    using System.Data.Common;
     using Azure.Identity;
-    using Azure.Messaging.ServiceBus;
     using NServiceBus;
     using NServiceBus.Raw;
 
@@ -101,50 +98,36 @@ Both ASB transports cannot use MI on-premises
 
         void CustomizeEndpoint(TransportExtensions<AzureServiceBusTransport> transport, TransportSettings transportSettings)
         {
-            var connectionString = transportSettings.ConnectionString;
+            var connectionSettings = new ConnectionStringParser()
+                .Parse(transportSettings.ConnectionString);
 
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-            var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
-
-            if (shouldUseManagedIdentity)
+            if (connectionSettings.UseManagedIdentity)
             {
-                if (builder.TryGetValue("ClientId", out var clientId))
+                if (connectionSettings.ClientId != null)
                 {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential((string)clientId));
+                    transport.CustomTokenCredential(new ManagedIdentityCredential(connectionSettings.ClientId));
                 }
                 else
                 {
                     transport.CustomTokenCredential(new ManagedIdentityCredential());
                 }
 
-                var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
-                if (!hasEndpoint)
-                {
-                    throw new Exception("Endpoint property is mandatory on the connection string");
-                }
-
-                var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
-                transport.ConnectionString(fullyQualifiedNamespace);
+                transport.ConnectionString(connectionSettings.FullyQualifiedNamespace);
             }
             else
             {
-                transport.ConnectionString(transportSettings.ConnectionString);
+                transport.ConnectionString(connectionSettings.ConnectionString);
             }
-            //TODO check for SharedAccessKeyName and SharedAccessKey and if not present, use DefaultAzureCredentials 
 
-            if (builder.TryGetValue(TopicNamePart, out var topicName))
+            if (connectionSettings.TopicName != null)
             {
-                transport.TopicName((string)topicName);
+                transport.TopicName(connectionSettings.TopicName);
             }
 
-            if (builder.TryGetValue(TransportTypePart, out var transportTypeString) && Enum.TryParse((string)transportTypeString, true, out ServiceBusTransportType transportType) && transportType == ServiceBusTransportType.AmqpWebSockets)
+            if (connectionSettings.UseWebSockets)
             {
                 transport.UseWebSockets();
             }
         }
-
-        static string TopicNamePart = "TopicName";
-        static string TransportTypePart = "TransportType";
     }
 }
