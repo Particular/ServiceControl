@@ -36,7 +36,7 @@
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.5" />
-    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.0" />    
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
     <PackageReference Include="ServiceControl.Contracts" Version="3.0.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
@@ -45,7 +45,7 @@
     <PackageReference Include="Particular.Licensing.Sources" Version="3.6.0" PrivateAssets="All" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />    
   </ItemGroup>
 
   <ItemGroup>
