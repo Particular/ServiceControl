@@ -35,7 +35,6 @@
                 if (headers.TryGetValue(Headers.DeliverAt, out var deliverAtValue))
                 {
                     startTime = DateTimeExtensions.ToUtcDateTime(deliverAtValue);
-                    metadata.Add("DeliverAt", startTime);
                 }
 
                 if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
