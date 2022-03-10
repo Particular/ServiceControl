@@ -76,7 +76,7 @@
             var previousContext = shell.ActiveContext;
             shell.Overlay = screen;
             shell.ActiveContext = context;
-            await ((IActivate)screen).ActivateAsync();
+            await screen.ActivateAsync();
             screen.RunModal();
             shell.Overlay = null;
             shell.ActiveContext = previousContext;

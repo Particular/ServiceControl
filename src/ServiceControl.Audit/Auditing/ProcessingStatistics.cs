@@ -23,13 +23,18 @@
                 var headers = context.Headers;
                 var metadata = context.Metadata;
                 var processingEnded = DateTime.MinValue;
-                var timeSent = DateTime.MinValue;
+                var startTime = DateTime.MinValue;
                 var processingStarted = DateTime.MinValue;
 
                 if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
                 {
-                    timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                    metadata.Add("TimeSent", timeSent);
+                    startTime = DateTimeExtensions.ToUtcDateTime(timeSentValue);
+                    metadata.Add("TimeSent", startTime);
+                }
+
+                if (headers.TryGetValue(Headers.DeliverAt, out var deliverAtValue))
+                {
+                    startTime = DateTimeExtensions.ToUtcDateTime(deliverAtValue);
                 }
 
                 if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
@@ -44,9 +49,9 @@
 
                 var criticalTime = TimeSpan.Zero;
 
-                if (processingEnded != DateTime.MinValue && timeSent != DateTime.MinValue)
+                if (processingEnded != DateTime.MinValue && startTime != DateTime.MinValue)
                 {
-                    criticalTime = processingEnded - timeSent;
+                    criticalTime = processingEnded - startTime;
                 }
 
                 metadata.Add("CriticalTime", criticalTime);
@@ -62,9 +67,9 @@
 
                 var deliveryTime = TimeSpan.Zero;
 
-                if (processingStarted != DateTime.MinValue && timeSent != DateTime.MinValue)
+                if (processingStarted != DateTime.MinValue && startTime != DateTime.MinValue)
                 {
-                    deliveryTime = processingStarted - timeSent;
+                    deliveryTime = processingStarted - startTime;
                 }
 
                 metadata.Add("DeliveryTime", deliveryTime);
