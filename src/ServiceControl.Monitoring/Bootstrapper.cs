@@ -47,6 +47,7 @@
                     builder.ClearProviders();
                     //HINT: configuration used by NLog comes from MonitorLog.cs
                     builder.AddNLog();
+                    builder.SetMinimumLevel(ToHostLogLevel(settings.LogLevel));
                 })
                 .ConfigureServices(services =>
                 {
@@ -148,6 +149,36 @@
                 DateTicks = entryDto.DateTicks,
                 Value = entryDto.Value
             };
+        }
+
+        public static LogLevel ToHostLogLevel(NLog.LogLevel logLevel)
+        {
+            if (logLevel == NLog.LogLevel.Debug)
+            {
+                return LogLevel.Debug;
+            }
+            if (logLevel == NLog.LogLevel.Error)
+            {
+                return LogLevel.Error;
+            }
+            if (logLevel == NLog.LogLevel.Fatal)
+            {
+                return LogLevel.Critical;
+            }
+            if (logLevel == NLog.LogLevel.Warn)
+            {
+                return LogLevel.Warning;
+            }
+            if (logLevel == NLog.LogLevel.Info)
+            {
+                return LogLevel.Information;
+            }
+            if (logLevel == NLog.LogLevel.Trace)
+            {
+                return LogLevel.Trace;
+            }
+
+            return LogLevel.None;
         }
 
         Action<ICriticalErrorContext> onCriticalError;
