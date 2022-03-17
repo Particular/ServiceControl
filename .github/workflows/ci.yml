@@ -5,79 +5,12 @@ on:
       - master
       - release-*
   pull_request:
-  pull_request_target:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    if:
-      (github.event_name == 'pull_request_target' && github.event.pull_request.user.login == 'dependabot[bot]') ||
-      (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]') ||
-      github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: windows-2019
-    steps:
-      - name: Check for secrets
-        env:
-          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
-        shell: pwsh
-        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
-      - name: Checkout
-        if: github.event_name != 'pull_request_target'
-        uses: actions/checkout@v2.3.4
-        with:
-          fetch-depth: 0
-      - name: Checkout for Dependabot
-        if: github.event_name == 'pull_request_target'
-        uses: actions/checkout@v2.3.4
-        with:
-          ref: "refs/pull/${{ github.event.number }}/merge"
-          fetch-depth: 0
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1.8.2
-        with:
-          dotnet-version: 5.0.x
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
-      - name: Build
-        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
-      - name: Upload packages
-        uses: actions/upload-artifact@v2.2.4
-        with:
-          name: assets
-          path: |
-            nugets/
-            zip/
-            assets/
-          retention-days: 1
-      - name: Run unit tests
-        shell: pwsh
-        run: |
-          $exitCode = 0
-          Get-ChildItem src -Filter *.UnitTests | ForEach-Object {
-            echo "------------------------------------"
-            $testPath = "src/$($_.Name)"
-            dotnet test $testPath --configuration Release --no-build --logger "GitHubActions;report-warnings=false" -m:1 -- RunConfiguration.TargetPlatform=x64
-            $testExit = $LASTEXITCODE
-            echo "Test Exit Code = $testExit"
-            if ($testExit -ne 0) {
-              $exitCode = 1
-            }
-          }
-          
-          echo "------------------------------------"
-          Write-Output "Exit code = $exitCode"
-          exit $exitCode
-      - name: Upload acceptance tests
-        uses: actions/upload-artifact@v2.2.4
-        with:
-          name: acceptance-tests
-          path: src/*.AcceptanceTests/bin/Release/
-          retention-days: 1
-
-  acceptance-tests:
-    needs: build
-    name: AcceptanceTests-${{ matrix.name }}
+    name: CI-${{ matrix.name }}
     runs-on: windows-2019
     strategy:
       matrix:
@@ -113,17 +46,33 @@ jobs:
             transport: SQS
             customization: ConfigureEndpointSQSTransport
       fail-fast: false
-    env:
-      ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
-      ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
-      ServiceControl/LicenseText: ${{ secrets.SERVICECONTROL_LICENSETEXT }}
-      ServiceControl.Audit/LicenseText: ${{ secrets.AUDIT_LICENSETEXT }}
-      Monitoring/LicenseText: ${{ secrets.MONITORING_LICENSETEXT }}
     steps:
-      - name: Download acceptance tests
-        uses: actions/download-artifact@v2.0.10
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
+      - name: Checkout
+        uses: actions/checkout@v3.0.0
         with:
-          name: acceptance-tests
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v2.0.0
+        with:
+          dotnet-version: 5.0.x
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Build
+        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - name: Upload packages
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: assets
+          path: |
+            nugets/
+            zip/
+            assets/
+          retention-days: 1
       - name: Azure login
         uses: azure/login@v1.3.0
         with:
@@ -245,25 +194,13 @@ jobs:
 
       
       - name: Run tests
-        shell: pwsh
-        run: |
-          $exitCode = 0
-          Get-ChildItem -Recurse -Filter *.AcceptanceTests.dll | ForEach-Object {
-            echo "------------------------------------"
-            $testPath = $_.FullName
-            echo "Running dotnet test for $testPath"
-            dotnet test $testPath --logger "GitHubActions;report-warnings=false" -- RunConfiguration.TargetPlatform=x64
-            $testExit = $LASTEXITCODE
-            echo "Finished $testPath"
-            echo "Test Exit Code = $testExit"
-            if ($testExit -ne 0) {
-              $exitCode = 1
-            }
-          }
-
-          echo "------------------------------------"
-          Write-Output "Exit code = $exitCode"
-          exit $exitCode
+        uses: Particular/run-tests-action@x64
+        env:
+          ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
+          ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
+          ServiceControl/LicenseText: ${{ secrets.SERVICECONTROL_LICENSETEXT }}
+          ServiceControl.Audit/LicenseText: ${{ secrets.AUDIT_LICENSETEXT }}
+          Monitoring/LicenseText: ${{ secrets.MONITORING_LICENSETEXT }}
 
       - name: Teardown infrastructure
         if: ${{ always() }}
