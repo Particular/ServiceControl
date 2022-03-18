@@ -10,7 +10,7 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    name: CI-${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: windows-2019
     strategy:
       matrix:
@@ -60,7 +60,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v2.0.0
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Build
@@ -135,54 +135,17 @@ jobs:
           }
       - name: Setup Azure Service Bus
         if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
-        id: setup-asb
-        shell: pwsh
-        run: |
-          # Retrieve the Azure region in which this workflow is running. This region should be used to create addtional resources.
-          $hostInfo = curl -H Metadata:true "169.254.169.254/metadata/instance?api-version=2017-08-01" | ConvertFrom-Json
-          $region = $hostInfo.compute.location
+        uses: Particular/setup-azureservicebus-action@v1.0.0
+        with:
+          connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
+          tag: ServiceControl
 
-          $name = "psw-asb-$(Get-Random)"
-          echo "::set-output name=name::$name"
-          $dateTag = "Created=$(Get-Date -Format "yyyy-MM-dd")"
-
-          echo "Creating Azure Service Bus namespace $name (This can take awhile.)"
-          $details = az servicebus namespace create --resource-group GitHubActions-RG --location $region --name $name --tags Package=ServiceControl RunnerOS=${{ runner.os }} $dateTag | ConvertFrom-Json
-
-          echo "Getting connection string"
-          $keys = az servicebus namespace authorization-rule keys list --resource-group GitHubActions-RG --namespace-name $name --name RootManageSharedAccessKey | ConvertFrom-Json
-          $connectString = $keys.primaryConnectionString
-          echo "::add-mask::$connectString"
-
-          echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Setup Azure Storage Queues
         if: matrix.transport == 'AzureStorageQueues'
-        id: setup-asq
-        shell: pwsh
-        run: |
-          # Retrieve the Azure region in which this workflow is running. This region should be used to create addtional resources.
-          $hostInfo = curl -H Metadata:true "169.254.169.254/metadata/instance?api-version=2017-08-01" | ConvertFrom-Json
-          $region = $hostInfo.compute.location
-
-          $rand = Get-Random
-          $accountname = "pswasq$($rand)"
-          echo "::set-output name=accountname::$accountname"
-          echo "Creating storage account"
-          $details = az storage account create --name $accountname --resource-group GitHubActions-RG --location $region --sku Standard_LRS | ConvertFrom-Json
-
-          echo "Getting account access keys"
-          $keys = az storage account keys list --account-name $accountname --resource-group GitHubActions-RG | ConvertFrom-Json
-          $key = $keys[0].value
-          echo "::add-mask::$key"
-
-          echo "Tagging storage accounts"
-          $dateTag = "Created=$(Get-Date -Format "yyyy-MM-dd")"
-          $ignore = az tag create --resource-id $details.id --tags Package=ServiceControl RunnerOS=${{ runner.os }} $dateTag
-
-          $connectString = "DefaultEndpointsProtocol=https;AccountName=$accountname;AccountKey=$key"
-
-          echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-
+        uses: Particular/setup-azurestorage-action@v1.0.0
+        with:
+          connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
+          tag: ServiceControl
       - name: Setup SQS environment variables
         if: matrix.Transport == 'SQS'
         shell: pwsh
@@ -194,15 +157,14 @@ jobs:
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
-
       - name: Run tests
-        uses: Particular/run-tests-action@x64
+        uses: Particular/run-tests-action@v1.3.0
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
-          ServiceControl/LicenseText: ${{ secrets.SERVICECONTROL_LICENSETEXT }}
-          ServiceControl.Audit/LicenseText: ${{ secrets.AUDIT_LICENSETEXT }}
-          Monitoring/LicenseText: ${{ secrets.MONITORING_LICENSETEXT }}
+          ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
+          ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
+          Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}
 
       - name: Teardown infrastructure
         if: ${{ always() }}
@@ -210,12 +172,4 @@ jobs:
         run: |
           if ('${{ matrix.transport }}' -eq 'RabbitMQ') {
             $ignore = az container delete --resource-group GitHubActions-RG --name ${{ steps.setup-rabbitmq.outputs.hostname }} --yes
-          }
-
-          if ('${{ matrix.transport }}' -eq 'AzureServiceBus' -Or '${{ matrix.transport }}' -eq 'AzureServiceBusNetStandard') {
-            $ignore = az servicebus namespace delete --resource-group GitHubActions-RG --name ${{ steps.setup-asb.outputs.name }}
-          }
-
-          if ('${{ matrix.transport }}' -eq 'AzureStorageQueues') {
-            $ignore = az storage account delete --resource-group GitHubActions-RG --name ${{ steps.setup-asq.outputs.accountname }} --yes
           }
