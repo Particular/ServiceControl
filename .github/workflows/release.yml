@@ -10,7 +10,7 @@ env:
   RELEASE_WORKFLOW: true
 jobs:
   release:
-    runs-on: windows-2019 # Code signing requirement https://github.com/NuGet/Home/issues/7939
+    runs-on: windows-2022 # Code signing requirement https://github.com/NuGet/Home/issues/7939
     outputs:
       semver: ${{ steps.save-version.outputs.semver }}
       majorminorpatch: ${{ steps.save-version.outputs.majorminorpatch }}
@@ -26,11 +26,11 @@ jobs:
           echo "PARTICULAR_REPO_NAME=$RepoName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1.8.2
+        uses: actions/setup-dotnet@v2.0.0
         with:
-          dotnet-version: 5.0.x
+          dotnet-version: 6.0.x
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
       - name: Setup Advanced Installer
         run: |
           $version = "18.8.1"
@@ -64,19 +64,19 @@ jobs:
           --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
           --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Publish installer
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.0.0
         with:
           name: installer
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.0.0
         with:
           name: nugets
           path: nugets/*
           retention-days: 1
       - name: Publish zips
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.0.0
         with:
           name: zips
           path: zip/*
