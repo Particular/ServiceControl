@@ -1,5 +1,3 @@
-I am not sure a PR is necessary:
-
 ## Setup
 
 1. Install ServiceControl version 2.
