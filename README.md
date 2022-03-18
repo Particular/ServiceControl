@@ -18,6 +18,15 @@ https://docs.particular.net/servicecontrol/
 - If not using Visual Studio, you may need to install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
 - Follow the [Coding and design guidelines](/docs/coding-and-design-guidelines.md)
 
+## Secrets
+
+Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets, which must be defined for both Actions and Dependabot secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.
+
+* `LICENSETEXT`: Particular Software license text
+* `AWS_ACCESS_KEY_ID`: For testing SQS
+* `AWS_SECRET_ACCESS_KEY`: For testing SQS
+* `AWS_REGION`: For testing SQS
+
 ## How to build and run Docker images
 
 NOTE: The following scripts are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.

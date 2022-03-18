@@ -53,7 +53,7 @@
 
             var result = input;
 
-            if (builder.TryGetValue("Database", out var database))
+            if (builder.TryGetValue("Database", out var database) || builder.TryGetValue("Initial Catalog", out database))
             {
                 var databaseAsString = (string)database;
                 if (!string.IsNullOrEmpty(databaseAsString))
