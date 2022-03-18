@@ -8,7 +8,7 @@
     <None Include="Prerequisites\**\*.*" />
   </ItemGroup>
 
-  <Target Name="CreateInstaller" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release' ">
+  <Target Name="CreateInstaller" AfterTargets="Build" Condition="'$(CI)' == 'true' AND '$(RELEASE_WORKFLOW)' == 'true'">
     <ItemGroup>
       <BuiltFiles Include="$(OutputPath)\*.*" />
     </ItemGroup>

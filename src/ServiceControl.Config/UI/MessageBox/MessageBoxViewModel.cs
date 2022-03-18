@@ -16,12 +16,12 @@
             Ok = Command.Create(async () =>
             {
                 Result = true;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
             Cancel = Command.Create(async () =>
             {
                 Result = false;
-                await ((IDeactivate)this).DeactivateAsync(true);
+                await this.DeactivateAsync(true);
             });
             HideCancel = hideCancel;
         }
