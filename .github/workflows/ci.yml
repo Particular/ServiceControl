@@ -76,7 +76,7 @@ jobs:
             assets/
           retention-days: 1
       - name: Azure login
-        uses: azure/login@v1.3.0
+        uses: azure/login@v1.4.3
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
