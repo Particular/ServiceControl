@@ -7,6 +7,11 @@
     <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <MinVerMinimumMajorMinor>4.21</MinVerMinimumMajorMinor>
+    <MinVerAutoIncrement>minor</MinVerAutoIncrement>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Particular.Packaging" Version="2.0.0" PrivateAssets="All" />
   </ItemGroup>
