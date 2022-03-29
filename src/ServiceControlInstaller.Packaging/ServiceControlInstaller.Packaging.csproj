@@ -21,7 +21,7 @@
   <Target Name="CleanStaging" AfterTargets="Build">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
       <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
     </PropertyGroup>
     <!-- Ensure Folder Exists  -->
@@ -38,7 +38,7 @@
   <Target Name="CreateServiceControlZip" AfterTargets="CleanStaging">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
       <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
     </PropertyGroup>
 
@@ -85,7 +85,7 @@
   <Target Name="CreateServiceControlAuditZip" AfterTargets="CreateServiceControlZip">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Audit-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Audit-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
       <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
     </PropertyGroup>
 
@@ -132,7 +132,7 @@
     <Target Name="CreateServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
     <PropertyGroup>
       <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(GitVersion_MajorMinorPatch).zip</ZipToCreate>
+      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
       <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
     </PropertyGroup>
 
