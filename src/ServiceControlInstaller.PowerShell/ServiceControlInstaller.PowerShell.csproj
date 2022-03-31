@@ -53,7 +53,7 @@
     <ItemGroup>
       <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
     </ItemGroup>
-    <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(GitVersion_MajorMinorPatch)" />
+    <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
   </Target>
 
 </Project>
