@@ -40,7 +40,7 @@
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name WPF_PATH -value $(SolutionDir)ServiceControl.Config\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name POSH_PATH -value $(SolutionDir)ServiceControlInstaller.PowerShell\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name CUSTOMACTIONS_PATH -value $(SolutionDir)ServiceControlInstaller.CustomActions\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
-    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetVersion $(MinVerMajor).$(MinVerMinor).$(MinVerPatch))" />
+    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetVersion $(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetPackageName $(SetupExeOutputFolder)$(SetupExeName) -buildname DefaultBuild" />
     <Exec Command="$(AdvancedInstallerExe) /execute $(IntermediateOutputPath)$(AIPFile) $(IntermediateOutputPath)$(CommandFile)" />
   </Target>
