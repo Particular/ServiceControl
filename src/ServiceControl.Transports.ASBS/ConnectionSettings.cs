@@ -5,7 +5,7 @@
     public class ConnectionSettings
     {
         public ConnectionSettings(
-            AuthenticationSettings authenticationSettings,
+            AuthenticationMethod authenticationSettings,
             string topicName = default,
             bool useWebSockets = default,
             TimeSpan? queryDelayInterval = default)
@@ -16,7 +16,7 @@
             QueryDelayInterval = queryDelayInterval;
         }
 
-        public AuthenticationSettings AuthenticationMethod { get; }
+        public AuthenticationMethod AuthenticationMethod { get; }
 
         public TimeSpan? QueryDelayInterval { get; }
 

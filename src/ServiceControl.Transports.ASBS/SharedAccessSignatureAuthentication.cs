@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    public class SharedAccessSignatureAuthentication : AuthenticationSettings
+    public class SharedAccessSignatureAuthentication : AuthenticationMethod
     {
         public SharedAccessSignatureAuthentication(string connectionString) => ConnectionString = connectionString;
 

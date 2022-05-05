@@ -2,7 +2,7 @@
 {
     using Azure.Core;
 
-    public class TokenCredentialAuthentication : AuthenticationSettings
+    public class TokenCredentialAuthentication : AuthenticationMethod
     {
         public TokenCredentialAuthentication(string fullyQualifiedNamespace, TokenCredential credential)
         {

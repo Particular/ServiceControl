@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    public abstract class AuthenticationSettings
+    public abstract class AuthenticationMethod
     {
-
     }
 }
