@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    using Azure.Identity;
+    using System;
     using NServiceBus;
     using NServiceBus.Raw;
 
@@ -67,24 +67,6 @@
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
 
-            if (connectionSettings.UseDefaultCredentials)
-            {
-                transport.CustomTokenCredential(new DefaultAzureCredential());
-            }
-            else if (connectionSettings.UseManagedIdentity)
-            {
-                if (connectionSettings.ClientId != null)
-                {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential(connectionSettings.ClientId));
-                }
-                else
-                {
-                    transport.CustomTokenCredential(new ManagedIdentityCredential());
-                }
-            }
-
-            transport.ConnectionString(connectionSettings.TransportConnectionString);
-
             if (connectionSettings.TopicName != null)
             {
                 transport.TopicName(connectionSettings.TopicName);
@@ -97,6 +79,21 @@
 
             transport.ConfigureNameShorteners();
             transport.Transactions(transportTransactionMode);
+
+            if (connectionSettings.AuthenticationMethod is SharedAccessSignatureAuthentication sasAuthentication)
+            {
+                transport.ConnectionString(sasAuthentication.ConnectionString);
+                return;
+            }
+
+            if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenAuthentication)
+            {
+                transport.ConnectionString(tokenAuthentication.FullyQualifiedNamespace);
+                transport.CustomTokenCredential(tokenAuthentication.Credential);
+                return;
+            }
+
+            throw new InvalidOperationException("Unknown authentication method " + connectionSettings.AuthenticationMethod.GetType());
         }
     }
 }

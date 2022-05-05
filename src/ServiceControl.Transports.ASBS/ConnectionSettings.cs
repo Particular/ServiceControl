@@ -1,31 +1,27 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
+
     public class ConnectionSettings
     {
         public ConnectionSettings(
-            string transportConnectionString = default,
-            bool useManagedIdentity = default,
-            string fullyQualifiedNamespace = default,
-            string clientId = default,
+            AuthenticationSettings authenticationSettings,
             string topicName = default,
             bool useWebSockets = default,
-            bool useDefaultCredentials = default)
+            TimeSpan? queryDelayInterval = default)
         {
-            TransportConnectionString = transportConnectionString;
-            UseManagedIdentity = useManagedIdentity;
-            FullyQualifiedNamespace = fullyQualifiedNamespace;
-            ClientId = clientId;
+            AuthenticationMethod = authenticationSettings;
             TopicName = topicName;
             UseWebSockets = useWebSockets;
-            UseDefaultCredentials = useDefaultCredentials;
+            QueryDelayInterval = queryDelayInterval;
         }
 
-        public string TransportConnectionString { get; private set; }
-        public bool UseManagedIdentity { get; private set; }
-        public bool UseDefaultCredentials { get; private set; }
-        public string FullyQualifiedNamespace { get; private set; }
-        public string ClientId { get; private set; }
-        public string TopicName { get; private set; }
-        public bool UseWebSockets { get; private set; }
+        public AuthenticationSettings AuthenticationMethod { get; }
+
+        public TimeSpan? QueryDelayInterval { get; }
+
+        public string TopicName { get; }
+
+        public bool UseWebSockets { get; }
     }
 }
