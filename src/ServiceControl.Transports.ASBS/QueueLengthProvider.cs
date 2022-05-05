@@ -25,19 +25,7 @@ namespace ServiceControl.Transports.ASBS
                 queryDelayInterval = TimeSpan.FromMilliseconds(500);
             }
 
-            if (connectionSettings.AuthenticationMethod is SharedAccessSignatureAuthentication sasAuthentication)
-            {
-                managementClient = new ServiceBusAdministrationClient(sasAuthentication.ConnectionString);
-                return;
-            }
-
-            if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenAuthentication)
-            {
-                managementClient = new ServiceBusAdministrationClient(tokenAuthentication.FullyQualifiedNamespace, tokenAuthentication.Credential);
-                return;
-            }
-
-            throw new InvalidOperationException("Unknown authentication method " + connectionSettings.AuthenticationMethod.GetType());
+            managementClient = BuildManagementClient(connectionSettings);
         }
 
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
@@ -142,6 +130,21 @@ namespace ServiceControl.Transports.ASBS
         {
             stop.Cancel();
             await poller.ConfigureAwait(false);
+        }
+
+        static ServiceBusAdministrationClient BuildManagementClient(ConnectionSettings connectionSettings)
+        {
+            if (connectionSettings.AuthenticationMethod is SharedAccessSignatureAuthentication sasAuthentication)
+            {
+                return new ServiceBusAdministrationClient(sasAuthentication.ConnectionString);
+            }
+
+            if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenAuthentication)
+            {
+                return new ServiceBusAdministrationClient(tokenAuthentication.FullyQualifiedNamespace, tokenAuthentication.Credential);
+            }
+
+            throw new InvalidOperationException("Unknown authentication method " + connectionSettings.AuthenticationMethod.GetType());
         }
 
         ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();

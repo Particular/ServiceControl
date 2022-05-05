@@ -80,6 +80,13 @@
             transport.ConfigureNameShorteners();
             transport.Transactions(transportTransactionMode);
 
+            ConfigureConnection(transport, connectionSettings);
+        }
+
+        void ConfigureConnection(
+            TransportExtensions<AzureServiceBusTransport> transport,
+            ConnectionSettings connectionSettings)
+        {
             if (connectionSettings.AuthenticationMethod is SharedAccessSignatureAuthentication sasAuthentication)
             {
                 transport.ConnectionString(sasAuthentication.ConnectionString);
