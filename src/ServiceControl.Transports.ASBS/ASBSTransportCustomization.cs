@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
-    using System;
     using NServiceBus;
     using NServiceBus.Raw;
 
@@ -80,27 +79,7 @@
             transport.ConfigureNameShorteners();
             transport.Transactions(transportTransactionMode);
 
-            ConfigureConnection(transport, connectionSettings);
-        }
-
-        void ConfigureConnection(
-            TransportExtensions<AzureServiceBusTransport> transport,
-            ConnectionSettings connectionSettings)
-        {
-            if (connectionSettings.AuthenticationMethod is SharedAccessSignatureAuthentication sasAuthentication)
-            {
-                transport.ConnectionString(sasAuthentication.ConnectionString);
-                return;
-            }
-
-            if (connectionSettings.AuthenticationMethod is TokenCredentialAuthentication tokenAuthentication)
-            {
-                transport.ConnectionString(tokenAuthentication.FullyQualifiedNamespace);
-                transport.CustomTokenCredential(tokenAuthentication.Credential);
-                return;
-            }
-
-            throw new InvalidOperationException("Unknown authentication method " + connectionSettings.AuthenticationMethod.GetType());
+            connectionSettings.AuthenticationMethod.ConfigureConnection(transport);
         }
     }
 }
