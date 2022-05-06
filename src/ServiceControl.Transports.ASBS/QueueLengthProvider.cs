@@ -3,7 +3,6 @@ namespace ServiceControl.Transports.ASBS
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using Azure.Messaging.ServiceBus.Administration;
@@ -13,22 +12,20 @@ namespace ServiceControl.Transports.ASBS
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+            this.store = store;
 
-            if (builder.TryGetValue(QueueLengthQueryIntervalPartName, out var value))
+            var connectionSettings = ConnectionStringParser.Parse(connectionString);
+
+            if (connectionSettings.QueryDelayInterval.HasValue)
             {
-                if (int.TryParse(value.ToString(), out var queryDelayInterval))
-                {
-                    QueryDelayInterval = TimeSpan.FromMilliseconds(queryDelayInterval);
-                }
-                else
-                {
-                    Logger.Warn($"Can't parse {value} as a valid query delay interval.");
-                }
+                queryDelayInterval = connectionSettings.QueryDelayInterval.Value;
+            }
+            else
+            {
+                queryDelayInterval = TimeSpan.FromMilliseconds(500);
             }
 
-            this.store = store;
-            managementClient = new ServiceBusAdministrationClient(connectionString);
+            managementClient = connectionSettings.AuthenticationMethod.BuildManagementClient();
         }
 
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
@@ -53,7 +50,7 @@ namespace ServiceControl.Transports.ASBS
                     try
                     {
                         Logger.Debug("Waiting for next interval");
-                        await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(queryDelayInterval, token).ConfigureAwait(false);
 
                         Logger.DebugFormat("Querying management client.");
 
@@ -140,9 +137,8 @@ namespace ServiceControl.Transports.ASBS
         ServiceBusAdministrationClient managementClient;
         CancellationTokenSource stop = new CancellationTokenSource();
         Task poller;
+        TimeSpan queryDelayInterval;
 
-        static TimeSpan QueryDelayInterval = TimeSpan.FromMilliseconds(500);
-        static string QueueLengthQueryIntervalPartName = "QueueLengthQueryDelayInterval";
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
     }
 }

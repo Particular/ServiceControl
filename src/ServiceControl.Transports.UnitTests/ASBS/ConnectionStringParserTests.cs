@@ -15,22 +15,25 @@
             {
                 //Just the fully-qualified namespace - forces managed identity
                 yield return new TestCaseData("some.endpoint.name",
-                    new ConnectionSettings("some.endpoint.name", false, "some.endpoint.name", useDefaultCredentials: true));
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name")));
                 //Endpoint
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/",
-                    new ConnectionSettings("Endpoint=sb://some.endpoint.name/", false, "some.endpoint.name"));
-                //Managed identity enabled
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/")));
+                //Managed identity enabled, no client id
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity",
-                    new ConnectionSettings("some.endpoint.name", true, "some.endpoint.name"));
-                //Managed identity, user-assigned
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", null)));
+                //Managed identity, user-assigned client id
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;ClientId=ABC",
-                    new ConnectionSettings("some.endpoint.name", true, "some.endpoint.name", "ABC"));
-                //Managed identity, custom topic
-                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;TopicName=my_topic",
-                    new ConnectionSettings("some.endpoint.name", true, "some.endpoint.name", topicName: "my_topic"));
-                //Managed identity, web sockets
-                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;TransportType=AmqpWebSockets",
-                    new ConnectionSettings("some.endpoint.name", true, "some.endpoint.name", useWebSockets: true));
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", "ABC")));
+                //Custom topic
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;TopicName=my_topic;",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;TopicName=my_topic;"), topicName: "my_topic"));
+                //Web sockets
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;TransportType=AmqpWebSockets",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;TransportType=AmqpWebSockets"), useWebSockets: true));
+                //Custom query delay interval
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000"), queryDelayInterval: TimeSpan.FromSeconds(15)));
             }
         }
 
@@ -46,6 +49,8 @@
                 yield return new TestCaseData("sb://some.endpoint.name/");
                 //Fully-qualified namespace with trailing slash
                 yield return new TestCaseData("some.endpoint.name/");
+                //Non int query delay
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=not int");
             }
         }
 
@@ -55,6 +60,21 @@
             var actual = ConnectionStringParser.Parse(connectionString);
 
             Assert.AreEqual(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual));
+
+            //needed since System..Text.Json doesn't handle polymorphic properties
+            Assert.AreEqual(
+                JsonSerializer.Serialize(expected.AuthenticationMethod, expected.AuthenticationMethod.GetType()),
+                JsonSerializer.Serialize(actual.AuthenticationMethod, actual.AuthenticationMethod.GetType()));
+
+
+            //needed since System..Text.Json doesn't handle polymorphic properties
+            if (expected.AuthenticationMethod is TokenCredentialAuthentication expectedAuthentication)
+            {
+                var actualAuthentication = actual.AuthenticationMethod as TokenCredentialAuthentication;
+
+                Assert.NotNull(actualAuthentication);
+                Assert.IsInstanceOf(expectedAuthentication.Credential.GetType(), actualAuthentication.Credential);
+            }
         }
 
         [TestCaseSource("NotSupportedConnectionStrings")]

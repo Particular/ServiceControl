@@ -32,7 +32,7 @@ namespace ServiceControl.Transports.ASB
             }
 
             this.store = store;
-            this.namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+            namespaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
         }
 
         public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)

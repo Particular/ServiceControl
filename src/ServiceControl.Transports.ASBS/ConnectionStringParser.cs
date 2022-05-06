@@ -20,14 +20,23 @@
                     throw new Exception("When using a fully-qualified namespace a trailing '/' is not allowed");
                 }
 
-                return new ConnectionSettings(connectionString, false, connectionString, useDefaultCredentials: true);
+                return new ConnectionSettings(new TokenCredentialAuthentication(connectionString));
             }
+
+            TimeSpan? queryDelayInterval = null;
+            string topicNameString = null;
+            var useWebSockets = false;
 
             var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
-            string topicNameString = null;
-            var useWebSockets = false;
-            string clientIdString = null;
+            if (builder.TryGetValue("QueueLengthQueryDelayInterval", out var value))
+            {
+                if (!int.TryParse(value.ToString(), out var delayInterval))
+                {
+                    throw new Exception($"Can't parse {value} as a valid query delay interval.");
+                }
+                queryDelayInterval = TimeSpan.FromMilliseconds(delayInterval);
+            }
 
             if (builder.TryGetValue("TopicName", out var topicName))
             {
@@ -39,10 +48,6 @@
                 useWebSockets = true;
             }
 
-            if (builder.TryGetValue("ClientId", out var clientId))
-            {
-                clientIdString = (string)clientId;
-            }
 
             var hasEndpoint = builder.TryGetValue("Endpoint", out var endpoint);
             if (!hasEndpoint)
@@ -50,11 +55,24 @@
                 throw new Exception("The Endpoint property is mandatory on the connection string");
             }
 
+            string clientIdString = null;
+
+            if (builder.TryGetValue("ClientId", out var clientId))
+            {
+                clientIdString = (string)clientId;
+            }
+
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
+
             if (shouldUseManagedIdentity)
             {
                 var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
-                return new ConnectionSettings(fullyQualifiedNamespace, true, fullyQualifiedNamespace, clientIdString, topicNameString, useWebSockets);
+
+                return new ConnectionSettings(
+                  new TokenCredentialAuthentication(fullyQualifiedNamespace, clientIdString),
+                  topicNameString,
+                  useWebSockets,
+                  queryDelayInterval);
             }
 
             if (clientIdString != null)
@@ -62,7 +80,11 @@
                 throw new Exception("ClientId is only allowed when using Managed Identity (Authentication Type=Managed Identity)");
             }
 
-            return new ConnectionSettings(connectionString, false, endpoint.ToString().TrimEnd('/').Replace("sb://", ""), null, topicNameString, useWebSockets);
+            return new ConnectionSettings(
+                new SharedAccessSignatureAuthentication(connectionString),
+                topicNameString,
+                useWebSockets,
+                queryDelayInterval);
         }
     }
 }
