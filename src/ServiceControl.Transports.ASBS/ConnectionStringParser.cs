@@ -2,7 +2,6 @@
 {
     using System;
     using System.Data.Common;
-    using Azure.Identity;
     using Azure.Messaging.ServiceBus;
 
     public static class ConnectionStringParser
@@ -21,7 +20,7 @@
                     throw new Exception("When using a fully-qualified namespace a trailing '/' is not allowed");
                 }
 
-                return new ConnectionSettings(new TokenCredentialAuthentication(connectionString, new DefaultAzureCredential()));
+                return new ConnectionSettings(new TokenCredentialAuthentication(connectionString));
             }
 
             TimeSpan? queryDelayInterval = null;
@@ -64,12 +63,13 @@
             }
 
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
+
             if (shouldUseManagedIdentity)
             {
                 var fullyQualifiedNamespace = endpoint.ToString().TrimEnd('/').Replace("sb://", "");
 
                 return new ConnectionSettings(
-                  new TokenCredentialAuthentication(fullyQualifiedNamespace, new ManagedIdentityCredential(clientId: clientIdString)),
+                  new TokenCredentialAuthentication(fullyQualifiedNamespace, clientIdString),
                   topicNameString,
                   useWebSockets,
                   queryDelayInterval);

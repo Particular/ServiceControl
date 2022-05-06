@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
-    using Azure.Identity;
     using NUnit.Framework;
     using ServiceControl.Transports.ASBS;
 
@@ -16,25 +15,25 @@
             {
                 //Just the fully-qualified namespace - forces managed identity
                 yield return new TestCaseData("some.endpoint.name",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new DefaultAzureCredential())));
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name")));
                 //Endpoint
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/",
                     new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/")));
-                //Managed identity enabled
+                //Managed identity enabled, no client id
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new ManagedIdentityCredential())));
-                //Managed identity, user-assigned
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", null)));
+                //Managed identity, user-assigned client id
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;ClientId=ABC",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new ManagedIdentityCredential("ABCB"))));
-                //Managed identity, custom topic
-                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;TopicName=my_topic;",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new ManagedIdentityCredential()), topicName: "my_topic"));
-                //Managed identity, web sockets
-                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;TransportType=AmqpWebSockets",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new ManagedIdentityCredential()), useWebSockets: true));
-                //Managed identity, custom query delay interval
-                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;Authentication=Managed Identity;QueueLengthQueryDelayInterval=15000",
-                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", new ManagedIdentityCredential()), queryDelayInterval: TimeSpan.FromSeconds(15)));
+                    new ConnectionSettings(new TokenCredentialAuthentication("some.endpoint.name", "ABC")));
+                //Custom topic
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;TopicName=my_topic;",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;TopicName=my_topic;"), topicName: "my_topic"));
+                //Web sockets
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;TransportType=AmqpWebSockets",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;TransportType=AmqpWebSockets"), useWebSockets: true));
+                //Custom query delay interval
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000"), queryDelayInterval: TimeSpan.FromSeconds(15)));
             }
         }
 
