@@ -149,7 +149,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             using (
                 var stream =
                     Assembly.GetCallingAssembly()
-                        .GetManifestResourceStream("ServiceControl.Hosting.Help.txt"))
+                        .GetManifestResourceStream("ServiceControl.Audit.Infrastructure.Hosting.Help.txt"))
             {
                 if (stream != null)
                 {
