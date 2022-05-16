@@ -25,7 +25,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
 
@@ -56,7 +56,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
             var headers = new Dictionary<string, string>
@@ -87,8 +87,8 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
@@ -119,8 +119,8 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = false
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold - 1;
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
@@ -151,8 +151,8 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
@@ -183,8 +183,8 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
             var headers = new Dictionary<string, string>
@@ -215,8 +215,8 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
-            var expectedBodySize = BodyStorageFeature.BodyStorageEnricher.LargeObjectHeapThreshold + 1;
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
@@ -247,7 +247,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 EnableFullTextSearchOnBodies = true
             };
 
-            var enricher = new BodyStorageFeature.BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var body = new byte[] { 0x00, 0xDE };
             var metadata = new Dictionary<string, object>();
 

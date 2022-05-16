@@ -23,7 +23,7 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
+        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter, Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter)
         {
             this.store = store;
@@ -329,7 +329,7 @@
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
-        readonly BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher;
+        readonly BodyStorageEnricher bodyStorageEnricher;
         IMessageSession messageSession;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

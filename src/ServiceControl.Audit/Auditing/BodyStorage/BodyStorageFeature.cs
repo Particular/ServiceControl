@@ -6,128 +6,108 @@
     using Infrastructure;
     using Infrastructure.Settings;
     using NServiceBus;
-    using NServiceBus.Features;
     using NServiceBus.Logging;
-    using RavenAttachments;
 
-    class BodyStorageFeature : Feature
+    class BodyStorageEnricher
     {
-        public BodyStorageFeature()
+        public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
         {
-            EnableByDefault();
+            this.bodyStorage = bodyStorage;
+            this.settings = settings;
         }
 
-        protected override void Setup(FeatureConfigurationContext context)
+        public async ValueTask StoreAuditMessageBody(byte[] body, ProcessedMessage processedMessage)
         {
-            if (!context.Container.HasComponent<IBodyStorage>())
+            var bodySize = body?.Length ?? 0;
+            processedMessage.MessageMetadata.Add("ContentLength", bodySize);
+            if (bodySize == 0)
             {
-                context.Container.ConfigureComponent<RavenAttachmentsBodyStorage>(DependencyLifecycle.SingleInstance);
+                return;
             }
 
-            context.Container.ConfigureComponent<BodyStorageEnricher>(DependencyLifecycle.SingleInstance);
+            var contentType = GetContentType(processedMessage.Headers, "text/xml");
+            processedMessage.MessageMetadata.Add("ContentType", contentType);
+
+            var stored = await TryStoreBody(body, processedMessage, bodySize, contentType)
+                .ConfigureAwait(false);
+            if (!stored)
+            {
+                processedMessage.MessageMetadata.Add("BodyNotStored", true);
+            }
         }
 
-        public class BodyStorageEnricher
+        static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
         {
-            public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+            if (!headers.TryGetValue(Headers.ContentType, out var contentType))
             {
-                this.bodyStorage = bodyStorage;
-                this.settings = settings;
+                contentType = defaultContentType;
             }
 
-            public async ValueTask StoreAuditMessageBody(byte[] body, ProcessedMessage processedMessage)
+            return contentType;
+        }
+
+        async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
+        {
+            var bodyId = processedMessage.Headers.MessageId();
+            var storedInBodyStorage = false;
+            var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
+            var isBinary = contentType.Contains("binary");
+            var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
+            var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+
+            if (isBelowMaxSize)
             {
-                var bodySize = body?.Length ?? 0;
-                processedMessage.MessageMetadata.Add("ContentLength", bodySize);
-                if (bodySize == 0)
+                var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+                var useBodyStore = !useEmbeddedBody;
+
+                if (useEmbeddedBody)
                 {
-                    return;
-                }
-
-                var contentType = GetContentType(processedMessage.Headers, "text/xml");
-                processedMessage.MessageMetadata.Add("ContentType", contentType);
-
-                var stored = await TryStoreBody(body, processedMessage, bodySize, contentType)
-                    .ConfigureAwait(false);
-                if (!stored)
-                {
-                    processedMessage.MessageMetadata.Add("BodyNotStored", true);
-                }
-            }
-
-            static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
-            {
-                if (!headers.TryGetValue(Headers.ContentType, out var contentType))
-                {
-                    contentType = defaultContentType;
-                }
-
-                return contentType;
-            }
-
-            async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
-            {
-                var bodyId = processedMessage.Headers.MessageId();
-                var storedInBodyStorage = false;
-                var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-                var isBinary = contentType.Contains("binary");
-                var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
-                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-
-                if (isBelowMaxSize)
-                {
-                    var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
-                    var useBodyStore = !useEmbeddedBody;
-
-                    if (useEmbeddedBody)
+                    try
                     {
-                        try
+                        if (settings.EnableFullTextSearchOnBodies)
                         {
-                            if (settings.EnableFullTextSearchOnBodies)
-                            {
-                                processedMessage.MessageMetadata.Add("Body", enc.GetString(body));
-                            }
-                            else
-                            {
-                                processedMessage.Body = enc.GetString(body);
-                            }
+                            processedMessage.MessageMetadata.Add("Body", enc.GetString(body));
                         }
-                        catch (DecoderFallbackException e)
+                        else
                         {
-                            useBodyStore = true;
-                            log.Info($"Body for {bodyId} could not be stored embedded, fallback to body storage", e);
+                            processedMessage.Body = enc.GetString(body);
                         }
                     }
-
-                    if (useBodyStore)
+                    catch (DecoderFallbackException e)
                     {
-                        await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                            .ConfigureAwait(false);
-                        storedInBodyStorage = true;
+                        useBodyStore = true;
+                        log.Info($"Body for {bodyId} could not be stored embedded, fallback to body storage", e);
                     }
                 }
 
-                processedMessage.MessageMetadata.Add("BodyUrl", bodyUrl);
-                return storedInBodyStorage;
-            }
-
-            async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
-            {
-                using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
+                if (useBodyStore)
                 {
-                    await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
                         .ConfigureAwait(false);
+                    storedInBodyStorage = true;
                 }
             }
 
-            static readonly Encoding enc = new UTF8Encoding(true, true);
-            static readonly ILog log = LogManager.GetLogger<BodyStorageFeature>();
-            IBodyStorage bodyStorage;
-            Settings settings;
-
-            // large object heap starts above 85000 bytes and not above 85 KB!
-            internal const int LargeObjectHeapThreshold = 85 * 1000;
-            internal const string BodyUrlFormatString = "/messages/{0}/body";
+            processedMessage.MessageMetadata.Add("BodyUrl", bodyUrl);
+            return storedInBodyStorage;
         }
+
+        async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
+        {
+            using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
+            {
+                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        static readonly Encoding enc = new UTF8Encoding(true, true);
+        static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
+        IBodyStorage bodyStorage;
+        Settings settings;
+
+        // large object heap starts above 85000 bytes and not above 85 KB!
+        internal const int LargeObjectHeapThreshold = 85 * 1000;
+        internal const string BodyUrlFormatString = "/messages/{0}/body";
     }
 }

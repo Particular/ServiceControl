@@ -2,6 +2,8 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Auditing.BodyStorage;
+    using Auditing.BodyStorage.RavenAttachments;
     using Autofac;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -86,6 +88,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
+            containerBuilder.RegisterType<RavenAttachmentsBodyStorage>().As<IBodyStorage>().SingleInstance();
 
             using (documentStore)
             {

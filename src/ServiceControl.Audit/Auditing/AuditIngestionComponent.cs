@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -39,9 +38,9 @@
             Metrics metrics,
             Settings settings,
             IDocumentStore documentStore,
+            IBodyStorage bodyStorage,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
-            BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
             AuditIngestionCustomCheck.State ingestionState,
             EndpointInstanceMonitoring endpointInstanceMonitoring
         )
@@ -66,6 +65,7 @@
                 new DetectSuccessfulRetriesEnricher(),
                 new SagaRelationshipsEnricher()
             };
+            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
             ingestor = new AuditIngestor(auditPersister, settings);
 
