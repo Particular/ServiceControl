@@ -3,16 +3,20 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
+    using Recoverability;
+    using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestionComponent
@@ -38,8 +42,8 @@
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
             BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
-            IEnrichImportedAuditMessages[] enrichers,
-            AuditIngestionCustomCheck.State ingestionState
+            AuditIngestionCustomCheck.State ingestionState,
+            EndpointInstanceMonitoring endpointInstanceMonitoring
         )
         {
             receivedMeter = metrics.GetCounter("Audit ingestion - received");
@@ -53,6 +57,15 @@
 
             this.settings = settings;
             var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
+            var enrichers = new IEnrichImportedAuditMessages[]
+            {
+                new MessageTypeEnricher(),
+                new EnrichWithTrackingIds(),
+                new ProcessingStatisticsEnricher(),
+                new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
+                new DetectSuccessfulRetriesEnricher(),
+                new SagaRelationshipsEnricher()
+            };
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
             ingestor = new AuditIngestor(auditPersister, settings);
 
