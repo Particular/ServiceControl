@@ -69,12 +69,11 @@
                 ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
                 ErrorQueue = "testerror",
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ReportCard = new ReportCard()
+                ReportCard = new ReportCard(),
+                // but this fails for unit tests as the deploymentCache path is not used
+                // constructer of ServiceControlInstanceMetadata extracts version from zip
+                Version = installer.ZipInfo.Version
             };
-
-            // constructer of ServiceControlInstanceMetadata extracts version from zip
-            // but this fails for unit tests as the deploymentCache path is not used
-            details.Version = installer.ZipInfo.Version;
 
             await details.Validate(s => Task.FromResult(false)).ConfigureAwait(false);
             if (details.ReportCard.HasErrors)
