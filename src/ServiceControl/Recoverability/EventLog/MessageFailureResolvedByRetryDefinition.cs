@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.Recoverability.EventLog
 {
     using Contracts.MessageFailures;
+    using ServiceControl.EventLog;
 
     class MessageFailureResolvedByRetryDefinition : EventLogMappingDefinition<MessageFailureResolvedByRetry>
     {

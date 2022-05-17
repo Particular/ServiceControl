@@ -2,13 +2,27 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Infrastructure.DomainEvents;
 
     class EventLogMappings
     {
-        public EventLogMappings(Dictionary<Type, Type> mappings)
+        public EventLogMappings(IEnumerable<IEventLogMappingDefinition> mappers)
         {
-            this.mappings = mappings;
+            foreach (var mapper in mappers)
+            {
+                var type = mapper.GetType();
+                if (type.BaseType == null)
+                {
+                    return;
+                }
+
+                var args = type.BaseType.GetGenericArguments();
+                if (args.Length == 1)
+                {
+                    mappings.Add(args.Single(), mapper);
+                }
+            }
         }
 
         public bool HasMapping(IDomainEvent message)
@@ -18,11 +32,10 @@
 
         public EventLogItem ApplyMapping(IDomainEvent @event)
         {
-            var mapping = (IEventLogMappingDefinition)Activator.CreateInstance(mappings[@event.GetType()]);
-
+            var mapping = mappings[@event.GetType()];
             return mapping.Apply(@event);
         }
 
-        Dictionary<Type, Type> mappings;
+        Dictionary<Type, IEventLogMappingDefinition> mappings = new Dictionary<Type, IEventLogMappingDefinition>();
     }
 }

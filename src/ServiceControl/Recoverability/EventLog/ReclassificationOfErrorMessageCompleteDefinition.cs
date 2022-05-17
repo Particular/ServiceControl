@@ -1,6 +1,7 @@
-namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.Recoverability.EventLog
 {
     using MessageFailures.InternalMessages;
+    using ServiceControl.EventLog;
 
     class ReclassificationOfErrorMessageCompleteDefinition : EventLogMappingDefinition<ReclassificationOfErrorMessageComplete>
     {

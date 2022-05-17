@@ -2,6 +2,7 @@
 {
     using Connection;
     using EndpointControl.Handlers;
+    using EventLog;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
     using Infrastructure.RavenDB;
@@ -23,6 +24,12 @@
                 collection.AddSingleton<MonitoringDataStore>();
                 collection.AddSingleton<IEnrichImportedErrorMessages, DetectNewEndpointsFromErrorImportsEnricher>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
+
+                collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
+                collection.AddEventLogMapping<HeartbeatingEndpointDetectedDefinition>();
+                collection.AddEventLogMapping<EndpointHeartbeatRestoredDefinition>();
+                collection.AddEventLogMapping<EndpointStartedDefinition>();
+                collection.AddEventLogMapping<KnownEndpointUpdatedDefinition>();
 
                 collection.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
                 collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Connection;
     using CustomChecks;
+    using EventLog;
     using ExternalIntegration;
     using ExternalIntegrations;
     using Infrastructure.BackgroundTasks;
@@ -108,6 +109,23 @@
                 collection.AddIntegrationEventPublisher<MessageFailedPublisher>();
                 collection.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
                 collection.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
+
+                //Event log
+                collection.AddEventLogMapping<FailedMessageArchivedDefinition>();
+                collection.AddEventLogMapping<FailedMessageGroupArchivedDefinition>();
+                collection.AddEventLogMapping<FailedMessageGroupUnarchivedDefinition>();
+                collection.AddEventLogMapping<FailedMessageUnArchivedDefinition>();
+                collection.AddEventLogMapping<MessageFailedDefinition>();
+                collection.AddEventLogMapping<MessageFailedInStagingDefinition>();
+                collection.AddEventLogMapping<MessageFailureResolvedByRetryDefinition>();
+                collection.AddEventLogMapping<MessageFailureResolvedManuallyDefinition>();
+                collection.AddEventLogMapping<MessageRedirectChangedDefinition>();
+                collection.AddEventLogMapping<MessageRedirectCreatedDefinition>();
+                collection.AddEventLogMapping<MessageRedirectRemovedDefinition>();
+                collection.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
+                collection.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
+                collection.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
+                collection.AddEventLogMapping<ReclassificationOfErrorMessageCompleteDefinition>();
             });
         }
 

@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.Monitoring.EventLog
 {
     using Contracts.EndpointControl;
+    using ServiceControl.EventLog;
 
     class EndpointStartedDefinition : EventLogMappingDefinition<EndpointStarted>
     {
