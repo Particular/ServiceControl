@@ -23,8 +23,10 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher, IEnrichImportedAuditMessages[] enrichers,
-            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter, Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter)
+        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher,
+            IEnrichImportedAuditMessages[] enrichers,
+            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
+            Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
@@ -35,10 +37,6 @@
             this.auditBulkInsertDurationMeter = auditBulkInsertDurationMeter;
             this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
             this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
-        }
-
-        public void Initialize(IMessageSession messageSession)
-        {
             this.messageSession = messageSession;
         }
 
@@ -325,12 +323,12 @@
         readonly Meter auditBulkInsertDurationMeter;
         readonly Meter sagaAuditBulkInsertDurationMeter;
         readonly Meter bulkInsertCommitDurationMeter;
+        readonly IMessageSession messageSession;
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IDocumentStore store;
         readonly BodyStorageEnricher bodyStorageEnricher;
-        IMessageSession messageSession;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }

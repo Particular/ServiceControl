@@ -44,7 +44,8 @@
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
-            IEnumerable<IEnrichImportedAuditMessages> auditEnrichers // allows extending message enrichers with custom enrichers registered in the DI container
+            IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
+            IMessageSession messageSession
         )
         {
             receivedMeter = metrics.GetCounter("Audit ingestion - received");
@@ -68,7 +69,7 @@
                 new SagaRelationshipsEnricher()
             }.Concat(auditEnrichers).ToArray();
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
+            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
             ingestor = new AuditIngestor(auditPersister, settings);
 
             var ingestion = new AuditIngestion(
@@ -120,11 +121,7 @@
             return watchdog.OnFailure(failure);
         }
 
-        public Task Start(IMessageSession session)
-        {
-            auditPersister.Initialize(session);
-            return watchdog.Start();
-        }
+        public Task Start() => watchdog.Start();
 
         public async Task Stop()
         {
@@ -175,10 +172,6 @@
             // will fall out here when writer is completed
         }
 
-        public Task ImportFailedAudits(IMessageSession session, CancellationToken cancellationToken = default)
-        {
-            auditPersister.Initialize(session);
-            return failedImporter.Run(cancellationToken);
-        }
+        public Task ImportFailedAudits(CancellationToken cancellationToken = default) => failedImporter.Run(cancellationToken);
     }
 }
