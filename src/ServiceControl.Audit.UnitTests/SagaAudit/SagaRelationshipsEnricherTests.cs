@@ -14,7 +14,7 @@
         [Test]
         public void New_overrides_Updated_state()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -37,7 +37,7 @@
         [Test]
         public void Updated_does_not_override_new()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -60,7 +60,7 @@
         [Test]
         public void Updated_does_not_override_completed()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -83,7 +83,7 @@
         [Test]
         public void Completed_overrides_new()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -106,7 +106,7 @@
         [Test]
         public void New_does_not_override_completed()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {
@@ -129,7 +129,7 @@
         [Test]
         public void It_can_parse_malformed_headers_of_three_sagas()
         {
-            var enricher = new SagaAuditing.SagaRelationshipsEnricher();
+            var enricher = new SagaRelationshipsEnricher();
 
             var headers = new Dictionary<string, string>
             {

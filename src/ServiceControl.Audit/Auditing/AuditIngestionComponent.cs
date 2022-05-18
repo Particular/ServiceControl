@@ -3,16 +3,20 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using BodyStorage;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
+    using Recoverability;
+    using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestionComponent
@@ -35,11 +39,12 @@
             Metrics metrics,
             Settings settings,
             IDocumentStore documentStore,
+            IBodyStorage bodyStorage,
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
-            BodyStorageFeature.BodyStorageEnricher bodyStorageEnricher,
-            IEnrichImportedAuditMessages[] enrichers,
-            AuditIngestionCustomCheck.State ingestionState
+            AuditIngestionCustomCheck.State ingestionState,
+            EndpointInstanceMonitoring endpointInstanceMonitoring,
+            IEnumerable<IEnrichImportedAuditMessages> auditEnrichers // allows extending message enrichers with custom enrichers registered in the DI container
         )
         {
             receivedMeter = metrics.GetCounter("Audit ingestion - received");
@@ -53,6 +58,16 @@
 
             this.settings = settings;
             var errorHandlingPolicy = new AuditIngestionFaultPolicy(documentStore, loggingSettings, FailedMessageFactory, OnCriticalError);
+            var enrichers = new IEnrichImportedAuditMessages[]
+            {
+                new MessageTypeEnricher(),
+                new EnrichWithTrackingIds(),
+                new ProcessingStatisticsEnricher(),
+                new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
+                new DetectSuccessfulRetriesEnricher(),
+                new SagaRelationshipsEnricher()
+            }.Concat(auditEnrichers).ToArray();
+            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
             ingestor = new AuditIngestor(auditPersister, settings);
 

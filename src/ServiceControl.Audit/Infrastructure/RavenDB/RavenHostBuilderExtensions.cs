@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
 {
     using System;
+    using Auditing.BodyStorage;
+    using Auditing.BodyStorage.RavenAttachments;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Raven.Client;
@@ -17,6 +19,8 @@
 
                 serviceCollection.AddSingleton<IDocumentStore>(embeddedDocumentStore);
                 serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
+
+                serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
             });
 
             return hostBuilder;
