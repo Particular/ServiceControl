@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -42,7 +43,8 @@
             RawEndpointFactory rawEndpointFactory,
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
-            EndpointInstanceMonitoring endpointInstanceMonitoring
+            EndpointInstanceMonitoring endpointInstanceMonitoring,
+            IEnumerable<IEnrichImportedAuditMessages> auditEnrichers // allows extending message enrichers with custom enrichers registered in the DI container
         )
         {
             receivedMeter = metrics.GetCounter("Audit ingestion - received");
@@ -64,7 +66,7 @@
                 new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
                 new DetectSuccessfulRetriesEnricher(),
                 new SagaRelationshipsEnricher()
-            };
+            }.Concat(auditEnrichers).ToArray();
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter);
             ingestor = new AuditIngestor(auditPersister, settings);
