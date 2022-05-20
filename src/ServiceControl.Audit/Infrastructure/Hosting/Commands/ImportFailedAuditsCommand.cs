@@ -31,13 +31,12 @@
                 await host.StartAsync(tokenSource.Token).ConfigureAwait(false);
 
                 var importer = host.Services.GetRequiredService<AuditIngestionComponent>();
-                var session = host.Services.GetRequiredService<IMessageSession>();
 
                 Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
                 try
                 {
-                    await importer.ImportFailedAudits(session, tokenSource.Token).ConfigureAwait(false);
+                    await importer.ImportFailedAudits(tokenSource.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

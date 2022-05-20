@@ -97,6 +97,14 @@ namespace ServiceControl.Audit.Infrastructure
 
                     return configuration;
                 })
+                .ConfigureServices(services =>
+                {
+                    // Configure after the NServiceBus hosted service
+                    if (settings.IngestAuditMessages)
+                    {
+                        services.AddHostedService<AuditImporter>();
+                    }
+                })
                 .UseWebApi(settings.RootUrl, settings.ExposeApi);
         }
 
