@@ -2,13 +2,9 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Auditing.BodyStorage;
-    using Auditing.BodyStorage.RavenAttachments;
-    using Autofac;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using Raven.Client;
     using Raven.Client.Embedded;
     using RavenDB;
     using LicenseManagement;
@@ -17,9 +13,8 @@ namespace ServiceControl.Audit.Infrastructure
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings)
         {
-            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
@@ -61,51 +56,11 @@ namespace ServiceControl.Audit.Infrastructure
                 //No need to start the raw endpoint to create queues
                 await RawEndpoint.Create(config).ConfigureAwait(false);
             }
-
-            var configuration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            if (excludeAssemblies != null)
-            {
-                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
-            }
-
-            configuration.EnableInstallers(username);
-
-            if (settings.SkipQueueCreation)
-            {
-                log.Info("Skipping queue creation");
-                configuration.DoNotCreateQueues();
-            }
-
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
             var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
-            containerBuilder.RegisterType<RavenAttachmentsBodyStorage>().As<IBodyStorage>().SingleInstance();
 
             using (documentStore)
             {
                 RavenBootstrapper.Configure(documentStore, settings);
-
-                var container = containerBuilder.Build();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                    ctx => { }, configuration, false);
-
-                await Endpoint.Create(configuration)
-                    .ConfigureAwait(false);
-
 
                 var ravenOptions = new RavenStartup();
                 foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
@@ -161,6 +116,5 @@ namespace ServiceControl.Audit.Infrastructure
         readonly Settings.Settings settings;
 
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
     }
 }
