@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -15,22 +16,22 @@
     using Raven.Client;
     using ServiceControl.Infrastructure.Metrics;
 
-    class AuditIngestion
+    class AuditIngestion : IHostedService
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public AuditIngestion(
             Settings settings,
             RawEndpointFactory rawEndpointFactory,
-            AuditIngestor auditIngestor,
             Metrics metrics,
             IDocumentStore failedImportsStorage,
             LoggingSettings loggingSettings,
-            AuditIngestionCustomCheck.State ingestionState)
+            AuditIngestionCustomCheck.State ingestionState,
+            AuditIngestionComponent auditIngestionComponent)
         {
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
-            this.auditIngestor = auditIngestor;
+            auditIngestor = auditIngestionComponent.Ingestor;
             this.settings = settings;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
@@ -53,9 +54,9 @@
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
-        public Task Start() => watchdog.Start();
+        public Task StartAsync(CancellationToken _) => watchdog.Start();
 
-        public async Task Stop()
+        public async Task StopAsync(CancellationToken _)
         {
             await watchdog.Stop().ConfigureAwait(false);
             channel.Writer.Complete();
@@ -78,7 +79,7 @@
 
         Task OnCriticalErrorAction(ICriticalErrorContext ctx) => OnCriticalError(ctx.Error, ctx.Exception);
 
-        public async Task EnsureStarted(CancellationToken cancellationToken = default)
+        async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -116,7 +117,7 @@
             }
         }
 
-        public async Task EnsureStopped(CancellationToken cancellationToken = default)
+        async Task EnsureStopped(CancellationToken cancellationToken = default)
         {
             try
             {

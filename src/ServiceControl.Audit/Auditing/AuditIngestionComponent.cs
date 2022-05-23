@@ -21,8 +21,8 @@
 
         ImportFailedAudits failedImporter;
         AuditPersister auditPersister;
-        AuditIngestor ingestor;
-        readonly AuditIngestion ingestion;
+
+        public AuditIngestor Ingestor { get; }
 
         public AuditIngestionComponent(
             Metrics metrics,
@@ -30,8 +30,6 @@
             IDocumentStore documentStore,
             IBodyStorage bodyStorage,
             RawEndpointFactory rawEndpointFactory,
-            LoggingSettings loggingSettings,
-            AuditIngestionCustomCheck.State ingestionState,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession
@@ -55,15 +53,10 @@
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
             auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
-            ingestor = new AuditIngestor(auditPersister, settings);
+            Ingestor = new AuditIngestor(auditPersister, settings);
 
-            ingestion = new AuditIngestion(settings, rawEndpointFactory, ingestor, metrics, documentStore, loggingSettings, ingestionState);
-            failedImporter = new ImportFailedAudits(documentStore, ingestor, rawEndpointFactory);
+            failedImporter = new ImportFailedAudits(documentStore, Ingestor, rawEndpointFactory);
         }
-
-        public Task Start() => ingestion.Start();
-
-        public Task Stop() => ingestion.Stop();
 
         public Task ImportFailedAudits(CancellationToken cancellationToken = default) => failedImporter.Run(cancellationToken);
     }
