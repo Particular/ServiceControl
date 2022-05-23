@@ -17,7 +17,7 @@
             this.settings = settings;
         }
 
-        public async Task Ingest(List<MessageContext> contexts)
+        public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
         {
             if (log.IsDebugEnabled)
             {
@@ -34,7 +34,7 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(stored, settings.AuditLogQueue)
+                    await Forward(stored, settings.AuditLogQueue, dispatcher)
                         .ConfigureAwait(false);
                     if (log.IsDebugEnabled)
                     {
@@ -59,16 +59,7 @@
             }
         }
 
-        public async Task Initialize(IDispatchMessages dispatcher)
-        {
-            this.dispatcher = dispatcher;
-            if (settings.ForwardAuditMessages)
-            {
-                await VerifyCanReachForwardingAddress().ConfigureAwait(false);
-            }
-        }
-
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IDispatchMessages dispatcher)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -103,8 +94,13 @@
                 : Task.CompletedTask;
         }
 
-        async Task VerifyCanReachForwardingAddress()
+        public async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
         {
+            if (!settings.ForwardAuditMessages)
+            {
+                return;
+            }
+
             try
             {
                 var transportOperations = new TransportOperations(
@@ -126,7 +122,6 @@
         }
 
         AuditPersister auditPersister;
-        IDispatchMessages dispatcher;
         Settings settings;
         static ILog log = LogManager.GetLogger<AuditIngestor>();
     }

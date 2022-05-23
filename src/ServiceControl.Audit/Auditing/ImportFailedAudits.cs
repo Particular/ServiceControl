@@ -25,7 +25,7 @@ namespace ServiceControl.Audit.Auditing
             var config = rawEndpointFactory.CreateFailedAuditsSender("ImportFailedAudits");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
-            await auditIngestor.Initialize(endpoint).ConfigureAwait(false);
+            await auditIngestor.VerifyCanReachForwardingAddress(endpoint).ConfigureAwait(false);
 
             try
             {
@@ -46,7 +46,7 @@ namespace ServiceControl.Audit.Auditing
                                 var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                                await auditIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+                                await auditIngestor.Ingest(new List<MessageContext> { messageContext }, endpoint).ConfigureAwait(false);
 
                                 await taskCompletionSource.Task.ConfigureAwait(false);
 
