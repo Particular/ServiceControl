@@ -8,6 +8,7 @@
     using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -23,10 +24,16 @@
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher,
+        public AuditPersister(IDocumentStore store,
+            BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedAuditMessages[] enrichers,
-            Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
-            Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession)
+            Counter ingestedAuditMeter,
+            Counter ingestedSagaAuditMeter,
+            Meter auditBulkInsertDurationMeter,
+            Meter sagaAuditBulkInsertDurationMeter,
+            Meter bulkInsertCommitDurationMeter,
+            IMessageSession messageSession,
+            IServiceProvider serviceProvider)
         {
             this.store = store;
             this.bodyStorageEnricher = bodyStorageEnricher;
@@ -38,9 +45,12 @@
             this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
             this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
             this.messageSession = messageSession;
+            // IDispatchMessages needs to be resolved at runtime, since this constructor might be called before the hosted services have been started.
+            // The NServiceBus dispatcher can only be resolved once the endpoint has been fully started.
+            messageDispatcher = new Lazy<IDispatchMessages>(() => serviceProvider.GetRequiredService<IDispatchMessages>());
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -63,7 +73,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessMessage(context, dispatcher));
+                    inserts.Add(ProcessMessage(context));
                 }
 
                 await Task.WhenAll(inserts).ConfigureAwait(false);
@@ -195,7 +205,7 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessMessage(MessageContext context)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -204,7 +214,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context, dispatcher).ConfigureAwait(false);
+                await ProcessAuditMessage(context).ConfigureAwait(false);
             }
         }
 
@@ -236,7 +246,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessAuditMessage(MessageContext context)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -285,7 +295,7 @@
                         .ConfigureAwait(false);
                 }
 
-                await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
+                await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction(), //Do not hook into the incoming transaction
                     new ContextBag()).ConfigureAwait(false);
 
@@ -324,6 +334,7 @@
         readonly Meter sagaAuditBulkInsertDurationMeter;
         readonly Meter bulkInsertCommitDurationMeter;
         readonly IMessageSession messageSession;
+        readonly Lazy<IDispatchMessages> messageDispatcher;
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -32,8 +33,8 @@
             RawEndpointFactory rawEndpointFactory,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
-            IMessageSession messageSession
-        )
+            IMessageSession messageSession,
+            IServiceProvider serviceProvider)
         {
             var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
             var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
@@ -52,7 +53,7 @@
             }.Concat(auditEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
+            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession, serviceProvider);
             Ingestor = new AuditIngestor(auditPersister, settings);
 
             failedImporter = new ImportFailedAudits(documentStore, Ingestor, rawEndpointFactory);
