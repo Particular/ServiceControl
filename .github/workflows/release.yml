@@ -64,19 +64,19 @@ jobs:
           --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
           --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Publish installer
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: installer
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: nugets
           path: nugets/*
           retention-days: 1
       - name: Publish zips
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: zips
           path: zip/*
@@ -111,7 +111,7 @@ jobs:
           octo pack --id="${{env.PARTICULAR_REPO_NAME}}.Deploy" --version="${{env.MinVerVersion}}" --format="nupkg" --basePath="packaging" --outFolder="octopus-package"
         shell: pwsh
       - name: Publish Octopus Package Artifacts
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: octopus-package
           path: octopus-package/*

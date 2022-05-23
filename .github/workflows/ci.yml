@@ -67,7 +67,7 @@ jobs:
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Upload packages
         if: matrix.upload == true
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: assets
           path: |
