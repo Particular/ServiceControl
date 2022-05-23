@@ -4,6 +4,7 @@
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.DomainEvents;
 
     class EventLogComponent : ServiceControlComponent
     {
@@ -12,7 +13,7 @@
             hostBuilder.ConfigureServices(services =>
             {
                 services.AddSingleton<EventLogMappings>();
-                services.AddSingleton<AuditEventLogWriter>();
+                services.AddDomainEventHandler<AuditEventLogWriter>();
             });
         }
 
