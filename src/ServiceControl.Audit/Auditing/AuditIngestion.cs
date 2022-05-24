@@ -27,11 +27,11 @@
             IDocumentStore failedImportsStorage,
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
-            AuditIngestionComponent auditIngestionComponent)
+            AuditIngestor auditIngestor)
         {
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
-            auditIngestor = auditIngestionComponent.Ingestor;
+            this.auditIngestor = auditIngestor;
             this.settings = settings;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");

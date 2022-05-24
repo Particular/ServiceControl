@@ -71,7 +71,8 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton<EndpointInstanceMonitoring>();
-                    services.AddSingleton<AuditIngestionComponent>();
+                    services.AddSingleton<AuditIngestor>();
+                    services.AddSingleton<ImportFailedAudits>();
                     services.AddSingleton<AuditIngestionCustomCheck.State>();
 
                     services.Configure<RavenStartup>(database =>

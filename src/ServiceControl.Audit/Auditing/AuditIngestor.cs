@@ -2,17 +2,60 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
+    using BodyStorage;
     using Infrastructure.Settings;
+    using Monitoring;
+    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Raven.Client;
+    using Recoverability;
+    using SagaAudit;
+    using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestor
     {
+        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
+
         public AuditIngestor(AuditPersister auditPersister, Settings settings)
         {
+            this.auditPersister = auditPersister;
+            this.settings = settings;
+        }
+
+        public AuditIngestor(
+            Metrics metrics,
+            Settings settings,
+            IDocumentStore documentStore,
+            IBodyStorage bodyStorage,
+            EndpointInstanceMonitoring endpointInstanceMonitoring,
+            IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
+            IMessageSession messageSession
+        )
+        {
+            var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
+            var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
+            var auditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - audit bulk insert duration", FrequencyInMilliseconds);
+            var sagaAuditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - saga audit bulk insert duration", FrequencyInMilliseconds);
+            var bulkInsertCommitDurationMeter = metrics.GetMeter("Audit ingestion - bulk insert commit duration", FrequencyInMilliseconds);
+
+            var enrichers = new IEnrichImportedAuditMessages[]
+            {
+                new MessageTypeEnricher(),
+                new EnrichWithTrackingIds(),
+                new ProcessingStatisticsEnricher(),
+                new DetectNewEndpointsFromAuditImportsEnricher(endpointInstanceMonitoring),
+                new DetectSuccessfulRetriesEnricher(),
+                new SagaRelationshipsEnricher()
+            }.Concat(auditEnrichers).ToArray();
+
+            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
+            var auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
             this.auditPersister = auditPersister;
             this.settings = settings;
         }
@@ -38,7 +81,7 @@
                         .ConfigureAwait(false);
                     if (log.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarded messages");
+                        log.Debug("Forwarded messages");
                     }
                 }
 
@@ -79,7 +122,7 @@
                     messageContext.Body);
 
                 // Forwarded messages should last as long as possible
-                outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
+                outgoingMessage.Headers.Remove(Headers.TimeToBeReceived);
 
                 transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(forwardingAddress));
                 index++;

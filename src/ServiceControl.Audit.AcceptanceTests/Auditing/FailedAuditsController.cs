@@ -11,10 +11,10 @@
 
     public class FailedAuditsController : ApiController
     {
-        internal FailedAuditsController(IDocumentStore store, AuditIngestionComponent auditIngestion)
+        internal FailedAuditsController(IDocumentStore store, ImportFailedAudits failedAuditIngestion)
         {
             this.store = store;
-            this.auditIngestion = auditIngestion;
+            this.failedAuditIngestion = failedAuditIngestion;
         }
 
         [Route("failedaudits/count")]
@@ -41,12 +41,12 @@
         public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            await auditIngestion.ImportFailedAudits(tokenSource.Token);
+            await failedAuditIngestion.Run(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
         readonly IDocumentStore store;
-        readonly AuditIngestionComponent auditIngestion;
+        readonly ImportFailedAudits failedAuditIngestion;
     }
 
     public class FailedAuditsCountReponse
