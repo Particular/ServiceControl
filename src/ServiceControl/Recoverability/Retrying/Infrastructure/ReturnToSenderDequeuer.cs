@@ -5,20 +5,22 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using MessageFailures;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
-    class ReturnToSenderDequeuer
+    class ReturnToSenderDequeuer : IHostedService
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string inputAddress, RawEndpointFactory rawEndpointFactory, string errorQueue)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
         {
-            InputAddress = inputAddress;
+            InputAddress = settings.StagingQueue;
             this.returnToSender = returnToSender;
-            this.errorQueue = errorQueue;
+            errorQueue = settings.ErrorQueue;
 
             createEndpointConfiguration = () =>
             {
@@ -35,6 +37,10 @@ namespace ServiceControl.Recoverability
         }
 
         public string InputAddress { get; }
+
+        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task StopAsync(CancellationToken cancellationToken) => Stop();
 
         bool IsCounting => targetMessageCount.HasValue;
 
@@ -92,12 +98,6 @@ namespace ServiceControl.Recoverability
                 // NOTE: This needs to run on a different thread or a deadlock will happen trying to shut down the receiver
                 _ = Task.Run(StopInternal);
             }
-        }
-
-        public Task CreateQueue()
-        {
-            var config = createEndpointConfiguration();
-            return RawEndpoint.Create(config);
         }
 
         public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
@@ -205,7 +205,7 @@ namespace ServiceControl.Recoverability
         readonly string errorQueue;
         string errorQueueTransportAddress;
 
-        static ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
+        static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy
         {
@@ -278,7 +278,8 @@ namespace ServiceControl.Recoverability
             readonly Action executeOnFailure;
             IDocumentStore store;
             IDomainEvents domainEvents;
-            static ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
+            static readonly ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
         }
+
     }
 }

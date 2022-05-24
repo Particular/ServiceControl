@@ -10,14 +10,16 @@
     using NServiceBus.Transport;
     using Raven.Client;
     using Recoverability;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ImportFailedErrors
     {
-        public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor, RawEndpointFactory rawEndpointFactory)
+        public ImportFailedErrors(IDocumentStore store, ErrorIngestor errorIngestor, RawEndpointFactory rawEndpointFactory, Settings settings)
         {
             this.store = store;
             this.errorIngestor = errorIngestor;
             this.rawEndpointFactory = rawEndpointFactory;
+            this.settings = settings;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
@@ -25,7 +27,10 @@
             var config = rawEndpointFactory.CreateFailedErrorsImporter("ImportFailedErrors");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
-            await errorIngestor.Initialize(endpoint).ConfigureAwait(false);
+            if (settings.ForwardErrorMessages)
+            {
+                await errorIngestor.VerifyCanReachForwardingAddress(endpoint).ConfigureAwait(false);
+            }
 
             try
             {
@@ -46,7 +51,7 @@
                                 var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                                await errorIngestor.Ingest(new List<MessageContext> { messageContext }).ConfigureAwait(false);
+                                await errorIngestor.Ingest(new List<MessageContext> { messageContext }, endpoint).ConfigureAwait(false);
 
                                 await taskCompletionSource.Task.ConfigureAwait(false);
 
@@ -88,6 +93,7 @@
         readonly IDocumentStore store;
         readonly ErrorIngestor errorIngestor;
         readonly RawEndpointFactory rawEndpointFactory;
+        readonly Settings settings;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
         static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();

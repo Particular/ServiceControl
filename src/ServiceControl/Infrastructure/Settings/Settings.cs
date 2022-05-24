@@ -100,6 +100,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string StorageUrl => $"{RootUrl}storage";
 
+        public string StagingQueue => $"{ServiceName}.staging";
+
         public int Port { get; set; }
         public int DatabaseMaintenancePort { get; set; }
 

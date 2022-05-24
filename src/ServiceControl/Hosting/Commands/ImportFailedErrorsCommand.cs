@@ -33,13 +33,13 @@
             var host = bootstrapper.HostBuilder.Build();
             await host.StartAsync(CancellationToken.None).ConfigureAwait(false);
 
-            var errorIngestion = host.Services.GetRequiredService<ErrorIngestionComponent>();
+            var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
 
             Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
             try
             {
-                await errorIngestion.ImportFailedErrors(tokenSource.Token).ConfigureAwait(false);
+                await importFailedErrors.Run(tokenSource.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

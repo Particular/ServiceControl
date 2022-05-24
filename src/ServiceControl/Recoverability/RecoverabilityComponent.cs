@@ -56,24 +56,15 @@
                 collection.AddDomainEventHandler<FailedMessageRetryCleaner>();
 
                 //Return to sender
-
-                var stagingQueue = $"{settings.ServiceName}.staging";
-                collection.AddSingleton(
-                    b => new ReturnToSenderDequeuer(b.GetRequiredService<ReturnToSender>(),
-                        b.GetRequiredService<IDocumentStore>(),
-                        b.GetRequiredService<IDomainEvents>(),
-                        stagingQueue,
-                        b.GetRequiredService<RawEndpointFactory>(),
-                        settings.ErrorQueue));
-                collection.AddHostedService<ReturnToSenderDequeuerHostedService>();
+                collection.AddSingleton<ReturnToSenderDequeuer>();
+                collection.AddHostedService<ReturnToSenderDequeuer>();
 
                 //Error importer
-
-                collection.AddSingleton<ErrorIngestionComponent>();
+                collection.AddSingleton<ErrorIngestor>();
                 collection.AddSingleton<ErrorIngestionCustomCheck.State>();
                 if (settings.IngestErrorMessages)
                 {
-                    collection.AddHostedService<ErrorIngestionHostedService>();
+                    collection.AddHostedService<ErrorIngestion>();
                 }
 
                 //Retries
@@ -131,8 +122,7 @@
 
         public override void Setup(Settings settings, IComponentSetupContext context)
         {
-            var stagingQueue = $"{settings.ServiceName}.staging";
-            context.CreateQueue(stagingQueue);
+            context.CreateQueue(settings.StagingQueue);
 
             if (settings.IngestErrorMessages)
             {
@@ -170,46 +160,6 @@
             FailedMessageViewIndexNotifications notifications;
             IDocumentStore store;
             IDisposable subscription;
-        }
-
-        class ErrorIngestionHostedService : IHostedService
-        {
-            readonly ErrorIngestionComponent errorIngestion;
-
-            public ErrorIngestionHostedService(ErrorIngestionComponent errorIngestion)
-            {
-                this.errorIngestion = errorIngestion;
-            }
-
-            public Task StartAsync(CancellationToken cancellationToken)
-            {
-                return errorIngestion.Start();
-            }
-
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                return errorIngestion.Stop();
-            }
-        }
-
-        class ReturnToSenderDequeuerHostedService : IHostedService
-        {
-            public ReturnToSenderDequeuerHostedService(ReturnToSenderDequeuer returnToSenderDequeuer)
-            {
-                this.returnToSenderDequeuer = returnToSenderDequeuer;
-            }
-
-            public Task StartAsync(CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
-
-            public Task StopAsync(CancellationToken cancellationToken)
-            {
-                return returnToSenderDequeuer.Stop();
-            }
-
-            ReturnToSenderDequeuer returnToSenderDequeuer;
         }
 
         class BulkRetryBatchCreationHostedService : IHostedService
