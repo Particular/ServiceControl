@@ -22,12 +22,6 @@
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
-        public AuditIngestor(AuditPersister auditPersister, Settings settings)
-        {
-            this.auditPersister = auditPersister;
-            this.settings = settings;
-        }
-
         public AuditIngestor(
             Metrics metrics,
             Settings settings,
