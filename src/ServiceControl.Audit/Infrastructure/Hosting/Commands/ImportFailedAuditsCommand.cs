@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Auditing;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NLog;
     using NServiceBus;
     using Settings;
@@ -26,6 +27,8 @@
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
                 var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
+
+                bootstrapper.HostBuilder.ConfigureServices(services => services.AddSingleton<ImportFailedAudits>());
                 var host = bootstrapper.HostBuilder.Build();
 
                 await host.StartAsync(tokenSource.Token).ConfigureAwait(false);
