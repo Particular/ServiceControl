@@ -20,15 +20,12 @@
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = busConfiguration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
                 var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
 
-                bootstrapper.HostBuilder.ConfigureServices(services => services.AddSingleton<ImportFailedAudits>());
                 var host = bootstrapper.HostBuilder.Build();
 
                 await host.StartAsync(tokenSource.Token).ConfigureAwait(false);

@@ -71,8 +71,9 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton<EndpointInstanceMonitoring>();
-                    services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
                     services.AddSingleton<AuditIngestor>();
+                    services.AddSingleton<ImportFailedAudits>();
+                    services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
 
                     services.Configure<RavenStartup>(database =>
                     {
@@ -99,7 +100,7 @@ namespace ServiceControl.Audit.Infrastructure
                 })
                 .ConfigureServices(services =>
                 {
-                    // Configure after the NServiceBus hosted service
+                    // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
                     if (settings.IngestAuditMessages)
                     {
                         services.AddHostedService<AuditIngestion>();
