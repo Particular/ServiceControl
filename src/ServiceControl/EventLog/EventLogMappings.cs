@@ -14,7 +14,7 @@
                 var type = mapper.GetType();
                 if (type.BaseType == null)
                 {
-                    return;
+                    continue;
                 }
 
                 var args = type.BaseType.GetGenericArguments();
