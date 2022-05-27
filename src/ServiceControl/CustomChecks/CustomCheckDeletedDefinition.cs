@@ -1,6 +1,6 @@
-namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.CustomChecks
 {
-    using CustomChecks;
+    using EventLog;
 
     class CustomCheckDeletedDefinition : EventLogMappingDefinition<CustomCheckDeleted>
     {

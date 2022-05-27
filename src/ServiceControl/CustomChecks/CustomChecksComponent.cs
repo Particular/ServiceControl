@@ -19,6 +19,11 @@
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
 
+                serviceCollection.AddEventLogMapping<CustomCheckDeletedDefinition>();
+                serviceCollection.AddEventLogMapping<CustomCheckFailedDefinition>();
+                serviceCollection.AddEventLogMapping<CustomCheckSucceededDefinition>();
+
+
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             });
         }

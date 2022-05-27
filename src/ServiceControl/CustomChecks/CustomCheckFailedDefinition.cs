@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.CustomChecks
 {
     using Contracts.CustomChecks;
+    using EventLog;
 
     class CustomCheckFailedDefinition : EventLogMappingDefinition<CustomCheckFailed>
     {

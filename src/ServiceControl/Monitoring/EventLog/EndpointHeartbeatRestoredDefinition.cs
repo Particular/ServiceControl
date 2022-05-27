@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.Monitoring.EventLog
 {
     using Contracts.HeartbeatMonitoring;
+    using ServiceControl.EventLog;
 
     class EndpointHeartbeatRestoredDefinition : EventLogMappingDefinition<EndpointHeartbeatRestored>
     {

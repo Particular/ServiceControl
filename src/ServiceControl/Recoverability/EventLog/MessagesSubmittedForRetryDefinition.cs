@@ -1,6 +1,7 @@
-namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.Recoverability.EventLog
 {
     using Recoverability;
+    using ServiceControl.EventLog;
 
     class MessagesSubmittedForRetryDefinition : EventLogMappingDefinition<MessagesSubmittedForRetry>
     {

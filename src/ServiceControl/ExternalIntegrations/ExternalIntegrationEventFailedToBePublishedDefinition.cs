@@ -1,6 +1,6 @@
-namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.ExternalIntegrations
 {
-    using ExternalIntegrations;
+    using EventLog;
 
     class ExternalIntegrationEventFailedToBePublishedDefinition : EventLogMappingDefinition<ExternalIntegrationEventFailedToBePublished>
     {

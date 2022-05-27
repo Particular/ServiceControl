@@ -1,6 +1,7 @@
-namespace ServiceControl.EventLog.Definitions
+namespace ServiceControl.Recoverability.EventLog
 {
     using Contracts.MessageRedirects;
+    using ServiceControl.EventLog;
 
     class MessageRedirectCreatedDefinition : EventLogMappingDefinition<MessageRedirectCreated>
     {

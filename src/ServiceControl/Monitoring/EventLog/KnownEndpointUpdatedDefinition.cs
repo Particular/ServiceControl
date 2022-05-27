@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.EventLog.Definitions
+﻿namespace ServiceControl.Monitoring.EventLog
 {
     using EndpointControl.Contracts;
+    using ServiceControl.EventLog;
 
     class KnownEndpointUpdatedDefinition : EventLogMappingDefinition<MonitoringEnabledForEndpoint>
     {
