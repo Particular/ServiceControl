@@ -1,5 +1,15 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
+    using Infrastructure;
+    using Infrastructure.Installers;
+    using Infrastructure.Settings;
+    using NServiceBus;
+    using NServiceBus.AcceptanceTesting.Support;
+    using NServiceBus.Raw;
+    using NServiceBus.Settings;
+    using NServiceBus.Transport;
+    using NUnit.Framework;
+    using ServiceControl.Audit.AcceptanceTests.TestSupport;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -7,14 +17,6 @@
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using NServiceBus;
-    using NServiceBus.Raw;
-    using NServiceBus.Settings;
-    using NServiceBus.Transport;
-    using NUnit.Framework;
-    using Infrastructure.Installers;
-    using Infrastructure.Settings;
     using Transports;
 
     /// <summary>
@@ -30,16 +32,34 @@
         [SetUp]
         public void Setup()
         {
+            EnsureEventSourceDoesNotExists();
+
             _workingDirectory = CreateRandomTempDirectory();
             _dbPath = Path.Combine(_workingDirectory, Path.GetRandomFileName());
+            TransportInitializationHasBeenInvoked = false;
+        }
+
+        private static void EnsureEventSourceDoesNotExists()
+        {
+            try
+            {
+                if (EventLog.SourceExists(CreateEventSource.SourceName))
+                {
+                    EventLog.DeleteEventSource(CreateEventSource.SourceName);
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+
+            Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName) == false, 
+                $"Running this test requires elevated privileges. The test setup couldn't confirm windows event log source {CreateEventSource.SourceName} doesn't exists before starting the test execution");
         }
 
         static string CreateRandomTempDirectory() => Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-        public const string TransportInitializedSpyFileName = "initialized.txt";
-
         [Test]
-        [Ignore("Temporarily disabling it to check if it is affecting the CI")]
         public async Task VerifySetupCommandBehavior()
         {
             #region Arrange
@@ -52,11 +72,18 @@
                 TransportCustomizationType = typeof(FakeTransportSpyTransportCustomization).AssemblyQualifiedName,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME
             };
+
+            var excludedAssemblies = new[]
+            {
+                //Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
+                typeof(IComponentBehavior).Assembly.GetName().Name
+            };
             #endregion Arrange
 
             //Act
-            var setupBootstrapper = new SetupBootstrapper(settings);
-            await setupBootstrapper.Run(null);
+            var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies.ToArray());
+            await setupBootstrapper.Run(WindowsIdentity.GetCurrent().Name);
 
             //Assert
             QueuesGotCreated();
@@ -64,7 +91,7 @@
             DatabaseGotCreated();
         }
 
-        void QueuesGotCreated() => Assert.IsTrue(File.Exists(Path.Combine(_workingDirectory, TransportInitializedSpyFileName)), "Unable to verify that the queue creation logic was invoked");
+        void QueuesGotCreated() => Assert.IsTrue(TransportInitializationHasBeenInvoked, "Unable to verify that the queue creation logic was invoked");
 
         void EventLogSourceGotCreated() => Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName), $"Windows EventViewer event source '{CreateEventSource.SourceName}' was not found");
 
@@ -87,16 +114,16 @@
              */
         }
 
+        public static bool TransportInitializationHasBeenInvoked = false;
+
         #region FakeTransport
-        public class FakeTransportSpy : LearningTransport
+        public class LearningTransportSpy : LearningTransport
         {
             public override TransportInfrastructure Initialize(SettingsHolder settings, string connectionString)
             {
-                WriteFileAsFlagToBeVerifiedInTestAssertions(connectionString);
+                TransportInitializationHasBeenInvoked = true;
                 return base.Initialize(settings, connectionString);
             }
-
-            static void WriteFileAsFlagToBeVerifiedInTestAssertions(string connectionString) => File.WriteAllText(Path.Combine(connectionString, TransportInitializedSpyFileName), string.Empty);
         }
 
         public class FakeTransportSpyTransportCustomization : TransportCustomization
@@ -121,14 +148,14 @@
 
             static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
             {
-                var transport = endpointConfig.UseTransport<FakeTransportSpy>();
+                var transport = endpointConfig.UseTransport<LearningTransportSpy>();
                 transport.ConnectionString(transportSettings.ConnectionString);
             }
 
             static void CustomizeEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
             {
 
-                var transport = endpointConfig.UseTransport<FakeTransportSpy>();
+                var transport = endpointConfig.UseTransport<LearningTransportSpy>();
                 transport.ConnectionString(transportSettings.ConnectionString);
             }
         }
