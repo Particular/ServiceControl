@@ -38,6 +38,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         [Newtonsoft.Json.JsonIgnore]
         public System.Uri ApiAsUri { get; }
         public string ApiUri { get; set; }
+        [Newtonsoft.Json.JsonIgnore]
+        public bool TemporarilyUnavailable { get; set; }
     }
     public class Settings
     {
