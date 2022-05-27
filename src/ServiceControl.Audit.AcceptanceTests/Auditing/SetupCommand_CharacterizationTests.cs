@@ -29,6 +29,7 @@
         string _workingDirectory;
         string _dbPath;
 
+        #region setup to run before each test
         [SetUp]
         public void Setup()
         {
@@ -39,7 +40,7 @@
             TransportInitializationHasBeenInvoked = false;
         }
 
-        private static void EnsureEventSourceDoesNotExists()
+        static void EnsureEventSourceDoesNotExists()
         {
             try
             {
@@ -53,11 +54,13 @@
                 // ignored
             }
 
-            Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName) == false, 
+            Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName) == false,
                 $"Running this test requires elevated privileges. The test setup couldn't confirm windows event log source {CreateEventSource.SourceName} doesn't exists before starting the test execution");
         }
 
         static string CreateRandomTempDirectory() => Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        #endregion setup to run before each test
 
         [Test]
         public async Task VerifySetupCommandBehavior()
