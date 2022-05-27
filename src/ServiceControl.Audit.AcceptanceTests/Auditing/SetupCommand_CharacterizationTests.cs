@@ -63,9 +63,9 @@
             DatabaseGotCreated();
         }
 
-        void QueuesGotCreated() => Assert.IsTrue(File.Exists(Path.Combine(_workingDirectory, TransportInitializedSpyFileName)));
+        void QueuesGotCreated() => Assert.IsTrue(File.Exists(Path.Combine(_workingDirectory, TransportInitializedSpyFileName)), "Unable to verify that the queue creation logic was invoked");
 
-        void EventLogSourceGotCreated() => Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName));
+        void EventLogSourceGotCreated() => Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName), $"Windows EventViewer event source '{CreateEventSource.SourceName}' was not found");
 
         void DatabaseGotCreated()
         {
@@ -91,9 +91,11 @@
         {
             public override TransportInfrastructure Initialize(SettingsHolder settings, string connectionString)
             {
-                File.WriteAllText(Path.Combine(connectionString, TransportInitializedSpyFileName), string.Empty);
+                WriteFileAsFlagToBeVerifiedInTestAssertions(connectionString);
                 return base.Initialize(settings, connectionString);
             }
+
+            static void WriteFileAsFlagToBeVerifiedInTestAssertions(string connectionString) => File.WriteAllText(Path.Combine(connectionString, TransportInitializedSpyFileName), string.Empty);
         }
 
         public class FakeTransportSpyTransportCustomization : TransportCustomization
