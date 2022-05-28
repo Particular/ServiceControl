@@ -9,7 +9,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Audit.AcceptanceTests.TestSupport;
+    using TestSupport;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -19,12 +19,8 @@
     using System.Threading.Tasks;
     using Transports;
 
-    /// <summary>
-    /// <see href="https://michaelfeathers.silvrback.com/characterization-testing">Characterization</see> tests for setup command.
-    /// Once there is more coverage from the acceptance testing angle this test can be removed, in the meantime this test mission is to help while attempting refactorings to the setup command. 
-    /// </summary>
     [TestFixture]
-    public class SetupCommandCharacterizationTests
+    public class When_running_setup_command__integration_test
     {
         string _workingDirectory;
         string _dbPath;
@@ -78,7 +74,7 @@
 
             var excludedAssemblies = new[]
             {
-                //Path.GetFileName(typeof(Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
                 typeof(IComponentBehavior).Assembly.GetName().Name
             };

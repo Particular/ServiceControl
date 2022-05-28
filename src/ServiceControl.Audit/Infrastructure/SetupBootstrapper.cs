@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Auditing.BodyStorage;
     using Auditing.BodyStorage.RavenAttachments;
     using Autofac;
+    using Installers;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -89,6 +90,8 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.RegisterInstance(settings).SingleInstance();
             containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
             containerBuilder.RegisterType<RavenAttachmentsBodyStorage>().As<IBodyStorage>().SingleInstance();
+
+            await new CreateEventSource().Install(null).ConfigureAwait(false);
 
             using (documentStore)
             {
