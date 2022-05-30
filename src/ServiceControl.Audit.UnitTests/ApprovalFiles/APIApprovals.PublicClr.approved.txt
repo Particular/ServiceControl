@@ -36,38 +36,6 @@ namespace ServiceControl.Audit.Auditing
 }
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    public class GetMessagesController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("messages/{*catchAll}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> CatchAll(string catchAll) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("messages/{id}/body")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string id) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAllMessages() { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints/{endpoint}/messages")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetEndpointMessages(string endpoint) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("messages/search")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string q) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints/{endpoint}/messages/search")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Search(string endpoint, string q) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("messages/search/{keyword}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyWord(string keyword) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints/{endpoint}/messages/search/{keyword}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) { }
-    }
-    public class MessagesConversationController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.Route("conversations/{conversationid}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Get(string conversationid) { }
-    }
     public class MessagesView
     {
         public MessagesView() { }
@@ -124,16 +92,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             public System.DateTime ProcessedAt { get; set; }
             public string UniqueMessageId { get; set; }
         }
-    }
-}
-namespace ServiceControl.Audit.Connection
-{
-    public class ConnectionController : System.Web.Http.ApiController
-    {
-        public ConnectionController(ServiceControl.Audit.Infrastructure.Settings.Settings settings) { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("connection")]
-        public System.Web.Http.IHttpActionResult GetConnectionDetails() { }
     }
 }
 namespace ServiceControl.Audit.Infrastructure.Installers
@@ -210,30 +168,6 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
-namespace ServiceControl.Audit.Infrastructure.WebApi
-{
-    public class RootController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("configuration")]
-        [System.Web.Http.Route("instance-info")]
-        public System.Web.Http.Results.OkNegotiatedContentResult<object> Config() { }
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("")]
-        public System.Web.Http.Results.OkNegotiatedContentResult<ServiceControl.Audit.Infrastructure.WebApi.RootController.RootUrls> Urls() { }
-        public class RootUrls
-        {
-            public RootUrls() { }
-            public string Configuration { get; set; }
-            public string Description { get; set; }
-            public string EndpointsMessageSearchUrl { get; set; }
-            public string EndpointsMessagesUrl { get; set; }
-            public string KnownEndpointsUrl { get; set; }
-            public string MessageSearchUrl { get; set; }
-            public string Name { get; set; }
-        }
-    }
-}
 namespace ServiceControl.Audit.Monitoring
 {
     public class EndpointDetails
@@ -252,12 +186,6 @@ namespace ServiceControl.Audit.Monitoring
         public string Id { get; set; }
         public System.DateTime LastSeen { get; set; }
         public string Name { get; set; }
-    }
-    public class KnownEndpointsController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("endpoints/known")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAll() { }
     }
     public class KnownEndpointsView
     {
@@ -279,15 +207,6 @@ namespace ServiceControl.Audit.Recoverability
         public QueueAddress() { }
         public int FailedMessageCount { get; set; }
         public string PhysicalAddress { get; set; }
-    }
-}
-namespace ServiceControl.Audit.SagaAudit
-{
-    public class SagasController : System.Web.Http.ApiController
-    {
-        [System.Web.Http.HttpGet]
-        [System.Web.Http.Route("sagas/{id}")]
-        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Sagas(System.Guid id) { }
     }
 }
 namespace ServiceControl.Contracts.EndpointControl
