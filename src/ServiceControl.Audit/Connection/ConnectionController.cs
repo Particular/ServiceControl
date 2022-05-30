@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Connection
     using Infrastructure.Settings;
     using Newtonsoft.Json;
 
-    public class ConnectionController : ApiController
+    class ConnectionController : ApiController
     {
         readonly Settings settings;
         readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();

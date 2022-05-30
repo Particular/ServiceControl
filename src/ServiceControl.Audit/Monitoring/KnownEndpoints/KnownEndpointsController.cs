@@ -4,9 +4,9 @@ namespace ServiceControl.Audit.Monitoring
     using System.Threading.Tasks;
     using System.Web.Http;
 
-    public class KnownEndpointsController : ApiController
+    class KnownEndpointsController : ApiController
     {
-        internal KnownEndpointsController(GetKnownEndpointsApi knownEndpointsApi) => getKnownEndpointsApi = knownEndpointsApi;
+        public KnownEndpointsController(GetKnownEndpointsApi knownEndpointsApi) => getKnownEndpointsApi = knownEndpointsApi;
 
         [Route("endpoints/known")]
         [HttpGet]

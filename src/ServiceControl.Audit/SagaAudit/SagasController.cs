@@ -5,9 +5,9 @@ namespace ServiceControl.Audit.SagaAudit
     using System.Threading.Tasks;
     using System.Web.Http;
 
-    public class SagasController : ApiController
+    class SagasController : ApiController
     {
-        internal SagasController(GetSagaByIdApi getSagaByIdApi)
+        public SagasController(GetSagaByIdApi getSagaByIdApi)
         {
             this.getSagaByIdApi = getSagaByIdApi;
         }
