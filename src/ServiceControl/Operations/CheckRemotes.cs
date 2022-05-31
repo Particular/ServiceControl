@@ -69,14 +69,17 @@
             {
                 var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
+                remoteSettings.TemporarilyUnavailable = false;
             }
             catch (HttpRequestException e)
             {
-                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' doesn't seem to be available. Reason: {e.Message}", e);
+                remoteSettings.TemporarilyUnavailable = true;
+                throw new TimeoutException($"The remote instance at '{remoteSettings.ApiUri}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
             catch (OperationCanceledException e)
             {
-                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan of '{queryTimeout}'.", e);
+                remoteSettings.TemporarilyUnavailable = true;
+                throw new TimeoutException($"The remote at '{remoteSettings.ApiUri}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
             }
         }
 
