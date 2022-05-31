@@ -6,18 +6,18 @@
 
     class AuditIngestionCustomCheck : CustomCheck
     {
+        public AuditIngestionCustomCheck(State criticalErrorHolder)
+            : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+        {
+            this.criticalErrorHolder = criticalErrorHolder;
+        }
+
         public override Task<CheckResult> PerformCheck()
         {
             var failure = criticalErrorHolder.GetLastFailure();
             return failure == null
                 ? successResult
                 : Task.FromResult(CheckResult.Failed(failure));
-        }
-
-        public AuditIngestionCustomCheck(State criticalErrorHolder)
-            : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
-        {
-            this.criticalErrorHolder = criticalErrorHolder;
         }
 
         readonly State criticalErrorHolder;

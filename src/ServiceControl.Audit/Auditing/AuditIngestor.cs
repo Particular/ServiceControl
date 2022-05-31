@@ -22,12 +22,6 @@
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
-        public AuditIngestor(AuditPersister auditPersister, Settings settings)
-        {
-            this.auditPersister = auditPersister;
-            this.settings = settings;
-        }
-
         public AuditIngestor(
             Metrics metrics,
             Settings settings,
@@ -38,6 +32,8 @@
             IMessageSession messageSession
         )
         {
+            this.settings = settings;
+
             var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
             var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
             var auditBulkInsertDurationMeter = metrics.GetMeter("Audit ingestion - audit bulk insert duration", FrequencyInMilliseconds);
@@ -55,9 +51,7 @@
             }.Concat(auditEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            var auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
-            this.auditPersister = auditPersister;
-            this.settings = settings;
+            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
         }
 
         public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
@@ -164,8 +158,9 @@
             }
         }
 
-        AuditPersister auditPersister;
-        Settings settings;
-        static ILog log = LogManager.GetLogger<AuditIngestor>();
+        readonly AuditPersister auditPersister;
+        readonly Settings settings;
+
+        static readonly ILog log = LogManager.GetLogger<AuditIngestor>();
     }
 }
