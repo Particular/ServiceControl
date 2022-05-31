@@ -74,12 +74,12 @@
             catch (HttpRequestException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' doesn't seem to be available. Remote instance will be temporarily disabled. Reason: {e.Message}", e);
+                throw new TimeoutException($"The remote instance at '{remoteSettings.ApiUri}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
             catch (OperationCanceledException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"Remote at '{remoteSettings.ApiUri}' did not respond within the allotted timespan of '{queryTimeout}'. Remote instance will be temporarily disabled.", e);
+                throw new TimeoutException($"The remote at '{remoteSettings.ApiUri}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
             }
         }
 

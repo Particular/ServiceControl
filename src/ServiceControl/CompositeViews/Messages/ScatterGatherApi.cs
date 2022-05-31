@@ -123,7 +123,7 @@ namespace ServiceControl.CompositeViews.Messages
             catch (HttpRequestException httpRequestException)
             {
                 DisableRemoteInstance(remoteUri);
-                logger.Warn($"Failed with HttpRequestException to query remote instance at {remoteUri}. The instance at uri: {remoteUri} will be temporarily disabled.", httpRequestException);
+                logger.Warn($"An HttpRequestException occurred when quering remote instance at {remoteUri}. The instance at uri: {remoteUri} will be temporarily disabled.", httpRequestException);
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
