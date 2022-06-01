@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Linq;
     using System.Reflection;
     using System.Web.Http.Controllers;
     using Auditing.MessagesView;
     using Autofac;
-    using Autofac.Core.Activators.Reflection;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using OWIN;
