@@ -4,7 +4,7 @@
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
 
-    static class DomainEventsServiceCollectionExtensions
+    public static class DomainEventsServiceCollectionExtensions
     {
         /// <summary>
         /// Registers provided type as event handler for all its implemented IDomainHandler interfaces as a transient component

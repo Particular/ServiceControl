@@ -122,6 +122,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure.ExternalIntegration", "ServiceControl.Infrastructure.ExternalIntegration\ServiceControl.Infrastructure.ExternalIntegration.csproj", "{A2045E47-7047-44BF-90EC-119CBF9D3F11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure", "ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj", "{8D011464-C054-44FF-BA91-E921E0F04D8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -292,6 +294,10 @@ Global
 		{A2045E47-7047-44BF-90EC-119CBF9D3F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2045E47-7047-44BF-90EC-119CBF9D3F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2045E47-7047-44BF-90EC-119CBF9D3F11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -346,6 +352,7 @@ Global
 		{927A078A-E271-4878-A153-86D71AE510E2} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{166EE709-A76B-45A0-A047-0D5E868829A5} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{A2045E47-7047-44BF-90EC-119CBF9D3F11} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
+		{8D011464-C054-44FF-BA91-E921E0F04D8A} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
