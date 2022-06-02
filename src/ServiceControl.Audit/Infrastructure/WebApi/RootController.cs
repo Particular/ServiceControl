@@ -4,9 +4,9 @@
     using System.Web.Http.Results;
     using Settings;
 
-    public class RootController : ApiController
+    class RootController : ApiController
     {
-        internal RootController(LoggingSettings loggingSettings, Settings settings)
+        public RootController(LoggingSettings loggingSettings, Settings settings)
         {
             this.settings = settings;
             this.loggingSettings = loggingSettings;

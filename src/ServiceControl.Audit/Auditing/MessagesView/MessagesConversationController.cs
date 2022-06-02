@@ -4,9 +4,9 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Threading.Tasks;
     using System.Web.Http;
 
-    public class MessagesConversationController : ApiController
+    class MessagesConversationController : ApiController
     {
-        internal MessagesConversationController(MessagesByConversationApi api)
+        public MessagesConversationController(MessagesByConversationApi api)
         {
             this.api = api;
         }

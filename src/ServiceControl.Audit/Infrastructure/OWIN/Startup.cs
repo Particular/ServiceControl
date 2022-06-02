@@ -2,9 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http.Headers;
     using System.Reflection;
     using System.Web.Http;
+    using System.Web.Http.Controllers;
     using System.Web.Http.Dependencies;
     using System.Web.Http.Dispatcher;
     using Autofac;
@@ -33,8 +35,8 @@
 
                 config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(new AutofacWebApiDependencyResolver(container));
                 config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.Services.Replace(typeof(IHttpControllerTypeResolver), new InternalControllerTypeResolver());
                 config.MapHttpAttributeRoutes();
-
                 map.UseCors(Cors.AuditCorsOptions);
 
                 config.MessageHandlers.Add(new XParticularVersionHttpHandler());
@@ -88,5 +90,41 @@
         }
 
         readonly Assembly additionalAssembly;
+    }
+
+    /// <summary>
+    /// Replaces the <see cref="DefaultHttpControllerTypeResolver"/> with a similar implementation that allows non-public controllers.
+    /// </summary>
+    class InternalControllerTypeResolver : IHttpControllerTypeResolver
+    {
+        public ICollection<Type> GetControllerTypes(IAssembliesResolver assembliesResolver)
+        {
+            var controllerTypes = new List<Type>();
+            foreach (Assembly assembly in assembliesResolver.GetAssemblies())
+            {
+                if (assembly != null && !assembly.IsDynamic)
+                {
+                    Type[] source;
+                    try
+                    {
+                        source = assembly.GetTypes();
+
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    controllerTypes.AddRange(source.Where(t => t != null && t.IsClass && !t.IsAbstract && typeof(IHttpController).IsAssignableFrom(t) && HasValidControllerName(t)));
+                }
+            }
+            return controllerTypes;
+        }
+
+        internal static bool HasValidControllerName(Type controllerType)
+        {
+            string controllerSuffix = DefaultHttpControllerSelector.ControllerSuffix;
+            return controllerType.Name.Length > controllerSuffix.Length && controllerType.Name.EndsWith(controllerSuffix, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

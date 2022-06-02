@@ -9,9 +9,9 @@
     using Infrastructure.WebApi;
     using Raven.Client;
 
-    public class FailedAuditsController : ApiController
+    class FailedAuditsController : ApiController
     {
-        internal FailedAuditsController(IDocumentStore store, ImportFailedAudits failedAuditIngestion)
+        public FailedAuditsController(IDocumentStore store, ImportFailedAudits failedAuditIngestion)
         {
             this.store = store;
             this.failedAuditIngestion = failedAuditIngestion;
