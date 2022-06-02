@@ -23,7 +23,7 @@
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public ErrorIngestor(Metrics metrics,
-             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
+            IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IFailedMessageEnricher[] failedMessageEnrichers,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
