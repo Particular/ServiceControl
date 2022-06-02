@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+﻿namespace ServiceControl.CustomChecks.Internal
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -7,7 +7,6 @@
     using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
 
     class InternalCustomChecksHostedService : IHostedService

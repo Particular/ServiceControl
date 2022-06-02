@@ -3,8 +3,9 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using NServiceBus.Logging;
     using Raven.Client;
 
@@ -16,7 +17,7 @@
             _store = store;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var statistics = _store.DatabaseCommands.GetStatistics();
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();

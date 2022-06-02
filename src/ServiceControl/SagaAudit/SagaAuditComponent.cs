@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.SagaAudit
 {
     using CustomChecks;
+    using CustomChecks.Internal;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;

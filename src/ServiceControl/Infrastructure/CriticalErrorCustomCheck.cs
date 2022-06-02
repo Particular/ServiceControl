@@ -1,9 +1,10 @@
 namespace ServiceControl.Operations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
+    using CustomChecks.Internal;
     using NServiceBus;
-    using NServiceBus.CustomChecks;
 
     class CriticalErrorCustomCheck : CustomCheck
     {
@@ -14,7 +15,7 @@ namespace ServiceControl.Operations
         {
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var lastFailure = recentFailure;
             if (lastFailure != null)

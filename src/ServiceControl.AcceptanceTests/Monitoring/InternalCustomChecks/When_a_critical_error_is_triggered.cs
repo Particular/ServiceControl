@@ -10,10 +10,11 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Operations;
     using ServiceControl.CustomChecks;
+    using ServiceControl.CustomChecks.Internal;
+    using ICustomCheck = NServiceBus.CustomChecks.ICustomCheck;
 
     [TestFixture]
     [RunOnAllTransports]

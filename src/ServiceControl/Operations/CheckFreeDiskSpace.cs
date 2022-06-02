@@ -2,8 +2,9 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -16,7 +17,7 @@
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var dataPathRoot = Path.GetPathRoot(dataPath);
 

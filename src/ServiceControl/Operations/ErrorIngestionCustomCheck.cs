@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
 
     class ErrorIngestionCustomCheck : CustomCheck
     {
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var failure = criticalErrorHolder.GetLastFailure();
             return failure == null

@@ -14,7 +14,7 @@ namespace Particular.ServiceControl
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
-    using global::ServiceControl.CustomChecks;
+    using global::ServiceControl.CustomChecks.Internal;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;

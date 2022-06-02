@@ -1,11 +1,10 @@
-﻿namespace ServiceControl.CustomChecks
+﻿namespace ServiceControl.CustomChecks.Internal
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
-    using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
 
     class InternalCustomCheckManager
@@ -34,7 +33,7 @@
             CheckResult result;
             try
             {
-                result = await check.PerformCheck()
+                result = await check.PerformCheck(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)

@@ -1,10 +1,9 @@
-﻿namespace ServiceControl.CustomChecks
+﻿namespace ServiceControl.CustomChecks.Internal
 {
     using System.Linq;
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
     using Operations;
     using ServiceBus.Management.Infrastructure.Settings;

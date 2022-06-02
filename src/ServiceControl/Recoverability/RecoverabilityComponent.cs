@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Connection;
     using CustomChecks;
+    using CustomChecks.Internal;
     using EventLog;
     using ExternalIntegration;
     using ExternalIntegrations;

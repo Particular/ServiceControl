@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.SagaAudit
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -19,7 +20,7 @@
             _auditRetentionPeriodIsSet = settings.AuditRetentionPeriod.HasValue;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             if (_auditRetentionPeriodIsSet)
             {

@@ -1,8 +1,7 @@
 ﻿
-namespace ServiceControl.CustomChecks
+namespace ServiceControl.CustomChecks.Internal
 {
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.CustomChecks;
 
     static class InternalCustomChecksServiceCollectionExtensions
     {

@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.Operations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using NServiceBus.Logging;
     using Raven.Client;
 
@@ -14,12 +15,12 @@
             this.store = store;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query)
+                using (var ie = await session.Advanced.StreamAsync(query, cancellationToken)
                     .ConfigureAwait(false))
                 {
                     if (await ie.MoveNextAsync().ConfigureAwait(false))

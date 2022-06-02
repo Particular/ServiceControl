@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
-    using EndpointControl.Handlers;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using NServiceBus.Extensibility;

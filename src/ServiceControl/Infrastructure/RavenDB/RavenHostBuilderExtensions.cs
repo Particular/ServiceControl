@@ -2,6 +2,7 @@
 {
     using System;
     using CustomChecks;
+    using CustomChecks.Internal;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Raven.Client;

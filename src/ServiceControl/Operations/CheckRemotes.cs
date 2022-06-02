@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class CheckRemotes : CustomCheck
@@ -18,7 +18,7 @@
             remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var httpClient = httpClientFactory();
 
