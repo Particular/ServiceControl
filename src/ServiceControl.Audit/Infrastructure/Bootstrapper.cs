@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.IO;
     using System.Net;
     using Auditing;
-    using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
     using Metrics;
     using Microsoft.Extensions.DependencyInjection;
@@ -61,7 +60,6 @@ namespace ServiceControl.Audit.Infrastructure
                     builder.AddNLog();
                     builder.SetMinimumLevel(loggingSettings.ToHostLogLevel());
                 })
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));

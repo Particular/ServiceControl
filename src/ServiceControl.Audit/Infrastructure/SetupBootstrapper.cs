@@ -4,7 +4,6 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Auditing.BodyStorage.RavenAttachments;
-    using Autofac;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -12,6 +11,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Raven.Client.Embedded;
     using RavenDB;
     using LicenseManagement;
+    using Microsoft.Extensions.DependencyInjection;
     using Settings;
     using Transports;
 
@@ -78,27 +78,21 @@ namespace ServiceControl.Audit.Infrastructure
                 configuration.DoNotCreateQueues();
             }
 
-            var containerBuilder = new ContainerBuilder();
-
-            containerBuilder.RegisterInstance(transportSettings).SingleInstance();
-
             var loggingSettings = new LoggingSettings(settings.ServiceName);
-            containerBuilder.RegisterInstance(loggingSettings).SingleInstance();
-            var documentStore = new EmbeddableDocumentStore();
-            containerBuilder.RegisterInstance(documentStore).As<IDocumentStore>().ExternallyOwned();
-            containerBuilder.RegisterInstance(settings).SingleInstance();
-            containerBuilder.RegisterType<MigrateKnownEndpoints>().As<IDataMigration>();
-            containerBuilder.RegisterType<RavenAttachmentsBodyStorage>().As<IBodyStorage>().SingleInstance();
 
-            using (documentStore)
+            using (var documentStore = new EmbeddableDocumentStore())
             {
                 RavenBootstrapper.Configure(documentStore, settings);
 
-                var container = containerBuilder.Build();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-                configuration.UseContainer<AutofacBuilder>(c => c.ExistingLifetimeScope(container));
-#pragma warning restore CS0618 // Type or member is obsolete
+                // externally managed container mode doesn't run the installers!
+                var containerSettings = configuration.UseContainer(new DefaultServiceProviderFactory());
+                var containerBuilder = containerSettings.ServiceCollection;
+                containerBuilder.AddSingleton(transportSettings);
+                containerBuilder.AddSingleton(loggingSettings);
+                containerBuilder.AddSingleton(typeof(IDocumentStore), documentStore);
+                containerBuilder.AddSingleton(settings);
+                containerBuilder.AddTransient<IDataMigration, MigrateKnownEndpoints>();
+                containerBuilder.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                     ctx => { }, configuration, false);

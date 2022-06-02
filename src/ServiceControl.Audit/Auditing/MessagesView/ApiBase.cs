@@ -3,24 +3,11 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Autofac;
     using Infrastructure.WebApi;
     using Raven.Client;
 
     interface IApi
     {
-    }
-
-    class ApisModule : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterAssemblyTypes(ThisAssembly)
-                .AssignableTo<IApi>()
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .PropertiesAutowired();
-        }
     }
 
     abstract class ApiBase<TIn, TOut> : IApi

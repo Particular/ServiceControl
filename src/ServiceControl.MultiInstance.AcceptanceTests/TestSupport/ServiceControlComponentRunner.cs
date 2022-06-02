@@ -343,8 +343,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
-                var startup = new Startup(lifetime);
+                var startup = new Startup(host.Services);
 
                 startup.Configuration(app);
                 var appFunc = app.Build();
