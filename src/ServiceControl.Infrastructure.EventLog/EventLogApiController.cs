@@ -10,7 +10,7 @@
 
     public class EventLogApiController : ApiController
     {
-        internal EventLogApiController(IDocumentStore documentStore)
+        public EventLogApiController(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }

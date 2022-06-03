@@ -10,24 +10,14 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Text;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using QueryResult = CompositeViews.Messages.QueryResult;
 
-    static class Negotiator
+    public static class Negotiator
     {
         public static HttpResponseMessage FromModel(HttpRequestMessage request, object value, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             var response = request.CreateResponse(statusCode, value);
 
             return response;
-        }
-
-        public static HttpResponseMessage FromQueryResult(HttpRequestMessage request, QueryResult queryResult, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            var response = request.CreateResponse(statusCode, queryResult.DynamicResults);
-            var queryStats = queryResult.QueryStats;
-
-            return response.WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
-                .WithDeterministicEtag(queryStats.ETag);
         }
 
         public static HttpResponseMessage WithReasonPhrase(this HttpResponseMessage response, string reasonPhrase)

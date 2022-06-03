@@ -3,7 +3,6 @@
     using System.Threading.Tasks;
     using Contracts.EventLog;
     using Infrastructure.DomainEvents;
-    using Infrastructure.SignalR;
     using Raven.Client;
 
     /// <summary>
@@ -12,11 +11,11 @@
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
+        public AuditEventLogWriter(IDocumentStore store, EventLogMappings mappings, IDomainEvents domainEvents)
         {
-            this.broadcaster = broadcaster;
             this.store = store;
             this.mappings = mappings;
+            this.domainEvents = domainEvents;
         }
 
         public async Task Handle(IDomainEvent message)
@@ -36,7 +35,7 @@
                     .ConfigureAwait(false);
             }
 
-            await broadcaster.Broadcast(new EventLogItemAdded
+            await domainEvents.Raise(new EventLogItemAdded
             {
                 RaisedAt = logItem.RaisedAt,
                 Severity = logItem.Severity,
@@ -50,9 +49,9 @@
             }).ConfigureAwait(false);
         }
 
-        readonly GlobalEventHandler broadcaster;
         readonly IDocumentStore store;
         readonly EventLogMappings mappings;
+        readonly IDomainEvents domainEvents;
         static string[] emptyArray = new string[0];
     }
 }

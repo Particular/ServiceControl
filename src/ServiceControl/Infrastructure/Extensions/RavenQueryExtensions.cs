@@ -3,7 +3,6 @@ namespace ServiceControl.Infrastructure.Extensions
     using System;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
@@ -14,26 +13,6 @@ namespace ServiceControl.Infrastructure.Extensions
 
     static class RavenQueryExtensions
     {
-        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = 50;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var skipResults = (page - 1) * maxResultsPerPage;
-
-            return source.Skip(skipResults)
-                .Take(maxResultsPerPage);
-        }
-
         public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
         {
             var descending = true;
@@ -198,48 +177,6 @@ namespace ServiceControl.Infrastructure.Extensions
             return !includeSystemMessages ? source.Where(m => !m.IsSystemMessage) : source;
         }
 
-        public static IOrderedQueryable<TSource> Paging<TSource>(this IOrderedQueryable<TSource> source, HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = 50;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var skipResults = (page - 1) * maxResultsPerPage;
-
-            return (IOrderedQueryable<TSource>)source.Skip(skipResults)
-                .Take(maxResultsPerPage);
-        }
-
-        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = 50;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            var skipResults = (page - 1) * maxResultsPerPage;
-
-            return source.Skip(skipResults)
-                .Take(maxResultsPerPage);
-        }
-
         public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request,
             Expression<Func<TSource, object>> defaultKeySelector = null, string defaultSortDirection = "desc")
             where TSource : MessagesViewIndex.SortAndFilterOptions
@@ -307,28 +244,6 @@ namespace ServiceControl.Infrastructure.Extensions
             }
 
             return source.OrderByDescending(keySelector);
-        }
-
-        static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
-        {
-            Dictionary<string, string> queryStringDictionary;
-            if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))
-            {
-                queryStringDictionary = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-                request.Properties["QueryStringAsDictionary"] = queryStringDictionary;
-            }
-            else
-            {
-                queryStringDictionary = (Dictionary<string, string>)dictionaryAsObject;
-            }
-
-            queryStringDictionary.TryGetValue(key, out var value);
-            if (string.IsNullOrEmpty(value))
-            {
-                return defaultValue;
-            }
-
-            return (T)Convert.ChangeType(value, typeof(T));
         }
 
         static HashSet<string> AsyncDocumentQuerySortOptions = new HashSet<string>

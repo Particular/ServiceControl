@@ -2,7 +2,7 @@
 {
     using Infrastructure.DomainEvents;
 
-    interface IEventLogMappingDefinition
+    public interface IEventLogMappingDefinition
     {
         EventLogItem Apply(IDomainEvent @event);
     }

@@ -42,10 +42,8 @@
                 ConfigureSignalR(b);
 
                 var config = new HttpConfiguration();
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(assemblies));
                 config.MapHttpAttributeRoutes();
-
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
 
                 var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
                 jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
@@ -111,22 +109,17 @@
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
     {
-        public OnlyExecutingAssemblyResolver(Assembly additionalAssembly)
+        public OnlyExecutingAssemblyResolver(List<Assembly> apiAssemblies)
         {
-            this.additionalAssembly = additionalAssembly;
+            this.apiAssemblies = apiAssemblies;
         }
 
         public override ICollection<Assembly> GetAssemblies()
         {
-            if (additionalAssembly != null)
-            {
-                return new[] { Assembly.GetExecutingAssembly(), additionalAssembly };
-            }
-
-            return new[] { Assembly.GetExecutingAssembly() };
+            return apiAssemblies;
         }
 
-        readonly Assembly additionalAssembly;
+        readonly List<Assembly> apiAssemblies;
     }
 
     class AutofacDependencyResolver : DefaultDependencyResolver

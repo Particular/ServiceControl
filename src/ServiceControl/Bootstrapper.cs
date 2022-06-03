@@ -15,6 +15,7 @@ namespace Particular.ServiceControl
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
     using global::ServiceControl.CustomChecks.Internal;
+    using global::ServiceControl.EventLog;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
@@ -49,7 +50,8 @@ namespace Particular.ServiceControl
 
             ApiAssemblies = new List<Assembly>
             {
-                Assembly.GetExecutingAssembly()
+                Assembly.GetExecutingAssembly(),
+                typeof(EventLogApiController).Assembly
             };
 
             CreateHost();
@@ -128,6 +130,7 @@ namespace Particular.ServiceControl
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                     return configuration;
                 })
+                .UseEventLog()
                 .UseExternalIntegrationEvents()
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseServicePulseSignalRNotifier()

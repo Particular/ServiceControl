@@ -124,6 +124,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure", "ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj", "{8D011464-C054-44FF-BA91-E921E0F04D8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure.EventLog", "ServiceControl.Infrastructure.EventLog\ServiceControl.Infrastructure.EventLog.csproj", "{7AA22805-A941-4E64-A458-BDECB633AAE6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -298,6 +300,10 @@ Global
 		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D011464-C054-44FF-BA91-E921E0F04D8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AA22805-A941-4E64-A458-BDECB633AAE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AA22805-A941-4E64-A458-BDECB633AAE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AA22805-A941-4E64-A458-BDECB633AAE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AA22805-A941-4E64-A458-BDECB633AAE6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,6 +359,7 @@ Global
 		{166EE709-A76B-45A0-A047-0D5E868829A5} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{A2045E47-7047-44BF-90EC-119CBF9D3F11} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{8D011464-C054-44FF-BA91-E921E0F04D8A} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
+		{7AA22805-A941-4E64-A458-BDECB633AAE6} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

@@ -2,10 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
     using ServiceControl.EventLog;
 
-    public class EventLogItemAdded : IUserInterfaceEvent
+    public class EventLogItemAdded : IUserInterfaceEvent, IDomainEvent
     {
         public string Id { get; set; }
         public string Description { get; set; }

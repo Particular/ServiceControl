@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using EventLog;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
+    using ServiceControl.CustomChecks.Internal;
 
     [TestFixture]
     class When_a_custom_check_fails : AcceptanceTest
@@ -20,7 +20,7 @@
             {
             }
 
-            public override Task<CheckResult> PerformCheck()
+            public override Task<CheckResult> PerformCheck(CancellationToken token = default)
             {
                 return Task.FromResult(CheckResult.Failed("Some reason"));
             }
