@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Contracts.Operations;
+    using Contracts.CustomChecks;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
 

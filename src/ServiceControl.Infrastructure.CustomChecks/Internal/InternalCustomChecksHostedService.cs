@@ -4,7 +4,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contracts.Operations;
+    using Contracts.CustomChecks;
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Hosting;

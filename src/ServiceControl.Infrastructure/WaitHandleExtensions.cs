@@ -4,7 +4,7 @@ namespace ServiceBus.Management.Infrastructure.Extensions
     using System.Threading;
     using System.Threading.Tasks;
 
-    static class WaitHandleExtensions
+    public static class WaitHandleExtensions
     {
         public static async Task<bool> WaitOneAsync(this WaitHandle handle, int millisecondsTimeout, CancellationToken cancellationToken = default)
         {

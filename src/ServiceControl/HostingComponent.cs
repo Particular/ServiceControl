@@ -2,7 +2,8 @@
 namespace Particular.ServiceControl
 {
     using global::ServiceControl.Connection;
-    using Microsoft.Extensions.DependencyInjection;
+    using global::ServiceControl.CustomChecks.Internal;
+    using global::ServiceControl.Operations;
     using Microsoft.Extensions.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -11,8 +12,13 @@ namespace Particular.ServiceControl
         public override void Configure(Settings settings, IHostBuilder hostBuilder) =>
             hostBuilder.ConfigureServices(services =>
             {
+                //TODO: Where should these go?
+                services.AddCustomCheck<CriticalErrorCustomCheck>();
+                services.AddCustomCheck<CheckRemotes>();
+                services.AddCustomCheck<CheckFreeDiskSpace>();
+                services.AddCustomCheck<FailedAuditImportCustomCheck>();
+
                 services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
-                services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
             });
 
         public override void Setup(Settings settings, IComponentSetupContext context)

@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    interface IProvidePlatformConnectionDetails
+    public interface IProvidePlatformConnectionDetails
     {
         Task ProvideConnectionDetails(PlatformConnectionDetails connection);
     }

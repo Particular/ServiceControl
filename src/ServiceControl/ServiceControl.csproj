@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Infrastructure.CustomChecks\ServiceControl.Infrastructure.CustomChecks.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.EventLog\ServiceControl.Infrastructure.EventLog.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.ExternalIntegration\ServiceControl.Infrastructure.ExternalIntegration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />

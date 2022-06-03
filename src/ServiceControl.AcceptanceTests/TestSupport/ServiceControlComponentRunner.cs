@@ -92,7 +92,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
-                DisableHealthChecks = true,
+                DisableInternalHealthChecks = true,
                 ExposeApi = true,
                 MessageFilter = messageContext =>
                 {

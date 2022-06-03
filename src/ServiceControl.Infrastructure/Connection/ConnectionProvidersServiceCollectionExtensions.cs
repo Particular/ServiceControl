@@ -2,7 +2,7 @@
 {
     using Microsoft.Extensions.DependencyInjection;
 
-    static class ConnectionProvidersServiceCollectionExtensions
+    public static class ConnectionProvidersServiceCollectionExtensions
     {
         public static void AddPlatformConnectionProvider<T>(this IServiceCollection serviceCollection)
             where T : class, IProvidePlatformConnectionDetails

@@ -13,15 +13,14 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Extensions;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class EventDispatcherHostedService : IHostedService
     {
-        public EventDispatcherHostedService(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, Settings settings, IEnumerable<IEventPublisher> eventPublishers, IMessageSession messageSession)
+        public EventDispatcherHostedService(IDocumentStore store, IDomainEvents domainEvents, CriticalError criticalError, int batchSize, IEnumerable<IEventPublisher> eventPublishers, IMessageSession messageSession)
         {
             this.store = store;
             this.criticalError = criticalError;
-            this.settings = settings;
+            this.batchSize = batchSize;
             this.eventPublishers = eventPublishers;
             this.domainEvents = domainEvents;
             this.messageSession = messageSession;
@@ -116,7 +115,7 @@
                 var awaitingDispatching = await session
                     .Query<ExternalIntegrationDispatchRequest>()
                     .Statistics(out var stats)
-                    .Take(settings.ExternalIntegrationsDispatchingBatchSize)
+                    .Take(batchSize)
                     .ToListAsync()
                     .ConfigureAwait(false);
 
@@ -202,8 +201,8 @@
 
         IMessageSession messageSession;
         CriticalError criticalError;
+        readonly int batchSize;
         IEnumerable<IEventPublisher> eventPublishers;
-        Settings settings;
         ManualResetEventSlim signal = new ManualResetEventSlim();
         IDocumentStore store;
         IDomainEvents domainEvents;
@@ -212,6 +211,6 @@
         Task task;
         CancellationTokenSource tokenSource;
         Etag latestEtag = Etag.Empty;
-        static ILog Logger = LogManager.GetLogger(typeof(EventDispatcherHostedService));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(EventDispatcherHostedService));
     }
 }

@@ -31,7 +31,7 @@
         {
             SetSettings = settings =>
             {
-                settings.DisableHealthChecks = false;
+                settings.DisableInternalHealthChecks = false;
             };
 
             CustomizeHostBuilder = builder =>

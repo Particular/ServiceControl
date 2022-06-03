@@ -3,7 +3,6 @@
     using System;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
-    using Operations;
 
     public class CustomCheckFailed : IDomainEvent, IUserInterfaceEvent
     {

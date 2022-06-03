@@ -4,12 +4,13 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
-    using Contracts.Operations;
+    using Contracts.CustomChecks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
+    using CustomCheckSucceeded = Contracts.CustomCheckSucceeded;
 
     [TestFixture]
     class When_a_custom_check_succeeds : AcceptanceTest

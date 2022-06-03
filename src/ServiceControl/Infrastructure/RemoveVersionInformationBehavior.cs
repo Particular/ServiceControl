@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.ExternalIntegrations
+﻿namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Linq;

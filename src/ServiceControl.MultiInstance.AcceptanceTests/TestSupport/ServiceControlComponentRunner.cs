@@ -99,7 +99,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 RunInMemory = true,
-                DisableHealthChecks = true,
+                DisableInternalHealthChecks = true,
                 ExposeApi = false,
                 RemoteInstances = new[]
                 {

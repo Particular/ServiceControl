@@ -20,7 +20,7 @@
             {
                 IngestErrorMessages = false,
                 RunRetryProcessor = false,
-                DisableHealthChecks = true
+                DisableInternalHealthChecks = true
             };
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);

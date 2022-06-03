@@ -5,7 +5,7 @@ namespace ServiceControl.ExternalIntegrations
     using Infrastructure.DomainEvents;
     using Raven.Client;
 
-    interface IEventPublisher
+    public interface IEventPublisher
     {
         bool Handles(IDomainEvent @event);
         object CreateDispatchContext(IDomainEvent @event);

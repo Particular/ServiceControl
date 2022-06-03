@@ -28,7 +28,7 @@
             var settings = new ServiceBus.Management.Infrastructure.Settings.Settings
             {
                 TransportConnectionString = Path.GetTempPath(),
-                DisableHealthChecks = true
+                DisableInternalHealthChecks = true
             };
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
             var loggingSettings = new LoggingSettings(settings.ServiceName);

@@ -51,7 +51,8 @@ namespace Particular.ServiceControl
             ApiAssemblies = new List<Assembly>
             {
                 Assembly.GetExecutingAssembly(),
-                typeof(EventLogApiController).Assembly
+                typeof(EventLogHostBuilderExtensions).Assembly,
+                typeof(CustomChecksHostBuilderExtensions).Assembly,
             };
 
             CreateHost();
@@ -130,13 +131,13 @@ namespace Particular.ServiceControl
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                     return configuration;
                 })
+                .UseCommonInfrastructure()
                 .UseEventLog()
-                .UseExternalIntegrationEvents()
+                .UseExternalIntegrationEvents(settings.ExternalIntegrationsDispatchingBatchSize)
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseServicePulseSignalRNotifier()
                 .UseEmailNotifications()
-                .UseAsyncTimer()
-                .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
+                .UseCustomChecks(settings.ServiceName, settings.DisableInternalHealthChecks)
                 .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;
         }

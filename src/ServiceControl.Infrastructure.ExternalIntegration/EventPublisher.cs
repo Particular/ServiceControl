@@ -6,7 +6,7 @@ namespace ServiceControl.ExternalIntegrations
     using Infrastructure.DomainEvents;
     using Raven.Client;
 
-    abstract class EventPublisher<TEvent, TDispatchContext> : IEventPublisher
+    public abstract class EventPublisher<TEvent, TDispatchContext> : IEventPublisher
         where TEvent : IDomainEvent
     {
         public bool Handles(IDomainEvent @event)

@@ -4,7 +4,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
@@ -37,10 +37,8 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DisableFeature<Outbox>();
             configuration.DisableFeature<Sagas>();
 
-            if (settings.DisableExternalIntegrationsPublishing)
-            {
-                configuration.DisableFeature<ExternalIntegrationsFeature>();
-            }
+            configuration.Pipeline.Register(new RemoveVersionInformationBehavior(),
+                "Removes version information from ServiceControl.Contracts messages");
 
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));

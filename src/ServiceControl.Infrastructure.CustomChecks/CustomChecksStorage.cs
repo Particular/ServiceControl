@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Raven.Client;

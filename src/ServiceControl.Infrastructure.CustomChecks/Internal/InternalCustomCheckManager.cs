@@ -3,7 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contracts.Operations;
+    using Contracts.CustomChecks;
     using Infrastructure.BackgroundTasks;
     using NServiceBus.Logging;
 
@@ -72,6 +72,6 @@
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
 
-        static ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
+        static readonly ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
     }
 }

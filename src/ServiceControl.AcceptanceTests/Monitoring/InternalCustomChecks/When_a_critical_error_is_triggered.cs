@@ -7,20 +7,17 @@
     using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
     using Operations;
-    using ServiceControl.CustomChecks;
-    using ServiceControl.CustomChecks.Internal;
+    using Particular.ServiceControl;
     using ICustomCheck = NServiceBus.CustomChecks.ICustomCheck;
 
     [TestFixture]
     [RunOnAllTransports]
     class When_a_critical_error_is_triggered : AcceptanceTest
     {
-        static Type[] allServiceControlTypes = typeof(InternalCustomChecks).Assembly.GetTypes();
+        static Type[] allServiceControlTypes = typeof(Program).Assembly.GetTypes();
         static IEnumerable<Type> allTypesExcludingBuiltInCustomChecks = allServiceControlTypes.Where(t => !t.GetInterfaces().Contains(typeof(ICustomCheck)));
         static Type[] customChecksUnderTest = { typeof(CriticalErrorCustomCheck) };
         static IEnumerable<Type> typesToScan = allTypesExcludingBuiltInCustomChecks.Concat(customChecksUnderTest);
@@ -30,7 +27,7 @@
         {
             SetSettings = settings =>
             {
-                settings.DisableHealthChecks = false;
+                settings.DisableInternalHealthChecks = false;
             };
             EventLogItem entry = null;
 

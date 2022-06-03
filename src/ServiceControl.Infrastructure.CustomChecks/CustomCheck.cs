@@ -1,46 +1,16 @@
-﻿namespace ServiceControl.CustomChecks.Internal
+﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Contracts.CustomChecks;
 
-    /// <summary>
-    /// Abstract class to define a custom check implementation.
-    /// </summary>
-    public abstract class CustomCheck : ICustomCheck
+    public class CustomCheck
     {
-        /// <summary>
-        /// Constructor to initialize a custom check.
-        /// </summary>
-        /// <param name="id">Id to assign.</param>
-        /// <param name="category">Category for the check.</param>
-        /// <param name="repeatAfter">Periodic execution interval.</param>
-        protected CustomCheck(string id, string category, TimeSpan? repeatAfter = null)
-        {
-            Category = category;
-            Id = id;
-            Interval = repeatAfter;
-        }
-
-        /// <summary>
-        /// Category for the check.
-        /// </summary>
-        public string Category { get; }
-
-        /// <summary>
-        /// Check Id.
-        /// </summary>
-        public string Id { get; }
-
-        /// <summary>
-        /// Periodic execution interval.
-        /// </summary>
-        public TimeSpan? Interval { get; }
-
-        /// <summary>
-        /// Performs the check.
-        /// </summary>
-        /// <returns>The result of the check.</returns>
-        public abstract Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default);
+        public Guid Id { get; set; }
+        public string CustomCheckId { get; set; }
+        public string Category { get; set; }
+        public Status Status { get; set; }
+        public DateTime ReportedAt { get; set; }
+        public string FailureReason { get; set; }
+        public EndpointDetails OriginatingEndpoint { get; set; }
     }
 }

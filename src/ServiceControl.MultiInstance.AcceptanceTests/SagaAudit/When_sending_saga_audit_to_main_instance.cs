@@ -90,7 +90,7 @@
             //Ensure custom checks are enabled
             CustomServiceControlSettings = settings =>
             {
-                settings.DisableHealthChecks = false;
+                settings.DisableInternalHealthChecks = false;
             };
 
             //Override the configuration of the check in the container in order to make it run more frequently for testing purposes.

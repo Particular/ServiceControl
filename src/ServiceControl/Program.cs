@@ -8,7 +8,7 @@
     using Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {

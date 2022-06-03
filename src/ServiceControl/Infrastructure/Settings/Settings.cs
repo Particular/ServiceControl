@@ -201,7 +201,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
-        public bool DisableHealthChecks { get; set; }
+        public bool DisableInternalHealthChecks { get; set; }
 
         public bool ExposeApi { get; set; } = true;
 
