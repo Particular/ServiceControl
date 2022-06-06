@@ -1,0 +1,39 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.ExternalIntegrations
+{
+    public abstract class EventPublisher<TEvent, TDispatchContext> : ServiceControl.ExternalIntegrations.IEventPublisher
+        where TEvent : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        protected EventPublisher() { }
+        public object CreateDispatchContext(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event) { }
+        protected abstract TDispatchContext CreateDispatchRequest(TEvent @event);
+        public bool Handles(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event) { }
+        protected abstract System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<object>> PublishEvents(System.Collections.Generic.IEnumerable<TDispatchContext> contexts, Raven.Client.IAsyncDocumentSession session);
+        public System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<object>> PublishEventsForOwnContexts(System.Collections.Generic.IEnumerable<object> allContexts, Raven.Client.IAsyncDocumentSession session) { }
+    }
+    public class ExternalIntegrationEventFailedToBePublished : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        public ExternalIntegrationEventFailedToBePublished() { }
+        public System.Type EventType { get; set; }
+        public string Reason { get; set; }
+    }
+    public class ExternalIntegrationEventFailedToBePublishedDefinition : ServiceControl.EventLog.EventLogMappingDefinition<ServiceControl.ExternalIntegrations.ExternalIntegrationEventFailedToBePublished>
+    {
+        public ExternalIntegrationEventFailedToBePublishedDefinition() { }
+    }
+    public static class ExternalIntegrationsHostBuilderExtensions
+    {
+        public static Microsoft.Extensions.Hosting.IHostBuilder UseExternalIntegrationEvents(this Microsoft.Extensions.Hosting.IHostBuilder hostBuilder, int batchSize) { }
+    }
+    public static class ExternalIntegrationsServiceCollectionExtensions
+    {
+        public static void AddIntegrationEventPublisher<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection)
+            where T :  class, ServiceControl.ExternalIntegrations.IEventPublisher { }
+    }
+    public interface IEventPublisher
+    {
+        object CreateDispatchContext(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event);
+        bool Handles(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event);
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<object>> PublishEventsForOwnContexts(System.Collections.Generic.IEnumerable<object> allContexts, Raven.Client.IAsyncDocumentSession session);
+    }
+}

@@ -7,14 +7,18 @@
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
+    using EventLog;
     using NUnit.Framework;
     using Particular.Approvals;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Licensing;
     using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Notifications.Email;
     using ServiceControlInstaller.Engine.Instances;
     using Transports;
 
@@ -25,6 +29,56 @@
         public void PublicClr()
         {
             var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrCustomChecks()
+        {
+            var publicApi = typeof(CustomChecksHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrNotifications()
+        {
+            var publicApi = typeof(EmailNotificationHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrExternalIntegrations()
+        {
+            var publicApi = typeof(ExternalIntegrationsHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrEventLog()
+        {
+            var publicApi = typeof(EventLogHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            {
+                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+            });
+            Approver.Verify(publicApi);
+        }
+
+        [Test]
+        public void PublicClrInfrastructure()
+        {
+            var publicApi = typeof(InfrastructureHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });
@@ -103,8 +157,16 @@
         {
             var settings = (object)new Settings();
 
-            var serviceControlTypes = typeof(Bootstrapper).Assembly
-                .GetTypes()
+            var assemblies = new[]
+            {
+                typeof(Bootstrapper).Assembly,
+                typeof(CustomChecksHostBuilderExtensions).Assembly,
+                typeof(EventLogHostBuilderExtensions).Assembly,
+                typeof(ExternalIntegrationsHostBuilderExtensions).Assembly,
+                typeof(EmailNotificationHostBuilderExtensions).Assembly,
+            };
+
+            var serviceControlTypes = assemblies.SelectMany(x => x.GetTypes())
                 .Where(t => t.IsAbstract == false);
 
             var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));

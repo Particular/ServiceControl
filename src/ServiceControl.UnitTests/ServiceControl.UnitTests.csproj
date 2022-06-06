@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure.CustomChecks\ServiceControl.Infrastructure.CustomChecks.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.EventLog\ServiceControl.Infrastructure.EventLog.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.ExternalIntegration\ServiceControl.Infrastructure.ExternalIntegration.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.Notifications\ServiceControl.Infrastructure.Notifications.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />

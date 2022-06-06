@@ -13,6 +13,7 @@
     <ProjectReference Include="..\ServiceControl.Infrastructure.EventLog\ServiceControl.Infrastructure.EventLog.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.ExternalIntegration\ServiceControl.Infrastructure.ExternalIntegration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.Notifications\ServiceControl.Infrastructure.Notifications.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />

@@ -3,11 +3,11 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Api;
     using Contracts.CustomChecks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class CustomChecksMailNotification : IDomainHandler<CustomCheckFailed>, IDomainHandler<CustomCheckSucceeded>
     {
@@ -28,17 +28,17 @@
             "Error Message Ingestion"
         };
 
-        public CustomChecksMailNotification(IMessageSession messageSession, Settings settings, EmailThrottlingState throttlingState)
+        public CustomChecksMailNotification(IMessageSession messageSession, NotificationsAppSettings settings, EmailThrottlingState throttlingState)
         {
             this.messageSession = messageSession;
             this.throttlingState = throttlingState;
 
-            instanceName = settings.ServiceName;
+            instanceName = settings.InstanceName;
             instanceAddress = settings.ApiUrl;
 
-            if (string.IsNullOrWhiteSpace(settings.NotificationsFilter) == false)
+            if (string.IsNullOrWhiteSpace(settings.Filter) == false)
             {
-                serviceControlHealthCustomCheckIds = NotificationsFilterParser.Parse(settings.NotificationsFilter);
+                serviceControlHealthCustomCheckIds = NotificationsFilterParser.Parse(settings.Filter);
             }
         }
 

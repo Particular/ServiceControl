@@ -2,23 +2,23 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Api;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
     {
         readonly IDocumentStore store;
         readonly EmailThrottlingState throttlingState;
 
-        public SendEmailNotificationHandler(IDocumentStore store, Settings settings, EmailThrottlingState throttlingState)
+        public SendEmailNotificationHandler(IDocumentStore store, NotificationsAppSettings settings, EmailThrottlingState throttlingState)
         {
             this.store = store;
             this.throttlingState = throttlingState;
 
-            emailDropFolder = settings.EmailDropFolder;
+            emailDropFolder = settings.DropFolder;
         }
 
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)

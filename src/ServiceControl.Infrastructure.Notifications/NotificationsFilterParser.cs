@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    class NotificationsFilterParser
+    public class NotificationsFilterParser
     {
         public static string[] Parse(string filter)
         {

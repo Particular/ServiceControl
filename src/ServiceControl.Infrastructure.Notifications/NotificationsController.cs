@@ -11,14 +11,13 @@
     using Infrastructure.SignalR;
     using Newtonsoft.Json;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     public class NotificationsController : ApiController
     {
-        public NotificationsController(IDocumentStore store, Settings settings)
+        public NotificationsController(IDocumentStore store, NotificationsAppSettings settings)
         {
             this.store = store;
-            instanceName = settings.ServiceName;
+            instanceName = settings.InstanceName;
         }
 
         [Route("notifications/email")]

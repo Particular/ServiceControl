@@ -1,0 +1,77 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.Contracts.EventLog
+{
+    public class EventLogItemAdded : ServiceControl.Infrastructure.DomainEvents.IDomainEvent, ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
+    {
+        public EventLogItemAdded() { }
+        public string Category { get; set; }
+        public string Description { get; set; }
+        public string Id { get; set; }
+        public System.DateTime RaisedAt { get; set; }
+        public System.Collections.Generic.ICollection<string> RelatedTo { get; set; }
+        public ServiceControl.EventLog.Severity Severity { get; set; }
+    }
+}
+namespace ServiceControl.EventLog
+{
+    public class EventLogApiController : System.Web.Http.ApiController
+    {
+        public EventLogApiController(Raven.Client.IDocumentStore documentStore) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("eventlogitems")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> Items() { }
+    }
+    public static class EventLogHostBuilderExtensions
+    {
+        public static Microsoft.Extensions.Hosting.IHostBuilder UseEventLog(this Microsoft.Extensions.Hosting.IHostBuilder hostBuilder) { }
+    }
+    public class EventLogItem
+    {
+        public EventLogItem() { }
+        public string Category { get; set; }
+        public string Description { get; set; }
+        public string EventType { get; set; }
+        public string Id { get; set; }
+        public System.DateTime RaisedAt { get; set; }
+        public System.Collections.Generic.List<string> RelatedTo { get; set; }
+        public ServiceControl.EventLog.Severity Severity { get; set; }
+    }
+    public abstract class EventLogMappingDefinition<T> : ServiceControl.EventLog.IEventLogMappingDefinition
+        where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        protected EventLogMappingDefinition() { }
+        public virtual string Category { get; }
+        public ServiceControl.EventLog.EventLogItem Apply(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event) { }
+        protected void Description(System.Func<T, string> description) { }
+        protected void RaisedAt(System.Func<T, System.DateTime> raisedAt) { }
+        protected void RelatesToCustomCheck(System.Func<T, string> relatedTo) { }
+        protected void RelatesToEndpoint(System.Func<T, string> relatedTo) { }
+        protected void RelatesToGroup(System.Func<T, string> relatedTo) { }
+        protected void RelatesToHost(System.Func<T, System.Guid> relatedTo) { }
+        protected void RelatesToMachine(System.Func<T, string> relatedTo) { }
+        protected void RelatesToMessage(System.Func<T, string> relatedTo) { }
+        protected void RelatesToMessages(System.Func<T, System.Collections.Generic.IEnumerable<string>> relatedTo) { }
+        protected void Severity(ServiceControl.EventLog.Severity severityToUse) { }
+        protected void Severity(System.Func<T, ServiceControl.EventLog.Severity> severity) { }
+        protected void TreatAsError() { }
+    }
+    public interface IEventLogMappingDefinition
+    {
+        ServiceControl.EventLog.EventLogItem Apply(ServiceControl.Infrastructure.DomainEvents.IDomainEvent @event);
+    }
+    public enum Severity
+    {
+        Critical = 0,
+        Error = 1,
+        Warning = 2,
+        Info = 3,
+    }
+}
+namespace ServiceControl.ExternalIntegrations
+{
+    public static class EventLogServiceCollectionExtensions
+    {
+        public static void AddEventLogMapping<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection)
+            where T :  class, ServiceControl.EventLog.IEventLogMappingDefinition { }
+    }
+}

@@ -1,0 +1,130 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceBus.Management.Infrastructure.Extensions
+{
+    public static class WaitHandleExtensions
+    {
+        public static System.Threading.Tasks.Task<bool> WaitOneAsync(this System.Threading.WaitHandle handle, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<bool> WaitOneAsync(this System.Threading.WaitHandle handle, int millisecondsTimeout, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<bool> WaitOneAsync(this System.Threading.WaitHandle handle, System.TimeSpan timeout, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
+namespace ServiceControl.Connection
+{
+    public class ConnectionController : System.Web.Http.ApiController
+    {
+        public ConnectionController(ServiceControl.Connection.IPlatformConnectionBuilder connectionBuilder) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("connection")]
+        public System.Threading.Tasks.Task<System.Web.Http.IHttpActionResult> GetConnectionDetails() { }
+    }
+    public static class ConnectionProvidersServiceCollectionExtensions
+    {
+        public static void AddPlatformConnectionProvider<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection)
+            where T :  class, ServiceControl.Connection.IProvidePlatformConnectionDetails { }
+    }
+    public interface IPlatformConnectionBuilder
+    {
+        System.Threading.Tasks.Task<ServiceControl.Connection.PlatformConnectionDetails> BuildPlatformConnection();
+    }
+    public interface IProvidePlatformConnectionDetails
+    {
+        System.Threading.Tasks.Task ProvideConnectionDetails(ServiceControl.Connection.PlatformConnectionDetails connection);
+    }
+    public class PlatformConnectionDetails
+    {
+        public PlatformConnectionDetails() { }
+        public System.Collections.Concurrent.ConcurrentBag<string> Errors { get; }
+        public void Add(string key, object value) { }
+        public System.Collections.Generic.IDictionary<string, object> ToDictionary() { }
+    }
+}
+namespace ServiceControl.Infrastructure.BackgroundTasks
+{
+    public class AsyncTimer : ServiceControl.Infrastructure.BackgroundTasks.IAsyncTimer
+    {
+        public AsyncTimer() { }
+        public ServiceControl.Infrastructure.BackgroundTasks.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+    }
+    public interface IAsyncTimer
+    {
+        ServiceControl.Infrastructure.BackgroundTasks.TimerJob Schedule(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback);
+    }
+    public static class InfrastructureHostBuilderExtensions
+    {
+        public static Microsoft.Extensions.Hosting.IHostBuilder UseCommonInfrastructure(this Microsoft.Extensions.Hosting.IHostBuilder hostBuilder) { }
+    }
+    public class TimerJob
+    {
+        public TimerJob(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<ServiceControl.Infrastructure.BackgroundTasks.TimerJobExecutionResult>> callback, System.TimeSpan due, System.TimeSpan interval, System.Action<System.Exception> errorCallback) { }
+        public System.Threading.Tasks.Task Stop() { }
+    }
+    public enum TimerJobExecutionResult
+    {
+        ScheduleNextExecution = 0,
+        ExecuteImmediately = 1,
+        DoNotContinueExecuting = 2,
+    }
+}
+namespace ServiceControl.Infrastructure
+{
+    public static class DeterministicGuid
+    {
+        public static System.Guid MakeId(string data) { }
+        public static System.Guid MakeId(string data1, string data2) { }
+        public static System.Guid MakeId(string data1, string data2, string data3) { }
+    }
+}
+namespace ServiceControl.Infrastructure.DomainEvents
+{
+    public class DomainEvents : ServiceControl.Infrastructure.DomainEvents.IDomainEvents
+    {
+        public DomainEvents(System.IServiceProvider container) { }
+        public System.Threading.Tasks.Task Raise<T>(T domainEvent)
+            where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent { }
+    }
+    public static class DomainEventsServiceCollectionExtensions
+    {
+        public static void AddDomainEventHandler<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
+    }
+    public interface IDomainEvent { }
+    public interface IDomainEvents
+    {
+        System.Threading.Tasks.Task Raise<T>(T domainEvent)
+            where T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent;
+    }
+    public interface IDomainHandler<in T>
+        where in T : ServiceControl.Infrastructure.DomainEvents.IDomainEvent
+    {
+        System.Threading.Tasks.Task Handle(T domainEvent);
+    }
+}
+namespace ServiceControl.Infrastructure.Extensions
+{
+    public static class RavenQueryExtensions
+    {
+        public static T GetQueryStringValue<T>(this System.Net.Http.HttpRequestMessage request, string key, T defaultValue = default) { }
+        public static Raven.Client.IAsyncDocumentQuery<TSource> Paging<TSource>(this Raven.Client.IAsyncDocumentQuery<TSource> source, System.Net.Http.HttpRequestMessage request) { }
+        public static Raven.Client.Linq.IRavenQueryable<TSource> Paging<TSource>(this Raven.Client.Linq.IRavenQueryable<TSource> source, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Linq.IOrderedQueryable<TSource> Paging<TSource>(this System.Linq.IOrderedQueryable<TSource> source, System.Net.Http.HttpRequestMessage request) { }
+    }
+}
+namespace ServiceControl.Infrastructure.SignalR
+{
+    public interface IUserInterfaceEvent { }
+}
+namespace ServiceControl.Infrastructure.WebApi
+{
+    public static class Negotiator
+    {
+        public static System.Net.Http.HttpResponseMessage FromModel(System.Net.Http.HttpRequestMessage request, object value, System.Net.HttpStatusCode statusCode = 200) { }
+        public static System.Net.Http.HttpResponseMessage WithDeterministicEtag(this System.Net.Http.HttpResponseMessage response, string data) { }
+        public static System.Net.Http.HttpResponseMessage WithEtag(this System.Net.Http.HttpResponseMessage response, Raven.Abstractions.Data.Etag etag) { }
+        public static System.Net.Http.HttpResponseMessage WithEtag(this System.Net.Http.HttpResponseMessage response, Raven.Client.RavenQueryStatistics stats) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinks(this System.Net.Http.HttpResponseMessage response, int totalResults, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinks(this System.Net.Http.HttpResponseMessage response, int totalResults, int highestTotalCountOfAllInstances, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinksAndTotalCount(this System.Net.Http.HttpResponseMessage response, int totalCount, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithPagingLinksAndTotalCount(this System.Net.Http.HttpResponseMessage response, int totalCount, int highestTotalCountOfAllInstances, System.Net.Http.HttpRequestMessage request) { }
+        public static System.Net.Http.HttpResponseMessage WithReasonPhrase(this System.Net.Http.HttpResponseMessage response, string reasonPhrase) { }
+        public static System.Net.Http.HttpResponseMessage WithTotalCount(this System.Net.Http.HttpResponseMessage response, int total) { }
+    }
+}

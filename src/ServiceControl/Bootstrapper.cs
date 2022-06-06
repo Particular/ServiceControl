@@ -56,6 +56,7 @@ namespace Particular.ServiceControl
                 typeof(ConnectionController).Assembly,
                 typeof(EventLogApiController).Assembly,
                 typeof(CustomCheckController).Assembly,
+                typeof(CustomCheckController).Assembly,
             };
 
             CreateHost();
@@ -139,7 +140,7 @@ namespace Particular.ServiceControl
                 .UseExternalIntegrationEvents(settings.ExternalIntegrationsDispatchingBatchSize)
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseServicePulseSignalRNotifier()
-                .UseEmailNotifications()
+                .UseEmailNotifications(settings.ServiceName, settings.ApiUrl, settings.NotificationsFilter, settings.EmailDropFolder)
                 .UseCustomChecks(settings.ServiceName, settings.DisableInternalHealthChecks)
                 .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;

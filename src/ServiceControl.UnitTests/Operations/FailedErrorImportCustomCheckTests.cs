@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
     using System.Threading.Tasks;
-    using NServiceBus.CustomChecks;
+    using CustomChecks.Internal;
     using NUnit.Framework;
     using ServiceControl.Operations;
 

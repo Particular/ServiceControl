@@ -1,0 +1,109 @@
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+namespace ServiceControl.Notifications.Api
+{
+    public class NotificationsAppSettings
+    {
+        public NotificationsAppSettings(string instanceName, string apiUrl, string filter, string dropFolder) { }
+        public string ApiUrl { get; }
+        public string DropFolder { get; }
+        public string Filter { get; }
+        public string InstanceName { get; }
+    }
+    public class NotificationsController : System.Web.Http.ApiController
+    {
+        public NotificationsController(Raven.Client.IDocumentStore store, ServiceControl.Notifications.Api.NotificationsAppSettings settings) { }
+        [System.Web.Http.HttpGet]
+        [System.Web.Http.Route("notifications/email")]
+        public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetEmailNotificationsSettings(System.Net.Http.HttpRequestMessage request) { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email/test")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendTestEmail() { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email/toggle")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> ToggleEmailNotifications(ServiceControl.Notifications.Api.ToggleEmailNotifications request) { }
+        [System.Web.Http.HttpPost]
+        [System.Web.Http.Route("notifications/email")]
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> UpdateSettings(ServiceControl.Notifications.Api.UpdateEmailNotificationsSettingsRequest request) { }
+    }
+    public class ToggleEmailNotifications
+    {
+        public ToggleEmailNotifications() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="enabled")]
+        public bool Enabled { get; set; }
+    }
+    public class UpdateEmailNotificationsSettingsRequest
+    {
+        public UpdateEmailNotificationsSettingsRequest() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="authorization_account")]
+        public string AuthorizationAccount { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="authorization_password")]
+        public string AuthorizationPassword { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="enable_tls")]
+        public bool EnableTLS { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="from")]
+        public string From { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="smtp_port")]
+        public int SmtpPort { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="smtp_server")]
+        public string SmtpServer { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="to")]
+        public string To { get; set; }
+    }
+}
+namespace ServiceControl.Notifications.Email
+{
+    public static class EmailNotificationHostBuilderExtensions
+    {
+        public static Microsoft.Extensions.Hosting.IHostBuilder UseEmailNotifications(this Microsoft.Extensions.Hosting.IHostBuilder hostBuilder, string instanceName, string apiUrl, string filter, string dropFolder) { }
+    }
+    public class EmailThrottlingState
+    {
+        public EmailThrottlingState() { }
+        public System.Threading.CancellationTokenSource CancellationTokenSource { get; }
+        public string RetriedMessageId { get; set; }
+        public System.Threading.SemaphoreSlim Semaphore { get; }
+        public bool IsThrottling() { }
+        public void ThrottlingOff() { }
+        public void ThrottlingOn() { }
+    }
+    public class NotificationsFilterParser
+    {
+        public NotificationsFilterParser() { }
+        public static string[] Parse(string filter) { }
+    }
+    public class SendEmailNotification : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public SendEmailNotification() { }
+        public string Body { get; set; }
+        public bool FailureNotification { get; set; }
+        public string Subject { get; set; }
+    }
+    public class SendEmailNotificationHandler : NServiceBus.IHandleMessages<ServiceControl.Notifications.Email.SendEmailNotification>
+    {
+        public SendEmailNotificationHandler(Raven.Client.IDocumentStore store, ServiceControl.Notifications.Api.NotificationsAppSettings settings, ServiceControl.Notifications.Email.EmailThrottlingState throttlingState) { }
+        public System.Threading.Tasks.Task Handle(ServiceControl.Notifications.Email.SendEmailNotification message, NServiceBus.IMessageHandlerContext context) { }
+        public static NServiceBus.RecoverabilityAction RecoverabilityPolicy(NServiceBus.RecoverabilityConfig config, NServiceBus.Transport.ErrorContext context) { }
+    }
+}
+namespace ServiceControl.Notifications
+{
+    public class EmailNotifications
+    {
+        public EmailNotifications() { }
+        public string AuthenticationAccount { get; set; }
+        public string AuthenticationPassword { get; set; }
+        public bool EnableTLS { get; set; }
+        public bool Enabled { get; set; }
+        public string From { get; set; }
+        public int? SmtpPort { get; set; }
+        public string SmtpServer { get; set; }
+        public string To { get; set; }
+    }
+    public class NotificationsSettings
+    {
+        public const string SingleDocumentId = "NotificationsSettings/All";
+        public NotificationsSettings() { }
+        public ServiceControl.Notifications.EmailNotifications Email { get; set; }
+        public string Id { get; set; }
+    }
+}
