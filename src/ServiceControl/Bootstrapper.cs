@@ -14,6 +14,8 @@ namespace Particular.ServiceControl
     using Autofac.Core.Activators.Reflection;
     using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
+    using global::ServiceControl.Connection;
+    using global::ServiceControl.CustomChecks;
     using global::ServiceControl.CustomChecks.Internal;
     using global::ServiceControl.EventLog;
     using global::ServiceControl.ExternalIntegrations;
@@ -51,8 +53,9 @@ namespace Particular.ServiceControl
             ApiAssemblies = new List<Assembly>
             {
                 Assembly.GetExecutingAssembly(),
-                typeof(EventLogHostBuilderExtensions).Assembly,
-                typeof(CustomChecksHostBuilderExtensions).Assembly,
+                typeof(ConnectionController).Assembly,
+                typeof(EventLogApiController).Assembly,
+                typeof(CustomCheckController).Assembly,
             };
 
             CreateHost();
