@@ -149,7 +149,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var excludedAssemblies = new[]
             {
                 Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
+                "NServiceBus.CustomChecks",
+                "NServiceBus.Heartbeat"
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
 

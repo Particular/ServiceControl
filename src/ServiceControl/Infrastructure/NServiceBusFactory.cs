@@ -20,7 +20,7 @@ namespace ServiceBus.Management.Infrastructure
             {
                 configuration = new EndpointConfiguration(endpointName);
                 var assemblyScanner = configuration.AssemblyScanner();
-                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+                assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin", "NServiceBus.CustomChecks", "NServiceBus.Heartbeat");
             }
 
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
