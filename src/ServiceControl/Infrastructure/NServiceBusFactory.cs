@@ -53,6 +53,9 @@ namespace ServiceBus.Management.Infrastructure
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            configuration.Conventions().Conventions.AddSystemMessagesConventions(t => t.Namespace != null
+                                                                          && t.Namespace.StartsWith("ServiceControl.Plugin.")
+                                                                          && t.Namespace.EndsWith(".Messages"));
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
         }

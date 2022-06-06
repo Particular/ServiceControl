@@ -7,6 +7,9 @@
     using NServiceBus.Logging;
     using Raven.Client;
 
+    /// <summary>
+    /// Legacy from the time the main instance handled also audits.
+    /// </summary>
     class FailedAuditImportCustomCheck : CustomCheck
     {
         public FailedAuditImportCustomCheck(IDocumentStore store)
