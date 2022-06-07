@@ -6,10 +6,26 @@
     using Infrastructure.BackgroundTasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Hosting;
 
     public static class CustomChecksHostBuilderExtensions
     {
+        public static IHostBuilder UseCustomChecksWithForwarding(this IHostBuilder hostBuilder, string serviceName, string forwardTo)
+        {
+            hostBuilder.ConfigureServices(collection =>
+            {
+                collection.AddHostedService(provider => new InternalCustomChecksHostedService(
+                    provider.GetServices<ICustomCheck>().ToList(),
+                    provider.GetRequiredService<ICustomChecksBackend>(),
+                    provider.GetRequiredService<HostInformation>(),
+                    provider.GetRequiredService<IAsyncTimer>(),
+                    serviceName));
+                collection.AddSingleton<ICustomChecksBackend>(sc => new CustomChecksForwarder(sc.GetRequiredService<IMessageSession>(), forwardTo));
+            });
+            return hostBuilder;
+        }
+
         public static IHostBuilder UseCustomChecks(this IHostBuilder hostBuilder, string serviceName, bool settingsDisableHealthChecks = false)
         {
             hostBuilder.ConfigureServices(collection =>
@@ -18,7 +34,7 @@
                 {
                     collection.AddHostedService(provider => new InternalCustomChecksHostedService(
                         provider.GetServices<ICustomCheck>().ToList(),
-                        provider.GetRequiredService<CustomChecksStorage>(),
+                        provider.GetRequiredService<ICustomChecksBackend>(),
                         provider.GetRequiredService<HostInformation>(),
                         provider.GetRequiredService<IAsyncTimer>(),
                         serviceName));
@@ -28,7 +44,7 @@
                 collection.AddScoped<DeleteCustomChecksApi>();
 
                 collection.AddHostedService<CustomChecksHostedService>();
-                collection.AddSingleton<CustomChecksStorage>();
+                collection.AddSingleton<ICustomChecksBackend, CustomChecksStorage>();
 
                 collection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 collection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();

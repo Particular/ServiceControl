@@ -8,7 +8,7 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(CustomChecksStorage customChecks)
+        public ReportCustomCheckResultHandler(ICustomChecksBackend customChecks)
         {
             this.customChecks = customChecks;
         }
@@ -47,6 +47,6 @@
                 ).ConfigureAwait(false);
         }
 
-        CustomChecksStorage customChecks;
+        ICustomChecksBackend customChecks;
     }
 }

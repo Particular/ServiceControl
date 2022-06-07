@@ -9,7 +9,7 @@
 
     class InternalCustomCheckManager
     {
-        public InternalCustomCheckManager(CustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
+        public InternalCustomCheckManager(ICustomChecksBackend store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
         {
             this.store = store;
             this.check = check;
@@ -67,7 +67,7 @@
         public Task Stop() => timer?.Stop() ?? Task.CompletedTask;
 
         TimerJob timer;
-        readonly CustomChecksStorage store;
+        readonly ICustomChecksBackend store;
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;

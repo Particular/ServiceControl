@@ -7,7 +7,7 @@
     using Infrastructure.DomainEvents;
     using Raven.Client;
 
-    class CustomChecksStorage
+    class CustomChecksStorage : ICustomChecksBackend
     {
         public CustomChecksStorage(IDocumentStore store, IDomainEvents domainEvents)
         {

@@ -70,7 +70,7 @@
 
         class TestApi : ScatterGatherApiMessageView<NoInput>
         {
-            public TestApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+            public TestApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
             {
             }
 
