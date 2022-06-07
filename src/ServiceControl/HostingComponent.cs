@@ -1,7 +1,6 @@
 
 namespace Particular.ServiceControl
 {
-    using global::ServiceControl.Connection;
     using global::ServiceControl.CustomChecks.Internal;
     using global::ServiceControl.Operations;
     using Microsoft.Extensions.Hosting;
@@ -17,8 +16,6 @@ namespace Particular.ServiceControl
                 services.AddCustomCheck<CheckRemotes>();
                 services.AddCustomCheck<CheckFreeDiskSpace>();
                 services.AddCustomCheck<FailedAuditImportCustomCheck>();
-
-                services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
             });
 
         public override void Setup(Settings settings, IComponentSetupContext context)

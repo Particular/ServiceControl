@@ -15,20 +15,20 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    interface IApi
+    public interface IApi
     {
     }
 
     // used to hoist the static jsonSerializer field across the generic instances
-    abstract class ScatterGatherApiBase
+    public abstract class ScatterGatherApiBase
     {
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
-    abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
+    public abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        protected ScatterGatherApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)
+        protected ScatterGatherApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory)
         {
             Store = documentStore;
             Settings = settings;
@@ -36,7 +36,7 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected IDocumentStore Store { get; }
-        protected Settings Settings { get; }
+        protected RemoteInstanceSettings Settings { get; }
         protected Func<HttpClient> HttpClientFactory { get; }
 
         public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
@@ -44,8 +44,8 @@ namespace ServiceControl.CompositeViews.Messages
             var remotes = Settings.RemoteInstances;
             var currentRequest = controller.Request;
 
-            var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
-            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
+            var instanceId = InstanceIdGenerator.FromApiUrl(Settings.LocalApiUrl);
+            var tasks = new List<Task<QueryResult<TOut>>>(remotes.Count + 1)
             {
                 LocalCall(currentRequest, input, instanceId)
             };
@@ -167,7 +167,7 @@ namespace ServiceControl.CompositeViews.Messages
     abstract class ScatterGatherApiNoInput<TOut> : ScatterGatherApi<NoInput, TOut>
         where TOut : class
     {
-        protected ScatterGatherApiNoInput(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        protected ScatterGatherApiNoInput(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

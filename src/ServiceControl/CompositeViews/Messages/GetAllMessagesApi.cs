@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>
     {
-        public GetAllMessagesApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public GetAllMessagesApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

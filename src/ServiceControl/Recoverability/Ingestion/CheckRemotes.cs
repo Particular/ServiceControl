@@ -11,11 +11,11 @@
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
             remoteInstanceSetting = settings.RemoteInstances;
-            remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
+            remoteQueryTasks = new List<Task>(remoteInstanceSetting.Count);
         }
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
@@ -84,7 +84,7 @@
         }
 
         readonly Func<HttpClient> httpClientFactory;
-        RemoteInstanceSetting[] remoteInstanceSetting;
+        IReadOnlyCollection<RemoteInstanceSetting> remoteInstanceSetting;
         List<Task> remoteQueryTasks;
     }
 }

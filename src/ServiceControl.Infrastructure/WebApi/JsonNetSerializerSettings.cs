@@ -6,7 +6,7 @@
     using Newtonsoft.Json.Serialization;
     using SignalR;
 
-    class JsonNetSerializerSettings
+    public class JsonNetSerializerSettings
     {
         public static JsonSerializerSettings CreateDefault()
         {

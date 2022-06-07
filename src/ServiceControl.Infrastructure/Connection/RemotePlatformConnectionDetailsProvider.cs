@@ -11,10 +11,10 @@
 
     class RemotePlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
     {
-        readonly Settings settings;
+        readonly RemoteInstanceSettings settings;
         readonly Func<HttpClient> httpClientFactory;
 
-        public RemotePlatformConnectionDetailsProvider(Settings settings, Func<HttpClient> httpClientFactory)
+        public RemotePlatformConnectionDetailsProvider(RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
             this.httpClientFactory = httpClientFactory;

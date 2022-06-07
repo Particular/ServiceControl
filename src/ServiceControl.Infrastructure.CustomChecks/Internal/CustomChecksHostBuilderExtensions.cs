@@ -24,6 +24,9 @@
                         serviceName));
                 }
 
+                collection.AddScoped<GetCustomChecksApi>();
+                collection.AddScoped<DeleteCustomChecksApi>();
+
                 collection.AddHostedService<CustomChecksHostedService>();
                 collection.AddSingleton<CustomChecksStorage>();
 

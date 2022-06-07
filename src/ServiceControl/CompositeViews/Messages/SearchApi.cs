@@ -10,7 +10,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     class SearchApi : ScatterGatherApiMessageView<string>
     {
-        public SearchApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public SearchApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

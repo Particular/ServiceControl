@@ -10,7 +10,7 @@ namespace ServiceControl.SagaAudit
 
     class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
     {
-        public GetSagaByIdApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public GetSagaByIdApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

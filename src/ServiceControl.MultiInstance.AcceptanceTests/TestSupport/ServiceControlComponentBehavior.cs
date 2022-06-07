@@ -5,6 +5,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
@@ -12,9 +13,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings, Action<IHostBuilder> customizeHostBuilder, Action<IHostBuilder> customizeAuditHostBuilder)
         {
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
+            this.customizeHostBuilder = customizeHostBuilder;
+            this.customizeAuditHostBuilder = customizeAuditHostBuilder;
             this.customServiceControlSettings = customServiceControlSettings;
             this.customEndpointConfiguration = customEndpointConfiguration;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
@@ -27,7 +30,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, customEndpointConfiguration, customAuditEndpointConfiguration, customServiceControlSettings, customServiceControlAuditSettings);
+            runner = new ServiceControlComponentRunner(transportIntegration, customEndpointConfiguration, customAuditEndpointConfiguration, customServiceControlSettings, customServiceControlAuditSettings, customizeHostBuilder, customizeAuditHostBuilder);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
@@ -38,5 +41,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         ServiceControlComponentRunner runner;
         Action<Settings> customServiceControlSettings;
         Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<IHostBuilder> customizeHostBuilder;
+        Action<IHostBuilder> customizeAuditHostBuilder;
     }
 }

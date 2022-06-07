@@ -3,7 +3,7 @@
     using System;
     using System.Configuration;
 
-    class NullableSettingsReader<T> where T : struct
+    public class NullableSettingsReader<T> where T : struct
     {
         public static T? Read(string name)
         {

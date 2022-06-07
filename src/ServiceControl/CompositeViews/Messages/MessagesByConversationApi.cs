@@ -11,7 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     class MessagesByConversationApi : ScatterGatherApiMessageView<string>
     {
-        public MessagesByConversationApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public MessagesByConversationApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

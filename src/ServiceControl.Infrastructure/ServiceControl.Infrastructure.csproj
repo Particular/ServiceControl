@@ -5,12 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="7.7.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="RavenDB.Client" Version="3.5.10-patch-35311" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 

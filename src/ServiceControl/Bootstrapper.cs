@@ -135,7 +135,7 @@ namespace Particular.ServiceControl
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                     return configuration;
                 })
-                .UseCommonInfrastructure()
+                .UseCommonInfrastructure(settings.RemoteInstances, settings.ApiUrl)
                 .UseEventLog()
                 .UseExternalIntegrationEvents(settings.ExternalIntegrationsDispatchingBatchSize)
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
@@ -243,7 +243,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.Port,
                     settings.ProcessRetryBatchesFrequency,
                     settings.NotificationsFilter,
-                    settings.RemoteInstances,
+                    //TODO: How to print remote instances here
                     settings.RetryHistoryDepth,
                     settings.RunInMemory,
                     settings.SkipQueueCreation,

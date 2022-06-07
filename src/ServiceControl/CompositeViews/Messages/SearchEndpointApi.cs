@@ -11,7 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>
     {
-        public SearchEndpointApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public SearchEndpointApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

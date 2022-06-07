@@ -11,7 +11,7 @@
 
     class GetKnownEndpointsApi : ScatterGatherApi<EndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {
-        public GetKnownEndpointsApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public GetKnownEndpointsApi(IDocumentStore documentStore, RemoteInstanceSettings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 

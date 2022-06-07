@@ -9,6 +9,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -73,7 +75,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s), sc => CustomizeHostBuilder(sc), sc => CustomizeAuditHostBuilder(sc));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -116,6 +118,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };
         protected Action<Settings> CustomServiceControlSettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
+        protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
+        protected Action<IHostBuilder> CustomizeAuditHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;

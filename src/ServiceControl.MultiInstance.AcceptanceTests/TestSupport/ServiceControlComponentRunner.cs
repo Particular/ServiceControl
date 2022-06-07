@@ -32,10 +32,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings, Action<IHostBuilder> customizeHostBuilder, Action<IHostBuilder> customizeAuditHostBuilder)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
+            this.customizeHostBuilder = customizeHostBuilder;
+            this.customizeAuditHostBuilder = customizeAuditHostBuilder;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
             this.customEndpointConfiguration = customEndpointConfiguration;
             this.transportToUse = transportToUse;
@@ -194,6 +196,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
+                customizeHostBuilder(bootstrapper.HostBuilder);
+
                 host = bootstrapper.HostBuilder.Build();
                 await host.StartAsync().ConfigureAwait(false);
                 hosts[instanceName] = host;
@@ -335,6 +339,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     ctx.Stop().GetAwaiter().GetResult();
                 }, settings, configuration, loggingSettings);
 
+                customizeAuditHostBuilder(bootstrapper.HostBuilder);
+
                 host = bootstrapper.HostBuilder.Build();
 
                 await host.StartAsync().ConfigureAwait(false);
@@ -445,6 +451,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<IHostBuilder> customizeHostBuilder;
+        Action<IHostBuilder> customizeAuditHostBuilder;
         Action<Settings> customServiceControlSettings;
 
         class ForwardingHandler : DelegatingHandler

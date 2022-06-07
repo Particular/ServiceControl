@@ -1,6 +1,6 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    struct QueryStatsInfo
+    public struct QueryStatsInfo
     {
         public readonly string ETag;
         public readonly int TotalCount;
