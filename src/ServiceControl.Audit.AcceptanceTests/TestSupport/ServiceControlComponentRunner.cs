@@ -8,13 +8,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
-    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Auditing;
-    using Autofac;
     using Infrastructure;
     using Infrastructure.OWIN;
     using Infrastructure.Settings;
@@ -172,9 +170,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }, settings, configuration, loggingSettings);
 
                 bootstrapper.HostBuilder
-                    .ConfigureContainer<ContainerBuilder>(builder =>
-                        builder.RegisterType<FailedAuditsController>()
-                            .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray()));
+                    .ConfigureServices(s => s.AddTransient<FailedAuditsController>());
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
             }
@@ -182,8 +178,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
-                var startup = new Startup(lifetime);
+                var startup = new Startup(host.Services);
                 startup.Configuration(app, typeof(FailedAuditsController).Assembly);
                 var appFunc = app.Build();
 

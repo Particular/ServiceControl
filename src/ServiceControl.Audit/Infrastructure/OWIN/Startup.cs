@@ -9,16 +9,15 @@
     using System.Web.Http.Controllers;
     using System.Web.Http.Dependencies;
     using System.Web.Http.Dispatcher;
-    using Autofac;
-    using Autofac.Integration.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
     using Owin;
     using WebApi;
 
     class Startup
     {
-        public Startup(ILifetimeScope container)
+        public Startup(IServiceProvider serviceProvider)
         {
-            this.container = container;
+            container = serviceProvider;
         }
 
         public void Configuration(IAppBuilder appBuilder, Assembly additionalAssembly = null)
@@ -33,7 +32,7 @@
                 jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
                 config.Formatters.Remove(config.Formatters.XmlFormatter);
 
-                config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(new AutofacWebApiDependencyResolver(container));
+                config.DependencyResolver = new ServiceProviderDependencyResolver(container);
                 config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
                 config.Services.Replace(typeof(IHttpControllerTypeResolver), new InternalControllerTypeResolver());
                 config.MapHttpAttributeRoutes();
@@ -48,28 +47,43 @@
             });
         }
 
-        ILifetimeScope container;
+        IServiceProvider container;
     }
 
-    class ExternallyOwnedContainerDependencyResolver : IDependencyResolver
+    class ServiceProviderDependencyResolver : IDependencyResolver
     {
-        IDependencyResolver impl;
+        IServiceProvider serviceProvider;
 
-        public ExternallyOwnedContainerDependencyResolver(IDependencyResolver impl)
+        public ServiceProviderDependencyResolver(IServiceProvider serviceProvider)
         {
-            this.impl = impl;
+            this.serviceProvider = serviceProvider;
         }
 
         public void Dispose()
         {
-            //NOOP We don't dispose the underlying container
         }
 
-        public object GetService(Type serviceType) => impl.GetService(serviceType);
+        public object GetService(Type serviceType) => serviceProvider.GetService(serviceType);
 
-        public IEnumerable<object> GetServices(Type serviceType) => impl.GetServices(serviceType);
+        public IEnumerable<object> GetServices(Type serviceType) => serviceProvider.GetServices(serviceType);
 
-        public IDependencyScope BeginScope() => impl.BeginScope();
+        public IDependencyScope BeginScope() => new ServiceProviderScope(serviceProvider.CreateScope());
+
+        class ServiceProviderScope : IDependencyScope
+        {
+            readonly IServiceScope scope;
+
+            public ServiceProviderScope(IServiceScope scope)
+            {
+                this.scope = scope;
+            }
+
+            public void Dispose() => scope.Dispose();
+
+            public object GetService(Type serviceType) => scope.ServiceProvider.GetService(serviceType);
+
+            public IEnumerable<object> GetServices(Type serviceType) => scope.ServiceProvider.GetServices(serviceType);
+        }
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
