@@ -55,7 +55,7 @@
                 collection.AddDomainEventHandler<StoreHistoryHandler>();
                 collection.AddDomainEventHandler<FailedMessageRetryCleaner>();
 
-                //Return to sender
+                //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
                 collection.AddSingleton<ReturnToSenderDequeuer>();
                 collection.AddHostedService<ReturnToSenderDequeuer>();
 
