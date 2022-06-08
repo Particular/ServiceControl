@@ -14,6 +14,7 @@
   "DatabaseMaintenanceUrl": "http://localhost:33334",
   "ApiUrl": "http://localhost:8888/api",
   "StorageUrl": "http://localhost:8888/storage",
+  "StagingQueue": "Particular.ServiceControl.staging",
   "Port": 8888,
   "DatabaseMaintenancePort": 33334,
   "LicenseFileText": null,

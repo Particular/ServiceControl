@@ -10,7 +10,7 @@
     using Operations;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
+    using Infrastructure.RavenDB.Expiration;
 
     public class FailedErrorsCountReponse
     {
@@ -19,15 +19,15 @@
 
     public class FailedErrorsController : ApiController
     {
-        internal FailedErrorsController(IDocumentStore store, ErrorIngestionComponent importFailedAudits)
+        internal FailedErrorsController(IDocumentStore store, ImportFailedErrors importFailedErrors)
         {
             this.store = store;
-            this.importFailedAudits = importFailedAudits;
+            this.importFailedErrors = importFailedErrors;
         }
 
         [Route("failederrors/count")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetFailedAuditsCount()
+        public async Task<HttpResponseMessage> GetFailedErrorsCount()
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -46,10 +46,10 @@
 
         [Route("failederrors/import")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ImportFailedAudits(CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> ImportFailedErrors(CancellationToken cancellationToken = default)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            await importFailedAudits.ImportFailedErrors(tokenSource.Token);
+            await importFailedErrors.Run(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -72,6 +72,6 @@
         }
 
         readonly IDocumentStore store;
-        readonly ErrorIngestionComponent importFailedAudits;
+        readonly ImportFailedErrors importFailedErrors;
     }
 }

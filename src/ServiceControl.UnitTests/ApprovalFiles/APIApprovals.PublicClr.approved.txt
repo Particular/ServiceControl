@@ -87,6 +87,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool RunRetryProcessor { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
+        public string StagingQueue { get; }
         public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
@@ -443,11 +444,6 @@ namespace ServiceControl.Contracts.MessageRedirects
 }
 namespace ServiceControl.Contracts.Operations
 {
-    public class DefaultEnrichers : NServiceBus.Features.Feature
-    {
-        public DefaultEnrichers() { }
-        protected override void Setup(NServiceBus.Features.FeatureConfigurationContext context) { }
-    }
     public class EndpointDetails
     {
         public EndpointDetails() { }

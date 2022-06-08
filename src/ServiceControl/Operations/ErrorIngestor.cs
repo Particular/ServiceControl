@@ -5,26 +5,50 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
+    using BodyStorage;
+    using Contracts.Operations;
+    using EndpointControl.Handlers;
+    using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Raven.Client;
+    using Recoverability;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class ErrorIngestor
     {
-        public ErrorIngestor(ErrorProcessor errorProcessor, RetryConfirmationProcessor retryConfirmationProcessor, IDocumentStore store, Meter bulkInsertDurationMeter, bool forwardErrorMessages, string errorLogQueue)
+        static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
+
+        public ErrorIngestor(Metrics metrics,
+            IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
+            IFailedMessageEnricher[] failedMessageEnrichers,
+            IDomainEvents domainEvents,
+            IBodyStorage bodyStorage,
+            IDocumentStore store, Settings settings)
         {
-            this.errorProcessor = errorProcessor;
-            this.retryConfirmationProcessor = retryConfirmationProcessor;
             this.store = store;
-            this.bulkInsertDurationMeter = bulkInsertDurationMeter;
-            this.forwardErrorMessages = forwardErrorMessages;
-            this.errorLogQueue = errorLogQueue;
+            this.settings = settings;
+
+            bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
+            var ingestedMeter = metrics.GetCounter("Error ingestion - ingested");
+
+            var enrichers = new IEnrichImportedErrorMessages[]
+            {
+                new MessageTypeEnricher(),
+                new EnrichWithTrackingIds(),
+                new ProcessingStatisticsEnricher()
+
+            }.Concat(errorEnrichers).ToArray();
+
+            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
+            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter);
+            retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 
-        public async Task Ingest(List<MessageContext> contexts)
+        public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -59,13 +83,13 @@
 
                 await Task.WhenAll(announcerTasks).ConfigureAwait(false);
 
-                if (forwardErrorMessages)
+                if (settings.ForwardErrorMessages)
                 {
                     if (log.IsDebugEnabled)
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(storedFailed).ConfigureAwait(false);
+                    await Forward(storedFailed, dispatcher).ConfigureAwait(false);
                     if (log.IsDebugEnabled)
                     {
                         log.Debug("Forwarded messages");
@@ -133,7 +157,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, IDispatchMessages dispatcher)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -149,7 +173,7 @@
                 // Forwarded messages should last as long as possible
                 outgoingMessage.Headers.Remove(NServiceBus.Headers.TimeToBeReceived);
 
-                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(errorLogQueue));
+                transportOperations[index] = new TransportOperation(outgoingMessage, new UnicastAddressTag(settings.ErrorLogQueue));
                 index++;
             }
 
@@ -162,16 +186,7 @@
                 : Task.CompletedTask;
         }
 
-        public async Task Initialize(IDispatchMessages dispatcher)
-        {
-            this.dispatcher = dispatcher;
-            if (forwardErrorMessages)
-            {
-                await VerifyCanReachForwardingAddress().ConfigureAwait(false);
-            }
-        }
-
-        async Task VerifyCanReachForwardingAddress()
+        public async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
         {
             try
             {
@@ -180,7 +195,7 @@
                         new OutgoingMessage(Guid.Empty.ToString("N"),
                             new Dictionary<string, string>(),
                             new byte[0]),
-                        new UnicastAddressTag(errorLogQueue)
+                        new UnicastAddressTag(settings.ErrorLogQueue)
                     )
                 );
 
@@ -189,15 +204,13 @@
             }
             catch (Exception e)
             {
-                throw new Exception($"Unable to write to forwarding queue {errorLogQueue}", e);
+                throw new Exception($"Unable to write to forwarding queue {settings.ErrorLogQueue}", e);
             }
         }
 
-        bool forwardErrorMessages;
-        IDispatchMessages dispatcher;
-        string errorLogQueue;
         readonly IDocumentStore store;
         readonly Meter bulkInsertDurationMeter;
+        readonly Settings settings;
         ErrorProcessor errorProcessor;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
         static ILog log = LogManager.GetLogger<ErrorIngestor>();

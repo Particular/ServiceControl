@@ -8,8 +8,8 @@
     using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Operations;
     using Particular.ServiceControl;
+    using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
@@ -22,7 +22,6 @@
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
                 collection.AddSingleton<MonitoringDataStore>();
-                collection.AddSingleton<IEnrichImportedErrorMessages, DetectNewEndpointsFromErrorImportsEnricher>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
                 collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
@@ -33,6 +32,8 @@
 
                 collection.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
                 collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
+
+                collection.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
                 collection.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             });

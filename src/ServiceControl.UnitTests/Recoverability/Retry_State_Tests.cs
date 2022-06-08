@@ -13,6 +13,7 @@
     using NUnit.Framework;
     using Operations;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
@@ -318,7 +319,7 @@
     class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
     {
         public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, string endpointName)
-            : base(returnToSender, store, domainEvents, endpointName, null /* rawEndpointFactory */, "error")
+            : base(returnToSender, store, domainEvents, null, new Settings(endpointName))
         {
         }
 
