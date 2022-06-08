@@ -8,6 +8,11 @@
 
     static class DirectoryDeleter
     {
+        /// <summary>
+        /// Using Directory.Delete can result in an 'access denied' error. This method uses robocopy to first override the target directory with the "content" of a newly created empty directory (see. /MIR parameter of robocopy).
+        /// Then, access control to the target directory is re-established with the identity of the current user in order to lastly use Directory.Delete API.
+        /// https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/robocopy
+        /// </summary>
         public static void Delete(string path)
         {
             DirectoryInfo emptyTempDirectory = null;
