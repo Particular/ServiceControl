@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Setup
 {
     using System;
-    using Infrastructure.Installers;
     using NUnit.Framework;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using AcceptanceTesting;
+    using Infrastructure;
 
     [TestFixture]
     public class When_running_setup_command_integration_test
@@ -28,8 +28,8 @@
         }
 
         static void AssertEventLogSourceGotCreated() =>
-            Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName),
-                $"Expected Windows event viewer event source '{CreateEventSource.SourceName}' to have been created");
+            Assert.IsTrue(EventLog.SourceExists(EventSource.SourceName),
+                $"Expected Windows event viewer event source '{EventSource.SourceName}' to have been created");
 
         static void AssertQueuesGotCreated(AuditBinaries auditBinaries)
         {
@@ -69,9 +69,9 @@
         {
             try
             {
-                if (EventLog.SourceExists(CreateEventSource.SourceName))
+                if (EventLog.SourceExists(EventSource.SourceName))
                 {
-                    EventLog.DeleteEventSource(CreateEventSource.SourceName);
+                    EventLog.DeleteEventSource(EventSource.SourceName);
                 }
             }
             catch
@@ -79,8 +79,8 @@
                 // ignored
             }
 
-            Assert.IsTrue(EventLog.SourceExists(CreateEventSource.SourceName) == false,
-                $"Running this test requires elevated privileges. The test setup couldn't confirm windows event log source {CreateEventSource.SourceName} doesn't exists before starting the test execution");
+            Assert.IsTrue(EventLog.SourceExists(EventSource.SourceName) == false,
+                $"Running this test requires elevated privileges. The test setup couldn't confirm windows event log source {EventSource.SourceName} doesn't exists before starting the test execution");
         }
     }
 }

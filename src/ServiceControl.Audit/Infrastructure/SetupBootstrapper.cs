@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Auditing.BodyStorage.RavenAttachments;
@@ -71,6 +72,8 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             configuration.EnableInstallers(username);
+
+            await new EventSource().Create().ConfigureAwait(false);
 
             if (settings.SkipQueueCreation)
             {

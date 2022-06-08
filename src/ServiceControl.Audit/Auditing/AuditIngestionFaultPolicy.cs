@@ -4,7 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using Infrastructure.Installers;
+    using Infrastructure;
     using Infrastructure.Settings;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -94,15 +94,15 @@
 #if DEBUG
         async Task WriteEvent(string message)
         {
-            await new CreateEventSource().Install(null)
+            await new EventSource().Create()
                 .ConfigureAwait(false);
 
-            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventSource.SourceName, message, EventLogEntryType.Error);
         }
 #else
         Task WriteEvent(string message)
         {
-            EventLog.WriteEntry(CreateEventSource.SourceName, message, EventLogEntryType.Error);
+            EventLog.WriteEntry(EventSource.SourceName, message, EventLogEntryType.Error);
 
             return Task.FromResult(0);
         }

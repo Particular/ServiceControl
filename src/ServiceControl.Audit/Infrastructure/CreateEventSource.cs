@@ -1,12 +1,11 @@
-﻿namespace ServiceControl.Audit.Infrastructure.Installers
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using NServiceBus.Installation;
 
-    public class CreateEventSource : INeedToInstallSomething
+    class EventSource
     {
-        public Task Install(string identity)
+        public Task Create()
         {
             if (!EventLog.SourceExists(SourceName))
             {
