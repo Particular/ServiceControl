@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Linq;
+    using AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.AcceptanceTests.Setup
+﻿namespace ServiceControl.AcceptanceTesting
 {
     using System.Diagnostics;
     using System.IO;
@@ -6,7 +6,7 @@
     using System.Security.AccessControl;
     using System.Security.Principal;
 
-    static class DirectoryDeleter
+    public static class DirectoryDeleter
     {
         /// <summary>
         /// Using Directory.Delete can result in an 'access denied' error. This method uses robocopy to first override the target directory with the "content" of a newly created empty directory (see. /MIR parameter of robocopy).
