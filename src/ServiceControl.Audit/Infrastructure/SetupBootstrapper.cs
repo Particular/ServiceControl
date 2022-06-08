@@ -73,7 +73,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.EnableInstallers(username);
 
-            await new EventSource().Create().ConfigureAwait(false);
+            EventSource.Create();
 
             if (settings.SkipQueueCreation)
             {
