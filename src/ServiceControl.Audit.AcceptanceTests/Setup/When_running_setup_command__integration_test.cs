@@ -9,7 +9,7 @@
     using AcceptanceTesting;
 
     [TestFixture]
-    public class When_running_setup_command__integration_test
+    public class When_running_setup_command_integration_test
     {
         [Test]
         public void VerifySetupCommandBehavior()
