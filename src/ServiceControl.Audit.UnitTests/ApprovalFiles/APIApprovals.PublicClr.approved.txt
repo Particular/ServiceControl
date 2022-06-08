@@ -94,15 +94,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
     }
 }
-namespace ServiceControl.Audit.Infrastructure.Installers
-{
-    public class CreateEventSource : NServiceBus.Installation.INeedToInstallSomething
-    {
-        public const string SourceName = "ServiceControl.Audit";
-        public CreateEventSource() { }
-        public System.Threading.Tasks.Task Install(string identity) { }
-    }
-}
 namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
 {
     [System.ComponentModel.Composition.ExportMetadata("Bundle", "customDocumentExpiration")]
