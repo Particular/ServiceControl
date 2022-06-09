@@ -2,9 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
 
@@ -28,12 +26,37 @@
                 using (mlc)
                 {
                     var assembly = mlc.LoadFromAssemblyPath(exe);
-                    var attributeData = assembly.GetCustomAttributesData().SingleOrDefault(ca => ca.AttributeType.Name == "ReleaseDateAttribute");
 
-                    var dateString = (string)attributeData?.ConstructorArguments[0].Value;
-                    releaseDate = DateTime.ParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    // See ReleaseDateReader implementation of the licensing sources package
+                    var attributes = assembly.GetCustomAttributesData();
 
-                    return true;
+                    string currentMinorCommitDate = null;
+                    string commitDate = null;
+
+                    foreach (var attribute in attributes)
+                    {
+                        if (attribute.AttributeType.Name == "AssemblyMetadataAttribute" && attribute.ConstructorArguments.Count == 2)
+                        {
+                            if ((attribute.ConstructorArguments[0].Value as string) == "CurrentMinorCommitDate")
+                            {
+                                currentMinorCommitDate = (string)attribute.ConstructorArguments[1].Value;
+                            }
+                            else if ((attribute.ConstructorArguments[0].Value as string) == "CommitDate")
+                            {
+                                commitDate = (string)attribute.ConstructorArguments[1].Value;
+                            }
+                        }
+                    }
+
+                    var commitDateString = currentMinorCommitDate ?? commitDate;
+
+                    if (DateTimeOffset.TryParse(commitDateString, out var releaseDateOffset))
+                    {
+                        releaseDate = releaseDateOffset.UtcDateTime;
+                        return true;
+                    }
+
+                    return false;
                 }
             }
             catch
