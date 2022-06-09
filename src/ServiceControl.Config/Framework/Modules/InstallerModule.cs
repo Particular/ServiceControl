@@ -5,9 +5,9 @@ namespace ServiceControl.Config.Framework.Modules
     using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
+    using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
-    using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
     using Module = Autofac.Module;
@@ -222,6 +222,7 @@ namespace ServiceControl.Config.Framework.Modules
         internal CheckLicenseResult CheckLicenseIsValid()
         {
             var license = LicenseManager.FindLicense();
+
             if (license.Details.HasLicenseExpired())
             {
                 return new CheckLicenseResult(false, "License has expired");
@@ -232,16 +233,11 @@ namespace ServiceControl.Config.Framework.Modules
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
+            var releaseDate = LicenseManager.GetReleaseDate();
+
+            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-                {
-                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired");
-                }
-            }
-            else
-            {
-                throw new Exception("Failed to retrieve release date for new version");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired");
             }
 
             return new CheckLicenseResult(true);
@@ -432,6 +428,7 @@ namespace ServiceControl.Config.Framework.Modules
         internal CheckLicenseResult CheckLicenseIsValid()
         {
             var license = LicenseManager.FindLicense();
+
             if (license.Details.HasLicenseExpired())
             {
                 return new CheckLicenseResult(false, "License has expired");
@@ -442,16 +439,11 @@ namespace ServiceControl.Config.Framework.Modules
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
+            var releaseDate = LicenseManager.GetReleaseDate();
+
+            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-                {
-                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired");
-                }
-            }
-            else
-            {
-                throw new Exception("Failed to retrieve release date for new version");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired");
             }
 
             return new CheckLicenseResult(true);
