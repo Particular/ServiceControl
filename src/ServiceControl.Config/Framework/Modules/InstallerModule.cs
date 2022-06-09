@@ -237,7 +237,7 @@ namespace ServiceControl.Config.Framework.Modules
 
             if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired.");
             }
 
             return new CheckLicenseResult(true);
@@ -443,7 +443,7 @@ namespace ServiceControl.Config.Framework.Modules
 
             if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired.");
             }
 
             return new CheckLicenseResult(true);

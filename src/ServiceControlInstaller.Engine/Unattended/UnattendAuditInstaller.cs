@@ -223,7 +223,7 @@
 
             if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl.Upgrade protection expired");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired.");
             }
 
             return new CheckLicenseResult(true);
