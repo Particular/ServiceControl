@@ -94,6 +94,8 @@
             return true;
         }
 
+        public static DateTime GetReleaseDate() => ReleaseDateReader.GetReleaseDate();
+
         public static bool TryImportLicense(string licenseFile, out string errorMessage)
         {
             var licenseText = NonBlockingReader.ReadAllTextWithoutLocking(licenseFile);

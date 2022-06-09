@@ -7,8 +7,8 @@
     using FileSystem;
     using Instances;
     using ReportCard;
-    using Validation;
     using ServiceControl.LicenseManagement;
+    using Validation;
 
     public class UnattendAuditInstaller
     {
@@ -208,6 +208,7 @@
         internal CheckLicenseResult CheckLicenseIsValid()
         {
             var license = LicenseManager.FindLicense();
+
             if (license.Details.HasLicenseExpired())
             {
                 return new CheckLicenseResult(false, "License has expired");
@@ -218,16 +219,11 @@
                 return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
             }
 
-            if (ZipInfo.TryReadReleaseDate(out var releaseDate))
+            var releaseDate = LicenseManager.GetReleaseDate();
+
+            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
             {
-                if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-                {
-                    return new CheckLicenseResult(false, "License does not cover this release of ServiceControl.Upgrade protection expired");
-                }
-            }
-            else
-            {
-                throw new Exception("Failed to retrieve release date for new version");
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired.");
             }
 
             return new CheckLicenseResult(true);
