@@ -1,0 +1,104 @@
+name: Debug Package Temp
+on:
+  pull_request:
+env:
+  DOTNET_NOLOGO: true
+  # Signals build to create the installer
+  RELEASE_WORKFLOW: true
+jobs:
+  release:
+    runs-on: windows-2022 # Code signing requirement https://github.com/NuGet/Home/issues/7939
+    outputs:
+      semver: ${{ steps.save-version.outputs.semver }}
+      majorminorpatch: ${{ steps.save-version.outputs.majorminorpatch }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - name: Parse repo name
+        run: |
+          $FullName = "$env:GITHUB_REPOSITORY"
+          $Org,$RepoName = $FullName.Split('/')
+          echo "PARTICULAR_REPO_NAME=$RepoName" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v2.1.0
+        with:
+          dotnet-version: 6.0.x
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Setup Advanced Installer
+        run: |
+          $version = "18.8.1"
+          choco install advanced-installer --version=$version
+          & "C:\Program Files (x86)\Caphyon\Advanced Installer $version\bin\x86\AdvancedInstaller.com" /register ${{ secrets.ADVANCED_INSTALLER_LICENSE_KEY }}
+      - name: Install NuGetKeyVaultSignTool
+        run: dotnet tool install --global NuGetKeyVaultSignTool
+      - name: Prepare AIP file
+        run: |
+          $content = Get-Content -Raw -Path src/Setup/ServiceControl.aip
+          $content = $content -replace "replace-tenant-id", "${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}" -replace "replace-app-id", "${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}" -replace "replace-cert-name", "${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}"
+          Set-Content src/Setup/ServiceControl.aip $content
+      - name: Build
+        env:
+          AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
+        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - id: save-version
+        name: Save version
+        run: |
+          echo "::set-output name=semver::${{env.MinVerVersion}}"
+          echo "::set-output name=majorminorpatch::${{env.MinVerMajor}}.${{env.MinVerMinor}}.${{env.MinVerPatch}}"
+      - name: Publish installer
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: installer
+          path: assets/*
+          retention-days: 1
+      - name: Publish NuGet packages
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: nugets
+          path: nugets/*
+          retention-days: 1
+      - name: Publish zips
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: zips
+          path: zip/*
+          retention-days: 1
+      - name: Install Octopus CLI
+        uses: OctopusDeploy/install-octopus-cli-action@v1.1.8
+        with:
+          version: latest
+      - name: Create Octopus Package
+        run: |
+          # Creating the expected file layout for the Octopus package, including intermediate directories
+          mkdir -p packaging/content
+          cp assets\* .\packaging\content
+
+          # Octopus expects NuGet packages to have an extra .nzip extension for NuGet, .czip for Chocolatey
+          $nugets = Get-ChildItem -Path "./nugets/*.nupkg"
+          foreach ($file in $nugets) {
+            cp $file "./packaging/content/$($file.Name).nzip"
+          }
+
+          # Octopus Deploy scripts need an executable file to recreate this metadata
+          @"
+          `$Branch = "${{github.ref_name}}"
+          `$Version = "${{env.MinVerVersion}}"
+          `$Product = "${{env.PARTICULAR_REPO_NAME}}"
+          `$Major = "${{env.MinVerMajor}}"
+          `$Minor = "${{env.MinVerMinor}}"
+          `$Commit = "${{github.sha}}"
+          "@ > packaging/Metadata.ps1
+          
+          # Create the Octopus package
+          octo pack --id="${{env.PARTICULAR_REPO_NAME}}.Deploy" --version="${{env.MinVerVersion}}" --format="nupkg" --basePath="packaging" --outFolder="octopus-package"
+        shell: pwsh
+      - name: Publish Octopus Package Artifacts
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: octopus-package
+          path: octopus-package/*
+          retention-days: 1
