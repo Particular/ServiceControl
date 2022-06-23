@@ -43,7 +43,7 @@ jobs:
       - name: Build
         env:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+        run: msbuild src -p:Configuration=Release -restore -verbosity:minimal
       - id: save-version
         name: Save version
         run: |
