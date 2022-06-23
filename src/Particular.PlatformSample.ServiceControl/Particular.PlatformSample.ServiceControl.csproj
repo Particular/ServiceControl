@@ -12,10 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" PrivateAssets="All" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
   </ItemGroup>
 
   <ItemGroup>
