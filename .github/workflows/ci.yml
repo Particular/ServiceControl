@@ -64,7 +64,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Build
-        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+        run: msbuild src -p:Configuration=Release -restore -verbosity:minimal
       - name: Upload packages
         if: matrix.upload == true
         uses: actions/upload-artifact@v3.1.0
