@@ -69,7 +69,7 @@
                 catch (DecoderFallbackException e)
                 {
                     useBodyStore = true;
-                    log.Info($"Body for {bodyId} could not be stored embedded, fallback to body storage", e);
+                    log.Info($"Body for {bodyId} could not be stored embedded, fallback to body storage ({e.Message})");
                 }
             }
 
