@@ -47,7 +47,12 @@
         {
             var bodyId = processingAttempt.Headers.MessageId();
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-            var isBinary = contentType.Contains("binary");
+            var hasContentEncodingHeader = processingAttempt.Headers.ContainsKey("Content-Encoding"); // Used by community for compessed bodies similar to HTTP spec, presence indicates a binary payload
+            var isText = contentType.StartsWith("text/")
+                || contentType.EndsWith("/xml")
+                || contentType == ContentTypes.Json;
+            var isBinary = !isText || hasContentEncodingHeader;
+
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
             var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
