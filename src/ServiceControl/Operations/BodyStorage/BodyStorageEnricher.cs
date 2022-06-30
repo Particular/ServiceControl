@@ -43,21 +43,16 @@
             return contentType;
         }
 
+
+
         async ValueTask StoreBody(byte[] body, ProcessingAttempt processingAttempt, int bodySize, string contentType)
         {
             var bodyId = processingAttempt.Headers.MessageId();
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-            var hasContentEncodingHeader = processingAttempt.Headers.ContainsKey("Content-Encoding"); // Used by community for compessed bodies similar to HTTP spec, presence indicates a binary payload
-            var isText = contentType.StartsWith("text/")
-                || contentType.EndsWith("/xml")
-                || contentType == ContentTypes.Json
-                || !contentType.Contains("binary");
-
-            var isBinary = !isText || hasContentEncodingHeader;
 
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
-            var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
+            var useEmbeddedBody = avoidsLargeObjectHeap && !processingAttempt.Headers.IsBinary();
             var useBodyStore = !useEmbeddedBody;
 
             if (useEmbeddedBody)
