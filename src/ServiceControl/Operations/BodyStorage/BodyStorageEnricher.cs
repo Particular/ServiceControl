@@ -50,7 +50,9 @@
             var hasContentEncodingHeader = processingAttempt.Headers.ContainsKey("Content-Encoding"); // Used by community for compessed bodies similar to HTTP spec, presence indicates a binary payload
             var isText = contentType.StartsWith("text/")
                 || contentType.EndsWith("/xml")
-                || contentType == ContentTypes.Json;
+                || contentType == ContentTypes.Json
+                || !contentType.Contains("binary");
+
             var isBinary = !isText || hasContentEncodingHeader;
 
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
