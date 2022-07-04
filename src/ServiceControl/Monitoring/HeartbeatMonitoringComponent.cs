@@ -21,7 +21,7 @@
                 collection.AddSingleton<IDataMigration, PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration>();
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
-                collection.AddSingleton<RavenDbMonitoringDataStore>();
+                collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
                 collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();

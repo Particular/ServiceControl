@@ -10,7 +10,7 @@
 
     class HeartbeatMonitoringHostedService : IHostedService
     {
-        public HeartbeatMonitoringHostedService(EndpointInstanceMonitoring monitor, RavenDbMonitoringDataStore persistence, IAsyncTimer scheduler, Settings settings)
+        public HeartbeatMonitoringHostedService(EndpointInstanceMonitoring monitor, IMonitoringDataStore persistence, IAsyncTimer scheduler, Settings settings)
         {
             this.monitor = monitor;
             this.persistence = persistence;
@@ -48,7 +48,7 @@
         }
 
         EndpointInstanceMonitoring monitor;
-        RavenDbMonitoringDataStore persistence;
+        IMonitoringDataStore persistence;
         IAsyncTimer scheduler;
         TimerJob timer;
         TimeSpan gracePeriod;
