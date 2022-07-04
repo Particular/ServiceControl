@@ -55,8 +55,7 @@
                             UPDATE [KnownEndpoints] SET [Monitored] = @Monitored WHERE [Id] = @Id
                           ELSE
                             INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
-                            VALUES(@Id, @HostId, @Host, @HostDisplayName, 1)
-                          END",
+                            VALUES(@Id, @HostId, @Host, @HostDisplayName, 1)",
                     new
                     {
                         Id = id,
@@ -109,5 +108,19 @@
                 }
             }
         }
+
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable CS0414
+        static string CreateKnownEndpointsTable = @"
+CREATE TABLE [dbo].[KnownEndpoints](
+	[Id] [uniqueidentifier] NOT NULL,
+	[HostId] [uniqueidentifier] NOT NULL,
+	[Host] [nvarchar](300) NULL,
+	[HostDisplayName] [nvarchar](300) NULL,
+	[Monitored] [bit] NOT NULL
+) ON [PRIMARY]"
+#pragma warning restore CS0414
+#pragma warning restore IDE0044 // Add readonly modifier
+;
     }
 }
