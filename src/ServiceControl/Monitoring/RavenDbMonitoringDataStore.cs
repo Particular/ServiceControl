@@ -6,9 +6,9 @@
     using Infrastructure;
     using Raven.Client;
 
-    class MonitoringDataStore
+    class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
-        public MonitoringDataStore(IDocumentStore store, EndpointInstanceMonitoring monitoring)
+        public RavenDbMonitoringDataStore(IDocumentStore store, EndpointInstanceMonitoring monitoring)
         {
             this.store = store;
             this.monitoring = monitoring;

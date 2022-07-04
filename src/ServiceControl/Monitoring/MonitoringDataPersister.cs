@@ -12,31 +12,31 @@
         IDomainHandler<MonitoringEnabledForEndpoint>,
         IDomainHandler<MonitoringDisabledForEndpoint>
     {
-        public MonitoringDataPersister(MonitoringDataStore monitoringDataStore)
+        public MonitoringDataPersister(RavenDbMonitoringDataStore ravenDbMonitoringDataStore)
         {
-            this.monitoringDataStore = monitoringDataStore;
+            this._ravenDbMonitoringDataStore = ravenDbMonitoringDataStore;
         }
 
         public Task Handle(EndpointDetected domainEvent)
         {
-            return monitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
+            return _ravenDbMonitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
         }
 
         public Task Handle(HeartbeatingEndpointDetected domainEvent)
         {
-            return monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint);
+            return _ravenDbMonitoringDataStore.CreateOrUpdate(domainEvent.Endpoint);
         }
 
         public Task Handle(MonitoringEnabledForEndpoint domainEvent)
         {
-            return monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
+            return _ravenDbMonitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
         }
 
         public Task Handle(MonitoringDisabledForEndpoint domainEvent)
         {
-            return monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
+            return _ravenDbMonitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
         }
 
-        MonitoringDataStore monitoringDataStore;
+        RavenDbMonitoringDataStore _ravenDbMonitoringDataStore;
     }
 }
