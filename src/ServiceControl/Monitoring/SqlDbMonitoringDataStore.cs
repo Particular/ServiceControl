@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring
 {
-    using System;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Contracts.Operations;
@@ -9,17 +8,17 @@
 
     class SqlDbMonitoringDataStore : IMonitoringDataStore
     {
+        readonly string connectionString;
         readonly EndpointInstanceMonitoring monitoring;
 
-        public SqlDbMonitoringDataStore(EndpointInstanceMonitoring monitoring)
+        public SqlDbMonitoringDataStore(string connectionString, EndpointInstanceMonitoring monitoring)
         {
+            this.connectionString = connectionString;
             this.monitoring = monitoring;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
-            var connectionString = Environment.GetEnvironmentVariable("SQLServerConnectionString");
-
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
             using (var connection = new SqlConnection(connectionString))
@@ -27,8 +26,11 @@
                 await connection.OpenAsync().ConfigureAwait(false);
 
                 await connection.ExecuteAsync(
-                    @"INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
-                          VALUES(@Id, @HostId, @Host, @HostDisplayName, @Monitored)",
+                    @"IF NOT EXISTS(SELECT * FROM [KnownEndpoints] WHERE Id = @Id)
+                          BEGIN
+                            INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
+                            VALUES(@Id, @HostId, @Host, @HostDisplayName, @Monitored)
+                          END",
                     new
                     {
                         Id = id,
@@ -42,8 +44,6 @@
 
         public async Task CreateOrUpdate(EndpointDetails endpoint)
         {
-            var connectionString = Environment.GetEnvironmentVariable("SQLServerConnectionString");
-
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
             using (var connection = new SqlConnection(connectionString))
@@ -69,8 +69,6 @@
 
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
-            var connectionString = Environment.GetEnvironmentVariable("SQLServerConnectionString");
-
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
             using (var connection = new SqlConnection(connectionString))
@@ -89,8 +87,6 @@
 
         public async Task WarmupMonitoringFromPersistence()
         {
-            var connectionString = Environment.GetEnvironmentVariable("SQLServerConnectionString");
-
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync().ConfigureAwait(false);

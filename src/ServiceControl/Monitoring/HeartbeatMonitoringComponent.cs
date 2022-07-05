@@ -21,7 +21,16 @@
                 collection.AddSingleton<IDataMigration, PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration>();
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
-                collection.AddSingleton<IMonitoringDataStore, SqlDbMonitoringDataStore>();
+
+                if (settings.SqlStorageEnabled)
+                {
+                    collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString, sp.GetRequiredService<EndpointInstanceMonitoring>()));
+                }
+                else
+                {
+                    collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+                }
+
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
                 collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();

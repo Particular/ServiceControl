@@ -52,6 +52,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+            SqlStorageEnabled = SettingsReader<bool>.Read("SqlStorageEnabled");
+            SqlStorageConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
         }
 
         public string NotificationsFilter { get; set; }
@@ -204,6 +206,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool DisableHealthChecks { get; set; }
 
         public bool ExposeApi { get; set; } = true;
+
+        public bool SqlStorageEnabled { get; set; }
+
+        public string SqlStorageConnectionString { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
