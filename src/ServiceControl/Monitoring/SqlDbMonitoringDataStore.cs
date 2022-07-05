@@ -105,18 +105,32 @@
             }
         }
 
-#pragma warning disable IDE0044 // Add readonly modifier
-#pragma warning disable CS0414
-        static string CreateKnownEndpointsTable = @"
-CREATE TABLE [dbo].[KnownEndpoints](
-	[Id] [uniqueidentifier] NOT NULL,
-	[HostId] [uniqueidentifier] NOT NULL,
-	[Host] [nvarchar](300) NULL,
-	[HostDisplayName] [nvarchar](300) NULL,
-	[Monitored] [bit] NOT NULL
-) ON [PRIMARY]"
-#pragma warning restore CS0414
-#pragma warning restore IDE0044 // Add readonly modifier
-;
+        public static async Task Setup(string connectionString)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+
+                var createCommand = $@"
+                    IF NOT EXISTS (
+                         SELECT *
+                         FROM {catalog}.sys.objects
+                         WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
+                       )
+                       BEGIN
+                           CREATE TABLE [dbo].[KnownEndpoints](
+	                           [Id] [uniqueidentifier] NOT NULL,
+	                           [HostId] [uniqueidentifier] NOT NULL,
+	                           [Host] [nvarchar](300) NULL,
+	                           [HostDisplayName] [nvarchar](300) NULL,
+	                           [Monitored] [bit] NOT NULL
+                           ) ON [PRIMARY]
+                       END";
+
+                connection.Open();
+
+                await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
+            }
+        }
     }
 }
