@@ -14,7 +14,7 @@
     {
         public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore)
         {
-            this._monitoringDataStore = monitoringDataStore;
+            _monitoringDataStore = monitoringDataStore;
         }
 
         public Task Handle(EndpointDetected domainEvent)
