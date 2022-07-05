@@ -27,6 +27,13 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 * `AWS_SECRET_ACCESS_KEY`: For testing SQS
 * `AWS_REGION`: For testing SQS
 
+## Running the Tests
+The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown.
+In Visual Studio, ensure test execution is using x64 only: 
+
+![image](https://user-images.githubusercontent.com/4316196/177248330-c7357e85-b7a1-4cec-992f-535b1e9a0cb4.png)
+
+
 ## How to build and run Docker images
 
 NOTE: The following scripts are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
