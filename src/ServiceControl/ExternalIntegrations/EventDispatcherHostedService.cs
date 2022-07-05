@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reactive.Linq;
     using System.Threading;
@@ -103,7 +104,7 @@
                 if (more && !cancellationToken.IsCancellationRequested)
                 {
                     //if there is more events to dispatch we sleep for a bit and then we go again
-                    await Task.Delay(1000, CancellationToken.None).ConfigureAwait(false);
+                    await Task.Delay(100, CancellationToken.None).ConfigureAwait(false);
                 }
             }
             while (!cancellationToken.IsCancellationRequested && more);
@@ -140,6 +141,7 @@
                     eventsToBePublished.AddRange(events);
                 }
 
+                var tasks = new List<Task>();
                 foreach (var eventToBePublished in eventsToBePublished)
                 {
                     if (Logger.IsDebugEnabled)
@@ -147,32 +149,38 @@
                         Logger.Debug("Publishing external event on the bus.");
                     }
 
-                    try
+                    async Task Publish()
                     {
-                        await messageSession.Publish(eventToBePublished)
-                            .ConfigureAwait(false);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error("Failed dispatching external integration event.", e);
-
-                        var m = new ExternalIntegrationEventFailedToBePublished
-                        {
-                            EventType = eventToBePublished.GetType()
-                        };
                         try
                         {
-                            m.Reason = e.GetBaseException().Message;
+                            await messageSession.Publish(eventToBePublished)
+                                .ConfigureAwait(false);
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
-                            m.Reason = "Failed to retrieve reason!";
-                        }
+                            Logger.Error("Failed dispatching external integration event.", e);
 
-                        await domainEvents.Raise(m)
-                            .ConfigureAwait(false);
+                            var m = new ExternalIntegrationEventFailedToBePublished
+                            {
+                                EventType = eventToBePublished.GetType()
+                            };
+                            try
+                            {
+                                m.Reason = e.GetBaseException().Message;
+                            }
+                            catch (Exception)
+                            {
+                                m.Reason = "Failed to retrieve reason!";
+                            }
+
+                            await domainEvents.Raise(m)
+                                .ConfigureAwait(false);
+                        }
                     }
+                    tasks.Add(Publish());
                 }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {
