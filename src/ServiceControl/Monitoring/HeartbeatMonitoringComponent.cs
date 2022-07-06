@@ -31,7 +31,7 @@
                         collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
                         break;
                     case DataStoreType.SqlDb:
-                        collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString, sp.GetRequiredService<EndpointInstanceMonitoring>()));
+                        collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString));
                         break;
                     default:
                         break;

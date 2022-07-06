@@ -12,9 +12,10 @@
         IDomainHandler<MonitoringEnabledForEndpoint>,
         IDomainHandler<MonitoringDisabledForEndpoint>
     {
-        public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore)
+        public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             _monitoringDataStore = monitoringDataStore;
+            _endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
         public Task Handle(EndpointDetected domainEvent)
@@ -24,7 +25,7 @@
 
         public Task Handle(HeartbeatingEndpointDetected domainEvent)
         {
-            return _monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint);
+            return _monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint, _endpointInstanceMonitoring);
         }
 
         public Task Handle(MonitoringEnabledForEndpoint domainEvent)
@@ -38,5 +39,6 @@
         }
 
         IMonitoringDataStore _monitoringDataStore;
+        EndpointInstanceMonitoring _endpointInstanceMonitoring;
     }
 }

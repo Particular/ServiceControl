@@ -7,9 +7,9 @@
     interface IMonitoringDataStore
     {
         Task CreateIfNotExists(EndpointDetails endpoint);
-        Task CreateOrUpdate(EndpointDetails endpoint);
+        Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring);
         Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored);
-        Task WarmupMonitoringFromPersistence();
+        Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring);
         Task Delete(Guid endpointId);
     }
 }

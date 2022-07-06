@@ -10,12 +10,10 @@ namespace ServiceControl.Monitoring
 
     class InMemoryMonitoringDataStore : IMonitoringDataStore
     {
-        readonly EndpointInstanceMonitoring monitoring;
         List<InMemoryEndpoint> endpoints;
 
-        public InMemoryMonitoringDataStore(EndpointInstanceMonitoring monitoring)
+        public InMemoryMonitoringDataStore()
         {
-            this.monitoring = monitoring;
             endpoints = new List<InMemoryEndpoint>();
         }
 
@@ -37,7 +35,7 @@ namespace ServiceControl.Monitoring
             }
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -55,7 +53,7 @@ namespace ServiceControl.Monitoring
             }
             else
             {
-                inMemoryEndpoint.Monitored = monitoring.IsMonitored(id);
+                inMemoryEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
             }
         }
 
@@ -77,17 +75,17 @@ namespace ServiceControl.Monitoring
             var inMemoryEndpoint = endpoints.Where(a => a.Id == id).FirstOrDefault();
             if (inMemoryEndpoint != null)
             {
-                inMemoryEndpoint.Monitored = monitoring.IsMonitored(id);
+                inMemoryEndpoint.Monitored = isMonitored;
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence()
+        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             if (endpoints != null)
             {
                 endpoints.ForEach(e =>
                 {
-                    monitoring.DetectEndpointFromPersistentStore(new EndpointDetails
+                    endpointInstanceMonitoring.DetectEndpointFromPersistentStore(new EndpointDetails
                     {
                         HostId = e.HostId,
                         Host = e.Host,

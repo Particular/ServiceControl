@@ -9,10 +9,9 @@
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
-        public RavenDbMonitoringDataStore(IDocumentStore store, EndpointInstanceMonitoring monitoring)
+        public RavenDbMonitoringDataStore(IDocumentStore store)
         {
             this.store = store;
-            this.monitoring = monitoring;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
@@ -44,7 +43,7 @@
             }
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -67,7 +66,7 @@
                 }
                 else
                 {
-                    knownEndpoint.Monitored = monitoring.IsMonitored(id);
+                    knownEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
                 }
 
                 await session.SaveChangesAsync()
@@ -94,7 +93,7 @@
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence()
+        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -105,7 +104,7 @@
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
 
-                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
+                        endpointInstanceMonitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                     }
                 }
             }
@@ -121,6 +120,5 @@
         }
 
         IDocumentStore store;
-        EndpointInstanceMonitoring monitoring;
     }
 }

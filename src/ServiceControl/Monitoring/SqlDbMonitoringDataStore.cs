@@ -10,12 +10,10 @@
     class SqlDbMonitoringDataStore : IMonitoringDataStore
     {
         readonly string connectionString;
-        readonly EndpointInstanceMonitoring monitoring;
 
-        public SqlDbMonitoringDataStore(string connectionString, EndpointInstanceMonitoring monitoring)
+        public SqlDbMonitoringDataStore(string connectionString)
         {
             this.connectionString = connectionString;
-            this.monitoring = monitoring;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
@@ -43,7 +41,7 @@
             }
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -63,7 +61,7 @@
                         endpoint.HostId,
                         endpoint.Host,
                         HostDisplayName = endpoint.Name,
-                        Monitored = monitoring.IsMonitored(id)
+                        Monitored = endpointInstanceMonitoring.IsMonitored(id)
                     }).ConfigureAwait(false);
             }
         }
@@ -86,7 +84,7 @@
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence()
+        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -96,7 +94,7 @@
 
                 foreach (dynamic row in rows)
                 {
-                    monitoring.DetectEndpointFromPersistentStore(new EndpointDetails
+                    endpointInstanceMonitoring.DetectEndpointFromPersistentStore(new EndpointDetails
                     {
                         HostId = row.HostId,
                         Host = row.Host,
