@@ -1,6 +1,7 @@
 
 namespace Particular.ServiceControl
 {
+    using System.Threading.Tasks;
     using global::ServiceControl.Connection;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -15,9 +16,10 @@ namespace Particular.ServiceControl
                 services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
             });
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override Task Setup(Settings settings, IComponentSetupContext context)
         {
             context.CreateQueue(settings.ServiceName);
+            return Task.CompletedTask;
         }
     }
 }

@@ -120,7 +120,7 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override Task Setup(Settings settings, IComponentSetupContext context)
         {
             context.CreateQueue(settings.StagingQueue);
 
@@ -135,6 +135,7 @@
             }
 
             context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
+            return Task.CompletedTask;
         }
 
         class FailedMessageNotificationsHostedService : IHostedService

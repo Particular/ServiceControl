@@ -27,9 +27,5 @@
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
             });
         }
-
-        public override void Setup(Settings settings, IComponentSetupContext context)
-        {
-        }
     }
 }

@@ -54,8 +54,13 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override async Task Setup(Settings settings, IComponentSetupContext context)
         {
+            if (settings.DataStoreType == DataStoreType.SqlDb)
+            {
+                await SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

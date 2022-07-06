@@ -35,7 +35,8 @@ namespace Particular.ServiceControl
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                component.Setup(settings, componentSetupContext);
+                await component.Setup(settings, componentSetupContext)
+                    .ConfigureAwait(false);
             }
 
             if (!settings.RunInMemory) //RunInMemory is used in acceptance tests
@@ -48,11 +49,6 @@ namespace Particular.ServiceControl
                 }
             }
             EventSourceCreator.Create();
-
-            if (settings.DataStoreType == DataStoreType.SqlDb)
-            {
-                await SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString).ConfigureAwait(false);
-            }
 
             if (settings.SkipQueueCreation)
             {
