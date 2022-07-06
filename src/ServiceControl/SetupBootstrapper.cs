@@ -34,8 +34,12 @@ namespace Particular.ServiceControl
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
-                await component.Setup(settings, componentSetupContext)
-                    .ConfigureAwait(false);
+                component.Setup(settings, componentSetupContext);
+            }
+
+            foreach (var setupTask in componentSetupContext.SetupTasks)
+            {
+                await setupTask().ConfigureAwait(false);
             }
 
             if (!settings.RunInMemory) //RunInMemory is used in acceptance tests

@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.SagaAudit
 {
-    using System.Threading.Tasks;
     using CustomChecks;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
@@ -16,10 +15,6 @@
             });
         }
 
-        public override Task Setup(Settings settings, IComponentSetupContext context)
-        {
-            context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
-            return Task.CompletedTask;
-        }
+        public override void Setup(Settings settings, IComponentSetupContext context) => context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
     }
 }

@@ -52,7 +52,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = SettingsReader<DataStoreType>.Read("DataStoreType", DataStoreType.RavenDb);
+            DataStoreType = GetDataStoreType();
             SqlStorageConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
         }
 
@@ -207,7 +207,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
 
-        public DataStoreType DataStoreType { get; set; }
+        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDb;
 
         public string SqlStorageConnectionString { get; set; }
 
@@ -524,6 +524,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             return threshold;
+        }
+
+
+        DataStoreType GetDataStoreType()
+        {
+            var value = SettingsReader<string>.Read("DataStoreType", "DataStoreType.RavenDb");
+
+            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }
 
         void TryLoadLicenseFromConfig()

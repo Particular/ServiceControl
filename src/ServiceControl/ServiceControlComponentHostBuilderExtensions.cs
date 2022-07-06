@@ -12,8 +12,7 @@ namespace Particular.ServiceControl
             hostBuilder.ConfigureServices(services => services.AddSingleton(componentContext));
             foreach (var component in components)
             {
-                // TODO: Fix this async call
-                component.Setup(settings, componentContext).GetAwaiter().GetResult();
+                component.Setup(settings, componentContext);
                 component.Configure(settings, hostBuilder);
             }
 

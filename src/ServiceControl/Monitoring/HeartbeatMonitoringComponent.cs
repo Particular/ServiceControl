@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Monitoring
 {
-    using System.Threading.Tasks;
     using Connection;
     using EndpointControl.Handlers;
     using EventLog;
@@ -55,12 +54,11 @@
             });
         }
 
-        public override async Task Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentSetupContext context)
         {
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                await SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString)
-                    .ConfigureAwait(false);
+                context.RegisterSetupTask(() => SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString));
             }
         }
     }
