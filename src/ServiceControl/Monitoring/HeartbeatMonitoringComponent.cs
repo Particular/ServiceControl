@@ -22,13 +22,19 @@
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
 
-                if (settings.SqlStorageEnabled)
+                switch (settings.DataStoreType)
                 {
-                    collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString, sp.GetRequiredService<EndpointInstanceMonitoring>()));
-                }
-                else
-                {
-                    collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+                    case DataStoreType.InMemory:
+                        collection.AddSingleton<IMonitoringDataStore, InMemoryMonitoringDataStore>();
+                        break;
+                    case DataStoreType.RavenDb:
+                        collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+                        break;
+                    case DataStoreType.SqlDb:
+                        collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString, sp.GetRequiredService<EndpointInstanceMonitoring>()));
+                        break;
+                    default:
+                        break;
                 }
 
                 collection.AddDomainEventHandler<MonitoringDataPersister>();

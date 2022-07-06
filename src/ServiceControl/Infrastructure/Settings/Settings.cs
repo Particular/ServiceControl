@@ -52,7 +52,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            SqlStorageEnabled = SettingsReader<bool>.Read("SqlStorageEnabled");
+            DataStoreType = SettingsReader<DataStoreType>.Read("DataStoreType", DataStoreType.RavenDb);
             SqlStorageConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
         }
 
@@ -207,7 +207,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
 
-        public bool SqlStorageEnabled { get; set; }
+        public DataStoreType DataStoreType { get; set; }
 
         public string SqlStorageConnectionString { get; set; }
 

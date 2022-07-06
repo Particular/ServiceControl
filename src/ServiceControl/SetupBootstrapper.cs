@@ -49,7 +49,7 @@ namespace Particular.ServiceControl
             }
             EventSourceCreator.Create();
 
-            if (settings.SqlStorageEnabled)
+            if (settings.DataStoreType == DataStoreType.SqlDb)
             {
                 await SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString).ConfigureAwait(false);
             }
