@@ -4,7 +4,6 @@ namespace Particular.ServiceControl
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
-    using global::ServiceControl.Monitoring;
     using global::ServiceControl.Transports;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;

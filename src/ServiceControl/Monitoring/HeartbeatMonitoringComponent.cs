@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System.Threading.Tasks;
     using Connection;
     using EndpointControl.Handlers;
     using EventLog;
