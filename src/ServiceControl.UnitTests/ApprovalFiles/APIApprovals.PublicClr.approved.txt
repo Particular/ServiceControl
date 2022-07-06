@@ -32,6 +32,12 @@ namespace ServiceBus.Management.Infrastructure.Installers
 }
 namespace ServiceBus.Management.Infrastructure.Settings
 {
+    public enum DataStoreType
+    {
+        InMemory = 1,
+        RavenDb = 2,
+        SqlDb = 3,
+    }
     public class RemoteInstanceSetting
     {
         public RemoteInstanceSetting() { }
@@ -50,6 +56,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string ApiUrl { get; }
         public System.TimeSpan? AuditRetentionPeriod { get; }
         public int DataSpaceRemainingThreshold { get; set; }
+        public ServiceBus.Management.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
@@ -87,6 +94,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool RunRetryProcessor { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
+        public string SqlStorageConnectionString { get; set; }
         public string StagingQueue { get; }
         public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
