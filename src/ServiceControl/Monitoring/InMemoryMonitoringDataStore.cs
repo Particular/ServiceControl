@@ -17,8 +17,7 @@ namespace ServiceControl.Monitoring
             endpoints = new List<InMemoryEndpoint>();
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public async Task CreateIfNotExists(EndpointDetails endpoint)
+        public Task CreateIfNotExists(EndpointDetails endpoint)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -33,9 +32,11 @@ namespace ServiceControl.Monitoring
                     Monitored = true
                 });
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -55,6 +56,8 @@ namespace ServiceControl.Monitoring
             {
                 inMemoryEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
             }
+
+            return Task.CompletedTask;
         }
 
         public Task Delete(Guid endpointId)
@@ -68,7 +71,7 @@ namespace ServiceControl.Monitoring
             return Task.CompletedTask;
         }
 
-        public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
+        public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
@@ -77,9 +80,11 @@ namespace ServiceControl.Monitoring
             {
                 inMemoryEndpoint.Monitored = isMonitored;
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             if (endpoints != null)
             {
@@ -93,8 +98,9 @@ namespace ServiceControl.Monitoring
                     }, e.Monitored);
                 });
             }
+
+            return Task.CompletedTask;
         }
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 
     class InMemoryEndpoint
