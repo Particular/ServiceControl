@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Contracts.Operations;
@@ -102,6 +103,21 @@
                         Name = row.HostDisplayName
                     }, row.Monitored);
                 }
+            }
+        }
+
+        public async Task Delete(Guid endpointId)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+
+                await connection.ExecuteAsync(
+                    @"DELETE FROM [dbo].[KnownEndpoints] WHERE [Id] = @Id",
+                    new
+                    {
+                        Id = endpointId
+                    }).ConfigureAwait(false);
             }
         }
 

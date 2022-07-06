@@ -7,7 +7,6 @@
     using System.Web.Http;
     using System.Web.Http.Results;
     using CompositeViews.Endpoints;
-    using Raven.Client;
 
     public class EndpointUpdateModel
     {
@@ -16,12 +15,12 @@
 
     public class EndpointsMonitoringController : ApiController
     {
-        readonly IDocumentStore documentStore;
+        readonly IMonitoringDataStore monitoringDataStore;
 
-        internal EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IDocumentStore documentStore)
+        internal EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
         {
-            this.documentStore = documentStore;
             this.getKnownEndpointsApi = getKnownEndpointsApi;
+            this.monitoringDataStore = monitoringDataStore;
             endpointInstanceMonitoring = monitoring;
         }
 
@@ -59,18 +58,10 @@
                 return StatusCode(HttpStatusCode.NotFound);
             }
 
-            await DeletePersistedEndpoint(endpointId).ConfigureAwait(false);
+            await monitoringDataStore.Delete(endpointId).ConfigureAwait(false);
+
             endpointInstanceMonitoring.RemoveEndpoint(endpointId);
             return StatusCode(HttpStatusCode.NoContent);
-        }
-
-        async Task DeletePersistedEndpoint(Guid endpointId)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                session.Delete<KnownEndpoint>(endpointId);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
         }
 
         [Route("endpoints/known")]

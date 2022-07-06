@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System;
     using System.Threading.Tasks;
     using Contracts.Operations;
 
@@ -9,5 +10,6 @@
         Task CreateOrUpdate(EndpointDetails endpoint);
         Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored);
         Task WarmupMonitoringFromPersistence();
+        Task Delete(Guid endpointId);
     }
 }

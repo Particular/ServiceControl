@@ -59,6 +59,17 @@ namespace ServiceControl.Monitoring
             }
         }
 
+        public Task Delete(Guid endpointId)
+        {
+            var endpoint = endpoints.FirstOrDefault(e => e.Id == endpointId);
+            if (endpoint != null)
+            {
+                endpoints.Remove(endpoint);
+            }
+
+            return Task.CompletedTask;
+        }
+
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());

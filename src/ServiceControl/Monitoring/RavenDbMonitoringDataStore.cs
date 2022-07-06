@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
+    using System;
     using System.Threading.Tasks;
     using Audit.Monitoring;
     using Contracts.Operations;
@@ -107,6 +108,15 @@
                         monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                     }
                 }
+            }
+        }
+
+        public async Task Delete(Guid endpointId)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                session.Delete<KnownEndpoint>(endpointId);
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
