@@ -104,7 +104,7 @@ namespace ServiceControl.Monitoring
 
         public Task EnableMonitoring(Guid id) => endpoints[id]?.EnableMonitoring();
         public Task DisableMonitoring(Guid id) => endpoints[id]?.DisableMonitoring();
-        public bool IsMonitored(Guid id) => endpoints[id]?.Monitored ?? false;
+        public bool IsMonitored(Guid id) => endpoints.ContainsKey(id) && endpoints[id].Monitored;
 
         public EndpointsView[] GetEndpoints()
         {
