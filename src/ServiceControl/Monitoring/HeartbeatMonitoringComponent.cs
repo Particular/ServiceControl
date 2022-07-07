@@ -54,7 +54,7 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context)
         {
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {

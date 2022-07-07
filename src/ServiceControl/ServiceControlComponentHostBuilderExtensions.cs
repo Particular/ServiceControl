@@ -8,7 +8,7 @@ namespace Particular.ServiceControl
     {
         public static IHostBuilder UseServiceControlComponents(this IHostBuilder hostBuilder, Settings settings, params ServiceControlComponent[] components)
         {
-            var componentContext = new ComponentSetupContext();
+            var componentContext = new ComponentInstallationContext();
             hostBuilder.ConfigureServices(services => services.AddSingleton(componentContext));
             foreach (var component in components)
             {

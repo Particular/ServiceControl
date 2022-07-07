@@ -30,7 +30,7 @@ namespace Particular.ServiceControl
                 return;
             }
 
-            var componentSetupContext = new ComponentSetupContext();
+            var componentSetupContext = new ComponentInstallationContext();
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {

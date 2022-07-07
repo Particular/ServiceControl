@@ -120,7 +120,7 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context)
         {
             context.CreateQueue(settings.StagingQueue);
 

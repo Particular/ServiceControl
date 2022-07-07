@@ -22,7 +22,7 @@ namespace Particular.ServiceControl
 
                     RavenBootstrapper.Configure(documentStore, settings, true);
 
-                    services.AddHostedService(sp => new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], new ComponentSetupContext()));
+                    services.AddHostedService(sp => new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], new ComponentInstallationContext()));
                 });
 
             if (args.RunAsWindowsService)

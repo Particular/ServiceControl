@@ -4,7 +4,7 @@ namespace Particular.ServiceControl
     using System.Reflection;
     using System.Threading.Tasks;
 
-    interface IComponentSetupContext
+    interface IComponentInstallationContext
     {
         void CreateQueue(string queueName);
         void AddIndexAssembly(Assembly assembly);

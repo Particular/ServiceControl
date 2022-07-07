@@ -5,7 +5,7 @@ namespace Particular.ServiceControl
     using System.Reflection;
     using System.Threading.Tasks;
 
-    class ComponentSetupContext : IComponentSetupContext
+    class ComponentInstallationContext : IComponentInstallationContext
     {
         public List<string> Queues { get; } = new List<string>();
 

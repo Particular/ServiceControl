@@ -8,7 +8,7 @@ namespace Particular.ServiceControl
     {
         public abstract void Configure(Settings settings, IHostBuilder hostBuilder);
 
-        public virtual void Setup(Settings settings, IComponentSetupContext context)
+        public virtual void Setup(Settings settings, IComponentInstallationContext context)
         {
         }
     }
