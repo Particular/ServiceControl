@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
+    using NLog.Targets.Wrappers;
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -25,7 +26,7 @@ namespace Particular.ServiceControl
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
 
-            var fileTarget = new FileTarget
+            Target fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
@@ -36,7 +37,7 @@ namespace Particular.ServiceControl
                 ArchiveAboveSize = 30 * megaByte
             };
 
-            var ravenFileTarget = new FileTarget
+            Target ravenFileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
@@ -47,11 +48,15 @@ namespace Particular.ServiceControl
                 ArchiveAboveSize = 30 * megaByte
             };
 
-            var consoleTarget = new ColoredConsoleTarget
+            Target consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
                 UseDefaultRowHighlightingRules = true
             };
+
+            fileTarget = new AsyncTargetWrapper(fileTarget);
+            ravenFileTarget = new AsyncTargetWrapper(ravenFileTarget);
+            consoleTarget = new AsyncTargetWrapper(consoleTarget);
 
             var nullTarget = new NullTarget();
 
