@@ -12,7 +12,7 @@
 
     class InternalCustomChecksHostedService : IHostedService
     {
-        public InternalCustomChecksHostedService(IList<ICustomCheck> customChecks, CustomChecksStorage store, HostInformation hostInfo, IAsyncTimer scheduler, string endpointName)
+        public InternalCustomChecksHostedService(IList<ICustomCheck> customChecks, ICustomChecksStorage store, HostInformation hostInfo, IAsyncTimer scheduler, string endpointName)
         {
             this.customChecks = customChecks;
             this.store = store;
@@ -48,7 +48,7 @@
         }
 
         IList<ICustomCheck> customChecks;
-        readonly CustomChecksStorage store;
+        readonly ICustomChecksStorage store;
         readonly IAsyncTimer scheduler;
         readonly EndpointDetails localEndpointDetails;
         IList<InternalCustomCheckManager> managers = new List<InternalCustomCheckManager>();

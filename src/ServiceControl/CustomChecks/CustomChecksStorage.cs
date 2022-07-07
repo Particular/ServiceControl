@@ -1,25 +1,27 @@
 ﻿namespace ServiceControl.CustomChecks
 {
-    using System;
+    using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Contracts.Operations;
     using Infrastructure;
     using Infrastructure.DomainEvents;
+    using Infrastructure.Extensions;
     using Raven.Client;
+    using Raven.Client.Linq;
 
-    class CustomChecksStorage
+    class RavenDbCustomCheckDataStore : ICustomChecksStorage
     {
-        public CustomChecksStorage(IDocumentStore store, IDomainEvents domainEvents)
+        public RavenDbCustomCheckDataStore(IDocumentStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
         }
 
-        public async Task UpdateCustomCheckStatus(EndpointDetails originatingEndpoint, DateTime reportedAt, string customCheckId, string category, bool hasFailed, string failureReason)
+        public async Task UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var publish = false;
-            var id = DeterministicGuid.MakeId(originatingEndpoint.Name, originatingEndpoint.HostId.ToString(), customCheckId);
+            var id = DeterministicGuid.MakeId(detail.OriginatingEndpoint.Name, detail.OriginatingEndpoint.HostId.ToString(), detail.CustomCheckId);
 
             using (var session = store.OpenAsyncSession())
             {
@@ -27,8 +29,8 @@
                     .ConfigureAwait(false);
 
                 if (customCheck == null ||
-                    (customCheck.Status == Status.Fail && !hasFailed) ||
-                    (customCheck.Status == Status.Pass && hasFailed))
+                    (customCheck.Status == Status.Fail && !detail.HasFailed) ||
+                    (customCheck.Status == Status.Pass && detail.HasFailed))
                 {
                     if (customCheck == null)
                     {
@@ -41,12 +43,12 @@
                     publish = true;
                 }
 
-                customCheck.CustomCheckId = customCheckId;
-                customCheck.Category = category;
-                customCheck.Status = hasFailed ? Status.Fail : Status.Pass;
-                customCheck.ReportedAt = reportedAt;
-                customCheck.FailureReason = failureReason;
-                customCheck.OriginatingEndpoint = originatingEndpoint;
+                customCheck.CustomCheckId = detail.CustomCheckId;
+                customCheck.Category = detail.Category;
+                customCheck.Status = detail.HasFailed ? Status.Fail : Status.Pass;
+                customCheck.ReportedAt = detail.ReportedAt;
+                customCheck.FailureReason = detail.FailureReason;
+                customCheck.OriginatingEndpoint = detail.OriginatingEndpoint;
                 await session.StoreAsync(customCheck)
                     .ConfigureAwait(false);
                 await session.SaveChangesAsync()
@@ -55,16 +57,16 @@
 
             if (publish)
             {
-                if (hasFailed)
+                if (detail.HasFailed)
                 {
                     await domainEvents.Raise(new CustomCheckFailed
                     {
                         Id = id,
-                        CustomCheckId = customCheckId,
-                        Category = category,
-                        FailedAt = reportedAt,
-                        FailureReason = failureReason,
-                        OriginatingEndpoint = originatingEndpoint
+                        CustomCheckId = detail.CustomCheckId,
+                        Category = detail.Category,
+                        FailedAt = detail.ReportedAt,
+                        FailureReason = detail.FailureReason,
+                        OriginatingEndpoint = detail.OriginatingEndpoint
                     }).ConfigureAwait(false);
                 }
                 else
@@ -72,14 +74,57 @@
                     await domainEvents.Raise(new CustomCheckSucceeded
                     {
                         Id = id,
-                        CustomCheckId = customCheckId,
-                        Category = category,
-                        SucceededAt = reportedAt,
-                        OriginatingEndpoint = originatingEndpoint
+                        CustomCheckId = detail.CustomCheckId,
+                        Category = detail.Category,
+                        SucceededAt = detail.ReportedAt,
+                        OriginatingEndpoint = detail.OriginatingEndpoint
                     }).ConfigureAwait(false);
                 }
             }
 
+        }
+
+        public async Task<StatisticsResult> GetStats(HttpRequestMessage request, string status = null)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var query =
+                    session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
+
+                query = AddStatusFilter(query, status);
+
+                var results = await query
+                    .Paging(request)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new StatisticsResult
+                {
+                    Checks = results,
+                    TotalResults = stats.TotalResults,
+                    Etag = stats.IndexEtag
+                };
+            }
+        }
+
+        static IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query, string status)
+        {
+            if (status == null)
+            {
+                return query;
+            }
+
+            if (status == "fail")
+            {
+                query = query.Where(c => c.Status == Status.Fail);
+            }
+
+            if (status == "pass")
+            {
+                query = query.Where(c => c.Status == Status.Pass);
+            }
+
+            return query;
         }
 
         IDocumentStore store;

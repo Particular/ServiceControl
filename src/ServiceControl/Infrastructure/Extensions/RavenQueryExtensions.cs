@@ -309,7 +309,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source.OrderByDescending(keySelector);
         }
 
-        static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
+        public static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
         {
             Dictionary<string, string> queryStringDictionary;
             if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))

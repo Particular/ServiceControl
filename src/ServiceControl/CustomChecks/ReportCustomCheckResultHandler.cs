@@ -2,13 +2,14 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Contracts.CustomChecks;
     using Contracts.Operations;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(CustomChecksStorage customChecks)
+        public ReportCustomCheckResultHandler(ICustomChecksStorage customChecks)
         {
             this.customChecks = customChecks;
         }
@@ -30,23 +31,24 @@
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
 
-            var originatingEndpoint = new EndpointDetails
-            {
-                Host = message.Host,
-                HostId = message.HostId,
-                Name = message.EndpointName
-            };
-
             await customChecks.UpdateCustomCheckStatus(
-                    originatingEndpoint,
-                    message.ReportedAt,
-                    message.CustomCheckId,
-                    message.Category,
-                    message.HasFailed,
-                    message.FailureReason
+                    new CustomCheckDetail
+                    {
+                        OriginatingEndpoint = new EndpointDetails
+                        {
+                            Host = message.Host,
+                            HostId = message.HostId,
+                            Name = message.EndpointName
+                        },
+                        ReportedAt = message.ReportedAt,
+                        CustomCheckId = message.CustomCheckId,
+                        Category = message.Category,
+                        HasFailed = message.HasFailed,
+                        FailureReason = message.FailureReason
+                    }
                 ).ConfigureAwait(false);
         }
 
-        CustomChecksStorage customChecks;
+        ICustomChecksStorage customChecks;
     }
 }

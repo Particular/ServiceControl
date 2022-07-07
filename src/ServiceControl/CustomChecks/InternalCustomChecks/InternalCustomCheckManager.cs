@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
     using NServiceBus.CustomChecks;
@@ -10,7 +11,7 @@
 
     class InternalCustomCheckManager
     {
-        public InternalCustomCheckManager(CustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
+        public InternalCustomCheckManager(ICustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
         {
             this.store = store;
             this.check = check;
@@ -47,13 +48,15 @@
             try
             {
                 await store.UpdateCustomCheckStatus(
-                        localEndpointDetails,
-                        DateTime.UtcNow,
-                        check.Id,
-                        check.Category,
-                        result.HasFailed,
-                        result.FailureReason
-                    ).ConfigureAwait(false);
+                    new CustomCheckDetail
+                    {
+                        OriginatingEndpoint = localEndpointDetails,
+                        ReportedAt = DateTime.UtcNow,
+                        CustomCheckId = check.Id,
+                        Category = check.Category,
+                        HasFailed = result.HasFailed,
+                        FailureReason = result.FailureReason
+                    }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -68,7 +71,7 @@
         public Task Stop() => timer?.Stop() ?? Task.CompletedTask;
 
         TimerJob timer;
-        readonly CustomChecksStorage store;
+        readonly ICustomChecksStorage store;
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
