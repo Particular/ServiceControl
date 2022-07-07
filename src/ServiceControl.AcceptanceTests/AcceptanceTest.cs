@@ -68,6 +68,8 @@ namespace ServiceControl.AcceptanceTests
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
 
+            DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
+
             var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
             if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
             {
@@ -75,7 +77,7 @@ namespace ServiceControl.AcceptanceTests
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -134,6 +136,7 @@ namespace ServiceControl.AcceptanceTests
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
+        protected DataStoreConfiguration DataStoreConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

@@ -14,6 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
+        storage: [RavenDb, MsSql]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -115,6 +116,13 @@ jobs:
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+      - name: Setup SQL Server
+        if: matrix.storage == 'MsSql'
+        uses: Particular/install-sql-server-action@v1.0.0
+        with:
+          connection-string-env-var: ServiceControl.AcceptanceTests.ConnectionString
+          catalog: servicecontrol
 
       - name: Run tests
         uses: Particular/run-tests-action@v1.3.0

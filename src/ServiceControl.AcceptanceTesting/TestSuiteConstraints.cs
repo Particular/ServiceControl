@@ -41,6 +41,26 @@
 
         public IConfigureEndpointTestExecution CreatePersistenceConfiguration() => new ConfigureEndpointInMemoryPersistence();
 
+        public DataStoreConfiguration CreateDataStoreConfiguration()
+        {
+            var msSqlConnectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Storage.ConnectionString");
+
+            if (msSqlConnectionString != null)
+            {
+                return new DataStoreConfiguration
+                {
+                    DataStoreTypeName = "DataStoreType.SqlDb",
+                    ConnectionString = msSqlConnectionString
+                };
+            }
+
+            return new DataStoreConfiguration
+            {
+                DataStoreTypeName = "DataStoreType.RavenDb", 
+                ConnectionString = string.Empty
+            };
+        }
+
         static ITransportIntegration GetTransportIntegrationFromEnvironmentVar() => CreateTransportIntegration(
             Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.TransportCustomization"),
             Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString")
