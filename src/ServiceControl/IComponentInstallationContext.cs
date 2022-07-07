@@ -8,6 +8,6 @@ namespace Particular.ServiceControl
     {
         void CreateQueue(string queueName);
         void AddIndexAssembly(Assembly assembly);
-        void RegisterSetupTask(Func<Task> setupTask);
+        void RegisterInstallationTask(Func<Task> setupTask);
     }
 }

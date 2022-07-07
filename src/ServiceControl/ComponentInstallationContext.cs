@@ -11,12 +11,12 @@ namespace Particular.ServiceControl
 
         public List<Assembly> IndexAssemblies { get; } = new List<Assembly>();
 
-        public List<Func<Task>> SetupTasks { get; } = new List<Func<Task>>();
+        public List<Func<Task>> InstallationTasks { get; } = new List<Func<Task>>();
 
         public void CreateQueue(string queueName) => Queues.Add(queueName);
 
         public void AddIndexAssembly(Assembly assembly) => IndexAssemblies.Add(assembly);
 
-        public void RegisterSetupTask(Func<Task> setupTask) => SetupTasks.Add(setupTask);
+        public void RegisterInstallationTask(Func<Task> setupTask) => InstallationTasks.Add(setupTask);
     }
 }
