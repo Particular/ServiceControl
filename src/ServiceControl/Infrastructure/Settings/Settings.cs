@@ -529,7 +529,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         DataStoreType GetDataStoreType()
         {
-            var value = SettingsReader<string>.Read("DataStoreType", "DataStoreType.RavenDb");
+            var value = SettingsReader<string>.Read("DataStoreType", "RavenDb");
 
             return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }
