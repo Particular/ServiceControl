@@ -94,8 +94,9 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var headers = new Dictionary<string, string>
             {
-                { Headers.MessageId, "someid" },
-                { "ServiceControl.Retry.UniqueMessageId", "someid" }
+                [Headers.MessageId] = "someid",
+                ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ContentType] = "text/xml"
             };
 
             var message = new ProcessedMessage(headers, metadata);
@@ -126,8 +127,9 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var headers = new Dictionary<string, string>
             {
-                { Headers.MessageId, "someid" },
-                { "ServiceControl.Retry.UniqueMessageId", "someid" }
+                [Headers.MessageId] = "someid",
+                ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ContentType] = "text/xml"
             };
 
             var message = new ProcessedMessage(headers, metadata);
@@ -158,8 +160,9 @@ namespace ServiceControl.UnitTests.BodyStorage
 
             var headers = new Dictionary<string, string>
             {
-                { Headers.MessageId, "someid" },
-                { "ServiceControl.Retry.UniqueMessageId", "someid" }
+                [Headers.MessageId] = "someid",
+                ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ContentType] = "text/xml"
             };
 
             var message = new ProcessedMessage(headers, metadata);

@@ -51,8 +51,8 @@
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
 
             var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-
-            var useEmbeddedBody = avoidsLargeObjectHeap && !processingAttempt.Headers.IsBinary();
+            var isBinary = processingAttempt.Headers.IsBinary();
+            var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
             var useBodyStore = !useEmbeddedBody;
 
             if (useEmbeddedBody)
