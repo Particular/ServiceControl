@@ -9,7 +9,7 @@ namespace ServiceControl.Monitoring
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
-    using Infrastructure;
+    using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
 
     class EndpointInstanceMonitoring
@@ -69,23 +69,27 @@ namespace ServiceControl.Monitoring
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
         }
 
-        public IEnumerable<KnownEndpoint> DetectEndpointsFromBulkIngestion(IEnumerable<EndpointDetails> observedEndpoints)
+        public async Task DetectEndpointsFromBulkIngestion(IEnumerable<EndpointDetails> observedEndpoints)
         {
+            var newEndpoints = new Lazy<List<EndpointDetails>>();
             foreach (var observedEndpoint in observedEndpoints)
             {
                 var endpointInstanceId = observedEndpoint.ToInstanceId();
 
                 if (endpoints.TryAdd(endpointInstanceId.UniqueId,
-                        id => new EndpointInstanceMonitor(id, false, domainEvents)))
+                        new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents)))
                 {
-                    yield return new KnownEndpoint
-                    {
-                        Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
-                        EndpointDetails = observedEndpoint,
-                        HostDisplayName = observedEndpoint.Host,
-                        Monitored = false
-                    };
+                    newEndpoints.Value.Add(observedEndpoint);
                 }
+            }
+
+            if (newEndpoints.IsValueCreated)
+            {
+                await domainEvents.Raise(
+                    new EndpointsDetectedFromIngestion
+                    {
+                        Endpoints = newEndpoints.Value.ToArray()
+                    }).ConfigureAwait(false);
             }
         }
 

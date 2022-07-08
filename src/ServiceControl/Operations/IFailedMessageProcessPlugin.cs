@@ -1,11 +1,11 @@
 namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Commands;
 
     interface IErrorMessageBatchPlugin
     {
-        void AfterProcessing(List<MessageContext> batch, ICollection<ICommandData> commands);
+        Task AfterProcessing(List<MessageContext> batch);
     }
 }

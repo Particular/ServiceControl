@@ -119,6 +119,34 @@
             }
         }
 
+        // NOTE: Temp implementation. Need to find a bulk insert
+        public async Task BulkCreate(EndpointDetails[] endpoints)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+
+                foreach (var endpoint in endpoints)
+                {
+                    var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+
+                    await connection.ExecuteAsync(
+                        @"IF NOT EXISTS(SELECT * FROM [KnownEndpoints] WHERE Id = @Id)
+                                INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
+                                VALUES(@Id, @HostId, @Host, @HostDisplayName, @Monitored)
+                        )",
+                        new
+                        {
+                            Id = id,
+                            endpoint.HostId,
+                            endpoint.Host,
+                            HostDisplayName = endpoint.Name,
+                            Monitored = false
+                        }).ConfigureAwait(false);
+                }
+            }
+        }
+
         public static async Task Setup(string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))

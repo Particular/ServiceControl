@@ -119,6 +119,27 @@
             }
         }
 
+        public async Task BulkCreate(EndpointDetails[] endpoints)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                foreach (var endpoint in endpoints)
+                {
+                    var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+
+                    await session.StoreAsync(new KnownEndpoint
+                    {
+                        Id = id,
+                        EndpointDetails = endpoint,
+                        HostDisplayName = endpoint.Host,
+                        Monitored = false
+                    }).ConfigureAwait(false);
+                }
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
         IDocumentStore store;
     }
 }

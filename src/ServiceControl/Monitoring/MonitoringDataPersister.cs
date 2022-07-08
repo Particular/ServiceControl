@@ -10,7 +10,8 @@
         IDomainHandler<EndpointDetected>,
         IDomainHandler<HeartbeatingEndpointDetected>,
         IDomainHandler<MonitoringEnabledForEndpoint>,
-        IDomainHandler<MonitoringDisabledForEndpoint>
+        IDomainHandler<MonitoringDisabledForEndpoint>,
+        IDomainHandler<EndpointsDetectedFromIngestion>
     {
         public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
@@ -36,6 +37,11 @@
         public Task Handle(MonitoringDisabledForEndpoint domainEvent)
         {
             return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
+        }
+
+        public Task Handle(EndpointsDetectedFromIngestion domainEvent)
+        {
+            return _monitoringDataStore.BulkCreate(domainEvent.Endpoints);
         }
 
         IMonitoringDataStore _monitoringDataStore;

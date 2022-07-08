@@ -71,6 +71,28 @@ namespace ServiceControl.Monitoring
             return Task.CompletedTask;
         }
 
+        public Task BulkCreate(EndpointDetails[] newEndpoints)
+        {
+            foreach (var endpoint in newEndpoints)
+            {
+                var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+
+                if (!endpoints.Any(a => a.Id == id))
+                {
+                    endpoints.Add(new InMemoryEndpoint
+                    {
+                        Id = id,
+                        HostId = endpoint.HostId,
+                        Host = endpoint.Host,
+                        HostDisplayName = endpoint.Name,
+                        Monitored = false
+                    });
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
         public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());

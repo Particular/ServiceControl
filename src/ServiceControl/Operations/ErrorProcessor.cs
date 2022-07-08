@@ -72,7 +72,8 @@
 
             foreach (var batchPlugin in batchPlugins)
             {
-                batchPlugin.AfterProcessing(contexts, commands);
+                await batchPlugin.AfterProcessing(storedContexts)
+                    .ConfigureAwait(false);
             }
 
             return (storedContexts, commands);
