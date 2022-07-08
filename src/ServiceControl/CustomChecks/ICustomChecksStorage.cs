@@ -4,7 +4,7 @@ namespace ServiceControl.CustomChecks
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
 
-    public interface ICustomChecksStorage
+    interface ICustomChecksStorage
     {
         Task UpdateCustomCheckStatus(CustomCheckDetail detail);
 

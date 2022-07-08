@@ -3,7 +3,7 @@ namespace ServiceControl.CustomChecks
     using System;
     using Contracts.Operations;
 
-    public class EndpointDetailsMapper
+    class EndpointDetailsMapper
     {
         public EndpointDetails Parse(object value)
         {

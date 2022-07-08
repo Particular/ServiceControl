@@ -3,7 +3,7 @@ namespace ServiceControl.Contracts.CustomChecks
     using System;
     using Operations;
 
-    public class CustomCheckDetail
+    class CustomCheckDetail
     {
         public EndpointDetails OriginatingEndpoint { get; set; }
         public string CustomCheckId { get; set; }
