@@ -35,7 +35,7 @@ In Visual Studio, ensure test execution is using x64 only:
 
 ### Integration Tests
 ًBy default integration tests use `MSMQ` transport to run. This can be overridden by renaming the `_connection.txt` file in the root of the solution to `connection.txt` and updating the transport type and connection string. Only the first 3 lines of this file is read with the following information:
-
+Only the first 3 lines of this file are read with the following information:
 - First line is the Transport name
 - Second line is the ServiceControl Transport type information (implementation of `ITransportIntegration` interface)
 - Third line is the connection string
