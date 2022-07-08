@@ -76,7 +76,7 @@
                 storedContexts.Add(context);
                 ingestedCounter.Mark();
 
-                foreach (var endpointDetail in context.Extensions.Get<IEnumerable<EndpointDetails>>())
+                foreach (var endpointDetail in context.Extensions.Get<ErrorEnricherContext>().NewEndpoints)
                 {
                     RecordKnownEndpoints(endpointDetail, knownEndpoints);
                 }
@@ -174,7 +174,7 @@
 
                 context.Extensions.Set(patchCommand);
                 context.Extensions.Set(failureDetails);
-                context.Extensions.Set(enricherContext.NewEndpoints);
+                context.Extensions.Set(enricherContext);
             }
             catch (Exception e)
             {
