@@ -9,6 +9,7 @@ namespace ServiceControl.Monitoring
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
     using Contracts.Operations;
+    using Infrastructure;
     using Infrastructure.DomainEvents;
 
     class EndpointInstanceMonitoring
@@ -35,13 +36,6 @@ namespace ServiceControl.Monitoring
             var stats = GetStats();
 
             await Update(stats).ConfigureAwait(false);
-        }
-
-        public bool IsNewInstance(EndpointDetails newEndpointDetails)
-        {
-            var endpointInstanceId = newEndpointDetails.ToInstanceId();
-
-            return endpoints.TryAdd(endpointInstanceId.UniqueId, new EndpointInstanceMonitor(endpointInstanceId, false, domainEvents));
         }
 
         public async Task EndpointDetected(EndpointDetails newEndpointDetails)
@@ -73,6 +67,26 @@ namespace ServiceControl.Monitoring
         {
             var endpointInstanceId = new EndpointInstanceId(endpointDetails.Name, endpointDetails.Host, endpointDetails.HostId);
             endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, monitored, domainEvents));
+        }
+
+        public IEnumerable<KnownEndpoint> DetectEndpointsFromBulkIngestion(IEnumerable<EndpointDetails> observedEndpoints)
+        {
+            foreach (var observedEndpoint in observedEndpoints)
+            {
+                var endpointInstanceId = observedEndpoint.ToInstanceId();
+
+                if (endpoints.TryAdd(endpointInstanceId.UniqueId,
+                        id => new EndpointInstanceMonitor(id, false, domainEvents)))
+                {
+                    yield return new KnownEndpoint
+                    {
+                        Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
+                        EndpointDetails = observedEndpoint,
+                        HostDisplayName = observedEndpoint.Host,
+                        Monitored = false
+                    };
+                }
+            }
         }
 
         async Task Update(EndpointMonitoringStats stats)

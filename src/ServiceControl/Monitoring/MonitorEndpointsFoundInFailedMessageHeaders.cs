@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
     using Monitoring;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -15,7 +14,7 @@
     {
         public void AfterProcessing(List<MessageContext> batch, ICollection<ICommandData> commands)
         {
-            var knownEndpoints = new Dictionary<string, KnownEndpoint>();
+            var observedEndpoints = new HashSet<EndpointDetails>();
             foreach (var context in batch)
             {
                 var errorEnricherContext = context.Extensions.Get<ErrorEnricherContext>();
@@ -26,10 +25,7 @@
                         && endpointObject is EndpointDetails endpointDetails
                         && endpointDetails.HostId != Guid.Empty) // for backwards compat with version before 4_5 we might not have a hostid
                     {
-                        if (endpointInstanceMonitoring.IsNewInstance(endpointDetails))
-                        {
-                            RecordKnownEndpoints(endpointDetails, knownEndpoints);
-                        }
+                        observedEndpoints.Add(endpointDetails);
                     }
                 }
 
@@ -37,7 +33,7 @@
                 RecordKnownEndpoint("ReceivingEndpoint");
             }
 
-            foreach (var endpoint in knownEndpoints.Values)
+            foreach (var endpoint in endpointInstanceMonitoring.DetectEndpointsFromBulkIngestion(observedEndpoints))
             {
                 if (Logger.IsDebugEnabled)
                 {
@@ -47,21 +43,6 @@
                 commands.Add(CreateKnownEndpointsPutCommand(endpoint));
             }
 
-        }
-
-        static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
-        {
-            var uniqueEndpointId = $"{observedEndpoint.Name}{observedEndpoint.HostId}";
-            if (!observedEndpoints.TryGetValue(uniqueEndpointId, out KnownEndpoint _))
-            {
-                observedEndpoints.Add(uniqueEndpointId, new KnownEndpoint
-                {
-                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
-                    EndpointDetails = observedEndpoint,
-                    HostDisplayName = observedEndpoint.Host,
-                    Monitored = false
-                });
-            }
         }
 
         static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
