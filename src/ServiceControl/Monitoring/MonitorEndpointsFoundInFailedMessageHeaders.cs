@@ -11,7 +11,7 @@
     using Raven.Json.Linq;
     using ServiceControl.Contracts.Operations;
 
-    class SaveNewEndpointsErrorMessageBatchPlugin : IErrorMessageBatchPlugin
+    class MonitorEndpointsFoundInFailedMessageHeaders : IErrorMessageBatchPlugin
     {
         public void AfterProcessing(List<MessageContext> batch, ICollection<ICommandData> commands)
         {
@@ -74,12 +74,12 @@
             };
 
 
-        public SaveNewEndpointsErrorMessageBatchPlugin(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public MonitorEndpointsFoundInFailedMessageHeaders(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             this.endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
-        static SaveNewEndpointsErrorMessageBatchPlugin()
+        static MonitorEndpointsFoundInFailedMessageHeaders()
         {
             KnownEndpointMetadata = RavenJObject.Parse($@"
                                     {{
@@ -90,6 +90,6 @@
 
         EndpointInstanceMonitoring endpointInstanceMonitoring;
         static readonly RavenJObject KnownEndpointMetadata;
-        static readonly ILog Logger = LogManager.GetLogger<SaveNewEndpointsErrorMessageBatchPlugin>();
+        static readonly ILog Logger = LogManager.GetLogger<MonitorEndpointsFoundInFailedMessageHeaders>();
     }
 }

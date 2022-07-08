@@ -49,7 +49,7 @@
                 collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
 
                 collection.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
-                collection.AddErrorMessageBatchPlugin<SaveNewEndpointsErrorMessageBatchPlugin>();
+                collection.AddErrorMessageBatchPlugin<MonitorEndpointsFoundInFailedMessageHeaders>();
 
                 collection.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             });
