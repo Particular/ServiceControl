@@ -33,8 +33,7 @@
                         serviceCollection.AddSingleton<ICustomChecksStorage, RavenDbCustomCheckDataStore>();
                         break;
                     case DataStoreType.SqlDb:
-                        serviceCollection.AddSingleton<EndpointDetailsMapper>();
-                        serviceCollection.AddSingleton<ICustomChecksStorage>(sp => new SqlDbCustomCheckDataStore(settings.SqlStorageConnectionString, sp.GetService<IDomainEvents>(), sp.GetService<EndpointDetailsMapper>()));
+                        serviceCollection.AddSingleton<ICustomChecksStorage>(sp => new SqlDbCustomCheckDataStore(settings.SqlStorageConnectionString, sp.GetService<IDomainEvents>()));
                         break;
                     default:
                         break;
@@ -42,11 +41,11 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context)
         {
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterSetupTask(() => SqlDbCustomCheckDataStore.Setup(settings.SqlStorageConnectionString));
+                context.RegisterInstallationTask(() => SqlDbCustomCheckDataStore.Setup(settings.SqlStorageConnectionString));
             }
         }
     }

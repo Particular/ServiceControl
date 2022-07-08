@@ -1,10 +1,6 @@
 namespace ServiceControl.CustomChecks
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
     using System.Data.SqlClient;
-    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
@@ -13,16 +9,13 @@ namespace ServiceControl.CustomChecks
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.Extensions;
-    using Lucene.Net.Analysis.Tokenattributes;
-    using Raven.Database.Storage.Voron.Impl;
 
     class SqlDbCustomCheckDataStore : ICustomChecksStorage
     {
-        public SqlDbCustomCheckDataStore(string connectionString, IDomainEvents domainEvents, EndpointDetailsMapper mapper)
+        public SqlDbCustomCheckDataStore(string connectionString, IDomainEvents domainEvents)
         {
             this.connectionString = connectionString;
             this.domainEvents = domainEvents;
-            this.mapper = mapper;
         }
 
         public async Task UpdateCustomCheckStatus(CustomCheckDetail detail)
@@ -53,11 +46,13 @@ namespace ServiceControl.CustomChecks
                                 [Status] = @Status,
                                 [ReportedAt] = @ReportedAt,
                                 [FailureReason] = @FailureReason,
-                                [OriginatingEndpoint] = @OriginatingEndpoint
+                                [OriginatingEndpointName] = @OriginatingEndpointName,
+                                [OriginatingEndpointHost] = @OriginatingEndpointHost,
+                                [OriginatingEndpointHostId] = @OriginatingEndpointHostId
                             WHERE [Id] = @Id
                           ELSE
-                            INSERT INTO [CustomChecks](Id, CustomCheckId, Category, Status, ReportedAt, FailureReason, OriginatingEndpoint) 
-                            VALUES(@Id, @CustomCheckId, @Category, @Status, @ReportedAt, @FailureReason, @OriginatingEndpoint)",
+                            INSERT INTO [CustomChecks](Id, CustomCheckId, Category, Status, ReportedAt, FailureReason, OriginatingEndpointName, OriginatingEndpointHost, OriginatingEndpointHostId) 
+                            VALUES(@Id, @CustomCheckId, @Category, @Status, @ReportedAt, @FailureReason, @OriginatingEndpointName, @OriginatingEndpointHost, @OriginatingEndpointHostId)",
                     new
                     {
                         Id = id,
@@ -66,7 +61,9 @@ namespace ServiceControl.CustomChecks
                         detail.ReportedAt,
                         detail.FailureReason,
                         Status = detail.HasFailed ? Status.Fail : Status.Pass,
-                        OriginatingEndpoint = mapper.Serialize(detail.OriginatingEndpoint)
+                        OriginatingEndpointName = detail.OriginatingEndpoint.Name,
+                        OriginatingEndpointHostId = detail.OriginatingEndpoint.HostId,
+                        OriginatingEndpointHost = detail.OriginatingEndpoint.Host
                     }).ConfigureAwait(false);
             }
 
@@ -133,7 +130,12 @@ namespace ServiceControl.CustomChecks
                             Category = row.Category,
                             FailureReason = row.FailureReason,
                             ReportedAt = row.ReportedAt,
-                            OriginatingEndpoint = mapper.Parse(row.OriginatingEndpoint)
+                            OriginatingEndpoint = new EndpointDetails
+                            {
+                                Name = row.OriginatingEndpointName,
+                                HostId = row.OriginatingEndpointHostId,
+                                Host = row.OriginatingEndpointHost
+                            }
                         });
                     }
                 }
@@ -162,7 +164,9 @@ namespace ServiceControl.CustomChecks
                                [Status] int NOT NULL,
                                [ReportedAt] datetime NOT NULL,
                                [FailureReason] nvarchar(300) NULL,
-                               [OriginatingEndpoint] nvarchar(300) NOT NULL,
+                               [OriginatingEndpointName] nvarchar(300) NOT NULL,
+                               [OriginatingEndpointHostId] [uniqueidentifier] NOT NULL,
+                               [OriginatingEndpointHost] nvarchar(300) NOT NULL
                            ) ON [PRIMARY]
                        END";
 
@@ -191,7 +195,6 @@ namespace ServiceControl.CustomChecks
 
         readonly string connectionString;
         readonly IDomainEvents domainEvents;
-        readonly EndpointDetailsMapper mapper;
 
         class PagingInfo
         {
