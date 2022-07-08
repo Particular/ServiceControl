@@ -64,7 +64,6 @@
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             var commands = new List<ICommandData>(contexts.Count);
-            var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
             {
                 if (!context.Extensions.TryGet<ICommandData>(out var command))
@@ -75,26 +74,13 @@
                 commands.Add(command);
                 storedContexts.Add(context);
                 ingestedCounter.Mark();
-
-                foreach (var endpointDetail in context.Extensions.Get<ErrorEnricherContext>().NewEndpoints)
-                {
-                    RecordKnownEndpoints(endpointDetail, knownEndpoints);
-                }
             }
 
-            foreach (var endpoint in knownEndpoints.Values)
-            {
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
-                }
-
-                commands.Add(CreateKnownEndpointsPutCommand(endpoint));
-            }
+            AddKnownEndpoints(storedContexts, commands);
 
             return (storedContexts, commands);
         }
-
+        
         public Task Announce(MessageContext messageContext)
         {
             var failureDetails = messageContext.Extensions.Get<FailureDetails>();
@@ -234,6 +220,28 @@
                 },
                 Metadata = FailedMessageMetadata
             };
+        }
+
+        static void AddKnownEndpoints(List<MessageContext> batch, ICollection<ICommandData> commands)
+        {
+            var knownEndpoints = new Dictionary<string, KnownEndpoint>();
+            foreach (var context in batch)
+            {
+                foreach (var endpointDetail in context.Extensions.Get<ErrorEnricherContext>().NewEndpoints)
+                {
+                    RecordKnownEndpoints(endpointDetail, knownEndpoints);
+                }
+            }
+
+            foreach (var endpoint in knownEndpoints.Values)
+            {
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
+                }
+
+                commands.Add(CreateKnownEndpointsPutCommand(endpoint));
+            }
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
