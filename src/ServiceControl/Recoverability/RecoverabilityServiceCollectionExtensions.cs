@@ -10,5 +10,11 @@ namespace ServiceControl.Recoverability
         {
             serviceCollection.AddSingleton<IEnrichImportedErrorMessages, T>();
         }
+
+        public static void AddErrorMessageBatchPlugin<T>(this IServiceCollection serviceCollection)
+            where T : class, IErrorMessageBatchPlugin
+        {
+            serviceCollection.AddSingleton<IErrorMessageBatchPlugin, T>();
+        }
     }
 }

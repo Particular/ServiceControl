@@ -9,7 +9,6 @@
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using Monitoring;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
@@ -25,10 +24,10 @@
         public ErrorIngestor(Metrics metrics,
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IFailedMessageEnricher[] failedMessageEnrichers,
+            IErrorMessageBatchPlugin[] batchPlugins,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
-            IDocumentStore store, Settings settings,
-            EndpointInstanceMonitoring endpointInstanceMonitoring)
+            IDocumentStore store, Settings settings)
         {
             this.store = store;
             this.settings = settings;
@@ -45,7 +44,7 @@
             }.Concat(errorEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter, endpointInstanceMonitoring);
+            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter, batchPlugins);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 
