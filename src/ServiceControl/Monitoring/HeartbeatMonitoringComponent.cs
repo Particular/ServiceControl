@@ -58,7 +58,7 @@
         {
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterSetupTask(() => SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString));
+                context.RegisterInstallationTask(() => SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString));
             }
         }
     }
