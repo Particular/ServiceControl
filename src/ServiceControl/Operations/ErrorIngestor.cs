@@ -7,9 +7,9 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
-    using EndpointControl.Handlers;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
+    using Monitoring;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
@@ -27,7 +27,8 @@
             IFailedMessageEnricher[] failedMessageEnrichers,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
-            IDocumentStore store, Settings settings)
+            IDocumentStore store, Settings settings,
+            EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             this.store = store;
             this.settings = settings;
@@ -44,7 +45,7 @@
             }.Concat(errorEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter);
+            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter, endpointInstanceMonitoring);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 

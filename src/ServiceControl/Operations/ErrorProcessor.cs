@@ -43,12 +43,13 @@
         }
 
         public ErrorProcessor(BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
-            Counter ingestedCounter)
+            Counter ingestedCounter, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
             this.domainEvents = domainEvents;
             this.ingestedCounter = ingestedCounter;
+            this.endpointInstanceMonitoring = endpointInstanceMonitoring;
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
@@ -80,7 +81,7 @@
 
             return (storedContexts, commands);
         }
-        
+
         public Task Announce(MessageContext messageContext)
         {
             var failureDetails = messageContext.Extensions.Get<FailureDetails>();
@@ -222,15 +223,28 @@
             };
         }
 
-        static void AddKnownEndpoints(List<MessageContext> batch, ICollection<ICommandData> commands)
+        void AddKnownEndpoints(List<MessageContext> batch, ICollection<ICommandData> commands)
         {
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in batch)
             {
-                foreach (var endpointDetail in context.Extensions.Get<ErrorEnricherContext>().NewEndpoints)
+                var errorEnricherContext = context.Extensions.Get<ErrorEnricherContext>();
+
+                void RecordKnownEndpoint(string key)
                 {
-                    RecordKnownEndpoints(endpointDetail, knownEndpoints);
+                    if (errorEnricherContext.Metadata.TryGetValue(key, out var endpointObject)
+                        && endpointObject is EndpointDetails endpointDetails
+                        && endpointDetails.HostId != Guid.Empty) // for backwards compat with version before 4_5 we might not have a hostid
+                    {
+                        if (endpointInstanceMonitoring.IsNewInstance(endpointDetails))
+                        {
+                            RecordKnownEndpoints(endpointDetails, knownEndpoints);
+                        }
+                    }
                 }
+
+                RecordKnownEndpoint("SendingEndpoint");
+                RecordKnownEndpoint("ReceivingEndpoint");
             }
 
             foreach (var endpoint in knownEndpoints.Values)
@@ -264,6 +278,7 @@
         readonly Counter ingestedCounter;
         BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
+        readonly EndpointInstanceMonitoring endpointInstanceMonitoring;
         static readonly RavenJObject FailedMessageMetadata;
         static readonly RavenJObject KnownEndpointMetadata;
         static readonly JsonSerializer Serializer;
