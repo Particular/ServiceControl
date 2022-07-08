@@ -49,10 +49,11 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
-            var attempt = new FailedMessage.ProcessingAttempt { MessageMetadata = metadata, Headers = new Dictionary<string, string>() };
+            var attempt = new FailedMessage.ProcessingAttempt { MessageMetadata = metadata, Headers = new Dictionary<string, string> { [Headers.ContentType] = "text/xml" } };
 
             await enricher.StoreErrorMessageBody(body, attempt);
 
+            Assert.IsTrue(metadata.ContainsKey("Body"), "No item 'Body' in metadata");
             Assert.AreEqual(body, metadata["Body"], "Body should be stored if below threshold");
             Assert.IsNull(attempt.Body, "Body property was set but shouldn't have been");
             Assert.AreEqual(0, fakeStorage.StoredBodySize);
@@ -72,7 +73,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
 
-            var attempt = new FailedMessage.ProcessingAttempt { MessageMetadata = metadata, Headers = new Dictionary<string, string>() };
+            var attempt = new FailedMessage.ProcessingAttempt { MessageMetadata = metadata, Headers = new Dictionary<string, string> { [Headers.ContentType] = "text/xml" } };
 
             await enricher.StoreErrorMessageBody(body, attempt);
 
