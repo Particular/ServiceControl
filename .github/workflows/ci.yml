@@ -10,11 +10,11 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    name: ${{ matrix.name }}
+    name: ${{ matrix.name }} - ${{ matrix.storage }}
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, SQS]
+        name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional, RabbitMQ-Direct, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
         storage: [RavenDb, MsSql]
         include:
           - name: LearningTransport
