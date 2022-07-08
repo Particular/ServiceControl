@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional, RabbitMQ-Direct, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
-        storage: [RavenDb, MsSql]
+        storage: [RavenDb, SqlDb]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -118,8 +118,8 @@ jobs:
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
-      - name: Setup SQL Server
-        if: matrix.storage == 'MsSql'
+      - name: Setup Microsoft SQL Server Data Store
+        if: matrix.storage == 'SqlDb'
         uses: Particular/install-sql-server-action@v1.0.0
         with:
           connection-string-env-var: ServiceControl.AcceptanceTests.Storage.ConnectionString
@@ -130,6 +130,8 @@ jobs:
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
+          ServiceControl/DataStoreType: ${{ matrix.storage }}
+          ServiceControl/SqlStorageConnectionString: $${{ env.ServiceControl.AcceptanceTests.Storage.ConnectionString }}
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}
