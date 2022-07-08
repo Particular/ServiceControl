@@ -14,6 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
+        name: [LearningTransport, SQS]
         storage: [RavenDb, MsSql]
         include:
           - name: LearningTransport
@@ -121,7 +122,7 @@ jobs:
         if: matrix.storage == 'MsSql'
         uses: Particular/install-sql-server-action@v1.0.0
         with:
-          connection-string-env-var: ServiceControl.AcceptanceTests.ConnectionString
+          connection-string-env-var: ServiceControl.AcceptanceTests.Storage.ConnectionString
           catalog: servicecontrol
 
       - name: Run tests
