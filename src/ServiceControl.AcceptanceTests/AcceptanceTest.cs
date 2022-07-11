@@ -48,6 +48,11 @@ namespace ServiceControl.AcceptanceTests
         [SetUp]
         public void Setup()
         {
+            if (Environment.GetEnvironmentVariable("ServiceControl/DataStoreType") == "SqlDb")
+            {
+                Assert.Ignore("Ignoring due to unsupported storage: SqlDb");
+            }
+
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
 
