@@ -43,13 +43,15 @@
             return contentType;
         }
 
+
+
         async ValueTask StoreBody(byte[] body, ProcessingAttempt processingAttempt, int bodySize, string contentType)
         {
             var bodyId = processingAttempt.Headers.MessageId();
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-            var isBinary = contentType.Contains("binary");
-            var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
 
+            var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+            var isBinary = processingAttempt.Headers.IsBinary();
             var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
             var useBodyStore = !useEmbeddedBody;
 

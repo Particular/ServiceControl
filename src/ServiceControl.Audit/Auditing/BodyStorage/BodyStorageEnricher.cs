@@ -49,14 +49,16 @@
         async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
         {
             var bodyId = processedMessage.Headers.MessageId();
-            var storedInBodyStorage = false;
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
-            var isBinary = contentType.Contains("binary");
+
             var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
-            var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+
+            var storedInBodyStorage = false;
 
             if (isBelowMaxSize)
             {
+                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+                var isBinary = processedMessage.Headers.IsBinary();
                 var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
                 var useBodyStore = !useEmbeddedBody;
 

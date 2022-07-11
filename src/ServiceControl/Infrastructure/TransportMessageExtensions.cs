@@ -69,6 +69,26 @@
             return messageIntent;
         }
 
+        public static bool IsBinary(this IReadOnlyDictionary<string, string> headers)
+        {
+            if (headers.TryGetValue(Headers.ContentType, out var contentType))
+            {
+                // Used by HTTP spec, presence indicates compressed binary payload:
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+                var hasContentEncodingHeader = headers.ContainsKey("Content-Encoding");
+
+                // Checking for text, json and xml gets the job done. All other types are pretty much all binary
+                var isText = contentType.StartsWith("text/")
+                             || contentType.Contains("xml") // matches +xml and /xml
+                             || contentType.Contains("json"); // matches +json and /json;
+
+                isText = isText && !contentType.Contains("binary"); // Backwards compatibility with prior binary detection logic untill SC v4.22.0
+                return !isText || hasContentEncodingHeader;
+            }
+
+            return true;
+        }
+
         static string ReplyToAddress(this IReadOnlyDictionary<string, string> headers)
         {
             return headers.TryGetValue(Headers.ReplyToAddress, out var destination) ? destination : null;
