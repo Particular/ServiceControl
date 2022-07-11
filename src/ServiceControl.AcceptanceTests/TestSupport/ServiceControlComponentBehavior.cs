@@ -37,7 +37,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         }
 
         ITransportIntegration transportIntegration;
-        private DataStoreConfiguration dataStoreToUse;
+        DataStoreConfiguration dataStoreToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;
