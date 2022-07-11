@@ -87,12 +87,12 @@
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             await dataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
             await dataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
-            Assert.IsTrue(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.IsFalse(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
 
-            await dataStore.UpdateEndpointMonitoring(endpoint1, false).ConfigureAwait(false);
+            await dataStore.UpdateEndpointMonitoring(endpoint1, true).ConfigureAwait(false);
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             await dataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
-            Assert.IsFalse(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
+            Assert.IsTrue(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
         }
 
 

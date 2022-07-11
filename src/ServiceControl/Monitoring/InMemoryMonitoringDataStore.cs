@@ -29,7 +29,7 @@ namespace ServiceControl.Monitoring
                     HostId = endpoint.HostId,
                     Host = endpoint.Host,
                     HostDisplayName = endpoint.Name,
-                    Monitored = true
+                    Monitored = false
                 });
             }
 
