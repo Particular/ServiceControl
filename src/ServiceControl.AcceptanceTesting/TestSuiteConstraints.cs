@@ -56,7 +56,7 @@
 
             return new DataStoreConfiguration
             {
-                DataStoreTypeName = "DataStoreType.RavenDb", 
+                DataStoreTypeName = "DataStoreType.RavenDb",
                 ConnectionString = string.Empty
             };
         }
