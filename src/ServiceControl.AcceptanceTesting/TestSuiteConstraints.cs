@@ -49,14 +49,14 @@
             {
                 return new DataStoreConfiguration
                 {
-                    DataStoreTypeName = "DataStoreType.SqlDb",
+                    DataStoreTypeName = "SqlDb",
                     ConnectionString = msSqlConnectionString
                 };
             }
 
             return new DataStoreConfiguration
             {
-                DataStoreTypeName = "DataStoreType.RavenDb",
+                DataStoreTypeName = "RavenDb",
                 ConnectionString = string.Empty
             };
         }
