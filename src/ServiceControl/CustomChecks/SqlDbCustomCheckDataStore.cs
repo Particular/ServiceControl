@@ -1,5 +1,6 @@
 namespace ServiceControl.CustomChecks
 {
+    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -97,28 +98,26 @@ namespace ServiceControl.CustomChecks
 
         public async Task<StatisticsResult> GetStats(HttpRequestMessage request, string status = null)
         {
-            var results = new StatisticsResult();
+            var results = new StatisticsResult
+            {
+                Checks = new List<CustomCheck>()
+            };
 
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync().ConfigureAwait(false);
 
-                var query = @"SELECT * FROM [CustomChecks]
-                              OFFSET      @Offset ROWS 
-                              FETCH NEXT  @Next   ROWS ONLY";
+                var filter = status != null ? " WHERE [Status] = @Status" : "";
+                var query = @"SELECT * FROM [CustomChecks] " + filter +
+                            @"ORDER BY ID
+                              OFFSET @Offset ROWS 
+                              FETCH NEXT  @Next   ROWS ONLY;";
 
-                var countQuery = @"SELECT COUNT(Id) FROM [CustomChecks]";
-
-                if (status != null)
-                {
-                    query += " WHERE [Status] = @Status";
-                    countQuery += " WHERE [Status] = @Status";
-                }
+                var countQuery = @"SELECT COUNT(Id) FROM [CustomChecks] " + filter;
 
                 var paging = GetPaging(request);
                 using (var multi = await connection.QueryMultipleAsync(query + countQuery, paging).ConfigureAwait(false))
                 {
-                    results.TotalResults = multi.ReadFirst<int>();
                     var rows = await multi.ReadAsync().ConfigureAwait(false);
                     foreach (dynamic row in rows)
                     {
@@ -126,7 +125,7 @@ namespace ServiceControl.CustomChecks
                         {
                             Id = row.Id,
                             CustomCheckId = row.CustomCheckId,
-                            Status = row.Status,
+                            Status = (Status)row.Status,
                             Category = row.Category,
                             FailureReason = row.FailureReason,
                             ReportedAt = row.ReportedAt,
@@ -138,6 +137,7 @@ namespace ServiceControl.CustomChecks
                             }
                         });
                     }
+                    results.TotalResults = multi.ReadFirst<int>();
                 }
             }
 
