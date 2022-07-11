@@ -50,7 +50,12 @@ namespace ServiceControl.AcceptanceTests
         {
             if (Environment.GetEnvironmentVariable("ServiceControl/DataStoreType") == "SqlDb")
             {
-                Assert.Ignore("Ignoring due to unsupported storage: SqlDb");
+                var monitoringTestsPrefix = "ServiceControl.AcceptanceTests.Monitoring.When";
+
+                if (TestContext.CurrentContext.Test.FullName.StartsWith(monitoringTestsPrefix) == false)
+                {
+                    Assert.Ignore("Ignoring due to unsupported storage: SqlDb");
+                }
             }
 
             SetSettings = _ => { };
