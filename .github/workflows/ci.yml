@@ -131,7 +131,7 @@ jobs:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
           ServiceControl/DataStoreType: ${{ matrix.storage }}
-          ServiceControl/SqlStorageConnectionString: $${{ env.ServiceControl.AcceptanceTests.Storage.ConnectionString }}
+          ServiceControl/SqlStorageConnectionString: ${{ env.ServiceControl.AcceptanceTests.Storage.ConnectionString }}
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}
