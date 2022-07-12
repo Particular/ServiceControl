@@ -14,14 +14,6 @@
 
     class RavenDBMonitoringDataStoreTests
     {
-        ExportProvider CreateIndexProvider(System.Collections.Generic.List<Assembly> indexAssemblies) =>
-           new CompositionContainer(
-               new AggregateCatalog(
-                   from indexAssembly in indexAssemblies select new AssemblyCatalog(indexAssembly)
-               )
-
-           );
-
         EmbeddableDocumentStore documentStore;
 
         [SetUp]
@@ -35,6 +27,12 @@
             RavenBootstrapper.Configure(documentStore, settings);
             documentStore.Initialize();
 
+            ExportProvider CreateIndexProvider(System.Collections.Generic.List<Assembly> indexAssemblies) =>
+                new CompositionContainer(
+                    new AggregateCatalog(
+                        from indexAssembly in indexAssemblies select new AssemblyCatalog(indexAssembly)
+                    )
+            );
 
             var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly>() { typeof(RavenBootstrapper).Assembly });
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
