@@ -128,7 +128,7 @@ namespace Particular.ServiceControl
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                     return configuration;
                 })
-                .UseExternalIntegrationEvents()
+                .If(!settings.DisableExternalIntegrationsPublishing, b => b.UseExternalIntegrationEvents())
                 .UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
                 .UseServicePulseSignalRNotifier()
                 .UseEmailNotifications()
