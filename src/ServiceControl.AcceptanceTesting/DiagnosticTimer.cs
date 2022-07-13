@@ -15,7 +15,6 @@
         {
             watch.Stop();
             Console.Out.WriteLine($"{watch.Elapsed} - {heading}");
-            Console.Out.WriteLine(Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString"));
             GC.SuppressFinalize(this);
         }
 
