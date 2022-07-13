@@ -11,14 +11,14 @@
     {
         public RavenDbMonitoringDataStore(IDocumentStore store)
         {
-            Store = store;
+            this.store = store;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
                     .ConfigureAwait(false);
@@ -47,7 +47,7 @@
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
                     .ConfigureAwait(false);
@@ -78,7 +78,7 @@
         {
             var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
 
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
                     .ConfigureAwait(false);
@@ -95,7 +95,7 @@
 
         public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 using (var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>())
                     .ConfigureAwait(false))
@@ -112,14 +112,13 @@
 
         public async Task Delete(Guid endpointId)
         {
-            using (var session = Store.OpenAsyncSession())
+            using (var session = store.OpenAsyncSession())
             {
                 session.Delete<KnownEndpoint>(endpointId);
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
-        //TODO Is exposing this to help with testing an issue?
-        public IDocumentStore Store { get; }
+        IDocumentStore store;
     }
 }

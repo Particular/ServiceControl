@@ -56,7 +56,7 @@
                          WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
                        )
                        BEGIN
-                           Truncate TABLE [dbo].[KnownEndpoints]
+                           Drop TABLE [dbo].[KnownEndpoints]
                        END";
 
                 connection.Open();
