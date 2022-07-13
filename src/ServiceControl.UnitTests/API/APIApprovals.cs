@@ -82,7 +82,29 @@
                 LicenseFileText = null
             };
 
-            Approver.Verify(settings);
+            Approver.Verify(settings, RemoveSettingsSetViaEnvironmentVariable);
+        }
+
+        string RemoveSettingsSetViaEnvironmentVariable(string json)
+        {
+            var allLines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var settingsLines = allLines.AsSpan(1, allLines.Length - 2);
+
+            var result = string.Empty;
+
+            foreach (var settingLine in settingsLines)
+            {
+                var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var settingName = parts[0].Trim('"', ' ');
+
+                if (Environment.GetEnvironmentVariable($"ServiceControl/{settingName}") == null)
+                {
+                    result += settingLine + Environment.NewLine;
+                }
+            }
+
+            return $"{{\r\n{result}}}";
         }
 
         [Test]
