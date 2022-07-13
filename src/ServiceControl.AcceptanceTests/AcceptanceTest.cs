@@ -48,16 +48,6 @@ namespace ServiceControl.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            if (Environment.GetEnvironmentVariable("ServiceControl/DataStoreType") == "SqlDb")
-            {
-                var monitoringTestsPrefix = "ServiceControl.AcceptanceTests.Monitoring.When";
-
-                if (TestContext.CurrentContext.Test.FullName.StartsWith(monitoringTestsPrefix) == false)
-                {
-                    Assert.Ignore("Ignoring due to unsupported storage: SqlDb");
-                }
-            }
-
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
 
@@ -84,6 +74,12 @@ namespace ServiceControl.AcceptanceTests
             if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
             {
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
+            }
+
+            var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
+            if (!shouldBeRunOnAllDataStores && Settings.DataStoreType != DataStoreType.RavenDb)
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllDataStoresAttribute] therefore skipping this test with '{Settings.DataStoreType}'");
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");

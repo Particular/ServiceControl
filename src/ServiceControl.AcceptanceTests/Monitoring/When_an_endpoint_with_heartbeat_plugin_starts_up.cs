@@ -11,6 +11,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllDataStores]
     class When_an_endpoint_with_heartbeat_plugin_starts_up : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
