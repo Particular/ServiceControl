@@ -82,10 +82,10 @@
                 LicenseFileText = null
             };
 
-            Approver.Verify(settings, RemoveSettingsSetViaEnvironmentVariable);
+            Approver.Verify(settings, RemoveDataStoreSettings);
         }
 
-        string RemoveSettingsSetViaEnvironmentVariable(string json)
+        string RemoveDataStoreSettings(string json)
         {
             var allLines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -93,12 +93,14 @@
 
             var result = string.Empty;
 
+            var dataStoreSettings = new[] { nameof(Settings.DataStoreType), nameof(Settings.SqlStorageConnectionString) };
+
             foreach (var settingLine in settingsLines)
             {
                 var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                 var settingName = parts[0].Trim('"', ' ');
 
-                if (Environment.GetEnvironmentVariable($"ServiceControl/{settingName}") == null)
+                if (dataStoreSettings.Contains(settingName) == false)
                 {
                     result += settingLine + Environment.NewLine;
                 }

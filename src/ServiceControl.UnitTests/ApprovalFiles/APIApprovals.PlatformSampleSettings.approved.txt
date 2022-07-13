@@ -47,5 +47,4 @@
   "EnableFullTextSearchOnBodies": true,
   "DisableHealthChecks": false,
   "ExposeApi": true,
-  "SqlStorageConnectionString": null
 }
