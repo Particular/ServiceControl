@@ -34,12 +34,6 @@ jobs:
           - name: AzureServiceBusNetStandard
             transport: AzureServiceBusNetStandard
             customization: ConfigureEndpointAzureServiceBusNetStandardTransport
-          - name: AzureServiceBus-ForwardingTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
-          - name: AzureServiceBus-EndpointTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
           - name: AzureStorageQueues
             transport: AzureStorageQueues
             customization: ConfigureEndpointAzureStorageQueueTransport
@@ -92,7 +86,7 @@ jobs:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
-        if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
+        if: matrix.transport == 'AzureServiceBusNetStandard'
         uses: Particular/setup-azureservicebus-action@v1.0.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
