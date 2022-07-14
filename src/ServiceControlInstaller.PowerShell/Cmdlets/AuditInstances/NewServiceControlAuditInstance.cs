@@ -51,7 +51,7 @@
         public string AuditLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
+        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQDirectRoutingTopology, TransportNames.RabbitMQConventionalRoutingTopology, TransportNames.AmazonSQS)]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
