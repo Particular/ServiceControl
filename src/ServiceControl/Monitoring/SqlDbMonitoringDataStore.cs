@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Collections.Generic;
     using System.Data.SqlClient;
+    using System.Linq;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Dapper;
@@ -116,6 +118,29 @@
                     {
                         Id = endpointId
                     }).ConfigureAwait(false);
+            }
+        }
+        public async Task<KnownEndpoint[]> GetAllKnownEndpoints()
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync().ConfigureAwait(false);
+
+                var rows = await connection.QueryAsync("SELECT * FROM [KnownEndpoints]").ConfigureAwait(false);
+
+                return (from row in rows
+                        select new KnownEndpoint
+                        {
+                            EndpointDetails = new EndpointDetails
+                            {
+                                Host = row.Host,
+                                HostId = row.HostId,
+                                Name = row.HostDisplayName
+                            },
+                            HostDisplayName = row.HostDisplayName,
+                            Id = row.Id,
+                            Monitored = row.Monitored
+                        }).ToArray();
             }
         }
 

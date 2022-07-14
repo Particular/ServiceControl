@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using Audit.Monitoring;
     using Contracts.Operations;
@@ -116,6 +119,16 @@
             {
                 session.Delete<KnownEndpoint>(endpointId);
                 await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+        public async Task<KnownEndpoint[]> GetAllKnownEndpoints()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
+                    .ToListAsync().ConfigureAwait(false);
+
+                return knownEndpoints.ToArray();
             }
         }
 

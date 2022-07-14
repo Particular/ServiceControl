@@ -11,5 +11,6 @@
         Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored);
         Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring);
         Task Delete(Guid endpointId);
+        Task<KnownEndpoint[]> GetAllKnownEndpoints();
     }
 }

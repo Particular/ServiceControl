@@ -70,6 +70,19 @@ namespace ServiceControl.Monitoring
 
             return Task.CompletedTask;
         }
+        public Task<KnownEndpoint[]> GetAllKnownEndpoints() =>
+            Task.FromResult((from e in endpoints
+                             select new KnownEndpoint
+                             {
+                                 EndpointDetails = new EndpointDetails
+                                 {
+                                     Host = e.Host,
+                                     HostId = e.HostId,
+                                     Name = e.HostDisplayName
+                                 },
+                                 HostDisplayName = e.HostDisplayName,
+                                 Monitored = e.Monitored
+                             }).ToArray());
 
         public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {

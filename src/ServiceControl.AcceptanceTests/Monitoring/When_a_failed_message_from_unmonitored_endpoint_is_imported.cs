@@ -9,8 +9,10 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.Monitoring;
     using TestSupport;
     using TestSupport.EndpointTemplates;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_failed_message_from_unmonitored_endpoint_is_imported : AcceptanceTest
     {
@@ -31,6 +33,27 @@
 
             Assert.AreEqual(1, endpoints.Length);
             Assert.AreEqual(context.EndpointNameOfReceivingEndpoint, endpoints.First().Name);
+        }
+
+        [Test]
+        public async Task It_is_persisted()
+        {
+            var endpointName = Conventions.EndpointNamingConvention(typeof(Receiver));
+            KnownEndpoint endpoint = default;
+
+            var context = await Define<MyContext>()
+                .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+                .Done(async c =>
+                {
+                    var knownEndpoints = await this.TryGetSingle<KnownEndpoint>("/api/test/knownendpoints/query",
+                        k => k.EndpointDetails.Name == endpointName);
+
+                    endpoint = knownEndpoints.Item;
+                    return knownEndpoints.HasResult;
+                })
+                .Run();
+
+            Assert.IsFalse(endpoint.Monitored, "Endpoint detected through error ingestion should not be monitored");
         }
 
         public class Receiver : EndpointConfigurationBuilder
