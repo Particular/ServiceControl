@@ -15,7 +15,7 @@
     class MonitoringDataStoreTester
     {
         DataStoreType dataStoreType;
-        string sqlDbConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString", "Server=localhost,1433;Initial Catalog=TestSqlPersistence;Persist Security Info=False;User ID=sa;Password=p@ssword;MultipleActiveResultSets=False");
+        string sqlDbConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
         EmbeddableDocumentStore documentStore;
         public IMonitoringDataStore MonitoringDataStore { get; internal set; }
 

@@ -27,12 +27,26 @@
             await _monitoringDataStoreTester.CleanupDB().ConfigureAwait(false);
         }
 
-        public static object[] GetMonitoringDataStoreTesters =
+        public static object[] GetMonitoringDataStoreTesters()
         {
-                new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.InMemory),
-                new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.SqlDb),
-                new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.RavenDb),
-        };
+            if (Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString") == null)
+            {
+                return new object[]
+                {
+                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.InMemory),
+                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.RavenDb)
+                };
+            }
+            else
+            {
+                return new object[]
+                {
+                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.InMemory),
+                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.SqlDb),
+                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.RavenDb)
+                };
+            }
+        }
 
         [Test]
         public async Task Endpoints_load_from_dataStore_into_monitor()
