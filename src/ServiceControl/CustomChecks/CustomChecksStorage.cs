@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
     using Contracts.CustomChecks;
     using Infrastructure;
     using Infrastructure.DomainEvents;
@@ -84,7 +85,7 @@
 
         }
 
-        public async Task<StatisticsResult> GetStats(HttpRequestMessage request, string status = null)
+        public async Task<QueryResult<IList<CustomCheck>>> GetStats(HttpRequestMessage request, string status = null)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -98,12 +99,7 @@
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new StatisticsResult
-                {
-                    Checks = results,
-                    TotalResults = stats.TotalResults,
-                    Etag = stats.IndexEtag
-                };
+                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
             }
         }
 

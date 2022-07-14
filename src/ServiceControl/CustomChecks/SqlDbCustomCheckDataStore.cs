@@ -4,6 +4,7 @@ namespace ServiceControl.CustomChecks
     using System.Data.SqlClient;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
     using Contracts.CustomChecks;
     using Contracts.Operations;
     using Dapper;
@@ -96,12 +97,10 @@ namespace ServiceControl.CustomChecks
             }
         }
 
-        public async Task<StatisticsResult> GetStats(HttpRequestMessage request, string status = null)
+        public async Task<QueryResult<IList<CustomCheck>>> GetStats(HttpRequestMessage request, string status = null)
         {
-            var results = new StatisticsResult
-            {
-                Checks = new List<CustomCheck>()
-            };
+            var checks = new List<CustomCheck>();
+            var totalCount = 0;
 
             using (var connection = new SqlConnection(connectionString))
             {
@@ -121,7 +120,7 @@ namespace ServiceControl.CustomChecks
                     var rows = await multi.ReadAsync().ConfigureAwait(false);
                     foreach (dynamic row in rows)
                     {
-                        results.Checks.Add(new CustomCheck
+                        checks.Add(new CustomCheck
                         {
                             Id = row.Id,
                             CustomCheckId = row.CustomCheckId,
@@ -137,11 +136,11 @@ namespace ServiceControl.CustomChecks
                             }
                         });
                     }
-                    results.TotalResults = multi.ReadFirst<int>();
+                    totalCount = multi.ReadFirst<int>();
                 }
             }
 
-            return results;
+            return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
         }
 
         public static async Task Setup(string connectionString)

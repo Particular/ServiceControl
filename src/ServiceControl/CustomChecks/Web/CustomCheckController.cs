@@ -23,9 +23,9 @@
         {
             var stats = await customChecksStorage.GetStats(Request, status).ConfigureAwait(false);
             return Negotiator
-                .FromModel(Request, stats.Checks)
-                .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                .WithEtag(stats.Etag);
+                .FromModel(Request, stats.Results)
+                .WithPagingLinksAndTotalCount(stats.QueryStats.TotalCount, Request)
+                .WithEtag(stats.QueryStats.ETag);
         }
 
         [Route("customchecks/{id}")]
