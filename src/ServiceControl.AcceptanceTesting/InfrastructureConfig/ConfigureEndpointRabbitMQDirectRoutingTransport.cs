@@ -19,7 +19,7 @@
             connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
 
             var transport = configuration.UseTransport<RabbitMQTransport>();
-            transport.UseDirectRoutingTopology();
+            transport.UseDirectRoutingTopology(QueueType.Classic);
             transport.ConnectionString(connectionStringBuilder.ConnectionString);
 
             queueBindings = configuration.GetSettings().Get<QueueBindings>();

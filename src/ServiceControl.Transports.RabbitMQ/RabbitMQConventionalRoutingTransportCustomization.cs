@@ -59,7 +59,7 @@
 
         static void ConfigureTransport(TransportExtensions<RabbitMQTransport> transport, TransportSettings transportSettings)
         {
-            transport.UseConventionalRoutingTopology();
+            transport.UseConventionalRoutingTopology(QueueType.Classic);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ApplyConnectionString(transportSettings.ConnectionString);
         }
