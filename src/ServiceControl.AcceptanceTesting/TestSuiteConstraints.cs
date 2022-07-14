@@ -43,21 +43,11 @@
 
         public DataStoreConfiguration CreateDataStoreConfiguration()
         {
-            var msSqlConnectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Storage.ConnectionString");
-
-            if (msSqlConnectionString != null)
-            {
-                return new DataStoreConfiguration
-                {
-                    DataStoreTypeName = "SqlDb",
-                    ConnectionString = msSqlConnectionString
-                };
-            }
-
             return new DataStoreConfiguration
             {
-                DataStoreTypeName = "RavenDb",
-                ConnectionString = string.Empty
+                ConnectionString =
+                    Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.Storage.ConnectionString"),
+                DataStoreTypeName = Environment.GetEnvironmentVariable("ServiceControl/DataStoreType")
             };
         }
 
