@@ -23,7 +23,6 @@ jobs:
           - name: Msmq
             transport: Msmq
             customization: ConfigureEndpointMsmqTransport
-            upload: true
           - name: SqlServer
             transport: SqlServer
             customization: ConfigureEndpointSqlServerTransport
@@ -68,7 +67,7 @@ jobs:
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Upload packages
-        if: matrix.upload == true
+        if: matrix.transport == 'Msmq' && matrix.storage == 'SqlDb'
         uses: actions/upload-artifact@v3.1.0
         with:
           name: assets
