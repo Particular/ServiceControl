@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
+    using Microsoft.Data.SqlClient;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -70,6 +71,11 @@ namespace ServiceControl.AcceptanceTests
 
             DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
 
+            if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
+            {
+                ResetSqlDb(DataStoreConfiguration.ConnectionString);
+            }
+
             var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
             if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
             {
@@ -95,6 +101,33 @@ namespace ServiceControl.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
+        }
+
+        void ResetSqlDb(string connectionString)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                var command = new SqlCommand(@"
+DECLARE @name NVARCHAR(128)
+DECLARE @schema NVARCHAR(128)
+DECLARE @SQL NVARCHAR(254)
+
+SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
+
+WHILE @name IS NOT NULL
+BEGIN
+    SELECT @SQL = 'DROP TABLE ' + QUOTENAME(@schema) + '.' + QUOTENAME(RTRIM(@name))
+    EXEC (@SQL)
+    PRINT 'Dropped Table: ' + @schema + '.' + @name
+	SELECT  @name = NULL
+    SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
+END
+", connection);
+
+                command.ExecuteNonQuery();
+            }
         }
 
         static void RemoveOtherTransportAssemblies(string name)
