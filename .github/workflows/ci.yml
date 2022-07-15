@@ -26,9 +26,12 @@ jobs:
           - name: SqlServer
             transport: SqlServer
             customization: ConfigureEndpointSqlServerTransport
-          - name: RabbitMQ-Conventional
+          - name: RabbitMQ-Conventional-Classic
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
+          - name: RabbitMQ-Conventional-Quorum
+            transport: RabbitMQ
+            customization: ConfigureEndpointRabbitMQQuorumConventionalRoutingTransport
           - name: RabbitMQ-Direct
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQDirectRoutingTransport

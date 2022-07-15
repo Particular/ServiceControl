@@ -14,12 +14,24 @@
 
     public class ConfigureEndpointRabbitMQConventionalRoutingTransport : ITransportIntegration
     {
+        readonly QueueType queueType;
+
+        public ConfigureEndpointRabbitMQConventionalRoutingTransport()
+            : this(QueueType.Classic)
+        {
+        }
+
+        protected ConfigureEndpointRabbitMQConventionalRoutingTransport(QueueType queueType)
+        {
+            this.queueType = queueType;
+        }
+
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
             connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
 
             var transport = configuration.UseTransport<RabbitMQTransport>();
-            transport.UseConventionalRoutingTopology(QueueType.Classic);
+            transport.UseConventionalRoutingTopology(queueType);
             transport.ConnectionString(connectionStringBuilder.ConnectionString);
 
             queueBindings = configuration.GetSettings().Get<QueueBindings>();
@@ -35,7 +47,7 @@
         }
 
         public string Name => TransportNames.RabbitMQConventionalRoutingTopology;
-        public string TypeName => $"{typeof(RabbitMQConventionalRoutingTransportCustomization).AssemblyQualifiedName}";
+        public virtual string TypeName => $"{typeof(RabbitMQConventionalRoutingTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
         public string ScrubPlatformConnection(string input) => input;
 
