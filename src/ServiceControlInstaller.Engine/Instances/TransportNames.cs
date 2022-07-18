@@ -32,7 +32,9 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public const string RabbitMQQuorumConventionalRoutingTopology = "RabbitMQ - Conventional routing topology (quorum queues)";
 
-        public const string RabbitMQDirectRoutingTopology = "RabbitMQ - Direct routing topology (Old)";
+        public const string RabbitMQDirectRoutingTopologyDeprecated = "RabbitMQ - Direct routing topology (Old)";
+
+        public const string RabbitMQClassicDirectRoutingTopology = "RabbitMQ - Direct routing topology (classic queues)";
 
         public static bool IsDeprecated(string transportName)
         {

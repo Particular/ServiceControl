@@ -32,9 +32,9 @@ jobs:
           - name: RabbitMQ-Conventional-Quorum
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQQuorumConventionalRoutingTransport
-          - name: RabbitMQ-Direct
+          - name: RabbitMQ-Direct-Classic
             transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQDirectRoutingTransport
+            customization: ConfigureEndpointRabbitMQClassicDirectRoutingTransport
           - name: AzureServiceBusNetStandard
             transport: AzureServiceBusNetStandard
             customization: ConfigureEndpointAzureServiceBusNetStandardTransport

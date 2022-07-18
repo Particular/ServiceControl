@@ -66,7 +66,7 @@
                         return "SQL";
                     case TransportNames.RabbitMQClassicConventionalRoutingTopology:
                     case TransportNames.RabbitMQQuorumConventionalRoutingTopology:
-                    case TransportNames.RabbitMQDirectRoutingTopology:
+                    case TransportNames.RabbitMQClassicDirectRoutingTopology:
                         return "RabbitMQ";
                     default:
                         return TransportIntegration.Name;

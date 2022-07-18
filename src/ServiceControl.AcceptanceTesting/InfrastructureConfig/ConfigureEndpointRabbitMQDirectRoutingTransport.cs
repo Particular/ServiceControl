@@ -9,17 +9,22 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
     using RabbitMQ.Client;
-    using ServiceControlInstaller.Engine.Instances;
-    using Transports.RabbitMQ;
 
-    public class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegration
+    public abstract class ConfigureEndpointRabbitMQDirectRoutingTransport : ITransportIntegration
     {
+        readonly QueueType queueType;
+
+        protected ConfigureEndpointRabbitMQDirectRoutingTransport(QueueType queueType)
+        {
+            this.queueType = queueType;
+        }
+
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
             connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
 
             var transport = configuration.UseTransport<RabbitMQTransport>();
-            transport.UseDirectRoutingTopology(QueueType.Classic);
+            transport.UseDirectRoutingTopology(queueType);
             transport.ConnectionString(connectionStringBuilder.ConnectionString);
 
             queueBindings = configuration.GetSettings().Get<QueueBindings>();
@@ -34,8 +39,9 @@
             return Task.FromResult(0);
         }
 
-        public string Name => TransportNames.RabbitMQDirectRoutingTopology;
-        public string TypeName => $"{typeof(RabbitMQDirectRoutingTransportCustomization).AssemblyQualifiedName}";
+        public abstract string Name { get; }
+        public abstract string TypeName { get; }
+
         public string ConnectionString { get; set; }
         public string ScrubPlatformConnection(string input) => input;
 

@@ -105,14 +105,26 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQDirectRoutingTopology,
+                Name = TransportNames.RabbitMQDirectRoutingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
-                AvailableInSCMU = true,
-                Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                AvailableInSCMU = false,
+                AutoMigrateTo = TransportNames.RabbitMQClassicDirectRoutingTopology,
+                Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQClassicDirectRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.ClassicDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {
