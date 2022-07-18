@@ -20,9 +20,9 @@ namespace ServiceControl.CustomChecks
             this.domainEvents = domainEvents;
         }
 
-        public async Task UpdateCustomCheckStatus(CustomCheckDetail detail)
+        public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
-            var publish = false;
+            var status = CheckStateChange.Unchanged;
             var id = DeterministicGuid.MakeId(detail.OriginatingEndpoint.Name, detail.OriginatingEndpoint.HostId.ToString(), detail.CustomCheckId);
 
             using (var connection = new SqlConnection(connectionString))
@@ -37,7 +37,7 @@ namespace ServiceControl.CustomChecks
                     ((int)customCheck.Status == (int)Status.Fail && !detail.HasFailed) ||
                     ((int)customCheck.Status == (int)Status.Pass && detail.HasFailed))
                 {
-                    publish = true;
+                    status = CheckStateChange.Changed;
                 }
 
                 await connection.ExecuteAsync(
@@ -69,32 +69,7 @@ namespace ServiceControl.CustomChecks
                     }).ConfigureAwait(false);
             }
 
-            if (publish)
-            {
-                if (detail.HasFailed)
-                {
-                    await domainEvents.Raise(new CustomCheckFailed
-                    {
-                        Id = id,
-                        CustomCheckId = detail.CustomCheckId,
-                        Category = detail.Category,
-                        FailedAt = detail.ReportedAt,
-                        FailureReason = detail.FailureReason,
-                        OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-                else
-                {
-                    await domainEvents.Raise(new CustomCheckSucceeded
-                    {
-                        Id = id,
-                        CustomCheckId = detail.CustomCheckId,
-                        Category = detail.Category,
-                        SucceededAt = detail.ReportedAt,
-                        OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-            }
+            return status;
         }
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)

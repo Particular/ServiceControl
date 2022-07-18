@@ -1,27 +1,24 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;
     using Infrastructure;
-    using Infrastructure.DomainEvents;
     using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
 
     class RavenDbCustomCheckDataStore : ICustomChecksStorage
     {
-        public RavenDbCustomCheckDataStore(IDocumentStore store, IDomainEvents domainEvents)
+        public RavenDbCustomCheckDataStore(IDocumentStore store)
         {
             this.store = store;
-            this.domainEvents = domainEvents;
         }
 
-        public async Task UpdateCustomCheckStatus(CustomCheckDetail detail)
+        public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
-            var publish = false;
+            var status = CheckStateChange.Unchanged;
             var id = DeterministicGuid.MakeId(detail.OriginatingEndpoint.Name, detail.OriginatingEndpoint.HostId.ToString(), detail.CustomCheckId);
 
             using (var session = store.OpenAsyncSession())
@@ -41,7 +38,7 @@
                         };
                     }
 
-                    publish = true;
+                    status = CheckStateChange.Changed;
                 }
 
                 customCheck.CustomCheckId = detail.CustomCheckId;
@@ -56,33 +53,7 @@
                     .ConfigureAwait(false);
             }
 
-            if (publish)
-            {
-                if (detail.HasFailed)
-                {
-                    await domainEvents.Raise(new CustomCheckFailed
-                    {
-                        Id = id,
-                        CustomCheckId = detail.CustomCheckId,
-                        Category = detail.Category,
-                        FailedAt = detail.ReportedAt,
-                        FailureReason = detail.FailureReason,
-                        OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-                else
-                {
-                    await domainEvents.Raise(new CustomCheckSucceeded
-                    {
-                        Id = id,
-                        CustomCheckId = detail.CustomCheckId,
-                        Category = detail.Category,
-                        SucceededAt = detail.ReportedAt,
-                        OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
-                }
-            }
-
+            return status;
         }
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
@@ -124,6 +95,5 @@
         }
 
         IDocumentStore store;
-        IDomainEvents domainEvents;
     }
 }

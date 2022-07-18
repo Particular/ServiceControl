@@ -3,6 +3,12 @@ namespace ServiceControl.Contracts.CustomChecks
     using System;
     using Operations;
 
+    enum CheckStateChange
+    {
+        Changed,
+        Unchanged
+    }
+
     class CustomCheckDetail
     {
         public EndpointDetails OriginatingEndpoint { get; set; }

@@ -8,7 +8,7 @@ namespace ServiceControl.CustomChecks
 
     interface ICustomChecksStorage
     {
-        Task UpdateCustomCheckStatus(CustomCheckDetail detail);
+        Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail);
 
         Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null);
     }

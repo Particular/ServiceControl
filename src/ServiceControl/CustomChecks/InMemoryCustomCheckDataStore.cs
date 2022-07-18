@@ -8,7 +8,7 @@ namespace ServiceControl.CustomChecks
 
     class InMemoryCustomCheckDataStore : ICustomChecksStorage
     {
-        public Task UpdateCustomCheckStatus(CustomCheckDetail detail) => throw new System.NotImplementedException();
+        public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail) => throw new System.NotImplementedException();
         public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null) => throw new System.NotImplementedException();
     }
 }
