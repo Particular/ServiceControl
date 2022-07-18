@@ -15,16 +15,14 @@
     {
         public InternalCustomChecksHostedService(
             IList<ICustomCheck> customChecks,
-            ICustomChecksDataStore store,
-            IDomainEvents domainEvents,
             HostInformation hostInfo,
             IAsyncTimer scheduler,
+            CustomCheckResultHandler checkResultHandler,
             string endpointName)
         {
             this.customChecks = customChecks;
-            this.store = store;
             this.scheduler = scheduler;
-            this.domainEvents = domainEvents;
+            this.checkResultHandler = checkResultHandler;
             localEndpointDetails = new EndpointDetails
             {
                 Host = hostInfo.DisplayName,
@@ -37,7 +35,7 @@
         {
             foreach (var check in customChecks)
             {
-                var checkManager = new InternalCustomCheckManager(store, check, localEndpointDetails, scheduler, domainEvents);
+                var checkManager = new InternalCustomCheckManager(check, localEndpointDetails, scheduler, checkResultHandler);
                 checkManager.Start();
 
                 managers.Add(checkManager);
@@ -56,9 +54,8 @@
         }
 
         IList<ICustomCheck> customChecks;
-        readonly ICustomChecksDataStore store;
         readonly IAsyncTimer scheduler;
-        readonly IDomainEvents domainEvents;
+        readonly CustomCheckResultHandler checkResultHandler;
         readonly EndpointDetails localEndpointDetails;
         IList<InternalCustomCheckManager> managers = new List<InternalCustomCheckManager>();
     }

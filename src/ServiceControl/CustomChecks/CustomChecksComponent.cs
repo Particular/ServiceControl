@@ -23,6 +23,7 @@
                 serviceCollection.AddEventLogMapping<CustomCheckFailedDefinition>();
                 serviceCollection.AddEventLogMapping<CustomCheckSucceededDefinition>();
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+                serviceCollection.AddSingleton<CustomCheckResultHandler>();
 
                 switch (settings.DataStoreType)
                 {

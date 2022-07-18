@@ -9,9 +9,9 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(ICustomChecksDataStore customChecks)
+        public ReportCustomCheckResultHandler(CustomCheckResultHandler customCheckResultHandler)
         {
-            this.customChecks = customChecks;
+            this.customCheckResultHandler = customCheckResultHandler;
         }
 
         public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
@@ -31,24 +31,24 @@
                 throw new Exception("Received an custom check message without proper initialization of the HostId in the schema");
             }
 
-            await customChecks.UpdateCustomCheckStatus(
-                    new CustomCheckDetail
-                    {
-                        OriginatingEndpoint = new EndpointDetails
-                        {
-                            Host = message.Host,
-                            HostId = message.HostId,
-                            Name = message.EndpointName
-                        },
-                        ReportedAt = message.ReportedAt,
-                        CustomCheckId = message.CustomCheckId,
-                        Category = message.Category,
-                        HasFailed = message.HasFailed,
-                        FailureReason = message.FailureReason
-                    }
-                ).ConfigureAwait(false);
+            var checkDetails = new CustomCheckDetail
+            {
+                OriginatingEndpoint = new EndpointDetails
+                {
+                    Host = message.Host,
+                    HostId = message.HostId,
+                    Name = message.EndpointName
+                },
+                ReportedAt = message.ReportedAt,
+                CustomCheckId = message.CustomCheckId,
+                Category = message.Category,
+                HasFailed = message.HasFailed,
+                FailureReason = message.FailureReason
+            };
+
+            await customCheckResultHandler.HandleResult(checkDetails).ConfigureAwait(false);
         }
 
-        ICustomChecksDataStore customChecks;
+        readonly CustomCheckResultHandler customCheckResultHandler;
     }
 }

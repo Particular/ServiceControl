@@ -2,7 +2,6 @@ namespace ServiceControl.CustomChecks
 {
     using System.Collections.Generic;
     using System.Data.SqlClient;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;
