@@ -59,9 +59,10 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            Processor.Process(messageContexts, unitOfWork);
 
-            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
 
         [Test]
@@ -81,8 +82,9 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
-            await Store.AsyncDatabaseCommands.BatchAsync(commands);
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            Processor.Process(messageContexts, unitOfWork);
+            await unitOfWork.Complete();
 
             Assert.DoesNotThrowAsync(
                 () => Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableInvokeHandlerContext()));
@@ -98,8 +100,9 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
-            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            Processor.Process(messageContexts, unitOfWork);
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
 
         static MarkMessageFailureResolvedByRetry CreateLegacyRetryConfirmationCommand()

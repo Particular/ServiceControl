@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
-    using EndpointControl.Handlers;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
@@ -124,14 +123,14 @@
 
             try
             {
-                var (storedFailedMessageContexts, storeCommands) = await errorProcessor.Process(failedMessageContexts).ConfigureAwait(false);
-                var markRetriedCommands = retryConfirmationProcessor.Process(retriedMessageContexts);
+                // TODO: Pass in the expected size failedMessageContexts.Count + (retriedMessageContexts.Count * 2)
+                IIngestionUnitOfWork unitOfWork = new RavenDbIngestionUnitOfWork(store);
+                var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork).ConfigureAwait(false);
+                retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
 
                 using (bulkInsertDurationMeter.Measure())
                 {
-                    // not really interested in the batch results since a batch is atomic
-                    var allCommands = storeCommands.Concat(markRetriedCommands);
-                    await store.AsyncDatabaseCommands.BatchAsync(allCommands)
+                    await unitOfWork.Complete()
                         .ConfigureAwait(false);
                 }
 

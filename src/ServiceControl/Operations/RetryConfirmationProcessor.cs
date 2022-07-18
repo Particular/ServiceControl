@@ -4,11 +4,7 @@
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
-    using MessageFailures;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Recoverability;
 
     class RetryConfirmationProcessor
     {
@@ -20,17 +16,13 @@
             this.domainEvents = domainEvents;
         }
 
-        public IReadOnlyCollection<ICommandData> Process(List<MessageContext> contexts)
+        public void Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
         {
-            var allCommands = new List<ICommandData>(contexts.Count * 2);
-
             foreach (var context in contexts)
             {
-                var commands = CreateDatabaseCommands(context);
-                allCommands.AddRange(commands);
+                var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
+                unitOfWork.RecordSuccessfulRetry(retriedMessageUniqueId);
             }
-
-            return allCommands;
         }
 
         public Task Announce(MessageContext messageContext)
@@ -39,26 +31,6 @@
             {
                 FailedMessageId = messageContext.Headers[RetryUniqueMessageIdHeader],
             });
-        }
-
-        static IEnumerable<ICommandData> CreateDatabaseCommands(MessageContext context)
-        {
-            var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
-            var failedMessageDocumentId = FailedMessage.MakeDocumentId(retriedMessageUniqueId);
-            var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
-
-            var patchCommand = new PatchCommandData
-            {
-                Key = failedMessageDocumentId,
-                Patches = new[]
-                {
-                    new PatchRequest {Type = PatchCommandType.Set, Name = nameof(FailedMessage.Status), Value = (int)FailedMessageStatus.Resolved}
-                }
-            };
-
-            var deleteCommand = new DeleteCommandData { Key = failedMessageRetryDocumentId, };
-            yield return patchCommand;
-            yield return deleteCommand;
         }
 
         readonly IDomainEvents domainEvents;
