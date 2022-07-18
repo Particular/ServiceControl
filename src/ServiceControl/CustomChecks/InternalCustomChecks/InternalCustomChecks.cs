@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using Infrastructure.BackgroundTasks;
+    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
@@ -22,9 +23,9 @@
 
                 collection.AddHostedService(provider => new InternalCustomChecksHostedService(
                     provider.GetServices<ICustomCheck>().ToList(),
-                    provider.GetRequiredService<CustomChecksStorage>(),
                     provider.GetRequiredService<HostInformation>(),
                     provider.GetRequiredService<IAsyncTimer>(),
+                    provider.GetRequiredService<CustomCheckResultProcessor>(),
                     provider.GetRequiredService<Settings>().ServiceName));
             });
             return hostBuilder;

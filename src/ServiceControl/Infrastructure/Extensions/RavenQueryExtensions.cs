@@ -219,6 +219,12 @@ namespace ServiceControl.Infrastructure.Extensions
                 .Take(maxResultsPerPage);
         }
 
+        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, PagingInfo paging)
+        {
+            return source.Skip(paging.Offset)
+                .Take(paging.PageSize);
+        }
+
         public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request)
         {
             var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
@@ -309,7 +315,7 @@ namespace ServiceControl.Infrastructure.Extensions
             return source.OrderByDescending(keySelector);
         }
 
-        static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
+        public static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
         {
             Dictionary<string, string> queryStringDictionary;
             if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))
