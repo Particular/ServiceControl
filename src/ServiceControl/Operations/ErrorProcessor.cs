@@ -63,7 +63,7 @@
                     Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                unitOfWork.RecordKnownEndpoint(endpoint);
+                unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
             }
 
             return storedContexts;
@@ -135,7 +135,7 @@
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                unitOfWork.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
+                unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);

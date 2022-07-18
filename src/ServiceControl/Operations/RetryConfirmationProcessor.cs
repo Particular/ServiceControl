@@ -21,7 +21,7 @@
             foreach (var context in contexts)
             {
                 var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
-                unitOfWork.RecordSuccessfulRetry(retriedMessageUniqueId);
+                unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId);
             }
         }
 
