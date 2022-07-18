@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
+    using Infrastructure;
     using Infrastructure.WebApi;
     using NServiceBus;
 
@@ -21,7 +22,8 @@
         [HttpGet]
         public async Task<HttpResponseMessage> CustomChecks(string status = null)
         {
-            var stats = await customChecksStorage.GetStats(Request, status).ConfigureAwait(false);
+            var paging = Request.GetPagingInfo();
+            var stats = await customChecksStorage.GetStats(paging, status).ConfigureAwait(false);
             return Negotiator
                 .FromModel(Request, stats.Results)
                 .WithPagingLinksAndTotalCount(stats.QueryStats.TotalCount, Request)

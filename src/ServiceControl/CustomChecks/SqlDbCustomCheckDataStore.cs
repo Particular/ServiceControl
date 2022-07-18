@@ -97,7 +97,7 @@ namespace ServiceControl.CustomChecks
             }
         }
 
-        public async Task<QueryResult<IList<CustomCheck>>> GetStats(HttpRequestMessage request, string status = null)
+        public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
         {
             var checks = new List<CustomCheck>();
             var totalCount = 0;
@@ -114,7 +114,6 @@ namespace ServiceControl.CustomChecks
 
                 var countQuery = @"SELECT COUNT(Id) FROM [CustomChecks] " + filter;
 
-                var paging = GetPaging(request);
                 using (var multi = await connection.QueryMultipleAsync(query + countQuery, paging).ConfigureAwait(false))
                 {
                     var rows = await multi.ReadAsync().ConfigureAwait(false);
@@ -175,40 +174,7 @@ namespace ServiceControl.CustomChecks
             }
         }
 
-        static PagingInfo GetPaging(HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = 50;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            return new PagingInfo(page, maxResultsPerPage);
-        }
-
         readonly string connectionString;
         readonly IDomainEvents domainEvents;
-
-        class PagingInfo
-        {
-            public int Page { get; }
-            public int PageSize { get; }
-            public int Offset { get; }
-            public int Next { get; }
-
-            public PagingInfo(int page, int pageSize)
-            {
-                Page = page;
-                PageSize = pageSize;
-                Next = pageSize;
-                Offset = (Page - 1) * Next;
-            }
-        }
     }
 }

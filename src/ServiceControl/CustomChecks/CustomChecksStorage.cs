@@ -85,7 +85,7 @@
 
         }
 
-        public async Task<QueryResult<IList<CustomCheck>>> GetStats(HttpRequestMessage request, string status = null)
+        public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -95,7 +95,7 @@
                 query = AddStatusFilter(query, status);
 
                 var results = await query
-                    .Paging(request)
+                    .Paging(paging)
                     .ToListAsync()
                     .ConfigureAwait(false);
 

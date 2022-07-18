@@ -219,6 +219,12 @@ namespace ServiceControl.Infrastructure.Extensions
                 .Take(maxResultsPerPage);
         }
 
+        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, PagingInfo paging)
+        {
+            return source.Skip(paging.Offset)
+                .Take(paging.PageSize);
+        }
+
         public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request)
         {
             var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
