@@ -27,13 +27,13 @@
                 switch (settings.DataStoreType)
                 {
                     case DataStoreType.InMemory:
-                        serviceCollection.AddSingleton<ICustomChecksStorage, InMemoryCustomCheckDataStore>();
+                        serviceCollection.AddSingleton<ICustomChecksDataStore, InMemoryCustomCheckDataStore>();
                         break;
                     case DataStoreType.RavenDb:
-                        serviceCollection.AddSingleton<ICustomChecksStorage, RavenDbCustomCheckDataStore>();
+                        serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
                         break;
                     case DataStoreType.SqlDb:
-                        serviceCollection.AddSingleton<ICustomChecksStorage>(sp => new SqlDbCustomCheckDataStore(settings.SqlStorageConnectionString, sp.GetService<IDomainEvents>()));
+                        serviceCollection.AddSingleton<ICustomChecksDataStore>(sp => new SqlDbCustomCheckDataStore(settings.SqlStorageConnectionString, sp.GetService<IDomainEvents>()));
                         break;
                     default:
                         break;

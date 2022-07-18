@@ -10,9 +10,8 @@ namespace ServiceControl.CustomChecks
     using Dapper;
     using Infrastructure;
     using Infrastructure.DomainEvents;
-    using Infrastructure.Extensions;
 
-    class SqlDbCustomCheckDataStore : ICustomChecksStorage
+    class SqlDbCustomCheckDataStore : ICustomChecksDataStore
     {
         public SqlDbCustomCheckDataStore(string connectionString, IDomainEvents domainEvents)
         {

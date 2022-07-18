@@ -23,7 +23,7 @@
 
                 collection.AddHostedService(provider => new InternalCustomChecksHostedService(
                     provider.GetServices<ICustomCheck>().ToList(),
-                    provider.GetRequiredService<ICustomChecksStorage>(),
+                    provider.GetRequiredService<ICustomChecksDataStore>(),
                     provider.GetRequiredService<IDomainEvents>(),
                     provider.GetRequiredService<HostInformation>(),
                     provider.GetRequiredService<IAsyncTimer>(),

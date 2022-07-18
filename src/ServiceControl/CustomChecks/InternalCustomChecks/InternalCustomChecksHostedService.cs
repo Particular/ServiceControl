@@ -15,7 +15,7 @@
     {
         public InternalCustomChecksHostedService(
             IList<ICustomCheck> customChecks,
-            ICustomChecksStorage store,
+            ICustomChecksDataStore store,
             IDomainEvents domainEvents,
             HostInformation hostInfo,
             IAsyncTimer scheduler,
@@ -56,7 +56,7 @@
         }
 
         IList<ICustomCheck> customChecks;
-        readonly ICustomChecksStorage store;
+        readonly ICustomChecksDataStore store;
         readonly IAsyncTimer scheduler;
         readonly IDomainEvents domainEvents;
         readonly EndpointDetails localEndpointDetails;

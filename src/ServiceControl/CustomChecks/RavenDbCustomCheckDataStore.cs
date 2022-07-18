@@ -9,7 +9,7 @@
     using Raven.Client;
     using Raven.Client.Linq;
 
-    class RavenDbCustomCheckDataStore : ICustomChecksStorage
+    class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
         public RavenDbCustomCheckDataStore(IDocumentStore store)
         {

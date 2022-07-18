@@ -6,7 +6,7 @@ namespace ServiceControl.CustomChecks
     using Contracts.CustomChecks;
     using Infrastructure;
 
-    interface ICustomChecksStorage
+    interface ICustomChecksDataStore
     {
         Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail);
 

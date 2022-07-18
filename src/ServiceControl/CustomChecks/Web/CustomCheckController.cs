@@ -12,10 +12,10 @@
 
     public class CustomCheckController : ApiController
     {
-        internal CustomCheckController(ICustomChecksStorage customChecksStorage, IMessageSession messageSession)
+        internal CustomCheckController(ICustomChecksDataStore customChecksDataStore, IMessageSession messageSession)
         {
             this.messageSession = messageSession;
-            this.customChecksStorage = customChecksStorage;
+            this.customChecksDataStore = customChecksDataStore;
         }
 
         [Route("customchecks")]
@@ -23,7 +23,7 @@
         public async Task<HttpResponseMessage> CustomChecks(string status = null)
         {
             var paging = Request.GetPagingInfo();
-            var stats = await customChecksStorage.GetStats(paging, status).ConfigureAwait(false);
+            var stats = await customChecksDataStore.GetStats(paging, status).ConfigureAwait(false);
             return Negotiator
                 .FromModel(Request, stats.Results)
                 .WithPagingLinksAndTotalCount(stats.QueryStats.TotalCount, Request)
@@ -39,7 +39,7 @@
             return StatusCode(HttpStatusCode.Accepted);
         }
 
-        ICustomChecksStorage customChecksStorage;
+        ICustomChecksDataStore customChecksDataStore;
         IMessageSession messageSession;
     }
 }
