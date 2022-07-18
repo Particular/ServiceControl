@@ -67,24 +67,19 @@
                     collection.AddHostedService<ErrorIngestion>();
                 }
 
-                // HINT: This is needed for all implementations as a fallback in case they don't implement the full unit of work
-                collection.AddSingleton<RavenDbIngestionUnitOfWorkFactory>();
                 switch (settings.DataStoreType)
                 {
                     case DataStoreType.InMemory:
-                        collection.AddSingleton<InMemoryIngestionUnitOfWorkFactory>();
-                        collection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
-                            new FallbackIngestionUnitOfWorkFactory(
-                                sp.GetRequiredService<InMemoryIngestionUnitOfWorkFactory>(),
-                                sp.GetRequiredService<RavenDbIngestionUnitOfWorkFactory>()));
+                        collection.AddPartialUnitOfWorkFactory<InMemoryIngestionUnitOfWorkFactory>();
                         break;
                     case DataStoreType.RavenDb:
-                        collection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
-                            sp.GetRequiredService<RavenDbIngestionUnitOfWorkFactory>());
+                        collection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
                         break;
                     case DataStoreType.SqlDb:
+                        collection.AddPartialUnitOfWorkFactory<SqlIngestionUnitOfWorkFactory>();
+                        break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        break;
                 }
 
                 //Retries
