@@ -35,14 +35,16 @@
                 })
                 .Run();
 
-            // ASQ adds this value to it's message wrapper and writes the incoming message header 
+            // ASQ adds this value to it's message wrapper and writes the incoming message header
             if (TransportIntegration.Name != TransportNames.AzureStorageQueue)
             {
                 Assert.False(context.Headers.ContainsKey(Headers.MessageIntent), "Should not add the intent header");
             }
 
-            //Rabbit defaults the header the header when deserializing the message based on the IBasicProperties.DeliveryMode
-            if (TransportIntegration.Name == TransportNames.RabbitMQConventionalRoutingTopology || TransportIntegration.Name == TransportNames.RabbitMQDirectRoutingTopology)
+            //Rabbit defaults the header when deserializing the message based on the IBasicProperties.DeliveryMode
+            if (TransportIntegration.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology ||
+                TransportIntegration.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology ||
+                TransportIntegration.Name == TransportNames.RabbitMQDirectRoutingTopology)
             {
                 Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
             }

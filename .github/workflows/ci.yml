@@ -28,7 +28,7 @@ jobs:
             customization: ConfigureEndpointSqlServerTransport
           - name: RabbitMQ-Conventional-Classic
             transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
+            customization: ConfigureEndpointRabbitMQClassicConventionalRoutingTransport
           - name: RabbitMQ-Conventional-Quorum
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQQuorumConventionalRoutingTransport

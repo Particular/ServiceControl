@@ -3,15 +3,9 @@
     using NServiceBus;
     using NServiceBus.Raw;
 
-    public class RabbitMQConventionalRoutingTransportCustomization : TransportCustomization
+    public abstract class RabbitMQConventionalRoutingTransportCustomization : TransportCustomization
     {
         readonly QueueType queueType;
-
-        public RabbitMQConventionalRoutingTransportCustomization()
-            : this(QueueType.Classic)
-        {
-
-        }
 
         protected RabbitMQConventionalRoutingTransportCustomization(QueueType queueType)
         {

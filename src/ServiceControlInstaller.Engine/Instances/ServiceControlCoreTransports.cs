@@ -65,16 +65,30 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQConventionalRoutingTopology,
+                Name = TransportNames.RabbitMQConventionalRoutingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
-                AvailableInSCMU = true,
-                Matches = name => name.Equals(TransportNames.RabbitMQConventionalRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                AvailableInSCMU = false,
+                AutoMigrateTo = TransportNames.RabbitMQClassicConventionalRoutingTopology,
+                Matches = name => name.Equals(TransportNames.RabbitMQConventionalRoutingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQClassicConventionalRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicConventionalRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.ClassicConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {

@@ -9,17 +9,10 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Transport;
     using RabbitMQ.Client;
-    using ServiceControlInstaller.Engine.Instances;
-    using Transports.RabbitMQ;
 
-    public class ConfigureEndpointRabbitMQConventionalRoutingTransport : ITransportIntegration
+    public abstract class ConfigureEndpointRabbitMQConventionalRoutingTransport : ITransportIntegration
     {
         readonly QueueType queueType;
-
-        public ConfigureEndpointRabbitMQConventionalRoutingTransport()
-            : this(QueueType.Classic)
-        {
-        }
 
         protected ConfigureEndpointRabbitMQConventionalRoutingTransport(QueueType queueType)
         {
@@ -46,8 +39,10 @@
             return Task.FromResult(0);
         }
 
-        public string Name => TransportNames.RabbitMQConventionalRoutingTopology;
-        public virtual string TypeName => $"{typeof(RabbitMQConventionalRoutingTransportCustomization).AssemblyQualifiedName}";
+        public abstract string Name { get; }
+
+        public abstract string TypeName { get; }
+
         public string ConnectionString { get; set; }
         public string ScrubPlatformConnection(string input) => input;
 
