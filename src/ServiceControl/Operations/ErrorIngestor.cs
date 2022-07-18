@@ -13,7 +13,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Raven.Client;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -26,9 +25,9 @@
             IFailedMessageEnricher[] failedMessageEnrichers,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
-            IDocumentStore store, Settings settings)
+            IIngestionUnitOfWorkFactory unitOfWorkFactory, Settings settings)
         {
-            this.store = store;
+            this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
 
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -124,7 +123,7 @@
             try
             {
                 // TODO: Pass in the expected size failedMessageContexts.Count + (retriedMessageContexts.Count * 2)
-                IIngestionUnitOfWork unitOfWork = new RavenDbIngestionUnitOfWork(store);
+                var unitOfWork = unitOfWorkFactory.StartNew();
                 var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork).ConfigureAwait(false);
                 retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
 
@@ -207,7 +206,7 @@
             }
         }
 
-        readonly IDocumentStore store;
+        readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Meter bulkInsertDurationMeter;
         readonly Settings settings;
         ErrorProcessor errorProcessor;

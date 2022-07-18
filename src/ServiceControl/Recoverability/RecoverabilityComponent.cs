@@ -67,6 +67,8 @@
                     collection.AddHostedService<ErrorIngestion>();
                 }
 
+                collection.AddSingleton<IIngestionUnitOfWorkFactory, RavenDbIngestionUnitOfWorkFactory>();
+
                 //Retries
                 if (settings.RunRetryProcessor)
                 {
