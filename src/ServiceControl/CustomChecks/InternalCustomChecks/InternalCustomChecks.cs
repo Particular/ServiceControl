@@ -25,7 +25,7 @@
                     provider.GetServices<ICustomCheck>().ToList(),
                     provider.GetRequiredService<HostInformation>(),
                     provider.GetRequiredService<IAsyncTimer>(),
-                    provider.GetRequiredService<CustomCheckResultHandler>(),
+                    provider.GetRequiredService<CustomCheckResultProcessor>(),
                     provider.GetRequiredService<Settings>().ServiceName));
             });
             return hostBuilder;

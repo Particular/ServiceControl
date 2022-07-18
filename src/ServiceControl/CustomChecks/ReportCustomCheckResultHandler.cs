@@ -9,9 +9,9 @@
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {
-        public ReportCustomCheckResultHandler(CustomCheckResultHandler customCheckResultHandler)
+        public ReportCustomCheckResultHandler(CustomCheckResultProcessor checkResultProcessor)
         {
-            this.customCheckResultHandler = customCheckResultHandler;
+            this.checkResultProcessor = checkResultProcessor;
         }
 
         public async Task Handle(ReportCustomCheckResult message, IMessageHandlerContext context)
@@ -46,9 +46,9 @@
                 FailureReason = message.FailureReason
             };
 
-            await customCheckResultHandler.HandleResult(checkDetails).ConfigureAwait(false);
+            await checkResultProcessor.ProcessResult(checkDetails).ConfigureAwait(false);
         }
 
-        readonly CustomCheckResultHandler customCheckResultHandler;
+        readonly CustomCheckResultProcessor checkResultProcessor;
     }
 }

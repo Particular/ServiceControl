@@ -15,12 +15,12 @@
             ICustomCheck check,
             EndpointDetails localEndpointDetails,
             IAsyncTimer scheduler,
-            CustomCheckResultHandler customCheckResultHandler)
+            CustomCheckResultProcessor checkResultProcessor)
         {
             this.check = check;
             this.localEndpointDetails = localEndpointDetails;
             this.scheduler = scheduler;
-            this.customCheckResultHandler = customCheckResultHandler;
+            this.checkResultProcessor = checkResultProcessor;
         }
 
         public void Start()
@@ -58,7 +58,7 @@
                 FailureReason = result.FailureReason
             };
 
-            await customCheckResultHandler.HandleResult(detail).ConfigureAwait(false);
+            await checkResultProcessor.ProcessResult(detail).ConfigureAwait(false);
 
             return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution
@@ -71,7 +71,7 @@
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
-        readonly CustomCheckResultHandler customCheckResultHandler;
+        readonly CustomCheckResultProcessor checkResultProcessor;
 
         static ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
     }

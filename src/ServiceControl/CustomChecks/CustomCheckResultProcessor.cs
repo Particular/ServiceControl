@@ -7,15 +7,15 @@ namespace ServiceControl.CustomChecks
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
 
-    class CustomCheckResultHandler
+    class CustomCheckResultProcessor
     {
-        public CustomCheckResultHandler(IDomainEvents domainEvents, ICustomChecksDataStore store)
+        public CustomCheckResultProcessor(IDomainEvents domainEvents, ICustomChecksDataStore store)
         {
             this.domainEvents = domainEvents;
             this.store = store;
         }
 
-        public async Task HandleResult(CustomCheckDetail checkDetail)
+        public async Task ProcessResult(CustomCheckDetail checkDetail)
         {
             try
             {
@@ -63,6 +63,6 @@ namespace ServiceControl.CustomChecks
         readonly IDomainEvents domainEvents;
         readonly ICustomChecksDataStore store;
 
-        static ILog Logger = LogManager.GetLogger<CustomCheckResultHandler>();
+        static ILog Logger = LogManager.GetLogger<CustomCheckResultProcessor>();
     }
 }
