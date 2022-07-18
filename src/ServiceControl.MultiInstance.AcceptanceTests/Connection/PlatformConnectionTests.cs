@@ -67,6 +67,7 @@
                     case TransportNames.RabbitMQClassicConventionalRoutingTopology:
                     case TransportNames.RabbitMQQuorumConventionalRoutingTopology:
                     case TransportNames.RabbitMQClassicDirectRoutingTopology:
+                    case TransportNames.RabbitMQQuorumDirectRoutingTopology:
                         return "RabbitMQ";
                     default:
                         return TransportIntegration.Name;

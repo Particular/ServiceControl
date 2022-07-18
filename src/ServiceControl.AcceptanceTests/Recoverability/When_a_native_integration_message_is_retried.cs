@@ -44,7 +44,8 @@
             //Rabbit defaults the header when deserializing the message based on the IBasicProperties.DeliveryMode
             if (TransportIntegration.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology ||
                 TransportIntegration.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology ||
-                TransportIntegration.Name == TransportNames.RabbitMQClassicDirectRoutingTopology)
+                TransportIntegration.Name == TransportNames.RabbitMQClassicDirectRoutingTopology ||
+                TransportIntegration.Name == TransportNames.RabbitMQQuorumDirectRoutingTopology)
             {
                 Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
             }

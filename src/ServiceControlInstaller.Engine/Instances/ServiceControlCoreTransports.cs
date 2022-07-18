@@ -128,6 +128,17 @@
             },
             new TransportInfo
             {
+                Name = TransportNames.RabbitMQQuorumDirectRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.QuorumDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
                 Name = TransportNames.SQLServer,
                 TypeName = "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
                 ZipName = "SqlServer",

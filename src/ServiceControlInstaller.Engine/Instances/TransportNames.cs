@@ -36,6 +36,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public const string RabbitMQClassicDirectRoutingTopology = "RabbitMQ - Direct routing topology (classic queues)";
 
+        public const string RabbitMQQuorumDirectRoutingTopology = "RabbitMQ - Direct routing topology (quorum queues)";
+
         public static bool IsDeprecated(string transportName)
         {
             return transportName == AzureServiceBusEndpointOrientedTopologyDeprecated ||
