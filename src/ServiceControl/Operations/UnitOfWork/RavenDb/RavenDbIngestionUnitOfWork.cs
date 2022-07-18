@@ -26,5 +26,9 @@
         public Task Complete() =>
             // not really interested in the batch results since a batch is atomic
             store.AsyncDatabaseCommands.BatchAsync(commands);
+
+        public void Dispose()
+        {
+        }
     }
 }

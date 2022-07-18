@@ -51,7 +51,7 @@
         }
 
         [Test]
-        public void Should_handle_multiple_retry_confirmations_in_the_error_ingestion()
+        public async Task Should_handle_multiple_retry_confirmations_in_the_error_ingestion()
         {
             var messageContexts = new List<MessageContext>
             {
@@ -60,7 +60,7 @@
             };
 
             var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
-            Processor.Process(messageContexts, unitOfWork);
+            await Processor.Process(messageContexts, unitOfWork);
 
             Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
@@ -83,7 +83,7 @@
             };
 
             var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
-            Processor.Process(messageContexts, unitOfWork);
+            await Processor.Process(messageContexts, unitOfWork);
             await unitOfWork.Complete();
 
             Assert.DoesNotThrowAsync(
@@ -101,7 +101,7 @@
             };
 
             var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
-            Processor.Process(messageContexts, unitOfWork);
+            await Processor.Process(messageContexts, unitOfWork);
             Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
 

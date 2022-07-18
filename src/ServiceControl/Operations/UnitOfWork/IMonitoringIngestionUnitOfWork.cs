@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
     using Monitoring;
 
     interface IMonitoringIngestionUnitOfWork
     {
-        void RecordKnownEndpoint(KnownEndpoint knownEndpoint);
+        Task RecordKnownEndpoint(KnownEndpoint knownEndpoint);
     }
 }

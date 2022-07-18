@@ -16,12 +16,13 @@
             this.domainEvents = domainEvents;
         }
 
-        public void Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
+        public async Task Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
         {
             foreach (var context in contexts)
             {
                 var retriedMessageUniqueId = context.Headers[RetryUniqueMessageIdHeader];
-                unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId);
+                await unitOfWork.Recoverability.RecordSuccessfulRetry(retriedMessageUniqueId)
+                    .ConfigureAwait(false);
             }
         }
 

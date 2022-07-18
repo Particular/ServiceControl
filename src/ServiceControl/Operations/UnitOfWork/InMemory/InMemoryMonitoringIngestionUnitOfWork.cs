@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
     using Monitoring;
 
     class InMemoryMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
@@ -9,7 +10,10 @@
         public InMemoryMonitoringIngestionUnitOfWork(InMemoryIngestionUnitOfWork parentUnitOfWork)
             => this.parentUnitOfWork = parentUnitOfWork;
 
-        public void RecordKnownEndpoint(KnownEndpoint knownEndpoint)
-            => parentUnitOfWork.AddEndpoint(knownEndpoint);
+        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
+        {
+            parentUnitOfWork.AddEndpoint(knownEndpoint);
+            return Task.CompletedTask;
+        }
     }
 }

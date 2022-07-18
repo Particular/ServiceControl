@@ -28,5 +28,9 @@
         }
 
         internal void AddEndpoint(KnownEndpoint knownEndpoint) => knownEndpoints.Add(knownEndpoint);
+
+        public void Dispose()
+        {
+        }
     }
 }

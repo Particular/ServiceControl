@@ -122,18 +122,20 @@
 
             try
             {
-                // TODO: Pass in the expected size failedMessageContexts.Count + (retriedMessageContexts.Count * 2)
-                var unitOfWork = unitOfWorkFactory.StartNew();
-                var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork).ConfigureAwait(false);
-                retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
-
-                using (bulkInsertDurationMeter.Measure())
+                using (var unitOfWork = await unitOfWorkFactory.StartNew().ConfigureAwait(false))
                 {
-                    await unitOfWork.Complete()
+                    var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork)
                         .ConfigureAwait(false);
-                }
+                    await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork)
+                        .ConfigureAwait(false);
 
-                return storedFailedMessageContexts;
+                    using (bulkInsertDurationMeter.Measure())
+                    {
+                        await unitOfWork.Complete()
+                            .ConfigureAwait(false);
+                    }
+                    return storedFailedMessageContexts;
+                }
             }
             catch (Exception e)
             {

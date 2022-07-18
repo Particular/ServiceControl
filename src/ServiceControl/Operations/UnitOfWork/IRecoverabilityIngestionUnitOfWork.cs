@@ -1,13 +1,14 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using MessageFailures;
 
     interface IRecoverabilityIngestionUnitOfWork
     {
-        void RecordFailedProcessingAttempt(string uniqueMessageId,
+        Task RecordFailedProcessingAttempt(string uniqueMessageId,
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups);
-        void RecordSuccessfulRetry(string retriedMessageUniqueId);
+        Task RecordSuccessfulRetry(string retriedMessageUniqueId);
     }
 }

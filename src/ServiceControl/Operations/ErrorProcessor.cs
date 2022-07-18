@@ -15,7 +15,6 @@
     using NServiceBus.Transport;
     using Recoverability;
 
-
     class ErrorProcessor
     {
         public ErrorProcessor(BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
@@ -63,7 +62,7 @@
                     Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
+                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
             }
 
             return storedContexts;
@@ -135,7 +134,8 @@
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups)
+                    .ConfigureAwait(false);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);

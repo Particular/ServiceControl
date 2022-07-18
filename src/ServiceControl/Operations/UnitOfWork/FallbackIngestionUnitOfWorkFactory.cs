@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
+
     class FallbackIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {
         IIngestionUnitOfWorkFactory primary;
@@ -11,9 +13,15 @@
             this.secondary = secondary;
         }
 
-        public IIngestionUnitOfWork StartNew() => new FallbackIngestionUnitOfWork(
-            primary.StartNew(),
-            secondary.StartNew()
-        );
+        public async Task<IIngestionUnitOfWork> StartNew()
+        {
+            var primaryUnitOfWork = await primary.StartNew().ConfigureAwait(false);
+            var secondaryUnitOfWork = await secondary.StartNew().ConfigureAwait(false);
+
+            return new FallbackIngestionUnitOfWork(
+                primaryUnitOfWork,
+                secondaryUnitOfWork
+            );
+        }
     }
 }

@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
+
     interface IIngestionUnitOfWorkFactory
     {
-        IIngestionUnitOfWork StartNew();
+        Task<IIngestionUnitOfWork> StartNew();
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
     using Raven.Client;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
@@ -8,6 +9,9 @@
 
         public RavenDbIngestionUnitOfWorkFactory(IDocumentStore store) => this.store = store;
 
-        public IIngestionUnitOfWork StartNew() => new RavenDbIngestionUnitOfWork(store);
+        public Task<IIngestionUnitOfWork> StartNew()
+            => Task.FromResult(
+                (IIngestionUnitOfWork)new RavenDbIngestionUnitOfWork(store)
+                );
     }
 }

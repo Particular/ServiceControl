@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
     using Monitoring;
     using Raven.Abstractions.Commands;
     using Raven.Json.Linq;
@@ -13,8 +14,11 @@
             this.parentUnitOfWork = parentUnitOfWork;
         }
 
-        public void RecordKnownEndpoint(KnownEndpoint knownEndpoint) =>
+        public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
+        {
             parentUnitOfWork.AddCommand(CreateKnownEndpointsPutCommand(knownEndpoint));
+            return Task.CompletedTask;
+        }
 
         static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) => new PutCommandData
         {

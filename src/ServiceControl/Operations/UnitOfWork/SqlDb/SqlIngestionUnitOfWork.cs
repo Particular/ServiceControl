@@ -8,13 +8,13 @@
 
     class SqlIngestionUnitOfWork : IIngestionUnitOfWork
     {
-        readonly string connectionString;
+        readonly SqlConnection connection;
         ConcurrentBag<KnownEndpoint> knownEndpoints = new ConcurrentBag<KnownEndpoint>();
 
-        public SqlIngestionUnitOfWork(string connectionString)
+        public SqlIngestionUnitOfWork(SqlConnection connection)
         {
-            this.connectionString = connectionString;
-            Monitoring = new SqlMonitoringIngestionUnitOfWork(this);
+            this.connection = connection;
+            Monitoring = new SqlMonitoringIngestionUnitOfWork(connection);
         }
 
         public IMonitoringIngestionUnitOfWork Monitoring { get; }
@@ -22,30 +22,27 @@
 
         public async Task Complete()
         {
-            using (var connection = new SqlConnection(connectionString))
+            foreach (var endpoint in knownEndpoints)
             {
-                await connection.OpenAsync().ConfigureAwait(false);
-
-                foreach (var endpoint in knownEndpoints)
-                {
-                    await connection.ExecuteAsync(
-                        @"IF NOT EXISTS(SELECT * FROM [KnownEndpoints] WHERE Id = @Id)
-                          BEGIN
-                            INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
-                            VALUES(@Id, @HostId, @Host, @HostDisplayName, @Monitored)
-                          END",
-                        new
-                        {
-                            endpoint.Id,
-                            endpoint.EndpointDetails.HostId,
-                            endpoint.EndpointDetails.Host,
-                            HostDisplayName = endpoint.EndpointDetails.Name,
-                            endpoint.Monitored
-                        }).ConfigureAwait(false);
-                }
+                await connection.ExecuteAsync(
+                    @"IF NOT EXISTS(SELECT * FROM [KnownEndpoints] WHERE Id = @Id)
+                      BEGIN
+                        INSERT INTO [KnownEndpoints](Id, HostId, Host, HostDisplayName, Monitored) 
+                        VALUES(@Id, @HostId, @Host, @HostDisplayName, @Monitored)
+                      END",
+                    new
+                    {
+                        endpoint.Id,
+                        endpoint.EndpointDetails.HostId,
+                        endpoint.EndpointDetails.Host,
+                        HostDisplayName = endpoint.EndpointDetails.Name,
+                        endpoint.Monitored
+                    }).ConfigureAwait(false);
             }
         }
 
         internal void AddEndpoint(KnownEndpoint knownEndpoint) => knownEndpoints.Add(knownEndpoint);
+
+        public void Dispose() => connection?.Dispose();
     }
 }

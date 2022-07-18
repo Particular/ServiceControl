@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using MessageFailures;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
@@ -18,13 +19,18 @@
             this.parentUnitOfWork = parentUnitOfWork;
         }
 
-        public void RecordFailedProcessingAttempt(
+        public Task RecordFailedProcessingAttempt(
             string uniqueMessageId,
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
-            => parentUnitOfWork.AddCommand(CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups));
+        {
+            parentUnitOfWork.AddCommand(
+                CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups)
+            );
+            return Task.CompletedTask;
+        }
 
-        public void RecordSuccessfulRetry(string retriedMessageUniqueId)
+        public Task RecordSuccessfulRetry(string retriedMessageUniqueId)
         {
             var failedMessageDocumentId = FailedMessage.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
@@ -39,6 +45,7 @@
             });
 
             parentUnitOfWork.AddCommand(new DeleteCommandData { Key = failedMessageRetryDocumentId });
+            return Task.CompletedTask;
         }
 
         ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,

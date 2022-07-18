@@ -19,5 +19,11 @@
         public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
 
         public Task Complete() => Task.WhenAll(primary.Complete(), fallback.Complete());
+
+        public void Dispose()
+        {
+            primary?.Dispose();
+            fallback?.Dispose();
+        }
     }
 }

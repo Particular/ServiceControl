@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations
 {
+    using System.Threading.Tasks;
     using Monitoring;
 
     class InMemoryIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
@@ -8,6 +9,9 @@
 
         public InMemoryIngestionUnitOfWorkFactory(IMonitoringDataStore dataStore) => this.dataStore = dataStore;
 
-        public IIngestionUnitOfWork StartNew() => new InMemoryIngestionUnitOfWork(dataStore);
+        public Task<IIngestionUnitOfWork> StartNew()
+            => Task.FromResult(
+                (IIngestionUnitOfWork)new InMemoryIngestionUnitOfWork(dataStore)
+            );
     }
 }
