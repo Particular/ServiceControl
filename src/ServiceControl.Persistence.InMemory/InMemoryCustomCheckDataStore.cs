@@ -1,6 +1,7 @@
 namespace ServiceControl.Persistence.InMemory
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;
@@ -10,8 +11,47 @@ namespace ServiceControl.Persistence.InMemory
 
     class InMemoryCustomCheckDataStore : ICustomChecksDataStore
     {
-        public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail) => throw new System.NotImplementedException();
-        public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null) => throw new System.NotImplementedException();
         public Task Setup() => Task.CompletedTask;
+
+        public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
+        {
+            if (storage.ContainsKey(detail.CustomCheckId))
+            {
+                var storedCheck = storage[detail.CustomCheckId];
+                if (storedCheck.HasFailed == detail.HasFailed)
+                {
+                    return Task.FromResult(CheckStateChange.Unchanged);
+                }
+            }
+            else
+            {
+                storage.Add(detail.CustomCheckId, detail);
+            }
+
+            return Task.FromResult(CheckStateChange.Changed);
+        }
+
+        public Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
+        {
+            var result = storage
+                .Skip(paging.Offset)
+                .Take(paging.PageSize)
+                .Select(x => new CustomCheck
+                {
+                    Category = x.Value.Category,
+                    Status = x.Value.HasFailed ? Status.Fail : Status.Pass,
+                    FailureReason = x.Value.FailureReason,
+                    ReportedAt = x.Value.ReportedAt,
+                    CustomCheckId = x.Key,
+                    OriginatingEndpoint = x.Value.OriginatingEndpoint
+                })
+                .ToList();
+
+            var stats = new QueryStatsInfo("", storage.Count);
+
+            return Task.FromResult(new QueryResult<IList<CustomCheck>>(result, stats));
+        }
+
+        Dictionary<string, CustomCheckDetail> storage = new Dictionary<string, CustomCheckDetail>();
     }
 }
