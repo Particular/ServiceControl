@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using CustomChecks;
     using Dapper;
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client;
@@ -15,16 +16,14 @@
     using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Persistence;
 
-    class MonitoringDataStoreTester
+    class PersistenceDataStoreFixture
     {
-        DataStoreType dataStoreType;
-        string sqlDbConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
-        EmbeddableDocumentStore documentStore;
-        public IMonitoringDataStore MonitoringDataStore { get; internal set; }
+        public ICustomChecksDataStore CustomCheckDataStore { get; private set; }
+        public IMonitoringDataStore MonitoringDataStore { get; private set; }
 
-        public MonitoringDataStoreTester(DataStoreType DatastoreType)
+        public PersistenceDataStoreFixture(DataStoreType dataStoreType)
         {
-            dataStoreType = DatastoreType;
+            this.dataStoreType = dataStoreType;
         }
 
         public async Task SetupDataStore()
@@ -104,29 +103,20 @@
         {
             using (var connection = new SqlConnection(sqlDbConnectionString))
             {
-                var catalog = new SqlConnectionStringBuilder(sqlDbConnectionString).InitialCatalog;
+                var dropConstraints = "EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT all'";
+                var dropTables = "EXEC sp_msforeachtable 'DROP TABLE ?'";
 
-                var truncateCommand = $@"
-                    IF EXISTS (
-                         SELECT *
-                         FROM {catalog}.sys.objects
-                         WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
-                       )
-                       BEGIN
-                           Drop TABLE [dbo].[KnownEndpoints]
-                       END";
-
-                connection.Open();
-
-                await connection.ExecuteAsync(truncateCommand).ConfigureAwait(false);
+                await connection.OpenAsync().ConfigureAwait(false);
+                await connection.ExecuteAsync(dropConstraints).ConfigureAwait(false);
+                await connection.ExecuteAsync(dropTables).ConfigureAwait(false);
             }
         }
 
         async Task SetupRavenDb()
         {
-            var settings = new Settings()
+            var settings = new Settings
             {
-                RunInMemory = true,
+                RunInMemory = true
             };
             documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings);
@@ -139,7 +129,7 @@
                     )
             );
 
-            var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly>() { typeof(RavenBootstrapper).Assembly });
+            var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly> { typeof(RavenBootstrapper).Assembly });
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 
@@ -166,5 +156,11 @@
 
             return Task.CompletedTask;
         }
+
+        public override string ToString() => dataStoreType.ToString();
+
+        DataStoreType dataStoreType;
+        EmbeddableDocumentStore documentStore;
+        string sqlDbConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
     }
 }
