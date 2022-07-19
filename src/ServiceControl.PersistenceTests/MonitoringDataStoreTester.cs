@@ -74,12 +74,12 @@
         {
             try
             {
-                var persistence = Type.GetType(DataStoreConfig.InMemoryPersistence, true);
+                var persistence = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
                 MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[0] })).MonitoringDataStore;
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {DataStoreConfig.InMemoryPersistence}.", e);
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName}.", e);
             }
 
             return Task.CompletedTask;
@@ -91,12 +91,12 @@
 
             try
             {
-                var persistence = Type.GetType(DataStoreConfig.SqlServerPersistence, true);
+                var persistence = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
                 MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[2] { sqlDbConnectionString, new FakeDomainEvents() } })).MonitoringDataStore;
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {DataStoreConfig.SqlServerPersistence}.", e);
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName}.", e);
             }
         }
 
@@ -145,12 +145,12 @@
 
             try
             {
-                var persistence = Type.GetType(DataStoreConfig.RavenDbPersistence, true);
+                var persistence = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
                 MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[1] { documentStore } })).MonitoringDataStore;
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {DataStoreConfig.RavenDbPersistence}.", e);
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName}.", e);
             }
         }
 

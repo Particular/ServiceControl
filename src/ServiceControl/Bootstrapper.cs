@@ -19,7 +19,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -34,7 +33,6 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -94,9 +92,6 @@ namespace Particular.ServiceControl
             transportCustomization = settings.LoadTransportCustomization();
             transportSettings = MapSettings(settings);
 
-            var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings);
-
             HostBuilder = new HostBuilder();
             HostBuilder
                 .ConfigureLogging(builder =>
@@ -120,8 +115,8 @@ namespace Particular.ServiceControl
                     services.AddSingleton(sp => HttpClientFactory);
                 })
                 .UseLicenseCheck()
+                .SetupPersistence(settings)
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(documentStore)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
@@ -133,7 +128,6 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
-                .SetupPersistence(settings, documentStore)
                 .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;
         }
