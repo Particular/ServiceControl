@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class HeartbeatMonitoringHostedService : IHostedService
     {

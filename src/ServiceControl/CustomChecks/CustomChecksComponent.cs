@@ -1,10 +1,7 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using Connection;
-    using Contracts.Operations;
-    using Dapper;
     using ExternalIntegrations;
-    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
@@ -24,29 +21,15 @@
                 serviceCollection.AddEventLogMapping<CustomCheckSucceededDefinition>();
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
                 serviceCollection.AddSingleton<CustomCheckResultProcessor>();
-
-                switch (settings.DataStoreType)
-                {
-                    case DataStoreType.InMemory:
-                        serviceCollection.AddSingleton<ICustomChecksDataStore, InMemoryCustomCheckDataStore>();
-                        break;
-                    case DataStoreType.RavenDb:
-                        serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
-                        break;
-                    case DataStoreType.SqlDb:
-                        serviceCollection.AddSingleton<ICustomChecksDataStore>(sp => new SqlDbCustomCheckDataStore(settings.SqlStorageConnectionString, sp.GetService<IDomainEvents>()));
-                        break;
-                    default:
-                        break;
-                }
             });
         }
 
         public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            //TODO can we do this dynamically somehow?
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterInstallationTask(() => SqlDbCustomCheckDataStore.Setup(settings.SqlStorageConnectionString));
+                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupCustomChecks(settings.SqlStorageConnectionString));
             }
         }
     }

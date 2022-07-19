@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.Tests
 {
+    using System;
     using System.ComponentModel.Composition.Hosting;
     using System.Data.SqlClient;
     using System.Linq;
@@ -10,7 +11,7 @@
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.RavenDB;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
     class MonitoringDataStoreTester
     {
@@ -29,7 +30,7 @@
             switch (dataStoreType)
             {
                 case DataStoreType.InMemory:
-                    MonitoringDataStore = new InMemoryMonitoringDataStore();
+                    await SetupInMemory().ConfigureAwait(false);
                     break;
                 case DataStoreType.RavenDb:
                     await SetupRavenDb().ConfigureAwait(false);
@@ -69,33 +70,33 @@
             }
         }
 
+        Task SetupInMemory()
+        {
+            try
+            {
+                var persistence = Type.GetType(DataStoreConfig.InMemoryPersistence, true);
+                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[0] })).MonitoringDataStore;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.InMemoryPersistence}.", e);
+            }
+
+            return Task.CompletedTask;
+        }
+
         async Task SetupSqlDb()
         {
-            using (var connection = new SqlConnection(sqlDbConnectionString))
+            await SetupSqlPersistence.SetupMonitoring(sqlDbConnectionString).ConfigureAwait(false);
+
+            try
             {
-                var catalog = new SqlConnectionStringBuilder(sqlDbConnectionString).InitialCatalog;
-
-                var setupCommand = $@"
-                    IF NOT EXISTS (
-                         SELECT *
-                         FROM {catalog}.sys.objects
-                         WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
-                       )
-                       BEGIN
-                           CREATE TABLE [dbo].[KnownEndpoints](
-                            [Id] [uniqueidentifier] NOT NULL,
-                            [HostId] [uniqueidentifier] NOT NULL,
-                            [Host] [nvarchar](300) NULL,
-                            [HostDisplayName] [nvarchar](300) NULL,
-                            [Monitored] [bit] NOT NULL
-                           ) ON [PRIMARY]
-                       END";
-
-                connection.Open();
-
-                await connection.ExecuteAsync(setupCommand).ConfigureAwait(false);
-
-                MonitoringDataStore = new SqlDbMonitoringDataStore(sqlDbConnectionString);
+                var persistence = Type.GetType(DataStoreConfig.SqlServerPersistence, true);
+                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[2] { sqlDbConnectionString, new FakeDomainEvents() } })).MonitoringDataStore;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.SqlServerPersistence}.", e);
             }
         }
 
@@ -142,7 +143,15 @@
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 
-            MonitoringDataStore = new RavenDbMonitoringDataStore(documentStore);
+            try
+            {
+                var persistence = Type.GetType(DataStoreConfig.RavenDbPersistence, true);
+                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[1] { documentStore } })).MonitoringDataStore;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not load persistence customization type {DataStoreConfig.RavenDbPersistence}.", e);
+            }
         }
 
         Task CleanupRavenDb()

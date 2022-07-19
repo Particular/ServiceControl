@@ -23,6 +23,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
+    using global::ServiceControl.Persistence;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Licensing;
@@ -93,6 +94,9 @@ namespace Particular.ServiceControl
             transportCustomization = settings.LoadTransportCustomization();
             transportSettings = MapSettings(settings);
 
+            var documentStore = new EmbeddableDocumentStore();
+            RavenBootstrapper.Configure(documentStore, settings);
+
             HostBuilder = new HostBuilder();
             HostBuilder
                 .ConfigureLogging(builder =>
@@ -117,12 +121,7 @@ namespace Particular.ServiceControl
                 })
                 .UseLicenseCheck()
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(context =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-                    RavenBootstrapper.Configure(documentStore, settings);
-                    return documentStore;
-                })
+                .UseEmbeddedRavenDb(documentStore)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
@@ -134,6 +133,7 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
+                .SetupPersistence(settings, documentStore)
                 .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
                 ;
         }

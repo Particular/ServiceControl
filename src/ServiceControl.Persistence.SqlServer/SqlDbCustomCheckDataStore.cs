@@ -1,4 +1,4 @@
-namespace ServiceControl.CustomChecks
+namespace ServiceControl.Persistence.SqlServer
 {
     using System.Collections.Generic;
     using System.Data.SqlClient;
@@ -8,14 +8,14 @@ namespace ServiceControl.CustomChecks
     using Contracts.Operations;
     using Dapper;
     using Infrastructure;
-    using Infrastructure.DomainEvents;
+    using ServiceControl.CustomChecks;
+    using ServiceControl.Persistence;
 
     class SqlDbCustomCheckDataStore : ICustomChecksDataStore
     {
-        public SqlDbCustomCheckDataStore(string connectionString, IDomainEvents domainEvents)
+        public SqlDbCustomCheckDataStore(string connectionString)
         {
             this.connectionString = connectionString;
-            this.domainEvents = domainEvents;
         }
 
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
@@ -115,39 +115,38 @@ namespace ServiceControl.CustomChecks
             return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
         }
 
-        public static async Task Setup(string connectionString)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+        //public static async Task Setup(string connectionString)
+        //{
+        //    using (var connection = new SqlConnection(connectionString))
+        //    {
+        //        var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
 
-                var createCommand = $@"
-                    IF NOT EXISTS (
-                         SELECT *
-                         FROM {catalog}.sys.objects
-                         WHERE object_id = OBJECT_ID(N'CustomChecks') AND type in (N'U')
-                       )
-                       BEGIN
-                           CREATE TABLE [dbo].[CustomChecks](
-                               [Id] [uniqueidentifier] NOT NULL,
-                               [CustomCheckId] nvarchar(300) NOT NULL,
-                               [Category] nvarchar(300) NULL,
-                               [Status] int NOT NULL,
-                               [ReportedAt] datetime NOT NULL,
-                               [FailureReason] nvarchar(300) NULL,
-                               [OriginatingEndpointName] nvarchar(300) NOT NULL,
-                               [OriginatingEndpointHostId] [uniqueidentifier] NOT NULL,
-                               [OriginatingEndpointHost] nvarchar(300) NOT NULL
-                           ) ON [PRIMARY]
-                       END";
+        //        var createCommand = $@"
+        //            IF NOT EXISTS (
+        //                 SELECT *
+        //                 FROM {catalog}.sys.objects
+        //                 WHERE object_id = OBJECT_ID(N'CustomChecks') AND type in (N'U')
+        //               )
+        //               BEGIN
+        //                   CREATE TABLE [dbo].[CustomChecks](
+        //                       [Id] [uniqueidentifier] NOT NULL,
+        //                       [CustomCheckId] nvarchar(300) NOT NULL,
+        //                       [Category] nvarchar(300) NULL,
+        //                       [Status] int NOT NULL,
+        //                       [ReportedAt] datetime NOT NULL,
+        //                       [FailureReason] nvarchar(300) NULL,
+        //                       [OriginatingEndpointName] nvarchar(300) NOT NULL,
+        //                       [OriginatingEndpointHostId] [uniqueidentifier] NOT NULL,
+        //                       [OriginatingEndpointHost] nvarchar(300) NOT NULL
+        //                   ) ON [PRIMARY]
+        //               END";
 
-                connection.Open();
+        //        connection.Open();
 
-                await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
-            }
-        }
+        //        await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
+        //    }
+        //}
 
         readonly string connectionString;
-        readonly IDomainEvents domainEvents;
     }
 }

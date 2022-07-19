@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
-    using System;
     using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -9,14 +8,11 @@
 
     static class RavenHostBuilderExtensions
     {
-        public static IHostBuilder UseEmbeddedRavenDb(this IHostBuilder hostBuilder,
-            Func<HostBuilderContext, EmbeddableDocumentStore> documentStoreBuilder)
+        public static IHostBuilder UseEmbeddedRavenDb(this IHostBuilder hostBuilder, EmbeddableDocumentStore documentStore)
         {
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
-                var embeddedDocumentStore = documentStoreBuilder(ctx);
-
-                serviceCollection.AddSingleton<IDocumentStore>(embeddedDocumentStore);
+                serviceCollection.AddSingleton<IDocumentStore>(documentStore);
                 serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
 
                 serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();

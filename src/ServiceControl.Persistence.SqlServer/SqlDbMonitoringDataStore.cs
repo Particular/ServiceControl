@@ -1,13 +1,14 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Persistence.SqlServer
 {
     using System;
-    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Dapper;
     using Infrastructure;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
     class SqlDbMonitoringDataStore : IMonitoringDataStore
     {
@@ -144,32 +145,32 @@
             }
         }
 
-        public static async Task Setup(string connectionString)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+        //public static async Task Setup(string connectionString)
+        //{
+        //    using (var connection = new SqlConnection(connectionString))
+        //    {
+        //        var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
 
-                var createCommand = $@"
-                    IF NOT EXISTS (
-                         SELECT *
-                         FROM {catalog}.sys.objects
-                         WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
-                       )
-                       BEGIN
-                           CREATE TABLE [dbo].[KnownEndpoints](
-	                           [Id] [uniqueidentifier] NOT NULL,
-	                           [HostId] [uniqueidentifier] NOT NULL,
-	                           [Host] [nvarchar](300) NULL,
-	                           [HostDisplayName] [nvarchar](300) NULL,
-	                           [Monitored] [bit] NOT NULL
-                           ) ON [PRIMARY]
-                       END";
+        //        var createCommand = $@"
+        //            IF NOT EXISTS (
+        //                 SELECT *
+        //                 FROM {catalog}.sys.objects
+        //                 WHERE object_id = OBJECT_ID(N'KnownEndpoints') AND type in (N'U')
+        //               )
+        //               BEGIN
+        //                   CREATE TABLE [dbo].[KnownEndpoints](
+        //                    [Id] [uniqueidentifier] NOT NULL,
+        //                    [HostId] [uniqueidentifier] NOT NULL,
+        //                    [Host] [nvarchar](300) NULL,
+        //                    [HostDisplayName] [nvarchar](300) NULL,
+        //                    [Monitored] [bit] NOT NULL
+        //                   ) ON [PRIMARY]
+        //               END";
 
-                connection.Open();
+        //        connection.Open();
 
-                await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
-            }
-        }
+        //        await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
+        //    }
+        //}
     }
 }

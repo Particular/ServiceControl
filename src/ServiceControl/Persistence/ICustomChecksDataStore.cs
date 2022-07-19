@@ -1,10 +1,11 @@
-namespace ServiceControl.CustomChecks
+namespace ServiceControl.Persistence
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;
     using Infrastructure;
+    using ServiceControl.CustomChecks;
 
     interface ICustomChecksDataStore
     {

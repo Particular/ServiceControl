@@ -5,6 +5,7 @@
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Persistence;
 
     class MonitoringDataPersister :
         IDomainHandler<EndpointDetected>,
