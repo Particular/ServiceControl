@@ -1,6 +1,7 @@
 namespace ServiceControl.Contracts.CustomChecks
 {
     using System;
+    using Infrastructure;
     using Operations;
 
     enum CheckStateChange
@@ -22,5 +23,7 @@ namespace ServiceControl.Contracts.CustomChecks
         public string Category { get; set; }
         public bool HasFailed { get; set; }
         public string FailureReason { get; set; }
+
+        public Guid GetDeterministicId() => DeterministicGuid.MakeId(OriginatingEndpoint.Name, OriginatingEndpoint.HostId.ToString(), CustomCheckId);
     }
 }

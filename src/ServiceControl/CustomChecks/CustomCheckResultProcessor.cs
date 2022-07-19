@@ -31,7 +31,7 @@ namespace ServiceControl.CustomChecks
 
         async Task RaiseEvents(CheckStateChange state, CustomCheckDetail detail)
         {
-            var id = DeterministicGuid.MakeId(detail.OriginatingEndpoint.Name, detail.OriginatingEndpoint.HostId.ToString(), detail.CustomCheckId);
+            var id = detail.GetDeterministicId();
 
             if (state == CheckStateChange.Changed)
             {
