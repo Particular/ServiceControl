@@ -17,6 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.InMemory\ServiceControl.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.SqlServer\ServiceControl.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" />

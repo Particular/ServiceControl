@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.InMemory\ServiceControl.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.SqlServer\ServiceControl.Persistence.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
