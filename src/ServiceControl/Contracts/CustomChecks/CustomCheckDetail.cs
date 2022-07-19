@@ -11,6 +11,11 @@ namespace ServiceControl.Contracts.CustomChecks
 
     class CustomCheckDetail
     {
+        public CustomCheckDetail()
+        {
+            ReportedAt = DateTime.UtcNow;
+        }
+
         public EndpointDetails OriginatingEndpoint { get; set; }
         public string CustomCheckId { get; set; }
         public DateTime ReportedAt { get; set; }

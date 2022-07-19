@@ -51,7 +51,6 @@
             var detail = new CustomCheckDetail
             {
                 OriginatingEndpoint = localEndpointDetails,
-                ReportedAt = DateTime.UtcNow,
                 CustomCheckId = check.Id,
                 Category = check.Category,
                 HasFailed = result.HasFailed,
