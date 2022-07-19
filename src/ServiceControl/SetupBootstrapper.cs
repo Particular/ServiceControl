@@ -2,7 +2,6 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.Threading.Tasks;
-    //using global::ServiceControl.CustomChecks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
