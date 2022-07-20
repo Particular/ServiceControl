@@ -1,7 +1,8 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.SqlServer
 {
     using System.Data.SqlClient;
     using System.Threading.Tasks;
+    using Operations;
 
     class SqlIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {

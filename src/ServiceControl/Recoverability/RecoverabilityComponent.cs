@@ -67,21 +67,6 @@
                     collection.AddHostedService<ErrorIngestion>();
                 }
 
-                switch (settings.DataStoreType)
-                {
-                    case DataStoreType.InMemory:
-                        collection.AddPartialUnitOfWorkFactory<InMemoryIngestionUnitOfWorkFactory>();
-                        break;
-                    case DataStoreType.RavenDb:
-                        collection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
-                        break;
-                    case DataStoreType.SqlDb:
-                        collection.AddPartialUnitOfWorkFactory<SqlIngestionUnitOfWorkFactory>();
-                        break;
-                    default:
-                        break;
-                }
-
                 //Retries
                 if (settings.RunRetryProcessor)
                 {

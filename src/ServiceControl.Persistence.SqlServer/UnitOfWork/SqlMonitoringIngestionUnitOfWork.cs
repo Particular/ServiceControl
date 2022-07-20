@@ -1,9 +1,10 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.SqlServer
 {
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Dapper;
     using Monitoring;
+    using Operations;
 
     class SqlMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {

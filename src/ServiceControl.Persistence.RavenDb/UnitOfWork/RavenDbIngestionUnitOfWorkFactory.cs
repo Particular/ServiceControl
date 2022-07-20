@@ -1,6 +1,7 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
+    using Operations;
     using Raven.Client;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory

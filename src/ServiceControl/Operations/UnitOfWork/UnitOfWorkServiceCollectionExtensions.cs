@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Operations
 {
     using Microsoft.Extensions.DependencyInjection;
+    using System;
 
     static class UnitOfWorkServiceCollectionExtensions
     {
@@ -18,12 +19,14 @@
         public static void AddPartialUnitOfWorkFactory<T>(this IServiceCollection serviceCollection)
             where T : class, IIngestionUnitOfWorkFactory
         {
-            serviceCollection.AddSingleton<RavenDbIngestionUnitOfWorkFactory>();
+            // HINT: Falls back to the Raven implementation for components not implemented
+            var ravenImplementation = Type.GetType("ServiceControl.Persistence.RavenDb.RavenDbIngestionUnitOfWorkFactory", true);
+            serviceCollection.AddSingleton(ravenImplementation);
             serviceCollection.AddSingleton<T>();
             serviceCollection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
                 new FallbackIngestionUnitOfWorkFactory(
                     sp.GetService<T>(),
-                    sp.GetService<RavenDbIngestionUnitOfWorkFactory>()
+                    (IIngestionUnitOfWorkFactory)sp.GetService(ravenImplementation)
                 )
             );
         }

@@ -1,7 +1,8 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
     using Monitoring;
+    using Operations;
     using Raven.Abstractions.Commands;
     using Raven.Json.Linq;
 

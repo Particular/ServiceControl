@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.SqlServer
 {
     using Microsoft.Extensions.DependencyInjection;
+    using Operations;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class SqlDbPersistenceConfiguration : IPersistenceConfiguration
@@ -11,6 +12,7 @@
                 new SqlDbMonitoringDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
             serviceCollection.AddSingleton<ICustomChecksDataStore>(sp =>
                 new SqlDbCustomCheckDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
+            serviceCollection.AddPartialUnitOfWorkFactory<SqlIngestionUnitOfWorkFactory>();
         }
     }
 }

@@ -14,6 +14,7 @@
     using Raven.Client;
     using Raven.Tests.Helpers;
     using MessageFailures;
+    using Persistence.RavenDb;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability;
 

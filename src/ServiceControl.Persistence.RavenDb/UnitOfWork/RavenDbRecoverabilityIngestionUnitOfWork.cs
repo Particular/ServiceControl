@@ -1,8 +1,9 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using MessageFailures;
+    using Operations;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;

@@ -1,7 +1,7 @@
-﻿namespace ServiceControl.Operations
+﻿namespace ServiceControl.Persistence.SqlServer
 {
     using System.Threading.Tasks;
-    using Monitoring;
+    using Operations;
 
     class InMemoryIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {
