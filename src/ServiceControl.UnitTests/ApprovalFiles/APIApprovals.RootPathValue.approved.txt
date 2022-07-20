@@ -1,5 +1,5 @@
 {
-  "Description": "The management backend for the Particular Service Platform",
+  "Description": "testDescription",
   "EndpointsErrorUrl": "http://localhost/endpoints/{name}/errors/{?page,per_page,direction,sort}",
   "KnownEndpointsUrl": "/endpoints/known",
   "EndpointsMessageSearchUrl": "http://localhost/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
@@ -10,7 +10,7 @@
   "MessageSearchUrl": "http://localhost/messages/search/{keyword}/{?page,per_page,direction,sort}",
   "LicenseStatus": "valid",
   "LicenseDetails": "http://localhost/license",
-  "Name": "ServiceControl",
+  "Name": "testName",
   "SagasUrl": "http://localhost/sagas",
   "EventLogItems": "http://localhost/eventlogitems",
   "ArchivedGroupsUrl": "http://localhost/errors/groups/{classifier?}",

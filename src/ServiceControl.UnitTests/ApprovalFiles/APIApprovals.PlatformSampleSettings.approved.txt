@@ -10,12 +10,12 @@
   "DisableRavenDBPerformanceCounters": true,
   "SkipQueueCreation": false,
   "RunCleanupBundle": false,
-  "RootUrl": "http://localhost:33333/",
+  "RootUrl": "http://localhost:8888/",
   "DatabaseMaintenanceUrl": "http://localhost:33334",
-  "ApiUrl": "http://localhost:33333/api",
-  "StorageUrl": "http://localhost:33333/storage",
+  "ApiUrl": "http://localhost:8888/api",
+  "StorageUrl": "http://localhost:8888/storage",
   "StagingQueue": "Particular.ServiceControl.staging",
-  "Port": 33333,
+  "Port": 8888,
   "DatabaseMaintenancePort": 33334,
   "LicenseFileText": null,
   "ExposeRavenDB": false,
@@ -23,8 +23,8 @@
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "HeartbeatGracePeriod": "00:00:40",
-  "TransportCustomizationType": "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
-  "DbPath": "C:\\ProgramData\\Particular\\ServiceControl\\localhost-33333",
+  "TransportCustomizationType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+  "DbPath": "C:\\DB",
   "ErrorLogQueue": "error.log",
   "ErrorQueue": "error",
   "ForwardErrorMessages": false,
@@ -42,14 +42,7 @@
   "TimeToRestartErrorIngestionAfterFailure": "00:01:00",
   "MaximumConcurrencyLevel": 10,
   "RetryHistoryDepth": 10,
-  "RemoteInstances": [
-    {
-      "ApiUri": "http://instance1"
-    },
-    {
-      "ApiUri": "http://instance2"
-    }
-  ],
+  "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
   "EnableFullTextSearchOnBodies": true,
   "DisableHealthChecks": false,
