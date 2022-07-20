@@ -73,25 +73,11 @@
 
         Task SetupInMemory()
         {
-<<<<<<< HEAD
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddServiceControlPersistence(DataStoreType.InMemory);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
-=======
-            try
-            {
-                var persistence = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-                var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[] { new object[0] });
-
-                MonitoringDataStore = persistenceConfig.MonitoringDataStore;
-                CustomCheckDataStore = persistenceConfig.CustomCheckDataStore;
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Could not load persistence customization type {DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName}.", e);
-            }
->>>>>>> 052a88a5 (Wire up customcheck persistence for the test)
+            CustomCheckDataStore = serviceProvider.GetRequiredService<ICustomChecksDataStore>();
 
             return Task.CompletedTask;
         }
@@ -103,19 +89,12 @@
 
             try
             {
-<<<<<<< HEAD
                 var serviceCollection = new ServiceCollection();
                 serviceCollection.AddSingleton(new Settings { SqlStorageConnectionString = sqlDbConnectionString });
                 serviceCollection.AddServiceControlPersistence(DataStoreType.SqlDb);
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
-=======
-                var persistence = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
-                var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[] { new object[] { sqlDbConnectionString, new FakeDomainEvents() } });
-
-                MonitoringDataStore = persistenceConfig.MonitoringDataStore;
-                CustomCheckDataStore = persistenceConfig.CustomCheckDataStore;
->>>>>>> 052a88a5 (Wire up customcheck persistence for the test)
+                CustomCheckDataStore = serviceProvider.GetRequiredService<ICustomChecksDataStore>();
             }
             catch (Exception e)
             {
