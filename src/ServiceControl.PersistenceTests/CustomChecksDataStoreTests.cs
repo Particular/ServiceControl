@@ -5,6 +5,7 @@ namespace ServiceControl.Persistence.Tests
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using Contracts.Operations;
+    using CustomChecks;
     using Infrastructure;
     using NUnit.Framework;
 
@@ -33,24 +34,53 @@ namespace ServiceControl.Persistence.Tests
         {
             var checkDetails = new CustomCheckDetail
             {
+                Category = "test-category",
                 CustomCheckId = "Test-Check",
+                HasFailed = true,
                 FailureReason = "Testing",
                 OriginatingEndpoint = new EndpointDetails
                 {
                     Host = "localhost",
                     HostId = Guid.Parse("5F41DEEA-783C-4B88-8558-9371A61F1027"),
                     Name = "test-host"
-                }
+                },
             };
 
-            var _ = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var status = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
 
             await fixture.CompleteDBOperation().ConfigureAwait(false);
             var stats = await fixture.CustomCheckDataStore.GetStats(new PagingInfo()).ConfigureAwait(false);
 
-            Assert.AreEqual(1, stats.Results.Count(r => r.CustomCheckId == "Test-Check"));
+            Assert.AreEqual(1, stats.Results.Count);
+            Assert.AreEqual(Status.Fail, stats.Results[0].Status);
+            Assert.AreEqual(CheckStateChange.Changed, status);
         }
 
+        [Test]
+        public async Task Storing_failed_custom_checks_returns_unchanged()
+        {
+            var checkDetails = new CustomCheckDetail
+            {
+                Category = "test-category",
+                CustomCheckId = "Test-Check",
+                HasFailed = true,
+                FailureReason = "Testing",
+                OriginatingEndpoint = new EndpointDetails
+                {
+                    Host = "localhost",
+                    HostId = Guid.Parse("5F41DEEA-783C-4B88-8558-9371A61F1027"),
+                    Name = "test-host"
+                },
+            };
+
+            var statusInitial = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var statusUpdate = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+
+            await fixture.CompleteDBOperation().ConfigureAwait(false);
+
+            Assert.AreEqual(CheckStateChange.Changed, statusInitial);
+            Assert.AreEqual(CheckStateChange.Unchanged, statusUpdate);
+        }
 
         readonly PersistenceDataStoreFixture fixture;
     }
