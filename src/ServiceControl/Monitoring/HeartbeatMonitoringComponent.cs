@@ -22,21 +22,6 @@
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
 
-                switch (settings.DataStoreType)
-                {
-                    case DataStoreType.InMemory:
-                        collection.AddSingleton<IMonitoringDataStore, InMemoryMonitoringDataStore>();
-                        break;
-                    case DataStoreType.RavenDb:
-                        collection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
-                        break;
-                    case DataStoreType.SqlDb:
-                        collection.AddSingleton<IMonitoringDataStore>(sp => new SqlDbMonitoringDataStore(settings.SqlStorageConnectionString));
-                        break;
-                    default:
-                        break;
-                }
-
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
                 collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
@@ -56,9 +41,10 @@
 
         public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            //TODO can we do this dynamically somehow?
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterInstallationTask(() => SqlDbMonitoringDataStore.Setup(settings.SqlStorageConnectionString));
+                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupMonitoring(settings.SqlStorageConnectionString));
             }
         }
     }

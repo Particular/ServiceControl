@@ -19,10 +19,10 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
+    using global::ServiceControl.Persistence;
     using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Licensing;
@@ -33,7 +33,6 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -116,13 +115,8 @@ namespace Particular.ServiceControl
                     services.AddSingleton(sp => HttpClientFactory);
                 })
                 .UseLicenseCheck()
+                .SetupPersistence(settings)
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(context =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-                    RavenBootstrapper.Configure(documentStore, settings);
-                    return documentStore;
-                })
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);

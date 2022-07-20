@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.CustomChecks
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -8,6 +8,8 @@
     using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.CustomChecks;
+    using ServiceControl.Persistence;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
@@ -93,6 +95,8 @@
 
             return query;
         }
+
+        public Task Setup() => Task.CompletedTask;
 
         IDocumentStore store;
     }

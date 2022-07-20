@@ -9,6 +9,7 @@
     using Infrastructure;
     using Infrastructure.WebApi;
     using NServiceBus;
+    using ServiceControl.Persistence;
 
     public class CustomCheckController : ApiController
     {

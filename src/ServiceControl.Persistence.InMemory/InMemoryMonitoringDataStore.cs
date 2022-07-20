@@ -1,5 +1,5 @@
 ﻿
-namespace ServiceControl.Monitoring
+namespace ServiceControl.Persistence.InMemory
 {
     using System;
     using System.Collections.Generic;
@@ -7,6 +7,8 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using Contracts.Operations;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
     class InMemoryMonitoringDataStore : IMonitoringDataStore
     {
@@ -114,6 +116,8 @@ namespace ServiceControl.Monitoring
 
             return Task.CompletedTask;
         }
+
+        public Task Setup() => Task.CompletedTask;
     }
 
     class InMemoryEndpoint

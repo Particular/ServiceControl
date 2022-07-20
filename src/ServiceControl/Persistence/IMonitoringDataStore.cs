@@ -1,8 +1,9 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Persistence
 {
     using System;
     using System.Threading.Tasks;
     using Contracts.Operations;
+    using ServiceControl.Monitoring;
 
     interface IMonitoringDataStore
     {

@@ -1,6 +1,9 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.AcceptanceTesting")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.InMemory")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.RavenDb")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.PersistenceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.UnitTests")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
@@ -33,6 +36,12 @@ namespace ServiceBus.Management.Infrastructure.Installers
 }
 namespace ServiceBus.Management.Infrastructure.Settings
 {
+    public static class DataStoreConfig
+    {
+        public static string InMemoryPersistenceTypeFullyQualifiedName;
+        public static string RavenDbPersistenceTypeFullyQualifiedName;
+        public static string SqlServerPersistenceTypeFullyQualifiedName;
+    }
     public enum DataStoreType
     {
         InMemory = 1,
@@ -1187,6 +1196,14 @@ namespace ServiceControl.Operations
         public byte[] Body { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
+    }
+}
+namespace ServiceControl.Persistence
+{
+    public static class SetupSqlPersistence
+    {
+        public static System.Threading.Tasks.Task SetupCustomChecks(string connectionString) { }
+        public static System.Threading.Tasks.Task SetupMonitoring(string connectionString) { }
     }
 }
 namespace ServiceControl.Recoverability.API

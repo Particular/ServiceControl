@@ -1,14 +1,14 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
     using Audit.Monitoring;
     using Contracts.Operations;
     using Infrastructure;
     using Raven.Client;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
@@ -131,6 +131,8 @@
                 return knownEndpoints.ToArray();
             }
         }
+
+        public Task Setup() => Task.CompletedTask;
 
         IDocumentStore store;
     }

@@ -6,6 +6,7 @@ namespace ServiceControl.CustomChecks
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
+    using ServiceControl.Persistence;
 
     class CustomCheckResultProcessor
     {
