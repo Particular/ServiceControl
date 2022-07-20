@@ -8,9 +8,13 @@
     class SqlMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {
         readonly SqlConnection connection;
+        readonly SqlTransaction transaction;
 
-        public SqlMonitoringIngestionUnitOfWork(SqlConnection connection)
-            => this.connection = connection;
+        public SqlMonitoringIngestionUnitOfWork(SqlConnection connection, SqlTransaction transaction)
+        {
+            this.connection = connection;
+            this.transaction = transaction;
+        }
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
             => connection.ExecuteAsync(
@@ -26,6 +30,6 @@
                     knownEndpoint.EndpointDetails.Host,
                     HostDisplayName = knownEndpoint.EndpointDetails.Name,
                     knownEndpoint.Monitored
-                });
+                }, transaction);
     }
 }

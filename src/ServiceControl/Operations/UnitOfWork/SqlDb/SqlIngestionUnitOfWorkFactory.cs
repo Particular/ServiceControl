@@ -16,7 +16,9 @@
 
             await connection.OpenAsync().ConfigureAwait(false);
 
-            return new SqlIngestionUnitOfWork(connection);
+            var transaction = connection.BeginTransaction();
+
+            return new SqlIngestionUnitOfWork(connection, transaction);
         }
     }
 }
