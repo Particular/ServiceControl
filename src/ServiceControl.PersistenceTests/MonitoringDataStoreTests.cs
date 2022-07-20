@@ -6,46 +6,26 @@
     using NUnit.Framework;
     using ServiceControl.Monitoring;
 
-    [TestFixtureSource(nameof(GetMonitoringDataStoreTesters))]
+    [TestFixtureSource(typeof(PersistenceTestCollection))]
     class MonitoringDataStoreTests
     {
-        MonitoringDataStoreTester _monitoringDataStoreTester;
-        public MonitoringDataStoreTests(MonitoringDataStoreTester monitoringDataStoreTester)
+        PersistenceDataStoreFixture persistenceDataStoreFixture;
+
+        public MonitoringDataStoreTests(PersistenceDataStoreFixture persistenceDataStoreFixture)
         {
-            _monitoringDataStoreTester = monitoringDataStoreTester;
+            this.persistenceDataStoreFixture = persistenceDataStoreFixture;
         }
 
         [SetUp]
         public async Task Setup()
         {
-            await _monitoringDataStoreTester.SetupDataStore().ConfigureAwait(false);
+            await persistenceDataStoreFixture.SetupDataStore().ConfigureAwait(false);
         }
 
         [TearDown]
         public async Task Cleanup()
         {
-            await _monitoringDataStoreTester.CleanupDB().ConfigureAwait(false);
-        }
-
-        public static object[] GetMonitoringDataStoreTesters()
-        {
-            if (Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString") == null)
-            {
-                return new object[]
-                {
-                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.InMemory),
-                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.RavenDb)
-                };
-            }
-            else
-            {
-                return new object[]
-                {
-                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.InMemory),
-                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.SqlDb),
-                    new MonitoringDataStoreTester(ServiceBus.Management.Infrastructure.Settings.DataStoreType.RavenDb)
-                };
-            }
+            await persistenceDataStoreFixture.CleanupDB().ConfigureAwait(false);
         }
 
         [Test]
@@ -53,10 +33,10 @@
         {
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
 
             Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
         }
@@ -66,11 +46,11 @@
         {
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
 
             Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
         }
@@ -80,11 +60,11 @@
         {
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateOrUpdate(endpoint1, endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateOrUpdate(endpoint1, endpointInstanceMonitoring).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
 
             Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
         }
@@ -95,11 +75,11 @@
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             var endpoint2 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host2", Name = "Name2" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint2).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint2).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
 
             Assert.AreEqual(2, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host));
         }
@@ -110,11 +90,11 @@
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
             var endpoint2 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host2", Name = "Name2" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateOrUpdate(endpoint2, endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateOrUpdate(endpoint2, endpointInstanceMonitoring).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
 
             Assert.AreEqual(2, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host || w.HostDisplayName == endpoint2.Host));
         }
@@ -124,17 +104,17 @@
         {
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
             Assert.IsFalse(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
 
-            await _monitoringDataStoreTester.MonitoringDataStore.UpdateEndpointMonitoring(endpoint1, true).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.UpdateEndpointMonitoring(endpoint1, true).ConfigureAwait(false);
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
             Assert.IsTrue(endpointInstanceMonitoring.IsMonitored(endpointInstanceMonitoring.GetEndpoints()[0].Id));
         }
 
@@ -144,18 +124,18 @@
         {
             var endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
             var endpoint1 = new Contracts.Operations.EndpointDetails() { HostId = Guid.NewGuid(), Host = "Host1", Name = "Name1" };
-            await _monitoringDataStoreTester.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.CreateIfNotExists(endpoint1).ConfigureAwait(false);
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
             Assert.AreEqual(1, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
 
-            await _monitoringDataStoreTester.MonitoringDataStore.Delete(endpointInstanceMonitoring.GetEndpoints()[0].Id).ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.Delete(endpointInstanceMonitoring.GetEndpoints()[0].Id).ConfigureAwait(false);
 
             endpointInstanceMonitoring = new EndpointInstanceMonitoring(new FakeDomainEvents());
 
-            await _monitoringDataStoreTester.CompleteDBOperation().ConfigureAwait(false);
-            await _monitoringDataStoreTester.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
             Assert.AreEqual(0, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
         }
     }

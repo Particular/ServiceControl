@@ -21,7 +21,7 @@ namespace ServiceControl.Persistence.SqlServer
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = DeterministicGuid.MakeId(detail.OriginatingEndpoint.Name, detail.OriginatingEndpoint.HostId.ToString(), detail.CustomCheckId);
+            var id = detail.GetDeterministicId();
 
             using (var connection = new SqlConnection(connectionString))
             {
