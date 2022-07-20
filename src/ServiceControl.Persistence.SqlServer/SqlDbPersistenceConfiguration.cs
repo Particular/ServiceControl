@@ -8,10 +8,10 @@
     {
         public void ConfigureServices(IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IMonitoringDataStore>(sp =>
-                new SqlDbMonitoringDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
-            serviceCollection.AddSingleton<ICustomChecksDataStore>(sp =>
-                new SqlDbCustomCheckDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
+            serviceCollection.AddSingleton(sp =>
+                new SqlDbConnectionManager(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
+            serviceCollection.AddSingleton<IMonitoringDataStore, SqlDbMonitoringDataStore>();
+            serviceCollection.AddSingleton<ICustomChecksDataStore, SqlDbCustomCheckDataStore>();
             serviceCollection.AddPartialUnitOfWorkFactory<SqlIngestionUnitOfWorkFactory>();
         }
     }

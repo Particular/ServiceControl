@@ -8,8 +8,8 @@
     {
         readonly string connectionString;
 
-        public SqlIngestionUnitOfWorkFactory(string connectionString)
-            => this.connectionString = connectionString;
+        public SqlIngestionUnitOfWorkFactory(SqlDbConnectionManager connectionManager)
+            => connectionString = connectionManager.ConnectionString;
 
         public async ValueTask<IIngestionUnitOfWork> StartNew()
         {

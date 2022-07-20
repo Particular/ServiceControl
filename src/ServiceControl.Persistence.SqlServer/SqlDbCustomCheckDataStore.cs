@@ -13,9 +13,9 @@ namespace ServiceControl.Persistence.SqlServer
 
     class SqlDbCustomCheckDataStore : ICustomChecksDataStore
     {
-        public SqlDbCustomCheckDataStore(string connectionString)
+        public SqlDbCustomCheckDataStore(SqlDbConnectionManager connectionManager)
         {
-            this.connectionString = connectionString;
+            connectionString = connectionManager.ConnectionString;
         }
 
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)

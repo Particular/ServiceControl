@@ -14,9 +14,9 @@
     {
         readonly string connectionString;
 
-        public SqlDbMonitoringDataStore(string connectionString)
+        public SqlDbMonitoringDataStore(SqlDbConnectionManager connectionManager)
         {
-            this.connectionString = connectionString;
+            connectionString = connectionManager.ConnectionString;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
