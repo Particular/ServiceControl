@@ -9,6 +9,7 @@
         ICustomChecksDataStore CustomCheckDataStore { get; }
     }
 
+    //NOTE ideally once we only have one type of persistence (ie use ravendb or sql for all) then these could be refactored
     public static class SetupSqlPersistence
     {
         public static async Task SetupMonitoring(string connectionString)

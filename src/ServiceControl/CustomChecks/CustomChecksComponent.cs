@@ -26,7 +26,6 @@
 
         public override void Setup(Settings settings, IComponentInstallationContext context)
         {
-            //TODO can we do this dynamically somehow?
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
                 context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupCustomChecks(settings.SqlStorageConnectionString));

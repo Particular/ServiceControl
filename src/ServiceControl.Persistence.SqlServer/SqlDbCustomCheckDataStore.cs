@@ -115,38 +115,6 @@ namespace ServiceControl.Persistence.SqlServer
             return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
         }
 
-        //public static async Task Setup(string connectionString)
-        //{
-        //    using (var connection = new SqlConnection(connectionString))
-        //    {
-        //        var catalog = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
-
-        //        var createCommand = $@"
-        //            IF NOT EXISTS (
-        //                 SELECT *
-        //                 FROM {catalog}.sys.objects
-        //                 WHERE object_id = OBJECT_ID(N'CustomChecks') AND type in (N'U')
-        //               )
-        //               BEGIN
-        //                   CREATE TABLE [dbo].[CustomChecks](
-        //                       [Id] [uniqueidentifier] NOT NULL,
-        //                       [CustomCheckId] nvarchar(300) NOT NULL,
-        //                       [Category] nvarchar(300) NULL,
-        //                       [Status] int NOT NULL,
-        //                       [ReportedAt] datetime NOT NULL,
-        //                       [FailureReason] nvarchar(300) NULL,
-        //                       [OriginatingEndpointName] nvarchar(300) NOT NULL,
-        //                       [OriginatingEndpointHostId] [uniqueidentifier] NOT NULL,
-        //                       [OriginatingEndpointHost] nvarchar(300) NOT NULL
-        //                   ) ON [PRIMARY]
-        //               END";
-
-        //        connection.Open();
-
-        //        await connection.ExecuteAsync(createCommand).ConfigureAwait(false);
-        //    }
-        //}
-
         readonly string connectionString;
     }
 }
