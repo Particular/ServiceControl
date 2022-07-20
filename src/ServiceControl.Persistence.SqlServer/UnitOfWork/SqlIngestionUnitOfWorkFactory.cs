@@ -11,7 +11,7 @@
         public SqlIngestionUnitOfWorkFactory(string connectionString)
             => this.connectionString = connectionString;
 
-        public async Task<IIngestionUnitOfWork> StartNew()
+        public async ValueTask<IIngestionUnitOfWork> StartNew()
         {
             var connection = new SqlConnection(connectionString);
 

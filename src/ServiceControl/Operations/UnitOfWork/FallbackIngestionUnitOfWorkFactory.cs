@@ -13,7 +13,7 @@
             this.secondary = secondary;
         }
 
-        public async Task<IIngestionUnitOfWork> StartNew()
+        public async ValueTask<IIngestionUnitOfWork> StartNew()
         {
             var primaryUnitOfWork = await primary.StartNew().ConfigureAwait(false);
             var secondaryUnitOfWork = await secondary.StartNew().ConfigureAwait(false);

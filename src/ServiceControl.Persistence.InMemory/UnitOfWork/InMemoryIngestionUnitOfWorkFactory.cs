@@ -9,7 +9,7 @@
 
         public InMemoryIngestionUnitOfWorkFactory(IMonitoringDataStore dataStore) => this.dataStore = dataStore;
 
-        public Task<IIngestionUnitOfWork> StartNew()
-            => Task.FromResult<IIngestionUnitOfWork>(new InMemoryIngestionUnitOfWork(dataStore));
+        public ValueTask<IIngestionUnitOfWork> StartNew()
+            => new ValueTask<IIngestionUnitOfWork>(new InMemoryIngestionUnitOfWork(dataStore));
     }
 }

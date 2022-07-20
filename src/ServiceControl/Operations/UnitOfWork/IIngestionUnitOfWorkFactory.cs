@@ -4,6 +4,6 @@
 
     interface IIngestionUnitOfWorkFactory
     {
-        Task<IIngestionUnitOfWork> StartNew();
+        ValueTask<IIngestionUnitOfWork> StartNew();
     }
 }
