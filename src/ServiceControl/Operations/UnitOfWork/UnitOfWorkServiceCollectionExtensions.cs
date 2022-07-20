@@ -20,7 +20,7 @@
             where T : class, IIngestionUnitOfWorkFactory
         {
             // HINT: Falls back to the Raven implementation for components not implemented
-            var ravenImplementation = Type.GetType("ServiceControl.Persistence.RavenDb.RavenDbIngestionUnitOfWorkFactory", true);
+            var ravenImplementation = Type.GetType("ServiceControl.Persistence.RavenDb.RavenDbIngestionUnitOfWorkFactory, ServiceControl.Persistence.RavenDb", true);
             serviceCollection.AddSingleton(ravenImplementation);
             serviceCollection.AddSingleton<T>();
             serviceCollection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
