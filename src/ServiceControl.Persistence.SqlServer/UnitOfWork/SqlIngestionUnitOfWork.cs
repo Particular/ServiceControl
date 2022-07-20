@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Operations;
 
-    class SqlIngestionUnitOfWork : IIngestionUnitOfWork
+    class SqlIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
         readonly SqlConnection connection;
         readonly SqlTransaction transaction;
@@ -16,19 +16,19 @@
             Monitoring = new SqlMonitoringIngestionUnitOfWork(connection, transaction);
         }
 
-        public IMonitoringIngestionUnitOfWork Monitoring { get; }
-        public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
-
-        public Task Complete()
+        public override Task Complete()
         {
             transaction.Commit();
             return Task.CompletedTask;
         }
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            transaction?.Dispose();
-            connection?.Dispose();
+            if (disposing)
+            {
+                transaction?.Dispose();
+                connection?.Dispose();
+            }
         }
     }
 }

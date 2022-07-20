@@ -5,7 +5,7 @@
     using Monitoring;
     using Operations;
 
-    class InMemoryIngestionUnitOfWork : IIngestionUnitOfWork
+    class InMemoryIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
         ConcurrentBag<KnownEndpoint> knownEndpoints = new ConcurrentBag<KnownEndpoint>();
         IMonitoringDataStore dataStore;
@@ -16,10 +16,7 @@
             Monitoring = new InMemoryMonitoringIngestionUnitOfWork(this);
         }
 
-        public IMonitoringIngestionUnitOfWork Monitoring { get; }
-        public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
-
-        public async Task Complete()
+        public override async Task Complete()
         {
             foreach (var endpoint in knownEndpoints)
             {
@@ -29,9 +26,5 @@
         }
 
         internal void AddEndpoint(KnownEndpoint knownEndpoint) => knownEndpoints.Add(knownEndpoint);
-
-        public void Dispose()
-        {
-        }
     }
 }

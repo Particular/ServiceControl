@@ -5,7 +5,7 @@
     // HINT: This allows an implementor to provide only part of the implementation and allow the other part
     // to be handled by an existing implementation. This way a new persistence does not need to cover both
     // recoverability and monitoring. It can focus on one at a time.
-    class FallbackIngestionUnitOfWork : IIngestionUnitOfWork
+    class FallbackIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
         IIngestionUnitOfWork primary;
         IIngestionUnitOfWork fallback;
@@ -18,15 +18,15 @@
             Recoverability = primary.Recoverability ?? fallback.Recoverability;
         }
 
-        public IMonitoringIngestionUnitOfWork Monitoring { get; }
-        public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
+        public override Task Complete() => Task.WhenAll(primary.Complete(), fallback.Complete());
 
-        public Task Complete() => Task.WhenAll(primary.Complete(), fallback.Complete());
-
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            primary?.Dispose();
-            fallback?.Dispose();
+            if (disposing)
+            {
+                primary?.Dispose();
+                fallback?.Dispose();
+            }
         }
     }
 }

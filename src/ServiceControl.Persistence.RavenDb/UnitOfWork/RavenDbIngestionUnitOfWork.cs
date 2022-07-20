@@ -6,7 +6,7 @@
     using Raven.Abstractions.Commands;
     using Raven.Client;
 
-    class RavenDbIngestionUnitOfWork : IIngestionUnitOfWork
+    class RavenDbIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
         readonly IDocumentStore store;
         readonly ConcurrentBag<ICommandData> commands;
@@ -21,15 +21,8 @@
 
         internal void AddCommand(ICommandData command) => commands.Add(command);
 
-        public IMonitoringIngestionUnitOfWork Monitoring { get; }
-        public IRecoverabilityIngestionUnitOfWork Recoverability { get; }
-
-        public Task Complete() =>
+        public override Task Complete() =>
             // not really interested in the batch results since a batch is atomic
             store.AsyncDatabaseCommands.BatchAsync(commands);
-
-        public void Dispose()
-        {
-        }
     }
 }
