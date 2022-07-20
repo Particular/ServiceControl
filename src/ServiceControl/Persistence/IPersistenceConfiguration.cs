@@ -2,11 +2,11 @@
 {
     using System.Data.SqlClient;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
 
     interface IPersistenceConfiguration
     {
-        IMonitoringDataStore MonitoringDataStore { get; }
-        ICustomChecksDataStore CustomCheckDataStore { get; }
+        void ConfigureServices(IServiceCollection serviceCollection);
     }
 
     //NOTE ideally once we only have one type of persistence (ie use ravendb or sql for all) then these could be refactored

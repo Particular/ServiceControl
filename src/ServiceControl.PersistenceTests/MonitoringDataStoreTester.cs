@@ -7,6 +7,8 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Dapper;
+    using Microsoft.Extensions.DependencyInjection;
+    using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -72,15 +74,10 @@
 
         Task SetupInMemory()
         {
-            try
-            {
-                var persistence = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[0] })).MonitoringDataStore;
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Could not load persistence customization type {DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName}.", e);
-            }
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddServiceControlPersistence(DataStoreType.InMemory);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
 
             return Task.CompletedTask;
         }
@@ -91,8 +88,11 @@
 
             try
             {
-                var persistence = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
-                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[2] { sqlDbConnectionString, new FakeDomainEvents() } })).MonitoringDataStore;
+                var serviceCollection = new ServiceCollection();
+                serviceCollection.AddSingleton(new Settings { SqlStorageConnectionString = sqlDbConnectionString });
+                serviceCollection.AddServiceControlPersistence(DataStoreType.SqlDb);
+                var serviceProvider = serviceCollection.BuildServiceProvider();
+                MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
             }
             catch (Exception e)
             {
@@ -145,8 +145,11 @@
 
             try
             {
-                var persistence = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
-                MonitoringDataStore = ((IPersistenceConfiguration)Activator.CreateInstance(persistence, new object[1] { new object[1] { documentStore } })).MonitoringDataStore;
+                var serviceCollection = new ServiceCollection();
+                serviceCollection.AddSingleton<IDocumentStore>(documentStore);
+                serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDb);
+                var serviceProvider = serviceCollection.BuildServiceProvider();
+                MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
             }
             catch (Exception e)
             {

@@ -1,22 +1,13 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
-    using Raven.Client;
-    using ServiceControl.Persistence;
+    using Microsoft.Extensions.DependencyInjection;
 
     class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        RavenDbMonitoringDataStore monitoringDataStore;
-        RavenDbCustomCheckDataStore customCheckDataStore;
-        public RavenDbPersistenceConfiguration(object[] parameters)
+        public void ConfigureServices(IServiceCollection serviceCollection)
         {
-            if (parameters != null && parameters.Length > 0)
-            {
-                monitoringDataStore = new RavenDbMonitoringDataStore((IDocumentStore)parameters[0]);
-                customCheckDataStore = new RavenDbCustomCheckDataStore((IDocumentStore)parameters[0]);
-            }
+            serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
         }
-
-        public IMonitoringDataStore MonitoringDataStore => monitoringDataStore;
-        public ICustomChecksDataStore CustomCheckDataStore => customCheckDataStore;
     }
 }

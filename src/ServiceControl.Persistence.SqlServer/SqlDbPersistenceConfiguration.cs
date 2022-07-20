@@ -1,21 +1,16 @@
 ﻿namespace ServiceControl.Persistence.SqlServer
 {
-    using ServiceControl.Persistence;
+    using Microsoft.Extensions.DependencyInjection;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        SqlDbMonitoringDataStore monitoringDataStore;
-        SqlDbCustomCheckDataStore customCheckDataStore;
-        public SqlDbPersistenceConfiguration(object[] parameters)
+        public void ConfigureServices(IServiceCollection serviceCollection)
         {
-            if (parameters != null && parameters.Length > 0)
-            {
-                monitoringDataStore = new SqlDbMonitoringDataStore(parameters[0].ToString());
-                customCheckDataStore = new SqlDbCustomCheckDataStore(parameters[0].ToString());
-            }
+            serviceCollection.AddSingleton<IMonitoringDataStore>(sp =>
+                new SqlDbMonitoringDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
+            serviceCollection.AddSingleton<ICustomChecksDataStore>(sp =>
+                new SqlDbCustomCheckDataStore(sp.GetRequiredService<Settings>().SqlStorageConnectionString));
         }
-
-        public IMonitoringDataStore MonitoringDataStore => monitoringDataStore;
-        public ICustomChecksDataStore CustomCheckDataStore => customCheckDataStore;
     }
 }
