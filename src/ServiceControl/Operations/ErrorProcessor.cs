@@ -9,39 +9,14 @@
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using MessageFailures;
     using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Imports.Newtonsoft.Json;
-    using Raven.Json.Linq;
     using Recoverability;
-    using JsonSerializer = Raven.Imports.Newtonsoft.Json.JsonSerializer;
 
     class ErrorProcessor
     {
-        static ErrorProcessor()
-        {
-            Serializer = JsonExtensions.CreateDefaultJsonSerializer();
-            Serializer.TypeNameHandling = TypeNameHandling.Auto;
-
-            FailedMessageMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
-                                    }}");
-
-            KnownEndpointMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{KnownEndpoint.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
-                                    }}");
-        }
-
         public ErrorProcessor(BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
             Counter ingestedCounter)
         {
@@ -52,27 +27,25 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<(IReadOnlyList<MessageContext>, IReadOnlyCollection<ICommandData>)> Process(List<MessageContext> contexts)
+        public async Task<IReadOnlyList<MessageContext>> Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             var tasks = new List<Task>(contexts.Count);
             foreach (var context in contexts)
             {
-                tasks.Add(ProcessMessage(context));
+                tasks.Add(ProcessMessage(context, unitOfWork));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            var commands = new List<ICommandData>(contexts.Count);
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
             {
-                if (!context.Extensions.TryGet<ICommandData>(out var command))
+                if (!context.Extensions.TryGet<FailureDetails>(out _))
                 {
                     continue;
                 }
 
-                commands.Add(command);
                 storedContexts.Add(context);
                 ingestedCounter.Mark();
 
@@ -89,10 +62,10 @@
                     Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                commands.Add(CreateKnownEndpointsPutCommand(endpoint));
+                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
             }
 
-            return (storedContexts, commands);
+            return storedContexts;
         }
 
         public Task Announce(MessageContext messageContext)
@@ -121,16 +94,7 @@
             });
         }
 
-        static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) =>
-            new PutCommandData
-            {
-                Document = RavenJObject.FromObject(endpoint),
-                Etag = null,
-                Key = endpoint.Id.ToString(),
-                Metadata = KnownEndpointMetadata
-            };
-
-        async Task ProcessMessage(MessageContext context)
+        async Task ProcessMessage(MessageContext context, IIngestionUnitOfWork unitOfWork)
         {
             bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
@@ -170,9 +134,9 @@
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                var patchCommand = CreateFailedMessagesPatchCommand(context.Headers.UniqueId(), processingAttempt, groups);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups)
+                    .ConfigureAwait(false);
 
-                context.Extensions.Set(patchCommand);
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);
             }
@@ -185,55 +149,6 @@
 
                 context.GetTaskCompletionSource().TrySetException(e);
             }
-        }
-
-        ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
-            List<FailedMessage.FailureGroup> groups)
-        {
-            var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
-
-            var serializedGroups = RavenJToken.FromObject(groups);
-            var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
-
-            return new ScriptedPatchCommandData
-            {
-                Key = documentId,
-                Patch = new ScriptedPatchRequest
-                {
-                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
-
-                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
-                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
-                                }});
-
-                                if(duplicateIndex === -1){{
-                                    this.{nameof(FailedMessage.ProcessingAttempts)} = _.union(this.{nameof(FailedMessage.ProcessingAttempts)}, [attempt]);
-                                }}",
-                    Values = new Dictionary<string, object>
-                    {
-                        {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", serializedGroups},
-                        {"attempt", serializedAttempt}
-                    },
-                },
-                PatchIfMissing = new ScriptedPatchRequest
-                {
-                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
-                                this.{nameof(FailedMessage.ProcessingAttempts)} = [attempt];
-                                this.{nameof(FailedMessage.UniqueMessageId)} = uniqueMessageId;
-                             ",
-                    Values = new Dictionary<string, object>
-                    {
-                        {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", serializedGroups},
-                        {"attempt", serializedAttempt},
-                        {"uniqueMessageId", uniqueMessageId}
-                    }
-                },
-                Metadata = FailedMessageMetadata
-            };
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
@@ -256,9 +171,6 @@
         readonly Counter ingestedCounter;
         BodyStorageEnricher bodyStorageEnricher;
         FailedMessageFactory failedMessageFactory;
-        static readonly RavenJObject FailedMessageMetadata;
-        static readonly RavenJObject KnownEndpointMetadata;
-        static readonly JsonSerializer Serializer;
         static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
     }
 }
