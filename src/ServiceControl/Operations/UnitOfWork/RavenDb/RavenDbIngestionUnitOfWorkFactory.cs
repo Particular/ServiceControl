@@ -10,8 +10,6 @@
         public RavenDbIngestionUnitOfWorkFactory(IDocumentStore store) => this.store = store;
 
         public Task<IIngestionUnitOfWork> StartNew()
-            => Task.FromResult(
-                (IIngestionUnitOfWork)new RavenDbIngestionUnitOfWork(store)
-                );
+            => Task.FromResult<IIngestionUnitOfWork>(new RavenDbIngestionUnitOfWork(store));
     }
 }

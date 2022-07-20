@@ -10,8 +10,6 @@
         public InMemoryIngestionUnitOfWorkFactory(IMonitoringDataStore dataStore) => this.dataStore = dataStore;
 
         public Task<IIngestionUnitOfWork> StartNew()
-            => Task.FromResult(
-                (IIngestionUnitOfWork)new InMemoryIngestionUnitOfWork(dataStore)
-            );
+            => Task.FromResult<IIngestionUnitOfWork>(new InMemoryIngestionUnitOfWork(dataStore));
     }
 }
