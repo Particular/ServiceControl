@@ -25,8 +25,8 @@
             serviceCollection.AddSingleton<T>();
             serviceCollection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
                 new FallbackIngestionUnitOfWorkFactory(
-                    sp.GetService<T>(),
-                    (IIngestionUnitOfWorkFactory)sp.GetService(ravenImplementation)
+                    sp.GetRequiredService<T>(),
+                    (IIngestionUnitOfWorkFactory)sp.GetRequiredService(ravenImplementation)
                 )
             );
         }
