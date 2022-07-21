@@ -76,8 +76,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
             DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
-            DataStoreConfiguration.DataStoreTypeName = nameof(DataStoreType.SqlDb);
-            DataStoreConfiguration.ConnectionString = @"server=localhost;database=ServiceControl;user=sa;password=P@ssw0rd";
 
             if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
             {
