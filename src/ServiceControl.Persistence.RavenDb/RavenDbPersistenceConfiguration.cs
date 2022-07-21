@@ -3,7 +3,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Operations;
 
-    class RavenDbPersistenceConfiguration : IPersistenceConfiguration
+    public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
         public void ConfigureServices(IServiceCollection serviceCollection)
         {

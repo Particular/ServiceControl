@@ -4,7 +4,7 @@
     using Operations;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class SqlDbPersistenceConfiguration : IPersistenceConfiguration
+    public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
         public void ConfigureServices(IServiceCollection serviceCollection)
         {

@@ -4,7 +4,7 @@
     using Operations;
     using SqlServer;
 
-    class InMemoryPersistenceConfiguration : IPersistenceConfiguration
+    public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
     {
         public void ConfigureServices(IServiceCollection serviceCollection)
         {
