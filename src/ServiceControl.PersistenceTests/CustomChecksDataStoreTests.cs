@@ -20,13 +20,8 @@ namespace ServiceControl.Persistence.Tests
         [SetUp]
         public async Task Setup()
         {
-            await fixture.SetupDataStore().ConfigureAwait(false);
-        }
-
-        [TearDown]
-        public async Task Cleanup()
-        {
             await fixture.CleanupDB().ConfigureAwait(false);
+            await fixture.SetupDataStore().ConfigureAwait(false);
         }
 
         [Test]

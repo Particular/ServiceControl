@@ -47,6 +47,4 @@
   "EnableFullTextSearchOnBodies": true,
   "DisableHealthChecks": false,
   "ExposeApi": true,
-  "DataStoreType": "RavenDb",
-  "SqlStorageConnectionString": null
 }

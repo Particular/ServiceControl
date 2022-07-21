@@ -14,6 +14,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllDataStores]
     class When_a_failed_message_from_unmonitored_endpoint_is_imported : AcceptanceTest
     {
         [Test]

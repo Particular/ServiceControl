@@ -9,6 +9,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
+    using Microsoft.Data.SqlClient;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -73,7 +74,16 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
+
+            DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
+
+            if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
+            {
+                ResetSqlDb(DataStoreConfiguration.ConnectionString);
+            }
+            TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
+
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -86,6 +96,34 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
         }
+
+        void ResetSqlDb(string connectionString)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                var command = new SqlCommand(@"
+DECLARE @name NVARCHAR(128)
+DECLARE @schema NVARCHAR(128)
+DECLARE @SQL NVARCHAR(254)
+
+SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
+
+WHILE @name IS NOT NULL
+BEGIN
+    SELECT @SQL = 'DROP TABLE ' + QUOTENAME(@schema) + '.' + QUOTENAME(RTRIM(@name))
+    EXEC (@SQL)
+    PRINT 'Dropped Table: ' + @schema + '.' + @name
+	SELECT  @name = NULL
+    SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
+END
+", connection);
+
+                command.ExecuteNonQuery();
+            }
+        }
+
 
         static void RemoveOtherTransportAssemblies(string name)
         {
@@ -117,6 +155,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         protected Action<Settings> CustomServiceControlSettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
         protected ITransportIntegration TransportIntegration;
+        protected DataStoreConfiguration DataStoreConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

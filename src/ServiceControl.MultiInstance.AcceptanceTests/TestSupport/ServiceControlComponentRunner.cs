@@ -29,12 +29,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreConfiguration, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
             this.customEndpointConfiguration = customEndpointConfiguration;
+            this.dataStoreConfiguration = dataStoreConfiguration;
             this.transportToUse = transportToUse;
         }
 
@@ -85,6 +86,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             var settings = new Settings(instanceName)
             {
+                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreConfiguration.DataStoreTypeName),
+                SqlStorageConnectionString = dataStoreConfiguration.ConnectionString,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
@@ -394,6 +397,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Dictionary<string, OwinHttpMessageHandler> handlers = new Dictionary<string, OwinHttpMessageHandler>();
         Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         ITransportIntegration transportToUse;
+        DataStoreConfiguration dataStoreConfiguration;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
