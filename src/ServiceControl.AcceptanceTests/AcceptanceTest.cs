@@ -85,10 +85,11 @@ namespace ServiceControl.AcceptanceTests
             var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
             if (!shouldBeRunOnAllDataStores && DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDb))
             {
-                Assert.Inconclusive($"Not flagged with [RunOnAllDataStoresAttribute] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
+                Assert.Inconclusive($"Not flagged with [RunOnAllDataStores] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
+            TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
