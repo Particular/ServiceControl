@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using ServiceControl.Monitoring;
@@ -12,6 +13,6 @@
         Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored);
         Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring);
         Task Delete(Guid endpointId);
-        Task<KnownEndpoint[]> GetAllKnownEndpoints();
+        Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints();
     }
 }

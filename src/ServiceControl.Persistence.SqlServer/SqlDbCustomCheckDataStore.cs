@@ -1,6 +1,8 @@
 namespace ServiceControl.Persistence.SqlServer
 {
+    using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
@@ -15,7 +17,7 @@ namespace ServiceControl.Persistence.SqlServer
     {
         public SqlDbCustomCheckDataStore(SqlDbConnectionManager connectionManager)
         {
-            connectionString = connectionManager.ConnectionString;
+            this.connectionManager = connectionManager;
         }
 
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
@@ -23,10 +25,8 @@ namespace ServiceControl.Persistence.SqlServer
             var status = CheckStateChange.Unchanged;
             var id = detail.GetDeterministicId();
 
-            using (var connection = new SqlConnection(connectionString))
+            await connectionManager.Perform(async connection =>
             {
-                await connection.OpenAsync().ConfigureAwait(false);
-
                 var customCheck = await connection.QueryFirstOrDefaultAsync(
                     "SELECT * FROM [CustomChecks] WHERE [Id] = @Id",
                     new { Id = id }).ConfigureAwait(false);
@@ -65,7 +65,7 @@ namespace ServiceControl.Persistence.SqlServer
                         OriginatingEndpointHostId = detail.OriginatingEndpoint.HostId,
                         OriginatingEndpointHost = detail.OriginatingEndpoint.Host
                     }).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
 
             return status;
         }
@@ -75,10 +75,8 @@ namespace ServiceControl.Persistence.SqlServer
             var checks = new List<CustomCheck>();
             var totalCount = 0;
 
-            using (var connection = new SqlConnection(connectionString))
+            return await connectionManager.Perform(async connection =>
             {
-                await connection.OpenAsync().ConfigureAwait(false);
-
                 var filter = status != null ? " WHERE [Status] = @Status" : "";
                 var query = @"SELECT * FROM [CustomChecks] " + filter +
                             @"ORDER BY ID
@@ -108,13 +106,14 @@ namespace ServiceControl.Persistence.SqlServer
                             }
                         });
                     }
+
                     totalCount = multi.ReadFirst<int>();
                 }
-            }
 
-            return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
+                return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
+            }).ConfigureAwait(false);
         }
 
-        readonly string connectionString;
+        readonly SqlDbConnectionManager connectionManager;
     }
 }

@@ -6,7 +6,6 @@ namespace ServiceControl.Persistence.InMemory
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.Operations;
-    using ServiceControl.Infrastructure;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
 
@@ -21,9 +20,9 @@ namespace ServiceControl.Persistence.InMemory
 
         public Task CreateIfNotExists(EndpointDetails endpoint)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
-            if (!endpoints.Any(a => a.Id == id))
+            if (endpoints.All(a => a.Id != id))
             {
                 endpoints.Add(new InMemoryEndpoint
                 {
@@ -40,9 +39,8 @@ namespace ServiceControl.Persistence.InMemory
 
         public Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
-
-            var inMemoryEndpoint = endpoints.Where(a => a.Id == id).FirstOrDefault();
+            var id = endpoint.GetDeterministicId();
+            var inMemoryEndpoint = endpoints.FirstOrDefault(a => a.Id == id);
             if (inMemoryEndpoint == null)
             {
                 endpoints.Add(new InMemoryEndpoint
@@ -72,25 +70,29 @@ namespace ServiceControl.Persistence.InMemory
 
             return Task.CompletedTask;
         }
-        public Task<KnownEndpoint[]> GetAllKnownEndpoints() =>
-            Task.FromResult((from e in endpoints
-                             select new KnownEndpoint
-                             {
-                                 EndpointDetails = new EndpointDetails
-                                 {
-                                     Host = e.Host,
-                                     HostId = e.HostId,
-                                     Name = e.HostDisplayName
-                                 },
-                                 HostDisplayName = e.HostDisplayName,
-                                 Monitored = e.Monitored
-                             }).ToArray());
+
+        public Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
+        {
+            var result = endpoints.Select(e => new KnownEndpoint
+            {
+                EndpointDetails = new EndpointDetails
+                {
+                    Host = e.Host,
+                    HostId = e.HostId,
+                    Name = e.HostDisplayName
+                },
+                HostDisplayName = e.HostDisplayName,
+                Monitored = e.Monitored
+            })
+            .ToList();
+
+            return Task.FromResult<IReadOnlyList<KnownEndpoint>>(result);
+        }
 
         public Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
-
-            var inMemoryEndpoint = endpoints.Where(a => a.Id == id).FirstOrDefault();
+            var id = endpoint.GetDeterministicId();
+            var inMemoryEndpoint = endpoints.FirstOrDefault(a => a.Id == id);
             if (inMemoryEndpoint != null)
             {
                 inMemoryEndpoint.Monitored = isMonitored;

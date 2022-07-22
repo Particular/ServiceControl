@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Audit.Monitoring;
@@ -19,7 +20,7 @@
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -48,7 +49,7 @@
 
         public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -79,7 +80,7 @@
 
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -121,7 +122,7 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
-        public async Task<KnownEndpoint[]> GetAllKnownEndpoints()
+        public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
         {
             using (var session = store.OpenAsyncSession())
             {
