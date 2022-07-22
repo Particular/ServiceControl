@@ -74,10 +74,11 @@ namespace ServiceControl.Persistence.SqlServer
         {
             var checks = new List<CustomCheck>();
             var totalCount = 0;
+            _ = Enum.TryParse<Status>(status, true, out var checkStatus);
 
-            return await connectionManager.Perform(async connection =>
+            return await connectionManager.PagedQuery(async connection =>
             {
-                var filter = status != null ? " WHERE [Status] = @Status" : "";
+                var filter = @" WHERE [Status] = @Status ";
                 var query = @"SELECT * FROM [CustomChecks] " + filter +
                             @"ORDER BY ID
                               OFFSET @Offset ROWS 
@@ -85,7 +86,7 @@ namespace ServiceControl.Persistence.SqlServer
 
                 var countQuery = @"SELECT COUNT(Id) FROM [CustomChecks] " + filter;
 
-                using (var multi = await connection.QueryMultipleAsync(query + countQuery, paging).ConfigureAwait(false))
+                using (var multi = await connection.QueryMultipleAsync(query + countQuery, new { paging.Offset, paging.Next, Status = checkStatus }).ConfigureAwait(false))
                 {
                     var rows = await multi.ReadAsync().ConfigureAwait(false);
                     foreach (dynamic row in rows)
@@ -106,7 +107,6 @@ namespace ServiceControl.Persistence.SqlServer
                             }
                         });
                     }
-
                     totalCount = multi.ReadFirst<int>();
                 }
 

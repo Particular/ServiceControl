@@ -24,7 +24,7 @@
             }
         }
 
-        public static async Task<QueryResult<T>> Perform<T>(this SqlDbConnectionManager manager, Func<IDbConnection, Task<QueryResult<T>>> action) where T : class
+        public static async Task<QueryResult<T>> PagedQuery<T>(this SqlDbConnectionManager manager, Func<IDbConnection, Task<QueryResult<T>>> action) where T : class
         {
             using (var connection = new SqlConnection(manager.ConnectionString))
             {

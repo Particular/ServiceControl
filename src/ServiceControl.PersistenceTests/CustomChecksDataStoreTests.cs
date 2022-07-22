@@ -77,6 +77,32 @@ namespace ServiceControl.Persistence.Tests
             Assert.AreEqual(CheckStateChange.Unchanged, statusUpdate);
         }
 
+        [Test]
+        public async Task Retrieving_custom_checks_by_status()
+        {
+            var checkDetails = new CustomCheckDetail
+            {
+                Category = "test-category",
+                CustomCheckId = "Test-Check",
+                HasFailed = false,
+                FailureReason = "Testing",
+                OriginatingEndpoint = new EndpointDetails
+                {
+                    Host = "localhost",
+                    HostId = Guid.Parse("5F41DEEA-783C-4B88-8558-9371A61F1027"),
+                    Name = "test-host"
+                },
+            };
+
+            var _ = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+
+            await fixture.CompleteDBOperation().ConfigureAwait(false);
+
+            var stats = await fixture.CustomCheckDataStore.GetStats(new PagingInfo(), "pass").ConfigureAwait(false);
+
+            Assert.AreEqual(1, stats.Results.Count);
+        }
+
         readonly PersistenceDataStoreFixture fixture;
     }
 }
