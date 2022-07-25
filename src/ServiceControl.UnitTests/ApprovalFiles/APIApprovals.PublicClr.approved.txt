@@ -2,6 +2,7 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.InMemory")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.PerfTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.RavenDb")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.PersistenceTests")]
