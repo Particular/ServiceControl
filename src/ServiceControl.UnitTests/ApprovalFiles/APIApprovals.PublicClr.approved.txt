@@ -468,6 +468,7 @@ namespace ServiceControl.Contracts.Operations
         public string Host { get; set; }
         public System.Guid HostId { get; set; }
         public string Name { get; set; }
+        public System.Guid GetDeterministicId() { }
     }
     public class EndpointHeartbeatReceived
     {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;
