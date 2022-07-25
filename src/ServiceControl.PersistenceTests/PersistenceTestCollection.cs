@@ -1,19 +1,21 @@
 namespace ServiceControl.Persistence.Tests
 {
-    using System;
     using System.Collections;
+    using PersistenceTests;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class PersistenceTestCollection : IEnumerable
     {
         public IEnumerator GetEnumerator()
         {
-            yield return new PersistenceDataStoreFixture(DataStoreType.InMemory);
-            yield return new PersistenceDataStoreFixture(DataStoreType.RavenDb);
+            yield return new InMemory();
+            yield return new RavenDb();
 
-            if (!string.IsNullOrEmpty(SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", "")))
+            var sqlConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", "");
+
+            if (!string.IsNullOrEmpty(sqlConnectionString))
             {
-                yield return new PersistenceDataStoreFixture(DataStoreType.SqlDb);
+                yield return new SqlDb(sqlConnectionString);
             }
         }
     }
