@@ -21,6 +21,7 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
+    [RunOnAllDataStores]
     class When_a_periodic_custom_check_fails : AcceptanceTest
     {
         [Test]

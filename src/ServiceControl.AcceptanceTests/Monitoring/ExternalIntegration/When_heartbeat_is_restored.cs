@@ -16,6 +16,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     /// The test simulates the heartbeat subsystem by publishing EndpointHeartbeatRestored event.
     /// </summary>
     [TestFixture]
+    [RunOnAllDataStores]
     class When_heartbeat_is_restored : AcceptanceTest
     {
         [Test]

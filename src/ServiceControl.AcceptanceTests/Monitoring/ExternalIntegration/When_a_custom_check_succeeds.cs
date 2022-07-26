@@ -12,6 +12,7 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
+    [RunOnAllDataStores]
     class When_a_custom_check_succeeds : AcceptanceTest
     {
         [Test]
