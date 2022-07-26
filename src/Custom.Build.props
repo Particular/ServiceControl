@@ -16,4 +16,8 @@
     <PackageReference Include="Particular.Packaging" Version="2.2.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <WriteMinVerProperties>false</WriteMinVerProperties>
+  </PropertyGroup>
+
 </Project>
