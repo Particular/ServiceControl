@@ -4,7 +4,7 @@ namespace ServiceControl.ExternalIntegrations
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
-    static class PersistenceHostBuilderExtensions
+    static class ExternalIntegrationsHostBuilderExtensions
     {
         public static IHostBuilder UseExternalIntegrationEvents(this IHostBuilder hostBuilder)
         {

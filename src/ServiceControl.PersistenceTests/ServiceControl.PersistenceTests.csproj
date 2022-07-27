@@ -25,10 +25,4 @@
     
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="app.config">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

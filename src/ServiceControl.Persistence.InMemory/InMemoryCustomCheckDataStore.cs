@@ -11,8 +11,6 @@ namespace ServiceControl.Persistence.InMemory
 
     class InMemoryCustomCheckDataStore : ICustomChecksDataStore
     {
-        public Task Setup() => Task.CompletedTask;
-
         public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             if (storage.ContainsKey(detail.CustomCheckId))
