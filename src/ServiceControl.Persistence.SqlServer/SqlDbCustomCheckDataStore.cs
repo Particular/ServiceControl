@@ -114,6 +114,19 @@ namespace ServiceControl.Persistence.SqlServer
             }).ConfigureAwait(false);
         }
 
+        public async Task DeleteCustomCheck(Guid id)
+        {
+            await connectionManager.Perform(async connection =>
+            {
+                await connection.ExecuteAsync(
+                    @"DELETE FROM [dbo].[CustomChecks] WHERE [Id] = @Id",
+                    new
+                    {
+                        Id = id
+                    }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
         readonly SqlDbConnectionManager connectionManager;
     }
 }

@@ -3,26 +3,27 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus;
+    using Persistence;
     using Raven.Client;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
-        public DeleteCustomCheckHandler(IDocumentStore store, IDomainEvents domainEvents)
+        public DeleteCustomCheckHandler(ICustomChecksDataStore customChecksDataStore, IDomainEvents domainEvents)
         {
-            this.store = store;
+            this.customChecksDataStore = customChecksDataStore;
             this.domainEvents = domainEvents;
         }
 
         public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(message.Id, typeof(CustomCheck), false), null)
+            await customChecksDataStore.DeleteCustomCheck(message.Id)
                 .ConfigureAwait(false);
 
             await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id })
                 .ConfigureAwait(false);
         }
 
-        IDocumentStore store;
+        ICustomChecksDataStore customChecksDataStore;
         IDomainEvents domainEvents;
     }
 }

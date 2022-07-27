@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.InMemory
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,17 +14,20 @@ namespace ServiceControl.Persistence.InMemory
     {
         public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
-            if (storage.ContainsKey(detail.CustomCheckId))
+            var id = detail.GetDeterministicId();
+            if (storage.ContainsKey(id))
             {
-                var storedCheck = storage[detail.CustomCheckId];
+                var storedCheck = storage[id];
                 if (storedCheck.HasFailed == detail.HasFailed)
                 {
                     return Task.FromResult(CheckStateChange.Unchanged);
                 }
+
+                storedCheck.HasFailed = detail.HasFailed;
             }
             else
             {
-                storage.Add(detail.CustomCheckId, detail);
+                storage.Add(id, detail);
             }
 
             return Task.FromResult(CheckStateChange.Changed);
@@ -40,7 +44,7 @@ namespace ServiceControl.Persistence.InMemory
                     Status = x.Value.HasFailed ? Status.Fail : Status.Pass,
                     FailureReason = x.Value.FailureReason,
                     ReportedAt = x.Value.ReportedAt,
-                    CustomCheckId = x.Key,
+                    CustomCheckId = x.Value.CustomCheckId,
                     OriginatingEndpoint = x.Value.OriginatingEndpoint
                 })
                 .ToList();
@@ -50,6 +54,16 @@ namespace ServiceControl.Persistence.InMemory
             return Task.FromResult(new QueryResult<IList<CustomCheck>>(result, stats));
         }
 
-        Dictionary<string, CustomCheckDetail> storage = new Dictionary<string, CustomCheckDetail>();
+        public Task DeleteCustomCheck(Guid id)
+        {
+            var toRemove = storage.FirstOrDefault(x => x.Key == id);
+            if (storage.ContainsKey(toRemove.Key))
+            {
+                storage.Remove(toRemove.Key);
+            }
+            return Task.CompletedTask;
+        }
+
+        Dictionary<Guid, CustomCheckDetail> storage = new Dictionary<Guid, CustomCheckDetail>();
     }
 }
