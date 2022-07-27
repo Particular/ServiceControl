@@ -13,9 +13,10 @@ namespace ServiceControl.Persistence.InMemory
     {
         public Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
-            if (storage.ContainsKey(detail.CustomCheckId))
+            var id = detail.GetDeterministicId();
+            if (storage.ContainsKey(id))
             {
-                var storedCheck = storage[detail.CustomCheckId];
+                var storedCheck = storage[id];
                 if (storedCheck.HasFailed == detail.HasFailed)
                 {
                     return Task.FromResult(CheckStateChange.Unchanged);
@@ -23,7 +24,7 @@ namespace ServiceControl.Persistence.InMemory
             }
             else
             {
-                storage.Add(detail.CustomCheckId, detail);
+                storage.Add(id, detail);
             }
 
             return Task.FromResult(CheckStateChange.Changed);
@@ -40,7 +41,7 @@ namespace ServiceControl.Persistence.InMemory
                     Status = x.Value.HasFailed ? Status.Fail : Status.Pass,
                     FailureReason = x.Value.FailureReason,
                     ReportedAt = x.Value.ReportedAt,
-                    CustomCheckId = x.Key,
+                    CustomCheckId = x.Value.CustomCheckId,
                     OriginatingEndpoint = x.Value.OriginatingEndpoint
                 })
                 .ToList();
