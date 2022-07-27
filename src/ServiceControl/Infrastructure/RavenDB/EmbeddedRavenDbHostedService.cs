@@ -15,13 +15,13 @@
     {
         readonly IDocumentStore documentStore;
         readonly IEnumerable<IDataMigration> dataMigrations;
-        readonly ComponentSetupContext setupContext;
+        readonly ComponentInstallationContext installationContext;
 
-        public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IEnumerable<IDataMigration> dataMigrations, ComponentSetupContext setupContext)
+        public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IEnumerable<IDataMigration> dataMigrations, ComponentInstallationContext installationContext)
         {
             this.documentStore = documentStore;
             this.dataMigrations = dataMigrations;
-            this.setupContext = setupContext;
+            this.installationContext = installationContext;
         }
 
         public Task StartAsync(CancellationToken cancellationToken) => SetupDatabase();
@@ -30,7 +30,7 @@
         {
             documentStore.Initialize();
 
-            var indexProvider = CreateIndexProvider(setupContext.IndexAssemblies);
+            var indexProvider = CreateIndexProvider(installationContext.IndexAssemblies);
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 

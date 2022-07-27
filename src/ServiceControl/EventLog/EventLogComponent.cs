@@ -16,9 +16,5 @@
                 services.AddDomainEventHandler<AuditEventLogWriter>();
             });
         }
-
-        public override void Setup(Settings settings, IComponentSetupContext context)
-        {
-        }
     }
 }

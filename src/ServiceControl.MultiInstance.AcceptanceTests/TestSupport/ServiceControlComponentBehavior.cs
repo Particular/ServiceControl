@@ -12,13 +12,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreConfiguration, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
         {
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customServiceControlSettings = customServiceControlSettings;
             this.customEndpointConfiguration = customEndpointConfiguration;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
             transportIntegration = transportToUse;
+            this.dataStoreConfiguration = dataStoreConfiguration;
         }
 
         public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
@@ -27,16 +28,17 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, customEndpointConfiguration, customAuditEndpointConfiguration, customServiceControlSettings, customServiceControlAuditSettings);
+            runner = new ServiceControlComponentRunner(transportIntegration, dataStoreConfiguration, customEndpointConfiguration, customAuditEndpointConfiguration, customServiceControlSettings, customServiceControlAuditSettings);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
 
         ITransportIntegration transportIntegration;
+        DataStoreConfiguration dataStoreConfiguration;
         Action<EndpointConfiguration> customEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         ServiceControlComponentRunner runner;
         Action<Settings> customServiceControlSettings;
-        Action<ServiceControl.Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
     }
 }

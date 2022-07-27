@@ -13,9 +13,5 @@ namespace ServiceControl.ExternalIntegrations
                 services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();
             });
         }
-
-        public override void Setup(Settings settings, IComponentSetupContext context)
-        {
-        }
     }
 }

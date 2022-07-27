@@ -17,6 +17,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     /// </summary>
     [TestFixture]
     [RunOnAllTransports]
+    [RunOnAllDataStores]
     class When_heartbeat_loss_is_detected : AcceptanceTest
     {
         [Test]

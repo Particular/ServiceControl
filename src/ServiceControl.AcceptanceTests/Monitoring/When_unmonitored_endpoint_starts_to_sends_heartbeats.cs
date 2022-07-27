@@ -13,6 +13,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllDataStores]
     class When_unmonitored_endpoint_starts_to_sends_heartbeats : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(WithoutHeartbeat));

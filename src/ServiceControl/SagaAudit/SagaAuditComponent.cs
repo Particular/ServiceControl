@@ -15,9 +15,6 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
-        {
-            context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
-        }
+        public override void Setup(Settings settings, IComponentInstallationContext context) => context.AddIndexAssembly(typeof(SagaSnapshot).Assembly);
     }
 }

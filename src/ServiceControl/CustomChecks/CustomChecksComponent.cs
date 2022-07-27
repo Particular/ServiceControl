@@ -14,22 +14,22 @@
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
                 serviceCollection.AddHostedService<CustomChecksHostedService>();
-                serviceCollection.AddSingleton<CustomChecksStorage>();
-
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
-
                 serviceCollection.AddEventLogMapping<CustomCheckDeletedDefinition>();
                 serviceCollection.AddEventLogMapping<CustomCheckFailedDefinition>();
                 serviceCollection.AddEventLogMapping<CustomCheckSucceededDefinition>();
-
-
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+                serviceCollection.AddSingleton<CustomCheckResultProcessor>();
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            if (settings.DataStoreType == DataStoreType.SqlDb)
+            {
+                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupCustomChecks(settings.SqlStorageConnectionString));
+            }
         }
     }
 }

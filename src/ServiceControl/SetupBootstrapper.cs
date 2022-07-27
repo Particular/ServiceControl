@@ -30,11 +30,16 @@ namespace Particular.ServiceControl
                 return;
             }
 
-            var componentSetupContext = new ComponentSetupContext();
+            var componentSetupContext = new ComponentInstallationContext();
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
                 component.Setup(settings, componentSetupContext);
+            }
+
+            foreach (var installationTask in componentSetupContext.InstallationTasks)
+            {
+                await installationTask().ConfigureAwait(false);
             }
 
             if (!settings.RunInMemory) //RunInMemory is used in acceptance tests

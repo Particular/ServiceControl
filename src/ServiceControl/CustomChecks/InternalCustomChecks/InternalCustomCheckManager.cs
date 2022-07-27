@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Contracts.CustomChecks;
     using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
     using NServiceBus.CustomChecks;
@@ -10,12 +11,16 @@
 
     class InternalCustomCheckManager
     {
-        public InternalCustomCheckManager(CustomChecksStorage store, ICustomCheck check, EndpointDetails localEndpointDetails, IAsyncTimer scheduler)
+        public InternalCustomCheckManager(
+            ICustomCheck check,
+            EndpointDetails localEndpointDetails,
+            IAsyncTimer scheduler,
+            CustomCheckResultProcessor checkResultProcessor)
         {
-            this.store = store;
             this.check = check;
             this.localEndpointDetails = localEndpointDetails;
             this.scheduler = scheduler;
+            this.checkResultProcessor = checkResultProcessor;
         }
 
         public void Start()
@@ -26,7 +31,6 @@
                 check.Interval ?? TimeSpan.MaxValue,
                 e => { /* Should not happen */ }
             );
-
         }
 
         async Task<TimerJobExecutionResult> Run(CancellationToken cancellationToken)
@@ -44,21 +48,16 @@
                 Logger.Error(reason, ex);
             }
 
-            try
+            var detail = new CustomCheckDetail
             {
-                await store.UpdateCustomCheckStatus(
-                        localEndpointDetails,
-                        DateTime.UtcNow,
-                        check.Id,
-                        check.Category,
-                        result.HasFailed,
-                        result.FailureReason
-                    ).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn("Failed to update periodic check status.", ex);
-            }
+                OriginatingEndpoint = localEndpointDetails,
+                CustomCheckId = check.Id,
+                Category = check.Category,
+                HasFailed = result.HasFailed,
+                FailureReason = result.FailureReason
+            };
+
+            await checkResultProcessor.ProcessResult(detail).ConfigureAwait(false);
 
             return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution
@@ -68,10 +67,10 @@
         public Task Stop() => timer?.Stop() ?? Task.CompletedTask;
 
         TimerJob timer;
-        readonly CustomChecksStorage store;
         readonly ICustomCheck check;
         readonly EndpointDetails localEndpointDetails;
         readonly IAsyncTimer scheduler;
+        readonly CustomCheckResultProcessor checkResultProcessor;
 
         static ILog Logger = LogManager.GetLogger<InternalCustomCheckManager>();
     }

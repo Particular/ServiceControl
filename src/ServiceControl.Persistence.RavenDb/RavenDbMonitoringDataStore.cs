@@ -1,22 +1,26 @@
-﻿namespace ServiceControl.Monitoring
+﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Audit.Monitoring;
     using Contracts.Operations;
     using Infrastructure;
     using Raven.Client;
+    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
-    class MonitoringDataStore
+    class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
-        public MonitoringDataStore(IDocumentStore store, EndpointInstanceMonitoring monitoring)
+        public RavenDbMonitoringDataStore(IDocumentStore store)
         {
             this.store = store;
-            this.monitoring = monitoring;
         }
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -43,9 +47,9 @@
             }
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -66,7 +70,7 @@
                 }
                 else
                 {
-                    knownEndpoint.Monitored = monitoring.IsMonitored(id);
+                    knownEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
                 }
 
                 await session.SaveChangesAsync()
@@ -76,7 +80,7 @@
 
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
-            var id = DeterministicGuid.MakeId(endpoint.Name, endpoint.HostId.ToString());
+            var id = endpoint.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -93,7 +97,7 @@
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence()
+        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -104,13 +108,33 @@
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
 
-                        monitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
+                        endpointInstanceMonitoring.DetectEndpointFromPersistentStore(endpoint.EndpointDetails, endpoint.Monitored);
                     }
                 }
             }
         }
 
+        public async Task Delete(Guid endpointId)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                session.Delete<KnownEndpoint>(endpointId);
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+        public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
+                    .ToListAsync().ConfigureAwait(false);
+
+                return knownEndpoints.ToArray();
+            }
+        }
+
+        public Task Setup() => Task.CompletedTask;
+
         IDocumentStore store;
-        EndpointInstanceMonitoring monitoring;
     }
 }

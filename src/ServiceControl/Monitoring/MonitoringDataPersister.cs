@@ -5,6 +5,7 @@
     using Contracts.HeartbeatMonitoring;
     using EndpointControl.Contracts;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Persistence;
 
     class MonitoringDataPersister :
         IDomainHandler<EndpointDetected>,
@@ -12,31 +13,33 @@
         IDomainHandler<MonitoringEnabledForEndpoint>,
         IDomainHandler<MonitoringDisabledForEndpoint>
     {
-        public MonitoringDataPersister(MonitoringDataStore monitoringDataStore)
+        public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore, EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            this.monitoringDataStore = monitoringDataStore;
+            _monitoringDataStore = monitoringDataStore;
+            _endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
 
         public Task Handle(EndpointDetected domainEvent)
         {
-            return monitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
+            return _monitoringDataStore.CreateIfNotExists(domainEvent.Endpoint);
         }
 
         public Task Handle(HeartbeatingEndpointDetected domainEvent)
         {
-            return monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint);
+            return _monitoringDataStore.CreateOrUpdate(domainEvent.Endpoint, _endpointInstanceMonitoring);
         }
 
         public Task Handle(MonitoringEnabledForEndpoint domainEvent)
         {
-            return monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
+            return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, true);
         }
 
         public Task Handle(MonitoringDisabledForEndpoint domainEvent)
         {
-            return monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
+            return _monitoringDataStore.UpdateEndpointMonitoring(domainEvent.Endpoint, false);
         }
 
-        MonitoringDataStore monitoringDataStore;
+        IMonitoringDataStore _monitoringDataStore;
+        EndpointInstanceMonitoring _endpointInstanceMonitoring;
     }
 }

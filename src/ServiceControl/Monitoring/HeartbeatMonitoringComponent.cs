@@ -21,7 +21,7 @@
                 collection.AddSingleton<IDataMigration, PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration>();
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<EndpointInstanceMonitoring>();
-                collection.AddSingleton<MonitoringDataStore>();
+
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
                 collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
@@ -39,8 +39,12 @@
             });
         }
 
-        public override void Setup(Settings settings, IComponentSetupContext context)
+        public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            if (settings.DataStoreType == DataStoreType.SqlDb)
+            {
+                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupMonitoring(settings.SqlStorageConnectionString));
+            }
         }
     }
 }

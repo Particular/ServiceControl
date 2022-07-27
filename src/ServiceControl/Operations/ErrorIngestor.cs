@@ -7,14 +7,12 @@
     using System.Threading.Tasks;
     using BodyStorage;
     using Contracts.Operations;
-    using EndpointControl.Handlers;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Raven.Client;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -27,9 +25,9 @@
             IFailedMessageEnricher[] failedMessageEnrichers,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
-            IDocumentStore store, Settings settings)
+            IIngestionUnitOfWorkFactory unitOfWorkFactory, Settings settings)
         {
-            this.store = store;
+            this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
 
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -124,18 +122,20 @@
 
             try
             {
-                var (storedFailedMessageContexts, storeCommands) = await errorProcessor.Process(failedMessageContexts).ConfigureAwait(false);
-                var markRetriedCommands = retryConfirmationProcessor.Process(retriedMessageContexts);
-
-                using (bulkInsertDurationMeter.Measure())
+                using (var unitOfWork = await unitOfWorkFactory.StartNew().ConfigureAwait(false))
                 {
-                    // not really interested in the batch results since a batch is atomic
-                    var allCommands = storeCommands.Concat(markRetriedCommands);
-                    await store.AsyncDatabaseCommands.BatchAsync(allCommands)
+                    var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork)
                         .ConfigureAwait(false);
-                }
+                    await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork)
+                        .ConfigureAwait(false);
 
-                return storedFailedMessageContexts;
+                    using (bulkInsertDurationMeter.Measure())
+                    {
+                        await unitOfWork.Complete()
+                            .ConfigureAwait(false);
+                    }
+                    return storedFailedMessageContexts;
+                }
             }
             catch (Exception e)
             {
@@ -208,7 +208,7 @@
             }
         }
 
-        readonly IDocumentStore store;
+        readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Meter bulkInsertDurationMeter;
         readonly Settings settings;
         ErrorProcessor errorProcessor;

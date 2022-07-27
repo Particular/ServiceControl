@@ -14,6 +14,7 @@
     using Raven.Client;
     using Raven.Tests.Helpers;
     using MessageFailures;
+    using Persistence.RavenDb;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability;
 
@@ -51,7 +52,7 @@
         }
 
         [Test]
-        public void Should_handle_multiple_retry_confirmations_in_the_error_ingestion()
+        public async Task Should_handle_multiple_retry_confirmations_in_the_error_ingestion()
         {
             var messageContexts = new List<MessageContext>
             {
@@ -59,9 +60,10 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            await Processor.Process(messageContexts, unitOfWork);
 
-            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
 
         [Test]
@@ -81,8 +83,9 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
-            await Store.AsyncDatabaseCommands.BatchAsync(commands);
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            await Processor.Process(messageContexts, unitOfWork);
+            await unitOfWork.Complete();
 
             Assert.DoesNotThrowAsync(
                 () => Handler.Handle(CreateLegacyRetryConfirmationCommand(), new TestableInvokeHandlerContext()));
@@ -98,8 +101,9 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var commands = Processor.Process(messageContexts);
-            Assert.DoesNotThrowAsync(() => Store.AsyncDatabaseCommands.BatchAsync(commands));
+            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            await Processor.Process(messageContexts, unitOfWork);
+            Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
 
         static MarkMessageFailureResolvedByRetry CreateLegacyRetryConfirmationCommand()

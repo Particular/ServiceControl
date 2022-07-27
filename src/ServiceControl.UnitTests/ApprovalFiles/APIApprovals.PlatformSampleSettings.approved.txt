@@ -46,5 +46,5 @@
   "DataSpaceRemainingThreshold": 20,
   "EnableFullTextSearchOnBodies": true,
   "DisableHealthChecks": false,
-  "ExposeApi": true
+  "ExposeApi": true,
 }

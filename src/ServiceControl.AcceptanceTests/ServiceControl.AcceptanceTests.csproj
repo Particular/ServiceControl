@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.InMemory\ServiceControl.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.SqlServer\ServiceControl.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
@@ -42,6 +45,7 @@
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="OwinHttpMessageHandler" Version="2.0.2" />
+    <PackageReference Include="Dapper" Version="2.0.123" />
   </ItemGroup>
 
 </Project>

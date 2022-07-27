@@ -10,10 +10,12 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    name: ${{ matrix.name }}
+    name: ${{ matrix.name }} - ${{ matrix.storage }}
     runs-on: windows-2022
     strategy:
       matrix:
+        name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional, RabbitMQ-Direct, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        storage: [RavenDb, SqlDb]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -21,7 +23,6 @@ jobs:
           - name: Msmq
             transport: Msmq
             customization: ConfigureEndpointMsmqTransport
-            upload: true
           - name: SqlServer
             transport: SqlServer
             customization: ConfigureEndpointSqlServerTransport
@@ -66,7 +67,7 @@ jobs:
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Upload packages
-        if: matrix.upload == true
+        if: matrix.transport == 'Msmq' && matrix.storage == 'RavenDb'
         uses: actions/upload-artifact@v3.1.0
         with:
           name: assets
@@ -113,14 +114,22 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
-          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
+          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ matrix.storage }}-${{ github.run_id }}"
           echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+
+      - name: Setup Microsoft SQL Server Data Store
+        if: matrix.storage == 'SqlDb'
+        uses: Particular/install-sql-server-action@v1.0.0
+        with:
+          connection-string-env-var: ServiceControl/SqlStorageConnectionString
+          catalog: servicecontrol
 
       - name: Run tests
         uses: Particular/run-tests-action@v1.3.0
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
+          ServiceControl/DataStoreType: ${{ matrix.storage }}
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}

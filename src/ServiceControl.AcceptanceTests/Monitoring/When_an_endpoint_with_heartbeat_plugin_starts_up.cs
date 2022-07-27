@@ -7,9 +7,11 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Monitoring;
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllDataStores]
     class When_an_endpoint_with_heartbeat_plugin_starts_up : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
@@ -31,6 +33,26 @@
 
             Assert.IsTrue(endpoint.Monitored);
             Assert.IsTrue(endpoint.IsSendingHeartbeats);
+        }
+
+        [Test]
+        public async Task Should_be_persisted()
+        {
+            var endpointName = Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
+            KnownEndpoint endpoint = default;
+
+            await Define<MyContext>()
+                .WithEndpoint<StartingEndpoint>()
+                .Done(async c =>
+                {
+                    var result = await this.TryGetSingle<KnownEndpoint>("/api/test/knownendpoints/query",
+                        e => e.EndpointDetails.Name == endpointName);
+                    endpoint = result;
+                    return result.HasResult;
+                })
+                .Run();
+
+            Assert.True(endpoint.Monitored, "An endpoint discovered from heartbeats should be monitored");
         }
 
         public class MyContext : ScenarioContext

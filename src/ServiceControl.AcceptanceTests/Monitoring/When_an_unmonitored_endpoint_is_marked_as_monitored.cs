@@ -16,6 +16,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
+    [RunOnAllDataStores]
     class When_an_unmonitored_endpoint_is_marked_as_monitored : AcceptanceTest
     {
         static string EndpointName => Conventions.EndpointNamingConvention(typeof(MyEndpoint));
