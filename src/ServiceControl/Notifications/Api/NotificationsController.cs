@@ -9,6 +9,7 @@
     using System.Web.Http.Results;
     using Email;
     using Infrastructure.SignalR;
+    using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,21 +24,13 @@
 
         [Route("notifications/email")]
         [HttpGet]
-        public async Task<JsonResult<EmailNotifications>> GetEmailNotificationsSettings(HttpRequestMessage request)
+        public async Task<HttpResponseMessage> GetEmailNotificationsSettings(HttpRequestMessage request)
         {
             using (var session = store.OpenAsyncSession())
             {
                 var settings = await LoadSettings(session).ConfigureAwait(false);
 
-                return new JsonResult<EmailNotifications>(
-                    settings.Email,
-                    new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Include,
-                        ContractResolver = new UnderscoreMappingResolver()
-                    },
-                    Encoding.Unicode,
-                    request);
+                return Negotiator.FromModel(request, settings.Email);
             }
         }
 
