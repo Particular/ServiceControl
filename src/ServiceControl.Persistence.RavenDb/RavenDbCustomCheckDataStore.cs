@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -75,6 +76,12 @@
 
                 return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
             }
+        }
+
+        public async Task DeleteCustomCheck(Guid id)
+        {
+            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false), null)
+                .ConfigureAwait(false);
         }
 
         static IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query, string status)

@@ -1,5 +1,6 @@
 namespace ServiceControl.Persistence.InMemory
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -53,6 +54,16 @@ namespace ServiceControl.Persistence.InMemory
             return Task.FromResult(new QueryResult<IList<CustomCheck>>(result, stats));
         }
 
-        Dictionary<string, CustomCheckDetail> storage = new Dictionary<string, CustomCheckDetail>();
+        public Task DeleteCustomCheck(Guid id)
+        {
+            var toRemove = storage.FirstOrDefault(x => x.Key == id);
+            if (storage.ContainsKey(toRemove.Key))
+            {
+                storage.Remove(toRemove.Key);
+            }
+            return Task.CompletedTask;
+        }
+
+        Dictionary<Guid, CustomCheckDetail> storage = new Dictionary<Guid, CustomCheckDetail>();
     }
 }
