@@ -21,6 +21,8 @@ namespace ServiceControl.Persistence.InMemory
                 {
                     return Task.FromResult(CheckStateChange.Unchanged);
                 }
+
+                storedCheck.HasFailed = detail.HasFailed;
             }
             else
             {
