@@ -75,6 +75,7 @@ namespace ServiceControl.Persistence.InMemory
         {
             var result = endpoints.Select(e => new KnownEndpoint
             {
+                Id = e.Id,
                 EndpointDetails = new EndpointDetails
                 {
                     Host = e.Host,

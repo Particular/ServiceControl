@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts.Operations;
     using NUnit.Framework;
     using ServiceControl.Monitoring;
 
@@ -137,6 +138,39 @@
             await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
             await persistenceDataStoreFixture.MonitoringDataStore.WarmupMonitoringFromPersistence(endpointInstanceMonitoring).ConfigureAwait(false);
             Assert.AreEqual(0, endpointInstanceMonitoring.GetKnownEndpoints().Count(w => w.HostDisplayName == endpoint1.Host));
+        }
+
+        [Test]
+        public async Task Unit_of_work_detects_endpoint()
+        {
+            var knownEndpoint = new KnownEndpoint
+            {
+                HostDisplayName = "Host1",
+                EndpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" }
+            };
+
+            knownEndpoint.Id = knownEndpoint.EndpointDetails.GetDeterministicId();
+
+            using (var unitOfWork =
+                   await persistenceDataStoreFixture.UnitOfWorkFactory.StartNew().ConfigureAwait(false))
+            {
+                await unitOfWork.Monitoring.RecordKnownEndpoint(knownEndpoint).ConfigureAwait(false);
+
+                await unitOfWork.Complete().ConfigureAwait(false);
+            }
+
+            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+
+            var knownEndpoints = await persistenceDataStoreFixture.MonitoringDataStore.GetAllKnownEndpoints().ConfigureAwait(false);
+
+            Assert.AreEqual(1, knownEndpoints.Count);
+            var fromStorage = knownEndpoints[0];
+
+            Assert.AreEqual(knownEndpoint.Id, fromStorage.Id, "Id should match");
+            Assert.AreEqual(knownEndpoint.EndpointDetails.Host, fromStorage.EndpointDetails.Host, "EndpointDetails.Host should match");
+            Assert.AreEqual(knownEndpoint.EndpointDetails.HostId, fromStorage.EndpointDetails.HostId, "EndpointDetails.HostId should match");
+            Assert.AreEqual(knownEndpoint.EndpointDetails.Name, fromStorage.EndpointDetails.Name, "EndpointDetails.Name should match");
+            Assert.AreEqual(knownEndpoint.Monitored, fromStorage.Monitored, "Monitored should match");
         }
     }
 }
