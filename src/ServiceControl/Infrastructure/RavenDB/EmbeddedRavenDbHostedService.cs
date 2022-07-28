@@ -17,7 +17,7 @@
         readonly IDocumentStore documentStore;
         readonly IEnumerable<IDataMigration> dataMigrations;
         readonly ComponentInstallationContext installationContext;
-        static ILog logger = LogManager.GetLogger(typeof(EmbeddedRavenDbHostedService));
+        static readonly ILog Log = LogManager.GetLogger(typeof(EmbeddedRavenDbHostedService));
         public EmbeddedRavenDbHostedService(IDocumentStore documentStore, IEnumerable<IDataMigration> dataMigrations, ComponentInstallationContext installationContext)
         {
             this.documentStore = documentStore;
@@ -29,15 +29,16 @@
 
         public async Task SetupDatabase()
         {
-            logger.Info("Initializing RavenDB instance");
+            Log.Info("Initializing RavenDB instance");
             documentStore.Initialize();
 
-            logger.Info("Creating indexes if not present.");
+            Log.Info("Creating indexes if not present.");
             var indexProvider = CreateIndexProvider(installationContext.IndexAssemblies);
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 
-            logger.Info("Executing data migrations");
+
+            Log.Info("Executing data migrations");
             foreach (var migration in dataMigrations)
             {
                 await migration.Migrate(documentStore)
