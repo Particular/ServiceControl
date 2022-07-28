@@ -1,7 +1,10 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿using NServiceBus;
+
+namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -18,6 +21,8 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using NServiceBus.MessageInterfaces;
+    using NServiceBus.Serialization;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
@@ -57,6 +62,7 @@
         [Theory]
         [TestCase(false)]
         [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        //DEBUG THIS TEST
         public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage)
         {
             HttpResponseMessage result = null;
@@ -296,6 +302,7 @@
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
+                    c.UseSerialization<MySuperSerializer>();
                 });
             }
 
@@ -313,6 +320,38 @@
                     throw new Exception("Simulated exception");
                 }
             }
+        }
+        class MySuperSerializer : SerializationDefinition
+        {
+            public override Func<IMessageMapper, IMessageSerializer> Configure(ReadOnlySettings settings)
+            {
+                return mapper => new MyCustomSerializer();
+            }
+        }
+
+        public class MyCustomSerializer : IMessageSerializer
+        {
+            public void Serialize(object message, Stream stream)
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
+
+                serializer.Serialize(stream, message);
+            }
+
+            public object[] Deserialize(Stream stream, IList<Type> messageTypes = null)
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
+
+                stream.Position = 0;
+                var msg = serializer.Deserialize(stream);
+
+                return new[]
+                {
+                    msg
+                };
+            }
+
+            public string ContentType => "MyCustomSerializer";
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
@@ -346,11 +385,6 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-            public string Content { get; set; }
-        }
-
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
@@ -369,4 +403,9 @@
             public int FailedMessageCount { get; set; }
         }
     }
+}
+
+public class MyMessage : ICommand
+{
+    public string Content { get; set; }
 }
