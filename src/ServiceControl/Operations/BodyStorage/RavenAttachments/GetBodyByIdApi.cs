@@ -42,7 +42,8 @@
             {
                 var response = request.CreateResponse(HttpStatusCode.OK);
                 var content = new StreamContent(result.Stream);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(result.ContentType);
+                MediaTypeHeaderValue.TryParse(result.ContentType, out var parsedContentType);
+                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
                 content.Headers.ContentLength = result.BodySize;
                 response.Headers.ETag = new EntityTagHeaderValue($"\"{result.Etag}\"");
                 response.Content = content;
