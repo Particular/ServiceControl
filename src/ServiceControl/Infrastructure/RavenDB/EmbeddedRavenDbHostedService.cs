@@ -37,6 +37,8 @@
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 
+            Log.Info("Testing indexes");
+            await documentStore.TestAllIndexesAndResetIfException().ConfigureAwait(false);
 
             Log.Info("Executing data migrations");
             foreach (var migration in dataMigrations)
