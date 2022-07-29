@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Docker.AcceptanceTests
+﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Docker
 {
     using System.IO;
     using NUnit.Framework;
@@ -44,7 +44,7 @@
         [Test]
         public void Verify_sqlserver_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(AcceptanceTests.DockerFolder, "servicecontrol.sqlserver-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.sqlserver-windows.dockerfile"));
             Approver.Verify(readFile);
         }
     }

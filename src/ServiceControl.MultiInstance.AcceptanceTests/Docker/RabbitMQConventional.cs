@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Docker.AcceptanceTests
+﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Docker
 {
     using System.IO;
     using NUnit.Framework;
