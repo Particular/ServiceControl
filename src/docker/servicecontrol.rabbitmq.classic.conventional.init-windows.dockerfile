@@ -7,7 +7,7 @@ ADD /ServiceControl/bin/Release/net472 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
-ENV "ServiceControl/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+ENV "ServiceControl/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "ServiceControl/Hostname"="*"
 
 ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
@@ -19,4 +19,4 @@ ENV "ServiceControl/ErrorRetentionPeriod"="15"
 
 VOLUME [ "C:/Data" ]
 
-ENTRYPOINT ["ServiceControl.exe", "--portable", "--setup"]
+ENTRYPOINT ["ServiceControl.exe", "--setup"]

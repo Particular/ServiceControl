@@ -7,7 +7,7 @@ ADD /ServiceControl.Monitoring/bin/Release/net472 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
-ENV "Monitoring/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+ENV "Monitoring/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "Monitoring/HttpHostName"="*"
 ENV "Monitoring/HttpPort"="33633"
 

@@ -106,7 +106,7 @@ jobs:
           `$Minor = "${{env.MinVerMinor}}"
           `$Commit = "${{github.sha}}"
           "@ > packaging/Metadata.ps1
-          
+
           # Create the Octopus package
           octo pack --id="${{env.PARTICULAR_REPO_NAME}}.Deploy" --version="${{env.MinVerVersion}}" --format="nupkg" --basePath="packaging" --outFolder="octopus-package"
         shell: pwsh
@@ -141,11 +141,17 @@ jobs:
           - name: sql-windows
             filter: '*sqlserver*'
             transport: SqlServer
-          - name: rabbit-conventional-windows
-            filter: '*rabbitmq.conventional*'
+          - name: rabbit-classic-conventional-windows
+            filter: '*rabbitmq.classic.conventional*'
             transport: RabbitMQ
-          - name: rabbit-direct-windows
-            filter: '*rabbitmq.direct*'
+          - name: rabbit-classic-direct-windows
+            filter: '*rabbitmq.classic.direct*'
+            transport: RabbitMQ
+          - name: rabbit-quorum-conventional-windows
+            filter: '*rabbitmq.quorum.conventional*'
+            transport: RabbitMQ
+          - name: rabbit-quorum-direct-windows
+            filter: '*rabbitmq.quorum.direct*'
             transport: RabbitMQ
           - name: asq-windows
             filter: '*azurestoragequeues*'
