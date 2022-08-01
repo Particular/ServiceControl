@@ -7,7 +7,7 @@ ADD /ServiceControl.Audit/bin/Release/net472 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
-ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
 ENV "ServiceControl.Audit/Hostname"="*"
 
 ENV "ServiceControl.Audit/DBPath"="C:\\Data\\DB\\"

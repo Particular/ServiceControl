@@ -7,44 +7,86 @@
     public class RabbitMqDirect : AcceptanceTests
     {
         [Test]
-        public void Verify_rabbitmqdirect_audit_init_windows()
+        public void Verify_rabbitmqclassicdirect_audit_init_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct.audit.init-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct.audit.init-windows.dockerfile"));
             Approver.Verify(readFile);
         }
 
         [Test]
-        public void Verify_rabbitmqdirect_audit_windows()
+        public void Verify_rabbitmqclassicdirect_audit_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct.audit-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct.audit-windows.dockerfile"));
             Approver.Verify(readFile);
         }
 
         [Test]
-        public void Verify_rabbitmqdirect_init_windows()
+        public void Verify_rabbitmqclassicdirect_init_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct.init-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct.init-windows.dockerfile"));
             Approver.Verify(readFile);
         }
 
         [Test]
-        public void Verify_rabbitmqdirect_monitoring_init_windows()
+        public void Verify_rabbitmqclassicdirect_monitoring_init_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct.monitoring.init-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct.monitoring.init-windows.dockerfile"));
             Approver.Verify(readFile);
         }
 
         [Test]
-        public void Verify_rabbitmqdirect_monitoring_windows()
+        public void Verify_rabbitmqclassicdirect_monitoring_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct.monitoring-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct.monitoring-windows.dockerfile"));
             Approver.Verify(readFile);
         }
 
         [Test]
-        public void Verify_rabbitmqdirect_windows()
+        public void Verify_rabbitmqclassicdirect_windows()
         {
-            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.direct-windows.dockerfile"));
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.classic.direct-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_audit_init_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct.audit.init-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_audit_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct.audit-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_init_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct.init-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_monitoring_init_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct.monitoring.init-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_monitoring_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct.monitoring-windows.dockerfile"));
+            Approver.Verify(readFile);
+        }
+
+        [Test]
+        public void Verify_rabbitmqquorumdirect_windows()
+        {
+            var readFile = File.ReadAllText(Path.Combine(DockerFolder, "servicecontrol.rabbitmq.quorum.direct-windows.dockerfile"));
             Approver.Verify(readFile);
         }
     }
