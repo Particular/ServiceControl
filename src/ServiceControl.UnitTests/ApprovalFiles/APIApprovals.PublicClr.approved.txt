@@ -1085,7 +1085,7 @@ namespace ServiceControl.Notifications.Api
         public NotificationsController(Raven.Client.IDocumentStore store, ServiceBus.Management.Infrastructure.Settings.Settings settings) { }
         [System.Web.Http.HttpGet]
         [System.Web.Http.Route("notifications/email")]
-        public System.Threading.Tasks.Task<System.Web.Http.Results.JsonResult<ServiceControl.Notifications.EmailNotifications>> GetEmailNotificationsSettings(System.Net.Http.HttpRequestMessage request) { }
+        public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetEmailNotificationsSettings(System.Net.Http.HttpRequestMessage request) { }
         [System.Web.Http.HttpPost]
         [System.Web.Http.Route("notifications/email/test")]
         public System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> SendTestEmail() { }
