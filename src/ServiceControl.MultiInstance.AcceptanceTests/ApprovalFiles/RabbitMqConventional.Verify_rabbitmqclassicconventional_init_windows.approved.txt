@@ -19,4 +19,4 @@ ENV "ServiceControl/ErrorRetentionPeriod"="15"
 
 VOLUME [ "C:/Data" ]
 
-ENTRYPOINT ["ServiceControl.exe", "--setup"]
+ENTRYPOINT ["ServiceControl.exe", "--portable", "--setup"]

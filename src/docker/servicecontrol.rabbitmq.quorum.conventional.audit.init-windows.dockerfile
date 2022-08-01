@@ -19,4 +19,4 @@ ENV "ServiceControl.Audit/AuditRetentionPeriod"="365"
 
 VOLUME [ "C:/Data" ]
 
-ENTRYPOINT ["ServiceControl.Audit.exe", "--setup"]
+ENTRYPOINT ["ServiceControl.Audit.exe", "--portable", "--setup"]
