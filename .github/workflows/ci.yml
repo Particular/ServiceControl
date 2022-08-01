@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional, RabbitMQ-Direct, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
         storage: [RavenDb, SqlDb]
         include:
           - name: LearningTransport
@@ -26,12 +26,18 @@ jobs:
           - name: SqlServer
             transport: SqlServer
             customization: ConfigureEndpointSqlServerTransport
-          - name: RabbitMQ-Conventional
+          - name: RabbitMQ-Conventional-Classic
             transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQConventionalRoutingTransport
-          - name: RabbitMQ-Direct
+            customization: ConfigureEndpointRabbitMQClassicConventionalRoutingTransport
+          - name: RabbitMQ-Conventional-Quorum
             transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQDirectRoutingTransport
+            customization: ConfigureEndpointRabbitMQQuorumConventionalRoutingTransport
+          - name: RabbitMQ-Direct-Classic
+            transport: RabbitMQ
+            customization: ConfigureEndpointRabbitMQClassicDirectRoutingTransport
+          - name: RabbitMQ-Direct-Quorum
+            transport: RabbitMQ
+            customization: ConfigureEndpointRabbitMQQuorumDirectRoutingTransport
           - name: AzureServiceBusNetStandard
             transport: AzureServiceBusNetStandard
             customization: ConfigureEndpointAzureServiceBusNetStandardTransport

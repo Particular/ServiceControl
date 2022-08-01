@@ -64,8 +64,10 @@
                         return "MSMQ";
                     case TransportNames.SQLServer:
                         return "SQL";
-                    case TransportNames.RabbitMQConventionalRoutingTopology:
-                    case TransportNames.RabbitMQDirectRoutingTopology:
+                    case TransportNames.RabbitMQClassicConventionalRoutingTopology:
+                    case TransportNames.RabbitMQQuorumConventionalRoutingTopology:
+                    case TransportNames.RabbitMQClassicDirectRoutingTopology:
+                    case TransportNames.RabbitMQQuorumDirectRoutingTopology:
                         return "RabbitMQ";
                     default:
                         return TransportIntegration.Name;

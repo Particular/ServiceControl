@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             instanceA.SetupGet(p => p.ForwardErrorMessages).Returns(true);
 
             var instanceB = new Mock<IServiceControlInstance>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology));
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology));
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ForwardErrorMessages).Returns(true);
@@ -151,7 +151,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
                 ErrorLogQueue = "errorlog",
                 ErrorQueue = "error",
                 ForwardErrorMessages = true
@@ -185,7 +185,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQConventionalRoutingTopology),
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
                 ErrorQueue = "RMQerror",
                 ErrorLogQueue = "RMQerrorlog",
                 ConnectionString = "afakeconnectionstring",

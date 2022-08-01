@@ -65,12 +65,13 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQConventionalRoutingTopology,
+                Name = TransportNames.RabbitMQConventionalRoutingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
-                AvailableInSCMU = true,
-                Matches = name => name.Equals(TransportNames.RabbitMQConventionalRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                AvailableInSCMU = false,
+                AutoMigrateTo = TransportNames.RabbitMQClassicConventionalRoutingTopology,
+                Matches = name => name.Equals(TransportNames.RabbitMQConventionalRoutingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
@@ -78,14 +79,63 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQDirectRoutingTopology,
-                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                Name = TransportNames.RabbitMQClassicConventionalRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
                 AvailableInSCMU = true,
-                Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicConventionalRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.ClassicConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQQuorumConventionalRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQQuorumConventionalRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.QuorumConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQDirectRoutingTopologyDeprecated,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = false,
+                AutoMigrateTo = TransportNames.RabbitMQClassicDirectRoutingTopology,
+                Matches = name => name.Equals(TransportNames.RabbitMQDirectRoutingTopologyDeprecated, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQClassicDirectRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.ClassicDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+            },
+            new TransportInfo
+            {
+                Name = TransportNames.RabbitMQQuorumDirectRoutingTopology,
+                TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+                ZipName = "RabbitMQ",
+                SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+                AvailableInSCMU = true,
+                Matches = name => name.Equals(TransportNames.RabbitMQClassicDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
+                                  || name.Equals("ServiceControl.Transports.RabbitMQ.QuorumDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
             new TransportInfo
             {

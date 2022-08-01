@@ -12,19 +12,33 @@ docker build -f .\servicecontrol.azureservicebus.audit.init-windows.dockerfile -
 docker build -f .\servicecontrol.azureservicebus.monitoring-windows.dockerfile -t particular/servicecontrol.azureservicebus.monitoring-windows ./../
 docker build -f .\servicecontrol.azureservicebus.monitoring.init-windows.dockerfile -t particular/servicecontrol.azureservicebus.monitoring.init-windows ./../
 
-docker build -f .\servicecontrol.rabbitmq.conventional-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.init-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.audit-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.audit.init-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.monitoring-windows ./../
-docker build -f .\servicecontrol.rabbitmq.conventional.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.conventional.monitoring.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional.audit-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional.audit.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.conventional.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.conventional.monitoring.init-windows ./../
 
-docker build -f .\servicecontrol.rabbitmq.direct-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.init-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.audit-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.audit.init-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.monitoring-windows ./../
-docker build -f .\servicecontrol.rabbitmq.direct.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.direct.monitoring.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct.audit-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct.audit.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.classic.direct.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.classic.direct.monitoring.init-windows ./../
+
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional.audit-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional.audit.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.conventional.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.conventional.monitoring.init-windows ./../
+
+docker build -f .\servicecontrol.rabbitmq.quorum.direct-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.direct.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.direct.audit-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct.audit-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.direct.audit.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct.audit.init-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.direct.monitoring-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct.monitoring-windows ./../
+docker build -f .\servicecontrol.rabbitmq.quorum.direct.monitoring.init-windows.dockerfile -t particular/servicecontrol.rabbitmq.quorum.direct.monitoring.init-windows ./../
 
 docker build -f .\servicecontrol.azurestoragequeues-windows.dockerfile -t particular/servicecontrol.azurestoragequeues-windows ./../
 docker build -f .\servicecontrol.azurestoragequeues.init-windows.dockerfile -t particular/servicecontrol.azurestoragequeues.init-windows ./../
