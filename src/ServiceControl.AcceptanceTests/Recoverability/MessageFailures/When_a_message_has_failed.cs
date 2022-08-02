@@ -1,7 +1,10 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿using NServiceBus;
+
+namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -18,6 +21,8 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using NServiceBus.MessageInterfaces;
+    using NServiceBus.Serialization;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
@@ -76,6 +81,29 @@
                 .Run();
 
             Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
+        }
+
+        [Test]
+        public async Task Should_be_imported_with_custom_serialization_and_body_via_the_rest_api()
+        {
+            HttpResponseMessage result = null;
+
+            var myMessage = new MyMessage
+            {
+                Content = new string('a', 86 * 1024)
+            };
+
+            await Define<MyContext>()
+                .WithEndpoint<ReceiverWithCustomSerializer>(b => b.When(bus => bus.SendLocal(myMessage)).DoNotFailOnErrorMessages())
+                .Done(async c =>
+                {
+                    result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
+                    return result.IsSuccessStatusCode;
+                })
+                .Run();
+
+            var content = await result.Content.ReadAsStringAsync();
+            Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
         }
 
         [Test]
@@ -315,6 +343,66 @@
             }
         }
 
+        public class ReceiverWithCustomSerializer : EndpointConfigurationBuilder
+        {
+            public ReceiverWithCustomSerializer()
+            {
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.NoRetries();
+                    c.ReportSuccessfulRetriesToServiceControl();
+                    c.UseSerialization<MySuperSerializer>();
+                });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    throw new Exception("Simulated exception");
+                }
+            }
+        }
+        class MySuperSerializer : SerializationDefinition
+        {
+            public override Func<IMessageMapper, IMessageSerializer> Configure(ReadOnlySettings settings)
+            {
+                return mapper => new MyCustomSerializer();
+            }
+        }
+
+        public class MyCustomSerializer : IMessageSerializer
+        {
+            public void Serialize(object message, Stream stream)
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
+
+                serializer.Serialize(stream, message);
+            }
+
+            public object[] Deserialize(Stream stream, IList<Type> messageTypes = null)
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
+
+                stream.Position = 0;
+                var msg = serializer.Deserialize(stream);
+
+                return new[]
+                {
+                    msg
+                };
+            }
+
+            public string ContentType => "MyCustomSerializer";
+        }
+
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
             public FailingEndpoint()
@@ -346,11 +434,6 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-            public string Content { get; set; }
-        }
-
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
@@ -369,4 +452,9 @@
             public int FailedMessageCount { get; set; }
         }
     }
+}
+
+public class MyMessage : ICommand
+{
+    public string Content { get; set; }
 }

@@ -42,7 +42,8 @@
             {
                 var response = request.CreateResponse(HttpStatusCode.OK);
                 var content = new StreamContent(result.Stream);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(result.ContentType);
+                MediaTypeHeaderValue.TryParse(result.ContentType, out var parsedContentType);
+                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
                 content.Headers.ContentLength = result.BodySize;
                 response.Headers.ETag = new EntityTagHeaderValue($"\"{result.Etag}\"");
                 response.Content = content;
@@ -79,7 +80,10 @@
 
                 var response = request.CreateResponse(HttpStatusCode.OK);
                 var content = new StringContent(message.Body);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(message.ContentType);
+
+                MediaTypeHeaderValue.TryParse(message.ContentType, out var parsedContentType);
+                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
+
                 content.Headers.ContentLength = message.BodySize;
                 response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.IndexEtag}\"");
                 response.Content = content;
