@@ -62,7 +62,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         [Theory]
         [TestCase(false)]
         [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
-        //DEBUG THIS TEST
         public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage)
         {
             HttpResponseMessage result = null;
@@ -82,6 +81,29 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .Run();
 
             Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
+        }
+
+        [Test]
+        public async Task Should_be_imported_with_custom_serialization_and_body_via_the_rest_api()
+        {
+            HttpResponseMessage result = null;
+
+            var myMessage = new MyMessage
+            {
+                Content = new string('a', 86 * 1024)
+            };
+
+            await Define<MyContext>()
+                .WithEndpoint<ReceiverWithCustomSerializer>(b => b.When(bus => bus.SendLocal(myMessage)).DoNotFailOnErrorMessages())
+                .Done(async c =>
+                {
+                    result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
+                    return result.IsSuccessStatusCode;
+                })
+                .Run();
+
+            var content = await result.Content.ReadAsStringAsync();
+            Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
         }
 
         [Test]
@@ -297,6 +319,33 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver()
+            {
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.NoRetries();
+                    c.ReportSuccessfulRetriesToServiceControl();
+                });
+            }
+
+            public class MyMessageHandler : IHandleMessages<MyMessage>
+            {
+                public MyContext Context { get; set; }
+
+                public ReadOnlySettings Settings { get; set; }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
+                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    throw new Exception("Simulated exception");
+                }
+            }
+        }
+
+        public class ReceiverWithCustomSerializer : EndpointConfigurationBuilder
+        {
+            public ReceiverWithCustomSerializer()
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
