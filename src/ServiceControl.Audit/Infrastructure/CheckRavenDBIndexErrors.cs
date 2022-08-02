@@ -37,7 +37,7 @@
 
             foreach (var indexStat in invalidOrErroredIndexes)
             {
-                text.AppendLine($"- Index [{indexStat.Name}] priority:{indexStat.Priority} is valid:{indexStat.IsInvalidIndex} indexing attempts: {indexStat.IndexingAttempts}, failed indexing attempts:{indexStat.IndexingErrors}");
+                text.AppendLine($"- Index [{indexStat.Name}] priority:{indexStat.Priority} is valid: {indexStat.IsInvalidIndex} indexing attempts: {indexStat.IndexingAttempts}, failed indexing attempts: {indexStat.IndexingErrors}");
             }
 
             foreach (var indexError in statistics.Errors)
