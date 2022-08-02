@@ -20,8 +20,6 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            //TODO: To be defined: create a version of '_store.TestAllIndexesAndResetIfException()'
-            //.. for proactively testing the indexes every time the custom check runs but without the `restIfException' part?
             var invalidOrErroredIndexes = _store.DatabaseCommands.GetStatistics().Indexes.Where(index => index.IsInvalidIndex || index.Priority == IndexingPriority.Error).ToArray();
 
             var statistics = _store.DatabaseCommands.GetStatistics();
