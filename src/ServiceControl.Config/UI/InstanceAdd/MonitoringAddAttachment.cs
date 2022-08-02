@@ -68,6 +68,19 @@
                 ServiceAccountPwd = viewModel.Password
             };
 
+            if ((instanceMetadata.TransportPackage.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology ||
+                 instanceMetadata.TransportPackage.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology ||
+                 instanceMetadata.TransportPackage.Name == TransportNames.RabbitMQClassicDirectRoutingTopology ||
+                 instanceMetadata.TransportPackage.Name == TransportNames.RabbitMQQuorumDirectRoutingTopology) &&
+                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
+                                                     "Do you want to proceed?",
+                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
+                                                     "No, cancel the install"))
+            {
+                viewModel.InProgress = false;
+                return;
+            }
+
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {
                 var reportCard = await Task.Run(() => installer.Add(instanceMetadata, progress, PromptToProceed));

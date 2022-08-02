@@ -99,6 +99,19 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value
             };
 
+            if ((serviceControlNewInstance.TransportPackage.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology ||
+                 serviceControlNewInstance.TransportPackage.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology ||
+                 serviceControlNewInstance.TransportPackage.Name == TransportNames.RabbitMQClassicDirectRoutingTopology ||
+                 serviceControlNewInstance.TransportPackage.Name == TransportNames.RabbitMQQuorumDirectRoutingTopology) &&
+                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
+                                                     "Do you want to proceed?",
+                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
+                                                     "No, cancel the install"))
+            {
+                viewModel.InProgress = false;
+                return;
+            }
+
             serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
