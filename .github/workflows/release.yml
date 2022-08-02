@@ -130,7 +130,7 @@ jobs:
           project: ${{env.PARTICULAR_REPO_NAME}}
           release_number: ${{env.MinVerVersion}}
           package_version: ${{env.MinVerVersion}}
-          package: "GitReleaseManager:0.11.0"
+          packages: "GitReleaseManager:0.11.0"
   docker:
     needs: release
     name: docker-${{ matrix.name }}
