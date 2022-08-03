@@ -51,7 +51,7 @@ namespace ServiceControlInstaller.PowerShell
                      instance.TransportPackage.Name == TransportNames.RabbitMQDirectRoutingTopologyDeprecated) &&
                     !AcknowledgeTransportMinimumRequirements.ToBool())
                 {
-                    throw new EngineValidationException($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements.");
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements."), "Upgrade Error", ErrorCategory.InvalidArgument, null));
                 }
 
                 if (!installer.Upgrade(instance))
