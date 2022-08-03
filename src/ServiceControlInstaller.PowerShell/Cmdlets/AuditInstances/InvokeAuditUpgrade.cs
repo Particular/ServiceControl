@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.PowerShell
     using System.Management.Automation;
     using Engine.Instances;
     using Engine.Unattended;
+    using ServiceControlInstaller.Engine.Validation;
 
     [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlAuditInstanceUpgrade")]
     public class InvokeServiceControlAuditInstanceUpgrade : PSCmdlet
@@ -13,6 +14,9 @@ namespace ServiceControlInstaller.PowerShell
 
         [Parameter(Mandatory = false, HelpMessage = "Disable full text search on audit messages.")]
         public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
+
+        [Parameter(Mandatory = false, HelpMessage = "Acknowledge transport prerequisites have been met.")]
+        public SwitchParameter AcknowledgeTransportMinimumRequirements { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -41,6 +45,13 @@ namespace ServiceControlInstaller.PowerShell
                 if (DisableFullTextSearchOnBodies)
                 {
                     instance.EnableFullTextSearchOnBodies = false;
+                }
+
+                if ((instance.TransportPackage.Name == TransportNames.RabbitMQConventionalRoutingTopologyDeprecated ||
+                     instance.TransportPackage.Name == TransportNames.RabbitMQDirectRoutingTopologyDeprecated) &&
+                    !AcknowledgeTransportMinimumRequirements.ToBool())
+                {
+                    throw new EngineValidationException($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements.");
                 }
 
                 if (!installer.Upgrade(instance))

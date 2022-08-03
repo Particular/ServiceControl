@@ -48,6 +48,9 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Acknowledge transport prerequisites have been met.")]
+        public SwitchParameter AcknowledgeTransportMinimumRequirements { get; set; }
+
         protected override void BeginProcessing()
         {
             AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
@@ -150,6 +153,13 @@ namespace ServiceControlInstaller.PowerShell
                 UpgradeInfo =
                     UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version),
             };
+
+            if ((instance.TransportPackage.Name == TransportNames.RabbitMQConventionalRoutingTopologyDeprecated ||
+                 instance.TransportPackage.Name == TransportNames.RabbitMQDirectRoutingTopologyDeprecated) &&
+                !AcknowledgeTransportMinimumRequirements.ToBool())
+            {
+                throw new EngineValidationException($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements.");
+            }
 
             if (!installer.Upgrade(instance, options))
             {
