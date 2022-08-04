@@ -7,6 +7,7 @@
     using Framework;
     using Framework.Modules;
     using ReactiveUI;
+    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
@@ -67,6 +68,16 @@
                 ServiceAccount = viewModel.ServiceAccount,
                 ServiceAccountPwd = viewModel.Password
             };
+
+            if (instanceMetadata.TransportPackage.IsLatestRabbitMQTransport() &&
+                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
+                                                     "Do you want to proceed?",
+                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
+                                                     "No, cancel the install"))
+            {
+                viewModel.InProgress = false;
+                return;
+            }
 
             using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
             {

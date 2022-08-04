@@ -7,6 +7,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using Framework;
     using Framework.Modules;
     using ReactiveUI;
+    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
@@ -98,6 +99,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 ServiceControlQueueAddress = serviceControlNewInstance.Name,
                 EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value
             };
+
+            if (serviceControlNewInstance.TransportPackage.IsLatestRabbitMQTransport() &&
+                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
+                                                     "Do you want to proceed?",
+                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
+                                                     "No, cancel the install"))
+            {
+                viewModel.InProgress = false;
+                return;
+            }
 
             serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
 
