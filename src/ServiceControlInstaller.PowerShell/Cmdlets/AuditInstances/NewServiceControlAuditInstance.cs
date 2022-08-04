@@ -7,6 +7,8 @@
     using Engine.Instances;
     using Engine.Unattended;
     using Engine.Validation;
+    using ServiceControl.Engine.Extensions;
+    using ServiceControlInstaller.PowerShell.Validation;
     using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsCommon.New, "ServiceControlAuditInstance")]
@@ -92,6 +94,9 @@
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
+        public string[] Acknowledgements { get; set; }
+
         protected override void BeginProcessing()
         {
             AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
@@ -155,6 +160,13 @@
             var logger = new PSLogger(Host);
 
             var installer = new UnattendAuditInstaller(logger, zipfolder);
+
+            if (details.TransportPackage.IsLatestRabbitMQTransport() &&
+               (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
+            }
+
             try
             {
                 logger.Info("Installing Service Control Audit instance...");

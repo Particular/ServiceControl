@@ -7,7 +7,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using Framework;
     using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Config.Extensions;
+    using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;

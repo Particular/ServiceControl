@@ -1,9 +1,12 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
+    using System.Linq;
     using System.Management.Automation;
     using Engine.Instances;
     using Engine.Unattended;
+    using ServiceControl.Engine.Extensions;
+    using ServiceControlInstaller.PowerShell.Validation;
 
     [Cmdlet(VerbsLifecycle.Invoke, "MonitoringInstanceUpgrade")]
     public class InvokeMonitoringUpgrade : PSCmdlet
@@ -11,6 +14,8 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
+        public string[] Acknowledgements { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -33,6 +38,12 @@ namespace ServiceControlInstaller.PowerShell
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
+                }
+
+                if (instance.TransportPackage.IsOldRabbitMQTransport() &&
+                   (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
                 }
 
                 instance.SkipQueueCreation = SkipQueueCreation;

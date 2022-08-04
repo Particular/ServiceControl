@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Config.Extensions
+﻿namespace ServiceControl.Engine.Extensions
 {
     using ServiceControlInstaller.Engine.Instances;
 
-    static class TransportInfoExtensions
+    public static class TransportInfoExtensions
     {
         public static bool IsLatestRabbitMQTransport(this TransportInfo transport)
         {
