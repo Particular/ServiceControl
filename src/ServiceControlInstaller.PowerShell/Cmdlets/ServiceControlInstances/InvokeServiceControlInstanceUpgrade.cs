@@ -1,6 +1,7 @@
 namespace ServiceControlInstaller.PowerShell
 {
     using System;
+    using System.Linq;
     using System.Management.Automation;
     using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
@@ -8,6 +9,7 @@ namespace ServiceControlInstaller.PowerShell
     using Engine.Unattended;
     using Engine.Validation;
     using ServiceControl.Engine.Extensions;
+    using ServiceControlInstaller.PowerShell.Validation;
     using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlInstanceUpgrade")]
@@ -49,8 +51,8 @@ namespace ServiceControlInstaller.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Acknowledge transport prerequisites have been met.")]
-        public SwitchParameter AcknowledgeTransportMinimumRequirements { get; set; }
+        [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
+        public string[] Acknowledgements { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -156,9 +158,9 @@ namespace ServiceControlInstaller.PowerShell
             };
 
             if (instance.TransportPackage.IsOldRabbitMQTransport() &&
-                !AcknowledgeTransportMinimumRequirements.ToBool())
+               (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
             {
-                ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements."), "Upgrade Error", ErrorCategory.InvalidArgument, null));
+                ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
             }
 
             if (!installer.Upgrade(instance, options))
