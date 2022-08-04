@@ -8,6 +8,7 @@ namespace ServiceControlInstaller.PowerShell
     using Engine.Instances;
     using Engine.Unattended;
     using Engine.Validation;
+    using ServiceControl.Engine.Extensions;
     using PathInfo = Engine.Validation.PathInfo;
 
     [Cmdlet(VerbsCommon.New, "MonitoringInstance")]
@@ -126,10 +127,7 @@ namespace ServiceControlInstaller.PowerShell
 
             var installer = new UnattendMonitoringInstaller(logger, zipfolder);
 
-            if ((details.TransportPackage.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology ||
-                 details.TransportPackage.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology ||
-                 details.TransportPackage.Name == TransportNames.RabbitMQClassicDirectRoutingTopology ||
-                 details.TransportPackage.Name == TransportNames.RabbitMQQuorumDirectRoutingTopology) &&
+            if (details.TransportPackage.IsLatestRabbitMQTransport() &&
                 !AcknowledgeTransportMinimumRequirements.ToBool())
             {
                 ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));

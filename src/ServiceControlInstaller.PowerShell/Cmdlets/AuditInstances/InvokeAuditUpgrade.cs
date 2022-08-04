@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.PowerShell
     using System.Management.Automation;
     using Engine.Instances;
     using Engine.Unattended;
+    using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Validation;
 
     [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlAuditInstanceUpgrade")]
@@ -47,8 +48,7 @@ namespace ServiceControlInstaller.PowerShell
                     instance.EnableFullTextSearchOnBodies = false;
                 }
 
-                if ((instance.TransportPackage.Name == TransportNames.RabbitMQConventionalRoutingTopologyDeprecated ||
-                     instance.TransportPackage.Name == TransportNames.RabbitMQDirectRoutingTopologyDeprecated) &&
+                if (instance.TransportPackage.IsOldRabbitMQTransport() &&
                     !AcknowledgeTransportMinimumRequirements.ToBool())
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -AcknowledgeTransportMinimumRequirements if you are sure your broker meets these requirements."), "Upgrade Error", ErrorCategory.InvalidArgument, null));
