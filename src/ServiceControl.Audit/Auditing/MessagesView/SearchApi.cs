@@ -3,31 +3,17 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure.Extensions;
-    using Raven.Client;
-    using ServiceControl.Infrastructure.Extensions;
+    using ServiceControl.Audit.Persistence;
 
     class SearchApi : ApiBase<string, IList<MessagesView>>
     {
-        public SearchApi(IDocumentStore documentStore) : base(documentStore)
+        public SearchApi(IAuditDataStore dataStore) : base(dataStore)
         {
         }
 
         protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string input)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, input)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return await DataStore.QueryMessages(request, input).ConfigureAwait(false);
         }
     }
 }

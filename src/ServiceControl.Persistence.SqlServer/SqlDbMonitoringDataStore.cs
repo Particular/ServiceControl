@@ -2,12 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.SqlClient;
-    using System.Linq;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using Dapper;
-    using Infrastructure;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
 

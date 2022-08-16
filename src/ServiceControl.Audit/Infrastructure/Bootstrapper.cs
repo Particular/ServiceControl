@@ -18,6 +18,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using RavenDB;
+    using ServiceControl.Audit.Persistence;
     using Settings;
     using Transports;
     using WebApi;
@@ -82,14 +83,7 @@ namespace ServiceControl.Audit.Infrastructure
                     });
                 })
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(context =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-
-                    RavenBootstrapper.Configure(documentStore, settings);
-
-                    return documentStore;
-                })
+                .SetupPersistence(settings)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);

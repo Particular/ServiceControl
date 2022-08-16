@@ -115,6 +115,18 @@ namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
 }
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
+    public static class DataStoreConfig
+    {
+        public static string InMemoryPersistenceTypeFullyQualifiedName;
+        public static string RavenDbPersistenceTypeFullyQualifiedName;
+        public static string SqlServerPersistenceTypeFullyQualifiedName;
+    }
+    public enum DataStoreType
+    {
+        InMemory = 1,
+        RavenDb = 2,
+        SqlDb = 3,
+    }
     public class Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
@@ -125,6 +137,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string AuditQueue { get; set; }
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DataSpaceRemainingThreshold { get; set; }
+        public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
@@ -150,6 +163,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string ServiceControlQueueAddress { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
+        public string SqlStorageConnectionString { get; set; }
         public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
@@ -189,6 +203,13 @@ namespace ServiceControl.Audit.Monitoring
     {
         Successful = 3,
         ResolvedSuccessfully = 4,
+    }
+}
+namespace ServiceControl.Audit.Persistence
+{
+    public static class SetupSqlPersistence
+    {
+        public static System.Threading.Tasks.Task SetupAuditTables(string connectionString) { }
     }
 }
 namespace ServiceControl.Audit.Recoverability

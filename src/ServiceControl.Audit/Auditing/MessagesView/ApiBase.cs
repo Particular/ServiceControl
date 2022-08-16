@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using ServiceControl.Audit.Persistence;
 
     interface IApi
     {
@@ -13,12 +13,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     abstract class ApiBase<TIn, TOut> : IApi
         where TOut : class
     {
-        protected ApiBase(IDocumentStore documentStore)
+        protected ApiBase(IAuditDataStore dataStore)
         {
-            Store = documentStore;
+            DataStore = dataStore;
         }
 
-        protected IDocumentStore Store { get; }
+        protected IAuditDataStore DataStore { get; }
 
         public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
         {
@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     abstract class ApiBaseNoInput<TOut> : ApiBase<NoInput, TOut>
         where TOut : class
     {
-        protected ApiBaseNoInput(IDocumentStore documentStore) : base(documentStore)
+        protected ApiBaseNoInput(IAuditDataStore dataStore) : base(dataStore)
         {
         }
 

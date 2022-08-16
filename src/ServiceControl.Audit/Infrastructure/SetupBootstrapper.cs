@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Auditing.BodyStorage.RavenAttachments;
