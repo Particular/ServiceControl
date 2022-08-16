@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Framework.Modules
 {
-    using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using Autofac;
     using Autofac.Core;
@@ -11,8 +12,8 @@
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterAssemblyTypes(AssemblySource.Instance.ToArray())
-                .Where(type => type.Name.EndsWith("Attachment") && type.IsAssignableTo<IAttachment>())
-                .AsSelf()
+                .Where(type => type.Name.EndsWith("Attachment"))
+                .AsClosedTypesOf(typeof(Attachment<>))
                 .InstancePerDependency();
         }
 
@@ -31,20 +32,13 @@
             }
 
             var attachmentBaseType = typeof(Attachment<>).MakeGenericType(vmType);
+            var attachmentCollectionType = typeof(IEnumerable<>).MakeGenericType(attachmentBaseType);
+            var attachments = (IEnumerable)e.Context.Resolve(attachmentCollectionType);
 
-            var attachments = ThisAssembly.GetTypes()
-                .Where(t => InheritsFrom(t, attachmentBaseType) && e.Context.IsRegistered(t))
-                .Select(t => (IAttachment)e.Context.Resolve(t));
-
-            foreach (var attachment in attachments)
+            foreach (IAttachment attachment in attachments)
             {
                 attachment.AttachTo(e.Instance);
             }
-        }
-
-        bool InheritsFrom(Type type, Type baseType)
-        {
-            return type.BaseType != null && (type.BaseType == baseType || InheritsFrom(type.BaseType, baseType));
         }
     }
 }
