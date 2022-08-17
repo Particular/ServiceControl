@@ -4,9 +4,8 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Audit.Infrastructure.WebApi;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
     using Infrastructure;
+    using Infrastructure.Extensions;
     using Licensing;
     using Messaging;
     using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +22,6 @@
 
     public class Bootstrapper
     {
-        // Windows Service
         public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration endpointConfiguration)
         {
             this.onCriticalError = onCriticalError;
@@ -58,6 +56,11 @@
                     services.AddSingleton<EndpointInstanceActivityTracker>();
                     services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
                     services.AddSingleton<LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints>();
+
+                    services.RegisterAsSelfAndImplementedInterfaces<RetriesStore>();
+                    services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
+                    services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
+                    services.RegisterAsSelfAndImplementedInterfaces<QueueLengthStore>();
                 })
                 .UseNServiceBus(builder =>
                 {
@@ -66,15 +69,6 @@
                     return endpointConfiguration;
                 })
                 .UseWebApi(settings.RootUrl, settings.ExposeApi);
-
-            HostBuilder.UseServiceProviderFactory(new AutofacServiceProviderFactory(containerBuilder =>
-                {
-                    // HINT: There's no good way to do .AsImplementedInterfaces().AsSelf() with IServiceCollection
-                    containerBuilder.RegisterType<RetriesStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
-                    containerBuilder.RegisterType<CriticalTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
-                    containerBuilder.RegisterType<ProcessingTimeStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
-                    containerBuilder.RegisterType<QueueLengthStore>().AsImplementedInterfaces().AsSelf().SingleInstance();
-                }));
         }
 
         internal void ConfigureEndpoint(EndpointConfiguration config)
