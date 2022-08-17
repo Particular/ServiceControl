@@ -5,6 +5,8 @@
     using System.Reflection;
     using Autofac;
     using Autofac.Core;
+    using Autofac.Core.Registration;
+    using Autofac.Core.Resolving.Pipeline;
     using Module = Autofac.Module;
 
     public class FeatureTogglesModule : Module
@@ -16,12 +18,17 @@
             builder.RegisterType<FeatureToggleDefaults>().AsImplementedInterfaces();
         }
 
-        protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistryBuilder, IComponentRegistration registration)
         {
-            registration.Activated += OnComponentActivated;
+            registration.PipelineBuilding += (sender, builder) =>
+                builder.Use(PipelinePhase.Activation, (context, callback) =>
+                {
+                    callback(context);
+                    OnComponentActivated(context);
+                });
         }
 
-        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        void OnComponentActivated(ResolveRequestContext e)
         {
             var instanceType = e.Instance.GetType();
 
@@ -30,7 +37,7 @@
                 return;
             }
 
-            var featureToggles = e.Context.Resolve<FeatureToggles>();
+            var featureToggles = e.Resolve<FeatureToggles>();
 
             var featureProperties = from prop in instanceType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                                     let attribute = prop.GetCustomAttributes<FeatureToggleAttribute>().SingleOrDefault()

@@ -5,6 +5,8 @@
     using System.Linq;
     using Autofac;
     using Autofac.Core;
+    using Autofac.Core.Registration;
+    using Autofac.Core.Resolving.Pipeline;
     using Caliburn.Micro;
 
     public class AutoAttachmentModule : Module
@@ -17,13 +19,24 @@
                 .InstancePerDependency();
         }
 
-        protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder componentRegistryBuilder, IComponentRegistration registration)
         {
-            registration.Activated += OnComponentActivated;
+            registration.PipelineBuilding += (sender, builder) =>
+            {
+                builder.Use(PipelinePhase.Activation, (context, callback) =>
+                {
+                    callback(context);
+                    OnComponentActivated(context);
+                });
+            };
         }
 
-        void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
+        void OnComponentActivated(ResolveRequestContext e)
         {
+            if (e.Instance == null)
+            {
+                return;
+            }
             var vmType = e.Instance.GetType();
 
             if (!vmType.FullName.EndsWith("ViewModel"))
@@ -33,7 +46,7 @@
 
             var attachmentBaseType = typeof(Attachment<>).MakeGenericType(vmType);
             var attachmentCollectionType = typeof(IEnumerable<>).MakeGenericType(attachmentBaseType);
-            var attachments = (IEnumerable)e.Context.Resolve(attachmentCollectionType);
+            var attachments = (IEnumerable)e.Resolve(attachmentCollectionType);
 
             foreach (IAttachment attachment in attachments)
             {

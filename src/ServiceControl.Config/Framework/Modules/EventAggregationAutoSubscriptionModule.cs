@@ -3,21 +3,23 @@
     using System.Linq;
     using Autofac;
     using Autofac.Core;
+    using Autofac.Core.Registration;
+    using Autofac.Core.Resolving.Pipeline;
     using Caliburn.Micro;
 
     public class EventAggregationAutoSubscriptionModule : Module
     {
-        protected override void AttachToComponentRegistration(IComponentRegistry registry, IComponentRegistration registration)
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder registryBuilder, IComponentRegistration registration)
         {
-            registration.Activated += OnComponentActivated;
-        }
-
-        static void OnComponentActivated(object sender, ActivatedEventArgs<object> e)
-        {
-            if (IsHandler(e.Instance))
-            {
-                e.Context.Resolve<IEventAggregator>().SubscribeOnPublishedThread(e.Instance);
-            }
+            registration.PipelineBuilding += (sender, builder) =>
+                builder.Use(PipelinePhase.Activation, (context, callback) =>
+                {
+                    callback(context);
+                    if (IsHandler(context.Instance))
+                    {
+                        context.Resolve<IEventAggregator>().SubscribeOnPublishedThread(context.Instance);
+                    }
+                });
         }
 
         static bool IsHandler(object obj)
