@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.Extensions
+﻿namespace ServiceControl.Audit.Persistence.RavenDb.Extensions
 {
     using Auditing.MessagesView;
     using Raven.Client;

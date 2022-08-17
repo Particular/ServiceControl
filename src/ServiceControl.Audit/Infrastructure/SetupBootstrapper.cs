@@ -2,8 +2,6 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Auditing.BodyStorage;
-    using Auditing.BodyStorage.RavenAttachments;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -14,6 +12,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Microsoft.Extensions.DependencyInjection;
     using Settings;
     using Transports;
+    using ServiceControl.Audit.Persistence;
 
     class SetupBootstrapper
     {
@@ -94,7 +93,7 @@ namespace ServiceControl.Audit.Infrastructure
                 containerBuilder.AddSingleton(typeof(IDocumentStore), documentStore);
                 containerBuilder.AddSingleton(settings);
                 containerBuilder.AddTransient<IDataMigration, MigrateKnownEndpoints>();
-                containerBuilder.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+                containerBuilder.AddServiceControlPersistence(settings.DataStoreType);
 
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                     ctx => { }, configuration, false);

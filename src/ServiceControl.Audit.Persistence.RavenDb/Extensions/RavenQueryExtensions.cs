@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Infrastructure.Extensions
+﻿namespace ServiceControl.Audit.Persistence.RavenDb.Extensions
 {
     using System;
     using System.Collections.Generic;

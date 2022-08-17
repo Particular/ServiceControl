@@ -4,8 +4,6 @@ namespace ServiceControl.Audit.Persistence
     using Microsoft.Extensions.Hosting;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Auditing.BodyStorage.RavenAttachments;
     using ServiceControl.Audit.Infrastructure.RavenDB;
     using ServiceControl.Audit.Infrastructure.Settings;
 
@@ -21,10 +19,7 @@ namespace ServiceControl.Audit.Persistence
                 serviceCollection.AddSingleton<IDocumentStore>(documentStore);
                 serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
 
-                //TODO - swap this direct registration for a generic one
-                serviceCollection.AddSingleton<IAuditDataStore>(new RavenDb.RavenDbAuditDataStore(documentStore));
-                serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
-                //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
+                serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
             });
 
             return hostBuilder;

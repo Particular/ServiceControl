@@ -1,4 +1,8 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.InMemory")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.RavenDb")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.SqlServer")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]

@@ -9,12 +9,11 @@
     using System.Threading.Tasks;
     using Raven.Client;
     using ServiceControl.Audit.Auditing.MessagesView;
-    using ServiceControl.Audit.Infrastructure.Extensions;
-    using ServiceControl.Infrastructure.Extensions;
     using ServiceControl.SagaAudit;
     using Raven.Client.Linq;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Persistence.RavenDb.Extensions;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {

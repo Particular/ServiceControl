@@ -128,6 +128,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.PersistenceTests", "ServiceControl.PersistenceTests\ServiceControl.PersistenceTests.csproj", "{30038795-181B-488E-8E99-CFF2009FC6D7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServiceControl.Audit.Persistence", "ServiceControl.Audit.Persistence", "{BD162BC6-705F-45B4-A6B5-C138DC966C1D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.RavenDb", "ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj", "{59B2735E-9B70-4277-8E8C-C8CCB40A097A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.InMemory", "ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj", "{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.SqlServer", "ServiceControl.Audit.Persistence.SqlServer\ServiceControl.Audit.Persistence.SqlServer.csproj", "{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests", "ServiceControl.Audit.Persistence.Tests\ServiceControl.Audit.Persistence.Tests.csproj", "{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -306,6 +316,22 @@ Global
 		{30038795-181B-488E-8E99-CFF2009FC6D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30038795-181B-488E-8E99-CFF2009FC6D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30038795-181B-488E-8E99-CFF2009FC6D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59B2735E-9B70-4277-8E8C-C8CCB40A097A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59B2735E-9B70-4277-8E8C-C8CCB40A097A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59B2735E-9B70-4277-8E8C-C8CCB40A097A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59B2735E-9B70-4277-8E8C-C8CCB40A097A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -362,6 +388,10 @@ Global
 		{2A91F751-8432-424C-8D45-7E3BFC4CDBAD} = {9B52418E-BF18-4D25-BE17-4B56D3FB1154}
 		{07F15F50-0A81-4872-9C7D-34DE88599B9F} = {9B52418E-BF18-4D25-BE17-4B56D3FB1154}
 		{30038795-181B-488E-8E99-CFF2009FC6D7} = {9B52418E-BF18-4D25-BE17-4B56D3FB1154}
+		{59B2735E-9B70-4277-8E8C-C8CCB40A097A} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
+		{C228C9DD-4B2E-4A86-9F4E-09C4A8C2AD61} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
+		{BEF2F3D9-F2AC-45B6-902A-7EE21BC83A34} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
+		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

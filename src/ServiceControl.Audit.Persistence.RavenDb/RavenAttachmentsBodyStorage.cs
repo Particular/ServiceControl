@@ -1,9 +1,10 @@
-﻿namespace ServiceControl.Audit.Auditing.BodyStorage.RavenAttachments
+﻿namespace ServiceControl.Audit.Persistence.BodyStorage.RavenAttachments
 {
     using System.IO;
     using System.Threading.Tasks;
     using Raven.Client;
     using Raven.Json.Linq;
+    using ServiceControl.Audit.Auditing.BodyStorage;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {

@@ -4,8 +4,7 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Threading.Tasks;
     using Hosting;
     using Microsoft.Extensions.Hosting;
-    using Raven.Client.Embedded;
-    using RavenDB;
+    using ServiceControl.Audit.Persistence;
 
     static class MaintenanceBootstrapper
     {
@@ -14,14 +13,7 @@ namespace ServiceControl.Audit.Infrastructure
             var settings = new Settings.Settings(args.ServiceName);
 
             var hostBuilder = new HostBuilder()
-                .UseEmbeddedRavenDb(c =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-
-                    RavenBootstrapper.Configure(documentStore, settings, true);
-
-                    return documentStore;
-                });
+                .SetupPersistence(settings, true);
 
             if (args.RunAsWindowsService)
             {
