@@ -13,7 +13,7 @@
 
     public class SharedServiceControlEditorViewModel : RxScreen
     {
-        protected SharedServiceControlEditorViewModel()
+        public SharedServiceControlEditorViewModel()
         {
             SelectDestinationPath = new SelectPathCommand(p => DestinationPath = p, isFolderPicker: true, defaultPath: DestinationPath);
             SelectDatabasePath = new SelectPathCommand(p => DatabasePath = p, isFolderPicker: true, defaultPath: DatabasePath);
