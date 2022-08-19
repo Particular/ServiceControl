@@ -6,18 +6,18 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceServiceCollectionExtensions
     {
-        public static void AddServiceControlPersistence(this IServiceCollection serviceCollection, DataStoreType dataStoreType)
+        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, Settings settings, bool maintenanceMode = false, bool isSetup = false)
         {
             try
             {
-                var persistenceCreationInfo = GetPersistenceCreationInfo(dataStoreType);
+                var persistenceCreationInfo = GetPersistenceCreationInfo(settings.DataStoreType);
                 var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(persistenceCreationInfo);
-                persistenceConfig.ConfigureServices(serviceCollection);
+                persistenceConfig.ConfigureServices(serviceCollection, settings, maintenanceMode, isSetup);
 
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization for {dataStoreType}.", e);
+                throw new Exception($"Could not load persistence customization for {settings.DataStoreType}.", e);
             }
         }
 

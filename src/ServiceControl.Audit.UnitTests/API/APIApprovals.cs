@@ -79,7 +79,26 @@
                 .GetTypes()
                 .Where(t => t.IsAbstract == false);
 
+            var ravenPersistenceType = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
+            var sqlPersistenceType = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
+            var inMemoryPersistenceType = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
+
+            var ravenPersistenceControlTypes = ravenPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
+            var sqlPersistenceControlTypes = sqlPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
+            var inMemoryPersistenceControlTypes = inMemoryPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
             var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));
+            customCheckTypes = customCheckTypes.Union(ravenPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+            customCheckTypes = customCheckTypes.Union(sqlPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+            customCheckTypes = customCheckTypes.Union(inMemoryPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
 
             foreach (var customCheckType in customCheckTypes)
             {

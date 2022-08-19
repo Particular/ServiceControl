@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.Expiration
 {
     using System.Globalization;
     using System.Threading;
@@ -6,8 +6,9 @@
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Database;
+    using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
-    using Settings;
 
     class ExpiredDocumentsCleaner
     {

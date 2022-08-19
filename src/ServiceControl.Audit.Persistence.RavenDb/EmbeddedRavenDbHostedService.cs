@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System.Collections.Generic;
     using System.Threading;
@@ -8,6 +8,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Indexes;
+    using ServiceControl.Audit.Infrastructure.Migration;
 
     class EmbeddedRavenDbHostedService : IHostedService
     {
@@ -44,7 +45,7 @@
             Logger.Info("Data migrations starting");
             foreach (var dataMigration in dataMigrations)
             {
-                await dataMigration.Migrate(documentStore)
+                await dataMigration.Migrate()
                     .ConfigureAwait(false);
             }
             Logger.Info("Data migrations complete");

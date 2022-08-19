@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System.Collections.Generic;
     using System.ComponentModel.Composition.Hosting;

@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using ServiceControl.Audit.Persistence.Tests;
 
     [TestFixtureSource(typeof(PersistenceTestCollection))]
     class AuditDataStoreTests
@@ -24,6 +24,15 @@
         public async Task Cleanup()
         {
             await persistenceDataStoreFixture.CleanupDB().ConfigureAwait(false);
+        }
+
+        [Test]
+        public async Task DataStore_should_setup_ok()
+        {
+            var sagaHistory = await persistenceDataStoreFixture.AuditDataStore.QuerySagaHistoryById(new System.Net.Http.HttpRequestMessage(), Guid.NewGuid()).ConfigureAwait(false);
+
+            Assert.IsTrue(sagaHistory.Results == null);
+
         }
     }
 }

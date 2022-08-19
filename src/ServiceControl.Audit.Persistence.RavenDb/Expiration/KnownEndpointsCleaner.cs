@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.Expiration
 {
     using System;
     using System.Collections.Generic;

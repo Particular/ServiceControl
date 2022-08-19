@@ -98,25 +98,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
     }
 }
-namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
-{
-    [System.ComponentModel.Composition.ExportMetadata("Bundle", "customDocumentExpiration")]
-    [System.ComponentModel.Composition.InheritedExport(typeof(Raven.Database.Plugins.IStartupTask))]
-    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
-    {
-        public ExpiredDocumentsCleanerBundle() { }
-        public void Dispose() { }
-        public void Execute(Raven.Database.DocumentDatabase database) { }
-    }
-    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
-    {
-        public ExpiryKnownEndpointsIndex() { }
-    }
-    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
-    {
-        public ExpiryProcessedMessageIndex() { }
-    }
-}
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
     public static class DataStoreConfig

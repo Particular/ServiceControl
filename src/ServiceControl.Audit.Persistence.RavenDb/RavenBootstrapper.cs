@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
@@ -7,8 +7,9 @@
     using System.Runtime.Serialization;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
+    using ServiceControl.Audit.Infrastructure.Migration;
+    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
-    using Settings;
 
     class RavenBootstrapper
     {
@@ -68,7 +69,7 @@
 
         static string ReadLicense()
         {
-            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Audit.Infrastructure.RavenDB.RavenLicense.xml"))
+            using (var resourceStream = typeof(RavenBootstrapper).Assembly.GetManifestResourceStream("ServiceControl.Audit.Persistence.RavenDb.RavenLicense.xml"))
             using (var reader = new StreamReader(resourceStream))
             {
                 return reader.ReadToEnd();
@@ -90,7 +91,7 @@
 
         public static Assembly[] IndexAssemblies =
         {
-            typeof(RavenBootstrapper).Assembly, typeof(SagaSnapshot).Assembly
+            typeof(RavenBootstrapper).Assembly, typeof(SagaSnapshot).Assembly, typeof(Auditing.FailedAuditImportIndex).Assembly
         };
     }
 }

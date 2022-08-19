@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using NServiceBus.CustomChecks;
+    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
@@ -18,5 +20,9 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(HttpRequestMessage request, string conversationId);
         Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
+        Task MigrateEndpoints(int pageSize = 1024);
+
+        Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage);
+        Task SaveFailedAuditImport(FailedAuditImport message);
     }
 }

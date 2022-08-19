@@ -14,6 +14,10 @@
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.RavenDb.Extensions;
+    using Raven.Abstractions.Data;
+    using NServiceBus.Logging;
+    using NServiceBus.CustomChecks;
+    using ServiceControl.Audit.Auditing;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
@@ -191,8 +195,110 @@
             }
         }
 
+        public async Task MigrateEndpoints(int pageSize = 1024)
+        {
+            var knownEndpointsIndex = await documentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
+            if (knownEndpointsIndex == null)
+            {
+                Logger.Debug("EndpointsIndex migration already completed.");
+                // Index has already been deleted, no need to migrate
+                return;
+            }
+
+            var dbStatistics = await documentStore.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
+            var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
+            if (indexStats.Priority == IndexingPriority.Disabled)
+            {
+                Logger.Debug("EndpointsIndex already disabled. Deleting EndpointsIndex.");
+
+                // This should only happen the second time the migration is attempted.
+                // The index is disabled so the data should have been migrated. We can now delete the index.
+                await documentStore.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name).ConfigureAwait(false);
+                return;
+            }
+
+            int previouslyDone = 0;
+            do
+            {
+                using (var session = documentStore.OpenAsyncSession())
+                {
+                    var endpointsFromIndex = await session.Query<dynamic>(knownEndpointsIndex.Name, true)
+                        .Skip(previouslyDone)
+                        .Take(pageSize)
+                        .ToListAsync()
+                        .ConfigureAwait(false);
+
+                    if (endpointsFromIndex.Count == 0)
+                    {
+                        Logger.Debug("No more records from EndpointsIndex to migrate.");
+                        break;
+                    }
+
+                    previouslyDone += endpointsFromIndex.Count;
+
+                    var knownEndpoints = endpointsFromIndex.Select(endpoint => new KnownEndpoint
+                    {
+                        Id = KnownEndpoint.MakeDocumentId(endpoint.Name, Guid.Parse(endpoint.HostId)),
+                        Host = endpoint.Host,
+                        HostId = Guid.Parse(endpoint.HostId),
+                        Name = endpoint.Name,
+                        LastSeen = DateTime.UtcNow // Set the imported date to be now since we have no better guess
+                    });
+
+                    using (var bulkInsert = documentStore.BulkInsert(options: new BulkInsertOptions
+                    {
+                        OverwriteExisting = true
+                    }))
+                    {
+                        foreach (var endpoint in knownEndpoints)
+                        {
+                            bulkInsert.Store(endpoint);
+                        }
+
+                        Logger.Debug($"Migrating {endpointsFromIndex.Count} entries.");
+                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+            }
+            while (true);
+
+            Logger.Debug("EndpointsIndex entries migrated. Disabling EndpointsIndex.");
+            // Disable the index so it can be safely deleted in the next migration run
+            await documentStore.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled).ConfigureAwait(false);
+        }
+
+        public async Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
+                using (var ie = await session.Advanced.StreamAsync(query)
+                    .ConfigureAwait(false))
+                {
+                    if (await ie.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        Logger.Warn(errorMessage);
+                        return CheckResult.Failed(errorMessage);
+                    }
+                }
+            }
+
+            return CheckResult.Pass;
+        }
+
+        public async Task SaveFailedAuditImport(FailedAuditImport message)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                await session.StoreAsync(message).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbAuditDataStore));
     }
 }

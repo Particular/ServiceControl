@@ -3,10 +3,11 @@
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     interface IPersistenceConfiguration
     {
-        void ConfigureServices(IServiceCollection serviceCollection);
+        void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup);
     }
 
     //NOTE ideally once we only have one type of persistence (ie use ravendb or sql for all) then these could be refactored
@@ -30,7 +31,7 @@
                             [HostId] [uniqueidentifier] NOT NULL,
                             [Host] [nvarchar](300) NULL,
                             [Name] [nvarchar](300) NULL,
-                            [LastSeend] [datetime] NOT NULL
+                            [LastSeen] [datetime] NOT NULL
                            ) ON [PRIMARY]
                        END";
 
@@ -47,7 +48,7 @@
                             [HostId] [uniqueidentifier] NOT NULL,
                             [Host] [nvarchar](300) NULL,
                             [Name] [nvarchar](300) NULL,
-                            [LastSeend] [datetime] NOT NULL
+                            [LastSeen] [datetime] NOT NULL
                            ) ON [PRIMARY]
                        END";
 

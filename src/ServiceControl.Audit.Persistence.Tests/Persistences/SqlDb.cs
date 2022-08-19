@@ -17,9 +17,14 @@
         {
             await SetupSqlPersistence.SetupAuditTables(sqlDbConnectionString).ConfigureAwait(false);
 
+            var settings = new Settings
+            {
+                SqlStorageConnectionString = sqlDbConnectionString,
+                DataStoreType = DataStoreType.SqlDb
+            };
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new Settings { SqlStorageConnectionString = sqlDbConnectionString });
-            serviceCollection.AddServiceControlPersistence(DataStoreType.SqlDb);
+            serviceCollection.AddSingleton(settings);
+            serviceCollection.AddServiceControlAuditPersistence(settings);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
         }

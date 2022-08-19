@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.BodyStorage.RavenAttachments
+﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System.IO;
     using System.Threading.Tasks;

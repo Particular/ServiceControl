@@ -8,8 +8,13 @@
     {
         public override Task SetupDataStore()
         {
+            var settings = new Settings
+            {
+                DataStoreType = DataStoreType.InMemory
+            };
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddServiceControlPersistence(DataStoreType.InMemory);
+            serviceCollection.AddSingleton(settings);
+            serviceCollection.AddServiceControlAuditPersistence(settings);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             return Task.CompletedTask;

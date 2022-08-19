@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Infrastructure.RavenDB;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;

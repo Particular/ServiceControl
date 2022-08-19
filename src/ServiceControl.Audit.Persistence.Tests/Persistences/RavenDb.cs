@@ -1,35 +1,42 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Threading.Tasks;
+    using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
-    using Raven.Client.Embedded;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     class RavenDb : PersistenceDataStoreFixture
     {
-        public override async Task SetupDataStore()
+        public override Task SetupDataStore()
         {
+            var settings = new Settings
+            {
+                DataStoreType = DataStoreType.RavenDb,
+                RunInMemory = true
+            };
             var serviceCollection = new ServiceCollection();
-            documentStore = await serviceCollection.AddInitializedDocumentStore().ConfigureAwait(false);
-            serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDb);
+            serviceCollection.AddSingleton(settings);
+            serviceCollection.AddServiceControlAuditPersistence(settings, false, true);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
+            DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+            return Task.CompletedTask;
         }
 
         public override Task CompleteDBOperation()
         {
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
             return base.CompleteDBOperation();
         }
 
         public override Task CleanupDB()
         {
-            documentStore?.Dispose();
+            DocumentStore?.Dispose();
             return base.CleanupDB();
         }
 
         public override string ToString() => "RavenDb";
 
-        EmbeddableDocumentStore documentStore;
+        public IDocumentStore DocumentStore { get; private set; }
     }
 }

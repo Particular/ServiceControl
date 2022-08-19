@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.Expiration
 {
     using System;
     using System.ComponentModel.Composition;
@@ -6,6 +6,7 @@
     using NServiceBus.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
+    using ServiceControl.Audit.Infrastructure;
 
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "customDocumentExpiration")]

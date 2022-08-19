@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure.RavenDB
+﻿namespace ServiceControl.Audit.Infrastructure.Migration
 {
     using System;
     using Monitoring;

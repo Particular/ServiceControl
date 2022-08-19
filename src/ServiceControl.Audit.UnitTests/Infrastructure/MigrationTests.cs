@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using NUnit.Framework;
 using Raven.Imports.Newtonsoft.Json;
-using ServiceControl.Audit.Infrastructure.RavenDB;
+using ServiceControl.Audit.Infrastructure.Migration;
 
 [TestFixture]
 class MigrationTests
