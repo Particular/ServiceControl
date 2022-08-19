@@ -9,9 +9,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Autofac;
     using Infrastructure.WebApi;
-    using Microsoft.Extensions.DependencyInjection;
+    using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Monitoring;
@@ -33,7 +32,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.HttpPort;
@@ -78,38 +76,49 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 HttpHostName = "localhost",
                 ExposeApi = false,
                 OnMessage = (id, headers, body, @continue) =>
+                {
+                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
+                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
+
+                    //Do not filter out CC, SA and HB messages as they can't be stamped
+                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
+                            && messageTypes.StartsWith("ServiceControl."))
                     {
-                        var log = LogManager.GetLogger<ServiceControlComponentRunner>();
-                        headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                        log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
-
-                        //Do not filter out CC, SA and HB messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                                && messageTypes.StartsWith("ServiceControl."))
-                        {
-                            return @continue();
-                        }
-
-                        //Do not filter out subscribe messages as they can't be stamped
-                        if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                                && intent == MessageIntentEnum.Subscribe.ToString())
-                        {
-                            return @continue();
-                        }
-
-                        var currentSession = context.TestRunId.ToString();
-                        if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
-                        {
-                            log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                            return Task.FromResult(0);
-                        }
-
                         return @continue();
                     }
+
+                    //Do not filter out subscribe messages as they can't be stamped
+                    if (headers.TryGetValue(Headers.MessageIntent, out var intent)
+                            && intent == MessageIntentEnum.Subscribe.ToString())
+                    {
+                        return @continue();
+                    }
+
+                    var currentSession = context.TestRunId.ToString();
+                    if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
+                    {
+                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
+                        return Task.FromResult(0);
+                    }
+
+                    return @continue();
+                }
             };
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[]
+                {
+                    typeof(IComponentBehavior).Assembly.GetName().Name,
+                    typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
+                });
+                await setupBootstrapper.Run();
+            }
 
             setSettings(settings);
             Settings = settings;
+
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
 
@@ -162,8 +171,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var lifetime = host.Services.GetRequiredService<ILifetimeScope>();
-                var startup = new Startup(lifetime);
+                var startup = new Startup(host.Services);
                 startup.Configuration(app);
                 var appFunc = app.Build();
 

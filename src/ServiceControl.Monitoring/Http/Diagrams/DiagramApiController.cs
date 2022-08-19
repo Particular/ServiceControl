@@ -12,7 +12,7 @@
 
     public class DiagramApiController : ApiController
     {
-        public DiagramApiController(IProvideBreakdown[] breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
+        public DiagramApiController(IEnumerable<IProvideBreakdown> breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
         {
             this.breakdownProviders = breakdownProviders;
             this.endpointRegistry = endpointRegistry;
@@ -257,7 +257,7 @@
                 .ToArray();
         }
 
-        readonly IProvideBreakdown[] breakdownProviders;
+        readonly IEnumerable<IProvideBreakdown> breakdownProviders;
         readonly EndpointRegistry endpointRegistry;
         readonly EndpointInstanceActivityTracker activityTracker;
         readonly MessageTypeRegistry messageTypeRegistry;

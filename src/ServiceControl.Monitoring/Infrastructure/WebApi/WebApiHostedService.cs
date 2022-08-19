@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Monitoring.Infrastructure.OWIN
+﻿namespace ServiceControl.Monitoring.Infrastructure.WebApi
 {
     using System;
     using System.Threading;
