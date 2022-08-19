@@ -120,6 +120,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             Settings = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
+            configuration.EnableInstallers();
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
