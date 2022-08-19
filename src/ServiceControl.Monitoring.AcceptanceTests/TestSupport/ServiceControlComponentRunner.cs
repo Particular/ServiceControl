@@ -108,7 +108,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(Settings, excludeAssemblies: new[]
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[]
                 {
                     typeof(IComponentBehavior).Assembly.GetName().Name,
                     typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
