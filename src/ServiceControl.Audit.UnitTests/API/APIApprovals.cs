@@ -54,7 +54,31 @@
                 LicenseFileText = null
             };
 
-            Approver.Verify(settings);
+            Approver.Verify(settings, RemoveDataStoreSettings);
+        }
+
+        string RemoveDataStoreSettings(string json)
+        {
+            var allLines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var settingsLines = allLines.AsSpan(1, allLines.Length - 2);
+
+            var result = string.Empty;
+
+            var dataStoreSettings = new[] { nameof(Settings.DataStoreType), nameof(Settings.SqlStorageConnectionString) };
+
+            foreach (var settingLine in settingsLines)
+            {
+                var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var settingName = parts[0].Trim('"', ' ');
+
+                if (dataStoreSettings.Contains(settingName) == false)
+                {
+                    result += settingLine + Environment.NewLine;
+                }
+            }
+
+            return $"{{\r\n{result}}}";
         }
 
         [Test]
