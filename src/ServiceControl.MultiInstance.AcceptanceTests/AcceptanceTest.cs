@@ -81,6 +81,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             {
                 ResetSqlDb(DataStoreConfiguration.ConnectionString);
             }
+            var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
+            if (!shouldBeRunOnAllDataStores && DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDb))
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllDataStores] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
+            }
+
             TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
