@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Setup
 {
-    using System;
     using NUnit.Framework;
     using System.Diagnostics;
     using System.IO;

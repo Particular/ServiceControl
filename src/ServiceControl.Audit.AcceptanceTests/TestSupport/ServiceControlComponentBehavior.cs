@@ -11,9 +11,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.customConfiguration = customConfiguration;
+            this.dataStoreToUse = dataStoreToUse;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
         }
@@ -24,12 +25,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, setSettings, customConfiguration);
+            runner = new ServiceControlComponentRunner(transportIntegration, dataStoreToUse, setSettings, customConfiguration);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
 
         ITransportIntegration transportIntegration;
+        DataStoreConfiguration dataStoreToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
