@@ -36,7 +36,7 @@
 
             var config = new EndpointConfiguration(endpointName);
             config.AssemblyScanner().ExcludeAssemblies("ServiceControl");
-            config.UseSerialization<NewtonsoftSerializer>();
+            config.UseSerialization<NewtonsoftJsonSerializer>();
 
             var customization = (TransportCustomization)Activator.CreateInstance(Type.GetType(customizationTypeName, true));
             var transportSettings = new TransportSettings

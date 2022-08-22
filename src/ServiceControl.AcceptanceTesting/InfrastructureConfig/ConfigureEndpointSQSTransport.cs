@@ -16,7 +16,7 @@
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
-            configuration.UseSerialization<NewtonsoftSerializer>();
+            configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             var transportConfig = configuration.UseTransport<SqsTransport>();
             transportConfig.ClientFactory(CreateSQSClient);

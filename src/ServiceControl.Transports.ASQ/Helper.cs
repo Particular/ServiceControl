@@ -11,7 +11,7 @@
         public static void ApplyHacksForNsbRaw(this TransportExtensions<AzureStorageQueueTransport> extensions)
         {
             var settings = extensions.GetSettings();
-            var serializer = Tuple.Create(new NewtonsoftSerializer() as SerializationDefinition, new SettingsHolder());
+            var serializer = Tuple.Create(new NewtonsoftJsonSerializer() as SerializationDefinition, new SettingsHolder());
             settings.Set("MainSerializer", serializer);
         }
     }

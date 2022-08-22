@@ -13,7 +13,7 @@
 #pragma warning restore 618
         {
             var settings = extensions.GetSettings();
-            var serializer = Tuple.Create(new NewtonsoftSerializer() as SerializationDefinition, new SettingsHolder());
+            var serializer = Tuple.Create(new NewtonsoftJsonSerializer() as SerializationDefinition, new SettingsHolder());
             settings.Set("MainSerializer", serializer);
         }
 

@@ -12,7 +12,7 @@
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
-            configuration.UseSerialization<NewtonsoftSerializer>();
+            configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             // Relies on extern alias at the top of the file to disambiguate AzureServiceBusTransport
             // from NServiceBus.Azure.Transports.WindowsAzureServiceBus. If we need to add extension method calls,
