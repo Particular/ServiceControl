@@ -49,7 +49,7 @@ namespace ServiceControl.Audit.Infrastructure
             // sagas are not auto-disabled for send-only endpoints
             configuration.DisableFeature<Sagas>();
 
-            configuration.UseSerialization<NewtonsoftSerializer>();
+            configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 

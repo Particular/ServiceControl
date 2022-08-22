@@ -22,7 +22,7 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     <PackageReference Include="NServiceBus" Version="7.7.4" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="Particular.Licensing.Sources" Version="4.0.0" PrivateAssets="All" />
     <PackageReference Include="System.Memory" Version="4.5.4" />

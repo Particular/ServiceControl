@@ -50,7 +50,7 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
             configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
-            configuration.UseSerialization<NewtonsoftSerializer>();
+            configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 

@@ -10,7 +10,7 @@
     {
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
-            configuration.UseSerialization<NewtonsoftSerializer>();
+            configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
 #pragma warning disable 618
             var transportConfig = configuration.UseTransport<AzureServiceBusTransport>();

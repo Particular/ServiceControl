@@ -43,7 +43,7 @@
 
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
 
-            builder.UseSerialization<NewtonsoftSerializer>();
+            builder.UseSerialization<NewtonsoftJsonSerializer>();
 
             builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
             builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
