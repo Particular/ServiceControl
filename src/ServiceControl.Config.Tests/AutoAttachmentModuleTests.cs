@@ -9,10 +9,15 @@
     [TestFixture]
     public class AutoAttachmentModuleTests
     {
+        [OneTimeSetUp]
+        public void SetUp() => AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
+
+        [OneTimeTearDown]
+        public void TearDown() => AssemblySource.Instance.Remove(typeof(AutoAttachmentModuleTests).Assembly);
+
         [Test]
         public void AttachmentsAreAttached()
         {
-            AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
             var builder = new ContainerBuilder();
             builder.RegisterModule(new AutoAttachmentModule());
             builder.RegisterType<TargetViewModel>();
@@ -27,7 +32,6 @@
         [Test]
         public void IgnoresAttachmentsForNonViewModelSuffix()
         {
-            AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
             var builder = new ContainerBuilder();
             builder.RegisterModule(new AutoAttachmentModule());
             builder.RegisterType<ViewModelWithoutSuffix>();
@@ -41,7 +45,6 @@
         [Test]
         public void IgnoresAttachmentsWithoutAttachmentSuffix()
         {
-            AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
             var builder = new ContainerBuilder();
             builder.RegisterModule(new AutoAttachmentModule());
             builder.RegisterType<HasBadAttachmentViewModel>();
