@@ -7,9 +7,11 @@
     using NLog;
     using NLog.Common;
     using NLog.Config;
+    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Extensions.Logging;
     using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
 
@@ -17,8 +19,6 @@
     {
         public static void Configure(Settings settings, bool logToConsole)
         {
-            LogManager.Use<NLogFactory>();
-
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -79,6 +79,8 @@ Selected Transport:					{settings.TransportType}
             }
 
             NLog.LogManager.Configuration = nlogConfig;
+
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
 
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo
