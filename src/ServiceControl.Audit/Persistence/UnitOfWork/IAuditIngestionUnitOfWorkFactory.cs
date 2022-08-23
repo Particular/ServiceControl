@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.UnitOfWork
 {
-    public interface IAuditIngestionUnitOfWorkFactory
+    interface IAuditIngestionUnitOfWorkFactory
     {
         IAuditIngestionUnitOfWork StartNew(int batchSize);
     }
