@@ -1,13 +1,14 @@
 ﻿namespace ServiceControl.Connection
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
     class PlatformConnectionBuilder : IPlatformConnectionBuilder
     {
-        readonly IProvidePlatformConnectionDetails[] platformConnectionProviders;
+        readonly IEnumerable<IProvidePlatformConnectionDetails> platformConnectionProviders;
 
-        public PlatformConnectionBuilder(IProvidePlatformConnectionDetails[] platformConnectionProviders)
+        public PlatformConnectionBuilder(IEnumerable<IProvidePlatformConnectionDetails> platformConnectionProviders)
             => this.platformConnectionProviders = platformConnectionProviders;
 
         public async Task<PlatformConnectionDetails> BuildPlatformConnection()

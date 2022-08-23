@@ -14,9 +14,9 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class MessageRedirectsController : ApiController
+    class MessageRedirectsController : ApiController
     {
-        internal MessageRedirectsController(IMessageSession messageSession, IDocumentStore documentStore, IDomainEvents domainEvents)
+        public MessageRedirectsController(IMessageSession messageSession, IDocumentStore documentStore, IDomainEvents domainEvents)
         {
             this.documentStore = documentStore;
             this.domainEvents = domainEvents;

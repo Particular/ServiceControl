@@ -6,9 +6,9 @@
     using System.Web.Http;
     using Raven.Client;
 
-    public class UnacknowledgedGroupsController : ApiController
+    class UnacknowledgedGroupsController : ApiController
     {
-        internal UnacknowledgedGroupsController(ArchivingManager archivingManager, IDocumentStore store)
+        public UnacknowledgedGroupsController(ArchivingManager archivingManager, IDocumentStore store)
         {
             this.archivingManager = archivingManager;
             this.store = store;

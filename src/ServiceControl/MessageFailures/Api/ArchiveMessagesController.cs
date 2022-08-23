@@ -13,7 +13,7 @@
     using Infrastructure.WebApi;
     using Recoverability;
 
-    public class ArchiveMessagesController : ApiController
+    class ArchiveMessagesController : ApiController
     {
         public ArchiveMessagesController(IMessageSession session, IDocumentStore store)
         {
@@ -43,7 +43,7 @@
 
         [Route("errors/groups/{classifier?}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetArchiveMessageGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace")
+        public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
             using (var session = store.OpenAsyncSession())
             {

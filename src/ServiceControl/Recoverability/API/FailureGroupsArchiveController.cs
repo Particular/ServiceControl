@@ -6,9 +6,9 @@
     using System.Web.Http;
     using NServiceBus;
 
-    public class FailureGroupsArchiveController : ApiController
+    class FailureGroupsArchiveController : ApiController
     {
-        internal FailureGroupsArchiveController(IMessageSession bus, ArchivingManager archivingManager)
+        public FailureGroupsArchiveController(IMessageSession bus, ArchivingManager archivingManager)
         {
             this.bus = bus;
             this.archivingManager = archivingManager;

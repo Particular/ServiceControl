@@ -63,14 +63,11 @@
 
         class Originator : EndpointConfigurationBuilder
         {
-            public Originator()
+            public Originator() => EndpointSetup<DefaultServer>(c =>
             {
-                EndpointSetup<DefaultServer>(c =>
-                {
-                    var routing = c.ConfigureTransport().Routing();
-                    routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
-                });
-            }
+                var routing = c.ConfigureTransport().Routing();
+                routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
+            });
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
@@ -86,10 +83,7 @@
 
         class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public Receiver() => EndpointSetup<DefaultServer>(c => c.NoRetries());
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {

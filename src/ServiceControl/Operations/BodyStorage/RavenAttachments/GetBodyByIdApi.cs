@@ -1,18 +1,22 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.Api
 {
+    using System;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class GetBodyByIdApi : RoutedApi<string>
     {
-        public GetBodyByIdApi(IDocumentStore documentStore, IBodyStorage bodyStorage)
+        public GetBodyByIdApi(IDocumentStore documentStore, IBodyStorage bodyStorage, Settings settings, Func<HttpClient> httpClientFactory)
         {
             this.documentStore = documentStore;
             this.bodyStorage = bodyStorage;
+            Settings = settings;
+            HttpClientFactory = httpClientFactory;
         }
 
         protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
@@ -34,10 +38,8 @@
 
         async Task<HttpResponseMessage> TryFetchFromStorage(HttpRequestMessage request, string messageId)
         {
-            //We want to continue using attachments for now
-#pragma warning disable 618
             var result = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
-#pragma warning restore 618
+
             if (result.HasResult)
             {
                 var response = request.CreateResponse(HttpStatusCode.OK);

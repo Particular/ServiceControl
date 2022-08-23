@@ -5,9 +5,9 @@
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class RootController : ApiController
+    class RootController : ApiController
     {
-        internal RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings)
         {
             this.settings = settings;
             this.license = license;

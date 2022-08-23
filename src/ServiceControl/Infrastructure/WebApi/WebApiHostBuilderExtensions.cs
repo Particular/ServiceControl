@@ -1,18 +1,14 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Web.Http.Controllers;
-    using Autofac;
-    using Autofac.Core.Activators.Reflection;
-    using Autofac.Features.ResolveAnything;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using ServiceBus.Management.Infrastructure.OWIN;
-    using ApisModule = MessageFailures.Api.ApisModule;
+    using ServiceControl.CompositeViews.Messages;
 
     static class WebApiHostBuilderExtensions
     {
@@ -20,12 +16,11 @@
         {
             foreach (var apiAssembly in apiAssemblies)
             {
-                hostBuilder.ConfigureContainer<ContainerBuilder>(cb =>
+                hostBuilder.ConfigureServices(serviceCollection =>
                 {
-                    RegisterAssemblyInternalWebApiControllers(cb, apiAssembly);
-                    cb.RegisterModule(new ApisModule(apiAssembly));
-                    cb.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource(type =>
-                        type.Assembly == apiAssembly && type.GetInterfaces().Any() == false));
+                    RegisterAssemblyInternalWebApiControllers(serviceCollection, apiAssembly);
+                    RegisterApiTypes(serviceCollection, apiAssembly);
+                    RegisterConcreteTypes(serviceCollection, apiAssembly);
                 });
             }
 
@@ -35,7 +30,7 @@
                 {
                     serviceCollection.AddHostedService(sp =>
                     {
-                        var startup = new Startup(sp.GetRequiredService<ILifetimeScope>(), apiAssemblies);
+                        var startup = new Startup(sp, apiAssemblies);
                         return new WebApiHostedService(rootUrl, startup);
                     });
                 });
@@ -44,27 +39,54 @@
             return hostBuilder;
         }
 
-        static void RegisterAssemblyInternalWebApiControllers(ContainerBuilder containerBuilder, Assembly assembly)
+        static void RegisterAssemblyInternalWebApiControllers(IServiceCollection serviceCollection, Assembly assembly)
         {
             var controllerTypes = assembly.DefinedTypes
                 .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
 
             foreach (var controllerType in controllerTypes)
             {
-                containerBuilder.RegisterType(controllerType).FindConstructorsWith(new AllConstructorFinder()).ExternallyOwned();
+                serviceCollection.AddScoped(controllerType);
             }
         }
 
-        class AllConstructorFinder : IConstructorFinder
+        static void RegisterApiTypes(IServiceCollection serviceCollection, Assembly assembly)
         {
-            public ConstructorInfo[] FindConstructors(Type targetType)
+            var apiTypes = assembly.DefinedTypes
+                .Where(ti => ti.IsClass &&
+                            !ti.IsAbstract &&
+                            !ti.IsGenericTypeDefinition &&
+                            ti.GetInterfaces().Any(t => t == typeof(IApi)))
+                .Select(ti => ti.AsType());
+
+
+            foreach (var apiType in apiTypes)
             {
-                var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-                return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
+                if (!serviceCollection.Any(sd => sd.ServiceType == apiType))
+                {
+                    serviceCollection.AddSingleton(apiType);
+                }
             }
+        }
 
-            static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
+        static void RegisterConcreteTypes(IServiceCollection serviceCollection, Assembly assembly)
+        {
+            var concreteTypes = assembly.DefinedTypes
+                .Where(ti => ti.IsClass &&
+                            !ti.IsAbstract &&
+                            !ti.IsSubclassOf(typeof(Delegate)) &&
+                            !ti.IsGenericTypeDefinition &&
+                            !ti.GetInterfaces().Any())
+                .Select(ti => ti.AsType());
+
+
+            foreach (var concreteType in concreteTypes)
+            {
+                if (!serviceCollection.Any(sd => sd.ServiceType == concreteType))
+                {
+                    serviceCollection.AddSingleton(concreteType);
+                }
+            }
         }
     }
 }

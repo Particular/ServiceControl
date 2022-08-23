@@ -8,9 +8,9 @@
     using Infrastructure.WebApi;
     using Raven.Client;
 
-    public class EventLogApiController : ApiController
+    class EventLogApiController : ApiController
     {
-        internal EventLogApiController(IDocumentStore documentStore)
+        public EventLogApiController(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }

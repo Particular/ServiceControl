@@ -6,9 +6,9 @@
     using System.Web.Http;
     using NServiceBus;
 
-    public class FailureGroupsUnarchiveController : ApiController
+    class FailureGroupsUnarchiveController : ApiController
     {
-        internal FailureGroupsUnarchiveController(IMessageSession bus, UnarchivingManager unarchivingManager)
+        public FailureGroupsUnarchiveController(IMessageSession bus, UnarchivingManager unarchivingManager)
         {
             this.bus = bus;
             this.unarchivingManager = unarchivingManager;

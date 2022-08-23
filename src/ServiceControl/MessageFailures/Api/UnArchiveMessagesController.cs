@@ -11,9 +11,9 @@
     using InternalMessages;
     using NServiceBus;
 
-    public class UnArchiveMessagesController : ApiController
+    class UnArchiveMessagesController : ApiController
     {
-        internal UnArchiveMessagesController(IMessageSession messageSession)
+        public UnArchiveMessagesController(IMessageSession messageSession)
         {
             this.messageSession = messageSession;
         }

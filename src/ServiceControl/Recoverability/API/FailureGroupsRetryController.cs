@@ -7,9 +7,9 @@ namespace ServiceControl.Recoverability.API
     using System.Web.Http;
     using NServiceBus;
 
-    public class FailureGroupsRetryController : ApiController
+    class FailureGroupsRetryController : ApiController
     {
-        internal FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)
+        public FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)
         {
             this.bus = bus;
             this.retryingManager = retryingManager;

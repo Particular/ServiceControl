@@ -4,7 +4,7 @@
     using System.Web.Http;
     using Newtonsoft.Json;
 
-    public class ConnectionController : ApiController
+    class ConnectionController : ApiController
     {
         readonly IPlatformConnectionBuilder connectionBuilder;
         readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();

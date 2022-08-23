@@ -9,9 +9,9 @@
     using Infrastructure.WebApi;
     using Raven.Client;
 
-    public class QueueAddressController : ApiController
+    class QueueAddressController : ApiController
     {
-        internal QueueAddressController(IDocumentStore documentStore)
+        public QueueAddressController(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }

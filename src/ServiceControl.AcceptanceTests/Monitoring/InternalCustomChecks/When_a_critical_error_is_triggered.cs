@@ -7,9 +7,7 @@
     using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Operations;

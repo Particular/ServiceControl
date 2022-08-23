@@ -200,8 +200,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
             {
                 var app = new AppBuilder();
-                var lifetimeScope = host.Services.GetRequiredService<ILifetimeScope>();
-                var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(lifetimeScope, bootstrapper.ApiAssemblies);
+                var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(host.Services, bootstrapper.ApiAssemblies);
                 startup.Configuration(app);
                 var appFunc = app.Build();
 

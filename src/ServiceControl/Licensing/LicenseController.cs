@@ -4,9 +4,9 @@
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class LicenseController : ApiController
+    class LicenseController : ApiController
     {
-        internal LicenseController(ActiveLicense activeLicense, Settings settings)
+        public LicenseController(ActiveLicense activeLicense, Settings settings)
         {
             this.settings = settings;
             this.activeLicense = activeLicense;

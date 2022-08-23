@@ -11,9 +11,9 @@
     using InternalMessages;
     using NServiceBus;
 
-    public class ResolveMessagesController : ApiController
+    class ResolveMessagesController : ApiController
     {
-        internal ResolveMessagesController(IMessageSession messageSession)
+        public ResolveMessagesController(IMessageSession messageSession)
         {
             this.messageSession = messageSession;
         }
