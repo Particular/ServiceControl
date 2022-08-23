@@ -19,7 +19,7 @@ namespace ServiceControl.Monitoring
 
             TransportType = SettingsReader<string>.Read("TransportType");
             ConnectionString = GetConnectionString();
-            LogLevel = MonitorLogs.InitializeLevel();
+            LogLevel = LoggingConfigurator.InitializeLevel();
             LogPath = SettingsReader<string>.Read("LogPath", DefaultLogLocation());
             ErrorQueue = SettingsReader<string>.Read("ErrorQueue", "error");
             HttpHostName = SettingsReader<string>.Read("HttpHostname");

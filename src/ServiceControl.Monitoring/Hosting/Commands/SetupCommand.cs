@@ -5,7 +5,7 @@ namespace ServiceControl.Monitoring
 
     class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(Settings settings, HostArguments args)
+        public override async Task Execute(Settings settings)
         {
             await new SetupBootstrapper(settings)
                 .Run()

@@ -13,7 +13,7 @@
     using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
 
-    static class MonitorLogs
+    static class LoggingConfigurator
     {
         public static void Configure(Settings settings, bool logToConsole)
         {
@@ -103,7 +103,7 @@ Selected Transport:					{settings.TransportType}
             return level;
         }
 
-        const long MegaByte = 1073741824;
+        const long MegaByte = 1024 * 1024;
 
         const string LogLevelKey = "LogLevel";
     }
