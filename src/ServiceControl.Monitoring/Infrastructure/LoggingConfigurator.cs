@@ -7,18 +7,18 @@
     using NLog;
     using NLog.Common;
     using NLog.Config;
+    using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus;
+    using NServiceBus.Extensions.Logging;
     using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
 
-    static class MonitorLogs
+    static class LoggingConfigurator
     {
         public static void Configure(Settings settings, bool logToConsole)
         {
-            LogManager.Use<NLogFactory>();
-
             if (NLog.LogManager.Configuration != null)
             {
                 return;
@@ -80,6 +80,8 @@ Selected Transport:					{settings.TransportType}
 
             NLog.LogManager.Configuration = nlogConfig;
 
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
+
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo
             {
@@ -103,7 +105,7 @@ Selected Transport:					{settings.TransportType}
             return level;
         }
 
-        const long MegaByte = 1073741824;
+        const long MegaByte = 1024 * 1024;
 
         const string LogLevelKey = "LogLevel";
     }

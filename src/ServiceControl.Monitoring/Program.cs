@@ -4,6 +4,8 @@ namespace ServiceControl.Monitoring
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.Settings;
 
     static class Program
     {
@@ -16,7 +18,7 @@ namespace ServiceControl.Monitoring
             var settings = LoadSettings(arguments);
 
             var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
-            MonitorLogs.Configure(settings, !runAsWindowsService);
+            LoggingConfigurator.Configure(settings, !runAsWindowsService);
 
             await new CommandRunner(arguments.Commands)
                 .Run(settings)
