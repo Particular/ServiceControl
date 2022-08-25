@@ -8,19 +8,19 @@
     using Infrastructure.Settings;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using ServiceControl.Audit.Persistence;
 
     class AuditIngestionFaultPolicy : IErrorHandlingPolicy
     {
-        IDocumentStore store;
+        IFailedAuditStorage failedAuditStorage;
         string logPath;
         Func<FailedTransportMessage, object> messageBuilder;
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public AuditIngestionFaultPolicy(IDocumentStore store, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
+        public AuditIngestionFaultPolicy(IFailedAuditStorage failedAuditStorage, LoggingSettings settings, Func<FailedTransportMessage, object> messageBuilder, Func<string, Exception, Task> onCriticalError)
         {
-            this.store = store;
             logPath = Path.Combine(settings.LogPath, @"FailedImports\Audit");
+            this.failedAuditStorage = failedAuditStorage;
             this.messageBuilder = messageBuilder;
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
@@ -69,18 +69,10 @@
         async Task DoLogging(Exception exception, dynamic failure)
         {
             var id = Guid.NewGuid();
+            failure.Id = id;
 
-            // Write to Raven
-            using (var session = store.OpenAsyncSession())
-            {
-                failure.Id = id;
-
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
-
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            // Write to storage
+            await failedAuditStorage.Store(failure).ConfigureAwait(false);
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");
