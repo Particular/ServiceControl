@@ -9,13 +9,13 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using ServiceControl.Audit.Persistence;
 
     class ImportFailedAudits
     {
-        public ImportFailedAudits(IDocumentStore store, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
+        public ImportFailedAudits(IFailedAuditStorage failedAuditStore, AuditIngestor auditIngestor, RawEndpointFactory rawEndpointFactory)
         {
-            this.store = store;
+            this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
             this.rawEndpointFactory = rawEndpointFactory;
         }
@@ -31,15 +31,10 @@ namespace ServiceControl.Audit.Auditing
             {
                 var succeeded = 0;
                 var failed = 0;
-                using (var session = store.OpenAsyncSession())
-                {
-                    var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                    using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                        .ConfigureAwait(false))
-                    {
-                        while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
+
+                await failedAuditStore.ProcessFailedMessages(
+                    async (transportMessage, markComplete, token) =>
                         {
-                            FailedTransportMessage transportMessage = stream.Current.Document.Message;
                             try
                             {
                                 var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
@@ -50,7 +45,7 @@ namespace ServiceControl.Audit.Auditing
 
                                 await taskCompletionSource.Task.ConfigureAwait(false);
 
-                                await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken)
+                                await markComplete(token)
                                     .ConfigureAwait(false);
                                 succeeded++;
                                 if (Logger.IsDebugEnabled)
@@ -67,9 +62,8 @@ namespace ServiceControl.Audit.Auditing
                                 Logger.Error($"Error while attempting to re-import failed audit message {transportMessage.Id}.", e);
                                 failed++;
                             }
-                        }
-                    }
-                }
+
+                        }, cancellationToken).ConfigureAwait(false);
 
                 Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
 
@@ -84,7 +78,7 @@ namespace ServiceControl.Audit.Auditing
             }
         }
 
-        readonly IDocumentStore store;
+        readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
         readonly RawEndpointFactory rawEndpointFactory;
 

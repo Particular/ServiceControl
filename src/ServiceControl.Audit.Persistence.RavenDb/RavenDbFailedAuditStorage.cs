@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
+    using System;
+    using System.Threading;
     using System.Threading.Tasks;
+    using Auditing;
     using Raven.Client;
 
     class RavenDbFailedAuditStorage : IFailedAuditStorage
@@ -18,6 +21,27 @@
 
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
+            }
+        }
+
+        public async Task ProcessFailedMessages(
+            Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
+            CancellationToken cancellationToken)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
+                using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
+                           .ConfigureAwait(false))
+                {
+                    while (!cancellationToken.IsCancellationRequested &&
+                           await stream.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        FailedTransportMessage transportMessage = stream.Current.Document.Message;
+
+                        await onMessage(transportMessage, (token) => store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token), cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
         }
     }
