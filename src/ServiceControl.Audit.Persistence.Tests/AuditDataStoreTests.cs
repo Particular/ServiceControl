@@ -29,7 +29,7 @@
         [Test]
         public async Task DataStore_should_setup_ok()
         {
-            var sagaHistory = await persistenceDataStoreFixture.AuditDataStore.QuerySagaHistoryById(new System.Net.Http.HttpRequestMessage(), Guid.NewGuid()).ConfigureAwait(false);
+            var sagaHistory = await persistenceDataStoreFixture.AuditDataStore.QuerySagaHistoryById(Guid.NewGuid()).ConfigureAwait(false);
 
             Assert.IsTrue(sagaHistory.Results == null);
 

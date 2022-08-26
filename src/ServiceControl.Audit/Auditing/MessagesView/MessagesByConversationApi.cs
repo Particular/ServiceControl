@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             var pagingInfo = request.GetPagingInfo();
             var sortInfo = request.GetSortInfo();
-            return await DataStore.QueryMessagesByConversationId(request, conversationId, pagingInfo, sortInfo).ConfigureAwait(false);
+            return await DataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo).ConfigureAwait(false);
         }
     }
 }

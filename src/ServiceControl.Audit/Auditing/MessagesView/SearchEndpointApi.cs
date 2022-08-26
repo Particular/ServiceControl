@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             var pagingInfo = request.GetPagingInfo();
             var sortInfo = request.GetSortInfo();
-            return await DataStore.QueryMessagesByReceivingEndpointAndKeyword(request, input, pagingInfo, sortInfo).ConfigureAwait(false);
+            return await DataStore.QueryMessagesByReceivingEndpointAndKeyword(input, pagingInfo, sortInfo).ConfigureAwait(false);
         }
 
         public class Input
