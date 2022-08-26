@@ -26,7 +26,7 @@
             documentStore = store;
         }
 
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(HttpRequestMessage request, Guid input)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -170,7 +170,7 @@
             }
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(HttpRequestMessage request)
+        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
             using (var session = documentStore.OpenAsyncSession())
             {

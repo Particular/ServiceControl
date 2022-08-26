@@ -12,8 +12,8 @@
 
     interface IAuditDataStore
     {
-        Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(HttpRequestMessage request);
-        Task<QueryResult<SagaHistory>> QuerySagaHistoryById(HttpRequestMessage request, Guid input);
+        Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints();
+        Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input);
         Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request);
         Task<QueryResult<IList<MessagesView>>> QueryMessages(HttpRequestMessage request, string searchParam);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input);

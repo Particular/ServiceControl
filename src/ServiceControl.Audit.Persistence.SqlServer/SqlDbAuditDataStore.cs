@@ -61,7 +61,7 @@
             return new QueryResult<IList<MessagesView>>(messagesViews, new QueryStatsInfo(string.Empty, messagesViews.Count));
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(HttpRequestMessage request)
+        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
             var knownEndpoints = new List<KnownEndpointsView>();
 
@@ -173,7 +173,7 @@
         }
 
         public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input) => throw new NotImplementedException();
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(HttpRequestMessage request, Guid input)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
             SagaHistory sagaHistory = default;
 

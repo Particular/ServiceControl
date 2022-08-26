@@ -31,7 +31,7 @@
             failedAuditImprots = new List<FailedAuditImport>();
         }
 
-        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(HttpRequestMessage request, Guid input)
+        public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
             var sagaHistory = sagaHistories.FirstOrDefault(w => w.SagaId == input);
 
@@ -109,7 +109,7 @@
             return await Task.FromResult(response).ConfigureAwait(false);
         }
 
-        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints(HttpRequestMessage request)
+        public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
             var knownEndpointsView = knownEndpoints
                 .Select(x => new KnownEndpointsView
