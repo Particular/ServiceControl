@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -46,7 +47,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
             NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
-            RemoteInstances = GetRemoteInstances();
+            RemoteInstances = GetRemoteInstances().ToArray();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
@@ -476,19 +477,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return result;
         }
 
-        static RemoteInstanceSetting[] GetRemoteInstances()
+        static IList<RemoteInstanceSetting> GetRemoteInstances()
         {
             var valueRead = SettingsReader<string>.Read("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
-                var jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
-                using (var jsonReader = new JsonTextReader(new StringReader(valueRead)))
-                {
-                    return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
-                }
+                return ParseRemoteInstances(valueRead);
             }
 
-            return new RemoteInstanceSetting[0];
+            return Array.Empty<RemoteInstanceSetting>();
+        }
+
+        internal static IList<RemoteInstanceSetting> ParseRemoteInstances(string value)
+        {
+            var jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
+            using (var jsonReader = new JsonTextReader(new StringReader(value)))
+            {
+                return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
+            }
         }
 
         static string Subscope(string address)
