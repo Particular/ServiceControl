@@ -15,11 +15,11 @@
     {
         Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints();
         Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input);
-        Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo);
-        Task<QueryResult<IList<MessagesView>>> QueryMessages(HttpRequestMessage request, string searchParam, PagingInfo pagingInfo);
-        Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input, PagingInfo pagingInfo);
-        Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo);
-        Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(HttpRequestMessage request, string conversationId, PagingInfo pagingInfo);
+        Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<MessagesView>>> QueryMessages(HttpRequestMessage request, string searchParam, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(HttpRequestMessage request, string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
         Task MigrateEndpoints(int pageSize = 1024);
 

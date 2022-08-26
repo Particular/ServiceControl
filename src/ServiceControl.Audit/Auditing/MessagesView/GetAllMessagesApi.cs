@@ -15,7 +15,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request)
         {
             var pagingInfo = request.GetPagingInfo();
-            return await DataStore.GetMessages(request, pagingInfo).ConfigureAwait(false);
+            var sortInfo = request.GetSortInfo();
+            return await DataStore.GetMessages(request, pagingInfo, sortInfo).ConfigureAwait(false);
         }
     }
 }

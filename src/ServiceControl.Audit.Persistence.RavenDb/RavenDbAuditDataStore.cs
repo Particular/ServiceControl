@@ -45,14 +45,14 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(request)
                     .Statistics(out var stats)
-                    .Sort(request)
+                    .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
@@ -62,14 +62,14 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(HttpRequestMessage request, string searchParam, PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(HttpRequestMessage request, string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Search(x => x.Query, searchParam)
-                    .Sort(request)
+                    .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
@@ -79,7 +79,7 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input, PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(HttpRequestMessage request, SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -87,7 +87,7 @@
                     .Statistics(out var stats)
                     .Search(x => x.Query, input.Keyword)
                     .Where(m => m.ReceivingEndpointName == input.Endpoint)
-                    .Sort(request)
+                    .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
@@ -97,7 +97,7 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -105,7 +105,7 @@
                     .IncludeSystemMessagesWhere(request)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Statistics(out var stats)
-                    .Sort(request)
+                    .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
@@ -115,14 +115,14 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(HttpRequestMessage request, string conversationId, PagingInfo pagingInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(HttpRequestMessage request, string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Where(m => m.ConversationId == conversationId)
-                    .Sort(request)
+                    .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
