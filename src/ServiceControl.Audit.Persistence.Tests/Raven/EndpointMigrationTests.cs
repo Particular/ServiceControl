@@ -58,7 +58,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
 
@@ -94,7 +94,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
@@ -130,7 +130,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
 
@@ -171,7 +171,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
 
@@ -221,7 +221,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
 
@@ -260,7 +260,7 @@
 
             persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.AuditDataStore);
+            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
 
             await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
 
