@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence;
 
     class SearchEndpointApi : ApiBase<SearchEndpointApi.Input, IList<MessagesView>>
@@ -13,7 +14,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, Input input)
         {
-            return await DataStore.QueryMessagesByReceivingEndpointAndKeyword(request, input).ConfigureAwait(false);
+            var pagingInfo = request.GetPagingInfo();
+            return await DataStore.QueryMessagesByReceivingEndpointAndKeyword(request, input, pagingInfo).ConfigureAwait(false);
         }
 
         public class Input

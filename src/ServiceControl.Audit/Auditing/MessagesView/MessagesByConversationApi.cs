@@ -3,6 +3,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure;
     using ServiceControl.Audit.Persistence;
 
     class MessagesByConversationApi : ApiBase<string, IList<MessagesView>>
@@ -13,7 +14,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         protected override async Task<QueryResult<IList<MessagesView>>> Query(HttpRequestMessage request, string conversationId)
         {
-            return await DataStore.QueryMessagesByConversationId(request, conversationId).ConfigureAwait(false);
+            var pagingInfo = request.GetPagingInfo();
+            return await DataStore.QueryMessagesByConversationId(request, conversationId, pagingInfo).ConfigureAwait(false);
         }
     }
 }
