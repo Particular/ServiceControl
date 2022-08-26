@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Monitoring
 
         protected override async Task<QueryResult<IList<KnownEndpointsView>>> Query(HttpRequestMessage request)
         {
-            return await DataStore.QueryKnownEndpoints(request).ConfigureAwait(false);
+            return await DataStore.QueryKnownEndpoints().ConfigureAwait(false);
         }
     }
 }

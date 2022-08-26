@@ -15,7 +15,7 @@ namespace ServiceControl.Audit.SagaAudit
 
         protected override async Task<QueryResult<SagaHistory>> Query(HttpRequestMessage request, Guid input)
         {
-            return await DataStore.QuerySagaHistoryById(request, input).ConfigureAwait(false);
+            return await DataStore.QuerySagaHistoryById(input).ConfigureAwait(false);
         }
     }
 }
