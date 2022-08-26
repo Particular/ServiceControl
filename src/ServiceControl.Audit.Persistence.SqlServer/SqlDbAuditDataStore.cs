@@ -23,7 +23,7 @@
             this.connectionManager = connectionManager;
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             var messagesViews = new List<MessagesView>();
 
@@ -129,7 +129,7 @@
             return new QueryResult<IList<MessagesView>>(messagesViews, new QueryStatsInfo(string.Empty, messagesViews.Count));
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             var messagesViews = new List<MessagesView>();
 

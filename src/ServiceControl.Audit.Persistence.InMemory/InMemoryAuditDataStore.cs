@@ -43,7 +43,7 @@
             return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1))).ConfigureAwait(false);
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(messageViews, new QueryStatsInfo(string.Empty, messageViews.Count))).ConfigureAwait(false);
         }
@@ -61,7 +61,7 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpointName).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);

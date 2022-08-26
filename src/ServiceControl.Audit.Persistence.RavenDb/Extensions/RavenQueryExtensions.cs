@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq.Expressions;
-    using System.Net.Http;
     using Audit.Auditing.MessagesView;
     using Infrastructure;
     using Raven.Client.Linq;
@@ -10,10 +9,8 @@
     static class RavenQueryExtensions
     {
         public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
-            this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, HttpRequestMessage request)
+            this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, bool includeSystemMessages)
         {
-            var includeSystemMessages = request.GetQueryStringValue("include_system_messages", false);
-
             if (!includeSystemMessages)
             {
                 return source.Where(m => !m.IsSystemMessage);

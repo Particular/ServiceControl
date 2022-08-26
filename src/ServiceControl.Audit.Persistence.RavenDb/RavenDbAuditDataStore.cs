@@ -45,12 +45,12 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetMessages(HttpRequestMessage request, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(request)
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
@@ -97,12 +97,12 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(HttpRequestMessage request, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(request)
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Statistics(out var stats)
                     .Sort(sortInfo)
