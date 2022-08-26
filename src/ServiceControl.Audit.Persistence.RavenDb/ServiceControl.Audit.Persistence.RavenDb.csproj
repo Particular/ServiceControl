@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.3.0" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="ServiceControl.Contracts" Version="3.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
