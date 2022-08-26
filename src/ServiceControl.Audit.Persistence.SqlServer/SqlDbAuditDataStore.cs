@@ -211,8 +211,6 @@
 
         public Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId) => throw new NotImplementedException();
 
-        public Task MigrateEndpoints(int pageSize = 1024) => throw new NotImplementedException();
-
         public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage) => throw new NotImplementedException();
 
         public Task SaveFailedAuditImport(FailedAuditImport message) => throw new NotImplementedException();

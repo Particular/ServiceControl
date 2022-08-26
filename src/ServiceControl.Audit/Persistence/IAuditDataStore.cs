@@ -21,8 +21,6 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
-        Task MigrateEndpoints(int pageSize = 1024);
-
         Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage);
         Task SaveFailedAuditImport(FailedAuditImport message);
     }

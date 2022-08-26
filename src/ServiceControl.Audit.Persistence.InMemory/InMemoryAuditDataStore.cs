@@ -128,8 +128,6 @@
             return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count))).ConfigureAwait(false);
         }
 
-        public Task MigrateEndpoints(int pageSize = 1024) => throw new NotImplementedException();
-
         public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
         {
             if (failedAuditImprots.Count > 0)
