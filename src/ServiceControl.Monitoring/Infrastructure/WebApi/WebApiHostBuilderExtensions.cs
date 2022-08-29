@@ -13,27 +13,19 @@
     {
         public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder, string rootUrl, bool startOwinHost)
         {
-            hostBuilder.ConfigureServices(services =>
+            hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
-                RegisterInternalWebApiControllers(services);
-                services.AddHostedService(sp =>
-                {
-                    var startup = new Startup(sp);
-                    return new WebApiHostedService(rootUrl, startup);
-                });
-            });
+                RegisterInternalWebApiControllers(serviceCollection);
 
-            if (startOwinHost)
-            {
-                hostBuilder.ConfigureServices((ctx, serviceCollection) =>
+                if (startOwinHost)
                 {
                     serviceCollection.AddHostedService(sp =>
                     {
                         var startup = new Startup(sp);
                         return new WebApiHostedService(rootUrl, startup);
                     });
-                });
-            }
+                }
+            });
 
             return hostBuilder;
         }
