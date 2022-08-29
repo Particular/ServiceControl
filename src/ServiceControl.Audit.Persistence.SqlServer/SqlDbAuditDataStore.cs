@@ -50,6 +50,7 @@
                         ProcessingTime = row.ProcessingTime,
                         Status = row.Status,
                         TimeSent = row.TimeSent
+                        //TODO
                         //Headers = row.Headers,
                         //InvokedSagas = row.InvokedSagas,
                         //OriginatesFromSaga = row.OriginatesFromSaga,
@@ -76,6 +77,7 @@
                     {
                         Id = row.Id,
                         HostDisplayName = row.HostDisplayName
+                        //TODO
                         //EndpointDetails = row.EndpointDetails
                     });
                 }
@@ -117,6 +119,7 @@
                         ProcessingTime = row.ProcessingTime,
                         Status = row.Status,
                         TimeSent = row.TimeSent
+                        //TODO
                         //Headers = row.Headers,
                         //InvokedSagas = row.InvokedSagas,
                         //OriginatesFromSaga = row.OriginatesFromSaga,
@@ -161,6 +164,7 @@
                         ProcessingTime = row.ProcessingTime,
                         Status = row.Status,
                         TimeSent = row.TimeSent
+                        //TODO
                         //Headers = row.Headers,
                         //InvokedSagas = row.InvokedSagas,
                         //OriginatesFromSaga = row.OriginatesFromSaga,
@@ -194,6 +198,7 @@
                         Id = rows.AsList()[0].Id,
                         SagaId = rows.AsList()[0].SagaId,
                         SagaType = rows.AsList()[0].SagaType,
+                        //TODO
                         //Changes = rows.AsList()[0].Changes
                     };
                 }

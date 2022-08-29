@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Auditing.MessagesView
+namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
 {
     using System;
     using System.Collections.Generic;

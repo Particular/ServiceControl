@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Auditing.MessagesView
+namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
 {
     using System;
     using System.Linq;
@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Monitoring;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Audit.Auditing;
 
     public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {

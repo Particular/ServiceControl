@@ -2,9 +2,9 @@
 {
     using System;
     using System.Linq.Expressions;
-    using Audit.Auditing.MessagesView;
     using Infrastructure;
     using Raven.Client.Linq;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
 
     static class RavenQueryExtensions
     {

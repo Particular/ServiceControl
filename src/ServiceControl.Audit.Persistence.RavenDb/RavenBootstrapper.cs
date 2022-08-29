@@ -91,7 +91,7 @@
 
         public static Assembly[] IndexAssemblies =
         {
-            typeof(RavenBootstrapper).Assembly, typeof(SagaSnapshot).Assembly, typeof(Auditing.FailedAuditImportIndex).Assembly
+            typeof(RavenBootstrapper).Assembly, typeof(SagaSnapshot).Assembly
         };
     }
 }

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Auditing;
     using Raven.Client;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
 
     class RavenDbFailedAuditStorage : IFailedAuditStorage
     {

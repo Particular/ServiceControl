@@ -8,6 +8,7 @@
     using Audit.Auditing;
     using Infrastructure.WebApi;
     using Raven.Client;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
 
     class FailedAuditsController : ApiController
     {

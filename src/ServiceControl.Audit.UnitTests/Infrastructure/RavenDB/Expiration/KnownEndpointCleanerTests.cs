@@ -6,6 +6,7 @@
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Document;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDB.Expiration;
 
     [TestFixture]

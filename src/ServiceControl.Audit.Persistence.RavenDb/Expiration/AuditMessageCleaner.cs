@@ -12,6 +12,7 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using Raven.Json.Linq;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Infrastructure.RavenDB;
 
     static class AuditMessageCleaner

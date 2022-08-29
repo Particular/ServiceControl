@@ -32,7 +32,6 @@
             var sagaHistory = await persistenceDataStoreFixture.AuditDataStore.QuerySagaHistoryById(Guid.NewGuid()).ConfigureAwait(false);
 
             Assert.IsTrue(sagaHistory.Results == null);
-
         }
     }
 }

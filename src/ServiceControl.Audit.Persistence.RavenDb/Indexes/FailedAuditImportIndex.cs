@@ -1,7 +1,8 @@
-namespace ServiceControl.Audit.Auditing
+namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
 {
     using System.Linq;
     using Raven.Client.Indexes;
+    using ServiceControl.Audit.Auditing;
 
     public class FailedAuditImportIndex : AbstractIndexCreationTask<FailedAuditImport>
     {

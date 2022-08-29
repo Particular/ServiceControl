@@ -11,6 +11,7 @@
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Database;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Infrastructure.RavenDB;
 
     static class KnownEndpointsCleaner

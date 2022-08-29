@@ -17,6 +17,8 @@
     using NServiceBus.Logging;
     using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.Audit.Persistence.RavenDb.Transformers;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
