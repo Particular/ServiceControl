@@ -1,12 +1,14 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using Microsoft.Extensions.DependencyInjection;
+    using Persistence.UnitOfWork;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Infrastructure.Migration;
     using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDB;
+    using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -35,6 +37,8 @@
 
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
+            serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
 
             serviceCollection.Configure<RavenStartup>(database =>
             {
