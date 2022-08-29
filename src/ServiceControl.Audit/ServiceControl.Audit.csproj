@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="NServiceBus.Extensions.DependencyInjection" Version="1.0.1" />
