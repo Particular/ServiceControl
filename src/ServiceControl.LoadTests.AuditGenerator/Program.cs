@@ -55,11 +55,11 @@
                 ("f|Fill the sender queue. Syntax: f <number of messages> <number of tasks> <destination>",
                     (ct, args) => Fill(args, Dispatcher)),
                 ("s|Start sending messages to the queue. Syntax: s <number of tasks> <destination>",
-                    (ct, args) => FullSpeedSend(args, ct, Dispatcher)),
+                    (ct, args) => FullSpeedSend(args, Dispatcher, ct)),
                 ("t|Throttled sending that keeps the receiver queue size at n. Syntax: t <number of msgs> <destination>",
-                    (ct, args) => ConstantQueueLengthSend(args, ct, Dispatcher, queueLengthProvider)),
+                    (ct, args) => ConstantQueueLengthSend(args, Dispatcher, queueLengthProvider, ct)),
                 ("c|Constant-throughput sending. Syntax: c <number of msgs per second> <destination>",
-                    (ct, args) => ConstantThroughputSend(args, ct, Dispatcher))
+                    (ct, args) => ConstantThroughputSend(args, Dispatcher, ct))
             };
 
             await queueLengthProvider.Start();
@@ -191,7 +191,7 @@
             });
         }
 
-        static async Task FullSpeedSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher)
+        static async Task FullSpeedSend(string[] args, IDispatchMessages dispatcher, CancellationToken ct)
         {
             var numberOfTasks = args.Length > 0 ? int.Parse(args[0]) : 5;
             var destination = args.Length > 1 ? args[1] : DefaultDestination;
@@ -208,7 +208,7 @@
             await Task.WhenAll(tasks);
         }
 
-        static async Task ConstantQueueLengthSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher, IProvideQueueLength queueLengthProvider)
+        static async Task ConstantQueueLengthSend(string[] args, IDispatchMessages dispatcher, IProvideQueueLength queueLengthProvider, CancellationToken ct)
         {
             var maxSenderCount = 20;
             var taskBarriers = new int[maxSenderCount];
@@ -292,7 +292,7 @@
             await Task.WhenAll(new List<Task>(senders) { monitor });
         }
 
-        static async Task ConstantThroughputSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher)
+        static async Task ConstantThroughputSend(string[] args, IDispatchMessages dispatcher, CancellationToken ct)
         {
             var messagesPerSecond = int.Parse(args[0]);
             var destination = args.Length > 1 ? args[1] : DefaultDestination;
