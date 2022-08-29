@@ -49,7 +49,7 @@
                     }
                     catch (Exception ex)
                     {
-                        Log.Warn("Problem getting learning transport queue length", ex);
+                        Log.Warn("Problem getting msmq queue length", ex);
                     }
                 }
             });
