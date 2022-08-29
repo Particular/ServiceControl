@@ -1,115 +1,397 @@
 ﻿namespace ServiceControl.LoadTests.AuditGenerator
 {
     using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messages;
-    using Metrics;
     using NServiceBus;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Features;
+    using NServiceBus.Routing;
     using NServiceBus.Support;
+    using NServiceBus.Transport;
+    using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
     class Program
     {
-        const string ConfigRoot = "AuditGenerator";
+        public static readonly string HostId = Guid.NewGuid().ToString();
 
-        static void Main()
+        public static IDispatchMessages Dispatcher { get; set; }
+
+        static async Task Main(string[] commandLineArgs)
         {
-            Start().GetAwaiter().GetResult();
-        }
+            bodySize = int.Parse(commandLineArgs[0]);
+            var transportCustomizationName = commandLineArgs.Length > 1
+                ? commandLineArgs[1]
+                : QueueLengthProviderMsmqTransportCustomizationName;
 
-        static async Task Start()
-        {
-            Metric.Config.WithReporting(r =>
+            var connectionString = commandLineArgs.Length > 2 ? commandLineArgs[2] : null;
+
+            var transportCustomization = (TransportCustomization)Activator.CreateInstance(Type.GetType(transportCustomizationName, true));
+            var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
+            queueLengthProvider.Initialize(connectionString, CacheQueueLength);
+
+            var configuration = new EndpointConfiguration("AuditGenerator");
+            configuration.EnableFeature<MyDispatchHackFeature>();
+            configuration.SendOnly();
+            configuration.UseTransport<MsmqTransport>();
+            configuration.UsePersistence<InMemoryPersistence>();
+            configuration.EnableInstallers();
+
+            GenerateLayouts();
+
+            var metrics = new Metrics();
+            reporter = new MetricsReporter(metrics, Console.WriteLine, TimeSpan.FromSeconds(2));
+            counter = metrics.GetCounter("Messages sent");
+
+            var endpoint = await Endpoint.Start(configuration);
+
+            var commands = new (string, Func<CancellationToken, string[], Task>)[]
             {
-                r.WithCSVReports(".", TimeSpan.FromSeconds(5));
-            });
-
-            var customizationTypeName = SettingsReader<string>.Read(ConfigRoot, "TransportCustomization", null);
-
-            var minLength = SettingsReader<int>.Read(ConfigRoot, "MinLength", 10000);
-            var maxLength = SettingsReader<int>.Read(ConfigRoot, "MaxLength", 20000);
-            var endpointName = SettingsReader<string>.Read(ConfigRoot, "EndpointName", "AuditGen");
-            var connectionString = SettingsReader<string>.Read(ConfigRoot, "TransportConnectionString", "");
-
-            HostId = Guid.NewGuid().ToString("N");
-
-            var config = new EndpointConfiguration(endpointName);
-            config.AssemblyScanner().ExcludeAssemblies("ServiceControl");
-            config.UseSerialization<NewtonsoftJsonSerializer>();
-
-            var customization = (TransportCustomization)Activator.CreateInstance(Type.GetType(customizationTypeName, true));
-            var transportSettings = new TransportSettings
-            {
-                ConnectionString = connectionString
+                ("f|Fill the sender queue. Syntax: f <number of messages> <number of tasks> <destination>",
+                    (ct, args) => Fill(args, Dispatcher)),
+                ("s|Start sending messages to the queue. Syntax: s <number of tasks> <destination>",
+                    (ct, args) => FullSpeedSend(args, ct, Dispatcher)),
+                ("t|Throttled sending that keeps the receiver queue size at n. Syntax: t <number of msgs> <destination>",
+                    (ct, args) => ConstantQueueLengthSend(args, ct, Dispatcher, queueLengthProvider)),
+                ("c|Constant-throughput sending. Syntax: c <number of msgs per second> <destination>",
+                    (ct, args) => ConstantThroughputSend(args, ct, Dispatcher))
             };
-            customization.CustomizeSendOnlyEndpoint(config, transportSettings);
 
-            config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("error");
-            config.EnableInstallers();
-            config.RegisterComponents(c => c.RegisterSingleton(new LoadGenerators(GenerateMessages, minLength, maxLength)));
+            await queueLengthProvider.Start();
 
-            endpointInstance = await Endpoint.Start(config);
+            await Run(commands);
 
-            Console.ReadLine();
+            await queueLengthProvider.Stop();
         }
 
-
-        static async Task GenerateMessages(string destination, QueueInfo queueInfo, CancellationToken cancellationToken)
+        class MyDispatchHackFeature : Feature
         {
-            var throttle = new SemaphoreSlim(SettingsReader<int>.Read(ConfigRoot, "ConcurrentSends", 32));
-            var bodySize = SettingsReader<int>.Read(ConfigRoot, "BodySize", 0);
-
-            var random = new Random();
-
-            var sendMeter = Metric.Meter(destination, Unit.Custom("audits"));
-
-            while (!cancellationToken.IsCancellationRequested)
+            protected override void Setup(FeatureConfigurationContext context)
             {
-                await throttle.WaitAsync(cancellationToken).ConfigureAwait(false);
-                // We don't need to wait for this task
-                var sendTask = Task.Run(async () =>
+                context.Container.ConfigureComponent<DispatcherHackStartupTask>(DependencyLifecycle.SingleInstance);
+                context.RegisterStartupTask(b => b.Build<DispatcherHackStartupTask>());
+            }
+
+            class DispatcherHackStartupTask : FeatureStartupTask
+            {
+                public DispatcherHackStartupTask(IDispatchMessages dispatchMessages)
                 {
-                    try
-                    {
-                        var ops = new SendOptions();
+                    Dispatcher = dispatchMessages;
+                }
 
-                        ops.SetHeader(Headers.HostId, HostId);
-                        ops.SetHeader(Headers.HostDisplayName, "Load Generator");
+                protected override Task OnStart(IMessageSession session)
+                {
+                    return Task.CompletedTask;
+                }
 
-                        ops.SetHeader(Headers.ProcessingMachine, RuntimeEnvironment.MachineName);
-                        ops.SetHeader(Headers.ProcessingEndpoint, "LoadGenerator");
-
-                        var now = DateTime.UtcNow;
-                        ops.SetHeader(Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(now));
-                        ops.SetHeader(Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(now));
-
-                        ops.SetDestination(destination);
-
-                        var auditMessage = new AuditMessage
-                        {
-                            Data = new byte[bodySize]
-                        };
-                        random.NextBytes(auditMessage.Data);
-
-                        await endpointInstance.Send(auditMessage, ops).ConfigureAwait(false);
-                        queueInfo.Sent();
-                        sendMeter.Mark();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                    finally
-                    {
-                        throttle.Release();
-                    }
-                }, cancellationToken);
+                protected override Task OnStop(IMessageSession session)
+                {
+                    return Task.CompletedTask;
+                }
             }
         }
 
-        static IEndpointInstance endpointInstance;
-        public static string HostId;
+        static void GenerateLayouts()
+        {
+            var random = new Random();
+            for (var i = 0; i < numberOfLayouts; i++)
+            {
+                var messageTypeName = RandomString(MessageTypeNameAndValueLength, random).FirstCharToUpper();
+                var messageTypeNameLength = Encoding.UTF8.GetBytes(messageTypeName).Length;
+                var layoutBuilder = new StringBuilder();
+                layoutBuilder.AppendLine();
+                var propertyPositionPlaceHolder = 0;
+                for (var j = 1; j < bodySize; j++)
+                {
+                    var propertyName = RandomString(random.Next(10, 30), random).FirstCharToUpper();
+                    layoutBuilder.AppendLine(
+                        $"   <{propertyName}>{{{propertyPositionPlaceHolder}}}</{propertyName}>");
+                    propertyPositionPlaceHolder++;
+
+                    var intermediateLayout = MessageBaseLayout.Replace("__MESSAGETYPENAME__", messageTypeName)
+                        .Replace("__CONTENT__", layoutBuilder.ToString());
+                    // saving 20 chars per property
+                    if ((Encoding.UTF8.GetBytes(intermediateLayout).Length + (i * messageTypeNameLength)) >= bodySize)
+                    {
+                        MessageBaseLayouts.Add((intermediateLayout, propertyPositionPlaceHolder));
+                        break;
+                    }
+                }
+            }
+        }
+
+        public static string RandomString(int length, Random random)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Range(1, length).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        }
+
+        static void CacheQueueLength(QueueLengthEntry[] values, EndpointToQueueMapping queueAndEndpointName)
+        {
+            var newValue = (int)values.OrderBy(x => x.DateTicks).Last().Value;
+            QueueLengths.AddOrUpdate(queueAndEndpointName.InputQueue, newValue, (queue, oldValue) => newValue);
+        }
+
+        static async Task Fill(string[] args, IDispatchMessages dispatchMessages)
+        {
+            var totalMessages = args.Length > 0 ? int.Parse(args[0]) : 1000;
+            var numberOfTasks = args.Length > 1 ? int.Parse(args[1]) : 5;
+            var destination = args.Length > 2 ? args[2] : DefaultDestination;
+
+            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
+            {
+                var random = new Random(Environment.TickCount + taskId);
+                for (var i = 0; i < totalMessages / numberOfTasks; i++)
+                {
+                    await SendAuditMessage(dispatchMessages, destination, random).ConfigureAwait(false);
+                }
+            }).ToArray();
+
+            await Task.WhenAll(tasks);
+        }
+
+        static Task SendAuditMessage(IDispatchMessages dispatcher, string destination, Random random)
+        {
+            // because MSMQ is essentially synchronous
+            return Task.Run(async () =>
+            {
+                var now = DateTime.UtcNow;
+
+                var headers = new Dictionary<string, string>
+                {
+                    [Headers.ContentType] = "application/xml",
+                    [Headers.HostId] = HostId,
+                    [Headers.HostDisplayName] = "Load Generator",
+                    [Headers.ProcessingMachine] = RuntimeEnvironment.MachineName,
+                    [Headers.ProcessingEndpoint] = $"LoadGenerator{random.Next(1, numberOfEndpoints)}",
+                    [Headers.ProcessingStarted] = DateTimeExtensions.ToWireFormattedString(now),
+                    [Headers.ProcessingEnded] = DateTimeExtensions.ToWireFormattedString(now.AddMilliseconds(random.Next(10, 100))),
+                };
+
+                var layoutIndex = random.Next(0, numberOfLayouts);
+                var (layout, numberOfProperties) = MessageBaseLayouts[layoutIndex];
+                var propertyValues = new List<object>(numberOfProperties);
+                for (var i = 0; i < numberOfProperties; i++)
+                {
+                    propertyValues.Add(RandomString(MessageTypeNameAndValueLength, random));
+                }
+
+                var transportOperation = new TransportOperation(
+                    new OutgoingMessage(Guid.NewGuid().ToString(), headers,
+                        Encoding.UTF8.GetBytes(string.Format(layout, propertyValues.ToArray()))),
+                    new UnicastAddressTag(destination), DispatchConsistency.Isolated);
+
+                await dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), new ContextBag());
+                counter.Mark();
+            });
+        }
+
+        static async Task FullSpeedSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher)
+        {
+            var numberOfTasks = args.Length > 0 ? int.Parse(args[0]) : 5;
+            var destination = args.Length > 1 ? args[1] : DefaultDestination;
+
+            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
+            {
+                var random = new Random(Environment.TickCount + taskId);
+                while (ct.IsCancellationRequested == false)
+                {
+                    await SendAuditMessage(dispatcher, destination, random).ConfigureAwait(false);
+                }
+            }).ToArray();
+
+            await Task.WhenAll(tasks);
+        }
+
+        static async Task ConstantQueueLengthSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher, IProvideQueueLength queueLengthProvider)
+        {
+            var maxSenderCount = 20;
+            var taskBarriers = new int[maxSenderCount];
+
+            var numberOfMessages = int.Parse(args[0]);
+            var destination = args.Length > 1 ? args[1] : DefaultDestination;
+
+            queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(destination, destination));
+
+            var monitor = Task.Run(async () =>
+            {
+                var nextTask = 0;
+
+                while (ct.IsCancellationRequested == false)
+                {
+                    try
+                    {
+                        if (!QueueLengths.TryGetValue(destination, out var queueLength))
+                        {
+                            queueLength = 0;
+                        }
+
+                        Console.WriteLine($"Current queue length: {queueLength}");
+
+                        var delta = numberOfMessages - queueLength;
+
+                        if (delta > 0)
+                        {
+                            Interlocked.Exchange(ref taskBarriers[nextTask], 1);
+
+                            nextTask = Math.Min(taskBarriers.Length, nextTask + 1);
+                        }
+                        else
+                        {
+                            nextTask = Math.Max(0, nextTask - 1);
+
+                            Interlocked.Exchange(ref taskBarriers[nextTask], 0);
+                        }
+
+                        await Task.Delay(TimeSpan.FromSeconds(2), ct);
+                    }
+                    catch
+                    {
+                        if (ct.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }, ct);
+
+
+            var senders = Enumerable.Range(0, taskBarriers.Length - 1).Select(async taskNo =>
+            {
+                var random = new Random(Environment.TickCount + taskNo);
+                while (ct.IsCancellationRequested == false)
+                {
+                    try
+                    {
+                        var allowed = Interlocked.CompareExchange(ref taskBarriers[taskNo], 1, 1);
+
+                        if (allowed == 1)
+                        {
+                            await SendAuditMessage(dispatcher, destination, random).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(1), ct);
+                        }
+                    }
+                    catch
+                    {
+                        if (ct.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }).ToArray();
+
+            await Task.WhenAll(new List<Task>(senders) { monitor });
+        }
+
+        static async Task ConstantThroughputSend(string[] args, CancellationToken ct, IDispatchMessages dispatcher)
+        {
+            var messagesPerSecond = int.Parse(args[0]);
+            var destination = args.Length > 1 ? args[1] : DefaultDestination;
+
+            var senders = Enumerable.Range(0, messagesPerSecond).Select(async taskNo =>
+            {
+                var random = new Random(Environment.TickCount + taskNo);
+                while (ct.IsCancellationRequested == false)
+                {
+                    try
+                    {
+                        var sendAuditMessage = SendAuditMessage(dispatcher, destination, random);
+                        var delay = Task.Delay(1000, ct);
+                        var resultTask = await Task.WhenAny(sendAuditMessage, delay);
+                        if (resultTask == sendAuditMessage)
+                        {
+                            await delay;
+                        }
+                    }
+                    catch
+                    {
+                        if (ct.IsCancellationRequested)
+                        {
+                            return;
+                        }
+                        throw;
+                    }
+                }
+            }).ToArray();
+
+            await Task.WhenAll(senders);
+        }
+
+        static async Task Run((string, Func<CancellationToken, string[], Task>)[] commands)
+        {
+            Console.WriteLine("Select command:");
+            commands.Select(i => i.Item1).ToList().ForEach(Console.WriteLine);
+
+            while (true)
+            {
+                var commandLine = Console.ReadLine();
+                if (commandLine == null)
+                {
+                    continue;
+                }
+
+                var parts = commandLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var key = parts.First().ToLowerInvariant();
+                var arguments = parts.Skip(1).ToArray();
+
+                var match = commands.Where(c => c.Item1.StartsWith(key)).ToArray();
+
+                if (match.Any())
+                {
+                    var command = match.First();
+
+                    Console.WriteLine($"\nExecuting: {command.Item1.Split('|')[1]}");
+
+                    reporter.Start();
+
+                    using (var ctSource = new CancellationTokenSource())
+                    {
+                        var task = command.Item2(ctSource.Token, arguments);
+
+                        while (ctSource.IsCancellationRequested == false && task.IsCompleted == false)
+                        {
+                            if (Console.KeyAvailable && Console.ReadKey().Key == ConsoleKey.Enter)
+                            {
+                                ctSource.Cancel();
+                                break;
+                            }
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(500), ctSource.Token);
+                        }
+
+                        await task;
+                    }
+
+                    await reporter.Stop();
+
+                    Console.WriteLine("Done");
+                }
+            }
+        }
+
+        static readonly string QueueLengthProviderMsmqTransportCustomizationName = typeof(MsmqTransportCustomizationWithQueueLengthProvider).AssemblyQualifiedName;
+        const string DefaultDestination = "audit";
+        const int MessageTypeNameAndValueLength = 20;
+        static readonly ConcurrentDictionary<string, int> QueueLengths = new ConcurrentDictionary<string, int>();
+        static int bodySize;
+        static Counter counter;
+        static MetricsReporter reporter;
+        static int numberOfLayouts = 200;
+        static int numberOfEndpoints = 40;
+
+        static readonly string MessageBaseLayout =
+            @"<__MESSAGETYPENAME__ xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://tempuri.net/NServiceBus.Serializers.XML.Test"">__CONTENT__</__MESSAGETYPENAME__>";
+
+        static readonly List<(string layout, int numberOfProperties)> MessageBaseLayouts = new List<(string layout, int numberOfProperties)>();
+
     }
 }
