@@ -1,20 +1,15 @@
 namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading.Tasks;
-    using Auditing.BodyStorage;
-    using Auditing.BodyStorage.RavenAttachments;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using RavenDB;
     using LicenseManagement;
     using Microsoft.Extensions.DependencyInjection;
     using Settings;
     using Transports;
+    using ServiceControl.Audit.Persistence;
 
     class SetupBootstrapper
     {
@@ -83,36 +78,19 @@ namespace ServiceControl.Audit.Infrastructure
 
             var loggingSettings = new LoggingSettings(settings.ServiceName);
 
-            using (var documentStore = new EmbeddableDocumentStore())
-            {
-                RavenBootstrapper.Configure(documentStore, settings);
+            // externally managed container mode doesn't run the installers!
+            var containerSettings = configuration.UseContainer(new DefaultServiceProviderFactory());
+            var containerBuilder = containerSettings.ServiceCollection;
+            containerBuilder.AddSingleton(transportSettings);
+            containerBuilder.AddSingleton(loggingSettings);
+            containerBuilder.AddSingleton(settings);
+            containerBuilder.AddServiceControlAuditPersistence(settings, isSetup: true);
 
-                // externally managed container mode doesn't run the installers!
-                var containerSettings = configuration.UseContainer(new DefaultServiceProviderFactory());
-                var containerBuilder = containerSettings.ServiceCollection;
-                containerBuilder.AddSingleton(transportSettings);
-                containerBuilder.AddSingleton(loggingSettings);
-                containerBuilder.AddSingleton(typeof(IDocumentStore), documentStore);
-                containerBuilder.AddSingleton(settings);
-                containerBuilder.AddTransient<IDataMigration, MigrateKnownEndpoints>();
-                containerBuilder.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
+                ctx => { }, configuration, false);
 
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                    ctx => { }, configuration, false);
-
-                await Endpoint.Create(configuration)
-                    .ConfigureAwait(false);
-
-
-                var ravenOptions = new RavenStartup();
-                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                {
-                    ravenOptions.AddIndexAssembly(indexAssembly);
-                }
-
-                var service = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
-                await service.SetupDatabase().ConfigureAwait(false);
-            }
+            await Endpoint.Create(configuration)
+                .ConfigureAwait(false);
         }
 
         bool ValidateLicense(Settings.Settings settings)

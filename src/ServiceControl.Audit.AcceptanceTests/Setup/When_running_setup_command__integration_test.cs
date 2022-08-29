@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Setup
 {
-    using System;
     using NUnit.Framework;
     using System.Diagnostics;
     using System.IO;
@@ -55,10 +54,16 @@
         public void Setup()
         {
             var transportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            var dataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
 #if !DEBUG
-            if (transportIntegration.Name.Equals("SQL Server", StringComparison.InvariantCultureIgnoreCase) == false)
+            if (transportIntegration.Name.Equals("SQL Server", System.StringComparison.InvariantCultureIgnoreCase) == false)
             {
                 Assert.Inconclusive($"This test is meant to run for SQL Server transport only therefore skipping this test when running tests for '{transportIntegration.Name}'");
+                return;
+            }
+            if (dataStoreConfiguration.DataStoreTypeName != nameof(Infrastructure.Settings.DataStoreType.RavenDb))
+            {
+                Assert.Inconclusive($"This test requires RavenDb persistence hence skipping it for persistence '{dataStoreConfiguration.DataStoreTypeName}'");
                 return;
             }
 #endif

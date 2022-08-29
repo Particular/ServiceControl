@@ -2,12 +2,15 @@ namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Configuration;
+    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Dapper;
     using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -39,7 +42,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -60,6 +63,12 @@ namespace ServiceControl.Audit.AcceptanceTests
             Trace.Listeners.Add(textWriterTraceListener);
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
+
+            if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
+            {
+                await ResetSqlDb(DataStoreConfiguration.ConnectionString).ConfigureAwait(false);
+            }
 
             var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
             if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
@@ -67,8 +76,15 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
+            var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
+            if (!shouldBeRunOnAllDataStores && DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDb))
+            {
+                Assert.Inconclusive($"Not flagged with [RunOnAllDataStores] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
+            }
+
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
+            TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -80,6 +96,19 @@ namespace ServiceControl.Audit.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
+        }
+
+        async Task ResetSqlDb(string connectionString)
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var dropConstraints = "EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT all'";
+                var dropTables = "EXEC sp_msforeachtable 'DROP TABLE ?'";
+
+                await connection.OpenAsync().ConfigureAwait(false);
+                await connection.ExecuteAsync(dropConstraints).ConfigureAwait(false);
+                await connection.ExecuteAsync(dropTables).ConfigureAwait(false);
+            }
         }
 
         static void RemoveOtherTransportAssemblies(string name)
@@ -110,6 +139,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
         protected ITransportIntegration TransportIntegration;
+        protected DataStoreConfiguration DataStoreConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

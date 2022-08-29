@@ -2,8 +2,6 @@ namespace ServiceControl.Persistence.SqlServer
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Contracts.CustomChecks;

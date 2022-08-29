@@ -13,7 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Persistence.UnitOfWork;
     using Recoverability;
     using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
@@ -25,7 +25,7 @@
         public AuditIngestor(
             Metrics metrics,
             Settings settings,
-            IDocumentStore documentStore,
+            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IBodyStorage bodyStorage,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
@@ -51,7 +51,7 @@
             }.Concat(auditEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            auditPersister = new AuditPersister(documentStore, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
+            auditPersister = new AuditPersister(unitOfWorkFactory, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
         }
 
         public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)

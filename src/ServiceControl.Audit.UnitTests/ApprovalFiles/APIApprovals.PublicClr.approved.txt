@@ -1,4 +1,8 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.AcceptanceTests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.InMemory")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.RavenDb")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.SqlServer")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
@@ -10,10 +14,6 @@ namespace ServiceControl.Audit.Auditing
         public FailedAuditImport() { }
         public System.Guid Id { get; set; }
         public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
-    }
-    public class FailedAuditImportIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.FailedAuditImport>
-    {
-        public FailedAuditImportIndex() { }
     }
     public class FailedTransportMessage
     {
@@ -60,61 +60,21 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
         public System.DateTime? TimeSent { get; set; }
     }
-    public class MessagesViewIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit.Auditing.MessagesView.MessagesViewIndex.SortAndFilterOptions>
-    {
-        public MessagesViewIndex() { }
-        public class SortAndFilterOptions
-        {
-            public SortAndFilterOptions() { }
-            public string ConversationId { get; set; }
-            public System.TimeSpan? CriticalTime { get; set; }
-            public System.TimeSpan? DeliveryTime { get; set; }
-            public bool IsSystemMessage { get; set; }
-            public string MessageId { get; set; }
-            public string MessageType { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public System.TimeSpan? ProcessingTime { get; set; }
-            public string[] Query { get; set; }
-            public string ReceivingEndpointName { get; set; }
-            public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
-            public System.DateTime TimeSent { get; set; }
-        }
-    }
-    public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.Audit.Auditing.MessagesView.MessagesViewTransformer.Result>
-    {
-        public MessagesViewTransformer() { }
-        public class Result
-        {
-            public Result() { }
-            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-            public string Id { get; set; }
-            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public string UniqueMessageId { get; set; }
-        }
-    }
-}
-namespace ServiceControl.Audit.Infrastructure.RavenDB.Expiration
-{
-    [System.ComponentModel.Composition.ExportMetadata("Bundle", "customDocumentExpiration")]
-    [System.ComponentModel.Composition.InheritedExport(typeof(Raven.Database.Plugins.IStartupTask))]
-    public class ExpiredDocumentsCleanerBundle : Raven.Database.Plugins.IStartupTask, System.IDisposable
-    {
-        public ExpiredDocumentsCleanerBundle() { }
-        public void Dispose() { }
-        public void Execute(Raven.Database.DocumentDatabase database) { }
-    }
-    public class ExpiryKnownEndpointsIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Monitoring.KnownEndpoint>
-    {
-        public ExpiryKnownEndpointsIndex() { }
-    }
-    public class ExpiryProcessedMessageIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Audit.Auditing.ProcessedMessage>
-    {
-        public ExpiryProcessedMessageIndex() { }
-    }
 }
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
+    public static class DataStoreConfig
+    {
+        public static string InMemoryPersistenceTypeFullyQualifiedName;
+        public static string RavenDbPersistenceTypeFullyQualifiedName;
+        public static string SqlServerPersistenceTypeFullyQualifiedName;
+    }
+    public enum DataStoreType
+    {
+        InMemory = 1,
+        RavenDb = 2,
+        SqlDb = 3,
+    }
     public class Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
@@ -125,6 +85,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string AuditQueue { get; set; }
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DataSpaceRemainingThreshold { get; set; }
+        public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
@@ -150,6 +111,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string ServiceControlQueueAddress { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
+        public string SqlStorageConnectionString { get; set; }
         public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
@@ -189,6 +151,13 @@ namespace ServiceControl.Audit.Monitoring
     {
         Successful = 3,
         ResolvedSuccessfully = 4,
+    }
+}
+namespace ServiceControl.Audit.Persistence
+{
+    public static class SetupSqlPersistence
+    {
+        public static System.Threading.Tasks.Task SetupAuditTables(string connectionString) { }
     }
 }
 namespace ServiceControl.Audit.Recoverability

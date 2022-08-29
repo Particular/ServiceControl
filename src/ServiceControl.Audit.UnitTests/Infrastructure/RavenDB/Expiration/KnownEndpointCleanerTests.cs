@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Audit.UnitTests.Infrastructure.RavenDB.Expiration
 {
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
-    using Audit.Infrastructure.RavenDB.Expiration;
     using Monitoring;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Client.Document;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.Audit.Persistence.RavenDB.Expiration;
 
     [TestFixture]
     public class KnownEndpointCleanerTests

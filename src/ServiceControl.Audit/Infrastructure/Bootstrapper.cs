@@ -16,8 +16,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using Raven.Client.Embedded;
-    using RavenDB;
+    using ServiceControl.Audit.Persistence;
     using Settings;
     using Transports;
     using WebApi;
@@ -72,24 +71,9 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton<AuditIngestor>();
                     services.AddSingleton<ImportFailedAudits>();
                     services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
-
-                    services.Configure<RavenStartup>(database =>
-                    {
-                        foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                        {
-                            database.AddIndexAssembly(indexAssembly);
-                        }
-                    });
                 })
                 .UseMetrics(settings.PrintMetrics)
-                .UseEmbeddedRavenDb(context =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-
-                    RavenBootstrapper.Configure(documentStore, settings);
-
-                    return documentStore;
-                })
+                .SetupPersistence(settings)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);

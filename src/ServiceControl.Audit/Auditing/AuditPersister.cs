@@ -14,21 +14,19 @@
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
-    using Raven.Client.Document;
+    using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class AuditPersister
     {
-        public AuditPersister(IDocumentStore store, BodyStorageEnricher bodyStorageEnricher,
+        public AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory, BodyStorageEnricher bodyStorageEnricher,
             IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
             Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession)
         {
-            this.store = store;
+            this.unitOfWorkFactory = unitOfWorkFactory;
             this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
 
@@ -50,16 +48,12 @@
             }
 
             var storedContexts = new List<MessageContext>(contexts.Count);
-            BulkInsertOperation bulkInsert = null;
+            IAuditIngestionUnitOfWork unitOfWork = null;
             try
             {
+
                 // deliberately not using the using statement because we dispose async explicitly
-                bulkInsert = store.BulkInsert(options: new BulkInsertOptions
-                {
-                    OverwriteExisting = true,
-                    ChunkedBulkInsertOptions = null,
-                    BatchSize = contexts.Count
-                });
+                unitOfWork = unitOfWorkFactory.StartNew(contexts.Count);
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
@@ -91,7 +85,7 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+                            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
                         }
 
                         storedContexts.Add(context);
@@ -106,7 +100,7 @@
 
                         using (sagaAuditBulkInsertDurationMeter.Measure())
                         {
-                            await bulkInsert.StoreAsync(sagaSnapshot).ConfigureAwait(false);
+                            await unitOfWork.RecordSagaSnapshot(sagaSnapshot).ConfigureAwait(false);
                         }
 
                         storedContexts.Add(context);
@@ -120,7 +114,8 @@
                     {
                         Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
                     }
-                    await bulkInsert.StoreAsync(endpoint).ConfigureAwait(false);
+
+                    await unitOfWork.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
@@ -135,7 +130,7 @@
             }
             finally
             {
-                if (bulkInsert != null)
+                if (unitOfWork != null)
                 {
                     if (Logger.IsDebugEnabled)
                     {
@@ -147,7 +142,7 @@
                         // this can throw even though dispose is never supposed to throw
                         using (bulkInsertCommitDurationMeter.Measure())
                         {
-                            await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                            await unitOfWork.DisposeAsync().ConfigureAwait(false);
                         }
                     }
                     catch (Exception e)
@@ -327,7 +322,7 @@
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
-        readonly IDocumentStore store;
+        readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly BodyStorageEnricher bodyStorageEnricher;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }

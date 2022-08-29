@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\$(ProjectName).dll&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)Dapper.dll&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\Dapper.dll&quot;" />
+  </Target>
+
+</Project>

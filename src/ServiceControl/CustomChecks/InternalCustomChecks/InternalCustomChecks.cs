@@ -2,7 +2,6 @@
 {
     using System.Linq;
     using Infrastructure.BackgroundTasks;
-    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;

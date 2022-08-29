@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using Audit.Monitoring;
     using Contracts.Operations;
-    using Infrastructure;
     using Raven.Client;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;

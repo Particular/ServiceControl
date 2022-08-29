@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Web.Cors;
     using Microsoft.Owin.Cors;
-    using Raven.Abstractions.Extensions;
 
     class Cors
     {
@@ -40,11 +40,19 @@
                 AllowAnyOrigin = true
             };
 
-            policy.ExposedHeaders.AddRange(new[] { "ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version" });
-            policy.Headers.AddRange(new[] { "Origin", "X-Requested-With", "Content-Type", "Accept" });
-            policy.Methods.AddRange(new[] { "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH" });
+            AddRange(policy.ExposedHeaders, "ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version");
+            AddRange(policy.Headers, "Origin", "X-Requested-With", "Content-Type", "Accept");
+            AddRange(policy.Methods, "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH");
 
             return policy;
+        }
+
+        static void AddRange(IList<string> list, params string[] items)
+        {
+            foreach (var item in items)
+            {
+                list.Add(item);
+            }
         }
 
         public static CorsOptions AuditCorsOptions = GetCorsOptions();

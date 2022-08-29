@@ -13,7 +13,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Persistence;
     using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestion : IHostedService
@@ -24,7 +24,7 @@
             Settings settings,
             RawEndpointFactory rawEndpointFactory,
             Metrics metrics,
-            IDocumentStore failedImportsStorage,
+            IFailedAuditStorage failedImportsStorage,
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor)

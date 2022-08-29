@@ -54,7 +54,31 @@
                 LicenseFileText = null
             };
 
-            Approver.Verify(settings);
+            Approver.Verify(settings, RemoveDataStoreSettings);
+        }
+
+        string RemoveDataStoreSettings(string json)
+        {
+            var allLines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var settingsLines = allLines.AsSpan(1, allLines.Length - 2);
+
+            var result = string.Empty;
+
+            var dataStoreSettings = new[] { nameof(Settings.DataStoreType), nameof(Settings.SqlStorageConnectionString) };
+
+            foreach (var settingLine in settingsLines)
+            {
+                var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                var settingName = parts[0].Trim('"', ' ');
+
+                if (dataStoreSettings.Contains(settingName) == false)
+                {
+                    result += settingLine + Environment.NewLine;
+                }
+            }
+
+            return $"{{\r\n{result}}}";
         }
 
         [Test]
@@ -79,7 +103,26 @@
                 .GetTypes()
                 .Where(t => t.IsAbstract == false);
 
+            var ravenPersistenceType = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
+            var sqlPersistenceType = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
+            var inMemoryPersistenceType = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
+
+            var ravenPersistenceControlTypes = ravenPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
+            var sqlPersistenceControlTypes = sqlPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
+            var inMemoryPersistenceControlTypes = inMemoryPersistenceType.Assembly
+                .GetTypes()
+                .Where(t => t.IsAbstract == false);
+
             var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));
+            customCheckTypes = customCheckTypes.Union(ravenPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+            customCheckTypes = customCheckTypes.Union(sqlPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+            customCheckTypes = customCheckTypes.Union(inMemoryPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
 
             foreach (var customCheckType in customCheckTypes)
             {

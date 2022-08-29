@@ -34,5 +34,5 @@
   "ServiceControlQueueAddress": "Particular.ServiceControl",
   "TimeToRestartAuditIngestionAfterFailure": "00:01:00",
   "EnableFullTextSearchOnBodies": true,
-  "ExposeApi": true
+  "ExposeApi": true,
 }

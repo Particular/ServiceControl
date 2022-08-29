@@ -26,9 +26,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.transportToUse = transportToUse;
+            this.dataStoreToUse = dataStoreToUse;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
         }
@@ -70,6 +71,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             settings = new Settings(instanceName)
             {
+                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
+                SqlStorageConnectionString = dataStoreToUse.ConnectionString,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
@@ -207,6 +210,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
+        DataStoreConfiguration dataStoreToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
