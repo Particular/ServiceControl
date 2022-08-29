@@ -14,9 +14,9 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class EditFailedMessagesController : ApiController
+    class EditFailedMessagesController : ApiController
     {
-        internal EditFailedMessagesController(Settings settings, IDocumentStore documentStore, IMessageSession messageSession)
+        public EditFailedMessagesController(Settings settings, IDocumentStore documentStore, IMessageSession messageSession)
         {
             this.messageSession = messageSession;
             this.documentStore = documentStore;

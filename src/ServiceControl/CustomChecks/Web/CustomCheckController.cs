@@ -11,9 +11,9 @@
     using NServiceBus;
     using ServiceControl.Persistence;
 
-    public class CustomCheckController : ApiController
+    class CustomCheckController : ApiController
     {
-        internal CustomCheckController(ICustomChecksDataStore customChecksDataStore, IMessageSession messageSession)
+        public CustomCheckController(ICustomChecksDataStore customChecksDataStore, IMessageSession messageSession)
         {
             this.messageSession = messageSession;
             this.customChecksDataStore = customChecksDataStore;

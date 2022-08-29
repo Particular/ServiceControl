@@ -3,18 +3,14 @@
     using System;
     using System.Net;
     using System.Net.Http;
-    using System.Text;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using System.Web.Http.Results;
     using Email;
-    using Infrastructure.SignalR;
     using Infrastructure.WebApi;
-    using Newtonsoft.Json;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class NotificationsController : ApiController
+    class NotificationsController : ApiController
     {
         public NotificationsController(IDocumentStore store, Settings settings)
         {
@@ -122,7 +118,7 @@
             return settings;
         }
 
-        IDocumentStore store;
-        string instanceName;
+        readonly IDocumentStore store;
+        readonly string instanceName;
     }
 }

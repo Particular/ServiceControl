@@ -10,9 +10,9 @@
     using Raven.Abstractions.Data;
     using Raven.Client;
 
-    public class GetAllErrorsController : ApiController
+    class GetAllErrorsController : ApiController
     {
-        internal GetAllErrorsController(IDocumentStore documentStore)
+        public GetAllErrorsController(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }

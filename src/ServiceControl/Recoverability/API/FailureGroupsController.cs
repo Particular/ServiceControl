@@ -15,9 +15,9 @@
     using NServiceBus;
     using Raven.Client;
 
-    public class FailureGroupsController : ApiController
+    class FailureGroupsController : ApiController
     {
-        internal FailureGroupsController(
+        public FailureGroupsController(
             IEnumerable<IFailureClassifier> classifiers,
             IMessageSession bus,
             IDocumentStore store,

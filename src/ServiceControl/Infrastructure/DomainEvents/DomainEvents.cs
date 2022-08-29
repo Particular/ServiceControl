@@ -1,24 +1,24 @@
 ﻿namespace ServiceControl.Infrastructure.DomainEvents
 {
-    using System.Collections.Generic;
+    using System;
     using System.Threading.Tasks;
-    using Autofac;
+    using Microsoft.Extensions.DependencyInjection;
 
     class DomainEvents : IDomainEvents
     {
-        readonly IComponentContext container;
-        public DomainEvents(IComponentContext container) => this.container = container;
+        readonly IServiceProvider serviceProvider;
+        public DomainEvents(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
 
         public async Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
-            container.TryResolve(out IEnumerable<IDomainHandler<T>> handlers);
+            var handlers = serviceProvider.GetServices<IDomainHandler<T>>();
             foreach (var handler in handlers)
             {
                 await handler.Handle(domainEvent)
                     .ConfigureAwait(false);
             }
 
-            container.TryResolve(out IEnumerable<IDomainHandler<IDomainEvent>> ieventHandlers);
+            var ieventHandlers = serviceProvider.GetServices<IDomainHandler<IDomainEvent>>();
             foreach (var handler in ieventHandlers)
             {
                 await handler.Handle(domainEvent)

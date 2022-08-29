@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using System.Web.Http;
 
-    public class GetMessagesByConversationController : ApiController
+    class GetMessagesByConversationController : ApiController
     {
-        internal GetMessagesByConversationController(MessagesByConversationApi messagesByConversationApi)
+        public GetMessagesByConversationController(MessagesByConversationApi messagesByConversationApi)
         {
             this.messagesByConversationApi = messagesByConversationApi;
         }
@@ -15,6 +15,6 @@
         [HttpGet]
         public Task<HttpResponseMessage> Messages(string conversationId) => messagesByConversationApi.Execute(this, conversationId);
 
-        MessagesByConversationApi messagesByConversationApi;
+        readonly MessagesByConversationApi messagesByConversationApi;
     }
 }

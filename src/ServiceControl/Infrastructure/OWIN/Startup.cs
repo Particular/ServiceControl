@@ -2,14 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http.Headers;
     using System.Reflection;
     using System.Web.Http;
+    using System.Web.Http.Controllers;
     using System.Web.Http.Dependencies;
     using System.Web.Http.Dispatcher;
-    using Autofac;
-    using Autofac.Integration.WebApi;
     using Microsoft.AspNet.SignalR;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Owin.Cors;
     using Newtonsoft.Json;
     using Owin;
@@ -19,9 +20,9 @@
 
     class Startup
     {
-        public Startup(ILifetimeScope lifetimeScope, List<Assembly> assemblies)
+        public Startup(IServiceProvider serviceProvider, List<Assembly> assemblies)
         {
-            this.lifetimeScope = lifetimeScope;
+            this.serviceProvider = serviceProvider;
             this.assemblies = assemblies;
         }
 
@@ -42,17 +43,17 @@
                 ConfigureSignalR(b);
 
                 var config = new HttpConfiguration();
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
                 config.MapHttpAttributeRoutes();
 
                 config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
+                config.Services.Replace(typeof(IHttpControllerTypeResolver), new InternalControllerTypeResolver());
 
                 var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
                 jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
                 jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
                 config.Formatters.Remove(config.Formatters.XmlFormatter);
 
-                config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(new AutofacWebApiDependencyResolver(lifetimeScope));
+                config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(serviceProvider);
 
                 config.MessageHandlers.Add(new XParticularVersionHttpHandler());
                 config.MessageHandlers.Add(new CompressionEncodingHttpHandler());
@@ -65,7 +66,7 @@
 
         void ConfigureSignalR(IAppBuilder app)
         {
-            var resolver = new AutofacDependencyResolver(lifetimeScope);
+            var resolver = new MicrosoftDependencyResolver(serviceProvider);
 
             app.Map("/messagestream", map =>
             {
@@ -84,17 +85,17 @@
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
 
-        readonly ILifetimeScope lifetimeScope;
+        readonly IServiceProvider serviceProvider;
         readonly List<Assembly> assemblies;
     }
 
     class ExternallyOwnedContainerDependencyResolver : System.Web.Http.Dependencies.IDependencyResolver
     {
-        System.Web.Http.Dependencies.IDependencyResolver impl;
+        IServiceProvider impl;
 
-        public ExternallyOwnedContainerDependencyResolver(System.Web.Http.Dependencies.IDependencyResolver impl)
+        public ExternallyOwnedContainerDependencyResolver(IServiceProvider serviceProvider)
         {
-            this.impl = impl;
+            impl = serviceProvider;
         }
 
         public void Dispose()
@@ -106,7 +107,25 @@
 
         public IEnumerable<object> GetServices(Type serviceType) => impl.GetServices(serviceType);
 
-        public IDependencyScope BeginScope() => impl.BeginScope();
+        public IDependencyScope BeginScope() => new ServiceProviderScope(impl.CreateScope());
+
+        class ServiceProviderScope : IDependencyScope
+        {
+            readonly IServiceScope scope;
+
+            public ServiceProviderScope(IServiceScope scope)
+            {
+                this.scope = scope;
+            }
+
+            public void Dispose() => scope.Dispose();
+
+            public object GetService(Type serviceType) =>
+                scope.ServiceProvider.GetService(serviceType);
+
+            public IEnumerable<object> GetServices(Type serviceType) =>
+                scope.ServiceProvider.GetServices(serviceType);
+        }
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
@@ -129,34 +148,65 @@
         readonly Assembly additionalAssembly;
     }
 
-    class AutofacDependencyResolver : DefaultDependencyResolver
+    class MicrosoftDependencyResolver : DefaultDependencyResolver
     {
-        public AutofacDependencyResolver(ILifetimeScope lifetimeScope)
-        {
-            this.lifetimeScope = lifetimeScope;
-        }
+        public MicrosoftDependencyResolver(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
 
         public override object GetService(Type serviceType)
         {
-            if (lifetimeScope.TryResolve(serviceType, out var service))
-            {
-                return service;
-            }
-
-            return base.GetService(serviceType);
+            return serviceProvider.GetService(serviceType) ??
+                   base.GetService(serviceType);
         }
 
         public override IEnumerable<object> GetServices(Type serviceType)
         {
-            if (lifetimeScope.TryResolve(IEnumerableType.MakeGenericType(serviceType), out var services))
-            {
-                return (IEnumerable<object>)services;
-            }
-
-            return base.GetServices(serviceType);
+            return serviceProvider.GetServices(serviceType) ??
+                   base.GetServices(serviceType);
         }
 
-        readonly ILifetimeScope lifetimeScope;
-        static Type IEnumerableType = typeof(IEnumerable<>);
+        readonly IServiceProvider serviceProvider;
+    }
+
+    /// <summary>
+    /// Replaces the <see cref="DefaultHttpControllerTypeResolver"/> with a similar implementation that allows non-public controllers.
+    /// </summary>
+    class InternalControllerTypeResolver : IHttpControllerTypeResolver
+    {
+        public ICollection<Type> GetControllerTypes(IAssembliesResolver assembliesResolver)
+        {
+            var controllerTypes = new List<Type>();
+            foreach (Assembly assembly in assembliesResolver.GetAssemblies())
+            {
+                if (assembly != null && !assembly.IsDynamic)
+                {
+                    Type[] source;
+                    try
+                    {
+                        source = assembly.GetTypes();
+
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    controllerTypes.AddRange(source.Where(t =>
+                        t != null &&
+                        t.IsClass &&
+                        !t.IsAbstract &&
+                        typeof(IHttpController).IsAssignableFrom(t) &&
+                        HasValidControllerName(t)));
+                }
+            }
+
+            return controllerTypes;
+        }
+
+        internal static bool HasValidControllerName(Type controllerType)
+        {
+            string controllerSuffix = DefaultHttpControllerSelector.ControllerSuffix;
+            return controllerType.Name.Length > controllerSuffix.Length &&
+                   controllerType.Name.EndsWith(controllerSuffix, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

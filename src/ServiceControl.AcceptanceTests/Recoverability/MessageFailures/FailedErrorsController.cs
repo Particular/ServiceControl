@@ -17,9 +17,9 @@
         public int Count { get; set; }
     }
 
-    public class FailedErrorsController : ApiController
+    class FailedErrorsController : ApiController
     {
-        internal FailedErrorsController(IDocumentStore store, ImportFailedErrors importFailedErrors)
+        public FailedErrorsController(IDocumentStore store, ImportFailedErrors importFailedErrors)
         {
             this.store = store;
             this.importFailedErrors = importFailedErrors;

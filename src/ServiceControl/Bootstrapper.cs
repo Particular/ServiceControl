@@ -1,18 +1,14 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using Autofac.Core.Activators.Reflection;
-    using Autofac.Extensions.DependencyInjection;
     using ByteSizeLib;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
@@ -101,7 +97,6 @@ namespace Particular.ServiceControl
                     builder.AddNLog();
                     builder.SetMinimumLevel(loggingSettings.ToHostLogLevel());
                 })
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureServices(services =>
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
@@ -247,17 +242,5 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
         TransportSettings transportSettings;
         TransportCustomization transportCustomization;
         static HttpClient httpClient;
-
-        class AllConstructorFinder : IConstructorFinder
-        {
-            public ConstructorInfo[] FindConstructors(Type targetType)
-            {
-                var result = Cache.GetOrAdd(targetType, t => t.GetTypeInfo().DeclaredConstructors.ToArray());
-
-                return result.Length > 0 ? result : throw new Exception($"No constructor found for type {targetType.FullName}");
-            }
-
-            static readonly ConcurrentDictionary<Type, ConstructorInfo[]> Cache = new ConcurrentDictionary<Type, ConstructorInfo[]>();
-        }
     }
 }

@@ -7,11 +7,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Net.NetworkInformation;
-    using System.Reflection;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using AcceptanceTesting;
-    using Autofac;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +24,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTests.Monitoring;
+    using ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -170,12 +169,12 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
-                bootstrapper.HostBuilder.ConfigureContainer<ContainerBuilder>(builder =>
+                bootstrapper.HostBuilder.ConfigureServices(serviceCollection =>
                 {
-                    builder.RegisterAssemblyTypes(typeof(FailedErrorsController).Assembly)
-                        .AssignableTo<ApiController>()
-                        .FindConstructorsWith(t => t.GetTypeInfo().DeclaredConstructors.ToArray())
-                        .AsSelf();
+                    serviceCollection.AddScoped<CriticalErrorTriggerController>();
+                    serviceCollection.AddScoped<KnownEndpointPersistenceQueryController>();
+                    serviceCollection.AddScoped<FailedErrorsController>();
+                    serviceCollection.AddScoped<FailedMessageRetriesController>();
                 });
 
                 hostBuilderCustomization(bootstrapper.HostBuilder);
@@ -187,9 +186,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
             {
-                var lifetimeScope = host.Services.GetRequiredService<ILifetimeScope>();
                 var app = new AppBuilder();
-                var startup = new Startup(lifetimeScope, bootstrapper.ApiAssemblies);
+                var startup = new Startup(host.Services, bootstrapper.ApiAssemblies);
                 startup.Configuration(app, typeof(FailedErrorsController).Assembly);
                 var appFunc = app.Build();
 

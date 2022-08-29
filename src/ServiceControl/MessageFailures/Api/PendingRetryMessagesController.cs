@@ -12,9 +12,9 @@
     using InternalMessages;
     using NServiceBus;
 
-    public class PendingRetryMessagesController : ApiController
+    class PendingRetryMessagesController : ApiController
     {
-        internal PendingRetryMessagesController(IMessageSession messageSession)
+        public PendingRetryMessagesController(IMessageSession messageSession)
         {
             this.messageSession = messageSession;
         }

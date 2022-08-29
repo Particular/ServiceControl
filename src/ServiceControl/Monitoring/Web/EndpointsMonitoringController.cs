@@ -14,11 +14,11 @@
         public bool MonitorHeartbeat { get; set; }
     }
 
-    public class EndpointsMonitoringController : ApiController
+    class EndpointsMonitoringController : ApiController
     {
         readonly IMonitoringDataStore monitoringDataStore;
 
-        internal EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
+        public EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
         {
             this.getKnownEndpointsApi = getKnownEndpointsApi;
             this.monitoringDataStore = monitoringDataStore;

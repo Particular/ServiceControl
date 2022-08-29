@@ -22,7 +22,7 @@
 
         public ErrorIngestor(Metrics metrics,
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
-            IFailedMessageEnricher[] failedMessageEnrichers,
+            IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
             IBodyStorage bodyStorage,
             IIngestionUnitOfWorkFactory unitOfWorkFactory, Settings settings)
@@ -42,7 +42,7 @@
             }.Concat(errorEnrichers).ToArray();
 
             var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers, domainEvents, ingestedMeter);
+            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 

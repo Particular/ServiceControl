@@ -10,9 +10,9 @@
     using Infrastructure.WebApi;
     using Raven.Client;
 
-    public class GetErrorByIdController : ApiController
+    class GetErrorByIdController : ApiController
     {
-        internal GetErrorByIdController(IDocumentStore documentStore)
+        public GetErrorByIdController(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }

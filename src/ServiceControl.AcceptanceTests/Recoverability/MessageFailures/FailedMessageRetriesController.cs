@@ -13,9 +13,9 @@
         public int Count { get; set; }
     }
 
-    public class FailedMessageRetriesController : ApiController
+    class FailedMessageRetriesController : ApiController
     {
-        internal FailedMessageRetriesController(IDocumentStore store)
+        public FailedMessageRetriesController(IDocumentStore store)
         {
             this.store = store;
         }

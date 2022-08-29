@@ -10,9 +10,9 @@
     using NServiceBus;
     using Recoverability;
 
-    public class RetryMessagesController : ApiController
+    class RetryMessagesController : ApiController
     {
-        internal RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)
+        public RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)
         {
             this.messageSession = messageSession;
             this.retryMessagesApi = retryMessagesApi;

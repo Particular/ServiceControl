@@ -7,11 +7,11 @@
     using System.Web.Http;
     using NServiceBus;
 
-    public class CriticalErrorTriggerController : ApiController
+    class CriticalErrorTriggerController : ApiController
     {
         CriticalError criticalError;
 
-        internal CriticalErrorTriggerController(CriticalError criticalError)
+        public CriticalErrorTriggerController(CriticalError criticalError)
         {
             this.criticalError = criticalError;
         }

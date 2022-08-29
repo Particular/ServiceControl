@@ -6,11 +6,11 @@
     using System.Web.Http;
     using ServiceControl.Persistence;
 
-    public class KnownEndpointPersistenceQueryController : ApiController
+    class KnownEndpointPersistenceQueryController : ApiController
     {
         IMonitoringDataStore monitoringDataStore;
 
-        internal KnownEndpointPersistenceQueryController(IMonitoringDataStore monitoringDataStore)
+        public KnownEndpointPersistenceQueryController(IMonitoringDataStore monitoringDataStore)
         {
             this.monitoringDataStore = monitoringDataStore;
         }
