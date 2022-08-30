@@ -4,15 +4,17 @@
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
     <AssemblyName>AuditGenerator</AssemblyName>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
 
-    <PackageReference Include="Metrics.NET" Version="0.5.5" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
 
 </Project>
