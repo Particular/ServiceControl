@@ -36,7 +36,7 @@
             queueLengthProvider.Initialize(connectionString, CacheQueueLength);
 
             var configuration = new EndpointConfiguration("AuditGenerator");
-            configuration.EnableFeature<MyDispatchHackFeature>();
+            configuration.EnableFeature<CaptureDispatcherFeature>();
             configuration.SendOnly();
             configuration.UseTransport<MsmqTransport>();
             configuration.UsePersistence<InMemoryPersistence>();
@@ -52,11 +52,7 @@
 
             var commands = new (string, Func<CancellationToken, string[], Task>)[]
             {
-                ("f|Fill the sender queue. Syntax: f <number of messages> <number of tasks> <destination>",
-                    (ct, args) => Fill(args, Dispatcher)),
-                ("s|Start sending messages to the queue. Syntax: s <number of tasks> <destination>",
-                    (ct, args) => FullSpeedSend(args, Dispatcher, ct)),
-                ("t|Throttled sending that keeps the receiver queue size at n. Syntax: t <number of msgs> <destination>",
+                ("t|Throttled sending that keeps the receiver queue size at n. Syntax: t <number of msgs in queue> <destination>",
                     (ct, args) => ConstantQueueLengthSend(args, Dispatcher, queueLengthProvider, ct)),
                 ("c|Constant-throughput sending. Syntax: c <number of msgs per second> <destination>",
                     (ct, args) => ConstantThroughputSend(args, Dispatcher, ct))
@@ -69,17 +65,17 @@
             await queueLengthProvider.Stop();
         }
 
-        class MyDispatchHackFeature : Feature
+        class CaptureDispatcherFeature : Feature
         {
             protected override void Setup(FeatureConfigurationContext context)
             {
-                context.Container.ConfigureComponent<DispatcherHackStartupTask>(DependencyLifecycle.SingleInstance);
-                context.RegisterStartupTask(b => b.Build<DispatcherHackStartupTask>());
+                context.Container.ConfigureComponent<CaptureDispatcherStartupTask>(DependencyLifecycle.SingleInstance);
+                context.RegisterStartupTask(b => b.Build<CaptureDispatcherStartupTask>());
             }
 
-            class DispatcherHackStartupTask : FeatureStartupTask
+            class CaptureDispatcherStartupTask : FeatureStartupTask
             {
-                public DispatcherHackStartupTask(IDispatchMessages dispatchMessages)
+                public CaptureDispatcherStartupTask(IDispatchMessages dispatchMessages)
                 {
                     Dispatcher = dispatchMessages;
                 }
@@ -137,24 +133,6 @@
             QueueLengths.AddOrUpdate(queueAndEndpointName.InputQueue, newValue, (queue, oldValue) => newValue);
         }
 
-        static async Task Fill(string[] args, IDispatchMessages dispatchMessages)
-        {
-            var totalMessages = args.Length > 0 ? int.Parse(args[0]) : 1000;
-            var numberOfTasks = args.Length > 1 ? int.Parse(args[1]) : 5;
-            var destination = args.Length > 2 ? args[2] : DefaultDestination;
-
-            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
-            {
-                var random = new Random(Environment.TickCount + taskId);
-                for (var i = 0; i < totalMessages / numberOfTasks; i++)
-                {
-                    await SendAuditMessage(dispatchMessages, destination, random).ConfigureAwait(false);
-                }
-            }).ToArray();
-
-            await Task.WhenAll(tasks);
-        }
-
         static Task SendAuditMessage(IDispatchMessages dispatcher, string destination, Random random)
         {
             // because MSMQ is essentially synchronous
@@ -189,23 +167,6 @@
                 await dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), new ContextBag());
                 counter.Mark();
             });
-        }
-
-        static async Task FullSpeedSend(string[] args, IDispatchMessages dispatcher, CancellationToken ct)
-        {
-            var numberOfTasks = args.Length > 0 ? int.Parse(args[0]) : 5;
-            var destination = args.Length > 1 ? args[1] : DefaultDestination;
-
-            var tasks = Enumerable.Range(1, numberOfTasks).Select(async taskId =>
-            {
-                var random = new Random(Environment.TickCount + taskId);
-                while (ct.IsCancellationRequested == false)
-                {
-                    await SendAuditMessage(dispatcher, destination, random).ConfigureAwait(false);
-                }
-            }).ToArray();
-
-            await Task.WhenAll(tasks);
         }
 
         static async Task ConstantQueueLengthSend(string[] args, IDispatchMessages dispatcher, IProvideQueueLength queueLengthProvider, CancellationToken ct)
@@ -259,7 +220,6 @@
                     }
                 }
             }, ct);
-
 
             var senders = Enumerable.Range(0, taskBarriers.Length - 1).Select(async taskNo =>
             {
@@ -392,6 +352,5 @@
             @"<__MESSAGETYPENAME__ xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://tempuri.net/NServiceBus.Serializers.XML.Test"">__CONTENT__</__MESSAGETYPENAME__>";
 
         static readonly List<(string layout, int numberOfProperties)> MessageBaseLayouts = new List<(string layout, int numberOfProperties)>();
-
     }
 }
