@@ -111,7 +111,7 @@
 
                     var intermediateLayout = MessageBaseLayout.Replace("__MESSAGETYPENAME__", messageTypeName)
                         .Replace("__CONTENT__", layoutBuilder.ToString());
-                    // saving 20 chars per property
+                    // reserving 20 chars per property
                     if ((Encoding.UTF8.GetBytes(intermediateLayout).Length + (i * messageTypeNameLength)) >= bodySize)
                     {
                         MessageBaseLayouts.Add((intermediateLayout, propertyPositionPlaceHolder));
