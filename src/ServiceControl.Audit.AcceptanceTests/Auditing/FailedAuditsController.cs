@@ -33,7 +33,7 @@
                 {
                     Count = count
                 })
-                    .WithEtag(stats);
+                    .WithEtag(stats.IndexEtag.ToString());
             }
         }
 

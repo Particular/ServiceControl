@@ -8,8 +8,6 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using QueryResult = Auditing.MessagesView.QueryResult;
 
     static class Negotiator
@@ -30,21 +28,9 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
                 .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
         }
 
-        public static HttpResponseMessage WithPagingLinksAndTotalCount(this HttpResponseMessage response, int totalCount,
-            HttpRequestMessage request)
-        {
-            return response.WithTotalCount(totalCount)
-                .WithPagingLinks(totalCount, request);
-        }
-
         public static HttpResponseMessage WithTotalCount(this HttpResponseMessage response, int total)
         {
             return response.WithHeader("Total-Count", total.ToString(CultureInfo.InvariantCulture));
-        }
-
-        public static HttpResponseMessage WithPagingLinks(this HttpResponseMessage response, int totalResults, HttpRequestMessage request)
-        {
-            return response.WithPagingLinks(totalResults, 1, request);
         }
 
         public static HttpResponseMessage WithPagingLinks(this HttpResponseMessage response, int totalResults, int highestTotalCountOfAllInstances, HttpRequestMessage request)
@@ -133,13 +119,6 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, RavenQueryStatistics stats)
-        {
-            var etag = stats.IndexEtag;
-
-            return response.WithEtag(etag);
-        }
-
         public static HttpResponseMessage WithDeterministicEtag(this HttpResponseMessage response, string data)
         {
             if (string.IsNullOrEmpty(data))
@@ -147,11 +126,10 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
                 return response;
             }
 
-            var guid = DeterministicGuid.MakeId(data);
-            return response.WithEtag(Etag.Parse(guid.ToString()));
+            return response.WithEtag(data);
         }
 
-        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, Etag etag)
+        public static HttpResponseMessage WithEtag(this HttpResponseMessage response, string etag)
         {
             response.Headers.ETag = new EntityTagHeaderValue($"\"{etag}\"");
             return response;
