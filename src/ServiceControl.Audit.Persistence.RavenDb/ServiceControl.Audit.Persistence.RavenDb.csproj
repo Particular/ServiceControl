@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.SagaAudit.Persistence.RavenDb\ServiceControl.SagaAudit.Persistence.RavenDb.csproj" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
@@ -31,8 +32,12 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\$(ProjectName).dll&quot;" />
-    <Exec Command="copy /Y &quot;$(TargetDir)Raven.Studio.Html5.zip&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\Raven.Studio.Html5.zip&quot;" />
+    <ItemGroup>
+      <CopyFiles Include="$(TargetDir)*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(CopyFiles)"
+      DestinationFolder="$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)" />
   </Target>
 
 </Project>
