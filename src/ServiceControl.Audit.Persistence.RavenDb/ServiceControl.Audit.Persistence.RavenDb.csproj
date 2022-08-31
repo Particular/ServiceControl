@@ -31,13 +31,4 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
-      <CopyFiles Include="$(TargetDir)*.*" />
-    </ItemGroup>
-    <Copy
-      SourceFiles="@(CopyFiles)"
-      DestinationFolder="$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)" />
-  </Target>
-
 </Project>
