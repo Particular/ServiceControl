@@ -16,6 +16,7 @@
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
   </ItemGroup>
 
   <Target Name="CleanStaging" AfterTargets="Build">
@@ -99,6 +100,7 @@
       <MSMQTransportFolder>..\ServiceControl.Transports.Msmq\$(OutputPath)\</MSMQTransportFolder>
       <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
       <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
+      <RavenDbPersistenceFolder>..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)\</RavenDbPersistenceFolder>
     </PropertyGroup>
 
     <ItemGroup>
@@ -113,6 +115,7 @@
       <MSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
       <SQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
       <LearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
+      <RavenDbPersistence Include="$(RavenDbPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDbPersistenceFolder)%(identity)')" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
@@ -124,6 +127,7 @@
     <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
     <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
     <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
+    <Copy SourceFiles="@(RavenDbPersistence)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />
