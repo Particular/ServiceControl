@@ -5,19 +5,17 @@
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
 
-    [TestFixtureSource(typeof(PersistenceTestCollection))]
+    [TestFixture]
     class CustomCheckTests
     {
-        PersistenceDataStoreFixture persistenceDataStoreFixture;
-
-        public CustomCheckTests(PersistenceDataStoreFixture persistenceDataStoreFixture)
-        {
-            this.persistenceDataStoreFixture = persistenceDataStoreFixture;
-        }
+        PersistenceTestFixture persistenceDataStoreFixture;
 
         [SetUp]
         public async Task Setup()
         {
+            var c = new TestSuiteConstraints();
+            persistenceDataStoreFixture = c.CreatePersistenceTestFixture();
+
             await persistenceDataStoreFixture.SetupDataStore().ConfigureAwait(false);
         }
 

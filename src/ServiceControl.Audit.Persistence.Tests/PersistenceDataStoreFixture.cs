@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    abstract class PersistenceDataStoreFixture
+    abstract class PersistenceTestFixture
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
 

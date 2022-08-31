@@ -4,7 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
 
-    class InMemory : PersistenceDataStoreFixture
+    class InMemory : PersistenceTestFixture
     {
         public override Task SetupDataStore()
         {

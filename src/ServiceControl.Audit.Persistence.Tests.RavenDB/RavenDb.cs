@@ -5,7 +5,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
 
-    class RavenDb : PersistenceDataStoreFixture
+    class RavenDb : PersistenceTestFixture
     {
         public override Task SetupDataStore()
         {
@@ -38,5 +38,10 @@
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
+    }
+
+    partial class TestSuitConstraints
+    {
+        public PersistenceTestFixture CreatePersistenceTestFixture() => new RavenDb();
     }
 }

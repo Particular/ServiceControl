@@ -4,19 +4,17 @@
     using System.Threading.Tasks;
     using NUnit.Framework;
 
-    [TestFixtureSource(typeof(PersistenceTestCollection))]
+    [TestFixture]
     class AuditDataStoreTests
     {
-        PersistenceDataStoreFixture persistenceDataStoreFixture;
-
-        public AuditDataStoreTests(PersistenceDataStoreFixture persistenceDataStoreFixture)
-        {
-            this.persistenceDataStoreFixture = persistenceDataStoreFixture;
-        }
+        PersistenceTestFixture persistenceDataStoreFixture;
 
         [SetUp]
         public async Task Setup()
         {
+            var c = new TestSuiteConstraints();
+            persistenceDataStoreFixture = c.CreatePersistenceTestFixture();
+
             await persistenceDataStoreFixture.SetupDataStore().ConfigureAwait(false);
         }
 

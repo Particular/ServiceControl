@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+    <PackageReference Include="GitHubActionsTestLogger" Version="1.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
+  </ItemGroup>
+
+  <!-- The template project is always the StorageTable project, if you need to deviate files for a specific table API copy
+       them accordingly and adjust the compile includes -->
+  <PropertyGroup>
+    <TemplateProject>ServiceControl.Audit.Persistence.Tests</TemplateProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\$(TemplateProject)\*.cs" />
+  </ItemGroup>
+</Project>
