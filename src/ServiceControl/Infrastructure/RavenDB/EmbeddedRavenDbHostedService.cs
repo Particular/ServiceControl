@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel.Composition.Hosting;
     using System.Linq;
@@ -38,7 +39,7 @@
                 .ConfigureAwait(false);
 
             Log.Info("Testing indexes");
-            await documentStore.TestAllIndexesAndResetIfException().ConfigureAwait(false);
+            await TestAllIndexesAndResetIfException(documentStore).ConfigureAwait(false);
 
             Log.Info("Executing data migrations");
             foreach (var migration in dataMigrations)
@@ -60,5 +61,25 @@
                     from indexAssembly in indexAssemblies select new AssemblyCatalog(indexAssembly)
                 )
             );
+
+        static async Task TestAllIndexesAndResetIfException(IDocumentStore store)
+        {
+            foreach (var index in store.DatabaseCommands.GetStatistics().Indexes)
+            {
+                try
+                {
+                    using (var session = store.OpenAsyncSession())
+                    {
+                        await session.Advanced.AsyncDocumentQuery<object>(index.Name).Take(1).ToListAsync().ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn($"When trying to fetch 1 document from index {index.Name} the following exception was thrown: {ex}");
+                    Log.Warn($"Attempting to reset errored index: [{index.Name}] priority: {index.Priority} is valid: {index.IsInvalidIndex} indexing attempts: {index.IndexingAttempts}, failed indexing attempts:{index.IndexingErrors}");
+                    store.DatabaseCommands.ResetIndex(index.Name);
+                }
+            }
+        }
     }
 }
