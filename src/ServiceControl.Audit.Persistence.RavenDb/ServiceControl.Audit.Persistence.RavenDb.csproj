@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35311" />
     <PackageReference Include="ServiceControl.Contracts" Version="3.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
   </ItemGroup>
@@ -23,8 +24,15 @@
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
   </ItemGroup>
 
+  <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\$(ProjectName).dll&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)Raven.Studio.Html5.zip&quot; &quot;$(SolutionDir)ServiceControl.Audit\bin\$(ConfigurationName)\$(TargetFramework)\Raven.Studio.Html5.zip&quot;" />
   </Target>
 
 </Project>

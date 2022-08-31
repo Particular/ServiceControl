@@ -50,10 +50,4 @@
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
   </ItemGroup>
 
-  <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
-    <ItemGroup>
-      <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
-    </ItemGroup>
-  </Target>
-
 </Project>
