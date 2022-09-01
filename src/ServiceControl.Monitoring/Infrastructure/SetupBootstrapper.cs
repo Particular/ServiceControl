@@ -35,6 +35,8 @@ namespace ServiceControl.Monitoring.Infrastructure
 
                 bootstrapper.ConfigureEndpoint(endpointConfig);
 
+                endpointConfig.EnableInstallers(settings.Username);
+
                 if (settings.SkipQueueCreation)
                 {
                     Logger.Info("Skipping queue creation");
