@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using UnitOfWork;
 
     [TestFixture]
     class PersistenceTestFixture
@@ -21,6 +22,12 @@
         }
 
         protected IAuditDataStore DataStore => configuration.AuditDataStore;
+
+        protected IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory =>
+            configuration.AuditIngestionUnitOfWorkFactory;
+
+        protected IAuditIngestionUnitOfWork StartAuditUnitOfWork(int batchSize) =>
+            AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
         protected PersistenceTestsConfiguration configuration;
     }

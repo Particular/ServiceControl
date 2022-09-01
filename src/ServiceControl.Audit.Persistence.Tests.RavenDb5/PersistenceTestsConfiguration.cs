@@ -1,10 +1,16 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
+    using System.Diagnostics;
+    using System.IO;
     using System.Threading.Tasks;
-    using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
-    using ServiceControl.Audit.Infrastructure.Settings;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using Raven.Client.Documents;
+    using Infrastructure.Settings;
+    using NUnit.Framework;
+    using Raven.Client.ServerWide.Operations;
+    using Raven.Embedded;
+    using RavenDb;
     using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
@@ -17,9 +23,15 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
+
+            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData", TestContext.CurrentContext.Test.FullName);
+            Console.WriteLine($"DB Path: {dbPath}");
+
             var settings = new FakeSettings
             {
-                RunInMemory = true
+                // NOTE: Run in Memory is not an option
+                RunInMemory = true,
+                DbPath = dbPath
             };
 
             config.ConfigureServices(serviceCollection, settings, false, true);
@@ -41,11 +53,14 @@
 
         public Task Cleanup()
         {
+            DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
+                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { "ServiceControlAudit" }, HardDelete = true }));
             DocumentStore?.Dispose();
+            EmbeddedServer.Instance.Dispose();
             return Task.CompletedTask;
         }
 
-        public override string ToString() => "RavenDb";
+        public override string ToString() => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
 
@@ -55,6 +70,9 @@
             public FakeSettings() : base()
             {
             }
+
+            // Allow the server to pick it's binding (rather than checking config)
+            public override string DatabaseMaintenanceUrl => null;
         }
     }
 }

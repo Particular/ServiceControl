@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="RavenLicense.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="RavenLicense.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="RavenDB.Client" Version="5.4.1" />
+    <PackageReference Include="RavenDB.Embedded" Version="5.4.1" />
+    <PackageReference Include="ServiceControl.Contracts" Version="3.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />    
+  </ItemGroup>
+
+  <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
+    <ItemGroup>
+      <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.SqlServer
 {
     using Microsoft.Extensions.DependencyInjection;
-    using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using Persistence.UnitOfWork;
+    using Auditing.BodyStorage;
+    using Infrastructure.Settings;
+    using UnitOfWork;
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -11,6 +13,7 @@
             serviceCollection.AddSingleton(sp => new SqlDbConnectionManager(settings.SqlStorageConnectionString));
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, SqlAttachmentsBodyStorage>();
+            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SqlDbAuditIngestionUnitOfWorkFactory>();
         }
     }
 }

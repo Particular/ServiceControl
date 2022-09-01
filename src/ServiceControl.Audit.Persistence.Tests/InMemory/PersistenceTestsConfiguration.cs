@@ -3,10 +3,12 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Persistence.InMemory;
+    using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public Task Configure()
         {
