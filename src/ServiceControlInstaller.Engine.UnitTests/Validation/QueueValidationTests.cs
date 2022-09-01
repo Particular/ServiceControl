@@ -1,6 +1,8 @@
 namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
+    using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Engine.Validation;
     using Instances;
@@ -57,11 +59,10 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
             existingAudit.SetupGet(p => p.AuditQueue).Returns(@"audit");
 
-            var newInstance = new ServiceControlAuditNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                AuditQueue = "audit"
-            };
+            var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            newInstance.AuditQueue = "audit";
 
             var validator = new QueueNameValidator(newInstance)
             {
@@ -205,6 +206,26 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 SCInstances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
+        }
+
+        static DirectoryInfo GetZipFolder()
+        {
+            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+
+            while (currentFolder != null)
+            {
+                var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
+                    .SingleOrDefault();
+
+                if (file != null)
+                {
+                    return new DirectoryInfo(Path.Combine(file.Directory.Parent.FullName, "zip"));
+                }
+
+                currentFolder = currentFolder.Parent;
+            }
+
+            throw new Exception("Cannot find zip folder");
         }
 
         List<IServiceControlInstance> instances;

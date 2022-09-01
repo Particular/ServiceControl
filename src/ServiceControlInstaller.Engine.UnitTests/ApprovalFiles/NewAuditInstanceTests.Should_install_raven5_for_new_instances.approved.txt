@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <appSettings>
+        <add key="ServiceControl.Audit/Port" value="0" />
+        <add key="ServiceControl.Audit/HostName" value="localhost" />
+        <add key="ServiceControl.Audit/LogPath" value="value-not-asserted" />
+        <add key="ServiceControl.Audit/ForwardAuditMessages" value="False" />
+        <add key="ServiceControl.Audit/TransportType" value="ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq" />
+        <add key="ServiceControl.Audit/PersistenceType" value="ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5" />
+        <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
+        <add key="ServiceControl.Audit/EnableFullTextSearchOnBodies"
+            value="False" />
+        <add key="ServiceControl.Audit/DBPath" value="value-not-asserted" />
+        <add key="ServiceControl.Audit/DatabaseMaintenancePort" value="33333" />
+    </appSettings>
+    <runtime>
+        <gcServer enabled="true" />
+    </runtime>
+</configuration>

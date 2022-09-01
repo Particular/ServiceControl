@@ -9,6 +9,7 @@
     using NServiceBus;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class DetectSuccessfulRetriesEnricher : IEnrichImportedAuditMessages
     {

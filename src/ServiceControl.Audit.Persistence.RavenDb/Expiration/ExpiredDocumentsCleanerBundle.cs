@@ -41,7 +41,7 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = RavenBootstrapper.Settings.ExpirationProcessTimerInSeconds;
+            var deleteFrequencyInSeconds = ExpirationProcessTimerInSeconds;
 
             if (deleteFrequencyInSeconds == 0)
             {
@@ -49,15 +49,74 @@
             }
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
-            var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
 
+            var deletionBatchSize = ExpirationProcessBatchSize;
+
+            var auditRetentionPeriod = RavenBootstrapper.Settings.AuditRetentionPeriod;
             logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds");
             logger.Info($"Deletion batch size set to {deletionBatchSize}");
-            logger.Info($"Retention period for audits and saga history is {RavenBootstrapper.Settings.AuditRetentionPeriod}");
+            logger.Info($"Retention period for audits and saga history is {auditRetentionPeriod}");
 
             timer = new AsyncTimer(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, auditRetentionPeriod, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
         }
+
+        int ExpirationProcessTimerInSeconds
+        {
+            get
+            {
+                var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
+
+                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessTimerInSeconds", out var expirationProcessTimerInSecondsString))
+                {
+                    expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
+                }
+
+                if (expirationProcessTimerInSeconds < 0)
+                {
+                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+
+                if (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+                {
+                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                    return ExpirationProcessTimerInSecondsDefault;
+                }
+
+                return expirationProcessTimerInSeconds;
+            }
+        }
+
+        public int ExpirationProcessBatchSize
+        {
+            get
+            {
+                var expirationProcessBatchSize = ExpirationProcessBatchSizeDefault;
+
+                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessBatchSize", out var expirationProcessBatchSizeString))
+                {
+                    expirationProcessBatchSize = int.Parse(expirationProcessBatchSizeString);
+                }
+                if (expirationProcessBatchSize < 1)
+                {
+                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                    return ExpirationProcessBatchSizeDefault;
+                }
+
+                if (expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
+                {
+                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
+                    return ExpirationProcessBatchSizeDefault;
+                }
+
+                return expirationProcessBatchSize;
+            }
+        }
+
+        const int ExpirationProcessTimerInSecondsDefault = 600;
+        const int ExpirationProcessBatchSizeDefault = 65512;
+        const int ExpirationProcessBatchSizeMinimum = 10240;
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
         AsyncTimer timer;

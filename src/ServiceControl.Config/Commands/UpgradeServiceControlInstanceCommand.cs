@@ -241,31 +241,30 @@
 
         async Task<bool> InstallServiceControlAudit(InstanceDetailsViewModel detailsViewModel, AddNewAuditInstanceViewModel viewModel, ServiceControlInstance instance)
         {
-            var auditNewInstance = new ServiceControlAuditNewInstance
-            {
-                //Read from user configured values
-                DisplayName = viewModel.ServiceControlAudit.InstanceName,
-                Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.'),
-                ServiceDescription = viewModel.ServiceControlAudit.Description,
-                DBPath = viewModel.ServiceControlAudit.DatabasePath,
-                LogPath = viewModel.ServiceControlAudit.LogPath,
-                InstallPath = viewModel.ServiceControlAudit.DestinationPath,
-                HostName = viewModel.ServiceControlAudit.HostName,
-                Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber),
-                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
-                ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
-                EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value,
+            var auditNewInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
 
-                //Copy from existing ServiceControl instance
-                AuditLogQueue = instance.AuditLogQueue,
-                AuditQueue = instance.AuditQueue,
-                ForwardAuditMessages = instance.ForwardAuditMessages,
-                AuditRetentionPeriod = instance.AuditRetentionPeriod.Value,
-                TransportPackage = instance.TransportPackage,
-                ConnectionString = instance.ConnectionString,
-                ServiceControlQueueAddress = instance.Name
-            };
+            //Read from user configured values
+            auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
+            auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
+            auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
+            auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
+            auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
+            auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
+            auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
+            auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
+            auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
+            auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
+            auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
+            auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
+
+            //Copy from existing ServiceControl instance
+            auditNewInstance.AuditLogQueue = instance.AuditLogQueue;
+            auditNewInstance.AuditQueue = instance.AuditQueue;
+            auditNewInstance.ForwardAuditMessages = instance.ForwardAuditMessages;
+            auditNewInstance.AuditRetentionPeriod = instance.AuditRetentionPeriod.Value;
+            auditNewInstance.TransportPackage = instance.TransportPackage;
+            auditNewInstance.ConnectionString = instance.ConnectionString;
+            auditNewInstance.ServiceControlQueueAddress = instance.Name;
 
             using (var progress = detailsViewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
             {

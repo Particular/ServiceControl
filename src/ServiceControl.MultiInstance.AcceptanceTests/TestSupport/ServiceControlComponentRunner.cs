@@ -23,6 +23,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
@@ -215,7 +216,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             }
         }
 
-        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int maintenancePort)
+        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int instanceDbPort)
         {
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -225,13 +226,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
-                DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 MessageFilter = messageContext =>
@@ -274,9 +272,17 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
 
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration).AssemblyQualifiedName);
+
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+
+            persistenceSettings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            persistenceSettings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = instanceDbPort.ToString();
+            persistenceSettings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, persistenceSettings, excludeAssemblies: excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -328,7 +334,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings);
+                },
+                settings,
+                configuration,
+                loggingSettings,
+                persistenceSettings);
 
                 host = bootstrapper.HostBuilder.Build();
 
@@ -372,7 +382,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     }
                     HttpClients[instanceName].Dispose();
                     handlers[instanceName].Dispose();
-                    DirectoryDeleter.Delete(settings.DbPath);
+                    try
+                    {
+                        DirectoryDeleter.Delete(settings.DbPath);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
 

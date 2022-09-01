@@ -14,7 +14,7 @@
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
 
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
 
 </Project>

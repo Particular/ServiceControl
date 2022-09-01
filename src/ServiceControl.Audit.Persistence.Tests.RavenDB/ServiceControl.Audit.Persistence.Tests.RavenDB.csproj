@@ -13,14 +13,17 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
     <PackageReference Include="GitHubActionsTestLogger" Version="1.3.0" />
+    <PackageReference Include="Particular.Approvals" Version="0.3.0" />
+    <PackageReference Include="System.IO.Compression" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)"/>
   </ItemGroup>
 
 </Project>

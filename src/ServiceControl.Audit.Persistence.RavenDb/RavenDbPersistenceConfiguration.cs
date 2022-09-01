@@ -1,57 +1,23 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using Persistence.UnitOfWork;
-    using Raven.Client;
     using Raven.Client.Embedded;
-    using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Migration;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDB;
-    using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public IPersistence Create(PersistenceSettings settings)
         {
             var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings, maintenanceMode);
+            RavenBootstrapper.Configure(documentStore, settings);
 
-            serviceCollection.AddSingleton<IDocumentStore>(documentStore);
+            var ravenStartup = new RavenStartup();
 
-            if (isSetup)
+            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
             {
-                var ravenOptions = new RavenStartup();
-                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                {
-                    ravenOptions.AddIndexAssembly(indexAssembly);
-                }
-
-                var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
-                embeddedRaven.SetupDatabase().GetAwaiter().GetResult();
-            }
-            else
-            {
-                serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
+                ravenStartup.AddIndexAssembly(indexAssembly);
             }
 
-            serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-
-            serviceCollection.Configure<RavenStartup>(database =>
-            {
-                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                {
-                    database.AddIndexAssembly(indexAssembly);
-                }
-            });
-
-            if (isSetup)
-            {
-                serviceCollection.AddTransient<IDataMigration, MigrateKnownEndpoints>();
-            }
+            return new RavenDbPersistence(settings, documentStore, ravenStartup);
         }
     }
 }

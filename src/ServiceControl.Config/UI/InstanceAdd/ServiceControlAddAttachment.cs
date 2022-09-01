@@ -77,28 +77,27 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value
             };
 
-            var auditNewInstance = new ServiceControlAuditNewInstance
-            {
-                DisplayName = viewModel.ServiceControlAudit.InstanceName,
-                Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.'),
-                ServiceDescription = viewModel.ServiceControlAudit.Description,
-                DBPath = viewModel.ServiceControlAudit.DatabasePath,
-                LogPath = viewModel.ServiceControlAudit.LogPath,
-                InstallPath = viewModel.ServiceControlAudit.DestinationPath,
-                HostName = viewModel.ServiceControlAudit.HostName,
-                Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber),
-                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber),
-                AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null,
-                AuditQueue = viewModel.ServiceControlAudit.AuditQueueName,
-                ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value,
-                TransportPackage = viewModel.SelectedTransport,
-                ConnectionString = viewModel.ConnectionString,
-                AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod,
-                ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControlAudit.Password,
-                ServiceControlQueueAddress = serviceControlNewInstance.Name,
-                EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value
-            };
+            var auditNewInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+
+            auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
+            auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
+            auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
+            auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
+            auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
+            auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
+            auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
+            auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
+            auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
+            auditNewInstance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null;
+            auditNewInstance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
+            auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
+            auditNewInstance.TransportPackage = viewModel.SelectedTransport;
+            auditNewInstance.ConnectionString = viewModel.ConnectionString;
+            auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
+            auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
+            auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
+            auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance.Name;
+            auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
 
             if (serviceControlNewInstance.TransportPackage.IsLatestRabbitMQTransport() &&
                 !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",

@@ -1,8 +1,5 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
@@ -10,7 +7,6 @@
     using Audit.Infrastructure;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
-    using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
     using PublicApiGenerator;
@@ -54,85 +50,62 @@
                 LicenseFileText = null
             };
 
-            Approver.Verify(settings, RemoveDataStoreSettings);
+            Approver.Verify(settings);
         }
 
-        string RemoveDataStoreSettings(string json)
-        {
-            var allLines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        //TODO: Move these to the individual test projects?
+        //    [Test]
+        //    public void CustomCheckDetails()
+        //    {
+        //        // HINT: Custom checks are documented on the docs site and Id and Category are published in integration events
+        //        // If any changes have been made to custom checks, this may break customer integration subscribers.
+        //        Approver.Verify(
+        //            string.Join(Environment.NewLine,
+        //                from check in GetCustomChecks()
+        //                orderby check.Category, check.Id
+        //                select $"{check.Category}: {check.Id}"
+        //            )
+        //        );
+        //    }
 
-            var settingsLines = allLines.AsSpan(1, allLines.Length - 2);
+        //    static IEnumerable<ICustomCheck> GetCustomChecks()
+        //    {
+        //        var settings = (object)new Settings();
 
-            var result = string.Empty;
+        //        var serviceControlTypes = typeof(Bootstrapper).Assembly
+        //            .GetTypes()
+        //            .Where(t => t.IsAbstract == false);
 
-            var dataStoreSettings = new[] { nameof(Settings.DataStoreType), nameof(Settings.SqlStorageConnectionString) };
+        //        var ravenPersistenceType = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
+        //        var sqlPersistenceType = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
+        //        var inMemoryPersistenceType = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
 
-            foreach (var settingLine in settingsLines)
-            {
-                var parts = settingLine.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                var settingName = parts[0].Trim('"', ' ');
+        //        var ravenPersistenceControlTypes = ravenPersistenceType.Assembly
+        //            .GetTypes()
+        //            .Where(t => t.IsAbstract == false);
 
-                if (dataStoreSettings.Contains(settingName) == false)
-                {
-                    result += settingLine + Environment.NewLine;
-                }
-            }
+        //        var sqlPersistenceControlTypes = sqlPersistenceType.Assembly
+        //            .GetTypes()
+        //            .Where(t => t.IsAbstract == false);
 
-            return $"{{\r\n{result}}}";
-        }
+        //        var inMemoryPersistenceControlTypes = inMemoryPersistenceType.Assembly
+        //            .GetTypes()
+        //            .Where(t => t.IsAbstract == false);
 
-        [Test]
-        public void CustomCheckDetails()
-        {
-            // HINT: Custom checks are documented on the docs site and Id and Category are published in integration events
-            // If any changes have been made to custom checks, this may break customer integration subscribers.
-            Approver.Verify(
-                string.Join(Environment.NewLine,
-                    from check in GetCustomChecks()
-                    orderby check.Category, check.Id
-                    select $"{check.Category}: {check.Id}"
-                )
-            );
-        }
+        //        var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));
+        //        customCheckTypes = customCheckTypes.Union(ravenPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+        //        customCheckTypes = customCheckTypes.Union(sqlPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
+        //        customCheckTypes = customCheckTypes.Union(inMemoryPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
 
-        static IEnumerable<ICustomCheck> GetCustomChecks()
-        {
-            var settings = (object)new Settings();
-
-            var serviceControlTypes = typeof(Bootstrapper).Assembly
-                .GetTypes()
-                .Where(t => t.IsAbstract == false);
-
-            var ravenPersistenceType = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
-            var sqlPersistenceType = Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
-            var inMemoryPersistenceType = Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-
-            var ravenPersistenceControlTypes = ravenPersistenceType.Assembly
-                .GetTypes()
-                .Where(t => t.IsAbstract == false);
-
-            var sqlPersistenceControlTypes = sqlPersistenceType.Assembly
-                .GetTypes()
-                .Where(t => t.IsAbstract == false);
-
-            var inMemoryPersistenceControlTypes = inMemoryPersistenceType.Assembly
-                .GetTypes()
-                .Where(t => t.IsAbstract == false);
-
-            var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));
-            customCheckTypes = customCheckTypes.Union(ravenPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
-            customCheckTypes = customCheckTypes.Union(sqlPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
-            customCheckTypes = customCheckTypes.Union(inMemoryPersistenceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t)));
-
-            foreach (var customCheckType in customCheckTypes)
-            {
-                var constructor = customCheckType.GetConstructors().Single();
-                var constructorParameters = constructor.GetParameters()
-                    .Select(p => p.ParameterType == typeof(Settings) ? settings : null)
-                    .ToArray();
-                var instance = (ICustomCheck)constructor.Invoke(constructorParameters);
-                yield return instance;
-            }
-        }
+        //        foreach (var customCheckType in customCheckTypes)
+        //        {
+        //            var constructor = customCheckType.GetConstructors().Single();
+        //            var constructorParameters = constructor.GetParameters()
+        //                .Select(p => p.ParameterType == typeof(Settings) ? settings : null)
+        //                .ToArray();
+        //            var instance = (ICustomCheck)constructor.Invoke(constructorParameters);
+        //            yield return instance;
+        //        }
+        //    }
     }
 }
