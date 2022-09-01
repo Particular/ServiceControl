@@ -79,7 +79,7 @@
             }
         }
 
-        public string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
+        public virtual string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
 
         public string ApiUrl => $"{RootUrl}api";
 
