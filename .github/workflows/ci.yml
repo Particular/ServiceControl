@@ -126,7 +126,7 @@ jobs:
       - name: Setup Microsoft SQL Server Data Store
         uses: Particular/install-sql-server-action@v1.0.0
         with:
-          connection-string-env-var: ServiceControl.PersistenceTests.ConnectionString
+          connection-string-env-var: ServiceControl/SqlStorageConnectionString
           catalog: servicecontrol
 
       - name: Run tests

@@ -13,11 +13,11 @@
 
         public async Task Configure()
         {
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.PersistenceTests.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("No connection string set in environment variable `ServiceControl.PersistenceTests.ConnectionString`");
+                throw new InvalidOperationException("No connection string set in environment variable `ServiceControl/SqlStorageConnectionString`");
             }
 
             await SetupSqlPersistence.SetupAuditTables(connectionString).ConfigureAwait(false);
