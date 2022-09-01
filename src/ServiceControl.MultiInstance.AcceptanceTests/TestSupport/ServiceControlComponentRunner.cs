@@ -13,8 +13,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Infrastructure.OWIN;
-    using Autofac;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
