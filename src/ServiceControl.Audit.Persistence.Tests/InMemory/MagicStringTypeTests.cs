@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
-    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.InMemory;
@@ -17,6 +16,7 @@
             Assert.AreEqual(type.FullName, typeFullName);
         }
 
+        //TODO: move to new SQL test project
         //[Test]
         //public Task Verify_sqlserver_persistence_type_string()
         //{
