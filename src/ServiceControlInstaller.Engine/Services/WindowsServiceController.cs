@@ -35,7 +35,7 @@
                 var account = (string)ReadValue("ObjectName");
                 if (account == null)
                 {
-                    throw new NullReferenceException("ServiceAccount entry not found in the registry");
+                    return null;
                 }
 
                 return account;
