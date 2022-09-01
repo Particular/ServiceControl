@@ -13,11 +13,6 @@
 
     class LicenseViewModel : RxScreen
     {
-        public LicenseViewModel(IEventAggregator eventAggregator)
-        {
-            EventAggregator = eventAggregator;
-        }
-
         public string ApplyLicenseError { get; set; }
 
         public string ApplyLicenseSuccess { get; set; }
@@ -64,8 +59,6 @@
                 ApplyLicenseError = importError;
             }
         }
-
-        IEventAggregator EventAggregator;
 
         DetectedLicense license;
     }

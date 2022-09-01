@@ -28,7 +28,19 @@
             set { WriteValue("Description", value ?? string.Empty); }
         }
 
-        public string Account => (string)ReadValue("ObjectName");
+        public string Account
+        {
+            get
+            {
+                var account = (string)ReadValue("ObjectName");
+                if (account == null)
+                {
+                    throw new NullReferenceException("ServiceAccount entry not found in the registry");
+                }
+
+                return account;
+            }
+        }
 
         public void SetStartupMode(string startMode)
         {
