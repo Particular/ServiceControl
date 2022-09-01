@@ -140,7 +140,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.SagaAudit.Persistence.RavenDb", "ServiceControl.SagaAudit.Persistence.RavenDb\ServiceControl.SagaAudit.Persistence.RavenDb.csproj", "{6C4077F7-7507-487B-9E93-66BF8768343A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Audit.Persistence.Tests.RavenDB", "ServiceControl.Audit.Persistence.Tests.RavenDB\ServiceControl.Audit.Persistence.Tests.RavenDB.csproj", "{04359CC6-170E-4AB7-8291-FA58AAA9C441}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.RavenDB", "ServiceControl.Audit.Persistence.Tests.RavenDB\ServiceControl.Audit.Persistence.Tests.RavenDB.csproj", "{04359CC6-170E-4AB7-8291-FA58AAA9C441}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DEDC8155-F9EF-4A8D-9476-B44610AABCA1} = {DEDC8155-F9EF-4A8D-9476-B44610AABCA1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
