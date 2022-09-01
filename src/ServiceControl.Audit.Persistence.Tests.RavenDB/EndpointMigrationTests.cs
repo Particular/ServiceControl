@@ -10,27 +10,8 @@
     using ServiceControl.Audit.Infrastructure.Migration;
     using ServiceControl.Audit.Monitoring;
 
-    class EndpointMigrationTests
+    class EndpointMigrationTests : PersistenceTestFixture
     {
-        PersistenceTestsConfiguration configuration;
-
-        public EndpointMigrationTests()
-        {
-            configuration = new PersistenceTestsConfiguration();
-        }
-
-        [SetUp]
-        public Task Setup()
-        {
-            return configuration.Configure();
-        }
-
-        [TearDown]
-        public Task TearDown()
-        {
-            return configuration.Cleanup();
-        }
-
         [Test]
         public async Task Should_disable_index_after_first_migration()
         {

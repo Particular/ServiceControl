@@ -14,6 +14,8 @@
             {
                 DataStoreType = DataStoreType.InMemory
             };
+
+            //TODO: do we really need DI?
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddServiceControlAuditPersistence(settings);
