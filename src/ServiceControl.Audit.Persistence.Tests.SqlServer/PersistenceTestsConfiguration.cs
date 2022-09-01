@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Dapper;
@@ -12,7 +13,13 @@
 
         public async Task Configure()
         {
-            connectionString = SettingsReader<string>.Read("ServiceControl.Audit", "SqlStorageConnectionString", "");
+            connectionString = Environment.GetEnvironmentVariable("ServiceControl.PersistenceTests.ConnectionString");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("No connection string set in environment variable `ServiceControl.PersistenceTests.ConnectionString`");
+            }
+
             await SetupSqlPersistence.SetupAuditTables(connectionString).ConfigureAwait(false);
 
             var settings = new Settings
