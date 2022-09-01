@@ -19,17 +19,8 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
   </ItemGroup>
 
-  <!-- The template project is always the StorageTable project, if you need to deviate files for a specific table API copy
-       them accordingly and adjust the compile includes -->
-  <PropertyGroup>
-    <TemplateProject>ServiceControl.Audit.Persistence.Tests</TemplateProject>
-  </PropertyGroup>
-
   <ItemGroup>
-    <Compile Include="..\$(TemplateProject)\*.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceTestCollection.cs" />
-  </ItemGroup>
 </Project>
