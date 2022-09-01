@@ -4,9 +4,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
 
-    class InMemory : PersistenceTestFixture
+    partial class PersistenceTestsConfiguration
     {
-        public override Task SetupDataStore()
+        public IAuditDataStore AuditDataStore { get; protected set; }
+
+        public Task Configure()
         {
             var settings = new Settings
             {
@@ -20,11 +22,8 @@
             return Task.CompletedTask;
         }
 
-        public override Task CleanupDB()
-        {
-            return base.CleanupDB();
-        }
+        public Task CompleteDBOperation() => Task.CompletedTask;
 
-        public override string ToString() => "In-Memory";
+        public Task Cleanup() => Task.CompletedTask;
     }
 }

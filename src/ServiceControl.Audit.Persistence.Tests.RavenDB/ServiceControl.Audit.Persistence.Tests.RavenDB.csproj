@@ -28,4 +28,8 @@
   <ItemGroup>
     <Compile Include="..\$(TemplateProject)\*.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceTestCollection.cs" />
+  </ItemGroup>
 </Project>

@@ -5,9 +5,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
 
-    class RavenDb : PersistenceTestFixture
+    partial class PersistenceTestsConfiguration
     {
-        public override Task SetupDataStore()
+        public IAuditDataStore AuditDataStore { get; protected set; }
+
+        public Task Configure()
         {
             var settings = new Settings
             {
@@ -23,25 +25,20 @@
             return Task.CompletedTask;
         }
 
-        public override Task CompleteDBOperation()
+        public Task CompleteDBOperation()
         {
             DocumentStore.WaitForIndexing();
-            return base.CompleteDBOperation();
+            return Task.CompletedTask;
         }
 
-        public override Task CleanupDB()
+        public Task Cleanup()
         {
             DocumentStore?.Dispose();
-            return base.CleanupDB();
+            return Task.CompletedTask;
         }
 
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
-    }
-
-    partial class TestSuitConstraints
-    {
-        public PersistenceTestFixture CreatePersistenceTestFixture() => new RavenDb();
     }
 }
