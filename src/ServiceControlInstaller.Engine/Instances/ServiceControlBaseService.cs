@@ -202,11 +202,6 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             // The default Logging folder in ServiceControl uses the env vae"%LocalApplicationData%".  Since this is env user specific we'll determine it based on profile path instead.
             // This only works for a user that has already logged in, which is fine for existing instances
-            if (Service.Account == null)
-            {
-                return null;
-            }
-
             var userAccountName = UserAccount.ParseAccountName(Service.Account);
             var profilePath = userAccountName.RetrieveProfilePath();
             if (profilePath == null)

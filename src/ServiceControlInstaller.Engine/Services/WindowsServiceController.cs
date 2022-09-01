@@ -28,19 +28,7 @@
             set { WriteValue("Description", value ?? string.Empty); }
         }
 
-        public string Account
-        {
-            get
-            {
-                var account = (string)ReadValue("ObjectName");
-                if (account == null)
-                {
-                    return null;
-                }
-
-                return account;
-            }
-        }
+        public string Account => (string)ReadValue("ObjectName");
 
         public void SetStartupMode(string startMode)
         {
