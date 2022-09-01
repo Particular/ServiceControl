@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace ServiceControl.Audit.Persistence.Tests.InMemory
 {
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure.Settings;
