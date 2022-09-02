@@ -56,7 +56,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll" />
+      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll;System.Runtime.CompilerServices.Unsafe.dll" />
 
       <ServiceControl Include="$(ServiceControlFolder)*.*" Exclude="$(ServiceControlFolder)*.config" />
       <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
@@ -104,30 +104,30 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
+      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;System.Runtime.CompilerServices.Unsafe.dll" />
 
       <ServiceControlAudit Include="$(ServiceControlAuditFolder)*.*" Exclude="$(ServiceControlAuditFolder)*.config" />
-      <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
-      <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
-      <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
-      <ASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
-      <RabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
-      <MSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
-      <SQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
-      <LearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
-      <RavenDbPersistence Include="$(RavenDbPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDbPersistenceFolder)%(identity)')" />
+      <AuditSqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
+      <AuditASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
+      <AuditASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
+      <AuditASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
+      <AuditRabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
+      <AuditMSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
+      <AuditSQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
+      <AuditLearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
+      <AuditRavenDbPersistence Include="$(RavenDbPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDbPersistenceFolder)%(identity)')" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
-    <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
-    <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
-    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
-    <Copy SourceFiles="@(ASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
-    <Copy SourceFiles="@(RabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
-    <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
-    <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
-    <Copy SourceFiles="@(RavenDbPersistence)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
+    <Copy SourceFiles="@(AuditSqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
+    <Copy SourceFiles="@(AuditASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
+    <Copy SourceFiles="@(AuditASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
+    <Copy SourceFiles="@(AuditASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
+    <Copy SourceFiles="@(AuditRabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
+    <Copy SourceFiles="@(AuditMSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
+    <Copy SourceFiles="@(AuditSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
+    <Copy SourceFiles="@(AuditLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
+    <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />
@@ -156,25 +156,25 @@
       <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
 
       <ServiceControlMonitoring Include="$(ServiceControlMonitoringFolder)*.*" Exclude="$(ServiceControlMonitoringFolder)*.config" />
-      <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
-      <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
-      <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
-      <ASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
-      <RabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
-      <MSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
-      <SQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
-      <LearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
+      <MonitoringSqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
+      <MonitoringASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
+      <MonitoringASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
+      <MonitoringASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
+      <MonitoringRabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
+      <MonitoringMSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
+      <MonitoringSQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
+      <MonitoringLearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(StagingFolder)ServiceControl.Monitoring\" />
-    <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
-    <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
-    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
-    <Copy SourceFiles="@(ASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
-    <Copy SourceFiles="@(RabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
-    <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
-    <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
+    <Copy SourceFiles="@(MonitoringSqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
+    <Copy SourceFiles="@(MonitoringASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
+    <Copy SourceFiles="@(MonitoringASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
+    <Copy SourceFiles="@(MonitoringASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
+    <Copy SourceFiles="@(MonitoringRabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
+    <Copy SourceFiles="@(MonitoringMSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
+    <Copy SourceFiles="@(MonitoringSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
+    <Copy SourceFiles="@(MonitoringLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />
