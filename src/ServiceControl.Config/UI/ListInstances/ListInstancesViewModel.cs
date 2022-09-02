@@ -69,15 +69,20 @@
             return Task.CompletedTask;
         }
 
-        public Task HandleAsync(ResetInstances message, CancellationToken cancellationToken)
+        public async Task HandleAsync(ResetInstances message, CancellationToken cancellationToken)
         {
+            foreach (var instance in Instances)
+            {
+                await instance.TryCloseAsync(true);
+            }
+
             Instances.Clear();
+
             foreach (var item in InstanceFinder.AllInstances().OrderBy(i => i.Name))
             {
                 Instances.Add(instanceDetailsFunc(item));
             }
             NotifyOfPropertyChange(nameof(OrderedInstances));
-            return Task.CompletedTask;
         }
 
         void AddMissingInstances()

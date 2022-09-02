@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Framework.Rx
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -37,6 +38,8 @@
         /// Raised after activation occurs.
         /// </summary>
         public event EventHandler<ActivationEventArgs> Activated = (sender, e) => { };
+
+        public IEventAggregator EventAggregator { get; set; }
 
         /// <summary>
         /// Raised before deactivation.
@@ -113,6 +116,12 @@
         public virtual Task TryCloseAsync(bool? dialogResult = null)
         {
             Result = dialogResult;
+
+            if (IsHandler(this))
+            {
+                EventAggregator?.Unsubscribe(this);
+            }
+
             if (Parent is IConductor conductor)
             {
                 return conductor.CloseItemAsync(this);
@@ -120,6 +129,13 @@
 
             var closeAction = PlatformProvider.Current.GetViewCloseAction(this, Views.Values, dialogResult);
             return closeAction.Invoke(CancellationToken.None);
+        }
+
+        static bool IsHandler(object obj)
+        {
+            var interfaces = obj.GetType().GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandle<>));
+            return interfaces.Any();
         }
 
         /// <summary>
