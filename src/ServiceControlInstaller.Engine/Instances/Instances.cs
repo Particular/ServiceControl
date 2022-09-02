@@ -7,7 +7,7 @@
     using System.Linq;
     using Services;
 
-    public class InstanceFinder
+    public static class InstanceFinder
     {
         public static ReadOnlyCollection<MonitoringInstance> MonitoringInstances()
         {
