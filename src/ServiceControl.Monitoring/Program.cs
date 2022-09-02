@@ -6,12 +6,14 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
+    using NServiceBus.Logging;
 
     static class Program
     {
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
 
@@ -32,6 +34,11 @@ namespace ServiceControl.Monitoring
             return settings;
         }
 
+        static void LogException(Exception ex)
+        {
+            Logger.Error("Unhandled exception was caught.", ex);
+        }
+
         static Assembly ResolveAssembly(string name)
         {
             var assemblyLocation = Assembly.GetEntryAssembly().Location;
@@ -41,5 +48,7 @@ namespace ServiceControl.Monitoring
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             return !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }

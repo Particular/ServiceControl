@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Commands;
     using Hosting;
+    using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class Program
@@ -13,6 +14,7 @@
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
 
@@ -27,6 +29,10 @@
 
             await new CommandRunner(arguments.Commands).Execute(arguments)
                 .ConfigureAwait(false);
+        }
+        static void LogException(Exception ex)
+        {
+            Logger.Error("Unhandled exception was caught.", ex);
         }
 
         static Assembly ResolveAssembly(string name)
@@ -43,5 +49,7 @@
 
             return Assembly.LoadFrom(combine);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }
