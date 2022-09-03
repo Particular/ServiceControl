@@ -4,6 +4,7 @@
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     partial class PersistenceTestsConfiguration
     {
@@ -14,11 +15,14 @@
             var settings = new Settings
             {
                 DataStoreType = DataStoreType.RavenDb,
-                RunInMemory = true
+                RunInMemory = true,
+                TransportCustomizationType = "TransportCustomization"
             };
+
+            var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddServiceControlAuditPersistence(settings, false, true);
+            config.ConfigureServices(serviceCollection, settings, false, true);
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();

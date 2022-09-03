@@ -30,7 +30,12 @@
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-            TransportCustomizationType = GetTransportType();
+
+            if (string.IsNullOrEmpty(TransportCustomizationType))
+            {
+                TransportCustomizationType = GetTransportType();
+            }
+
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);

@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.SqlServer\ServiceControl.Audit.Persistence.SqlServer.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
   </ItemGroup>
 
   <ItemGroup>
