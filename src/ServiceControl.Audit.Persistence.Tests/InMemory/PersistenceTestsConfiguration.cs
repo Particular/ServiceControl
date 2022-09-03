@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.InMemory;
 
     partial class PersistenceTestsConfiguration
     {
@@ -10,14 +10,11 @@
 
         public Task Configure()
         {
-            var settings = new Settings
-            {
-                DataStoreType = DataStoreType.InMemory
-            };
-
+            var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddServiceControlAuditPersistence(settings);
+
+            config.ConfigureServices(serviceCollection, null, false, true);
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             return Task.CompletedTask;
