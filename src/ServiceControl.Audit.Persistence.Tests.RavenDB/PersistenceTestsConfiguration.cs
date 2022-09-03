@@ -51,7 +51,6 @@
             //bypass the public ctor to avoid all mandatory settings
             public FakeSettings() : base()
             {
-
             }
         }
     }
