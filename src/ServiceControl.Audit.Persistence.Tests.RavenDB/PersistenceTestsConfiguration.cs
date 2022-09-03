@@ -12,20 +12,21 @@
 
         public Task Configure()
         {
-            var settings = new Settings
-            {
-                DataStoreType = DataStoreType.RavenDb,
-                RunInMemory = true,
-                TransportCustomizationType = "TransportCustomization"
-            };
-
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
+
+            var settings = new FakeSettings
+            {
+                RunInMemory = true
+            };
+
             config.ConfigureServices(serviceCollection, settings, false, true);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
+
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+
             return Task.CompletedTask;
         }
 
@@ -44,5 +45,14 @@
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
+
+        class FakeSettings : Settings
+        {
+            //bypass the public ctor to avoid all mandatory settings
+            public FakeSettings() : base()
+            {
+
+            }
+        }
     }
 }

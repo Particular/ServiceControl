@@ -6,6 +6,7 @@
     using Dapper;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.SqlServer;
 
     partial class PersistenceTestsConfiguration
     {
@@ -13,6 +14,7 @@
 
         public async Task Configure()
         {
+
             connectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString");
 
             if (string.IsNullOrEmpty(connectionString))
@@ -22,14 +24,16 @@
 
             await SetupSqlPersistence.SetupAuditTables(connectionString).ConfigureAwait(false);
 
-            var settings = new Settings
+            var config = new SqlDbPersistenceConfiguration();
+            var serviceCollection = new ServiceCollection();
+
+            var settings = new FakeSettings
             {
                 SqlStorageConnectionString = connectionString,
-                DataStoreType = DataStoreType.SqlDb
             };
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddServiceControlAuditPersistence(settings);
+
+            config.ConfigureServices(serviceCollection, settings, false, true);
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
         }
@@ -55,5 +59,13 @@
         public override string ToString() => "SqlServer";
 
         string connectionString;
+
+        class FakeSettings : Settings
+        {
+            //bypass the public ctor to avoid all mandatory settings
+            public FakeSettings() : base()
+            {
+            }
+        }
     }
 }

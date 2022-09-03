@@ -30,12 +30,7 @@
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-
-            if (string.IsNullOrEmpty(TransportCustomizationType))
-            {
-                TransportCustomizationType = GetTransportType();
-            }
-
+            TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
@@ -51,6 +46,9 @@
             DataStoreType = GetDataStoreType();
             SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
         }
+
+        // to allow tests to override and avoid reading all settings in the ctor
+        protected Settings() { }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
