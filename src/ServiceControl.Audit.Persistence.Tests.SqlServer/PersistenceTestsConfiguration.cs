@@ -14,7 +14,6 @@
 
         public async Task Configure()
         {
-
             connectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString");
 
             if (string.IsNullOrEmpty(connectionString))
