@@ -8,3 +8,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("ServiceControl.Audit.Persistence.SqlServer")]
 [assembly: InternalsVisibleTo("ServiceControl.Audit.Persistence.InMemory")]
 [assembly: InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests")]
+[assembly: InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.RavenDB")]
+[assembly: InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.SqlServer")]

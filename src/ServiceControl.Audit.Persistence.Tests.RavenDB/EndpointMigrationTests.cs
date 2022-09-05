@@ -10,36 +10,17 @@
     using ServiceControl.Audit.Infrastructure.Migration;
     using ServiceControl.Audit.Monitoring;
 
-    class EndpointMigrationTests
+    class EndpointMigrationTests : PersistenceTestFixture
     {
-        RavenDb persistenceDataStoreFixture;
-
-        public EndpointMigrationTests()
-        {
-            persistenceDataStoreFixture = new RavenDb();
-        }
-
-        [SetUp]
-        public async Task Setup()
-        {
-            await persistenceDataStoreFixture.SetupDataStore().ConfigureAwait(false);
-        }
-
-        [TearDown]
-        public async Task Cleanup()
-        {
-            await persistenceDataStoreFixture.CleanupDB().ConfigureAwait(false);
-        }
-
         [Test]
         public async Task Should_disable_index_after_first_migration()
         {
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -56,13 +37,13 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
 
-            var dbStatistics = await persistenceDataStoreFixture.DocumentStore.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
+            var dbStatistics = await configuration.DocumentStore.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
             var indexStats = dbStatistics.Indexes.First(index => index.Name == "EndpointsIndex");
             Assert.AreEqual(IndexingPriority.Disabled, indexStats.Priority);
         }
@@ -73,9 +54,9 @@
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -92,14 +73,14 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
 
-            var knownEndpointsIndex = await persistenceDataStoreFixture.DocumentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
+            var knownEndpointsIndex = await configuration.DocumentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
             Assert.IsNull(knownEndpointsIndex);
         }
 
@@ -109,9 +90,9 @@
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -128,13 +109,13 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
                 var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
@@ -150,9 +131,9 @@
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -169,22 +150,22 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
-
-            await migrator.Migrate().ConfigureAwait(false);
-
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate().ConfigureAwait(false);
+
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.WaitForIndexing();
+
+            await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
             await migrator.Migrate().ConfigureAwait(false);
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
                 var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
@@ -200,9 +181,9 @@
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            persistenceDataStoreFixture.DocumentStore.ExecuteIndex(new EndpointsIndex());
+            configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -219,13 +200,13 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
                 var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
@@ -241,7 +222,7 @@
             var sendHostId = Guid.NewGuid();
             var receiverHostId = Guid.NewGuid();
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(new ProcessedMessage
                 {
@@ -258,13 +239,13 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
 
-            persistenceDataStoreFixture.DocumentStore.WaitForIndexing();
+            configuration.DocumentStore.WaitForIndexing();
 
-            var migrator = new MigrateKnownEndpoints(persistenceDataStoreFixture.DocumentStore);
+            var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
             await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
 
-            using (var session = persistenceDataStoreFixture.DocumentStore.OpenAsyncSession())
+            using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
                 var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
 

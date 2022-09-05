@@ -3,6 +3,8 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.RavenDb")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.RavenDB")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
@@ -79,6 +81,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
+        protected Settings() { }
         public Settings(string serviceName = null) { }
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }

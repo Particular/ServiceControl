@@ -5,32 +5,13 @@
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
 
-    [TestFixtureSource(typeof(PersistenceTestCollection))]
-    class CustomCheckTests
+    [TestFixture]
+    class CustomCheckTests : PersistenceTestFixture
     {
-        PersistenceDataStoreFixture persistenceDataStoreFixture;
-
-        public CustomCheckTests(PersistenceDataStoreFixture persistenceDataStoreFixture)
-        {
-            this.persistenceDataStoreFixture = persistenceDataStoreFixture;
-        }
-
-        [SetUp]
-        public async Task Setup()
-        {
-            await persistenceDataStoreFixture.SetupDataStore().ConfigureAwait(false);
-        }
-
-        [TearDown]
-        public async Task Cleanup()
-        {
-            await persistenceDataStoreFixture.CleanupDB().ConfigureAwait(false);
-        }
-
         [Test]
         public async Task Pass_if_no_failed_imports()
         {
-            var customCheck = new FailedAuditImportCustomCheck(persistenceDataStoreFixture.AuditDataStore);
+            var customCheck = new FailedAuditImportCustomCheck(DataStore);
 
             var result = await customCheck.PerformCheck().ConfigureAwait(false);
 
@@ -40,11 +21,11 @@
         [Test]
         public async Task Fail_if_failed_imports()
         {
-            await persistenceDataStoreFixture.AuditDataStore.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
+            await DataStore.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
 
-            await persistenceDataStoreFixture.CompleteDBOperation().ConfigureAwait(false);
+            await configuration.CompleteDBOperation().ConfigureAwait(false);
 
-            var customCheck = new FailedAuditImportCustomCheck(persistenceDataStoreFixture.AuditDataStore);
+            var customCheck = new FailedAuditImportCustomCheck(DataStore);
 
             var result = await customCheck.PerformCheck().ConfigureAwait(false);
 

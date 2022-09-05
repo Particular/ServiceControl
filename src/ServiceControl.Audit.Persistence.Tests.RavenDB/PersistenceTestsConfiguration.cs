@@ -4,39 +4,54 @@
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
-    class RavenDb : PersistenceDataStoreFixture
+    partial class PersistenceTestsConfiguration
     {
-        public override Task SetupDataStore()
+        public IAuditDataStore AuditDataStore { get; protected set; }
+
+        public Task Configure()
         {
-            var settings = new Settings
+            var config = new RavenDbPersistenceConfiguration();
+            var serviceCollection = new ServiceCollection();
+
+            var settings = new FakeSettings
             {
-                DataStoreType = DataStoreType.RavenDb,
                 RunInMemory = true
             };
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddServiceControlAuditPersistence(settings, false, true);
+
+            config.ConfigureServices(serviceCollection, settings, false, true);
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
+
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+
             return Task.CompletedTask;
         }
 
-        public override Task CompleteDBOperation()
+        public Task CompleteDBOperation()
         {
             DocumentStore.WaitForIndexing();
-            return base.CompleteDBOperation();
+            return Task.CompletedTask;
         }
 
-        public override Task CleanupDB()
+        public Task Cleanup()
         {
             DocumentStore?.Dispose();
-            return base.CleanupDB();
+            return Task.CompletedTask;
         }
 
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
+
+        class FakeSettings : Settings
+        {
+            //bypass the public ctor to avoid all mandatory settings
+            public FakeSettings() : base()
+            {
+            }
+        }
     }
 }

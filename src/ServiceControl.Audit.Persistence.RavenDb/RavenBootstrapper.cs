@@ -19,14 +19,14 @@
         {
             Settings = settings;
 
-            Directory.CreateDirectory(settings.DbPath);
-
             if (settings.RunInMemory)
             {
                 documentStore.RunInMemory = true;
             }
             else
             {
+                Directory.CreateDirectory(settings.DbPath);
+
                 documentStore.DataDirectory = settings.DbPath;
                 documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
             }

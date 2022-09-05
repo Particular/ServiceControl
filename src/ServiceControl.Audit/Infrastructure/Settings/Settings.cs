@@ -47,6 +47,9 @@
             SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
         }
 
+        // to allow tests to override and avoid reading all settings in the ctor
+        protected Settings() { }
+
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
