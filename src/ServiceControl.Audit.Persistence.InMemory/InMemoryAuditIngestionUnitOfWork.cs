@@ -21,12 +21,11 @@
             return Task.CompletedTask;
         }
 
-
         public Task RecordProcessedMessage(ProcessedMessage processedMessage)
         {
-            dataStore.processedMessages.Add(processedMessage);
-            return Task.CompletedTask;
+            return dataStore.SaveProcessedMessage(processedMessage);
         }
+
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
         {
             //TODO

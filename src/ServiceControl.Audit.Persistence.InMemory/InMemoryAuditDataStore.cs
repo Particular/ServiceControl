@@ -5,20 +5,19 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
-    using ServiceControl.Audit.Auditing.MessagesView;
-    using ServiceControl.SagaAudit;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Infrastructure;
+    using NServiceBus;
     using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Auditing;
-    using System.Net.Http.Headers;
+    using ServiceControl.Audit.Auditing.MessagesView;
+    using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Monitoring;
+    using ServiceControl.SagaAudit;
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
         public List<SagaHistory> sagaHistories;
-        public List<MessagesView> messageViews;
-        public List<ProcessedMessage> processedMessages;
         public List<KnownEndpoint> knownEndpoints;
         public List<FailedAuditImport> failedAuditImports;
 
@@ -144,6 +143,49 @@
             return Task.CompletedTask;
         }
 
+        public Task SaveProcessedMessage(ProcessedMessage processedMessage)
+        {
+            processedMessages.Add(processedMessage);
+            var metadata = processedMessage.MessageMetadata;
+            var headers = processedMessage.Headers;
+
+            messageViews.Add(new MessagesView
+            {
+                Id = processedMessage.UniqueMessageId,
+                MessageId = (string)metadata["MessageId"],
+                MessageType = (string)metadata["MessageType"],
+                SendingEndpoint = TryGet(metadata, "SendingEndpoint") as EndpointDetails,
+                ReceivingEndpoint = TryGet(metadata, "ReceivingEndpoint") as EndpointDetails,
+                TimeSent = TryGet(metadata, "TimeSent") as DateTime?,
+                ProcessedAt = processedMessage.ProcessedAt,
+                CriticalTime = (TimeSpan)metadata["CriticalTime"],
+                ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
+                DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
+                IsSystemMessage = (bool)metadata["IsSystemMessage"],
+                ConversationId = TryGet(metadata, "ConversationId") as string,
+                Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
+                Status = !(bool)metadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully,
+                MessageIntent = (MessageIntentEnum)metadata["MessageIntent"],
+                BodyUrl = TryGet(metadata, "BodyUrl") as string,
+                BodySize = (int)metadata["ContentLength"],
+                InvokedSagas = TryGet(metadata, "InvokedSagas") as List<SagaInfo>,
+                OriginatesFromSaga = TryGet(metadata, "OriginatesFromSaga") as SagaInfo
+            });
+
+            return Task.CompletedTask;
+        }
+        object TryGet(Dictionary<string, object> metadata, string key)
+        {
+            if (metadata.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            return null;
+        }
         public Task Setup() => Task.CompletedTask;
+
+        List<MessagesView> messageViews;
+        List<ProcessedMessage> processedMessages;
     }
 }
