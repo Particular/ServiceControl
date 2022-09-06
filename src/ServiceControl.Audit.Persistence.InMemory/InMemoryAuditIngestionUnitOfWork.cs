@@ -35,6 +35,5 @@
         }
 
         InMemoryAuditDataStore dataStore;
-
     }
 }
