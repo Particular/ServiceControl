@@ -16,11 +16,11 @@
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
-        List<SagaHistory> sagaHistories;
-        List<MessagesView> messageViews;
-        List<ProcessedMessage> processedMessages;
-        List<KnownEndpoint> knownEndpoints;
-        List<FailedAuditImport> failedAuditImprots;
+        public List<SagaHistory> sagaHistories;
+        public List<MessagesView> messageViews;
+        public List<ProcessedMessage> processedMessages;
+        public List<KnownEndpoint> knownEndpoints;
+        public List<FailedAuditImport> failedAuditImports;
 
         public InMemoryAuditDataStore()
         {
@@ -28,7 +28,7 @@
             messageViews = new List<MessagesView>();
             processedMessages = new List<ProcessedMessage>();
             knownEndpoints = new List<KnownEndpoint>();
-            failedAuditImprots = new List<FailedAuditImport>();
+            failedAuditImports = new List<FailedAuditImport>();
         }
 
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
@@ -130,7 +130,7 @@
 
         public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
         {
-            if (failedAuditImprots.Count > 0)
+            if (failedAuditImports.Count > 0)
             {
                 return CheckResult.Failed(errorMessage);
             }
@@ -140,7 +140,7 @@
 
         public Task SaveFailedAuditImport(FailedAuditImport message)
         {
-            failedAuditImprots.Add(message);
+            failedAuditImports.Add(message);
             return Task.CompletedTask;
         }
 
