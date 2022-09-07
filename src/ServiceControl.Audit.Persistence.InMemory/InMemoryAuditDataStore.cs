@@ -49,8 +49,21 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            //TODO how should searchParam be used in this query?
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(messageViews, new QueryStatsInfo(string.Empty, messageViews.Count))).ConfigureAwait(false);
+            var messages = processedMessages
+                .Where(pm =>
+                {
+                    if ((pm.MessageMetadata["MessageId"] as string) == searchParam)
+                    {
+                        return true;
+                    }
+
+                    return pm.MessageMetadata.ContainsKey("Body") && (pm.MessageMetadata["Body"] as string).Contains(searchParam);
+                })
+                .Select(pm => pm.MessageMetadata["MessageId"] as string)
+                .ToList();
+
+            var matched = messageViews.Where(w => messages.Contains(w.MessageId)).ToList();
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count()))).ConfigureAwait(false);
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo)
