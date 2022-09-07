@@ -29,7 +29,7 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 
 ## Running the Tests
 The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown.
-In Visual Studio, ensure test execution is using x64 only: 
+The ServiceControl.runsettings file in each test project should automatically ensure that tests are run in 64 bit mode.  For reference, there is also a setting in Visual Studio that can be used to ensure test execution is using x64 only: 
 
 ![image](https://user-images.githubusercontent.com/4316196/177248330-c7357e85-b7a1-4cec-992f-535b1e9a0cb4.png)
 
@@ -67,21 +67,21 @@ docker build -f .\dockerfile.rabbitmq.conventional.monitoring -t particular/serv
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:
 
 ```
-docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.init
-docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitconventional.monitoring.init
-docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit.init
+docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl/:c:/data/ particular/servicecontrolrabbitdirect.init
+docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' particular/servicecontrolrabbitconventional.monitoring.init
+docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl.Audit/:c:/data/ particular/servicecontrolrabbitdirect.audit.init
 ```
 
 That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned, first run the audit container:
 
 ```
-docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
+docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v C:/ServiceControl.Audit/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
 ```
 
 Then grab its IP address using `docker inspect`, and specify it using the `ServiceControl/RemoteInstances` environment variable when starting the servicecontrol container. 
 
 ```
-docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -e "ServiceControl/RemoteInstances=[{'api_uri':'http://172.28.XXX.XXX:44444/api'}]" -v c:/data/:c:/data/ -d particular/servicecontrolrabbitdirect
+docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -e "ServiceControl/RemoteInstances=[{'api_uri':'http://172.28.XXX.XXX:44444/api'}]" -v C:/ServiceControl:c:/data/ -d particular/servicecontrolrabbitdirect
 ```
 
 ServiceControl will now run in a docker container.
@@ -91,3 +91,19 @@ To run a ServiceControl Monitoring instance:
 ```
 docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
 ```
+
+### Notes
+- RabbitMQ can either be installed on the host or run in another [Docker container](https://github.com/Particular/Platform/blob/main/scripts/docker-images.md).  In either case, the ServiceControl connection strings will need to refer to the host IP address.
+- The special DNS name `host.docker.internal` does [not](https://github.com/docker/for-win/issues/12673) [work](https://github.com/docker/for-win/issues/1976) on Docker Desktop for Windows, and it also doesn't support host networks.  To get the IP address of the host for the connection string environment variables, use `ipconfig` and find the IP address of the vEthernet adapter Docker is using, e.g.
+```
+Ethernet adapter vEthernet (nat):
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe80::c12a:27cf:ad50:8b7b%41
+   IPv4 Address. . . . . . . . . . . : 172.29.144.1
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   Default Gateway . . . . . . . . . :
+```
+- RabbitMQ's default `guest` account cannot be used, since authentication will fail when ServiceControl is running in a docker container.  
+- The ServiceControl docker images are currently Windows based images while the RabbitMQ docker image is Linux based.  As such, these cannot be managed by docker-compose on a single Windows host.
+- Refer to [here](https://docs.particular.net/servicecontrol/containerization/) for more in depth documentation on running ServiceControl docker images (including on how to mount the license file rather than pass it in as an environment variable)
