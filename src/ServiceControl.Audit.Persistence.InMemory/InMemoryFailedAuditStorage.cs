@@ -21,7 +21,6 @@
             dataStore.failedAuditImports.Clear();
         }
 
-
         public Task Store(dynamic failure)
         {
             dataStore.failedAuditImports.Add(failure);
