@@ -44,7 +44,11 @@
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(messageViews, new QueryStatsInfo(string.Empty, messageViews.Count))).ConfigureAwait(false);
+            var matched = messageViews
+                .Where(w => !w.IsSystemMessage || includeSystemMessages)
+                .ToList();
+
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
