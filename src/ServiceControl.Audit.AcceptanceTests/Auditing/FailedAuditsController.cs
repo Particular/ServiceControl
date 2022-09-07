@@ -6,36 +6,27 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Audit.Auditing;
-    //using Infrastructure.WebApi;
-    //using Raven.Client;
-    //using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.Audit.Infrastructure.WebApi;
+    using ServiceControl.Audit.Persistence;
 
     class FailedAuditsController : ApiController
     {
-        public FailedAuditsController(ImportFailedAudits failedAuditIngestion)
+        public FailedAuditsController(ImportFailedAudits failedAuditIngestion, IFailedAuditStorage failedAuditStorage)
         {
             this.failedAuditIngestion = failedAuditIngestion;
+            this.failedAuditStorage = failedAuditStorage;
         }
 
         [Route("failedaudits/count")]
         [HttpGet]
-        public Task<HttpResponseMessage> GetFailedAuditsCount()
+        public async Task<HttpResponseMessage> GetFailedAuditsCount()
         {
-            //using (var session = store.OpenAsyncSession())
-            //{
-            //    //var query =
-            //    //    session.Query<FailedAuditImport, FailedAuditImportIndex>().Statistics(out var stats);
+            var count = await failedAuditStorage.GetFailedAuditsCount();
 
-            //    //var count = await query.CountAsync();
-
-            //    return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
-            //    {
-            //        Count = 0
-            //    })
-            //        .WithEtag("");
-            //}
-
-            return Task.FromResult<HttpResponseMessage>(null);
+            return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
+            {
+                Count = count
+            }).WithEtag("");
         }
 
         [Route("failedaudits/import")]
@@ -49,6 +40,7 @@
 
         //readonly IDocumentStore store;
         readonly ImportFailedAudits failedAuditIngestion;
+        readonly IFailedAuditStorage failedAuditStorage;
     }
 
     public class FailedAuditsCountReponse

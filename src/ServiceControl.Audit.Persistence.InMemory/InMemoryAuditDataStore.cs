@@ -61,6 +61,11 @@
                         return true;
                     }
 
+                    if (pm.Headers.Values.Contains(searchParam))
+                    {
+                        return true;
+                    }
+
                     return pm.MessageMetadata.ContainsKey("Body") && (pm.MessageMetadata["Body"] as string).Contains(searchParam);
                 })
                 .Select(pm => pm.MessageMetadata["MessageId"] as string)

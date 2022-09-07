@@ -29,6 +29,11 @@
             return Task.CompletedTask;
         }
 
+        public Task<int> GetFailedAuditsCount()
+        {
+            return Task.FromResult(dataStore.failedAuditImports.Count);
+        }
+
         InMemoryAuditDataStore dataStore;
     }
 }
