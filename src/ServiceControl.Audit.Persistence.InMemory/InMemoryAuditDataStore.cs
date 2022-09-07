@@ -61,6 +61,11 @@
                         return true;
                     }
 
+                    if (TryGet(pm.MessageMetadata, "MessageType") is string messageType && messageType.Contains(searchParam))
+                    {
+                        return true;
+                    }
+
                     if (pm.Headers.Values.Contains(searchParam))
                     {
                         return true;
