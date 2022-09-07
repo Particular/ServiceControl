@@ -62,7 +62,9 @@
                 .Select(pm => pm.MessageMetadata["MessageId"] as string)
                 .ToList();
 
-            var matched = messageViews.Where(w => messages.Contains(w.MessageId)).ToList();
+            var matched = messageViews
+                .Where(w => messages.Contains(w.MessageId))
+                .ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count()))).ConfigureAwait(false);
         }
 
@@ -158,6 +160,11 @@
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)
         {
+            if (processedMessages.Any(pm => pm.UniqueMessageId == processedMessage.UniqueMessageId))
+            {
+                return Task.CompletedTask;
+            }
+
             processedMessages.Add(processedMessage);
             var metadata = processedMessage.MessageMetadata;
             var headers = processedMessage.Headers;
