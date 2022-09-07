@@ -17,7 +17,6 @@
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
-        public List<SagaHistory> sagaHistories;
         public List<KnownEndpoint> knownEndpoints;
         public List<FailedAuditImport> failedAuditImports;
 
@@ -208,6 +207,38 @@
 
             return Task.CompletedTask;
         }
+
+        public Task SaveSagaSnapshot(SagaSnapshot sagaSnapshot)
+        {
+            var sagaHistory = sagaHistories.SingleOrDefault(sh => sh.SagaId == sagaSnapshot.SagaId);
+
+            if (sagaHistory == null)
+            {
+                sagaHistory = new SagaHistory
+                {
+                    Id = sagaSnapshot.SagaId,
+                    SagaId = sagaSnapshot.SagaId,
+                    SagaType = sagaSnapshot.SagaType,
+                };
+
+                sagaHistories.Add(sagaHistory);
+            }
+
+            sagaHistory.Changes.Add(new SagaStateChange
+            {
+                StartTime = sagaSnapshot.StartTime,
+                FinishTime = sagaSnapshot.FinishTime,
+                Status = sagaSnapshot.Status,
+                StateAfterChange = sagaSnapshot.StateAfterChange,
+                InitiatingMessage = sagaSnapshot.InitiatingMessage,
+                OutgoingMessages = sagaSnapshot.OutgoingMessages,
+                Endpoint = sagaSnapshot.Endpoint
+            });
+
+            return Task.CompletedTask;
+        }
+
+
         object TryGet(Dictionary<string, object> metadata, string key)
         {
             if (metadata.TryGetValue(key, out var value))
@@ -221,5 +252,6 @@
 
         List<MessagesView> messageViews;
         List<ProcessedMessage> processedMessages;
+        List<SagaHistory> sagaHistories;
     }
 }

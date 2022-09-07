@@ -28,9 +28,7 @@
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
         {
-            //TODO
-            //dataStore.sagaHistories.Add(sagaSnapshot);
-            return Task.CompletedTask;
+            return dataStore.SaveSagaSnapshot(sagaSnapshot);
         }
 
         InMemoryAuditDataStore dataStore;
