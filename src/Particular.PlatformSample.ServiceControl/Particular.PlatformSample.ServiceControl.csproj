@@ -27,7 +27,7 @@
   <Target Name="AddFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="..\ServiceControl\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="..\ServiceControl.Audit\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
       <TfmSpecificPackageFile Include="..\ServiceControl.Monitoring\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" />
       <TfmSpecificPackageFile Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-instance;platform\servicecontrol\servicecontrol-audit-instance;platform\servicecontrol\monitoring-instance" />
     </ItemGroup>
