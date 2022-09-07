@@ -238,7 +238,6 @@
             return Task.CompletedTask;
         }
 
-
         object TryGet(Dictionary<string, object> metadata, string key)
         {
             if (metadata.TryGetValue(key, out var value))
