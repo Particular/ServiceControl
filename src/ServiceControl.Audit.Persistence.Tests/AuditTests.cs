@@ -49,7 +49,9 @@
                 { "ProcessingTime", TimeSpan.FromSeconds(1) },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
                 { "IsSystemMessage", false },
-                { "ContentLength", 25 }
+                { "ContentLength", 25 },
+                { "MessageType", "MyMessageType" },
+                { "IsRetried", false }
             };
 
             var headers = new Dictionary<string, string>
