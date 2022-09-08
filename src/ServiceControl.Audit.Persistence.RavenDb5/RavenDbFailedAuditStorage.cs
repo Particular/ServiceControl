@@ -66,5 +66,7 @@
                 }
             }
         }
+
+        public Task<int> GetFailedAuditsCount() => throw new NotImplementedException(); //TODO: implement GetFailedAuditsCout
     }
 }
