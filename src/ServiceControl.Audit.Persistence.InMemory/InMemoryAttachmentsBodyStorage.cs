@@ -27,7 +27,12 @@
             }
 
             messageBody.BodySize = bodySize;
-            messageBody.BodyStream = bodyStream;
+
+            using (var reader = new BinaryReader(bodyStream))
+            {
+                messageBody.Content = reader.ReadBytes(bodySize);
+            }
+
             messageBody.ContentType = contentType;
 
             if (needToAdd)
@@ -51,7 +56,7 @@
                 : new StreamResult
                 {
                     HasResult = true,
-                    Stream = messageBody.BodyStream,
+                    Stream = new MemoryStream(messageBody.Content),
                     ContentType = messageBody.ContentType,
                     BodySize = messageBody.BodySize,
                     Etag = string.Empty
@@ -63,7 +68,7 @@
             public string BodyId { get; set; }
             public string ContentType { get; set; }
             public int BodySize { get; set; }
-            public Stream BodyStream { get; set; }
+            public byte[] Content { get; set; }
         }
     }
 }

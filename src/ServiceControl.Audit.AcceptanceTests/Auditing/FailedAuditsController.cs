@@ -6,35 +6,27 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Audit.Auditing;
-    using Infrastructure.WebApi;
-    using Raven.Client;
-    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.Audit.Infrastructure.WebApi;
+    using ServiceControl.Audit.Persistence;
 
     class FailedAuditsController : ApiController
     {
-        public FailedAuditsController(IDocumentStore store, ImportFailedAudits failedAuditIngestion)
+        public FailedAuditsController(ImportFailedAudits failedAuditIngestion, IFailedAuditStorage failedAuditStorage)
         {
-            this.store = store;
             this.failedAuditIngestion = failedAuditIngestion;
+            this.failedAuditStorage = failedAuditStorage;
         }
 
         [Route("failedaudits/count")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetFailedAuditsCount()
         {
-            using (var session = store.OpenAsyncSession())
+            var count = await failedAuditStorage.GetFailedAuditsCount();
+
+            return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
             {
-                var query =
-                    session.Query<FailedAuditImport, FailedAuditImportIndex>().Statistics(out var stats);
-
-                var count = await query.CountAsync();
-
-                return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
-                {
-                    Count = count
-                })
-                    .WithEtag(stats.IndexEtag.ToString());
-            }
+                Count = count
+            }).WithEtag("");
         }
 
         [Route("failedaudits/import")]
@@ -46,8 +38,9 @@
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
-        readonly IDocumentStore store;
+        //readonly IDocumentStore store;
         readonly ImportFailedAudits failedAuditIngestion;
+        readonly IFailedAuditStorage failedAuditStorage;
     }
 
     public class FailedAuditsCountReponse

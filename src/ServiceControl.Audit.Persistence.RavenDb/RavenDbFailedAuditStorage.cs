@@ -45,5 +45,13 @@
                 }
             }
         }
+
+        public Task<int> GetFailedAuditsCount()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                return session.Query<FailedAuditImport, FailedAuditImportIndex>().CountAsync();
+            }
+        }
     }
 }
