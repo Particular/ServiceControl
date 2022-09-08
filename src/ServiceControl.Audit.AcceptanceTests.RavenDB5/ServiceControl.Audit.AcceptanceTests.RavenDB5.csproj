@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../ServiceControl.Audit.AcceptanceTests/**/*.cs"
+             Exclude="../ServiceControl.Audit.AcceptanceTests/AcceptanceTestStorageConfiguration.cs;../ServiceControl.Audit.AcceptanceTests/obj/**/*.*"  />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="1.3.0" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+  </ItemGroup>
+
+</Project>
