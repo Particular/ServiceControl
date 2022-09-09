@@ -26,7 +26,7 @@
             return Request.CreateResponse(HttpStatusCode.OK, new FailedAuditsCountReponse
             {
                 Count = count
-            }).WithEtag("");
+            });
         }
 
         [Route("failedaudits/import")]
@@ -38,7 +38,6 @@
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
-        //readonly IDocumentStore store;
         readonly ImportFailedAudits failedAuditIngestion;
         readonly IFailedAuditStorage failedAuditStorage;
     }
