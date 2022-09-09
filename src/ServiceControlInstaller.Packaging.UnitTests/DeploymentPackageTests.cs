@@ -47,7 +47,6 @@ namespace Tests
 
             using (var zip = deploymentPackage.Open())
             {
-                ;
                 var transportFiles = zip.Entries.Where(e => e.FullName.StartsWith("Transports/")).Select(e => e.FullName).ToList();
                 var transportFolders = transportFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 

@@ -29,7 +29,7 @@ namespace Tests
             .EnumerateFiles("*.zip")
             .Select(x => new DeploymentPackage(x));
 
-        static DirectoryInfo GetZipFolder()
+        public static DirectoryInfo GetZipFolder()
         {
             var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
 
