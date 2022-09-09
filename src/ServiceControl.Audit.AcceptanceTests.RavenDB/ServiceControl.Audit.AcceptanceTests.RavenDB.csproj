@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="../ServiceControl.Audit.AcceptanceTests/**/*.cs"
-             Exclude="../ServiceControl.Audit.AcceptanceTests/AcceptanceTestStorageConfiguration.cs;../ServiceControl.Audit.AcceptanceTests/obj/**/*.*"  />
+             Exclude="../ServiceControl.Audit.AcceptanceTests/AcceptanceTestStorageConfiguration.cs;../ServiceControl.Audit.AcceptanceTests/obj/**/*.*;../ServiceControl.Audit.AcceptanceTests/bin/**/*.*"  />
   </ItemGroup>
 
   <ItemGroup>
