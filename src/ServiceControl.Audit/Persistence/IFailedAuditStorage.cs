@@ -9,6 +9,8 @@
     {
         Task Store(dynamic failure);
 
+        Task SaveFailedAuditImport(FailedAuditImport message);
+
         Task ProcessFailedMessages(
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
             CancellationToken cancellationToken);

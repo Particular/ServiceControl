@@ -22,6 +22,5 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
         Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage);
-        Task SaveFailedAuditImport(FailedAuditImport message);
     }
 }

@@ -239,15 +239,6 @@
             return CheckResult.Pass;
         }
 
-        public async Task SaveFailedAuditImport(FailedAuditImport message)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                await session.StoreAsync(message).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
-        }
-
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;

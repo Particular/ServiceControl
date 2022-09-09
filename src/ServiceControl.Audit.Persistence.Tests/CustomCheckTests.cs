@@ -21,7 +21,7 @@
         [Test]
         public async Task Fail_if_failed_imports()
         {
-            await DataStore.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
 
             await configuration.CompleteDBOperation().ConfigureAwait(false);
 
