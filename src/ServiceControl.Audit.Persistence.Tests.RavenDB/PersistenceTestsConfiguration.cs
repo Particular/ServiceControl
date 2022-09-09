@@ -10,6 +10,7 @@
     partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
+        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public Task Configure()
@@ -27,6 +28,7 @@
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
+            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
 

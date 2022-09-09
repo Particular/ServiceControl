@@ -165,12 +165,6 @@
             return CheckResult.Pass;
         }
 
-        public Task SaveFailedAuditImport(FailedAuditImport message)
-        {
-            failedAuditImports.Add(message);
-            return Task.CompletedTask;
-        }
-
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)
         {
             if (processedMessages.Any(pm => pm.UniqueMessageId == processedMessage.UniqueMessageId))

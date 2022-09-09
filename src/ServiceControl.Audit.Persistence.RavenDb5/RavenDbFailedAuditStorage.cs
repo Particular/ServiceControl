@@ -28,6 +28,15 @@
             }
         }
 
+        public async Task SaveFailedAuditImport(FailedAuditImport message)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                await session.StoreAsync(message).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
         public async Task ProcessFailedMessages(
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
             CancellationToken cancellationToken)

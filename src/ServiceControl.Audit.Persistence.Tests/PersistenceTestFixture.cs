@@ -23,6 +23,8 @@
 
         protected IAuditDataStore DataStore => configuration.AuditDataStore;
 
+        protected IFailedAuditStorage FailedAuditStorage => configuration.FailedAuditStorage;
+
         protected IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory =>
             configuration.AuditIngestionUnitOfWorkFactory;
 
