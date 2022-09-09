@@ -36,11 +36,35 @@
             Assert.That(queryResult.Results, Is.Empty);
         }
 
+        [Test]
+        public async Task Can_query_by_conversation_id()
+        {
+            var conversationId = Guid.NewGuid().ToString();
+            var otherConversationId = Guid.NewGuid().ToString();
+
+            await IngestProcessedMessagesAudits(
+                MakeMessage(conversationId: conversationId),
+                MakeMessage(conversationId: otherConversationId),
+                MakeMessage(conversationId: conversationId)
+            ).ConfigureAwait(false);
+
+            var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
+                new SortInfo("MessageId", "asc")).ConfigureAwait(false);
+
+            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+        }
+
         ProcessedMessage MakeMessage(
-            string messageId = "SomeId",
-            MessageIntentEnum intent = MessageIntentEnum.Send
+            string messageId = null,
+            MessageIntentEnum intent = MessageIntentEnum.Send,
+            string conversationId = null,
+            string processingEndpoint = null
         )
         {
+            messageId = messageId ?? Guid.NewGuid().ToString();
+            conversationId = conversationId ?? Guid.NewGuid().ToString();
+            processingEndpoint = processingEndpoint ?? "SomeEndpoint";
+
             var metadata = new Dictionary<string, object>
             {
                 { "MessageId", messageId },
@@ -51,14 +75,16 @@
                 { "IsSystemMessage", false },
                 { "ContentLength", 25 },
                 { "MessageType", "MyMessageType" },
-                { "IsRetried", false }
+                { "IsRetried", false },
+                { "ConversationId", conversationId }
             };
 
             var headers = new Dictionary<string, string>
             {
                 { Headers.MessageId, messageId },
-                { "ServiceControl.Retry.UniqueMessageId", "someId" },
-                { Headers.MessageIntent, intent.ToString() }
+                { Headers.ProcessingEndpoint, processingEndpoint },
+                { Headers.MessageIntent, intent.ToString() },
+                { Headers.ConversationId, conversationId }
             };
 
             return new ProcessedMessage(headers, metadata);
