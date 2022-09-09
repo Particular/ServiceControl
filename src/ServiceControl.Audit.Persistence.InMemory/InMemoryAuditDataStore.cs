@@ -8,7 +8,6 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.CustomChecks;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
@@ -153,16 +152,6 @@
                 .ToList();
 
             return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count))).ConfigureAwait(false);
-        }
-
-        public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
-        {
-            if (failedAuditImports.Count > 0)
-            {
-                return CheckResult.Failed(errorMessage);
-            }
-
-            return CheckResult.Pass;
         }
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)

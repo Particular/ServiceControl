@@ -210,39 +210,8 @@
             }
         }
 
-        public async Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                IAsyncEnumerator<StreamResult<FailedAuditImport>> ie = default;
-                try
-                {
-                    ie = await session.Advanced.StreamAsync(query)
-                        .ConfigureAwait(false);
-
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        Logger.Warn(errorMessage);
-                        return CheckResult.Failed(errorMessage);
-                    }
-                }
-                finally
-                {
-                    if (ie != null)
-                    {
-                        await ie.DisposeAsync().ConfigureAwait(false);
-                    }
-                }
-            }
-
-            return CheckResult.Pass;
-        }
-
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbAuditDataStore));
     }
 }
