@@ -49,7 +49,7 @@
             ).ConfigureAwait(false);
 
             var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
-                new SortInfo("MessageId", "asc")).ConfigureAwait(false);
+                new SortInfo("message_id", "asc")).ConfigureAwait(false);
 
             Assert.That(queryResult.Results.Count, Is.EqualTo(2));
         }
