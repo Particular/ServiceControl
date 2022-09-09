@@ -13,11 +13,7 @@
     using Monitoring;
     using Infrastructure;
     using Extensions;
-    using NServiceBus.Logging;
-    using NServiceBus.CustomChecks;
-    using Auditing;
     using Indexes;
-    using Raven.Client.Documents.Commands;
     using Transformers;
 
     class RavenDbAuditDataStore : IAuditDataStore
