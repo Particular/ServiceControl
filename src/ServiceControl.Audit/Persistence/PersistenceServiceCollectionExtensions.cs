@@ -29,6 +29,8 @@ namespace ServiceControl.Audit.Persistence
                     return Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
                 case DataStoreType.RavenDb:
                     return Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
+                case DataStoreType.RavenDb5:
+                    return Type.GetType(DataStoreConfig.RavenDb5PersistenceTypeFullyQualifiedName, true);
                 case DataStoreType.SqlDb:
                     return Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
                 default:
