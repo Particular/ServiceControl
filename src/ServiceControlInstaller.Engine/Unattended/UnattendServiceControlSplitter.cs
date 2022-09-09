@@ -126,24 +126,25 @@
 
         ServiceControlAuditNewInstance CreateSplitOutAuditInstance(ServiceControlInstance source)
         {
-            return new ServiceControlAuditNewInstance
-            {
-                AuditQueue = source.AuditQueue,
-                AuditLogQueue = source.AuditLogQueue,
-                ForwardAuditMessages = source.ForwardAuditMessages,
-                AuditRetentionPeriod = source.AuditRetentionPeriod.Value,
-                TransportPackage = source.TransportPackage,
-                ConnectionString = source.ConnectionString,
-                HostName = source.HostName,
-                Name = $"{source.Name}.Audit",
-                ServiceAccount = source.Service.Account,
-                // NOTE: The password should always be blank, as we don't read it back
-                ServiceAccountPwd = source.ServiceAccountPwd,
-                DisplayName = $"{source.Service.DisplayName}.Audit",
-                ServiceDescription = $"{source.Service.Description} (Audit)",
-                ServiceControlQueueAddress = source.Name,
-                EnableFullTextSearchOnBodies = source.EnableFullTextSearchOnBodies,
-            };
+            var instance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+
+            instance.AuditQueue = source.AuditQueue;
+            instance.AuditLogQueue = source.AuditLogQueue;
+            instance.ForwardAuditMessages = source.ForwardAuditMessages;
+            instance.AuditRetentionPeriod = source.AuditRetentionPeriod.Value;
+            instance.TransportPackage = source.TransportPackage;
+            instance.ConnectionString = source.ConnectionString;
+            instance.HostName = source.HostName;
+            instance.Name = $"{source.Name}.Audit";
+            instance.ServiceAccount = source.Service.Account;
+            // NOTE: The password should always be blank, as we don't read it back
+            instance.ServiceAccountPwd = source.ServiceAccountPwd;
+            instance.DisplayName = $"{source.Service.DisplayName}.Audit";
+            instance.ServiceDescription = $"{source.Service.Description} (Audit)";
+            instance.ServiceControlQueueAddress = source.Name;
+            instance.EnableFullTextSearchOnBodies = source.EnableFullTextSearchOnBodies;
+
+            return instance;
         }
 
         public class Options

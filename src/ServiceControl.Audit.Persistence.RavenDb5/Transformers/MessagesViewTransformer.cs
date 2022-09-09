@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
     using Monitoring;
     using NServiceBus;
     using Raven.Client.Documents;
+    using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
 
     static class MessagesViewTransformerExtensions

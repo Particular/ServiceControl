@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing;
-    using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 

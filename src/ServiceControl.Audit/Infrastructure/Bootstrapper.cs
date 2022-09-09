@@ -25,11 +25,17 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public IHostBuilder HostBuilder { get; private set; }
 
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings.Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public Bootstrapper(
+            Action<ICriticalErrorContext> onCriticalError,
+            Settings.Settings settings,
+            EndpointConfiguration configuration,
+            LoggingSettings loggingSettings,
+            PersistenceSettings persistenceSettings)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
+            this.persistenceSettings = persistenceSettings;
             this.settings = settings;
 
             CreateHost();
@@ -73,7 +79,7 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
                 })
                 .UseMetrics(settings.PrintMetrics)
-                .SetupPersistence(settings)
+                .SetupPersistence(persistenceSettings)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);
@@ -102,9 +108,14 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        long DataSize()
+        long DataSize(string dbPath)
         {
-            var datafilePath = Path.Combine(settings.DbPath, "data");
+            if (string.IsNullOrEmpty(dbPath))
+            {
+                return 0;
+            }
+
+            var datafilePath = Path.Combine(dbPath, "data");
 
             try
             {
@@ -118,11 +129,11 @@ namespace ServiceControl.Audit.Infrastructure
             }
         }
 
-        long FolderSize()
+        long FolderSize(string dbPath)
         {
             try
             {
-                var dir = new DirectoryInfo(settings.DbPath);
+                var dir = new DirectoryInfo(dbPath);
                 var dirSize = DirSize(dir);
                 return dirSize;
             }
@@ -151,8 +162,9 @@ namespace ServiceControl.Audit.Infrastructure
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
-            var dataSize = DataSize();
-            var folderSize = FolderSize();
+            var dbPath = SettingsReader<string>.Read("DbPath", null);
+            var dataSize = DataSize(dbPath);
+            var folderSize = FolderSize(dbPath);
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
@@ -175,16 +187,12 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.AuditLogQueue,
                     settings.AuditQueue,
                     settings.DataSpaceRemainingThreshold,
-                    settings.DatabaseMaintenancePort,
-                    settings.DisableRavenDBPerformanceCounters,
-                    settings.DbPath,
                     settings.ForwardAuditMessages,
                     settings.HttpDefaultConnectionLimit,
                     settings.IngestAuditMessages,
                     settings.MaxBodySizeToStore,
                     settings.MaximumConcurrencyLevel,
                     settings.Port,
-                    settings.RunInMemory,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
                     settings.TransportCustomizationType
@@ -195,6 +203,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
 
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
+        readonly PersistenceSettings persistenceSettings;
         Action<ICriticalErrorContext> onCriticalError;
         Settings.Settings settings;
         TransportSettings transportSettings;

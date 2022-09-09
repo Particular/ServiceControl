@@ -11,9 +11,13 @@ namespace ServiceControl.Audit.Infrastructure
         public static async Task Run(HostArguments args)
         {
             var settings = new Settings.Settings(args.ServiceName);
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+            {
+                MaintenanceMode = true
+            };
 
             var hostBuilder = new HostBuilder()
-                .SetupPersistence(settings, true);
+                .SetupPersistence(persistenceSettings);
 
             if (args.RunAsWindowsService)
             {
@@ -25,14 +29,12 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 hostBuilder.UseConsoleLifetime();
 
-                await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}")
-                    .ConfigureAwait(false);
-                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit")
+                await Console.Out.WriteLineAsync("Running in Maintenance Mode - Press CTRL+C to exit")
                     .ConfigureAwait(false);
 
                 await hostBuilder.Build().RunAsync().ConfigureAwait(false);
 
-                await Console.Out.WriteLineAsync("Disposing RavenDB document store (this might take a while)...")
+                await Console.Out.WriteLineAsync("Disposing persister (this might take a while)...")
                     .ConfigureAwait(false);
             }
         }

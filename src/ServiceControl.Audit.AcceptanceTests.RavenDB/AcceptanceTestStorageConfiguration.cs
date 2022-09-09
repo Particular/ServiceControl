@@ -1,21 +1,45 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     partial class AcceptanceTestStorageConfiguration
     {
-        public DataStoreConfiguration DataStoreConfiguration { get; protected set; }
+        public string PersistenceType { get; protected set; }
+
+        public void CustomizeSettings(IDictionary<string, string> settings)
+        {
+            settings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            settings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings["ServiceControl.Audit/HostName"] = "localhost";
+        }
 
         public Task Configure()
         {
-            DataStoreConfiguration = new DataStoreConfiguration
-            {
-                DataStoreTypeName = nameof(DataStoreType.RavenDb)
-            };
+            PersistenceType = typeof(RavenDbPersistenceConfiguration).AssemblyQualifiedName;
 
             return Task.CompletedTask;
+        }
+
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
         }
 
         public Task Cleanup() => Task.CompletedTask;

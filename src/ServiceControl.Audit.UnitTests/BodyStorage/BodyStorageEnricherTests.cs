@@ -36,7 +36,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -68,7 +68,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -102,7 +102,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 [Headers.ContentType] = "text/xml"
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -136,7 +136,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 [Headers.ContentType] = "text/xml"
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -170,7 +170,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 [Headers.ContentType] = "text/xml"
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -203,7 +203,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -236,7 +236,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 
@@ -268,7 +268,7 @@ namespace ServiceControl.UnitTests.BodyStorage
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
-            var message = new ProcessedMessage(headers, metadata);
+            var message = new ProcessedMessage(Guid.NewGuid().ToString(), headers, metadata);
 
             await enricher.StoreAuditMessageBody(body, message);
 

@@ -13,7 +13,7 @@
     using Microsoft.Win32;
 
     [DesignerCategory("Code")]
-    public class WindowsServiceController : ServiceController
+    public class WindowsServiceController : ServiceController, IWindowsServiceController
     {
         public WindowsServiceController(string serviceName, string exePath) : base(serviceName)
         {

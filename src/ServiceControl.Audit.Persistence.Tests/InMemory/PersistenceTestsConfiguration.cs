@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
@@ -20,11 +19,7 @@
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings();
-            setSettings(settings);
-            serviceCollection.AddSingleton<Settings>(settings);
-
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            config.ConfigureServices(serviceCollection, new PersistenceSettings(TimeSpan.FromHours(1)));
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
@@ -38,13 +33,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
-        }
-
+        public string Name => "InMemory";
     }
 }

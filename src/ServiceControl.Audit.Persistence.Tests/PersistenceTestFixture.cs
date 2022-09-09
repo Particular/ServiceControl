@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Infrastructure.Settings;
@@ -24,6 +26,28 @@
             return configuration.Cleanup();
         }
 
+        protected string GetManifestPath()
+        {
+            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+
+            while (currentFolder != null)
+            {
+                var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
+                    .SingleOrDefault();
+
+                if (file != null)
+                {
+                    return Path.Combine(file.Directory.FullName, $"ServiceControl.Audit.Persistence.{PersisterName}", "manifest.json");
+                }
+
+                currentFolder = currentFolder.Parent;
+            }
+
+            throw new Exception($"Cannot find manifest folder for {PersisterName}");
+        }
+
+        protected string PersisterName => configuration.Name;
+
         protected IAuditDataStore DataStore => configuration.AuditDataStore;
 
         protected IFailedAuditStorage FailedAuditStorage => configuration.FailedAuditStorage;
@@ -37,6 +61,5 @@
             AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
         protected PersistenceTestsConfiguration configuration;
-        protected Action<Settings> SetSettings = _ => { };
     }
 }

@@ -2,12 +2,11 @@
 {
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
     public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             serviceCollection.AddSingleton<InMemoryAuditDataStore>();
             serviceCollection.AddSingleton<IAuditDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());

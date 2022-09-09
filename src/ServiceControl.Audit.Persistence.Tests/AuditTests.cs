@@ -6,9 +6,9 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Auditing;
-    using Infrastructure;
     using NServiceBus;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
     class AuditTests : PersistenceTestFixture
@@ -29,10 +29,10 @@
 
             await IngestProcessedMessagesAudits(
                 message
-                ).ConfigureAwait(false);
+                );
 
             var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
-                .ConfigureAwait(false);
+                ;
 
             Assert.That(queryResult.Results.Count, Is.EqualTo(1));
             Assert.That(queryResult.Results[0].MessageId, Is.EqualTo("MyMessageId"));
@@ -42,7 +42,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistingMessage = Guid.NewGuid().ToString();
-            var queryResult = await DataStore.QueryMessages(nonExistingMessage, new PagingInfo(), new SortInfo("Id", "asc")).ConfigureAwait(false);
+            var queryResult = await DataStore.QueryMessages(nonExistingMessage, new PagingInfo(), new SortInfo("Id", "asc"));
 
             Assert.That(queryResult.Results, Is.Empty);
         }
@@ -57,10 +57,10 @@
                 MakeMessage(conversationId: conversationId),
                 MakeMessage(conversationId: otherConversationId),
                 MakeMessage(conversationId: conversationId)
-            ).ConfigureAwait(false);
+            );
 
             var queryResult = await DataStore.QueryMessagesByConversationId(conversationId, new PagingInfo(),
-                new SortInfo("message_id", "asc")).ConfigureAwait(false);
+                new SortInfo("message_id", "asc"));
 
             Assert.That(queryResult.Results.Count, Is.EqualTo(2));
         }
@@ -172,7 +172,9 @@
                 { Headers.ConversationId, conversationId }
             };
 
-            return new ProcessedMessage(headers, metadata);
+            var uniqueId = Guid.NewGuid().ToString();
+
+            return new ProcessedMessage(uniqueId, headers, metadata);
         }
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
@@ -181,10 +183,10 @@
             foreach (var processedMessage in processedMessages)
             {
                 await unitOfWork.RecordProcessedMessage(processedMessage)
-                    .ConfigureAwait(false);
+                    ;
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
+            await configuration.CompleteDBOperation();
         }
 
         const int MAX_BODY_SIZE = 20536;

@@ -23,6 +23,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
@@ -51,9 +52,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var mainInstancePort = FindAvailablePort(startPort);
             var mainInstanceDbPort = FindAvailablePort(mainInstancePort + 1);
             var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
-            var auditInstanceDbPort = FindAvailablePort(auditInstancePort + 1);
 
-            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
+            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort).ConfigureAwait(false);
             await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
         }
 
@@ -215,7 +215,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             }
         }
 
-        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int maintenancePort)
+        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort)
         {
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -225,13 +225,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
             {
                 Port = instancePort,
-                DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 MessageFilter = messageContext =>
@@ -276,7 +273,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
+                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+                {
+                    IsSetup = true
+                };
+
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, setupPersistenceSettings, excludeAssemblies: excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -317,8 +319,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
+
+                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+
                 var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
+                    var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.ServiceName,
@@ -328,7 +335,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings);
+                },
+                settings,
+                configuration,
+                loggingSettings,
+                runtimePersistenceSettings);
 
                 host = bootstrapper.HostBuilder.Build();
 

@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
     class BodyStorageTests : PersistenceTestFixture
@@ -13,7 +14,7 @@
         {
             var nonExistentBodyId = Guid.NewGuid().ToString();
             var result = await BodyStorage.TryFetch(nonExistentBodyId)
-                .ConfigureAwait(false);
+                ;
 
             Assert.That(result.HasResult, Is.False);
         }
