@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Threading.Tasks;
+    using Auditing.BodyStorage;
     using NUnit.Framework;
     using UnitOfWork;
 
@@ -24,6 +25,8 @@
         protected IAuditDataStore DataStore => configuration.AuditDataStore;
 
         protected IFailedAuditStorage FailedAuditStorage => configuration.FailedAuditStorage;
+
+        protected IBodyStorage BodyStorage => configuration.BodyStorage;
 
         protected IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory =>
             configuration.AuditIngestionUnitOfWorkFactory;

@@ -8,11 +8,13 @@
     using Infrastructure.Settings;
     using SqlServer;
     using UnitOfWork;
+    using ServiceControl.Audit.Auditing.BodyStorage;
 
     partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
+        public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public async Task Configure()
@@ -39,6 +41,7 @@
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
+            BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 

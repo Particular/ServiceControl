@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
+    using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
@@ -11,6 +12,7 @@
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
+        public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public Task Configure()
@@ -30,6 +32,7 @@
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+            BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
 
             return Task.CompletedTask;
