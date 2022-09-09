@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +8,6 @@
     using Infrastructure.Settings;
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
-    using Raven.Embedded;
     using RavenDb;
     using UnitOfWork;
 
@@ -23,8 +21,7 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-
-            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData", TestContext.CurrentContext.Test.FullName);
+            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             Console.WriteLine($"DB Path: {dbPath}");
 
             var settings = new FakeSettings
@@ -56,7 +53,6 @@
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { "ServiceControlAudit" }, HardDelete = true }));
             DocumentStore?.Dispose();
-            EmbeddedServer.Instance.Dispose();
             return Task.CompletedTask;
         }
 
