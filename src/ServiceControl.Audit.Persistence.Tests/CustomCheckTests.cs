@@ -11,7 +11,7 @@
         [Test]
         public async Task Pass_if_no_failed_imports()
         {
-            var customCheck = new FailedAuditImportCustomCheck(DataStore);
+            var customCheck = new FailedAuditImportCustomCheck(FailedAuditStorage);
 
             var result = await customCheck.PerformCheck().ConfigureAwait(false);
 
@@ -25,7 +25,7 @@
 
             await configuration.CompleteDBOperation().ConfigureAwait(false);
 
-            var customCheck = new FailedAuditImportCustomCheck(DataStore);
+            var customCheck = new FailedAuditImportCustomCheck(FailedAuditStorage);
 
             var result = await customCheck.PerformCheck().ConfigureAwait(false);
 

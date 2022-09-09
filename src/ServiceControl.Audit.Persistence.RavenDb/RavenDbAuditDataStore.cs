@@ -14,9 +14,6 @@
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.RavenDb.Extensions;
-    using NServiceBus.Logging;
-    using NServiceBus.CustomChecks;
-    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDb.Transformers;
 
@@ -196,29 +193,8 @@
             }
         }
 
-        public async Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false))
-                {
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        Logger.Warn(errorMessage);
-                        return CheckResult.Failed(errorMessage);
-                    }
-                }
-            }
-
-            return CheckResult.Pass;
-        }
-
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbAuditDataStore));
     }
 }

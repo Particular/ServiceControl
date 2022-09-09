@@ -215,11 +215,5 @@
         }
 
         public Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId) => throw new NotImplementedException();
-
-        public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage) => throw new NotImplementedException();
-
-        public Task SaveFailedAuditImport(FailedAuditImport message) => throw new NotImplementedException();
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(SqlDbAuditDataStore));
     }
 }

@@ -76,6 +76,14 @@
             }
         }
 
-        public Task<int> GetFailedAuditsCount() => throw new NotImplementedException(); //TODO: implement GetFailedAuditsCout
+        public async Task<int> GetFailedAuditsCount()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
+                    .CountAsync()
+                    .ConfigureAwait(false);
+            }
+        }
     }
 }
