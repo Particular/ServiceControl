@@ -23,7 +23,7 @@
   "AuditLogQueue": "audit.log",
   "LicenseFileText": null,
   "ExpirationProcessTimerInSeconds": 600,
-  "AuditRetentionPeriod": "10.00:00:00",
+  "AuditRetentionPeriod": "30.00:00:00",
   "ExpirationProcessBatchSize": 65512,
   "MaxBodySizeToStore": 102400,
   "ServiceName": "Particular.ServiceControl.Audit",
