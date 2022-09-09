@@ -13,12 +13,15 @@
         public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
         {
             // TODO: Is there a more appropriate place to put this?
-            EmbeddedServer.Instance.StartServer(new ServerOptions
+            if (ShouldStartServer(settings))
             {
-                DataDirectory = settings.DbPath,
-                ServerUrl = settings.DatabaseMaintenanceUrl,
-                AcceptEula = true
-            });
+                EmbeddedServer.Instance.StartServer(new ServerOptions
+                {
+                    DataDirectory = settings.DbPath,
+                    ServerUrl = settings.DatabaseMaintenanceUrl,
+                    AcceptEula = true
+                });
+            }
 
             var documentStore = EmbeddedServer.Instance.GetDocumentStore("ServiceControlAudit");
             // TODO: Set license
@@ -61,6 +64,27 @@
             //        database.AddIndexAssembly(indexAssembly);
             //    }
             //});
+        }
+
+        static bool ShouldStartServer(Settings settings)
+        {
+            if (settings.RunInMemory)
+            {
+                // We are probably running in a test context
+                try
+                {
+                    EmbeddedServer.Instance.GetServerUriAsync().Wait();
+                    // Embedded server is already running so we don't need to start it
+                    return false;
+                }
+                catch
+                {
+                    // Embedded Server is not running
+                    return true;
+                }
+            }
+
+            return true;
         }
     }
 }
