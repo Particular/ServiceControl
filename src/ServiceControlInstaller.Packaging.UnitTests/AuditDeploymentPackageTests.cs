@@ -25,7 +25,6 @@ namespace Tests
 
             using (var zip = deploymentPackage.Open())
             {
-                ;
                 var storageFiles = zip.Entries.Where(e => e.FullName.StartsWith("Storages/")).Select(e => e.FullName).ToList();
                 var storageFolders = storageFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 
