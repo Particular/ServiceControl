@@ -1,6 +1,7 @@
 namespace Tests
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using NUnit.Framework;
 
@@ -28,6 +29,29 @@ namespace Tests
                     .ToList();
 
                 CollectionAssert.IsEmpty(entries, $"File sizes should match the ones in the {deploymentPackage.ServiceName} folder. Check versions of dependencies.");
+            }
+        }
+
+        [Test]
+        public void Should_package_transports_individually()
+        {
+            var allTransports = new string[] {
+                "SQLServer",
+                "AzureStorageQueue",
+                "AzureServiceBus",
+                "NetStandardAzureServiceBus",
+                "RabbitMQ",
+                "MSMQ",
+                "AmazonSQS",
+                "LearningTransport"};
+
+            using (var zip = deploymentPackage.Open())
+            {
+                ;
+                var transportFiles = zip.Entries.Where(e => e.FullName.StartsWith("Transports/")).Select(e => e.FullName).ToList();
+                var transportFolders = transportFiles.Select(f => Directory.GetParent(f).Name).Distinct();
+
+                CollectionAssert.AreEquivalent(allTransports, transportFolders, $"Expected transports folder to contain {string.Join(",", allTransports)}");
             }
         }
 
