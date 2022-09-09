@@ -10,11 +10,13 @@
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
     using UnitOfWork;
+    using ServiceControl.Audit.Auditing.BodyStorage;
 
     partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
+        public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public Task Configure()
@@ -39,6 +41,7 @@
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+            BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
 
             return Task.CompletedTask;

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Threading.Tasks;
+    using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
@@ -9,6 +10,7 @@
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
+        public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public Task Configure()
@@ -21,6 +23,7 @@
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
+            BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
             return Task.CompletedTask;
         }
