@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <appSettings>
+        <add key="Raven/Esent/MaxVerPages" value="2048" />
+        <add key="ServiceControl.Audit/Port" value="0" />
+        <add key="ServiceControl.Audit/ForwardAuditMessages" value="False" />
+        <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
+    </appSettings>
+    <runtime>
+        <gcServer enabled="true" />
+    </runtime>
+</configuration>
