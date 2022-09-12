@@ -14,7 +14,7 @@
         public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert)
             => this.bulkInsert = bulkInsert;
 
-        public Task RecordProcessedMessage(ProcessedMessage processedMessage)
+        public Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
             => bulkInsert.StoreAsync(processedMessage);
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
