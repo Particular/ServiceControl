@@ -181,6 +181,8 @@
             }
         }
 
+        public Task<MessageBodyView> GetMessageBody(string messageId) => throw new NotImplementedException();
+
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
             using (var session = documentStore.OpenAsyncSession())

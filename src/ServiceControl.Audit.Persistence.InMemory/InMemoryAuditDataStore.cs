@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -9,6 +10,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
@@ -16,11 +18,13 @@
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
+        IBodyStorage bodyStorage;
         public List<KnownEndpoint> knownEndpoints;
         public List<FailedAuditImport> failedAuditImports;
 
-        public InMemoryAuditDataStore()
+        public InMemoryAuditDataStore(IBodyStorage bodyStorage)
         {
+            this.bodyStorage = bodyStorage;
             sagaHistories = new List<SagaHistory>();
             messageViews = new List<MessagesView>();
             processedMessages = new List<ProcessedMessage>();
@@ -133,6 +137,66 @@
             response.Headers.ETag = new EntityTagHeaderValue($"\"{string.Empty}\"");
             response.Content = content;
             return await Task.FromResult(response).ConfigureAwait(false);
+        }
+
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            var result = await GetMessageBodyFromMetadata(messageId).ConfigureAwait(false);
+
+            if (!result.Found)
+            {
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                if (fromAttachments.Found)
+                {
+                    return fromAttachments;
+                }
+            }
+
+            return result;
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        {
+            var fromBodyStorage = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
+
+            if (fromBodyStorage.HasResult)
+            {
+                return MessageBodyView.FromStream(
+                    fromBodyStorage.Stream,
+                    fromBodyStorage.ContentType,
+                    fromBodyStorage.BodySize,
+                    fromBodyStorage.Etag
+                );
+            }
+
+            return MessageBodyView.NotFound();
+        }
+
+        Task<MessageBodyView> GetMessageBodyFromMetadata(string messageId)
+        {
+            var message = processedMessages.FirstOrDefault(pm => (pm.MessageMetadata["MessageId"] as string) == messageId);
+
+            if (message == null)
+            {
+                return Task.FromResult(MessageBodyView.NotFound());
+            }
+
+            var body = !string.IsNullOrEmpty(message.Body) ? message.Body : TryGet(message.MessageMetadata, "Body") as string;
+            var bodySize = (int)message.MessageMetadata["ContentLength"];
+            var contentType = (string)message.MessageMetadata["ContentType"];
+            var bodyNotStored = message.MessageMetadata.ContainsKey("BodyNotStored") && (bool)message.MessageMetadata["BodyNotStored"];
+
+            if (bodyNotStored && body == null)
+            {
+                return Task.FromResult(MessageBodyView.NoContent());
+            }
+
+            if (body == null)
+            {
+                return Task.FromResult(MessageBodyView.NotFound());
+            }
+
+            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, string.Empty));
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()

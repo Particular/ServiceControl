@@ -19,5 +19,6 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
+        Task<MessageBodyView> GetMessageBody(string messageId);
     }
 }

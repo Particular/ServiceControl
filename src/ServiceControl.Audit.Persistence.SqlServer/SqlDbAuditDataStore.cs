@@ -215,5 +215,6 @@
         }
 
         public Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId) => throw new NotImplementedException();
+        public Task<MessageBodyView> GetMessageBody(string messageId) => throw new NotImplementedException();
     }
 }

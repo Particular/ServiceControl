@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
+    using Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
@@ -18,7 +19,11 @@
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            config.ConfigureServices(serviceCollection, null, false, true);
+            var settings = new FakeSettings();
+
+            serviceCollection.AddSingleton<Settings>(settings);
+
+            config.ConfigureServices(serviceCollection, settings, false, true);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
@@ -31,5 +36,14 @@
         public Task CompleteDBOperation() => Task.CompletedTask;
 
         public Task Cleanup() => Task.CompletedTask;
+
+        class FakeSettings : Settings
+        {
+            //bypass the public ctor to avoid all mandatory settings
+            public FakeSettings() : base()
+            {
+            }
+        }
+
     }
 }

@@ -167,6 +167,65 @@
                 return response;
             }
         }
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            var fromIndex = await GetMessageBodyFromIndex(messageId).ConfigureAwait(false);
+
+            if (!fromIndex.Found)
+            {
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                if (fromAttachments.Found)
+                {
+                    return fromAttachments;
+                }
+            }
+
+            return fromIndex;
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromIndex(string messageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
+                    .FirstOrDefaultAsync(f => f.MessageId == messageId)
+                    .ConfigureAwait(false);
+
+                if (message == null)
+                {
+                    return MessageBodyView.NotFound();
+                }
+
+                if (message.BodyNotStored && message.Body == null)
+                {
+                    return MessageBodyView.NoContent();
+                }
+
+                if (message.Body == null)
+                {
+                    return MessageBodyView.NotFound();
+                }
+
+                return MessageBodyView.FromString(message.Body, message.ContentType, message.BodySize, stats.IndexEtag);
+            }
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        {
+            //We want to continue using attachments for now
+#pragma warning disable 618
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}").ConfigureAwait(false);
+#pragma warning restore 618
+
+            return MessageBodyView.FromStream(
+                attachment.Data(),
+                attachment.Metadata["ContentType"].Value<string>(),
+                attachment.Metadata["ContentLength"].Value<int>(),
+                attachment.Etag
+            );
+        }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
