@@ -126,7 +126,25 @@
             }
         }
 
-        public Task<MessageBodyView> GetMessageBody(string messageId) => throw new NotImplementedException();
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var result = await session.Advanced.Attachments.GetAsync(messageId, "body").ConfigureAwait(false);
+
+                if (result == null)
+                {
+                    return MessageBodyView.NotFound();
+                }
+
+                return MessageBodyView.FromStream(
+                    result.Stream,
+                    result.Details.ContentType,
+                    (int)result.Details.Size,
+                    result.Details.ChangeVector
+                );
+            }
+        }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
