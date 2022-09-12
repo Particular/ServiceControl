@@ -130,43 +130,6 @@
             }
         }
 
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                    .FirstOrDefaultAsync(f => f.MessageId == messageId)
-                    .ConfigureAwait(false);
-
-                if (message == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
-
-                if (message.BodyNotStored && message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NoContent);
-                }
-
-                if (message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
-
-                var response = request.CreateResponse(HttpStatusCode.OK);
-                var content = new StringContent(message.Body);
-
-                MediaTypeHeaderValue.TryParse(message.ContentType, out var parsedContentType);
-                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-                content.Headers.ContentLength = message.BodySize;
-                response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.IndexEtag}\"");
-                response.Content = content;
-                return response;
-            }
-        }
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
             var fromIndex = await GetMessageBodyFromIndex(messageId).ConfigureAwait(false);

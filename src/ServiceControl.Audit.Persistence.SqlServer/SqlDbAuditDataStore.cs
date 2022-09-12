@@ -2,13 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Dapper;
     using Infrastructure;
-    using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
-    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
@@ -214,7 +210,6 @@
 
         }
 
-        public Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId) => throw new NotImplementedException();
         public Task<MessageBodyView> GetMessageBody(string messageId) => throw new NotImplementedException();
     }
 }

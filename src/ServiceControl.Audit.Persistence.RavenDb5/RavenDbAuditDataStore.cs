@@ -3,9 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Auditing.MessagesView;
@@ -126,58 +123,6 @@
                     .ConfigureAwait(false);
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
-        }
-
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Select(msg =>
-                        new
-                        {
-                            // TODO: Load these values properly
-                            msg.MessageId,
-                            Body = "",
-                            //!string.IsNullOrEmpty(message.Body) ? message.Body : metadata["Body"],
-                            BodySize = 0,
-                            //(int)metadata["ContentLength"],
-                            ContentType = "",
-                            //metadata["ContentType"],
-                            BodyNotStored = false
-                            //(bool)metadata["BodyNotStored"]
-                        }
-                    )
-                    .FirstOrDefaultAsync(f => f.MessageId == messageId)
-                    .ConfigureAwait(false);
-
-                if (message == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
-
-                if (message.BodyNotStored && message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NoContent);
-                }
-
-                if (message.Body == null)
-                {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
-                }
-
-                var response = request.CreateResponse(HttpStatusCode.OK);
-                var content = new StringContent(message.Body);
-
-                MediaTypeHeaderValue.TryParse(message.ContentType, out var parsedContentType);
-                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-                content.Headers.ContentLength = message.BodySize;
-                response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.ResultEtag}\"");
-                response.Content = content;
-                return response;
             }
         }
 

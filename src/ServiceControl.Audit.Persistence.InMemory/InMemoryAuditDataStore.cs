@@ -103,42 +103,6 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
-        {
-            var message = processedMessages.FirstOrDefault(pm => (pm.MessageMetadata["MessageId"] as string) == messageId);
-
-            if (message == null)
-            {
-                return request.CreateResponse(HttpStatusCode.NotFound);
-            }
-
-            var body = !string.IsNullOrEmpty(message.Body) ? message.Body : TryGet(message.MessageMetadata, "Body") as string;
-            var bodySize = (int)message.MessageMetadata["ContentLength"];
-            var contentType = (string)message.MessageMetadata["ContentType"];
-            var bodyNotStored = message.MessageMetadata.ContainsKey("BodyNotStored") && (bool)message.MessageMetadata["BodyNotStored"];
-
-            if (bodyNotStored && body == null)
-            {
-                return request.CreateResponse(HttpStatusCode.NoContent);
-            }
-
-            if (body == null)
-            {
-                return request.CreateResponse(HttpStatusCode.NotFound);
-            }
-
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            var content = new StringContent(body);
-
-            MediaTypeHeaderValue.TryParse(contentType, out var parsedContentType);
-            content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-            content.Headers.ContentLength = bodySize;
-            response.Headers.ETag = new EntityTagHeaderValue($"\"{string.Empty}\"");
-            response.Content = content;
-            return await Task.FromResult(response).ConfigureAwait(false);
-        }
-
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
             var result = await GetMessageBodyFromMetadata(messageId).ConfigureAwait(false);
