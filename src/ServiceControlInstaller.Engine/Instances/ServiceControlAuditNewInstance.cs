@@ -21,6 +21,7 @@
         }
 
         public string ServiceControlQueueAddress { get; set; }
+        public string PersistenceType { get; set; }
 
         public override void WriteConfigurationFile()
         {

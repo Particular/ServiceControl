@@ -91,6 +91,7 @@ namespace ServiceControlInstaller.Engine
         bool ForwardAuditMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
         string ServiceControlQueueAddress { get; set; }
+        string PersistenceType { get; set; }
     }
 
     public interface IServiceControlInstance : IServiceControlBaseInstance, IURLInfo

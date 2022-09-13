@@ -10,26 +10,27 @@
     {
         public ServiceControlAuditAppConfig(IServiceControlAuditInstance instance) : base(Path.Combine(instance.InstallPath, $"{Constants.ServiceControlAuditExe}.config"))
         {
-            details = instance;
+            this.instance = instance;
         }
 
         protected override void UpdateSettings()
         {
-            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", details.ConnectionString);
+            Config.ConnectionStrings.ConnectionStrings.Set("NServiceBus/Transport", instance.ConnectionString);
             var settings = Config.AppSettings.Settings;
-            var version = details.Version;
-            settings.Set(AuditInstanceSettingsList.Port, details.Port.ToString());
-            settings.Set(AuditInstanceSettingsList.DatabaseMaintenancePort, details.DatabaseMaintenancePort.ToString(), version);
-            settings.Set(AuditInstanceSettingsList.HostName, details.HostName);
-            settings.Set(AuditInstanceSettingsList.LogPath, details.LogPath);
-            settings.Set(AuditInstanceSettingsList.DBPath, details.DBPath);
-            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, details.ForwardAuditMessages.ToString());
-            settings.Set(AuditInstanceSettingsList.TransportType, details.TransportPackage.TypeName, version);
-            settings.Set(AuditInstanceSettingsList.AuditQueue, details.AuditQueue);
-            settings.Set(AuditInstanceSettingsList.AuditLogQueue, details.ForwardAuditMessages ? details.AuditLogQueue : null);
-            settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
-            settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, details.ServiceControlQueueAddress);
-            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, details.EnableFullTextSearchOnBodies.ToString(), version);
+            var version = instance.Version;
+            settings.Set(AuditInstanceSettingsList.Port, instance.Port.ToString());
+            settings.Set(AuditInstanceSettingsList.DatabaseMaintenancePort, instance.DatabaseMaintenancePort.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.HostName, instance.HostName);
+            settings.Set(AuditInstanceSettingsList.LogPath, instance.LogPath);
+            settings.Set(AuditInstanceSettingsList.DBPath, instance.DBPath);
+            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString());
+            settings.Set(AuditInstanceSettingsList.TransportType, instance.TransportPackage.TypeName, version);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceType);
+            settings.Set(AuditInstanceSettingsList.AuditQueue, instance.AuditQueue);
+            settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
+            settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString(), version);
 
             // Add Settings for performance tuning
             // See https://github.com/Particular/ServiceControl/issues/655
@@ -39,11 +40,10 @@
             }
         }
 
-
         public override void EnableMaintenanceMode()
         {
             var settings = Config.AppSettings.Settings;
-            settings.Set(AuditInstanceSettingsList.MaintenanceMode, bool.TrueString, details.Version);
+            settings.Set(AuditInstanceSettingsList.MaintenanceMode, bool.TrueString, instance.Version);
             Config.Save();
         }
 
@@ -74,7 +74,7 @@
 
                 var folderpath = settings[key].Value;
                 yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(details.InstallPath, folderpath.Remove(0, 1))
+                    ? Path.Combine(instance.InstallPath, folderpath.Remove(0, 1))
                     : folderpath;
             }
         }
@@ -82,10 +82,10 @@
         public override void SetTransportType(string transportTypeName)
         {
             var settings = Config.AppSettings.Settings;
-            var version = details.Version;
+            var version = instance.Version;
             settings.Set(AuditInstanceSettingsList.TransportType, transportTypeName, version);
         }
 
-        IServiceControlAuditInstance details;
+        IServiceControlAuditInstance instance;
     }
 }

@@ -17,7 +17,8 @@
             var instance = new FakeAuditInstance
             {
                 InstallPath = TestContext.CurrentContext.TestDirectory,
-                TransportPackage = new TransportInfo { TypeName = "SomeTransportTypeName" },
+                TransportPackage = new TransportInfo { TypeName = "SomeTransportConfigTypeName, SomeTransportAssembly" },
+                PersistenceType = "SomePersistenceConfigTypeName, SomePersistenceAssembly",
                 Version = new Version(1, 0, 0)
             };
 
@@ -73,6 +74,8 @@
             public TransportInfo TransportPackage { get; set; }
 
             public string ConnectionString { get; set; }
+
+            public string PersistenceType { get; set; }
         }
     }
 }
