@@ -253,17 +253,7 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                var processingStartedTicks =
-                    context.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
-                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks.ToString()
-                        : DateTime.UtcNow.Ticks.ToString();
-
-                var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
-
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
-                {
-                    Id = $"ProcessedMessages/{documentId}"
-                };
+                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata));
 
                 if (Logger.IsDebugEnabled)
                 {

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Auditing;
     using Infrastructure;
@@ -54,6 +55,45 @@
             Assert.That(queryResult.Results.Count, Is.EqualTo(2));
         }
 
+        [Test]
+        public async Task Can_roundtrip_message_body()
+        {
+            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+
+            var body = new byte[100];
+            new Random().NextBytes(body);
+            var processedMessage = MakeMessage();
+
+            await unitOfWork.RecordProcessedMessage(processedMessage, body).ConfigureAwait(false);
+
+            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+
+            var bodyId = GetBodyId(processedMessage);
+
+            var retrievedMessage = await DataStore.GetMessageBody(bodyId).ConfigureAwait(false);
+
+            Assert.That(retrievedMessage, Is.Not.Null);
+            Assert.That(retrievedMessage.Found, Is.True);
+            Assert.That(retrievedMessage.HasContent, Is.True);
+        }
+
+        string GetBodyId(ProcessedMessage processedMessage)
+        {
+            if (processedMessage.MessageMetadata.TryGetValue("BodyUrl", out var bodyUrlObj)
+                && bodyUrlObj is string bodyUrl)
+            {
+                var match = Regex.Match(bodyUrl, "^/messages/(.*)/body$");
+                if (match.Success)
+                {
+                    return match.Result("$1");
+                }
+
+                throw new Exception($"Do not know how to parse body url: {bodyUrl}");
+            }
+
+            throw new Exception($"Could not retrieve body url");
+        }
+
         ProcessedMessage MakeMessage(
             string messageId = null,
             MessageIntentEnum intent = MessageIntentEnum.Send,
@@ -73,7 +113,6 @@
                 { "ProcessingTime", TimeSpan.FromSeconds(1) },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
                 { "IsSystemMessage", false },
-                { "ContentLength", 25 },
                 { "MessageType", "MyMessageType" },
                 { "IsRetried", false },
                 { "ConversationId", conversationId }

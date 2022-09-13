@@ -24,7 +24,7 @@
             {
                 // TODO: Pull both of these up to the higher level
                 processedMessage.MessageMetadata["ContentLength"] = body.Length;
-                processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.MessageMetadata["MessageId"]}/body";
+                processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
             }
 
             await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
