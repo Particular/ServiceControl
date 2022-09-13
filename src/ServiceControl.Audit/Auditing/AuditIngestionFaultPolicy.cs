@@ -68,7 +68,7 @@
 
         async Task DoLogging(Exception exception, dynamic failure)
         {
-            var id = Guid.NewGuid();
+            var id = Guid.NewGuid().ToString();
             failure.Id = id;
 
             // Write to storage

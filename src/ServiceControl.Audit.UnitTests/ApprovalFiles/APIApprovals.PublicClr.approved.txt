@@ -1,11 +1,13 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.AcceptanceTests.RavenDB")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.AcceptanceTests.RavenDb5")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.InMemory")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.RavenDb")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.RavenDb5")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.RavenDB")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.RavenDb5")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.Persistence.Tests.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
@@ -16,7 +18,7 @@ namespace ServiceControl.Audit.Auditing
     public class FailedAuditImport
     {
         public FailedAuditImport() { }
-        public System.Guid Id { get; set; }
+        public string Id { get; set; }
         public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
     }
     public class FailedTransportMessage
@@ -70,6 +72,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     public static class DataStoreConfig
     {
         public static string InMemoryPersistenceTypeFullyQualifiedName;
+        public static string RavenDb5PersistenceTypeFullyQualifiedName;
         public static string RavenDbPersistenceTypeFullyQualifiedName;
         public static string SqlServerPersistenceTypeFullyQualifiedName;
     }
@@ -78,6 +81,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         InMemory = 1,
         RavenDb = 2,
         SqlDb = 3,
+        RavenDb5 = 4,
     }
     public class Settings
     {
@@ -92,7 +96,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int DataSpaceRemainingThreshold { get; set; }
         public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
-        public string DatabaseMaintenanceUrl { get; }
+        public virtual string DatabaseMaintenanceUrl { get; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
