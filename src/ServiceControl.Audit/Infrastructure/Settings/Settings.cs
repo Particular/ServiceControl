@@ -297,7 +297,7 @@
                 return forwardAuditMessages.Value;
             }
 
-            throw new Exception("ForwardAuditMessages settings is missing, please make sure it is included.");
+            return false;
         }
 
         static string GetConnectionString()
@@ -352,9 +352,8 @@
             var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
             if (valueRead == null)
             {
-                message = "AuditRetentionPeriod settings is missing, please make sure it is included.";
-                logger.Fatal(message);
-                throw new Exception(message);
+                //same default as SCMU
+                return TimeSpan.FromHours(720);
             }
 
             if (TimeSpan.TryParse(valueRead, out var result))
