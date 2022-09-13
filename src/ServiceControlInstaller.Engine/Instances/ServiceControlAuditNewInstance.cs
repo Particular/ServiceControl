@@ -18,6 +18,9 @@
             var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var zipInfo = ServiceControlZipInfo.Find(appDirectory);
             Version = zipInfo.Version;
+
+            //new instances defaults to RavenDb 5
+            PersistenceType = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5";
         }
 
         public string ServiceControlQueueAddress { get; set; }
