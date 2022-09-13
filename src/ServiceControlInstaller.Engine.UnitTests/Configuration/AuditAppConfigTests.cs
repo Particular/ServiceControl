@@ -17,7 +17,7 @@
             var instance = new FakeAuditInstance
             {
                 InstallPath = TestContext.CurrentContext.TestDirectory,
-                TransportPackage = new TransportInfo(),
+                TransportPackage = new TransportInfo { TypeName = "SomeTransportTypeName" },
                 Version = new Version(1, 0, 0)
             };
 
