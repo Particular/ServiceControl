@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
