@@ -2,13 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
-    using NServiceBus;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
@@ -146,8 +141,8 @@
             }
 
             var body = !string.IsNullOrEmpty(message.Body) ? message.Body : TryGet(message.MessageMetadata, "Body") as string;
-            var bodySize = (int)message.MessageMetadata["ContentLength"];
-            var contentType = (string)message.MessageMetadata["ContentType"];
+            var bodySize = (int?)TryGet(message.MessageMetadata, "ContentLength") ?? 0;
+            var contentType = TryGet(message.MessageMetadata, "ContentType") as string;
             var bodyNotStored = message.MessageMetadata.ContainsKey("BodyNotStored") && (bool)message.MessageMetadata["BodyNotStored"];
 
             if (bodyNotStored && body == null)
@@ -190,31 +185,7 @@
             }
 
             processedMessages.Add(processedMessage);
-            var metadata = processedMessage.MessageMetadata;
-            var headers = processedMessage.Headers;
-
-            messageViews.Add(new MessagesView
-            {
-                Id = processedMessage.UniqueMessageId,
-                MessageId = (string)metadata["MessageId"],
-                MessageType = (string)metadata["MessageType"],
-                SendingEndpoint = TryGet(metadata, "SendingEndpoint") as EndpointDetails,
-                ReceivingEndpoint = TryGet(metadata, "ReceivingEndpoint") as EndpointDetails,
-                TimeSent = TryGet(metadata, "TimeSent") as DateTime?,
-                ProcessedAt = processedMessage.ProcessedAt,
-                CriticalTime = (TimeSpan)metadata["CriticalTime"],
-                ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
-                DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
-                IsSystemMessage = (bool)metadata["IsSystemMessage"],
-                ConversationId = TryGet(metadata, "ConversationId") as string,
-                Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                Status = !(bool)metadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully,
-                MessageIntent = (MessageIntentEnum)metadata["MessageIntent"],
-                BodyUrl = TryGet(metadata, "BodyUrl") as string,
-                BodySize = (int)metadata["ContentLength"],
-                InvokedSagas = TryGet(metadata, "InvokedSagas") as List<SagaInfo>,
-                OriginatesFromSaga = TryGet(metadata, "OriginatesFromSaga") as SagaInfo
-            });
+            messageViews.Add(MessagesViewFactory.Create(processedMessage));
 
             return Task.CompletedTask;
         }
@@ -258,6 +229,7 @@
 
             return null;
         }
+
         public Task Setup() => Task.CompletedTask;
 
         List<MessagesView> messageViews;
