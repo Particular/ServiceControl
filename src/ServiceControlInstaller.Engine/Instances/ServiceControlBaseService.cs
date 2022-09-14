@@ -20,7 +20,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public abstract class ServiceControlBaseService : BaseService
     {
-        protected ServiceControlBaseService(WindowsServiceController service)
+        protected ServiceControlBaseService(IWindowsServiceController service)
         {
             Service = service;
             AppConfig = CreateAppConfig();
@@ -218,7 +218,7 @@ namespace ServiceControlInstaller.Engine.Instances
             //We need that to make sure we can clean-up old registration when removing instances created
             //by previous versions of ServiceControl
 
-            //pre 4.17 versions of ServiceControl were using hostnames in all cases 
+            //pre 4.17 versions of ServiceControl were using hostnames in all cases
             var pre417LegacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
 
             //pre 4.21 version of ServiceControl were using + in all cases

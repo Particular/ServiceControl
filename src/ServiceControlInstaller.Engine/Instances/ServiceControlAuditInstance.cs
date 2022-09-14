@@ -52,7 +52,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return AppConfig.Read(AuditInstanceSettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
         }
 
-        public ServiceControlAuditInstance(WindowsServiceController service) : base(service)
+        public ServiceControlAuditInstance(IWindowsServiceController service) : base(service)
         {
         }
 
@@ -70,6 +70,7 @@ namespace ServiceControlInstaller.Engine.Instances
             AuditRetentionPeriod = TimeSpan.Parse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, "30.00:00:00"));
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
+            PersistenceType = AppConfig.Read(AuditInstanceSettingsList.PersistenceType, "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb");
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();
