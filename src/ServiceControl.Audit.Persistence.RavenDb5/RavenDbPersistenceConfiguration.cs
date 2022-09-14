@@ -5,34 +5,26 @@
     using Raven.Embedded;
     using Auditing.BodyStorage;
     using Infrastructure.Settings;
-    using Raven.Client.Documents.Indexes;
     using UnitOfWork;
+    using ServiceControl.Audit.Persistence.RavenDb5;
+    using System.Threading.Tasks;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public async Task ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
         {
+            EmbeddedDatabase embeddedRavenDb;
             // TODO: Is there a more appropriate place to put this?
             if (ShouldStartServer(settings))
             {
-                EmbeddedServer.Instance.StartServer(new ServerOptions
-                {
-                    DataDirectory = settings.DbPath,
-                    ServerUrl = settings.DatabaseMaintenanceUrl,
-                    AcceptEula = true
-                });
+                embeddedRavenDb = EmbeddedDatabase.Start(settings.DbPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+            }
+            else
+            {
+                embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory);
             }
 
-            var documentStore = EmbeddedServer.Instance.GetDocumentStore("ServiceControlAudit");
-            // TODO: Set license
-            // TODO: Use Run In Memory setting (if still available)
-
-            // TODO: Maybe move this to hosted service
-            IndexCreation.CreateIndexes(
-                GetType().Assembly, documentStore
-            );
-            // TODO: Shut down gracefully
-
+            var documentStore = await embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration()).ConfigureAwait(false);
 
             serviceCollection.AddSingleton(documentStore);
 
@@ -56,14 +48,6 @@
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-
-            //serviceCollection.Configure<RavenStartup>(database =>
-            //{
-            //    foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-            //    {
-            //        database.AddIndexAssembly(indexAssembly);
-            //    }
-            //});
         }
 
         static bool ShouldStartServer(Settings settings)

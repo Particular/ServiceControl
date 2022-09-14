@@ -45,6 +45,7 @@
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
             DataStoreType = GetDataStoreType();
             SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
+            RavenDbConnectionString = SettingsReader<string>.Read("ServiceControl", "RavenDbConnectionString", null);
         }
 
         // to allow tests to override and avoid reading all settings in the ctor
@@ -181,6 +182,8 @@
         public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDb;
 
         public string SqlStorageConnectionString { get; set; }
+
+        public string RavenDbConnectionString { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
