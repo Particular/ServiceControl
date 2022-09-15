@@ -1,7 +1,8 @@
-﻿namespace ServiceControl.Audit.Monitoring
+﻿namespace ServiceControl.Audit.Persistence.Monitoring
 {
     using System;
     using Infrastructure;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     public class KnownEndpoint
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Audit.Persistence.Infrastructure
 {
     using System;
     using System.Security.Cryptography;
