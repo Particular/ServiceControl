@@ -4,6 +4,7 @@
     using System.IO;
     using System.Linq;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceControlInstaller.Engine.Instances;
 
     [TestFixture]
@@ -20,7 +21,10 @@
         [Test]
         public void Should_install_persister()
         {
-            var newInstance = new ServiceControlAuditNewInstance();
+            var newInstance = new ServiceControlAuditNewInstance
+            {
+                Version = new Version(1, 0, 0)
+            };
             var installPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "install");
             var dbPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "db");
             var logPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "log");
@@ -36,8 +40,12 @@
             newInstance.LogPath = logPath;
 
             newInstance.CopyFiles(zipFilePath);
+            newInstance.WriteConfigurationFile();
 
             FileAssert.Exists(Path.Combine(installPath, "ServiceControl.Audit.Persistence.RavenDB5.dll"));
+            var configFile = File.ReadAllText(Path.Combine(installPath, "ServiceControl.Audit.exe.config"));
+
+            Approver.Verify(configFile, input => input.Replace(dbPath, "value-not-asserted").Replace(logPath, "value-not-asserted"));
         }
 
         public static DirectoryInfo GetZipFolder()
