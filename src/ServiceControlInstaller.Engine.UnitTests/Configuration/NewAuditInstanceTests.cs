@@ -14,7 +14,7 @@
         {
             var newInstance = new ServiceControlAuditNewInstance();
 
-            StringAssert.Contains("RavenDb5", newInstance.PersistenceType);
+            StringAssert.Contains("RavenDb5", newInstance.PersistencePackage.TypeName);
         }
 
         [Test]

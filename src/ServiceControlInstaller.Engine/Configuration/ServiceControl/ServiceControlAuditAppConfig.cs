@@ -25,7 +25,7 @@
             settings.Set(AuditInstanceSettingsList.DBPath, instance.DBPath);
             settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString());
             settings.Set(AuditInstanceSettingsList.TransportType, instance.TransportPackage.TypeName, version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceType);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistencePackage.TypeName);
             settings.Set(AuditInstanceSettingsList.AuditQueue, instance.AuditQueue);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);

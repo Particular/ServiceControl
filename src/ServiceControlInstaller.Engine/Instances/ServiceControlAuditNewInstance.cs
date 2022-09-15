@@ -20,11 +20,14 @@
             Version = zipInfo.Version;
 
             //new instances defaults to RavenDb 5
-            PersistenceType = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5";
+            PersistencePackage = new PersistenceInfo
+            {
+                TypeName = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5"
+            };
         }
 
         public string ServiceControlQueueAddress { get; set; }
-        public string PersistenceType { get; set; }
+        public PersistenceInfo PersistencePackage { get; set; }
 
         public override void WriteConfigurationFile()
         {

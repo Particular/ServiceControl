@@ -16,7 +16,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public TimeSpan AuditRetentionPeriod { get; set; }
         public string ServiceControlQueueAddress { get; set; }
-        public string PersistenceType { get; set; }
+        public PersistenceInfo PersistencePackage { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
@@ -39,7 +39,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistenceType);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistencePackage.TypeName);
         }
 
         protected override AppConfig CreateAppConfig()
@@ -70,7 +70,10 @@ namespace ServiceControlInstaller.Engine.Instances
             AuditRetentionPeriod = TimeSpan.Parse(AppConfig.Read(AuditInstanceSettingsList.AuditRetentionPeriod, "30.00:00:00"));
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
-            PersistenceType = AppConfig.Read(AuditInstanceSettingsList.PersistenceType, "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb");
+
+            var persistenceTypeName = AppConfig.Read(AuditInstanceSettingsList.PersistenceType, "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb");
+
+            PersistencePackage = new PersistenceInfo { TypeName = persistenceTypeName };
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();

@@ -18,7 +18,7 @@
             {
                 InstallPath = TestContext.CurrentContext.TestDirectory,
                 TransportPackage = new TransportInfo { TypeName = "SomeTransportConfigTypeName, SomeTransportAssembly" },
-                PersistenceType = "SomePersistenceConfigTypeName, SomePersistenceAssembly",
+                PersistencePackage = new PersistenceInfo { TypeName = "SomePersistenceConfigTypeName, SomePersistenceAssembly" },
                 Version = new Version(1, 0, 0)
             };
 
@@ -73,9 +73,9 @@
 
             public TransportInfo TransportPackage { get; set; }
 
-            public string ConnectionString { get; set; }
+            public PersistenceInfo PersistencePackage { get; set; }
 
-            public string PersistenceType { get; set; }
+            public string ConnectionString { get; set; }
         }
     }
 }
