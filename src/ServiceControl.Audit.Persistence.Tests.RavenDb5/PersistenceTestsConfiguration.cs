@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
+    using RavenDb5;
     using UnitOfWork;
     using ServiceControl.Audit.Auditing.BodyStorage;
 
@@ -19,7 +20,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public async Task Configure()
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
@@ -34,17 +35,20 @@
                 DbPath = dbPath
             };
 
+            serviceCollection.AddSingleton<Settings>(settings);
+
             config.ConfigureServices(serviceCollection, settings, false, true);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            await serviceProvider.GetRequiredService<IPersistenceLifecycle>().Initialize()
+                .ConfigureAwait(false);
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
             BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-
-            return Task.CompletedTask;
         }
 
         public Task CompleteDBOperation()
@@ -56,7 +60,7 @@
         public Task Cleanup()
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
-                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { "ServiceControlAudit" }, HardDelete = true }));
+                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { new AuditDatabaseConfiguration().Name }, HardDelete = true }));
             DocumentStore?.Dispose();
             return Task.CompletedTask;
         }

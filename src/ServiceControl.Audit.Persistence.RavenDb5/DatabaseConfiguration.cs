@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Reflection;
     using System;
-    using ServiceControl.SagaAudit;
 
     public abstract class DatabaseConfiguration
     {
@@ -26,7 +25,7 @@
         public virtual Func<string, BlittableJsonReaderObject, string> FindClrType { get; }
     }
 
-    class AuditDatabaseConfiguration : DatabaseConfiguration
+    public class AuditDatabaseConfiguration : DatabaseConfiguration
     {
         public AuditDatabaseConfiguration() : base("audit") { }
 

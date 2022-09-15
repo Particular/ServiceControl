@@ -79,7 +79,8 @@ namespace ServiceControl.Audit.Infrastructure
             var loggingSettings = new LoggingSettings(settings.ServiceName);
 
             // externally managed container mode doesn't run the installers!
-            var containerSettings = configuration.UseContainer(new DefaultServiceProviderFactory());
+            var providerFactory = new DefaultServiceProviderFactory();
+            var containerSettings = configuration.UseContainer(providerFactory);
             var containerBuilder = containerSettings.ServiceCollection;
             containerBuilder.AddSingleton(transportSettings);
             containerBuilder.AddSingleton(loggingSettings);
@@ -91,6 +92,13 @@ namespace ServiceControl.Audit.Infrastructure
 
             await Endpoint.Create(configuration)
                 .ConfigureAwait(false);
+
+            var serviceProvider = providerFactory.CreateServiceProvider(containerBuilder);
+            var persistenceLifecycle = serviceProvider.GetService<IPersistenceLifecycle>();
+            if (persistenceLifecycle != null)
+            {
+                await persistenceLifecycle.Initialize().ConfigureAwait(false);
+            }
         }
 
         bool ValidateLicense(Settings.Settings settings)

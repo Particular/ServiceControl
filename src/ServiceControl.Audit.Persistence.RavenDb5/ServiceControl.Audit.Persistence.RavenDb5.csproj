@@ -5,11 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="RavenLicense.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="RavenLicense.xml" />
+    <None Remove="RavenLicense.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +19,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="RavenLicense.json" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">

@@ -83,7 +83,7 @@
 
         public static string ReadLicense()
         {
-            using (var resourceStream = typeof(EmbeddedDatabase).Assembly.GetManifestResourceStream("ServiceControl.Infrastructure.RavenDB.RavenLicense.json"))
+            using (var resourceStream = typeof(EmbeddedDatabase).Assembly.GetManifestResourceStream("ServiceControl.Audit.Persistence.RavenDb5.RavenLicense.json"))
             using (var reader = new StreamReader(resourceStream))
             {
                 return reader.ReadToEnd()
