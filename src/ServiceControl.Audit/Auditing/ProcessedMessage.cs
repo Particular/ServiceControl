@@ -19,6 +19,15 @@
             MessageMetadata = metadata;
             Headers = headers;
 
+            var processingStartedTicks =
+                headers.TryGetValue(NServiceBus.Headers.ProcessingStarted, out var processingStartedValue)
+                    ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks.ToString()
+                    : DateTime.UtcNow.Ticks.ToString();
+
+            var documentId = $"{processingStartedTicks}-{headers.ProcessingId()}";
+
+            Id = $"ProcessedMessages/{documentId}";
+
             if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt))
             {
                 ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);

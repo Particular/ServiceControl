@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using BodyStorage;
     using Infrastructure.Settings;
     using Monitoring;
     using NServiceBus;
@@ -26,7 +25,6 @@
             Metrics metrics,
             Settings settings,
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IBodyStorage bodyStorage,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession
@@ -50,8 +48,7 @@
                 new SagaRelationshipsEnricher()
             }.Concat(auditEnrichers).ToArray();
 
-            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            auditPersister = new AuditPersister(unitOfWorkFactory, bodyStorageEnricher, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
+            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
         }
 
         public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
