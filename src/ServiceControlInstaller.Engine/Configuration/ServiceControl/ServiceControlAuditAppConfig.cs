@@ -32,12 +32,16 @@
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString(), version);
 
-            // Add Settings for performance tuning
-            // See https://github.com/Particular/ServiceControl/issues/655
-            if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
+            foreach (var setting in instance.PersistencePackage.Settings)
             {
-                settings.Add("Raven/Esent/MaxVerPages", "2048");
+                if (!settings.AllKeys.Contains(setting.Key))
+                {
+                    settings.Add(setting.Key, setting.Value);
+                }
             }
+
+            //TODO: add the following to the RavenDB 3.5 manifest
+            //settings.Add("Raven/Esent/MaxVerPages", "2048");
         }
 
         public override void EnableMaintenanceMode()
