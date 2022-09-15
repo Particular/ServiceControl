@@ -8,6 +8,6 @@
         public string ZipName { get; set; }
         public string TypeName { get; set; }
 
-        public IDictionary<string, string> Settings { get; set; }
+        public IDictionary<string, string> Settings { get; set; } = new Dictionary<string, string>();
     }
 }
