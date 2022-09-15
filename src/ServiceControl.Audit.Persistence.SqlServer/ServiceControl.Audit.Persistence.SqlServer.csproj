@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>
 
 </Project>
