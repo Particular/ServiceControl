@@ -32,6 +32,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var headers = new Dictionary<string, string>
             {
                 { Headers.MessageId, "someid" },
+                { Headers.ProcessingEndpoint, "someendpoint" },
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
@@ -63,6 +64,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             {
                 { Headers.ContentType, "application/binary" },
                 { Headers.MessageId, "someid" },
+                { Headers.ProcessingEndpoint, "someendpoint" },
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
@@ -96,6 +98,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             {
                 [Headers.MessageId] = "someid",
                 ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ProcessingEndpoint] = "someendpoint",
                 [Headers.ContentType] = "text/xml"
             };
 
@@ -129,6 +132,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             {
                 [Headers.MessageId] = "someid",
                 ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ProcessingEndpoint] = "someendpoint",
                 [Headers.ContentType] = "text/xml"
             };
 
@@ -162,6 +166,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             {
                 [Headers.MessageId] = "someid",
                 ["ServiceControl.Retry.UniqueMessageId"] = "someid",
+                [Headers.ProcessingEndpoint] = "someendpoint",
                 [Headers.ContentType] = "text/xml"
             };
 
@@ -194,6 +199,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             {
                 { Headers.ContentType, "application/binary" },
                 { Headers.MessageId, "someid" },
+                { Headers.ProcessingEndpoint, "someendpoint" },
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
@@ -226,6 +232,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var headers = new Dictionary<string, string>
             {
                 { Headers.MessageId, "someid" },
+                { Headers.ProcessingEndpoint, "someendpoint" },
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 
@@ -257,6 +264,7 @@ namespace ServiceControl.UnitTests.BodyStorage
             var headers = new Dictionary<string, string>
             {
                 { Headers.MessageId, "someid" },
+                { Headers.ProcessingEndpoint, "someendpoint" },
                 { "ServiceControl.Retry.UniqueMessageId", "someid" }
             };
 

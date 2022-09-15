@@ -10,7 +10,7 @@
     {
         public ValueTask DisposeAsync() => throw new System.NotImplementedException();
 
-        public Task RecordProcessedMessage(ProcessedMessage processedMessage) => throw new System.NotImplementedException();
+        public Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body) => throw new System.NotImplementedException();
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot) => throw new System.NotImplementedException();
 

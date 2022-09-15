@@ -130,7 +130,23 @@
             }
         }
 
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            var fromIndex = await GetMessageBodyFromIndex(messageId).ConfigureAwait(false);
+
+            if (!fromIndex.Found)
+            {
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                if (fromAttachments.Found)
+                {
+                    return fromAttachments;
+                }
+            }
+
+            return fromIndex;
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromIndex(string messageId)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -142,30 +158,36 @@
 
                 if (message == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
+                    return MessageBodyView.NotFound();
                 }
 
                 if (message.BodyNotStored && message.Body == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NoContent);
+                    return MessageBodyView.NoContent();
                 }
 
                 if (message.Body == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
+                    return MessageBodyView.NotFound();
                 }
 
-                var response = request.CreateResponse(HttpStatusCode.OK);
-                var content = new StringContent(message.Body);
-
-                MediaTypeHeaderValue.TryParse(message.ContentType, out var parsedContentType);
-                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-                content.Headers.ContentLength = message.BodySize;
-                response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.IndexEtag}\"");
-                response.Content = content;
-                return response;
+                return MessageBodyView.FromString(message.Body, message.ContentType, message.BodySize, stats.IndexEtag);
             }
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        {
+            //We want to continue using attachments for now
+#pragma warning disable 618
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}").ConfigureAwait(false);
+#pragma warning restore 618
+
+            return MessageBodyView.FromStream(
+                attachment.Data(),
+                attachment.Metadata["ContentType"].Value<string>(),
+                attachment.Metadata["ContentLength"].Value<int>(),
+                attachment.Etag
+            );
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()

@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using BodyStorage;
     using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
     using Monitoring;
@@ -21,13 +20,12 @@
 
     class AuditPersister
     {
-        public AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory, BodyStorageEnricher bodyStorageEnricher,
+        public AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
             Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
 
             this.ingestedAuditMeter = ingestedAuditMeter;
@@ -85,7 +83,7 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
+                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body).ConfigureAwait(false);
                         }
 
                         storedContexts.Add(context);
@@ -255,20 +253,7 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                var processingStartedTicks =
-                    context.Headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue)
-                        ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks.ToString()
-                        : DateTime.UtcNow.Ticks.ToString();
-
-                var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
-
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
-                {
-                    Id = $"ProcessedMessages/{documentId}"
-                };
-
-                await bodyStorageEnricher.StoreAuditMessageBody(context.Body, auditMessage)
-                    .ConfigureAwait(false);
+                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata));
 
                 if (Logger.IsDebugEnabled)
                 {
@@ -323,7 +308,6 @@
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
-        readonly BodyStorageEnricher bodyStorageEnricher;
         static readonly ILog Logger = LogManager.GetLogger<AuditPersister>();
     }
 }

@@ -3,12 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
-    using NServiceBus;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
@@ -16,11 +13,13 @@
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
+        IBodyStorage bodyStorage;
         public List<KnownEndpoint> knownEndpoints;
         public List<FailedAuditImport> failedAuditImports;
 
-        public InMemoryAuditDataStore()
+        public InMemoryAuditDataStore(IBodyStorage bodyStorage)
         {
+            this.bodyStorage = bodyStorage;
             sagaHistories = new List<SagaHistory>();
             messageViews = new List<MessagesView>();
             processedMessages = new List<ProcessedMessage>();
@@ -99,40 +98,64 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            var result = await GetMessageBodyFromMetadata(messageId).ConfigureAwait(false);
+
+            if (!result.Found)
+            {
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                if (fromAttachments.Found)
+                {
+                    return fromAttachments;
+                }
+            }
+
+            return result;
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        {
+            var fromBodyStorage = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
+
+            if (fromBodyStorage.HasResult)
+            {
+                return MessageBodyView.FromStream(
+                    fromBodyStorage.Stream,
+                    fromBodyStorage.ContentType,
+                    fromBodyStorage.BodySize,
+                    fromBodyStorage.Etag
+                );
+            }
+
+            return MessageBodyView.NotFound();
+        }
+
+        Task<MessageBodyView> GetMessageBodyFromMetadata(string messageId)
         {
             var message = processedMessages.FirstOrDefault(pm => (pm.MessageMetadata["MessageId"] as string) == messageId);
 
             if (message == null)
             {
-                return request.CreateResponse(HttpStatusCode.NotFound);
+                return Task.FromResult(MessageBodyView.NotFound());
             }
 
             var body = !string.IsNullOrEmpty(message.Body) ? message.Body : TryGet(message.MessageMetadata, "Body") as string;
-            var bodySize = (int)message.MessageMetadata["ContentLength"];
-            var contentType = (string)message.MessageMetadata["ContentType"];
+            var bodySize = (int?)TryGet(message.MessageMetadata, "ContentLength") ?? 0;
+            var contentType = TryGet(message.MessageMetadata, "ContentType") as string;
             var bodyNotStored = message.MessageMetadata.ContainsKey("BodyNotStored") && (bool)message.MessageMetadata["BodyNotStored"];
 
             if (bodyNotStored && body == null)
             {
-                return request.CreateResponse(HttpStatusCode.NoContent);
+                return Task.FromResult(MessageBodyView.NoContent());
             }
 
             if (body == null)
             {
-                return request.CreateResponse(HttpStatusCode.NotFound);
+                return Task.FromResult(MessageBodyView.NotFound());
             }
 
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            var content = new StringContent(body);
-
-            MediaTypeHeaderValue.TryParse(contentType, out var parsedContentType);
-            content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-            content.Headers.ContentLength = bodySize;
-            response.Headers.ETag = new EntityTagHeaderValue($"\"{string.Empty}\"");
-            response.Content = content;
-            return await Task.FromResult(response).ConfigureAwait(false);
+            return Task.FromResult(MessageBodyView.FromString(body, contentType, bodySize, string.Empty));
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
@@ -162,31 +185,7 @@
             }
 
             processedMessages.Add(processedMessage);
-            var metadata = processedMessage.MessageMetadata;
-            var headers = processedMessage.Headers;
-
-            messageViews.Add(new MessagesView
-            {
-                Id = processedMessage.UniqueMessageId,
-                MessageId = (string)metadata["MessageId"],
-                MessageType = (string)metadata["MessageType"],
-                SendingEndpoint = TryGet(metadata, "SendingEndpoint") as EndpointDetails,
-                ReceivingEndpoint = TryGet(metadata, "ReceivingEndpoint") as EndpointDetails,
-                TimeSent = TryGet(metadata, "TimeSent") as DateTime?,
-                ProcessedAt = processedMessage.ProcessedAt,
-                CriticalTime = (TimeSpan)metadata["CriticalTime"],
-                ProcessingTime = (TimeSpan)metadata["ProcessingTime"],
-                DeliveryTime = (TimeSpan)metadata["DeliveryTime"],
-                IsSystemMessage = (bool)metadata["IsSystemMessage"],
-                ConversationId = TryGet(metadata, "ConversationId") as string,
-                Headers = headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value)),
-                Status = !(bool)metadata["IsRetried"] ? MessageStatus.Successful : MessageStatus.ResolvedSuccessfully,
-                MessageIntent = (MessageIntentEnum)metadata["MessageIntent"],
-                BodyUrl = TryGet(metadata, "BodyUrl") as string,
-                BodySize = (int)metadata["ContentLength"],
-                InvokedSagas = TryGet(metadata, "InvokedSagas") as List<SagaInfo>,
-                OriginatesFromSaga = TryGet(metadata, "OriginatesFromSaga") as SagaInfo
-            });
+            messageViews.Add(MessagesViewFactory.Create(processedMessage));
 
             return Task.CompletedTask;
         }
@@ -230,6 +229,7 @@
 
             return null;
         }
+
         public Task Setup() => Task.CompletedTask;
 
         List<MessagesView> messageViews;

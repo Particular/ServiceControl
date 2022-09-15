@@ -25,6 +25,8 @@
                 RunInMemory = true
             };
 
+            serviceCollection.AddSingleton<Settings>(settings);
+
             config.ConfigureServices(serviceCollection, settings, false, true);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
