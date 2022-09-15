@@ -22,7 +22,8 @@
             //new instances defaults to RavenDb 5
             PersistencePackage = new PersistenceInfo
             {
-                TypeName = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5"
+                TypeName = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5",
+                ZipName = "RavenDb5"
             };
         }
 
@@ -91,6 +92,13 @@
             doc.Load(path);
 
             return instanceData;
+        }
+
+        public override void CopyFiles(string zipFilePath)
+        {
+            base.CopyFiles(zipFilePath);
+
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Storages\{PersistencePackage.ZipName}");
         }
     }
 }

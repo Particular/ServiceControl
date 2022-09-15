@@ -37,7 +37,7 @@
 
             newInstance.CopyFiles(zipFilePath);
 
-            FileAssert.Exists(Path.Combine(installPath, "ServiceControl.Audit.AcceptanceTests.RavenDB5.dll"));
+            FileAssert.Exists(Path.Combine(installPath, "ServiceControl.Audit.Persistence.RavenDB5.dll"));
         }
 
         public static DirectoryInfo GetZipFolder()

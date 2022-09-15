@@ -111,7 +111,7 @@
 
         public string BrowsableUrl => throw new NotImplementedException("Not available until the instance is installed");
 
-        public void CopyFiles(string zipFilePath)
+        public virtual void CopyFiles(string zipFilePath)
         {
             //Clear out any files from previos runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
