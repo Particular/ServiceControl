@@ -29,6 +29,7 @@ namespace Tests
                 var storageFolders = storageFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 
                 CollectionAssert.AreEquivalent(allStorages, storageFolders, $"Expected storages folder to contain {string.Join(",", allStorages)}");
+                Assert.IsFalse(storageFiles.Any(fn => fn.EndsWith(".config")));
             }
         }
 
