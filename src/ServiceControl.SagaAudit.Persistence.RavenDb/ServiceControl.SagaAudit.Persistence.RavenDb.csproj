@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj" />
   </ItemGroup>
 
