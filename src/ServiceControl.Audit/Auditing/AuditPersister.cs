@@ -15,6 +15,7 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
+    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
