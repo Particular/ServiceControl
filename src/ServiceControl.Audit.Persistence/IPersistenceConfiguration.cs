@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
 
-    interface IPersistenceConfiguration
+    public interface IPersistenceConfiguration
     {
         void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup);
     }

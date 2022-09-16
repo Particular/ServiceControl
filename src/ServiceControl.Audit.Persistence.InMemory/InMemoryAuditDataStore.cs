@@ -12,6 +12,7 @@
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.SagaAudit;
 
