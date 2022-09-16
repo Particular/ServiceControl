@@ -1,6 +1,6 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    class QueryResult
+    public class QueryResult
     {
         protected QueryResult(object results, QueryStatsInfo queryStatsInfo)
         {
@@ -15,7 +15,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public QueryStatsInfo QueryStats { get; }
     }
 
-    class QueryResult<TOut> : QueryResult
+    public class QueryResult<TOut> : QueryResult
         where TOut : class
     {
         public QueryResult(TOut results, QueryStatsInfo queryStatsInfo) : base(results, queryStatsInfo)

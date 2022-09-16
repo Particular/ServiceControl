@@ -2,7 +2,7 @@
 {
     using System.Net.Http;
 
-    class PagingInfo
+    public class PagingInfo
     {
         public const int DefaultPageSize = 50;
 
@@ -20,7 +20,7 @@
         }
     }
 
-    static class PagingInfoExtension
+    public static class PagingInfoExtension
     {
         public static PagingInfo GetPagingInfo(this HttpRequestMessage request)
         {
@@ -40,7 +40,7 @@
         }
     }
 
-    static class IncludeSystemMessageExtension
+    public static class IncludeSystemMessageExtension
     {
         public static bool GetIncludeSystemMessages(this HttpRequestMessage request)
         {

@@ -6,7 +6,7 @@
     using Monitoring;
     using ServiceControl.SagaAudit;
 
-    interface IAuditIngestionUnitOfWork : IAsyncDisposable
+    public interface IAuditIngestionUnitOfWork : IAsyncDisposable
     {
         Task RecordProcessedMessage(ProcessedMessage processedMessage);
         Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot);

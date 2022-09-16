@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using Infrastructure;
     using NServiceBus;
 
     public class ProcessedMessage
@@ -13,9 +12,9 @@
             Headers = new Dictionary<string, string>();
         }
 
-        public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
+        public ProcessedMessage(string uniqueMessageId, Dictionary<string, string> headers, Dictionary<string, object> metadata)
         {
-            UniqueMessageId = headers.UniqueId();
+            UniqueMessageId = uniqueMessageId;
             MessageMetadata = metadata;
             Headers = headers;
 

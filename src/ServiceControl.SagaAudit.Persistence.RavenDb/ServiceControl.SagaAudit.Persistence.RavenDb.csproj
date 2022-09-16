@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj" />
-    <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
   </ItemGroup>
 
 </Project>

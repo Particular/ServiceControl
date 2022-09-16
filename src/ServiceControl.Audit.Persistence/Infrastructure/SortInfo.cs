@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Net.Http;
 
-    class SortInfo
+    public class SortInfo
     {
         public string Direction { get; }
         public string Sort { get; }
@@ -15,7 +15,7 @@
         }
     }
 
-    static class SortInfoExtension
+    public static class SortInfoExtension
     {
         public static SortInfo GetSortInfo(this HttpRequestMessage request, string defaultSortDirection = "desc")
         {

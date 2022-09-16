@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using Auditing;
 
-    interface IFailedAuditStorage
+    public interface IFailedAuditStorage
     {
         Task Store(dynamic failure);
 

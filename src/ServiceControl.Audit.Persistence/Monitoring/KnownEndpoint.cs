@@ -2,7 +2,6 @@
 {
     using System;
     using Infrastructure;
-    using ServiceControl.Audit.Persistence.Infrastructure;
 
     public class KnownEndpoint
     {
