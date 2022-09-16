@@ -8,7 +8,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Indexes;
-    using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.Audit.Infrastructure.Migration;
 
     class EmbeddedRavenDbHostedService : IHostedService
     {
@@ -45,7 +45,7 @@
             Logger.Info("Data migrations starting");
             foreach (var dataMigration in dataMigrations)
             {
-                await dataMigration.Migrate(documentStore)
+                await dataMigration.Migrate()
                     .ConfigureAwait(false);
             }
             Logger.Info("Data migrations complete");

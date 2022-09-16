@@ -4,14 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    enum TimerJobExecutionResult
-    {
-        ScheduleNextExecution,
-        ExecuteImmediately,
-        DoNotContinueExecuting
-    }
-
-    class AsyncTimer
+    public class AsyncTimer
     {
         public AsyncTimer(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
         {

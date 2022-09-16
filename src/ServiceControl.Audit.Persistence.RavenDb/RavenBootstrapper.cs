@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Reflection;
@@ -8,30 +9,44 @@
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Infrastructure.Migration;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     class RavenBootstrapper
     {
-        public static Settings Settings { get; private set; }
+        public static IDictionary<string, string> Settings { get; private set; }
 
-        public static void Configure(EmbeddableDocumentStore documentStore, Settings settings, bool maintenanceMode = false)
+        public static void Configure(EmbeddableDocumentStore documentStore, IDictionary<string, string> settings, bool maintenanceMode = false)
         {
             Settings = settings;
 
-            if (settings.RunInMemory)
+            var runInMemory = false;
+            if (settings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
+            {
+                runInMemory = bool.Parse(runInMemoryString);
+            }
+
+            if (runInMemory)
             {
                 documentStore.RunInMemory = true;
             }
             else
             {
-                Directory.CreateDirectory(settings.DbPath);
+                var dbPath = settings["RavenDb/RunInMemory"];
 
-                documentStore.DataDirectory = settings.DbPath;
-                documentStore.Configuration.CompiledIndexCacheDirectory = settings.DbPath;
+                Directory.CreateDirectory(dbPath);
+
+                documentStore.DataDirectory = dbPath;
+                documentStore.Configuration.CompiledIndexCacheDirectory = dbPath;
             }
 
-            documentStore.UseEmbeddedHttpServer = maintenanceMode || settings.ExposeRavenDB;
+            var exposeRavenDB = false;
+
+            if (settings.TryGetValue("RavenDb/RunInMemory", out var exposeRavenDBString))
+            {
+                exposeRavenDB = bool.Parse(exposeRavenDBString);
+            }
+
+            documentStore.UseEmbeddedHttpServer = maintenanceMode || exposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -50,17 +65,27 @@
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            if (settings.RunCleanupBundle)
+            var runCleanupBundle = false;
+
+            if (settings.TryGetValue("RavenDb/RunInMemory", out var runCleanupBundleString))
+            {
+                runCleanupBundle = bool.Parse(runCleanupBundleString);
+            }
+
+            if (runCleanupBundle)
             {
                 documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
             }
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
-            documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
+            documentStore.Configuration.Port = int.Parse(settings["RavenDb/MaintenancePort"]);
+
+            var hostName = settings["RavenDb/Hostname"];
+
+            documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
                 ? "localhost"
-                : settings.Hostname;
+                : hostName;
             documentStore.Conventions.SaveEnumsAsIntegers = true;
             documentStore.Conventions.CustomizeJsonSerializer = serializer => serializer.Binder = MigratedTypeAwareBinder;
 

@@ -6,7 +6,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Abstractions.Data;
-    using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.Audit.Persistence.Monitoring;
 
     class MigrateKnownEndpoints : IDataMigration
     {

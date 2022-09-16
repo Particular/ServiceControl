@@ -16,6 +16,8 @@
     using ServiceControl.Audit.Persistence.RavenDb.Extensions;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDb.Transformers;
+    using ServiceControl.Audit.Persistence.Monitoring;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
@@ -77,14 +79,14 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
-                    .Search(x => x.Query, input.Keyword)
-                    .Where(m => m.ReceivingEndpointName == input.Endpoint)
+                    .Search(x => x.Query, keyword)
+                    .Where(m => m.ReceivingEndpointName == endpoint)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()

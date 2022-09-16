@@ -1,18 +1,18 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
+    using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Infrastructure.Migration;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup)
         {
             var documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings, maintenanceMode);
