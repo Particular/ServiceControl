@@ -5,6 +5,6 @@
 
     public interface IDataMigration
     {
-        Task Migrate(IDocumentStore store);
+        Task Migrate(IDocumentStore store, int pageSize = 1024);
     }
 }

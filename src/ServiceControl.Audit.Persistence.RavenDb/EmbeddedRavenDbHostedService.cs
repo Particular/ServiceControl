@@ -45,7 +45,7 @@
             Logger.Info("Data migrations starting");
             foreach (var dataMigration in dataMigrations)
             {
-                await dataMigration.Migrate()
+                await dataMigration.Migrate(documentStore)
                     .ConfigureAwait(false);
             }
             Logger.Info("Data migrations complete");
