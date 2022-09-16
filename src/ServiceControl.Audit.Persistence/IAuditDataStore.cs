@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure;
     using ServiceControl.Audit.Auditing.MessagesView;
@@ -18,6 +17,9 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
-        Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
+        
+        
+        // This is being refactored anyway
+        //Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId);
     }
 }

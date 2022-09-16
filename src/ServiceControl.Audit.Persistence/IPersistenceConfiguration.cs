@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence
 {
+    using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     interface IPersistenceConfiguration
     {
-        void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup);
+        void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup);
     }
 }
