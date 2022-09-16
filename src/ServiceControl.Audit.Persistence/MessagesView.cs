@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using NServiceBus;
     using ServiceControl.SagaAudit;
 
+    //TODO: this class feels wrong?
     public class MessagesView
     {
         public string Id { get; set; }
