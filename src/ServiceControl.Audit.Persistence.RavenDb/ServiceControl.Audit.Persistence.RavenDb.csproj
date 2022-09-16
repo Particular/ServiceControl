@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj" />
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">

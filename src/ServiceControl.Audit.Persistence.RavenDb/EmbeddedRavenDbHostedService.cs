@@ -8,7 +8,7 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Indexes;
-    using ServiceControl.Audit.Infrastructure.Migration;
+    using ServiceControl.Infrastructure.RavenDB;
 
     class EmbeddedRavenDbHostedService : IHostedService
     {
