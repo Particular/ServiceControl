@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
 
@@ -20,12 +20,12 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings
-            {
-                RunInMemory = true
-            };
+            //var settings = new FakeSettings
+            //{
+            //    RunInMemory = true
+            //};
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            config.ConfigureServices(serviceCollection, new Dictionary<string, string>(), false, true);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -53,13 +53,5 @@
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
-
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
-        }
     }
 }

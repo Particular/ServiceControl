@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -26,10 +27,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, string persistenceType, Action<IDictionary<string, string>> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.transportToUse = transportToUse;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceType = persistenceType;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
         }
@@ -68,11 +69,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceType);
 
             settings = new Settings(instanceName)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
-                SqlStorageConnectionString = dataStoreToUse.ConnectionString,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
@@ -123,7 +123,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await setupBootstrapper.Run(null);
             }
 
-            setSettings(settings);
+            //TODO
+            //setSettings(settings);
 
             var configuration = new EndpointConfiguration(instanceName);
 
@@ -210,8 +211,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreToUse;
-        Action<Settings> setSettings;
+        string persistenceType;
+        Action<IDictionary<string, string>> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         IHost host;

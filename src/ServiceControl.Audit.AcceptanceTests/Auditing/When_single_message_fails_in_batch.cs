@@ -24,12 +24,13 @@
             //Make sure the audit import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
-            var maximumConcurrencyLevel = 5;
+            //var maximumConcurrencyLevel = 5;
 
-            SetSettings = settings =>
-            {
-                settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
-            };
+            //TODO
+            //SetSettings = settings =>
+            //{
+            //    settings.MaximumConcurrencyLevel = maximumConcurrencyLevel;
+            //};
 
             await Define<MyContext>(ctx =>
                 {

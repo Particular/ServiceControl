@@ -5,14 +5,14 @@
     using NUnit.Framework;
     using Particular.Approvals;
     using Raven.Client.Indexes;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     class RavenPersistedTypes
     {
         [Test]
         public void Verify()
         {
-            var ravenPersistenceType = Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
+            var ravenPersistenceType = typeof(RavenDbPersistenceConfiguration);
 
             var ravenPersistenceTypes = ravenPersistenceType.Assembly.GetTypes()
                 .Where(type => typeof(AbstractIndexCreationTask).IsAssignableFrom(type))

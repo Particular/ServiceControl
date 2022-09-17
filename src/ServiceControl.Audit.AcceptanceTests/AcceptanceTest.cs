@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
@@ -9,7 +10,6 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -72,9 +72,9 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration.DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration.PersistenceType, s => SetSettings(s), s => CustomConfiguration(s));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            TestContext.WriteLine($"Using data store {StorageConfiguration.DataStoreConfiguration.DataStoreTypeName}");
+            TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
@@ -116,7 +116,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<Settings> SetSettings = _ => { };
+        protected Action<IDictionary<string, string>> SetSettings = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 

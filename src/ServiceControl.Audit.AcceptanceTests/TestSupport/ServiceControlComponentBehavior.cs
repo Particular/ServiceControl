@@ -1,20 +1,20 @@
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, string persistenceToUse, Action<IDictionary<string, string>> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.customConfiguration = customConfiguration;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
         }
@@ -25,14 +25,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, dataStoreToUse, setSettings, customConfiguration);
+            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
 
         ITransportIntegration transportIntegration;
-        DataStoreConfiguration dataStoreToUse;
-        Action<Settings> setSettings;
+        string persistenceToUse;
+        Action<IDictionary<string, string>> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
     }

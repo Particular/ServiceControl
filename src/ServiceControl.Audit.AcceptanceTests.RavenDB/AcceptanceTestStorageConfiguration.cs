@@ -1,19 +1,15 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests
 {
     using System.Threading.Tasks;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     partial class AcceptanceTestStorageConfiguration
     {
-        public DataStoreConfiguration DataStoreConfiguration { get; protected set; }
+        public string PersistenceType { get; protected set; }
 
         public Task Configure()
         {
-            DataStoreConfiguration = new DataStoreConfiguration
-            {
-                DataStoreTypeName = nameof(DataStoreType.RavenDb)
-            };
+            PersistenceType = typeof(RavenDbPersistenceConfiguration).AssemblyQualifiedName;
 
             return Task.CompletedTask;
         }

@@ -86,7 +86,7 @@
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId }
             };
-            
+
             var uniqueId = Guid.NewGuid().ToString();
 
             return new ProcessedMessage(uniqueId, headers, metadata);
