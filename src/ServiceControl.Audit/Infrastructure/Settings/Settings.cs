@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -51,9 +52,6 @@
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
-
-        //HINT: acceptance tests only
-        public bool RunInMemory { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
@@ -178,6 +176,8 @@
         public bool ExposeApi { get; set; } = true;
 
         public string SqlStorageConnectionString { get; set; }
+
+        public IDictionary<string, string> PersisterSettings { get; set; } = new Dictionary<string, string>();
 
         public TransportCustomization LoadTransportCustomization()
         {

@@ -31,7 +31,7 @@
             }
             else
             {
-                var dbPath = settings["RavenDb/RunInMemory"];
+                var dbPath = settings["RavenDb/DbPath"];
 
                 Directory.CreateDirectory(dbPath);
 
@@ -41,7 +41,7 @@
 
             var exposeRavenDB = false;
 
-            if (settings.TryGetValue("RavenDb/RunInMemory", out var exposeRavenDBString))
+            if (settings.TryGetValue("RavenDb/ExposeHttpUI", out var exposeRavenDBString))
             {
                 exposeRavenDB = bool.Parse(exposeRavenDBString);
             }
@@ -67,7 +67,7 @@
 
             var runCleanupBundle = false;
 
-            if (settings.TryGetValue("RavenDb/RunInMemory", out var runCleanupBundleString))
+            if (settings.TryGetValue("RavenDb/RunCleanupBundle", out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
             }

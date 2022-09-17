@@ -184,7 +184,6 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.MaxBodySizeToStore,
                     settings.MaximumConcurrencyLevel,
                     settings.Port,
-                    settings.RunInMemory,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
                     settings.TransportCustomizationType

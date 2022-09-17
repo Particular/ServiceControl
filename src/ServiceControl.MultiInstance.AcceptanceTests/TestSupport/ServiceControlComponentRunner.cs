@@ -231,7 +231,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
                 MessageFilter = messageContext =>

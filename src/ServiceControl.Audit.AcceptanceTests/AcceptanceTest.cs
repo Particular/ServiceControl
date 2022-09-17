@@ -72,7 +72,7 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration.PersistenceType, s => SetSettings(s), s => CustomConfiguration(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
 

@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, string persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
@@ -31,7 +31,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         }
 
         ITransportIntegration transportIntegration;
-        string persistenceToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
