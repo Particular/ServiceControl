@@ -20,12 +20,17 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            //var settings = new FakeSettings
-            //{
-            //    RunInMemory = true
-            //};
+            var specificSettings = new Dictionary<string, string>()
+            {
+                { "RavenDb/RunInMemory",bool.TrueString}
+            };
 
-            config.ConfigureServices(serviceCollection, new Dictionary<string, string>(), false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 

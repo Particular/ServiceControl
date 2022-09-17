@@ -31,12 +31,17 @@
             var config = new SqlDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            //var settings = new FakeSettings
-            //{
-            //    SqlStorageConnectionString = connectionString,
-            //};
+            var specificSettings = new Dictionary<string, string>()
+            {
+                { "Sql/ConnectionString",connectionString}
+            };
 
-            config.ConfigureServices(serviceCollection, new Dictionary<string, string>(), false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();

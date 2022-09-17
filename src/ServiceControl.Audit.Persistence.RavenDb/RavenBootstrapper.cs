@@ -13,14 +13,14 @@
 
     class RavenBootstrapper
     {
-        public static IDictionary<string, string> Settings { get; private set; }
+        public static PersistenceSettings Settings { get; private set; }
 
-        public static void Configure(EmbeddableDocumentStore documentStore, IDictionary<string, string> settings, bool maintenanceMode = false)
+        public static void Configure(EmbeddableDocumentStore documentStore, PersistenceSettings settings)
         {
             Settings = settings;
 
             var runInMemory = false;
-            if (settings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
             {
                 runInMemory = bool.Parse(runInMemoryString);
             }
@@ -31,7 +31,7 @@
             }
             else
             {
-                var dbPath = settings["RavenDb/DbPath"];
+                var dbPath = settings.PersisterSpecificSettings["RavenDb/DbPath"];
 
                 Directory.CreateDirectory(dbPath);
 
@@ -41,12 +41,12 @@
 
             var exposeRavenDB = false;
 
-            if (settings.TryGetValue("RavenDb/ExposeHttpUI", out var exposeRavenDBString))
+            if (settings.PersisterSpecificSettings.TryGetValue("RavenDb/ExposeHttpUI", out var exposeRavenDBString))
             {
                 exposeRavenDB = bool.Parse(exposeRavenDBString);
             }
 
-            documentStore.UseEmbeddedHttpServer = maintenanceMode || exposeRavenDB;
+            documentStore.UseEmbeddedHttpServer = settings.MaintenanceMode || exposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
 
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.xml");
@@ -68,7 +68,7 @@
             var runCleanupBundle = false;
 
             //TODO: default this to true in the manifest file
-            if (settings.TryGetValue("RavenDb/RunCleanupBundle", out var runCleanupBundleString))
+            if (settings.PersisterSpecificSettings.TryGetValue("RavenDb/RunCleanupBundle", out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
             }
@@ -80,9 +80,9 @@
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.Port = int.Parse(settings["RavenDb/MaintenancePort"]);
+            documentStore.Configuration.Port = int.Parse(settings.PersisterSpecificSettings["RavenDb/MaintenancePort"]);
 
-            var hostName = settings["RavenDb/Hostname"];
+            var hostName = settings.PersisterSpecificSettings["RavenDb/Hostname"];
 
             documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
                 ? "localhost"

@@ -7,9 +7,7 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceServiceCollectionExtensions
     {
-#pragma warning disable IDE0060 // Remove unused parameter
-        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, Settings settings, bool maintenanceMode = false, bool isSetup = false)
-#pragma warning restore IDE0060 // Remove unused parameter
+        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
 
@@ -18,7 +16,7 @@ namespace ServiceControl.Audit.Persistence
                 var customizationType = Type.GetType(persistenceCustomizationType, true);
 
                 var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
-                persistenceConfig.ConfigureServices(serviceCollection, new Dictionary<string, string>(), maintenanceMode, isSetup);
+                persistenceConfig.ConfigureServices(serviceCollection, settings);
 
             }
             catch (Exception e)

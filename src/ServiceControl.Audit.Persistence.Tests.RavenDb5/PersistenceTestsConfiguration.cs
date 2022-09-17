@@ -27,14 +27,18 @@
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             Console.WriteLine($"DB Path: {dbPath}");
 
-            //var settings = new FakeSettings
-            //{
-            //    // NOTE: Run in Memory is not an option
-            //    RunInMemory = true,
-            //    DbPath = dbPath
-            //};
+            var specificSettings = new Dictionary<string, string>()
+            {
+                { "RavenDb/RunInMemory",bool.TrueString},
+                { "RavenDb/DbPath",dbPath}
+            };
 
-            config.ConfigureServices(serviceCollection, new Dictionary<string, string>(), false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 

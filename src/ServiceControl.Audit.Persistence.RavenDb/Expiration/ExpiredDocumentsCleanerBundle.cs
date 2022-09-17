@@ -41,7 +41,7 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = int.Parse(RavenBootstrapper.Settings["RavenDb/ExpirationProcessTimerInSeconds"]);
+            var deleteFrequencyInSeconds = int.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessTimerInSeconds"]);
 
             if (deleteFrequencyInSeconds == 0)
             {
@@ -49,8 +49,8 @@
             }
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
-            var deletionBatchSize = int.Parse(RavenBootstrapper.Settings["RavenDb/ExpirationProcessBatchSize"]);
-            var auditRetentionPeriod = TimeSpan.Parse(RavenBootstrapper.Settings["RavenDb/ExpirationProcessTimerInSeconds"]);
+            var deletionBatchSize = int.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessBatchSize"]);
+            var auditRetentionPeriod = TimeSpan.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessTimerInSeconds"]);
             logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds");
             logger.Info($"Deletion batch size set to {deletionBatchSize}");
             logger.Info($"Retention period for audits and saga history is {auditRetentionPeriod}");

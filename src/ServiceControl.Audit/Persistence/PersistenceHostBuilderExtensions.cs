@@ -9,7 +9,12 @@ namespace ServiceControl.Audit.Persistence
         {
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddServiceControlAuditPersistence(settings, maintenanceMode);
+                var persistenceSettings = new PersistenceSettings(settings.PersisterSettings)
+                {
+                    MaintenanceMode = maintenanceMode
+                };
+
+                serviceCollection.AddServiceControlAuditPersistence(persistenceSettings);
             });
 
             return hostBuilder;

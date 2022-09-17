@@ -6,14 +6,13 @@
     using Auditing.BodyStorage;
     using Raven.Client.Documents.Indexes;
     using UnitOfWork;
-    using System.Collections.Generic;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var runInMemory = false;
-            if (settings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
             {
                 runInMemory = bool.Parse(runInMemoryString);
             }

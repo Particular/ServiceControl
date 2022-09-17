@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
-    using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using Raven.Client;
@@ -12,14 +11,14 @@
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings, maintenanceMode);
+            RavenBootstrapper.Configure(documentStore, settings);
 
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
-            if (isSetup)
+            if (settings.IsSetup)
             {
                 var ravenOptions = new RavenStartup();
                 foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
@@ -48,7 +47,7 @@
                 }
             });
 
-            if (isSetup)
+            if (settings.IsSetup)
             {
                 serviceCollection.AddTransient<IDataMigration, MigrateKnownEndpoints>();
             }

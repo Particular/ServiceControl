@@ -4,14 +4,12 @@
     using Persistence.UnitOfWork;
     using Auditing.BodyStorage;
     using UnitOfWork;
-    using System.Collections.Generic;
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, IDictionary<string, string> settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            //TODO: make this safer
-            var connectionString = settings["SqlStorageConnectionString"];
+            var connectionString = settings.PersisterSpecificSettings["Sql/ConnectionString"];
 
             serviceCollection.AddSingleton(sp => new SqlDbConnectionManager(connectionString));
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();
