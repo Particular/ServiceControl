@@ -43,7 +43,6 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = GetDataStoreType();
             SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
         }
 
@@ -177,8 +176,6 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
         public bool ExposeApi { get; set; } = true;
-
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDb;
 
         public string SqlStorageConnectionString { get; set; }
 
@@ -416,13 +413,6 @@
             }
 
             return threshold;
-        }
-
-        DataStoreType GetDataStoreType()
-        {
-            var value = SettingsReader<string>.Read("ServiceControl", "DataStoreType", "RavenDb");
-
-            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }
 
         void TryLoadLicenseFromConfig()
