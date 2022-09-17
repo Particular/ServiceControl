@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
@@ -15,6 +14,7 @@ namespace ServiceControl.Audit.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure.Settings;
     using TestSupport;
 
     [TestFixture]
@@ -116,7 +116,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
-        protected Action<IDictionary<string, string>> SetSettings = _ => { };
+        protected Action<Settings> SetSettings = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 

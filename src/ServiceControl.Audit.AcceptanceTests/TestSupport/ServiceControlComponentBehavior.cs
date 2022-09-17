@@ -8,10 +8,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, string persistenceToUse, Action<IDictionary<string, string>> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, string persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
@@ -32,7 +33,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         ITransportIntegration transportIntegration;
         string persistenceToUse;
-        Action<IDictionary<string, string>> setSettings;
+        Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
     }

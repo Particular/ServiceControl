@@ -9,6 +9,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [RunOnAllTransports]
     class When_a_message_fails_to_import : AcceptanceTest
@@ -19,12 +20,11 @@
             //Make sure the audit import attempt fails
             CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
 
-            //TODO
-            //SetSettings = settings =>
-            //{
-            //    settings.ForwardAuditMessages = true;
-            //    settings.AuditLogQueue = Conventions.EndpointNamingConvention(typeof(AuditLogSpy));
-            //};
+            SetSettings = settings =>
+            {
+                settings.ForwardAuditMessages = true;
+                settings.AuditLogQueue = Conventions.EndpointNamingConvention(typeof(AuditLogSpy));
+            };
 
             var runResult = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))

@@ -27,7 +27,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, string persistenceType, Action<IDictionary<string, string>> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, string persistenceType, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.transportToUse = transportToUse;
             this.persistenceType = persistenceType;
@@ -123,8 +123,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await setupBootstrapper.Run(null);
             }
 
-            //TODO
-            //setSettings(settings);
+            setSettings(settings);
 
             var configuration = new EndpointConfiguration(instanceName);
 
@@ -212,7 +211,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         string persistenceType;
-        Action<IDictionary<string, string>> setSettings;
+        Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         IHost host;
