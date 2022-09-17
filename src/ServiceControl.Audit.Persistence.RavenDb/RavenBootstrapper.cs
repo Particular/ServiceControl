@@ -67,6 +67,7 @@
 
             var runCleanupBundle = false;
 
+            //TODO: default this to true in the manifest file
             if (settings.TryGetValue("RavenDb/RunCleanupBundle", out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
