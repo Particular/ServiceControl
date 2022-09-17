@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Persistence
         public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, Settings settings, bool maintenanceMode = false, bool isSetup = false)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType");
+            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
 
             try
             {
