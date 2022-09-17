@@ -4,9 +4,9 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing;
-    using Infrastructure;
     using NServiceBus;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
     class AuditTests : PersistenceTestFixture
@@ -86,8 +86,10 @@
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId }
             };
+            
+            var uniqueId = Guid.NewGuid().ToString();
 
-            return new ProcessedMessage(headers, metadata);
+            return new ProcessedMessage(uniqueId, headers, metadata);
         }
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)
