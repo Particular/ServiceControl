@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
@@ -32,5 +33,7 @@
         public Task CompleteDBOperation() => Task.CompletedTask;
 
         public Task Cleanup() => Task.CompletedTask;
+
+        public string ZipName => "InMemory";
     }
 }

@@ -67,6 +67,8 @@
 
         public override string ToString() => "RavenDb5";
 
+        public string ZipName => "RavenDb5";
+
         public IDocumentStore DocumentStore { get; private set; }
     }
 }

@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System.IO;
+    using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using NUnit.Framework;
     using UnitOfWork;
+    using System.Linq;
 
     [TestFixture]
     class PersistenceTestFixture
@@ -21,6 +24,28 @@
         {
             return configuration.Cleanup();
         }
+
+        protected DirectoryInfo GetZipFolder()
+        {
+            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+
+            while (currentFolder != null)
+            {
+                var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
+                    .SingleOrDefault();
+
+                if (file != null)
+                {
+                    return new DirectoryInfo(Path.Combine(file.Directory.Parent.FullName, "zip"));
+                }
+
+                currentFolder = currentFolder.Parent;
+            }
+
+            throw new Exception("Cannot find zip folder");
+        }
+
+        protected string ZipName => configuration.ZipName;
 
         protected IAuditDataStore DataStore => configuration.AuditDataStore;
 

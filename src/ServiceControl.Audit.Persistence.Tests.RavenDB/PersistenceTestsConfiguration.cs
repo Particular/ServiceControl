@@ -63,6 +63,8 @@
 
         public IDocumentStore DocumentStore { get; private set; }
 
+        public string ZipName => "RavenDb";
+
         static int FindAvailablePort(int startPort)
         {
             var activeTcpListeners = IPGlobalProperties

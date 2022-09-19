@@ -70,6 +70,8 @@
 
         public override string ToString() => "SqlServer";
 
+        public string ZipName => throw new NotImplementedException();
+
         string connectionString;
     }
 }
