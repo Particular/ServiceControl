@@ -26,7 +26,7 @@
 
             var documentId = $"{processingStartedTicks}-{headers.ProcessingId()}";
 
-            Id = $"ProcessedMessages/{documentId}";
+            Id = $"ProcessedMessages-{documentId}";
 
             if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt))
             {
