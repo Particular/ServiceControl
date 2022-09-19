@@ -1,0 +1,8 @@
+﻿{
+  "Name": "RavenDB 3.5 ServiceCotnrol Audit persister",
+  "ZipName": "RavenDb",
+  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb",
+  "Settings": {
+    "Raven/ESENT/MaxPageSize": "4096"
+  }
+}
