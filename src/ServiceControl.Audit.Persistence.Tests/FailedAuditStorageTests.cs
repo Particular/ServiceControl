@@ -36,6 +36,8 @@
                 succeeded++;
             }, CancellationToken.None);
 
+            await configuration.CompleteDBOperation();
+
             var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
             Assert.AreEqual(2, succeeded);

@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +24,9 @@
 
             var specificSettings = new Dictionary<string, string>()
             {
-                { "RavenDb/RunInMemory",bool.TrueString}
+                { "RavenDb/RunInMemory",bool.TrueString},
+                { "RavenDb/MaintenancePort",FindAvailablePort(33334).ToString()},
+                { "RavenDb/Hostname","localhost"}
             };
 
             var settings = new PersistenceSettings(specificSettings)
@@ -58,5 +62,23 @@
         public override string ToString() => "RavenDb";
 
         public IDocumentStore DocumentStore { get; private set; }
+
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
+        }
     }
 }
