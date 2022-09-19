@@ -11,11 +11,11 @@
         [Test]
         public async Task Should_store_failures()
         {
-            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport());
 
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await configuration.CompleteDBOperation();
 
-            var numFailures = await FailedAuditStorage.GetFailedAuditsCount().ConfigureAwait(false);
+            var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
             Assert.AreEqual(1, numFailures);
         }
@@ -23,20 +23,20 @@
         [Test]
         public async Task Should_be_able_to_process_failures()
         {
-            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
-            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport()).ConfigureAwait(false);
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport());
+            await FailedAuditStorage.SaveFailedAuditImport(new FailedAuditImport());
 
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await configuration.CompleteDBOperation();
 
             var succeeded = 0;
             await FailedAuditStorage.ProcessFailedMessages(async (transportMessage, markComplete, token) =>
             {
                 await markComplete(token)
-                    .ConfigureAwait(false);
+                    ;
                 succeeded++;
-            }, CancellationToken.None).ConfigureAwait(false);
+            }, CancellationToken.None);
 
-            var numFailures = await FailedAuditStorage.GetFailedAuditsCount().ConfigureAwait(false);
+            var numFailures = await FailedAuditStorage.GetFailedAuditsCount();
 
             Assert.AreEqual(2, succeeded);
             Assert.AreEqual(0, numFailures);

@@ -19,10 +19,10 @@
                     SagaType = "MySagaType",
                     Status = SagaStateChangeStatus.New
                 }
-                ).ConfigureAwait(false);
+                );
 
             var queryResult = await DataStore.QuerySagaHistoryById(sagaId)
-                .ConfigureAwait(false);
+                ;
 
             Assert.That(queryResult.Results.SagaId, Is.EqualTo(sagaId));
             Assert.That(queryResult.Results.SagaType, Is.EqualTo("MySagaType"));
@@ -34,7 +34,7 @@
         public async Task Handles_no_results_gracefully()
         {
             var nonExistentSagaId = Guid.NewGuid();
-            var queryResult = await DataStore.QuerySagaHistoryById(nonExistentSagaId).ConfigureAwait(false);
+            var queryResult = await DataStore.QuerySagaHistoryById(nonExistentSagaId);
 
             Assert.That(queryResult.Results, Is.Null);
         }
@@ -49,9 +49,9 @@
                 new SagaSnapshot { SagaId = sagaId },
                 new SagaSnapshot { SagaId = otherSagaId },
                 new SagaSnapshot { SagaId = sagaId }
-            ).ConfigureAwait(false);
+            );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId).ConfigureAwait(false);
+            var queryResult = await DataStore.QuerySagaHistoryById(sagaId);
 
             Assert.That(queryResult.Results.Changes.Count, Is.EqualTo(2));
         }
@@ -63,10 +63,10 @@
             foreach (var snapshot in snapshots)
             {
                 await unitOfWork.RecordSagaSnapshot(snapshot)
-                    .ConfigureAwait(false);
+                    ;
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
+            await configuration.CompleteDBOperation();
         }
     }
 }
