@@ -23,6 +23,10 @@
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
   </ItemGroup>
 
+  <ItemGroup Label="ServiceControl compatibility transient dependencies">
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>

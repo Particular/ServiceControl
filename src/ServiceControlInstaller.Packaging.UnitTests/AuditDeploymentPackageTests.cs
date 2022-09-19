@@ -30,6 +30,7 @@ namespace Tests
 
                 CollectionAssert.AreEquivalent(allStorages, storageFolders, $"Expected storages folder to contain {string.Join(",", allStorages)}");
                 Assert.IsFalse(storageFiles.Any(fn => fn.EndsWith(".config")));
+                Assert.IsFalse(storageFiles.Any(fn => fn == "ServiceControl.Audit.Persistence.dll"));
             }
         }
 
