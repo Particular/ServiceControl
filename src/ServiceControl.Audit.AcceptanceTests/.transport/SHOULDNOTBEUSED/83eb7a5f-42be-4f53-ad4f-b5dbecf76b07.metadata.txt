@@ -1,0 +1,6 @@
+{
+  "NServiceBus.EnclosedMessageTypes": "ServiceControl.Plugin.CustomChecks.Messages.ReportCustomCheckResult",
+  "NServiceBus.ContentType": "application\/json",
+  "NServiceBus.MessageIntent": "Send",
+  "NServiceBus.Transport.Learning.TimeToBeReceived": "00:00:20"
+}
