@@ -5,12 +5,12 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client.Documents;
-    using Infrastructure.Settings;
     using NUnit.Framework;
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
     using UnitOfWork;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using System.Collections.Generic;
 
     partial class PersistenceTestsConfiguration
     {
@@ -27,14 +27,18 @@
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             Console.WriteLine($"DB Path: {dbPath}");
 
-            var settings = new FakeSettings
+            var specificSettings = new Dictionary<string, string>()
             {
-                // NOTE: Run in Memory is not an option
-                RunInMemory = true,
-                DbPath = dbPath
+                { "RavenDb/RunInMemory",bool.TrueString},
+                { "RavenDb/DbPath",dbPath}
             };
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -64,16 +68,5 @@
         public override string ToString() => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
-
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
-
-            // Allow the server to pick it's binding (rather than checking config)
-            public override string DatabaseMaintenanceUrl => null;
-        }
     }
 }

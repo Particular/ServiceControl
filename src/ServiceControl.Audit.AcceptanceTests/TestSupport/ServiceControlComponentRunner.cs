@@ -26,10 +26,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.transportToUse = transportToUse;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
         }
@@ -68,11 +68,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
 
             settings = new Settings(instanceName)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
-                SqlStorageConnectionString = dataStoreToUse.ConnectionString,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
@@ -80,7 +79,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 MessageFilter = messageContext =>
@@ -124,6 +122,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
 
             setSettings(settings);
+
+            persistenceToUse.CustomizeSettings(settings.PersisterSettings);
 
             var configuration = new EndpointConfiguration(instanceName);
 
@@ -210,7 +210,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;

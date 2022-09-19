@@ -4,21 +4,28 @@
     using Persistence.UnitOfWork;
     using Raven.Embedded;
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using Raven.Client.Documents.Indexes;
     using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
+            var runInMemory = false;
+            if (settings.PersisterSpecificSettings.TryGetValue("RavenDb/RunInMemory", out var runInMemoryString))
+            {
+                runInMemory = bool.Parse(runInMemoryString);
+            }
+            var dbPath = "todo";
+            var databaseMaintenanceUrl = "some url";
+
             // TODO: Is there a more appropriate place to put this?
-            if (ShouldStartServer(settings))
+            if (ShouldStartServer(runInMemory))
             {
                 EmbeddedServer.Instance.StartServer(new ServerOptions
                 {
-                    DataDirectory = settings.DbPath,
-                    ServerUrl = settings.DatabaseMaintenanceUrl,
+                    DataDirectory = dbPath,
+                    ServerUrl = databaseMaintenanceUrl,
                     AcceptEula = true
                 });
             }
@@ -66,9 +73,9 @@
             //});
         }
 
-        static bool ShouldStartServer(Settings settings)
+        static bool ShouldStartServer(bool runInMemory)
         {
-            if (settings.RunInMemory)
+            if (runInMemory)
             {
                 // We are probably running in a test context
                 try

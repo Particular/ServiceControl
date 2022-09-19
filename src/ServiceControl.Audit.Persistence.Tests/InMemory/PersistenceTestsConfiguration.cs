@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            config.ConfigureServices(serviceCollection, null, false, true);
+            config.ConfigureServices(serviceCollection, new PersistenceSettings(new Dictionary<string, string>()));
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();

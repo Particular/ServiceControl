@@ -84,7 +84,13 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.AddSingleton(transportSettings);
             containerBuilder.AddSingleton(loggingSettings);
             containerBuilder.AddSingleton(settings);
-            containerBuilder.AddServiceControlAuditPersistence(settings, isSetup: true);
+
+            var persistenceSettings = new PersistenceSettings(settings.PersisterSettings)
+            {
+                IsSetup = true
+            };
+
+            containerBuilder.AddServiceControlAuditPersistence(persistenceSettings);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                 ctx => { }, configuration, false);

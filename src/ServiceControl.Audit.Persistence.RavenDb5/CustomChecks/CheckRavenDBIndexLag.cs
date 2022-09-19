@@ -9,15 +9,14 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IDocumentStore store, LoggingSettings settings)
+        public CheckRavenDBIndexLag(IDocumentStore store, string logPath)
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             _store = store;
-            LogPath = settings?.LogPath;
+            LogPath = logPath;
         }
 
         public override async Task<CheckResult> PerformCheck()

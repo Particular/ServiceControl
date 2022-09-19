@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
     class BodyStorageTests : PersistenceTestFixture
@@ -16,13 +17,13 @@
             var body = new byte[5];
             new Random().NextBytes(body);
 
-            using (var stream = Memory.Manager.GetStream(bodyId, body, 0, body.Length))
+            using (var stream = new MemoryStream(body))
             {
                 await BodyStorage.Store(bodyId, contentType, body.Length, stream)
-                    .ConfigureAwait(false);
+                    ;
             }
 
-            var result = await BodyStorage.TryFetch(bodyId).ConfigureAwait(false);
+            var result = await BodyStorage.TryFetch(bodyId);
 
             Assert.That(result.HasResult, Is.True);
             Assert.That(result.ContentType, Is.EqualTo(contentType));
@@ -31,7 +32,7 @@
             Assert.That(result.Stream, Is.Not.Null);
             var resultBody = new byte[body.Length];
             var readBytes = await result.Stream.ReadAsync(resultBody, 0, body.Length)
-                .ConfigureAwait(false);
+                ;
             Assert.That(readBytes, Is.EqualTo(body.Length));
             Assert.That(resultBody, Is.EqualTo(body));
 
@@ -43,7 +44,7 @@
         {
             var nonExistentBodyId = Guid.NewGuid().ToString();
             var result = await BodyStorage.TryFetch(nonExistentBodyId)
-                .ConfigureAwait(false);
+                ;
 
             Assert.That(result.HasResult, Is.False);
         }

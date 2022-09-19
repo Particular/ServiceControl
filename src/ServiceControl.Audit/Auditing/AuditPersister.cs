@@ -6,7 +6,6 @@
     using System.IO;
     using System.Threading.Tasks;
     using BodyStorage;
-    using EndpointPlugin.Messages.SagaState;
     using Infrastructure;
     using Monitoring;
     using Newtonsoft.Json;
@@ -15,6 +14,9 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
+    using ServiceControl.Audit.Persistence.Infrastructure;
+    using ServiceControl.Audit.Persistence.Monitoring;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -261,8 +263,9 @@
                         : DateTime.UtcNow.Ticks.ToString();
 
                 var documentId = $"{processingStartedTicks}-{context.Headers.ProcessingId()}";
+                var uniqueId = context.Headers.UniqueId();
 
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata))
+                var auditMessage = new ProcessedMessage(uniqueId, context.Headers, new Dictionary<string, object>(metadata))
                 {
                     Id = $"ProcessedMessages/{documentId}"
                 };

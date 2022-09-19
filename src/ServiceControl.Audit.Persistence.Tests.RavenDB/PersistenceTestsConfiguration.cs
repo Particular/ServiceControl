@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
 
@@ -20,12 +22,19 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings
+            var specificSettings = new Dictionary<string, string>()
             {
-                RunInMemory = true
+                { "RavenDb/RunInMemory",bool.TrueString},
+                { "RavenDb/MaintenancePort",FindAvailablePort(33334).ToString()},
+                { "RavenDb/Hostname","localhost"}
             };
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -54,12 +63,22 @@
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        class FakeSettings : Settings
+        static int FindAvailablePort(int startPort)
         {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
             {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
             }
+
+            return startPort;
         }
     }
 }

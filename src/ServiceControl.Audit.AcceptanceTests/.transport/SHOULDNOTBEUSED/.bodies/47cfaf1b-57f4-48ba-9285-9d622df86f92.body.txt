@@ -1,0 +1,1 @@
+{"HostId":"4bc3c16b-8932-7ace-e280-e84c89e3ec82","CustomCheckId":"ServiceControl.Audit database","Category":"Storage space","HasFailed":false,"FailureReason":null,"ReportedAt":"2022-09-19T08:20:48.8219546Z","EndpointName":"Particular.ServiceControl.Audit","Host":"THINKSTATION"}

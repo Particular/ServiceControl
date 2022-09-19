@@ -5,10 +5,10 @@
     using System.Threading.Tasks;
     using Dapper;
     using Microsoft.Extensions.DependencyInjection;
-    using Infrastructure.Settings;
     using SqlServer;
     using UnitOfWork;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using System.Collections.Generic;
 
     partial class PersistenceTestsConfiguration
     {
@@ -31,12 +31,17 @@
             var config = new SqlDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings
+            var specificSettings = new Dictionary<string, string>()
             {
-                SqlStorageConnectionString = connectionString,
+                { "Sql/ConnectionString",connectionString}
             };
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            var settings = new PersistenceSettings(specificSettings)
+            {
+                IsSetup = true
+            };
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
@@ -66,13 +71,5 @@
         public override string ToString() => "SqlServer";
 
         string connectionString;
-
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
-        }
     }
 }

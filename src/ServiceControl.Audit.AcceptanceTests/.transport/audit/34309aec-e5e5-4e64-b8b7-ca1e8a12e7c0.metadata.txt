@@ -1,0 +1,22 @@
+{
+  "NServiceBus.MessageId": "11ba7e33-0ac2-4d6e-804a-af1500898df5",
+  "NServiceBus.MessageIntent": "Send",
+  "NServiceBus.ConversationId": "00cbdb75-8d00-4e1b-bee8-af1500898df8",
+  "NServiceBus.CorrelationId": "11ba7e33-0ac2-4d6e-804a-af1500898df5",
+  "NServiceBus.ReplyToAddress": "AMessageFailsToImport.Sender",
+  "NServiceBus.OriginatingMachine": "THINKSTATION",
+  "NServiceBus.OriginatingEndpoint": "AMessageFailsToImport.Sender",
+  "$.diagnostics.originating.hostid": "4bc3c16b89327acee280e84c89e3ec82",
+  "NServiceBus.ContentType": "application\/json",
+  "NServiceBus.EnclosedMessageTypes": "ServiceControl.Audit.AcceptanceTests.Auditing.When_a_message_fails_to_import+MyMessage, ServiceControl.Audit.AcceptanceTests, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
+  "NServiceBus.Version": "7.7.4",
+  "NServiceBus.TimeSent": "2022-09-19 08:20:49:339372 Z",
+  "SC.SessionID": "b3876cfd-448f-44aa-b098-8edd5fb085a1",
+  "NServiceBus.ProcessingStarted": "2022-09-19 08:20:49:412372 Z",
+  "NServiceBus.ProcessingEnded": "2022-09-19 08:20:49:472370 Z",
+  "$.diagnostics.license.expired": "true",
+  "$.diagnostics.hostid": "4bc3c16b89327acee280e84c89e3ec82",
+  "$.diagnostics.hostdisplayname": "THINKSTATION",
+  "NServiceBus.ProcessingMachine": "THINKSTATION",
+  "NServiceBus.ProcessingEndpoint": "AMessageFailsToImport.Receiver"
+}

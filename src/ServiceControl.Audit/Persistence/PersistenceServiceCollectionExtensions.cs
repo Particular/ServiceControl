@@ -1,42 +1,28 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
+    using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceServiceCollectionExtensions
     {
-        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, Settings settings, bool maintenanceMode = false, bool isSetup = false)
+        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, PersistenceSettings settings)
         {
+            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
+
             try
             {
-                var persistenceCreationInfo = GetPersistenceCreationInfo(settings.DataStoreType);
-                var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(persistenceCreationInfo);
-                persistenceConfig.ConfigureServices(serviceCollection, settings, maintenanceMode, isSetup);
+                var customizationType = Type.GetType(persistenceCustomizationType, true);
+
+                var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
+                persistenceConfig.ConfigureServices(serviceCollection, settings);
 
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization for {settings.DataStoreType}.", e);
+                throw new Exception($"Could not load persistence customization type {persistenceCustomizationType}.", e);
             }
         }
-
-        static Type GetPersistenceCreationInfo(DataStoreType dataStoreType)
-        {
-            switch (dataStoreType)
-            {
-                case DataStoreType.InMemory:
-                    return Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.RavenDb:
-                    return Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.RavenDb5:
-                    return Type.GetType(DataStoreConfig.RavenDb5PersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.SqlDb:
-                    return Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
-                default:
-                    return default;
-            }
-        }
-
     }
 }

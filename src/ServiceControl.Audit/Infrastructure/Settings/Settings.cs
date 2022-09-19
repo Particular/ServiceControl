@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -43,7 +44,6 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = GetDataStoreType();
             SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
         }
 
@@ -53,16 +53,11 @@
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
-        //HINT: acceptance tests only
-        public bool RunInMemory { get; set; }
-
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
         public bool DisableRavenDBPerformanceCounters { get; set; }
 
         public bool SkipQueueCreation { get; set; }
-
-        public bool RunCleanupBundle { get; set; }
 
         public string RootUrl
         {
@@ -178,9 +173,9 @@
         public bool EnableFullTextSearchOnBodies { get; set; }
         public bool ExposeApi { get; set; } = true;
 
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDb;
-
         public string SqlStorageConnectionString { get; set; }
+
+        public IDictionary<string, string> PersisterSettings { get; set; } = new Dictionary<string, string>();
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -416,13 +411,6 @@
             }
 
             return threshold;
-        }
-
-        DataStoreType GetDataStoreType()
-        {
-            var value = SettingsReader<string>.Read("ServiceControl", "DataStoreType", "RavenDb");
-
-            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }
 
         void TryLoadLicenseFromConfig()

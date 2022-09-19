@@ -16,10 +16,7 @@
 
             var loggingSettings = new LoggingSettings(args.ServiceName);
 
-            var settings = new Settings(args.ServiceName)
-            {
-                RunCleanupBundle = true
-            };
+            var settings = new Settings(args.ServiceName);
 
             var host = new Bootstrapper(
                 ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.

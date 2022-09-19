@@ -41,7 +41,7 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = RavenBootstrapper.Settings.ExpirationProcessTimerInSeconds;
+            var deleteFrequencyInSeconds = int.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessTimerInSeconds"]);
 
             if (deleteFrequencyInSeconds == 0)
             {
@@ -49,14 +49,14 @@
             }
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
-            var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
-
+            var deletionBatchSize = int.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessBatchSize"]);
+            var auditRetentionPeriod = TimeSpan.Parse(RavenBootstrapper.Settings.PersisterSpecificSettings["RavenDb/ExpirationProcessTimerInSeconds"]);
             logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds");
             logger.Info($"Deletion batch size set to {deletionBatchSize}");
-            logger.Info($"Retention period for audits and saga history is {RavenBootstrapper.Settings.AuditRetentionPeriod}");
+            logger.Info($"Retention period for audits and saga history is {auditRetentionPeriod}");
 
             timer = new AsyncTimer(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, auditRetentionPeriod, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));
