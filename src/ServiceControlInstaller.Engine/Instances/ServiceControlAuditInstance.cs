@@ -16,7 +16,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public TimeSpan AuditRetentionPeriod { get; set; }
         public string ServiceControlQueueAddress { get; set; }
-        public PersistenceInfo PersistencePackage { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
         {
@@ -39,7 +39,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistencePackage.TypeName);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistenceManifest.TypeName);
         }
 
         protected override AppConfig CreateAppConfig()
@@ -73,7 +73,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var persistenceTypeName = AppConfig.Read(AuditInstanceSettingsList.PersistenceType, "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb");
 
-            PersistencePackage = new PersistenceInfo { TypeName = persistenceTypeName };
+            PersistenceManifest = new PersistenceManifest { TypeName = persistenceTypeName };
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
             Description = GetDescription();

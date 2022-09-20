@@ -9,27 +9,16 @@
     using Particular.Approvals;
     using ServiceControlInstaller.Engine.Instances;
 
-    class When_installing : PersistenceTestFixture
+    class InstallationTests : PersistenceTestFixture
     {
         [Test]
         public void Should_write_expected_config_file()
         {
-            PersistenceInfo package;
             var zipFileFolder = GetZipFolder();
 
             var zipFilePath = zipFileFolder.EnumerateFiles("*.zip")
                 .Single(f => f.Name.Contains(".Audit"))
                 .FullName;
-
-            using (var zipArchive = ZipFile.OpenRead(zipFilePath))
-            {
-                var manifestEntry = zipArchive.GetEntry($"Storages/{ZipName}/manifest.json");
-                using (var reader = new StreamReader(manifestEntry.Open()))
-                {
-                    var manifestContent = reader.ReadToEnd();
-                    package = JsonSerializer.Deserialize<PersistenceInfo>(manifestContent);
-                }
-            }
 
             var newInstance = new ServiceControlAuditNewInstance
             {
@@ -42,7 +31,18 @@
             newInstance.InstallPath = installPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
 
-            newInstance.PersistencePackage = package;
+            using (var zipArchive = ZipFile.OpenRead(zipFilePath))
+            {
+                var manifestEntry = zipArchive.GetEntry($"Storages/{ZipName}/manifest.json");
+
+                Assert.NotNull(manifestEntry, $"{ZipName} contains no manifest file");
+
+                using (var reader = new StreamReader(manifestEntry.Open()))
+                {
+                    var manifestContent = reader.ReadToEnd();
+                    newInstance.PersistenceManifest = JsonSerializer.Deserialize<PersistenceManifest>(manifestContent);
+                }
+            }
 
             newInstance.DBPath = dbPath;
             newInstance.LogPath = logPath;

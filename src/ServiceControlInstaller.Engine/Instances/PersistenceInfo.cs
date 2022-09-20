@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public class PersistenceInfo
+    public class PersistenceManifest
     {
         public string Name { get; set; }
         public string ZipName { get; set; }

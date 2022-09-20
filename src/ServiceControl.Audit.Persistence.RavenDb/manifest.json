@@ -1,5 +1,5 @@
 ﻿{
-  "Name": "RavenDB 3.5 ServiceCotnrol Audit persister",
+  "Name": "RavenDB 3.5 ServiceControl Audit persister",
   "ZipName": "RavenDb",
   "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb",
   "Settings": {

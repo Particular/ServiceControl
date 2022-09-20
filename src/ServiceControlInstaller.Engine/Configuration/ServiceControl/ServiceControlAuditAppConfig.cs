@@ -25,14 +25,14 @@
             settings.Set(AuditInstanceSettingsList.DBPath, instance.DBPath);
             settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString());
             settings.Set(AuditInstanceSettingsList.TransportType, instance.TransportPackage.TypeName, version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistencePackage.TypeName);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceManifest.TypeName);
             settings.Set(AuditInstanceSettingsList.AuditQueue, instance.AuditQueue);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString(), version);
 
-            foreach (var setting in instance.PersistencePackage.Settings)
+            foreach (var setting in instance.PersistenceManifest.Settings)
             {
                 if (!settings.AllKeys.Contains(setting.Key))
                 {

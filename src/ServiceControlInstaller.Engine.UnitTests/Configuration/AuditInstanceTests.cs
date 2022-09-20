@@ -16,7 +16,7 @@
 
             instance.Reload();
 
-            StringAssert.EndsWith("RavenDb", instance.PersistencePackage.TypeName);
+            StringAssert.EndsWith("RavenDb", instance.PersistenceManifest.TypeName);
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

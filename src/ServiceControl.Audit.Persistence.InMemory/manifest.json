@@ -1,0 +1,5 @@
+﻿{
+  "Name": "InMemory ServiceControl Audit persister",
+  "ZipName": "InMemory",
+  "TypeName": "ServiceControl.Audit.Persistence.InMemory.InMemoryPersistenceConfiguration, ServiceControl.Audit.Persistence.InMemory"
+}

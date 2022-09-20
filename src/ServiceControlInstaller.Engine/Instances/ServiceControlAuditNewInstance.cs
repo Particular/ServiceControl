@@ -20,7 +20,7 @@
             Version = zipInfo.Version;
 
             //new instances defaults to RavenDb 5
-            PersistencePackage = new PersistenceInfo
+            PersistenceManifest = new PersistenceManifest
             {
                 TypeName = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5",
                 ZipName = "RavenDb5"
@@ -28,7 +28,7 @@
         }
 
         public string ServiceControlQueueAddress { get; set; }
-        public PersistenceInfo PersistencePackage { get; set; }
+        public PersistenceManifest PersistenceManifest { get; set; }
 
         public override void WriteConfigurationFile()
         {
@@ -98,7 +98,7 @@
         {
             base.CopyFiles(zipFilePath);
 
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Storages\{PersistencePackage.ZipName}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Storages\{PersistenceManifest.ZipName}");
         }
     }
 }

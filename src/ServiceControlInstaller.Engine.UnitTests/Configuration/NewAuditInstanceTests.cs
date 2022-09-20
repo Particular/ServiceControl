@@ -15,7 +15,7 @@
         {
             var newInstance = new ServiceControlAuditNewInstance();
 
-            StringAssert.Contains("RavenDb5", newInstance.PersistencePackage.TypeName);
+            StringAssert.Contains("RavenDb5", newInstance.PersistenceManifest.TypeName);
         }
 
         [Test]
@@ -37,7 +37,7 @@
             newInstance.InstallPath = installPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
 
-            newInstance.PersistencePackage.Settings["MyPersister/CustomValue"] = "some-value";
+            newInstance.PersistenceManifest.Settings["MyPersister/CustomValue"] = "some-value";
 
             newInstance.DBPath = dbPath;
             newInstance.LogPath = logPath;
