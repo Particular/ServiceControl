@@ -20,7 +20,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public async Task Configure()
+        public Task Configure()
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
@@ -41,14 +41,12 @@
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            await serviceProvider.GetRequiredService<IPersistenceLifecycle>().Initialize()
-                .ConfigureAwait(false);
-
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
             BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
+            return Task.CompletedTask;
         }
 
         public Task CompleteDBOperation()

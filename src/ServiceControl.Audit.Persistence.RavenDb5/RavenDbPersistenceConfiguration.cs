@@ -4,21 +4,60 @@
     using Persistence.UnitOfWork;
     using Auditing.BodyStorage;
     using Infrastructure.Settings;
-    using Raven.Client.Documents;
     using UnitOfWork;
+    using ServiceControl.Audit.Persistence.RavenDb5;
+    using Raven.Embedded;
+    using Raven.Client.Documents;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
         public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
         {
-            serviceCollection.AddPersistenceLifecycle<RavenDbPersistenceLifecycle>();
-            serviceCollection.AddSingleton<DeferredRavenDocumentStore>();
-            serviceCollection.AddSingleton<IDocumentStore>(sp => sp.GetRequiredService<DeferredRavenDocumentStore>());
+            var documentStore = InitializeDatabase(settings);
+
+            serviceCollection.AddSingleton(documentStore);
 
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
         }
+
+        IDocumentStore InitializeDatabase(Settings settings)
+        {
+            if (ShouldStartServer(settings))
+            {
+                embeddedRavenDb = EmbeddedDatabase.Start(settings.DbPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+            }
+            else
+            {
+                embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory);
+            }
+
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration()).GetAwaiter().GetResult();
+        }
+
+        static bool ShouldStartServer(Settings settings)
+        {
+            if (settings.RunInMemory)
+            {
+                // We are probably running in a test context
+                try
+                {
+                    EmbeddedServer.Instance.GetServerUriAsync().Wait();
+                    // Embedded server is already running so we don't need to start it
+                    return false;
+                }
+                catch
+                {
+                    // Embedded Server is not running
+                    return true;
+                }
+            }
+
+            return true;
+        }
+
+        EmbeddedDatabase embeddedRavenDb;
     }
 }
