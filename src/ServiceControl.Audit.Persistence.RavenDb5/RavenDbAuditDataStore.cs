@@ -12,12 +12,15 @@
     using Extensions;
     using Indexes;
     using Transformers;
+    using System.Diagnostics;
+    using ServiceControl.Audit.Infrastructure.Settings;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
-        public RavenDbAuditDataStore(IDocumentStore store)
+        public RavenDbAuditDataStore(IDocumentStore store, Settings settings)
         {
             documentStore = store;
+            isFullTextSearchEnabled = settings.EnableFullTextSearchOnBodies;
         }
 
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
@@ -43,7 +46,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Sort(sortInfo)
@@ -60,7 +63,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .Search(x => x.Query, searchParam)
                     .Sort(sortInfo)
@@ -77,7 +80,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .Search(x => x.Query, input.Keyword)
                     .Where(m => m.ReceivingEndpointName == input.Endpoint)
@@ -95,7 +98,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Where(m => m.ReceivingEndpointName == endpointName)
@@ -113,7 +116,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .Where(m => m.ConversationId == conversationId)
                     .Sort(sortInfo)
@@ -171,8 +174,14 @@
             }
         }
 
+        string GetIndexName(bool isFullTextSearchEnabled)
+        {
+            return isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
+        }
+
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;
+        bool isFullTextSearchEnabled;
     }
 }

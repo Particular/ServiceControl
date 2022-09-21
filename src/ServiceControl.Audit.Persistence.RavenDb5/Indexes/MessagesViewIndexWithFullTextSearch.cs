@@ -7,12 +7,12 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
     using Raven.Client.Documents.Indexes;
     using ServiceControl.Audit.Auditing;
 
-    public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndexWithFullTextSearch : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
-        public MessagesViewIndex()
+        public MessagesViewIndexWithFullTextSearch()
         {
             Map = messages => from message in messages
-                              select new SortAndFilterOptions
+                              select new MessagesViewIndex.SortAndFilterOptions
                               {
                                   MessageId = (string)message.MessageMetadata["MessageId"],
                                   MessageType = (string)message.MessageMetadata["MessageType"],
@@ -26,30 +26,15 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
                                   DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                                   Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[]
                                   {
-                                      string.Join(" ", message.Headers.Select(x => x.Value))
-                                  }).ToArray(),
+                                    string.Join(" ", message.Headers.Select(x => x.Value)),
+                                    LoadAttachment(message, "body").GetContentAsString()
+                                }).ToArray(),
                                   ConversationId = (string)message.MessageMetadata["ConversationId"]
                               };
 
             Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-        }
-
-        public class SortAndFilterOptions
-        {
-            public string MessageId { get; set; }
-            public string MessageType { get; set; }
-            public bool IsSystemMessage { get; set; }
-            public MessageStatus Status { get; set; }
-            public DateTime ProcessedAt { get; set; }
-            public string ReceivingEndpointName { get; set; }
-            public TimeSpan? CriticalTime { get; set; }
-            public TimeSpan? ProcessingTime { get; set; }
-            public TimeSpan? DeliveryTime { get; set; }
-            public string ConversationId { get; set; }
-            public string[] Query { get; set; }
-            public DateTime TimeSent { get; set; }
         }
     }
 }

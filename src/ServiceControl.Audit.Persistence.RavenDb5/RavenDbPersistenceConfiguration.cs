@@ -27,11 +27,11 @@
         {
             if (ShouldStartServer(settings))
             {
-                embeddedRavenDb = EmbeddedDatabase.Start(settings.DbPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl);
+                embeddedRavenDb = EmbeddedDatabase.Start(settings.DbPath, settings.ExpirationProcessTimerInSeconds, settings.DatabaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies);
             }
             else
             {
-                embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory);
+                embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory, settings.EnableFullTextSearchOnBodies);
             }
 
             return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration()).GetAwaiter().GetResult();

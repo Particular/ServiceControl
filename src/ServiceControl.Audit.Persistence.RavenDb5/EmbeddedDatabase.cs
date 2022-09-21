@@ -18,6 +18,9 @@
     using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide.Operations.DocumentsCompression;
     using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.SagaAudit;
+    using Raven.Client.Documents.Operations.Indexes;
 
     public class EmbeddedDatabase : IDisposable
     {
@@ -26,17 +29,19 @@
         readonly int expirationProcessTimerInSeconds;
         readonly string databaseUrl;
         readonly bool useEmbeddedInstance;
+        readonly bool enableFullTextSearch;
         readonly Dictionary<string, IDocumentStore> preparedDocumentStores = new Dictionary<string, IDocumentStore>();
 
-        public EmbeddedDatabase(int expirationProcessTimerInSeconds, string databaseUrl, bool useEmbeddedInstance)
+        public EmbeddedDatabase(int expirationProcessTimerInSeconds, string databaseUrl, bool useEmbeddedInstance, bool enableFullTextSearch)
         {
             this.expirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
             this.databaseUrl = databaseUrl;
             this.useEmbeddedInstance = useEmbeddedInstance;
+            this.enableFullTextSearch = enableFullTextSearch;
         }
 
 
-        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseUrl)
+        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseUrl, bool enableFullTextSearch)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -68,7 +73,7 @@
             {
                 EmbeddedServer.Instance.StartServer(serverOptions);
             }
-            return new EmbeddedDatabase(expirationProcessTimerInSecond, useEmbedded ? databaseUrl : dbPath, useEmbedded);
+            return new EmbeddedDatabase(expirationProcessTimerInSecond, useEmbedded ? databaseUrl : dbPath, useEmbedded, enableFullTextSearch);
         }
 
         public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config)
@@ -171,10 +176,23 @@
                 documentStore = store;
             }
 
-            foreach (var indexAssembly in config.IndexAssemblies)
+            var indexList = new List<AbstractIndexCreationTask> { new ExpiryKnownEndpointsIndex(), new ExpiryProcessedMessageIndex(), new FailedAuditImportIndex(), new SagaDetailsIndex() };
+
+            if (enableFullTextSearch)
             {
-                await IndexCreation.CreateIndexesAsync(indexAssembly, documentStore).ConfigureAwait(false);
+
+                indexList.Add(new MessagesViewIndexWithFullTextSearch());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"))
+                .ConfigureAwait(false);
             }
+            else
+            {
+                indexList.Add(new MessagesViewIndex());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"))
+                .ConfigureAwait(false);
+            }
+
+            await IndexCreation.CreateIndexesAsync(indexList, documentStore).ConfigureAwait(false);
 
             // TODO: Check to see if the configuration has changed.
             // If it has, then send an update to the server to change the expires metadata on all documents
