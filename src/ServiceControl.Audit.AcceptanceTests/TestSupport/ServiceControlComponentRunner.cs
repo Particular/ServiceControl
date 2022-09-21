@@ -117,13 +117,13 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }
             };
 
+            setSettings(settings);
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
-
-            setSettings(settings);
 
             var configuration = new EndpointConfiguration(instanceName);
 
