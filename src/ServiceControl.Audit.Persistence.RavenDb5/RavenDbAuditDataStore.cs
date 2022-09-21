@@ -12,7 +12,6 @@
     using Extensions;
     using Indexes;
     using Transformers;
-    using System.Diagnostics;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     class RavenDbAuditDataStore : IAuditDataStore

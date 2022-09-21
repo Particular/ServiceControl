@@ -7,15 +7,21 @@
     using Monitoring;
     using NServiceBus;
     using Persistence.UnitOfWork;
+    using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
+    using Raven.Client.Json;
     using ServiceControl.SagaAudit;
 
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         BulkInsertOperation bulkInsert;
+        TimeSpan auditRetentionPeriod;
 
-        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert)
-            => this.bulkInsert = bulkInsert;
+        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod)
+        {
+            this.bulkInsert = bulkInsert;
+            this.auditRetentionPeriod = auditRetentionPeriod;
+        }
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
         {
@@ -27,7 +33,7 @@
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
             }
 
-            await bulkInsert.StoreAsync(processedMessage).ConfigureAwait(false);
+            await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata()).ConfigureAwait(false);
 
             if (body != null)
             {
@@ -40,6 +46,14 @@
                         .ConfigureAwait(false);
                 }
             }
+        }
+
+        MetadataAsDictionary GetExpirationMetadata()
+        {
+            return new MetadataAsDictionary
+            {
+                [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
+            };
         }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
