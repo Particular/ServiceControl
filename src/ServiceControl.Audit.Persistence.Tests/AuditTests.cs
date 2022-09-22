@@ -115,7 +115,8 @@
                 { "IsSystemMessage", false },
                 { "MessageType", "MyMessageType" },
                 { "IsRetried", false },
-                { "ConversationId", conversationId }
+                { "ConversationId", conversationId },
+                { "ContentLength", 10}
             };
 
             var headers = new Dictionary<string, string>
