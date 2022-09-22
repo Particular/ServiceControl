@@ -176,7 +176,7 @@
                 documentStore = store;
             }
 
-            var indexList = new List<AbstractIndexCreationTask> { new ExpiryKnownEndpointsIndex(), new ExpiryProcessedMessageIndex(), new FailedAuditImportIndex(), new SagaDetailsIndex() };
+            var indexList = new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
 
             if (enableFullTextSearch)
             {
