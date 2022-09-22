@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
+    using Infrastructure.Settings;
     using NUnit.Framework;
     using UnitOfWork;
 
@@ -9,11 +11,11 @@
     class PersistenceTestFixture
     {
         [SetUp]
-        public Task Setup()
+        public virtual Task Setup()
         {
             configuration = new PersistenceTestsConfiguration();
 
-            return configuration.Configure();
+            return configuration.Configure(s => SetSettings(s));
         }
 
         [TearDown]
@@ -35,5 +37,6 @@
             AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
         protected PersistenceTestsConfiguration configuration;
+        protected Action<Settings> SetSettings = _ => { };
     }
 }

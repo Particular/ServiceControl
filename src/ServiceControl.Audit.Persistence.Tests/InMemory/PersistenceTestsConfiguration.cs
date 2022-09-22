@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Infrastructure.Settings;
@@ -14,13 +15,13 @@
         public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public Task Configure(Action<Settings> setSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
             var settings = new FakeSettings();
-
+            setSettings(settings);
             serviceCollection.AddSingleton<Settings>(settings);
 
             config.ConfigureServices(serviceCollection, settings, false, true);

@@ -126,9 +126,13 @@
 
                 return expirationProcessTimerInSeconds;
             }
+            set
+            {
+                expirationProcessTimerInSeconds = value < 0 ? ExpirationProcessTimerInSecondsDefault : value;
+            }
         }
 
-        public TimeSpan AuditRetentionPeriod { get; }
+        public TimeSpan AuditRetentionPeriod { get; set; }
 
         public int ExpirationProcessBatchSize
         {

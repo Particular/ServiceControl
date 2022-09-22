@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public Task Configure(Action<Settings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
@@ -24,6 +25,7 @@
             {
                 RunInMemory = true
             };
+            setSettings(settings);
 
             serviceCollection.AddSingleton<Settings>(settings);
 

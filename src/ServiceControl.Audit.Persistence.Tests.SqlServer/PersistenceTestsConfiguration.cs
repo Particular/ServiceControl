@@ -17,7 +17,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public async Task Configure()
+        public async Task Configure(Action<Settings> setSettings)
         {
             connectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString");
 
@@ -35,6 +35,7 @@
             {
                 SqlStorageConnectionString = connectionString,
             };
+            setSettings(settings);
 
             config.ConfigureServices(serviceCollection, settings, false, true);
 
