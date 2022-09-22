@@ -60,7 +60,7 @@
             => bulkInsert.StoreAsync(sagaSnapshot);
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
-            => bulkInsert.StoreAsync(knownEndpoint);
+            => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()
             => await bulkInsert.DisposeAsync().ConfigureAwait(false);
