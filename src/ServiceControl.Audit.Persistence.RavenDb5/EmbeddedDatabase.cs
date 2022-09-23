@@ -76,11 +76,11 @@
             return new EmbeddedDatabase(expirationProcessTimerInSecond, useEmbedded ? databaseUrl : dbPath, useEmbedded, enableFullTextSearch);
         }
 
-        public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config)
+        public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config, bool isSetup)
         {
             if (!preparedDocumentStores.TryGetValue(config.Name, out var store))
             {
-                store = await InitializeDatabase(config).ConfigureAwait(false);
+                store = await InitializeDatabase(config, isSetup).ConfigureAwait(false);
                 preparedDocumentStores[config.Name] = store;
             }
             return store;
@@ -98,7 +98,7 @@
             }
         }
 
-        async Task<IDocumentStore> InitializeDatabase(DatabaseConfiguration config)
+        async Task<IDocumentStore> InitializeDatabase(DatabaseConfiguration config, bool isSetup)
         {
             IDocumentStore documentStore;
             if (useEmbeddedInstance)
@@ -146,64 +146,74 @@
 
                 store.Initialize();
 
-                try
-                {
-                    await store.Maintenance.ForDatabase(config.Name).SendAsync(new GetStatisticsOperation())
-                        .ConfigureAwait(false);
-                }
-                catch (DatabaseDoesNotExistException)
+                if (isSetup)
                 {
                     try
                     {
-                        await store.Maintenance.Server.SendAsync(new CreateDatabaseOperation(new DatabaseRecord(config.Name)))
+                        await store.Maintenance.ForDatabase(config.Name).SendAsync(new GetStatisticsOperation())
                             .ConfigureAwait(false);
                     }
-                    catch (ConcurrencyException)
+                    catch (DatabaseDoesNotExistException)
                     {
-                        // The database was already created before calling CreateDatabaseOperation
+                        try
+                        {
+                            await store.Maintenance.Server
+                                .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(config.Name)))
+                                .ConfigureAwait(false);
+                        }
+                        catch (ConcurrencyException)
+                        {
+                            // The database was already created before calling CreateDatabaseOperation
+                        }
+
                     }
 
+                    if (config.EnableDocumentCompression)
+                    {
+                        await store.Maintenance.ForDatabase(config.Name).SendAsync(
+                            new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
+                                false,
+                                config.CollectionsToCompress.ToArray()
+                            ))).ConfigureAwait(false);
+                    }
                 }
 
-                if (config.EnableDocumentCompression)
-                {
-                    await store.Maintenance.ForDatabase(config.Name).SendAsync(
-                        new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
-                            false,
-                            config.CollectionsToCompress.ToArray()
-                        ))).ConfigureAwait(false);
-                }
                 documentStore = store;
             }
 
-            var indexList = new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
-
-            if (enableFullTextSearch)
+            if (isSetup)
             {
+                var indexList =
+                    new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
 
-                indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"))
-                .ConfigureAwait(false);
+                if (enableFullTextSearch)
+                {
+
+                    indexList.Add(new MessagesViewIndexWithFullTextSearch());
+                    await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"))
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    indexList.Add(new MessagesViewIndex());
+                    await documentStore.Maintenance
+                        .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"))
+                        .ConfigureAwait(false);
+                }
+
+                await IndexCreation.CreateIndexesAsync(indexList, documentStore).ConfigureAwait(false);
+
+                // TODO: Check to see if the configuration has changed.
+                // If it has, then send an update to the server to change the expires metadata on all documents
+                var expirationConfig = new ExpirationConfiguration
+                {
+                    Disabled = false,
+                    DeleteFrequencyInSec = expirationProcessTimerInSeconds
+                };
+
+                await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
+                    .ConfigureAwait(false);
             }
-            else
-            {
-                indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"))
-                .ConfigureAwait(false);
-            }
-
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore).ConfigureAwait(false);
-
-            // TODO: Check to see if the configuration has changed.
-            // If it has, then send an update to the server to change the expires metadata on all documents
-            var expirationConfig = new ExpirationConfiguration
-            {
-                Disabled = false,
-                DeleteFrequencyInSec = expirationProcessTimerInSeconds
-            };
-
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
-                .ConfigureAwait(false);
 
             return documentStore;
         }

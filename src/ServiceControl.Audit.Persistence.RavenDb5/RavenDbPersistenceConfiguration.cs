@@ -13,7 +13,7 @@
     {
         public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
         {
-            var documentStore = InitializeDatabase(settings);
+            var documentStore = InitializeDatabase(settings, isSetup);
 
             serviceCollection.AddSingleton(documentStore);
 
@@ -23,7 +23,7 @@
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
         }
 
-        IDocumentStore InitializeDatabase(Settings settings)
+        IDocumentStore InitializeDatabase(Settings settings, bool isSetup)
         {
             if (ShouldStartServer(settings))
             {
@@ -34,7 +34,7 @@
                 embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory, settings.EnableFullTextSearchOnBodies);
             }
 
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration()).GetAwaiter().GetResult();
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(), isSetup).GetAwaiter().GetResult();
         }
 
         static bool ShouldStartServer(Settings settings)
