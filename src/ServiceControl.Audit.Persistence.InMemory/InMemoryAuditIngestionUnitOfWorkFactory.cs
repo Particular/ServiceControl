@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
-    using Infrastructure.Settings;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
     class InMemoryAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory

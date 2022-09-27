@@ -6,7 +6,7 @@
     using System.Reflection;
     using Auditing;
     using Auditing.MessagesView;
-    using Monitoring;
+    using ServiceControl.Audit.Monitoring;
 
     static class MessagesViewFactory
     {

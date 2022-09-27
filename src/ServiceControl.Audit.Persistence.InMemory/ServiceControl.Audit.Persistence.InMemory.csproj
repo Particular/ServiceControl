@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
