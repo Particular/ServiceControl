@@ -68,6 +68,7 @@
         [Test]
         public async Task Can_roundtrip_message_body()
         {
+            string expectedContentType = "text/xml";
             var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
 
             var body = new byte[100];
@@ -89,6 +90,8 @@
             Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
             Assert.That(retrievedMessage.ETag, Is.Not.Null.Or.Empty);
             Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
+            Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
+
             var resultBody = new byte[body.Length];
             var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length)
                 .ConfigureAwait(false);

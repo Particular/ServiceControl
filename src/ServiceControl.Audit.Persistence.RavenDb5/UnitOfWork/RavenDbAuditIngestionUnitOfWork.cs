@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing;
     using Auditing.BodyStorage;
@@ -49,7 +50,11 @@
             {
                 using (var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length))
                 {
-                    processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType);
+                    if (!processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType))
+                    {
+                        // TODO: is there a use case for no content type? and if that's the case is it expected that the default is text/xml?
+                        contentType = "text/xml";
+                    }
 
                     await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream).ConfigureAwait(false);
                 }
