@@ -182,6 +182,11 @@
             var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}").ConfigureAwait(false);
 #pragma warning restore 618
 
+            if (attachment == null)
+            {
+                return MessageBodyView.NoContent();
+            }
+
             return MessageBodyView.FromStream(
                 attachment.Data(),
                 attachment.Metadata["ContentType"].Value<string>(),
