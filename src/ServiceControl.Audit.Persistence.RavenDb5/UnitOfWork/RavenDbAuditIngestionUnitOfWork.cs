@@ -35,6 +35,13 @@
                 processedMessage.MessageMetadata["ContentLength"] = body.Length;
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
             }
+            else
+            {
+                // TODO: Tests were designed for 3.5 where attachments were a separate thing
+                // so tests can generate a processed message with no body. But there is no use
+                // case for that outside of tests.
+                processedMessage.MessageMetadata["ContentLength"] = 0;
+            }
 
             await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata()).ConfigureAwait(false);
 
