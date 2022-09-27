@@ -136,7 +136,7 @@
 
                 if (result == null)
                 {
-                    return MessageBodyView.NotFound();
+                    return MessageBodyView.NoContent();
                 }
 
                 return MessageBodyView.FromStream(

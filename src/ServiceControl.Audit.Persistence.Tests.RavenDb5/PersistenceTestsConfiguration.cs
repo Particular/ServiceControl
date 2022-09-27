@@ -12,6 +12,8 @@
     using RavenDb5;
     using UnitOfWork;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using Raven.Client.Documents.BulkInsert;
+    using static Lucene.Net.Documents.Field;
 
     partial class PersistenceTestsConfiguration
     {
@@ -45,7 +47,9 @@
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
+            var bulkInsert = DocumentStore.BulkInsert(
+                options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
+            BodyStorage = new RavenAttachmentsBodyStorage(DocumentStore, bulkInsert, settings.MaxBodySizeToStore);
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
             return Task.CompletedTask;
         }

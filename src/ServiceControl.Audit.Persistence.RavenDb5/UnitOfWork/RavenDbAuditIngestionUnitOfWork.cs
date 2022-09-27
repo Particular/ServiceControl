@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Auditing;
+    using Auditing.BodyStorage;
     using Infrastructure;
     using Monitoring;
     using NServiceBus;
@@ -16,11 +17,13 @@
     {
         BulkInsertOperation bulkInsert;
         TimeSpan auditRetentionPeriod;
+        IBodyStorage bodyStorage;
 
-        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod)
+        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
         {
             this.bulkInsert = bulkInsert;
             this.auditRetentionPeriod = auditRetentionPeriod;
+            this.bodyStorage = bodyStorage;
         }
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
@@ -41,9 +44,7 @@
                 {
                     processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType);
 
-                    await bulkInsert.AttachmentsFor(processedMessage.Id)
-                        .StoreAsync("body", stream, contentType)
-                        .ConfigureAwait(false);
+                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream).ConfigureAwait(false);
                 }
             }
         }

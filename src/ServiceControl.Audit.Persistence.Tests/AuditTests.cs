@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Mime;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Auditing;
@@ -12,6 +13,15 @@
     [TestFixture]
     class AuditTests : PersistenceTestFixture
     {
+        public override Task Setup()
+        {
+            SetSettings = s =>
+            {
+                s.MaxBodySizeToStore = MAX_BODY_SIZE;
+            };
+            return base.Setup();
+        }
+
         [Test]
         public async Task Basic_Roundtrip()
         {
@@ -75,6 +85,38 @@
             Assert.That(retrievedMessage, Is.Not.Null);
             Assert.That(retrievedMessage.Found, Is.True);
             Assert.That(retrievedMessage.HasContent, Is.True);
+
+            Assert.That(retrievedMessage.ContentLength, Is.EqualTo(body.Length));
+            Assert.That(retrievedMessage.ETag, Is.Not.Null.Or.Empty);
+            Assert.That(retrievedMessage.StreamContent, Is.Not.Null);
+            var resultBody = new byte[body.Length];
+            var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length)
+                .ConfigureAwait(false);
+            Assert.That(readBytes, Is.EqualTo(body.Length));
+            Assert.That(resultBody, Is.EqualTo(body));
+        }
+
+        [Test]
+        public async Task Does_respect_max_message_body()
+        {
+            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+
+            var body = new byte[MAX_BODY_SIZE + 1000];
+            new Random().NextBytes(body);
+            var processedMessage = MakeMessage();
+
+            await unitOfWork.RecordProcessedMessage(processedMessage, body).ConfigureAwait(false);
+
+            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+
+            var bodyId = GetBodyId(processedMessage);
+
+            var retrievedMessage = await DataStore.GetMessageBody(bodyId).ConfigureAwait(false);
+
+            Assert.That(retrievedMessage, Is.Not.Null);
+            Assert.That(retrievedMessage.Found, Is.True);
+            Assert.That(retrievedMessage.HasContent, Is.False);
+
         }
 
         string GetBodyId(ProcessedMessage processedMessage)
@@ -141,5 +183,7 @@
             await unitOfWork.DisposeAsync().ConfigureAwait(false);
             await configuration.CompleteDBOperation().ConfigureAwait(false);
         }
+
+        const int MAX_BODY_SIZE = 20536;
     }
 }
