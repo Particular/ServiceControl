@@ -256,7 +256,7 @@
                     enricher.Enrich(enricherContext);
                 }
 
-                var auditMessage = new ProcessedMessage(context.Headers, new Dictionary<string, object>(metadata));
+                var auditMessage = new ProcessedMessage(messageId, context.Headers, new Dictionary<string, object>(metadata));
 
                 if (Logger.IsDebugEnabled)
                 {
