@@ -97,6 +97,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
         public virtual string DatabaseMaintenanceUrl { get; }
+        public string DatabaseName { get; set; }
         public string DbPath { get; set; }
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }

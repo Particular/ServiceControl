@@ -27,7 +27,9 @@
 
     public class AuditDatabaseConfiguration : DatabaseConfiguration
     {
-        public AuditDatabaseConfiguration() : base("audit") { }
+        public AuditDatabaseConfiguration(string name = null) : base(name ?? "audit")
+        {
+        }
 
         public override IEnumerable<Assembly> IndexAssemblies { get; } = new[]
         {

@@ -73,6 +73,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             {
                 DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
                 SqlStorageConnectionString = dataStoreToUse.ConnectionString,
+                DatabaseName = dataStoreToUse.DatabaseName,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),

@@ -189,6 +189,8 @@
 
         public string RavenDbConnectionString { get; set; }
 
+        public string DatabaseName { get; set; }
+
         public TransportCustomization LoadTransportCustomization()
         {
             try

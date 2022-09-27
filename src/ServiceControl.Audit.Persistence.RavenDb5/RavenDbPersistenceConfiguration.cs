@@ -33,7 +33,7 @@
                 embeddedRavenDb = new EmbeddedDatabase(settings.ExpirationProcessTimerInSeconds, settings.RavenDbConnectionString, settings.RunInMemory, settings.EnableFullTextSearchOnBodies);
             }
 
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(), isSetup).GetAwaiter().GetResult();
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(settings.DatabaseName), isSetup).GetAwaiter().GetResult();
         }
 
         static bool ShouldStartServer(Settings settings)
