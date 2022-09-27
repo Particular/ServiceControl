@@ -35,7 +35,7 @@
             var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
                 .ConfigureAwait(false);
 
-            await Task.Delay(5000).ConfigureAwait(false);
+            await Task.Delay(4000).ConfigureAwait(false);
 
             var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
                 .ConfigureAwait(false);
@@ -53,7 +53,7 @@
             {
                 Host = "Myself",
                 HostId = Guid.NewGuid(),
-                Id = "knownEndpointId",
+                Id = "KnownEndpoints/1234123",
                 LastSeen = DateTime.UtcNow,
                 Name = "Wazowsky"
             };
@@ -65,7 +65,7 @@
             var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints()
                 .ConfigureAwait(false);
 
-            await Task.Delay(5000).ConfigureAwait(false);
+            await Task.Delay(4000).ConfigureAwait(false);
 
             var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints()
                 .ConfigureAwait(false);
