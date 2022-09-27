@@ -50,7 +50,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public string ConversationId { get; set; }
         public System.TimeSpan CriticalTime { get; set; }
         public System.TimeSpan DeliveryTime { get; set; }
-        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> Headers { get; set; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> Headers { get; set; }
         public string Id { get; set; }
         public string InstanceId { get; set; }
         public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
@@ -92,7 +92,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }
         public string AuditQueue { get; set; }
-        public System.TimeSpan AuditRetentionPeriod { get; }
+        public System.TimeSpan AuditRetentionPeriod { get; set; }
         public int DataSpaceRemainingThreshold { get; set; }
         public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
         public int DatabaseMaintenancePort { get; set; }
@@ -101,7 +101,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public bool DisableRavenDBPerformanceCounters { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
         public int ExpirationProcessBatchSize { get; }
-        public int ExpirationProcessTimerInSeconds { get; }
+        public int ExpirationProcessTimerInSeconds { get; set; }
         public bool ExposeApi { get; set; }
         public bool ExposeRavenDB { get; }
         public bool ForwardAuditMessages { get; set; }
@@ -114,6 +114,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
+        public string RavenDbConnectionString { get; set; }
         public string RootUrl { get; }
         public bool RunCleanupBundle { get; set; }
         public bool RunInMemory { get; set; }
