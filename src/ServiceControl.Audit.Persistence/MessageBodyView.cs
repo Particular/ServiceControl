@@ -2,7 +2,7 @@
 {
     using System.IO;
 
-    class MessageBodyView
+    public class MessageBodyView
     {
         public bool Found { get; private set; }
         public bool HasContent { get; private set; }

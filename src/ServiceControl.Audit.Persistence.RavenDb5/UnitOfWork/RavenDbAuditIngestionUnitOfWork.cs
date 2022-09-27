@@ -1,17 +1,16 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Auditing;
     using Auditing.BodyStorage;
-    using Infrastructure;
     using Monitoring;
     using NServiceBus;
     using Persistence.UnitOfWork;
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
+    using ServiceControl.Audit.Persistence.RavenDb5.Infrastructure;
     using ServiceControl.SagaAudit;
 
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
