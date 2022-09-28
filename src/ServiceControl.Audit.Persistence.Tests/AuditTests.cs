@@ -172,9 +172,8 @@
                 { Headers.ConversationId, conversationId }
             };
 
-            var uniqueId = Guid.NewGuid().ToString();
 
-            return new ProcessedMessage(uniqueId, headers, metadata);
+            return new ProcessedMessage(headers, metadata);
         }
 
         async Task IngestProcessedMessagesAudits(params ProcessedMessage[] processedMessages)

@@ -6,6 +6,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
@@ -18,22 +19,25 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<Settings> setSettings)
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
+            databaseName = TestContext.CurrentContext.Test.ID;
             Console.WriteLine($"DB Path: {dbPath}");
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1))
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
             {
                 IsSetup = true
             };
 
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/RunInMemory"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
 
+            setSettings(settings);
 
             config.ConfigureServices(serviceCollection, settings);
 
@@ -58,7 +62,7 @@
         public Task Cleanup()
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
-                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { new AuditDatabaseConfiguration().Name }, HardDelete = true }));
+                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
             DocumentStore?.Dispose();
             return Task.CompletedTask;
         }
@@ -66,5 +70,7 @@
         public string Name => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
+
+        string databaseName;
     }
 }

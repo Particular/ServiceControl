@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.UnitOfWork;
 
     class InMemoryAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
-        public InMemoryAuditIngestionUnitOfWorkFactory(InMemoryAuditDataStore dataStore, IBodyStorage bodyStorage, Settings settings)
+        public InMemoryAuditIngestionUnitOfWorkFactory(InMemoryAuditDataStore dataStore, IBodyStorage bodyStorage, PersistenceSettings settings)
         {
             this.dataStore = dataStore;
             bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);

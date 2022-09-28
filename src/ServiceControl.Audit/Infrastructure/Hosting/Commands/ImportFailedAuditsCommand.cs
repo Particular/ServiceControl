@@ -19,7 +19,7 @@
                 IngestAuditMessages = false
             };
 
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
 

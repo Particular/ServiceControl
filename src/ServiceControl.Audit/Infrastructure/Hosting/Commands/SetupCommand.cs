@@ -13,7 +13,7 @@
                 SkipQueueCreation = args.SkipQueueCreation
             };
 
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
             {
                 IsSetup = true
             };

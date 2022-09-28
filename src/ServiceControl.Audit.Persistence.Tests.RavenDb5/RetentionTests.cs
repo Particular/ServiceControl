@@ -2,13 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Auditing;
-    using Infrastructure;
     using Monitoring;
     using NServiceBus;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
     class RetentionTests : PersistenceTestFixture
@@ -18,7 +17,7 @@
             SetSettings = s =>
             {
                 s.AuditRetentionPeriod = TimeSpan.FromSeconds(2);
-                s.ExpirationProcessTimerInSeconds = 3;
+                s.PersisterSpecificSettings["ServiceControl.Audit/ExpirationProcessTimerInSeconds"] = 3.ToString();
             };
             return base.Setup();
         }

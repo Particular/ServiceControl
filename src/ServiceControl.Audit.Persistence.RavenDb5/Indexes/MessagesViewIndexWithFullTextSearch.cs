@@ -3,9 +3,9 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using Monitoring;
     using Raven.Client.Documents.Indexes;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Monitoring;
 
     public class MessagesViewIndexWithFullTextSearch : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {

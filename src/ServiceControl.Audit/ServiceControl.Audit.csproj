@@ -50,4 +50,8 @@
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Auditing\BodyStorage\" />
+  </ItemGroup>
+
 </Project>

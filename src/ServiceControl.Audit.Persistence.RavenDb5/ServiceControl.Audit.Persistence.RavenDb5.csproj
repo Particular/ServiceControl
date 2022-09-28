@@ -6,17 +6,13 @@
 
   <ItemGroup>
     <None Remove="manifest.json" />
-    <None Remove="RavenLicense.xml" />
+    <None Remove="RavenLicense.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="manifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="RavenLicense.xml" />
   </ItemGroup>
 
   <ItemGroup>

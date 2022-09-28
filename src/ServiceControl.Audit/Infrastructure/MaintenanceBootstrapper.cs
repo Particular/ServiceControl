@@ -11,7 +11,7 @@ namespace ServiceControl.Audit.Infrastructure
         public static async Task Run(HostArguments args)
         {
             var settings = new Settings.Settings(args.ServiceName);
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
             {
                 MaintenanceMode = true
             };

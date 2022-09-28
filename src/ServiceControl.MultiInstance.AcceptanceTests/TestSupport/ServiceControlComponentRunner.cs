@@ -273,7 +273,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
                 {
                     IsSetup = true
                 };
@@ -320,11 +320,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
 
-                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
                 var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
-                    var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+                    var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
                     var logitem = new ScenarioContext.LogItem
                     {

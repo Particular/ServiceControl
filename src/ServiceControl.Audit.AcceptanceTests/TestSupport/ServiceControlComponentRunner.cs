@@ -117,7 +117,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod)
+                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
                 {
                     IsSetup = true
                 };
@@ -160,7 +160,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod);
+                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
                 persistenceToUse.CustomizeSettings(runtimePersistenceSettings.PersisterSpecificSettings);
                 bootstrapper = new Bootstrapper(ctx =>

@@ -17,7 +17,7 @@
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
-        public RavenDbAuditDataStore(IDocumentStore store, Settings settings)
+        public RavenDbAuditDataStore(IDocumentStore store, PersistenceSettings settings)
         {
             documentStore = store;
             isFullTextSearchEnabled = settings.EnableFullTextSearchOnBodies;

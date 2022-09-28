@@ -16,7 +16,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public async Task Configure(Action<Settings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             connectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString");
 
@@ -30,7 +30,7 @@
             var config = new SqlDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1))
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
             {
                 IsSetup = true
             };

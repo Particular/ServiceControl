@@ -3,14 +3,14 @@
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Infrastructure.Settings;
+    using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Logging;
+    using ServiceControl.Audit.Persistence;
 
-    class BodyStorageEnricher
+    public class BodyStorageEnricher
     {
-        public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+        public BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
         {
             this.bodyStorage = bodyStorage;
             this.settings = settings;
@@ -48,7 +48,7 @@
 
         async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
         {
-            var bodyId = processedMessage.Headers.MessageId();
+            var bodyId = MessageId(processedMessage.Headers);
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
 
             var isBelowMaxSize = bodySize <= settings.MaxBodySizeToStore;
@@ -58,7 +58,7 @@
             if (isBelowMaxSize)
             {
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
-                var isBinary = processedMessage.Headers.IsBinary();
+                var isBinary = IsBinary(processedMessage.Headers);
                 var useEmbeddedBody = avoidsLargeObjectHeap && !isBinary;
                 var useBodyStore = !useEmbeddedBody;
 
@@ -96,20 +96,48 @@
 
         async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
         {
-            using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
+            using (var bodyStream = Manager.GetStream(bodyId, body, 0, bodySize))
             {
                 await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
                     .ConfigureAwait(false);
             }
         }
 
+        static string MessageId(IReadOnlyDictionary<string, string> headers)
+        {
+            return headers.TryGetValue(Headers.MessageId, out var str) ? str : default;
+        }
+
+        static bool IsBinary(IReadOnlyDictionary<string, string> headers)
+        {
+            if (headers.TryGetValue(Headers.ContentType, out var contentType))
+            {
+                // Used by HTTP spec, presence indicates compressed binary payload:
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+                var hasContentEncodingHeader = headers.ContainsKey("Content-Encoding");
+
+                // Checking for text, json and xml gets the job done. All other types are pretty much all binary
+                var isText = contentType.StartsWith("text/")
+                             || contentType.Contains("xml") // matches +xml and /xml
+                             || contentType.Contains("json"); // matches +json and /json;
+
+                isText = isText && !contentType.Contains("binary"); // Backwards compatibility with prior binary detection logic untill SC v4.22.0
+                return !isText || hasContentEncodingHeader;
+            }
+
+            return true;
+        }
+
+        readonly IBodyStorage bodyStorage;
+        readonly PersistenceSettings settings;
+
         static readonly Encoding enc = new UTF8Encoding(true, true);
         static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
-        IBodyStorage bodyStorage;
-        Settings settings;
 
         // large object heap starts above 85000 bytes and not above 85 KB!
-        internal const int LargeObjectHeapThreshold = 85 * 1000;
-        internal const string BodyUrlFormatString = "/messages/{0}/body";
+        public const int LargeObjectHeapThreshold = 85 * 1000;
+        public const string BodyUrlFormatString = "/messages/{0}/body";
+
+        public static readonly RecyclableMemoryStreamManager Manager = new RecyclableMemoryStreamManager();
     }
 }

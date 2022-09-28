@@ -8,6 +8,7 @@
     <!-- TODO: We should refactor this to not rely on HTTP stuff-->
     <Reference Include="System.Net.Http" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <!-- TODO: We should be able to remove this -->
     <PackageReference Include="NServiceBus" Version="7.7.4" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />

@@ -17,12 +17,12 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<Settings> setSettings)
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1))
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
             {
                 IsSetup = true
             };
@@ -30,6 +30,8 @@
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
             settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
+
+            setSettings(settings);
 
             config.ConfigureServices(serviceCollection, settings);
 

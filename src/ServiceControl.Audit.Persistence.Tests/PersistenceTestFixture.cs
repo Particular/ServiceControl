@@ -5,19 +5,20 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using NUnit.Framework;
     using UnitOfWork;
 
     [TestFixture]
     class PersistenceTestFixture
     {
+        public Action<PersistenceSettings> SetSettings = _ => { };
+
         [SetUp]
         public virtual Task Setup()
         {
             configuration = new PersistenceTestsConfiguration();
 
-            return configuration.Configure(s => SetSettings(s));
+            return configuration.Configure(SetSettings);
         }
 
         [TearDown]

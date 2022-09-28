@@ -14,12 +14,14 @@
         public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<Settings> setSettings)
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            config.ConfigureServices(serviceCollection, new PersistenceSettings(TimeSpan.FromHours(1)));
+            setSettings(settings);
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
