@@ -27,7 +27,7 @@
             var serviceCollection = new ServiceCollection();
 
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
-            databaseName = TestContext.CurrentContext.Test.ID;
+            databaseName = Guid.NewGuid().ToString();
             Console.WriteLine($"DB Path: {dbPath}");
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
