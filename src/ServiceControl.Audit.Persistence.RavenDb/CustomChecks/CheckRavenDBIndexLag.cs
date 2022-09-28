@@ -15,6 +15,7 @@
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             _store = store;
+            // TODO verify that this is really not needed anymore
             //LogPath = logPath;
         }
 
