@@ -19,7 +19,11 @@
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             Console.WriteLine($"DB Path: {dbPath}");
 
+            // TODO: the database is not deleted when the embedded instance is disposed
+            var databaseName = Guid.NewGuid().ToString();
+
             settings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = bool.TrueString;
+            settings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
             settings["ServiceControl.Audit/DbPath"] = dbPath;
             settings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
             settings["ServiceControl.Audit/HostName"] = "localhost";
