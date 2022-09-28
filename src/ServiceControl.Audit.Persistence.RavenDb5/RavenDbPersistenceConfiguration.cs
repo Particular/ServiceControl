@@ -17,6 +17,7 @@
 
             serviceCollection.AddSingleton(documentStore);
 
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();

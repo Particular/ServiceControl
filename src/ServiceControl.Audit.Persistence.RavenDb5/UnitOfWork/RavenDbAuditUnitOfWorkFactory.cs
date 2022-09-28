@@ -4,7 +4,6 @@
     using Persistence.UnitOfWork;
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
@@ -13,7 +12,7 @@
         int settingsMaxBodySizeToStore;
 
 
-        public RavenDbAuditIngestionUnitOfWorkFactory(IDocumentStore store, Settings settings)
+        public RavenDbAuditIngestionUnitOfWorkFactory(IDocumentStore store, PersistenceSettings settings)
         {
             this.store = store;
             auditRetentionPeriod = settings.AuditRetentionPeriod;
