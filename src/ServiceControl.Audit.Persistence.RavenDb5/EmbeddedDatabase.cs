@@ -41,7 +41,7 @@
         }
 
 
-        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseUrl, bool enableFullTextSearch)
+        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseMaintenanceUrl, bool enableFullTextSearch, bool isSetup)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -63,17 +63,23 @@
                 CommandLineArgs = commandLineArgs,
                 AcceptEula = true,
                 DataDirectory = dbPath,
-                ServerUrl = databaseUrl,
+                ServerUrl = databaseMaintenanceUrl,
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
 
-            var useEmbedded = !dbPath.StartsWith("http");
-
-            if (useEmbedded)
+            try
             {
                 EmbeddedServer.Instance.StartServer(serverOptions);
             }
-            return new EmbeddedDatabase(expirationProcessTimerInSecond, useEmbedded ? databaseUrl : dbPath, useEmbedded, enableFullTextSearch);
+            catch
+            {
+                if (isSetup)
+                {
+                    throw;
+                }
+            }
+
+            return new EmbeddedDatabase(expirationProcessTimerInSecond, databaseMaintenanceUrl, true, enableFullTextSearch);
         }
 
         public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config, bool isSetup)
