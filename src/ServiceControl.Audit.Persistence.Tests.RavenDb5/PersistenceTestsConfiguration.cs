@@ -10,6 +10,7 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
+    using Raven.Embedded;
     using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using UnitOfWork;
@@ -35,7 +36,7 @@
                 IsSetup = true
             };
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = UseEmbeddedInstance.ToString();
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
@@ -69,6 +70,15 @@
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
             DocumentStore?.Dispose();
+
+            if (UseEmbeddedInstance)
+            {
+                // it's test responsibility to clean up the embedded instance so that each test has a fresh instance available
+                // otherwise the server will be running because its lifecycle depends on the test engine process but everything
+                // else is disposed at the end of the test execution making so that the next test cannot run.
+                EmbeddedServer.Instance.Dispose();
+            }
+
             return Task.CompletedTask;
         }
 
@@ -94,5 +104,7 @@
         public IDocumentStore DocumentStore { get; private set; }
 
         string databaseName;
+
+        const bool UseEmbeddedInstance = true;
     }
 }

@@ -34,7 +34,7 @@
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
-            if (ShouldStartServer(useEmbeddedInstance))
+            if (useEmbeddedInstance)
             {
                 var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
@@ -58,26 +58,6 @@
             return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), settings.IsSetup).GetAwaiter().GetResult();
         }
 
-        static bool ShouldStartServer(bool runInMemory)
-        {
-            if (runInMemory)
-            {
-                // We are probably running in a test context
-                try
-                {
-                    EmbeddedServer.Instance.GetServerUriAsync().Wait();
-                    // Embedded server is already running so we don't need to start it
-                    return false;
-                }
-                catch
-                {
-                    // Embedded Server is not running
-                    return true;
-                }
-            }
-
-            return true;
-        }
         int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
         {
             var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
