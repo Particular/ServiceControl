@@ -5,9 +5,9 @@
     using System.Threading.Tasks;
     using Auditing;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NLog;
     using NServiceBus;
+    using ServiceControl.Audit.Persistence;
     using Settings;
 
     class ImportFailedAuditsCommand : AbstractCommand
@@ -19,12 +19,19 @@
                 IngestAuditMessages = false
             };
 
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
 
             using (var tokenSource = new CancellationTokenSource())
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
-                var bootstrapper = new Bootstrapper(ctx => { tokenSource.Cancel(); }, settings, busConfiguration, loggingSettings);
+                var bootstrapper = new Bootstrapper(
+                    ctx => { tokenSource.Cancel(); },
+                    settings,
+                    busConfiguration,
+                    loggingSettings,
+                    persistenceSettings);
 
                 var host = bootstrapper.HostBuilder.Build();
 

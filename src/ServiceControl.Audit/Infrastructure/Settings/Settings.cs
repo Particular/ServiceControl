@@ -3,7 +3,6 @@
     using System;
     using System.Configuration;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using NLog.Common;
     using NServiceBus.Logging;
@@ -34,35 +33,20 @@
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
-            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 44445);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
-            DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
-            DbPath = GetDbPath();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = GetDataStoreType();
-            SqlStorageConnectionString = SettingsReader<string>.Read("ServiceControl", "SqlStorageConnectionString", null);
         }
-
-        // to allow tests to override and avoid reading all settings in the ctor
-        protected Settings() { }
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
-        //HINT: acceptance tests only
-        public bool RunInMemory { get; set; }
-
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
 
-        public bool DisableRavenDBPerformanceCounters { get; set; }
-
         public bool SkipQueueCreation { get; set; }
-
-        public bool RunCleanupBundle { get; set; }
 
         public string RootUrl
         {
@@ -79,23 +63,15 @@
             }
         }
 
-        public virtual string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
-
         public string ApiUrl => $"{RootUrl}api";
 
-        public string StorageUrl => $"{RootUrl}storage";
-
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
 
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
         public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
         public string TransportCustomizationType { get; set; }
-
-        public string DbPath { get; set; }
 
         public string AuditQueue { get; set; }
 
@@ -107,47 +83,7 @@
 
         public string LicenseFileText { get; set; }
 
-        public int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if (expirationProcessTimerInSeconds < 0)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
         public TimeSpan AuditRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < 1)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                return expirationProcessBatchSize;
-            }
-        }
 
         public int MaxBodySizeToStore
         {
@@ -177,10 +113,6 @@
 
         public bool EnableFullTextSearchOnBodies { get; set; }
         public bool ExposeApi { get; set; } = true;
-
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDb;
-
-        public string SqlStorageConnectionString { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -269,26 +201,6 @@
             return value;
         }
 
-        string GetDbPath()
-        {
-            var host = Hostname;
-            if (host == "*")
-            {
-                host = "%";
-            }
-
-            var dbFolder = $"{host}-{Port}";
-
-            if (!string.IsNullOrEmpty(VirtualDirectory))
-            {
-                dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
-            }
-
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
-
-            return SettingsReader<string>.Read("DbPath", defaultPath);
-        }
-
         static bool GetForwardAuditMessages()
         {
             var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
@@ -341,11 +253,6 @@
             throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
-        static string SanitiseFolderName(string folderName)
-        {
-            return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
-        }
-
         TimeSpan GetAuditRetentionPeriod()
         {
             string message;
@@ -353,7 +260,7 @@
             if (valueRead == null)
             {
                 //same default as SCMU
-                return TimeSpan.FromHours(720);
+                return TimeSpan.FromDays(30);
             }
 
             if (TimeSpan.TryParse(valueRead, out var result))
@@ -417,28 +324,16 @@
             return threshold;
         }
 
-        DataStoreType GetDataStoreType()
-        {
-            var value = SettingsReader<string>.Read("ServiceControl", "DataStoreType", "RavenDb");
-
-            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
-        }
-
         void TryLoadLicenseFromConfig()
         {
             LicenseFileText = SettingsReader<string>.Read("LicenseText");
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
 
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;
     }

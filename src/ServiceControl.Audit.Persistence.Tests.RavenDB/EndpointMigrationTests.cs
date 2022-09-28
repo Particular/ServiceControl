@@ -9,6 +9,7 @@
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Infrastructure.Migration;
     using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Persistence.Monitoring;
 
     class EndpointMigrationTests : PersistenceTestFixture
     {

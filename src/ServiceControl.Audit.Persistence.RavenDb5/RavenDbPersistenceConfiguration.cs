@@ -2,89 +2,90 @@
 {
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using Raven.Embedded;
-    using Auditing.BodyStorage;
-    using Infrastructure.Settings;
-    using Raven.Client.Documents.Indexes;
     using UnitOfWork;
+    using ServiceControl.Audit.Persistence.RavenDb5;
+    using Raven.Embedded;
+    using Raven.Client.Documents;
+    using System;
+    using NServiceBus.Logging;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            // TODO: Is there a more appropriate place to put this?
-            if (ShouldStartServer(settings))
-            {
-                EmbeddedServer.Instance.StartServer(new ServerOptions
-                {
-                    DataDirectory = settings.DbPath,
-                    ServerUrl = settings.DatabaseMaintenanceUrl,
-                    AcceptEula = true
-                });
-            }
-
-            var documentStore = EmbeddedServer.Instance.GetDocumentStore("ServiceControlAudit");
-            // TODO: Set license
-            // TODO: Use Run In Memory setting (if still available)
-
-            // TODO: Maybe move this to hosted service
-            IndexCreation.CreateIndexes(
-                GetType().Assembly, documentStore
-            );
-            // TODO: Shut down gracefully
-
+            var documentStore = InitializeDatabase(settings);
 
             serviceCollection.AddSingleton(documentStore);
 
-            //if (isSetup)
-            //{
-            //    var ravenOptions = new RavenStartup();
-            //    foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-            //    {
-            //        ravenOptions.AddIndexAssembly(indexAssembly);
-            //    }
-
-            //    var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
-            //    embeddedRaven.SetupDatabase().GetAwaiter().GetResult();
-            //}
-            //else
-            //{
-            //    serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
-            //}
-
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-
-            //serviceCollection.Configure<RavenStartup>(database =>
-            //{
-            //    foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-            //    {
-            //        database.AddIndexAssembly(indexAssembly);
-            //    }
-            //});
         }
 
-        static bool ShouldStartServer(Settings settings)
+        IDocumentStore InitializeDatabase(PersistenceSettings settings)
         {
-            if (settings.RunInMemory)
+            var useEmbeddedInstance = false;
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
             {
-                // We are probably running in a test context
-                try
-                {
-                    EmbeddedServer.Instance.GetServerUriAsync().Wait();
-                    // Embedded server is already running so we don't need to start it
-                    return false;
-                }
-                catch
-                {
-                    // Embedded Server is not running
-                    return true;
-                }
+                useEmbeddedInstance = bool.Parse(useEmbeddedInstanceString);
             }
 
-            return true;
+            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+
+            if (useEmbeddedInstance)
+            {
+                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
+                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
+                var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
+                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
+
+                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, settings.IsSetup);
+            }
+            else
+            {
+                var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
+
+                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, useEmbeddedInstance, settings.EnableFullTextSearchOnBodies);
+            }
+
+            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
+            {
+                databaseName = "audit";
+            }
+
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), settings.IsSetup).GetAwaiter().GetResult();
         }
+
+        int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
+        {
+            var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
+
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessTimerInSeconds", out var expirationProcessTimerInSecondsString))
+            {
+                expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
+            }
+
+            if (expirationProcessTimerInSeconds < 0)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            if (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
+            {
+                logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                return ExpirationProcessTimerInSecondsDefault;
+            }
+
+            return expirationProcessTimerInSeconds;
+        }
+
+        EmbeddedDatabase embeddedRavenDb;
+
+        ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
+
+        const int ExpirationProcessTimerInSecondsDefault = 600;
     }
 }

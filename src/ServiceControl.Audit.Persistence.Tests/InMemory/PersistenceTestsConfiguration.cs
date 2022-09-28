@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
@@ -14,16 +14,14 @@
         public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new InMemoryPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            var settings = new FakeSettings();
-
-            serviceCollection.AddSingleton<Settings>(settings);
-
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            setSettings(settings);
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
@@ -37,13 +35,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
-        }
-
+        public string Name => "InMemory";
     }
 }

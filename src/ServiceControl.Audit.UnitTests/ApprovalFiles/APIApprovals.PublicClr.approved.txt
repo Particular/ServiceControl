@@ -13,97 +13,20 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
-namespace ServiceControl.Audit.Auditing
-{
-    public class FailedAuditImport
-    {
-        public FailedAuditImport() { }
-        public string Id { get; set; }
-        public ServiceControl.Audit.Auditing.FailedTransportMessage Message { get; set; }
-    }
-    public class FailedTransportMessage
-    {
-        public FailedTransportMessage() { }
-        public byte[] Body { get; set; }
-        public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-        public string Id { get; set; }
-    }
-    public class ProcessedMessage
-    {
-        public ProcessedMessage() { }
-        public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, System.Collections.Generic.Dictionary<string, object> metadata) { }
-        public string Body { get; set; }
-        public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-        public string Id { get; set; }
-        public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-        public System.DateTime ProcessedAt { get; set; }
-        public string UniqueMessageId { get; set; }
-    }
-}
-namespace ServiceControl.Audit.Auditing.MessagesView
-{
-    public class MessagesView
-    {
-        public MessagesView() { }
-        public int BodySize { get; set; }
-        public string BodyUrl { get; set; }
-        public string ConversationId { get; set; }
-        public System.TimeSpan CriticalTime { get; set; }
-        public System.TimeSpan DeliveryTime { get; set; }
-        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> Headers { get; set; }
-        public string Id { get; set; }
-        public string InstanceId { get; set; }
-        public System.Collections.Generic.List<ServiceControl.SagaAudit.SagaInfo> InvokedSagas { get; set; }
-        public bool IsSystemMessage { get; set; }
-        public string MessageId { get; set; }
-        public NServiceBus.MessageIntentEnum MessageIntent { get; set; }
-        public string MessageType { get; set; }
-        public ServiceControl.SagaAudit.SagaInfo OriginatesFromSaga { get; set; }
-        public System.DateTime ProcessedAt { get; set; }
-        public System.TimeSpan ProcessingTime { get; set; }
-        public ServiceControl.Audit.Monitoring.EndpointDetails ReceivingEndpoint { get; set; }
-        public ServiceControl.Audit.Monitoring.EndpointDetails SendingEndpoint { get; set; }
-        public ServiceControl.Audit.Monitoring.MessageStatus Status { get; set; }
-        public System.DateTime? TimeSent { get; set; }
-    }
-}
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
-    public static class DataStoreConfig
-    {
-        public static string InMemoryPersistenceTypeFullyQualifiedName;
-        public static string RavenDb5PersistenceTypeFullyQualifiedName;
-        public static string RavenDbPersistenceTypeFullyQualifiedName;
-        public static string SqlServerPersistenceTypeFullyQualifiedName;
-    }
-    public enum DataStoreType
-    {
-        InMemory = 1,
-        RavenDb = 2,
-        SqlDb = 3,
-        RavenDb5 = 4,
-    }
     public class Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
-        protected Settings() { }
         public Settings(string serviceName = null) { }
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }
         public string AuditQueue { get; set; }
         public System.TimeSpan AuditRetentionPeriod { get; }
         public int DataSpaceRemainingThreshold { get; set; }
-        public ServiceControl.Audit.Infrastructure.Settings.DataStoreType DataStoreType { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
-        public virtual string DatabaseMaintenanceUrl { get; }
-        public string DbPath { get; set; }
-        public bool DisableRavenDBPerformanceCounters { get; set; }
         public bool EnableFullTextSearchOnBodies { get; set; }
-        public int ExpirationProcessBatchSize { get; }
-        public int ExpirationProcessTimerInSeconds { get; }
         public bool ExposeApi { get; set; }
-        public bool ExposeRavenDB { get; }
         public bool ForwardAuditMessages { get; set; }
         public string Hostname { get; }
         public int HttpDefaultConnectionLimit { get; set; }
@@ -115,51 +38,15 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int Port { get; set; }
         public bool PrintMetrics { get; }
         public string RootUrl { get; }
-        public bool RunCleanupBundle { get; set; }
-        public bool RunInMemory { get; set; }
         public string ServiceControlQueueAddress { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
-        public string SqlStorageConnectionString { get; set; }
-        public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
         public string TransportCustomizationType { get; set; }
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
-    }
-}
-namespace ServiceControl.Audit.Monitoring
-{
-    public class EndpointDetails
-    {
-        public EndpointDetails() { }
-        public string Host { get; set; }
-        public System.Guid HostId { get; set; }
-        public string Name { get; set; }
-    }
-    public class KnownEndpoint
-    {
-        public const string CollectionName = "KnownEndpoints";
-        public KnownEndpoint() { }
-        public string Host { get; set; }
-        public System.Guid HostId { get; set; }
-        public string Id { get; set; }
-        public System.DateTime LastSeen { get; set; }
-        public string Name { get; set; }
-    }
-    public class KnownEndpointsView
-    {
-        public KnownEndpointsView() { }
-        public ServiceControl.Audit.Monitoring.EndpointDetails EndpointDetails { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-    }
-    public enum MessageStatus
-    {
-        Successful = 3,
-        ResolvedSuccessfully = 4,
     }
 }
 namespace ServiceControl.Audit.Persistence
@@ -194,5 +81,55 @@ namespace ServiceControl.Contracts.MessageFailures
         public MarkMessageFailureResolvedByRetry() { }
         public string[] AlternativeFailedMessageIds { get; set; }
         public string FailedMessageId { get; set; }
+    }
+}
+namespace ServiceControl.EndpointPlugin.Messages.SagaState
+{
+    public class SagaChangeInitiator : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public SagaChangeInitiator() { }
+        public string InitiatingMessageId { get; set; }
+        public string Intent { get; set; }
+        public bool IsSagaTimeoutMessage { get; set; }
+        public string MessageType { get; set; }
+        public string OriginatingEndpoint { get; set; }
+        public string OriginatingMachine { get; set; }
+        public System.DateTime TimeSent { get; set; }
+    }
+    public class SagaChangeOutput : NServiceBus.ICommand, NServiceBus.IMessage
+    {
+        public SagaChangeOutput() { }
+        public System.DateTime? DeliveryAt { get; set; }
+        public System.TimeSpan? DeliveryDelay { get; set; }
+        public string Destination { get; set; }
+        public string Intent { get; set; }
+        public string MessageType { get; set; }
+        public string ResultingMessageId { get; set; }
+        public System.DateTime TimeSent { get; set; }
+    }
+    public class SagaUpdatedMessage : NServiceBus.IMessage
+    {
+        public SagaUpdatedMessage() { }
+        public string Endpoint { get; set; }
+        public System.DateTime FinishTime { get; set; }
+        public ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeInitiator Initiator { get; set; }
+        public bool IsCompleted { get; set; }
+        public bool IsNew { get; set; }
+        public System.Collections.Generic.List<ServiceControl.EndpointPlugin.Messages.SagaState.SagaChangeOutput> ResultingMessages { get; set; }
+        public System.Guid SagaId { get; set; }
+        public string SagaState { get; set; }
+        public string SagaType { get; set; }
+        public System.DateTime StartTime { get; set; }
+    }
+}
+namespace ServiceControl.SagaAudit
+{
+    public static class InvokedSagasParser
+    {
+        public static void Parse(System.Collections.Generic.IReadOnlyDictionary<string, string> headers, System.Collections.Generic.IDictionary<string, object> metadata) { }
+    }
+    public static class SagaSnapshotFactory
+    {
+        public static ServiceControl.SagaAudit.SagaSnapshot Create(ServiceControl.EndpointPlugin.Messages.SagaState.SagaUpdatedMessage message) { }
     }
 }

@@ -3,10 +3,10 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using Monitoring;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Monitoring;
 
     public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {

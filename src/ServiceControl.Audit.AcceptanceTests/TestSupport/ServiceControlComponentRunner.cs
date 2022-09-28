@@ -23,13 +23,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using ServiceControl.Audit.Persistence;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
         {
             this.transportToUse = transportToUse;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.setSettings = setSettings;
         }
@@ -65,22 +66,17 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         async Task InitializeServiceControl(ScenarioContext context)
         {
             var instancePort = FindAvailablePort(33333);
-            var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
 
             settings = new Settings(instanceName)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
-                SqlStorageConnectionString = dataStoreToUse.ConnectionString,
                 Port = instancePort,
-                DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 ExposeApi = false,
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 MessageFilter = messageContext =>
@@ -117,13 +113,20 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 }
             };
 
+            setSettings(settings);
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
+                {
+                    IsSetup = true
+                };
+
+                persistenceToUse.CustomizeSettings(setupPersistenceSettings.PersisterSpecificSettings);
+
+                var setupBootstrapper = new SetupBootstrapper(settings, setupPersistenceSettings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
-
-            setSettings(settings);
 
             var configuration = new EndpointConfiguration(instanceName);
 
@@ -156,6 +159,10 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+
+                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+
+                persistenceToUse.CustomizeSettings(runtimePersistenceSettings.PersisterSpecificSettings);
                 bootstrapper = new Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -167,7 +174,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     };
                     context.Logs.Enqueue(logitem);
                     ctx.Stop().GetAwaiter().GetResult();
-                }, settings, configuration, loggingSettings);
+                },
+                settings,
+                configuration,
+                loggingSettings,
+                runtimePersistenceSettings);
 
                 bootstrapper.HostBuilder
                     .ConfigureServices(s => s.AddTransient<FailedAuditsController>());
@@ -200,7 +211,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await host.StopAsync().ConfigureAwait(false);
                 HttpClient.Dispose();
                 handler.Dispose();
-                DirectoryDeleter.Delete(settings.DbPath);
             }
 
             bootstrapper = null;
@@ -210,7 +220,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;

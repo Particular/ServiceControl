@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
 
@@ -15,19 +17,23 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
             {
-                RunInMemory = true
+                IsSetup = true
             };
 
-            serviceCollection.AddSingleton<Settings>(settings);
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            setSettings(settings);
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -52,16 +58,26 @@
             return Task.CompletedTask;
         }
 
-        public override string ToString() => "RavenDb";
-
         public IDocumentStore DocumentStore { get; private set; }
 
-        class FakeSettings : Settings
+        public string Name => "RavenDb";
+
+        static int FindAvailablePort(int startPort)
         {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
             {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
             }
+
+            return startPort;
         }
     }
 }

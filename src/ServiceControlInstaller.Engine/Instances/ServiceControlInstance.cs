@@ -3,6 +3,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Configuration;
@@ -16,6 +17,7 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public ServiceControlInstance(WindowsServiceController service) : base(service)
         {
+            Reload();
         }
 
         protected override string BaseServiceName => "ServiceControl";
@@ -188,9 +190,29 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
-        protected override IEnumerable<string> GetDatabaseIndexes()
+        protected override IEnumerable<string> GetPersistencePathsToCleanUp()
         {
-            return AppConfig.RavenDataPaths();
+            string[] keys =
+            {
+                "Raven/IndexStoragePath",
+                "Raven/CompiledIndexCacheDirectory",
+                "Raven/Esent/LogsPath",
+                ServiceControlSettings.DBPath.Name
+            };
+
+            var settings = AppConfig.Config.AppSettings.Settings;
+            foreach (var key in keys)
+            {
+                if (!settings.AllKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var folderpath = settings[key].Value;
+                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
+                    : folderpath;
+            }
         }
     }
 }

@@ -20,9 +20,9 @@
                 Name = "Endpoint"
             };
 
-            await IngestKnownEndpoints(ingestedEndpoint).ConfigureAwait(false);
+            await IngestKnownEndpoints(ingestedEndpoint);
 
-            var endpoints = await DataStore.QueryKnownEndpoints().ConfigureAwait(false);
+            var endpoints = await DataStore.QueryKnownEndpoints();
 
             Assert.That(endpoints.Results.Count, Is.EqualTo(1));
             var endpoint = endpoints.Results[0];
@@ -43,9 +43,9 @@
                     Name = $"Endpoint{x}"
                 }).ToArray();
 
-            await IngestKnownEndpoints(knownEndpoints).ConfigureAwait(false);
+            await IngestKnownEndpoints(knownEndpoints);
 
-            var queryResult = await DataStore.QueryKnownEndpoints().ConfigureAwait(false);
+            var queryResult = await DataStore.QueryKnownEndpoints();
 
             Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(200));
             Assert.That(queryResult.Results.Count, Is.EqualTo(200));
@@ -57,10 +57,10 @@
             foreach (var knownEndpoint in knownEndpoints)
             {
                 await unitOfWork.RecordKnownEndpoint(knownEndpoint)
-                    .ConfigureAwait(false);
+                    ;
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
+            await configuration.CompleteDBOperation();
         }
 
     }

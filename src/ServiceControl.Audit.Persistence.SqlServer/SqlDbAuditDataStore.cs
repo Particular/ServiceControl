@@ -6,6 +6,7 @@
     using Dapper;
     using Infrastructure;
     using ServiceControl.Audit.Auditing.MessagesView;
+    using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
 
@@ -173,7 +174,7 @@
             return new QueryResult<IList<MessagesView>>(messagesViews, new QueryStatsInfo(string.Empty, messagesViews.Count));
         }
 
-        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
             SagaHistory sagaHistory = default;

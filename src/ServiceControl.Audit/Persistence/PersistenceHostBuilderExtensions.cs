@@ -1,15 +1,14 @@
 namespace ServiceControl.Audit.Persistence
 {
     using Microsoft.Extensions.Hosting;
-    using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, Settings settings, bool maintenanceMode = false)
+        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings)
         {
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddServiceControlAuditPersistence(settings, maintenanceMode);
+                serviceCollection.AddServiceControlAuditPersistence(persistenceSettings);
             });
 
             return hostBuilder;

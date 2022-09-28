@@ -9,15 +9,16 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence;
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IDocumentStore store, LoggingSettings settings)
+        public CheckRavenDBIndexLag(IDocumentStore store)
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             _store = store;
-            LogPath = settings?.LogPath;
+            // TODO verify that this is really not needed anymore
+            //LogPath = logPath;
         }
 
         public override async Task<CheckResult> PerformCheck()
@@ -32,7 +33,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `{LogPath}` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `TODO` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
@@ -89,6 +90,6 @@
         const int IndexLagThresholdError = 100000;
         static ILog _log = LogManager.GetLogger<CheckRavenDBIndexLag>();
         IDocumentStore _store;
-        string LogPath;
+        //string LogPath;
     }
 }

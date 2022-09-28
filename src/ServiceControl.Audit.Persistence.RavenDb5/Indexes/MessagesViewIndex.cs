@@ -3,9 +3,9 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using Monitoring;
     using Raven.Client.Documents.Indexes;
     using ServiceControl.Audit.Auditing;
+    using ServiceControl.Audit.Monitoring;
 
     public class MessagesViewIndex : AbstractIndexCreationTask<ProcessedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
@@ -26,8 +26,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
                                   DeliveryTime = (TimeSpan?)message.MessageMetadata["DeliveryTime"],
                                   Query = message.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[]
                                   {
-                                      string.Join(" ", message.Headers.Select(x => x.Value)),
-                                      LoadAttachment(message, "body").GetContentAsString()
+                                      string.Join(" ", message.Headers.Select(x => x.Value))
                                   }).ToArray(),
                                   ConversationId = (string)message.MessageMetadata["ConversationId"]
                               };

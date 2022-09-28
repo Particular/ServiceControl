@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using Persistence.UnitOfWork;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -11,7 +10,7 @@
         IDocumentStore store;
         BodyStorageEnricher bodyStorageEnricher;
 
-        public RavenDbAuditIngestionUnitOfWorkFactory(IDocumentStore store, IBodyStorage bodyStorage, Settings settings)
+        public RavenDbAuditIngestionUnitOfWorkFactory(IDocumentStore store, IBodyStorage bodyStorage, PersistenceSettings settings)
         {
             this.store = store;
             bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);

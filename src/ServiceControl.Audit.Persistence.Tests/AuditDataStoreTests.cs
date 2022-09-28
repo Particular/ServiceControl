@@ -10,7 +10,7 @@
         [Test]
         public async Task DataStore_should_setup_ok()
         {
-            var sagaHistory = await DataStore.QuerySagaHistoryById(Guid.NewGuid()).ConfigureAwait(false);
+            var sagaHistory = await DataStore.QuerySagaHistoryById(Guid.NewGuid());
 
             Assert.IsTrue(sagaHistory.Results == null);
         }

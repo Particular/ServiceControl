@@ -46,7 +46,6 @@
                 Host = new
                 {
                     settings.ServiceName,
-                    RavenDBPath = settings.DbPath,
                     Logging = new
                     {
                         loggingSettings.LogPath,
@@ -62,8 +61,6 @@
                 {
                     settings.MaxBodySizeToStore,
                     settings.HttpDefaultConnectionLimit,
-                    settings.ExpirationProcessBatchSize,
-                    settings.ExpirationProcessTimerInSeconds
                 },
                 Transport = new
                 {

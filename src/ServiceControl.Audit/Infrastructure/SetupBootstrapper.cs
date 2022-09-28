@@ -2,21 +2,22 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using LicenseManagement;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using LicenseManagement;
-    using Microsoft.Extensions.DependencyInjection;
+    using ServiceControl.Audit.Persistence;
     using Settings;
     using Transports;
-    using ServiceControl.Audit.Persistence;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings, PersistenceSettings persistenceSettings, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
+            this.persistenceSettings = persistenceSettings;
         }
 
         public async Task Run(string username)
@@ -79,18 +80,27 @@ namespace ServiceControl.Audit.Infrastructure
             var loggingSettings = new LoggingSettings(settings.ServiceName);
 
             // externally managed container mode doesn't run the installers!
-            var containerSettings = configuration.UseContainer(new DefaultServiceProviderFactory());
+            var providerFactory = new DefaultServiceProviderFactory();
+            var containerSettings = configuration.UseContainer(providerFactory);
             var containerBuilder = containerSettings.ServiceCollection;
             containerBuilder.AddSingleton(transportSettings);
             containerBuilder.AddSingleton(loggingSettings);
             containerBuilder.AddSingleton(settings);
-            containerBuilder.AddServiceControlAuditPersistence(settings, isSetup: true);
+
+            containerBuilder.AddServiceControlAuditPersistence(persistenceSettings);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                 ctx => { }, configuration, false);
 
             await Endpoint.Create(configuration)
                 .ConfigureAwait(false);
+
+            var serviceProvider = providerFactory.CreateServiceProvider(containerBuilder);
+            var persistenceLifecycle = serviceProvider.GetService<IPersistenceLifecycle>();
+            if (persistenceLifecycle != null)
+            {
+                await persistenceLifecycle.Initialize().ConfigureAwait(false);
+            }
         }
 
         bool ValidateLicense(Settings.Settings settings)
@@ -134,7 +144,7 @@ namespace ServiceControl.Audit.Infrastructure
         }
 
         readonly Settings.Settings settings;
-
+        readonly PersistenceSettings persistenceSettings;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;
     }
