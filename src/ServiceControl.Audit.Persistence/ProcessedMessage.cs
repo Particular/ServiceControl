@@ -13,9 +13,9 @@
             Headers = new Dictionary<string, string>();
         }
 
-        public ProcessedMessage(string uniqueMessageId, Dictionary<string, string> headers, Dictionary<string, object> metadata)
+        public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)
         {
-            UniqueMessageId = uniqueMessageId;
+            UniqueMessageId = headers.UniqueId();
             MessageMetadata = metadata;
             Headers = headers;
 
