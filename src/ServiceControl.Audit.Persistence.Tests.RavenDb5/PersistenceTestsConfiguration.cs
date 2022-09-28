@@ -2,6 +2,8 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NUnit.Framework;
@@ -36,6 +38,9 @@
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/RunInMemory"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
+            settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
+
 
             setSettings(settings);
 
@@ -67,6 +72,23 @@
             return Task.CompletedTask;
         }
 
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
+        }
         public string Name => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }

@@ -26,7 +26,7 @@
         IDocumentStore InitializeDatabase(PersistenceSettings settings)
         {
             var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb35/RunInMemory", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/RunInMemory", out var runInMemoryString))
             {
                 runInMemory = bool.Parse(runInMemoryString);
             }
@@ -35,7 +35,7 @@
 
             if (ShouldStartServer(runInMemory))
             {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DBPath"];
+                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
                 var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";

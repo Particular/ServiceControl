@@ -30,7 +30,7 @@
             }
             else
             {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DBPath"];
+                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
 
                 Directory.CreateDirectory(dbPath);
 
