@@ -6,7 +6,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
 

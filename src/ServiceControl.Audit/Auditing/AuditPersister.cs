@@ -5,7 +5,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using EndpointPlugin.Messages.SagaState;
+    using BodyStorage;
     using Infrastructure;
     using Monitoring;
     using Newtonsoft.Json;
@@ -14,6 +14,9 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
+    using ServiceControl.Audit.Persistence.Infrastructure;
+    using ServiceControl.Audit.Persistence.Monitoring;
+    using ServiceControl.EndpointPlugin.Messages.SagaState;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;

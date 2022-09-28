@@ -14,7 +14,7 @@
     public abstract class BaseService : IServiceInstance
     {
         public string Description { get; set; }
-        public WindowsServiceController Service { get; set; }
+        public IWindowsServiceController Service { get; set; }
         public string InstallPath => Path.GetDirectoryName(Service.ExePath);
         public string DisplayName { get; set; }
         public string Name => Service.ServiceName;

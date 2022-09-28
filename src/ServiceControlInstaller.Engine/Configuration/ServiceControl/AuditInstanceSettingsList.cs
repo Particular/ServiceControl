@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo DBPath = new SettingInfo { Name = "ServiceControl.Audit/DBPath" };
         public static readonly SettingInfo ForwardAuditMessages = new SettingInfo { Name = "ServiceControl.Audit/ForwardAuditMessages" };
         public static readonly SettingInfo TransportType = new SettingInfo { Name = "ServiceControl.Audit/TransportType" };
+        public static readonly SettingInfo PersistenceType = new SettingInfo { Name = "ServiceControl.Audit/PersistenceType" };
         public static readonly SettingInfo AuditQueue = new SettingInfo { Name = "ServiceBus/AuditQueue" };
         public static readonly SettingInfo AuditLogQueue = new SettingInfo { Name = "ServiceBus/AuditLogQueue" };
         public static readonly SettingInfo AuditRetentionPeriod = new SettingInfo { Name = "ServiceControl.Audit/AuditRetentionPeriod" };

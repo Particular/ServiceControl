@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
     using Monitoring;
     using NServiceBus;
     using Raven.Client.Documents;
+    using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
 
     static class MessagesViewTransformerExtensions
@@ -31,7 +32,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
                 DeliveryTime = (TimeSpan)message.MessageMetadata["DeliveryTime"],
                 IsSystemMessage = (bool)message.MessageMetadata["IsSystemMessage"],
                 ConversationId = message.MessageMetadata["ConversationId"].ToString(),
-                //Headers = message.Headers.ToArray(),
+                Headers = message.Headers.ToArray(),
                 Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
                 MessageIntent = (MessageIntentEnum)message.MessageMetadata["MessageIntent"],
                 BodyUrl = message.MessageMetadata["BodyUrl"].ToString(),

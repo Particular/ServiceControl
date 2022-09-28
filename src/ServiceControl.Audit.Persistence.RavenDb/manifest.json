@@ -1,0 +1,34 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "RavenDb35",
+  "Description": "RavenDB 3.5 ServiceControl Audit persister",
+  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb",
+  "Settings": [
+    {
+      "Name": "Raven/ESENT/MaxPageSize",
+      "DefaultValue": "4096"
+    },
+    {
+      "Name": "ServiceControl/Audit/RavenDb35/RunCleanupBundle",
+      "DefaultValue": "true"
+    },
+    {
+      "Name": "ServiceControl.Audit/DBPath",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/HostName",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/DatabaseMaintenancePort",
+      "Mandatory": true
+    }
+  ],
+  "SettingsWithPathsToCleanup": [
+    "Raven/IndexStoragePath",
+    "Raven/CompiledIndexCacheDirectory",
+    "Raven/Esent/LogsPath",
+    "ServiceControl.Audit/DBPath"
+  ]
+}

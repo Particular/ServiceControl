@@ -4,6 +4,7 @@
     using System.Linq.Expressions;
     using Infrastructure;
     using Raven.Client.Linq;
+    using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
 
     static class RavenQueryExtensions

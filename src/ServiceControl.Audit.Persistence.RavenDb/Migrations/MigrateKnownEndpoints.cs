@@ -3,10 +3,10 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Monitoring;
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Abstractions.Data;
+    using ServiceControl.Audit.Persistence.Monitoring;
 
     class MigrateKnownEndpoints : IDataMigration
     {

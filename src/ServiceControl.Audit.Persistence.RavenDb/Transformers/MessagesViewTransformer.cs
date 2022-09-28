@@ -5,6 +5,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
     using System.Linq;
     using Monitoring;
     using Raven.Client.Indexes;
+    using ServiceControl.Audit.Monitoring;
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Result>
     {

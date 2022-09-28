@@ -6,20 +6,20 @@
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Infrastructure.Migration;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings, maintenanceMode);
+            RavenBootstrapper.Configure(documentStore, settings);
 
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
-            if (isSetup)
+            if (settings.IsSetup)
             {
                 var ravenOptions = new RavenStartup();
                 foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
@@ -48,7 +48,7 @@
                 }
             });
 
-            if (isSetup)
+            if (settings.IsSetup)
             {
                 serviceCollection.AddTransient<IDataMigration, MigrateKnownEndpoints>();
             }

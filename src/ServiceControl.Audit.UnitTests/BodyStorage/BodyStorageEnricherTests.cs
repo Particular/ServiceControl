@@ -7,9 +7,9 @@ namespace ServiceControl.UnitTests.BodyStorage
     using System.Threading.Tasks;
     using Audit.Auditing;
     using Audit.Auditing.BodyStorage;
-    using Audit.Infrastructure.Settings;
     using NServiceBus;
     using NUnit.Framework;
+    using ServiceControl.Audit.Persistence;
 
     [TestFixture]
     public class BodyStorageEnricherTests
@@ -19,13 +19,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 20000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
 
@@ -51,13 +46,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 20000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var body = Encoding.UTF8.GetBytes(new string('a', maxBodySizeToStore + 1));
             var metadata = new Dictionary<string, object>();
             var headers = new Dictionary<string, string>
@@ -83,13 +73,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -117,13 +102,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = false
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), false, maxBodySizeToStore));
             var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold - 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -151,13 +131,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -185,13 +160,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -218,13 +188,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var expectedBodySize = BodyStorageEnricher.LargeObjectHeapThreshold + 1;
             var body = Encoding.UTF8.GetBytes(new string('a', expectedBodySize));
             var metadata = new Dictionary<string, object>();
@@ -251,13 +216,8 @@ namespace ServiceControl.UnitTests.BodyStorage
         {
             var fakeStorage = new FakeBodyStorage();
             var maxBodySizeToStore = 100000;
-            var settings = new Settings
-            {
-                MaxBodySizeToStore = maxBodySizeToStore,
-                EnableFullTextSearchOnBodies = true
-            };
 
-            var enricher = new BodyStorageEnricher(fakeStorage, settings);
+            var enricher = new BodyStorageEnricher(fakeStorage, new PersistenceSettings(TimeSpan.FromHours(1), true, maxBodySizeToStore));
             var body = new byte[] { 0x00, 0xDE };
             var metadata = new Dictionary<string, object>();
 

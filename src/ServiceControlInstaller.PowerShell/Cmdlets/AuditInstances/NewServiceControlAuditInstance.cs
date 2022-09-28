@@ -132,36 +132,35 @@
 
         protected override void ProcessRecord()
         {
-            var details = new ServiceControlAuditNewInstance
-            {
-                InstallPath = InstallPath,
-                LogPath = LogPath,
-                DBPath = DBPath,
-                Name = Name,
-                DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
-                ServiceDescription = Description,
-                ServiceAccount = ServiceAccount,
-                ServiceAccountPwd = ServiceAccountPassword,
-                HostName = HostName,
-                Port = Port,
-                DatabaseMaintenancePort = DatabaseMaintenancePort,
-                AuditQueue = AuditQueue,
-                AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue,
-                ForwardAuditMessages = ForwardAuditMessages.ToBool(),
-                AuditRetentionPeriod = AuditRetentionPeriod,
-                ConnectionString = ConnectionString,
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                SkipQueueCreation = SkipQueueCreation,
-                ServiceControlQueueAddress = ServiceControlQueueAddress,
-                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies,
-            };
+            var newAuditInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+
+            newAuditInstance.InstallPath = InstallPath;
+            newAuditInstance.LogPath = LogPath;
+            newAuditInstance.DBPath = DBPath;
+            newAuditInstance.Name = Name;
+            newAuditInstance.DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
+            newAuditInstance.ServiceDescription = Description;
+            newAuditInstance.ServiceAccount = ServiceAccount;
+            newAuditInstance.ServiceAccountPwd = ServiceAccountPassword;
+            newAuditInstance.HostName = HostName;
+            newAuditInstance.Port = Port;
+            newAuditInstance.DatabaseMaintenancePort = DatabaseMaintenancePort;
+            newAuditInstance.AuditQueue = AuditQueue;
+            newAuditInstance.AuditLogQueue = string.IsNullOrWhiteSpace(AuditLogQueue) ? null : AuditLogQueue;
+            newAuditInstance.ForwardAuditMessages = ForwardAuditMessages.ToBool();
+            newAuditInstance.AuditRetentionPeriod = AuditRetentionPeriod;
+            newAuditInstance.ConnectionString = ConnectionString;
+            newAuditInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            newAuditInstance.SkipQueueCreation = SkipQueueCreation;
+            newAuditInstance.ServiceControlQueueAddress = ServiceControlQueueAddress;
+            newAuditInstance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
             var zipfolder = ZipPath.Get(this);
             var logger = new PSLogger(Host);
 
             var installer = new UnattendAuditInstaller(logger, zipfolder);
 
-            if (details.TransportPackage.IsLatestRabbitMQTransport() &&
+            if (newAuditInstance.TransportPackage.IsLatestRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
             {
                 ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
@@ -170,11 +169,11 @@
             try
             {
                 logger.Info("Installing Service Control Audit instance...");
-                var result = installer.Add(details, PromptToProceed);
+                var result = installer.Add(newAuditInstance, PromptToProceed);
                 result.Wait();
                 if (result.Result)
                 {
-                    var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(details.Name);
+                    var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(newAuditInstance.Name);
                     if (instance != null)
                     {
                         WriteObject(PsAuditInstance.FromInstance(instance));

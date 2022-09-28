@@ -2,15 +2,18 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Raven.Client.Documents;
-    using Infrastructure.Settings;
     using NUnit.Framework;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
+    using Raven.Embedded;
     using RavenDb;
-    using UnitOfWork;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
     {
@@ -19,31 +22,40 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
+            databaseName = Guid.NewGuid().ToString();
             Console.WriteLine($"DB Path: {dbPath}");
 
-            var settings = new FakeSettings
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
             {
-                // NOTE: Run in Memory is not an option
-                RunInMemory = true,
-                DbPath = dbPath
+                IsSetup = true
             };
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = UseEmbeddedInstance.ToString();
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
+            settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
+            settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
+
+
+            setSettings(settings);
+
+            config.ConfigureServices(serviceCollection, settings);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
+            var bulkInsert = DocumentStore.BulkInsert(
+                options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
+            BodyStorage = new RavenAttachmentsBodyStorage(DocumentStore, bulkInsert, settings.MaxBodySizeToStore);
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-
             return Task.CompletedTask;
         }
 
@@ -56,24 +68,43 @@
         public Task Cleanup()
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
-                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { "ServiceControlAudit" }, HardDelete = true }));
+                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
             DocumentStore?.Dispose();
+
+            if (UseEmbeddedInstance)
+            {
+                // it's test responsibility to clean up the embedded instance so that each test has a fresh instance available
+                // otherwise the server will be running because its lifecycle depends on the test engine process but everything
+                // else is disposed at the end of the test execution making so that the next test cannot run.
+                EmbeddedServer.Instance.Dispose();
+            }
+
             return Task.CompletedTask;
         }
 
-        public override string ToString() => "RavenDb5";
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
+        }
+        public string Name => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        class FakeSettings : Settings
-        {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
-            {
-            }
+        string databaseName;
 
-            // Allow the server to pick it's binding (rather than checking config)
-            public override string DatabaseMaintenanceUrl => null;
-        }
+        const bool UseEmbeddedInstance = true;
     }
 }

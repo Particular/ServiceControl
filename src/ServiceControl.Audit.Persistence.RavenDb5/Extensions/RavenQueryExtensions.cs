@@ -2,9 +2,9 @@
 {
     using System;
     using System.Linq;
-    using Infrastructure;
     using System.Linq.Expressions;
     using Indexes;
+    using ServiceControl.Audit.Infrastructure;
 
     static class RavenQueryExtensions
     {

@@ -3,14 +3,15 @@
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using Auditing.BodyStorage;
-    using Infrastructure.Settings;
     using UnitOfWork;
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, Settings settings, bool maintenanceMode, bool isSetup)
+        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            serviceCollection.AddSingleton(sp => new SqlDbConnectionManager(settings.SqlStorageConnectionString));
+            var connectionString = settings.PersisterSpecificSettings["Sql/ConnectionString"];
+
+            serviceCollection.AddSingleton(sp => new SqlDbConnectionManager(connectionString));
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, SqlAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SqlDbAuditIngestionUnitOfWorkFactory>();

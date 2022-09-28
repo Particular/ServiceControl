@@ -6,7 +6,7 @@
     using System.Reflection;
     using Auditing;
     using Auditing.MessagesView;
-    using Monitoring;
+    using ServiceControl.Audit.Monitoring;
 
     static class MessagesViewFactory
     {
@@ -32,7 +32,7 @@
                 Id = message.UniqueMessageId,
                 ProcessedAt = message.ProcessedAt,
                 Status = MessageStatus.Successful,
-                Headers = message.Headers.Select(header => new KeyValuePair<string, object>(header.Key, header.Value))
+                Headers = message.Headers.Select(header => new KeyValuePair<string, string>(header.Key, header.Value))
             };
 
             foreach (var metadata in message.MessageMetadata)
