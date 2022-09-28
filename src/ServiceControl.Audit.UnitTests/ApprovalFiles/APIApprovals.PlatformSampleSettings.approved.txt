@@ -14,7 +14,7 @@
   "IngestAuditMessages": true,
   "AuditLogQueue": "audit.log",
   "LicenseFileText": null,
-  "AuditRetentionPeriod": "10.00:00:00",
+  "AuditRetentionPeriod": "30.00:00:00",
   "MaxBodySizeToStore": 102400,
   "ServiceName": "Particular.ServiceControl.Audit",
   "HttpDefaultConnectionLimit": 100,
