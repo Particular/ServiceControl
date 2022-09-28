@@ -27,9 +27,9 @@
         IDocumentStore InitializeDatabase(PersistenceSettings settings)
         {
             var useEmbeddedInstance = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
             {
-                useEmbeddedInstance = bool.Parse(runInMemoryString);
+                useEmbeddedInstance = bool.Parse(useEmbeddedInstanceString);
             }
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
