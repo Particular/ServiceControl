@@ -8,6 +8,7 @@
     {
         public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<InMemoryAuditDataStore>();
             serviceCollection.AddSingleton<IAuditDataStore>(sp => sp.GetRequiredService<InMemoryAuditDataStore>());
             serviceCollection.AddSingleton<IBodyStorage, InMemoryAttachmentsBodyStorage>();

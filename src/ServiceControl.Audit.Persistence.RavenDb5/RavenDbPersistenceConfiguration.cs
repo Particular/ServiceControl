@@ -18,6 +18,7 @@
             serviceCollection.AddSingleton(documentStore);
 
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
         }
@@ -50,8 +51,7 @@
 
             if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
             {
-                //TODO: What should the default be?
-                databaseName = "Audit";
+                databaseName = "audit";
             }
 
             return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), settings.IsSetup).GetAwaiter().GetResult();

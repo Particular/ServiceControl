@@ -16,6 +16,7 @@
             var documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings);
 
+            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
             if (settings.IsSetup)
