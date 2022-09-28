@@ -35,7 +35,7 @@
                 IsSetup = true
             };
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/RunInMemory"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();

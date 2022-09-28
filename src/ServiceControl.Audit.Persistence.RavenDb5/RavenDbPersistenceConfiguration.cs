@@ -26,15 +26,15 @@
 
         IDocumentStore InitializeDatabase(PersistenceSettings settings)
         {
-            var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/RunInMemory", out var runInMemoryString))
+            var useEmbeddedInstance = false;
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var runInMemoryString))
             {
-                runInMemory = bool.Parse(runInMemoryString);
+                useEmbeddedInstance = bool.Parse(runInMemoryString);
             }
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
-            if (ShouldStartServer(runInMemory))
+            if (ShouldStartServer(useEmbeddedInstance))
             {
                 var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
@@ -47,7 +47,7 @@
             {
                 var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
 
-                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, runInMemory, settings.EnableFullTextSearchOnBodies);
+                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, useEmbeddedInstance, settings.EnableFullTextSearchOnBodies);
             }
 
             if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
