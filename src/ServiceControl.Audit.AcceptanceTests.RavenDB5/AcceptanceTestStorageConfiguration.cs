@@ -19,8 +19,11 @@
             var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             Console.WriteLine($"DB Path: {dbPath}");
 
-            // TODO: the database is not deleted when the embedded instance is disposed
-            var databaseName = Guid.NewGuid().ToString();
+            // if the database name is already in the settings we want ot preserve it
+            if (!settings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
+            {
+                databaseName = Guid.NewGuid().ToString();
+            }
 
             settings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = bool.TrueString;
             settings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
