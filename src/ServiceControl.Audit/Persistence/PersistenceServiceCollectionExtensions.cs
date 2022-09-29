@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceServiceCollectionExtensions
     {
-        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, PersistenceSettings settings)
+        public static void AddServiceControlAuditPersistence(this IServiceCollection serviceCollection, PersistenceSettings settings, bool isSetup)
         {
             var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
 
@@ -28,8 +28,15 @@ namespace ServiceControl.Audit.Persistence
             {
                 settings.PersisterSpecificSettings[key] = ConfigurationManager.AppSettings[key];
             }
+            if (isSetup)
+            {
+                persistenceConfig.ConfigureServices(serviceCollection, settings);
+            }
+            else
+            {
+                persistenceConfig.Setup(serviceCollection, settings);
+            }
 
-            persistenceConfig.ConfigureServices(serviceCollection, settings);
         }
     }
 }

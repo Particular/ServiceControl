@@ -30,10 +30,8 @@
             var config = new SqlDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
-            {
-                IsSetup = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
+
             setSettings(settings);
 
             settings.PersisterSpecificSettings["Sql/ConnectionString"] = connectionString;

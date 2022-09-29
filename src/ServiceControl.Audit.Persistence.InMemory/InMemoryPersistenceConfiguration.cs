@@ -15,5 +15,10 @@
             serviceCollection.AddSingleton<IFailedAuditStorage, InMemoryFailedAuditStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();
         }
+
+        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        {
+            //no-op
+        }
     }
 }

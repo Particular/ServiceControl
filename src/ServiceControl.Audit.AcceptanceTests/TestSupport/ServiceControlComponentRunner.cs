@@ -115,21 +115,16 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            string databaseName = null;
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+
+            persistenceToUse.CustomizeSettings(persistenceSettings.PersisterSpecificSettings);
+
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
-                {
-                    IsSetup = true
-                };
 
-                persistenceToUse.CustomizeSettings(setupPersistenceSettings.PersisterSpecificSettings);
-
-                var setupBootstrapper = new SetupBootstrapper(settings, setupPersistenceSettings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupBootstrapper = new SetupBootstrapper(settings, persistenceSettings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
-
-                setupPersistenceSettings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out databaseName);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -164,16 +159,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
-
-                if (databaseName != null)
-                {
-                    // we want to preserve the database name across execution, otherwise when SC is started after setup
-                    // database name changes and indexes are not created and other bad things happen
-                    runtimePersistenceSettings.PersisterSpecificSettings.Add("ServiceControl/Audit/RavenDb5/DatabaseName", databaseName);
-                }
-
-                persistenceToUse.CustomizeSettings(runtimePersistenceSettings.PersisterSpecificSettings);
                 bootstrapper = new Bootstrapper(ctx =>
                 {
                     var logitem = new ScenarioContext.LogItem
@@ -189,7 +174,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 settings,
                 configuration,
                 loggingSettings,
-                runtimePersistenceSettings);
+                persistenceSettings);
 
                 bootstrapper.HostBuilder
                     .ConfigureServices(s => s.AddTransient<FailedAuditsController>());

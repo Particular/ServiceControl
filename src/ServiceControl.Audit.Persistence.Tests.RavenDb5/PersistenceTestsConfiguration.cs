@@ -31,10 +31,7 @@
             databaseName = Guid.NewGuid().ToString();
             Console.WriteLine($"DB Path: {dbPath}");
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
-            {
-                IsSetup = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = UseEmbeddedInstance.ToString();
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;

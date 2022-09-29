@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.SqlServer
 {
+    using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using Auditing.BodyStorage;
     using UnitOfWork;
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
@@ -15,6 +15,11 @@
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, SqlAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SqlDbAuditIngestionUnitOfWorkFactory>();
+        }
+
+        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        {
+            //no-op for now
         }
     }
 }

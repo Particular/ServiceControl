@@ -19,21 +19,7 @@
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
-            if (settings.IsSetup)
-            {
-                var ravenOptions = new RavenStartup();
-                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                {
-                    ravenOptions.AddIndexAssembly(indexAssembly);
-                }
-
-                var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenOptions, new IDataMigration[0]);
-                embeddedRaven.SetupDatabase().GetAwaiter().GetResult();
-            }
-            else
-            {
-                serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
-            }
+            serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
 
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
@@ -47,11 +33,22 @@
                     database.AddIndexAssembly(indexAssembly);
                 }
             });
+        }
 
-            if (settings.IsSetup)
+        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        {
+            var documentStore = new EmbeddableDocumentStore();
+            RavenBootstrapper.Configure(documentStore, settings);
+
+            var ravenStartup = new RavenStartup();
+
+            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
             {
-                serviceCollection.AddTransient<IDataMigration, MigrateKnownEndpoints>();
+                ravenStartup.AddIndexAssembly(indexAssembly);
             }
+
+            var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenStartup, new[] { new MigrateKnownEndpoints(documentStore) });
+            embeddedRaven.SetupDatabase().GetAwaiter().GetResult();
         }
     }
 }

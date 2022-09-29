@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
@@ -17,15 +18,12 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
-            {
-                IsSetup = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
@@ -37,13 +35,14 @@
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
+            await serviceProvider.GetRequiredService<IHostedService>()
+                .StartAsync(System.Threading.CancellationToken.None);
+
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
             BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-
-            return Task.CompletedTask;
         }
 
         public Task CompleteDBOperation()

@@ -1,19 +1,18 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using Persistence.UnitOfWork;
-    using UnitOfWork;
-    using ServiceControl.Audit.Persistence.RavenDb5;
-    using Raven.Embedded;
-    using Raven.Client.Documents;
     using System;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
+    using Persistence.UnitOfWork;
+    using Raven.Client.Documents;
+    using ServiceControl.Audit.Persistence.RavenDb5;
+    using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
         public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            var documentStore = InitializeDatabase(settings);
+            var documentStore = InitializeDatabase(settings, false);
 
             serviceCollection.AddSingleton(documentStore);
 
@@ -24,7 +23,13 @@
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
         }
 
-        IDocumentStore InitializeDatabase(PersistenceSettings settings)
+        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        {
+            InitializeDatabase(settings, true);
+        }
+
+
+        IDocumentStore InitializeDatabase(PersistenceSettings settings, bool isSetup)
         {
             var useEmbeddedInstance = false;
             if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
@@ -41,7 +46,7 @@
                 var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, settings.IsSetup);
+                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, isSetup);
             }
             else
             {
@@ -55,7 +60,7 @@
                 databaseName = "audit";
             }
 
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), settings.IsSetup).GetAwaiter().GetResult();
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), isSetup).GetAwaiter().GetResult();
         }
 
         int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

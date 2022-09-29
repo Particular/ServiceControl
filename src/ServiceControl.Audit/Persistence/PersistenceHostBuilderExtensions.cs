@@ -8,7 +8,7 @@ namespace ServiceControl.Audit.Persistence
         {
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddServiceControlAuditPersistence(persistenceSettings);
+                serviceCollection.AddServiceControlAuditPersistence(persistenceSettings, false);
             });
 
             return hostBuilder;
