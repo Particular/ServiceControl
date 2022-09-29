@@ -67,6 +67,8 @@
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
 
+            // TODO: In theory if the ServiceCOntrolComponentRunner was to dispose
+            // the embedded instance after setup this ugly hack could be dropped
             try
             {
                 EmbeddedServer.Instance.StartServer(serverOptions);
