@@ -14,7 +14,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
     {
-        public ServiceControlAuditInstance(IWindowsServiceController service) : this(service, Assembly.GetExecutingAssembly().Location)
+        public ServiceControlAuditInstance(IWindowsServiceController service) : this(service, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
         {
         }
 
