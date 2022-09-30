@@ -8,7 +8,7 @@
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var connectionString = settings.PersisterSpecificSettings["Sql/ConnectionString"];
 
@@ -16,6 +16,8 @@
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, SqlAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SqlDbAuditIngestionUnitOfWorkFactory>();
+
+            return new SqlDbPersistenceLifecycle();
         }
 
         public Task Setup(PersistenceSettings settings)

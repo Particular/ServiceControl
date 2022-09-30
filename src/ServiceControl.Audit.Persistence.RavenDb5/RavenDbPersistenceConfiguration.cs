@@ -5,33 +5,38 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
     using Persistence.UnitOfWork;
-    using Raven.Client.Documents;
     using ServiceControl.Audit.Persistence.RavenDb5;
     using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            var documentStore = InitializeDatabase(settings, false)
-                .GetAwaiter().GetResult();
+            var database = CreateDatabase(settings);
+            var persistenceLifecycle = new RavenDbPersistenceLifecycle(database);
 
-            serviceCollection.AddSingleton(documentStore);
+            serviceCollection.AddSingleton(_ => persistenceLifecycle.DocumentStore);
 
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
+
+            return persistenceLifecycle;
         }
 
-        public Task Setup(PersistenceSettings settings)
+        public async Task Setup(PersistenceSettings settings)
         {
-            return InitializeDatabase(settings, true);
+            using (var database = CreateDatabase(settings))
+            {
+                await database.Initialize()
+                    .ConfigureAwait(false);
+                await database.Setup()
+                    .ConfigureAwait(false);
+            }
         }
 
-
-        Task<IDocumentStore> InitializeDatabase(PersistenceSettings settings, bool isSetup)
+        public static EmbeddedDatabase CreateDatabase(PersistenceSettings settings)
         {
             var useEmbeddedInstance = false;
             if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
@@ -39,8 +44,15 @@
                 useEmbeddedInstance = bool.Parse(useEmbeddedInstanceString);
             }
 
-            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
+            {
+                databaseName = "audit";
+            }
 
+            var dataBaseConfiguration = new AuditDatabaseConfiguration(databaseName);
+
+            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+            EmbeddedDatabase embeddedRavenDb;
             if (useEmbeddedInstance)
             {
                 var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
@@ -48,24 +60,19 @@
                 var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, isSetup);
+                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
             }
             else
             {
                 var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
 
-                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, useEmbeddedInstance, settings.EnableFullTextSearchOnBodies);
+                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, useEmbeddedInstance, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
             }
 
-            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
-            {
-                databaseName = "audit";
-            }
-
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), isSetup);
+            return embeddedRavenDb;
         }
 
-        int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
+        static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
         {
             var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
 
@@ -89,9 +96,7 @@
             return expirationProcessTimerInSeconds;
         }
 
-        EmbeddedDatabase embeddedRavenDb;
-
-        ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
+        static ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
     }

@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
@@ -31,12 +30,11 @@
 
             setSettings(settings);
 
-            config.ConfigureServices(serviceCollection, settings);
+            persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
+
+            await persistenceLifecycle.Start(System.Threading.CancellationToken.None);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-
-            await serviceProvider.GetRequiredService<IHostedService>()
-                .StartAsync(System.Threading.CancellationToken.None);
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
@@ -53,9 +51,10 @@
 
         public Task Cleanup()
         {
-            DocumentStore?.Dispose();
-            return Task.CompletedTask;
+            return persistenceLifecycle?.Stop(System.Threading.CancellationToken.None);
         }
+
+        IPersistenceLifecycle persistenceLifecycle;
 
         public IDocumentStore DocumentStore { get; private set; }
 

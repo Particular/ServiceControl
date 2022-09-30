@@ -5,7 +5,7 @@
 
     public interface IPersistenceConfiguration
     {
-        void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings);
+        IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings);
         Task Setup(PersistenceSettings settings);
     }
 }

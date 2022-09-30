@@ -24,24 +24,16 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
-
-        readonly int expirationProcessTimerInSeconds;
-        readonly string databaseUrl;
-        readonly bool useEmbeddedInstance;
-        readonly bool enableFullTextSearch;
-        readonly Dictionary<string, IDocumentStore> preparedDocumentStores = new Dictionary<string, IDocumentStore>();
-
-        public EmbeddedDatabase(int expirationProcessTimerInSeconds, string databaseUrl, bool useEmbeddedInstance, bool enableFullTextSearch)
+        public EmbeddedDatabase(int expirationProcessTimerInSeconds, string databaseUrl, bool useEmbeddedInstance, bool enableFullTextSearch, AuditDatabaseConfiguration configuration)
         {
             this.expirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
             this.databaseUrl = databaseUrl;
             this.useEmbeddedInstance = useEmbeddedInstance;
             this.enableFullTextSearch = enableFullTextSearch;
+            this.configuration = configuration;
         }
 
-
-        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseMaintenanceUrl, bool enableFullTextSearch, bool isSetup)
+        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseMaintenanceUrl, bool enableFullTextSearch, AuditDatabaseConfiguration auditDatabaseConfiguration)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -67,31 +59,9 @@
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
 
-            // TODO: In theory if the ServiceCOntrolComponentRunner was to dispose
-            // the embedded instance after setup this ugly hack could be dropped
-            try
-            {
-                EmbeddedServer.Instance.StartServer(serverOptions);
-            }
-            catch
-            {
-                if (isSetup)
-                {
-                    throw;
-                }
-            }
+            EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(expirationProcessTimerInSecond, databaseMaintenanceUrl, true, enableFullTextSearch);
-        }
-
-        public async Task<IDocumentStore> PrepareDatabase(DatabaseConfiguration config, bool isSetup)
-        {
-            if (!preparedDocumentStores.TryGetValue(config.Name, out var store))
-            {
-                store = await InitializeDatabase(config, isSetup).ConfigureAwait(false);
-                preparedDocumentStores[config.Name] = store;
-            }
-            return store;
+            return new EmbeddedDatabase(expirationProcessTimerInSecond, databaseMaintenanceUrl, true, enableFullTextSearch, auditDatabaseConfiguration);
         }
 
         public static string ReadLicense()
@@ -106,12 +76,11 @@
             }
         }
 
-        async Task<IDocumentStore> InitializeDatabase(DatabaseConfiguration config, bool isSetup)
+        public async Task<IDocumentStore> Initialize()
         {
-            IDocumentStore documentStore;
             if (useEmbeddedInstance)
             {
-                var dbOptions = new DatabaseOptions(config.Name)
+                var dbOptions = new DatabaseOptions(configuration.Name)
                 {
                     Conventions = new DocumentConventions
                     {
@@ -119,16 +88,16 @@
                     }
                 };
 
-                if (config.FindClrType != null)
+                if (configuration.FindClrType != null)
                 {
-                    dbOptions.Conventions.FindClrType += config.FindClrType;
+                    dbOptions.Conventions.FindClrType += configuration.FindClrType;
                 }
 
-                if (config.EnableDocumentCompression)
+                if (configuration.EnableDocumentCompression)
                 {
                     dbOptions.DatabaseRecord.DocumentsCompression = new DocumentsCompressionConfiguration(
                         false,
-                        config.CollectionsToCompress.ToArray()
+                        configuration.CollectionsToCompress.ToArray()
                     );
                 }
 
@@ -139,7 +108,7 @@
             {
                 var store = new DocumentStore
                 {
-                    Database = config.Name,
+                    Database = configuration.Name,
                     Urls = new[] { databaseUrl },
                     Conventions = new DocumentConventions
                     {
@@ -147,96 +116,100 @@
                     }
                 };
 
-                if (config.FindClrType != null)
+                if (configuration.FindClrType != null)
                 {
-                    store.Conventions.FindClrType += config.FindClrType;
+                    store.Conventions.FindClrType += configuration.FindClrType;
                 }
 
                 store.Initialize();
 
-                if (isSetup)
-                {
-                    try
-                    {
-                        await store.Maintenance.ForDatabase(config.Name).SendAsync(new GetStatisticsOperation())
-                            .ConfigureAwait(false);
-                    }
-                    catch (DatabaseDoesNotExistException)
-                    {
-                        try
-                        {
-                            await store.Maintenance.Server
-                                .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(config.Name)))
-                                .ConfigureAwait(false);
-                        }
-                        catch (ConcurrencyException)
-                        {
-                            // The database was already created before calling CreateDatabaseOperation
-                        }
-
-                    }
-
-                    if (config.EnableDocumentCompression)
-                    {
-                        await store.Maintenance.ForDatabase(config.Name).SendAsync(
-                            new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
-                                false,
-                                config.CollectionsToCompress.ToArray()
-                            ))).ConfigureAwait(false);
-                    }
-                }
-
                 documentStore = store;
-            }
-
-            if (isSetup)
-            {
-                var indexList =
-                    new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
-
-                if (enableFullTextSearch)
-                {
-
-                    indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                    await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"))
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    indexList.Add(new MessagesViewIndex());
-                    await documentStore.Maintenance
-                        .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"))
-                        .ConfigureAwait(false);
-                }
-
-                await IndexCreation.CreateIndexesAsync(indexList, documentStore).ConfigureAwait(false);
-
-                // TODO: Check to see if the configuration has changed.
-                // If it has, then send an update to the server to change the expires metadata on all documents
-                var expirationConfig = new ExpirationConfiguration
-                {
-                    Disabled = false,
-                    DeleteFrequencyInSec = expirationProcessTimerInSeconds
-                };
-
-                await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
-                    .ConfigureAwait(false);
             }
 
             return documentStore;
         }
 
+        public async Task Setup()
+        {
+            try
+            {
+                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation())
+                    .ConfigureAwait(false);
+            }
+            catch (DatabaseDoesNotExistException)
+            {
+                try
+                {
+                    await documentStore.Maintenance.Server
+                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)))
+                        .ConfigureAwait(false);
+                }
+                catch (ConcurrencyException)
+                {
+                    // The database was already created before calling CreateDatabaseOperation
+                }
+
+            }
+
+            if (configuration.EnableDocumentCompression)
+            {
+                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(
+                    new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
+                        false,
+                        configuration.CollectionsToCompress.ToArray()
+                    ))).ConfigureAwait(false);
+            }
+
+            var indexList =
+                  new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
+
+            if (enableFullTextSearch)
+            {
+
+                indexList.Add(new MessagesViewIndexWithFullTextSearch());
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"))
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                indexList.Add(new MessagesViewIndex());
+                await documentStore.Maintenance
+                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"))
+                    .ConfigureAwait(false);
+            }
+
+            await IndexCreation.CreateIndexesAsync(indexList, documentStore).ConfigureAwait(false);
+
+            // TODO: Check to see if the configuration has changed.
+            // If it has, then send an update to the server to change the expires metadata on all documents
+            var expirationConfig = new ExpirationConfiguration
+            {
+                Disabled = false,
+                DeleteFrequencyInSec = expirationProcessTimerInSeconds
+            };
+
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig))
+                .ConfigureAwait(false);
+        }
+
         public void Dispose()
         {
-            foreach (var store in preparedDocumentStores.Values)
-            {
-                store.Dispose();
-            }
+            documentStore.Dispose();
 
             if (useEmbeddedInstance)
             {
                 EmbeddedServer.Instance.Dispose();
             }
         }
+
+        IDocumentStore documentStore;
+
+        readonly int expirationProcessTimerInSeconds;
+        readonly string databaseUrl;
+        readonly bool useEmbeddedInstance;
+        readonly bool enableFullTextSearch;
+        readonly AuditDatabaseConfiguration configuration;
+
+        static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
 }

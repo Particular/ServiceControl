@@ -2,9 +2,11 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus.Logging;
     using Persistence.UnitOfWork;
     using Raven.Client;
     using Raven.Client.Embedded;
+    using Raven.Client.Indexes;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Infrastructure.Migration;
     using ServiceControl.Audit.Persistence.RavenDB;
@@ -12,7 +14,7 @@
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
             var documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings);
@@ -20,20 +22,19 @@
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
-            serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
-
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
 
-            serviceCollection.Configure<RavenStartup>(database =>
+            var ravenStartup = new RavenStartup();
+
+            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
             {
-                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-                {
-                    database.AddIndexAssembly(indexAssembly);
-                }
-            });
+                ravenStartup.AddIndexAssembly(indexAssembly);
+            }
+
+            return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
 
         public async Task Setup(PersistenceSettings settings)
@@ -49,11 +50,27 @@
                     ravenStartup.AddIndexAssembly(indexAssembly);
                 }
 
-                var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenStartup, new[] { new MigrateKnownEndpoints(documentStore) });
+                Logger.Info("Database initialization starting");
+                documentStore.Initialize();
+                Logger.Info("Database initialization complete");
 
-                await embeddedRaven.SetupDatabase()
+                Logger.Info("Index creation started");
+                var indexProvider = ravenStartup.CreateIndexProvider();
+                await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                     .ConfigureAwait(false);
+                Logger.Info("Index creation complete");
+
+                Logger.Info("Data migrations starting");
+
+                var endpointMigrations = new MigrateKnownEndpoints(documentStore);
+                await endpointMigrations.Migrate()
+                    .ConfigureAwait(false);
+
+                Logger.Info("Data migrations complete");
             }
+
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
     }
 }

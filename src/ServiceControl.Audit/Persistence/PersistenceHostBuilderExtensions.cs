@@ -1,5 +1,6 @@
 namespace ServiceControl.Audit.Persistence
 {
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
 
     static class PersistenceHostBuilderExtensions
@@ -10,7 +11,9 @@ namespace ServiceControl.Audit.Persistence
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                persistenceConfiguration.ConfigureServices(serviceCollection, persistenceSettings);
+                var lifecycle = persistenceConfiguration.ConfigureServices(serviceCollection, persistenceSettings);
+
+                serviceCollection.AddHostedService(_ => new PersistenceLifecyleManager(lifecycle));
             });
 
             return hostBuilder;
