@@ -5,7 +5,7 @@
 
     public interface IPersistenceLifecycle
     {
-        Task Start(CancellationToken cancellationToken);
-        Task Stop(CancellationToken cancellationToken);
+        Task Start(CancellationToken cancellationToken = default);
+        Task Stop(CancellationToken cancellationToken = default);
     }
 }

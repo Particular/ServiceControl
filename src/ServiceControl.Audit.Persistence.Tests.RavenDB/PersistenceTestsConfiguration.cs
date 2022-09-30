@@ -32,7 +32,7 @@
 
             persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
 
-            await persistenceLifecycle.Start(System.Threading.CancellationToken.None);
+            await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -51,7 +51,7 @@
 
         public Task Cleanup()
         {
-            return persistenceLifecycle?.Stop(System.Threading.CancellationToken.None);
+            return persistenceLifecycle?.Stop();
         }
 
         IPersistenceLifecycle persistenceLifecycle;

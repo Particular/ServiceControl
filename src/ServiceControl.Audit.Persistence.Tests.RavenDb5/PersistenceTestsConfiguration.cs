@@ -38,13 +38,12 @@
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
             settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
 
-
             setSettings(settings);
 
             await config.Setup(settings);
             persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
 
-            await persistenceLifecycle.Start(System.Threading.CancellationToken.None);
+            await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -68,7 +67,7 @@
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
 
-            return persistenceLifecycle?.Stop(System.Threading.CancellationToken.None);
+            return persistenceLifecycle?.Stop();
         }
 
         static int FindAvailablePort(int startPort)
