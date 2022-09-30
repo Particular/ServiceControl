@@ -10,7 +10,6 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
-    using Raven.Embedded;
     using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using UnitOfWork;
@@ -22,7 +21,7 @@
         public IBodyStorage BodyStorage { get; set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
@@ -42,7 +41,10 @@
 
             setSettings(settings);
 
-            config.ConfigureServices(serviceCollection, settings);
+            await config.Setup(settings);
+            persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
+
+            await persistenceLifecycle.Start(System.Threading.CancellationToken.None);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -53,7 +55,6 @@
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
             BodyStorage = new RavenAttachmentsBodyStorage(DocumentStore, bulkInsert, settings.MaxBodySizeToStore);
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-            return Task.CompletedTask;
         }
 
         public Task CompleteDBOperation()
@@ -66,17 +67,8 @@
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
-            DocumentStore?.Dispose();
 
-            if (UseEmbeddedInstance)
-            {
-                // it's test responsibility to clean up the embedded instance so that each test has a fresh instance available
-                // otherwise the server will be running because its lifecycle depends on the test engine process but everything
-                // else is disposed at the end of the test execution making so that the next test cannot run.
-                EmbeddedServer.Instance.Dispose();
-            }
-
-            return Task.CompletedTask;
+            return persistenceLifecycle?.Stop(System.Threading.CancellationToken.None);
         }
 
         static int FindAvailablePort(int startPort)
@@ -99,6 +91,8 @@
         public string Name => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
+
+        IPersistenceLifecycle persistenceLifecycle;
 
         string databaseName;
 
