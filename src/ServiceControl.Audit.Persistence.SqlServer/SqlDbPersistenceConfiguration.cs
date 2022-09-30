@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.SqlServer
 {
+    using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
@@ -17,9 +18,10 @@
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SqlDbAuditIngestionUnitOfWorkFactory>();
         }
 
-        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public Task Setup(PersistenceSettings settings)
         {
             //no-op for now
+            return Task.CompletedTask;
         }
     }
 }

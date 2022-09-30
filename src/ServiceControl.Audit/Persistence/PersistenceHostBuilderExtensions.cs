@@ -6,9 +6,11 @@ namespace ServiceControl.Audit.Persistence
     {
         public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings)
         {
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddServiceControlAuditPersistence(persistenceSettings, false);
+                persistenceConfiguration.ConfigureServices(serviceCollection, persistenceSettings);
             });
 
             return hostBuilder;

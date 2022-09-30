@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
+    using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
     using Raven.Client;
@@ -35,20 +36,24 @@
             });
         }
 
-        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public async Task Setup(PersistenceSettings settings)
         {
-            var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings);
-
-            var ravenStartup = new RavenStartup();
-
-            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
+            using (var documentStore = new EmbeddableDocumentStore())
             {
-                ravenStartup.AddIndexAssembly(indexAssembly);
-            }
+                RavenBootstrapper.Configure(documentStore, settings);
 
-            var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenStartup, new[] { new MigrateKnownEndpoints(documentStore) });
-            embeddedRaven.SetupDatabase().GetAwaiter().GetResult();
+                var ravenStartup = new RavenStartup();
+
+                foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
+                {
+                    ravenStartup.AddIndexAssembly(indexAssembly);
+                }
+
+                var embeddedRaven = new EmbeddedRavenDbHostedService(documentStore, ravenStartup, new[] { new MigrateKnownEndpoints(documentStore) });
+
+                await embeddedRaven.SetupDatabase()
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

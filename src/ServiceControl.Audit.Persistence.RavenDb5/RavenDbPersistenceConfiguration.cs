@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System;
+    using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
     using Persistence.UnitOfWork;
@@ -12,7 +13,8 @@
     {
         public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            var documentStore = InitializeDatabase(settings, false);
+            var documentStore = InitializeDatabase(settings, false)
+                .GetAwaiter().GetResult();
 
             serviceCollection.AddSingleton(documentStore);
 
@@ -23,13 +25,13 @@
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
         }
 
-        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public Task Setup(PersistenceSettings settings)
         {
-            InitializeDatabase(settings, true);
+            return InitializeDatabase(settings, true);
         }
 
 
-        IDocumentStore InitializeDatabase(PersistenceSettings settings, bool isSetup)
+        Task<IDocumentStore> InitializeDatabase(PersistenceSettings settings, bool isSetup)
         {
             var useEmbeddedInstance = false;
             if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
@@ -60,7 +62,7 @@
                 databaseName = "audit";
             }
 
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), isSetup).GetAwaiter().GetResult();
+            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), isSetup);
         }
 
         int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

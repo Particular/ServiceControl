@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.UnitOfWork;
@@ -16,9 +17,10 @@
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, InMemoryAuditIngestionUnitOfWorkFactory>();
         }
 
-        public void Setup(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public Task Setup(PersistenceSettings settings)
         {
             //no-op
+            return Task.CompletedTask;
         }
     }
 }
