@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -13,21 +14,31 @@
 
         public IDocumentStore DocumentStore
         {
-            get; private set;
+            get
+            {
+                if (documentStore == null)
+                {
+                    throw new InvalidOperationException("Document store is not available until the persistence have been started");
+                }
+
+                return documentStore;
+            }
         }
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            DocumentStore = await database.Initialize().ConfigureAwait(false);
+            documentStore = await database.Initialize().ConfigureAwait(false);
         }
 
         public Task Stop(CancellationToken cancellationToken)
         {
-            DocumentStore?.Dispose();
+            documentStore?.Dispose();
             database?.Dispose();
 
             return Task.CompletedTask;
         }
+
+        IDocumentStore documentStore;
 
         readonly EmbeddedDatabase database;
     }
