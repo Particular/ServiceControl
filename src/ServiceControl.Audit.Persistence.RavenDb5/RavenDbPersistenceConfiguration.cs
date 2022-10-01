@@ -15,9 +15,10 @@
             var database = CreateDatabase(settings);
             var persistenceLifecycle = new RavenDbPersistenceLifecycle(database);
 
-            serviceCollection.AddSingleton(_ => persistenceLifecycle.DocumentStore);
-
             serviceCollection.AddSingleton(settings);
+
+            serviceCollection.AddSingleton<IRavenDbDocumentStoreProvider>(_ => new RavenDbDocumentStoreProvider(persistenceLifecycle));
+            serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();

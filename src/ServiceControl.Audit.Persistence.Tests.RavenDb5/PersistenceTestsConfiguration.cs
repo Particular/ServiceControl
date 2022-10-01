@@ -12,6 +12,7 @@
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using ServiceControl.Audit.Persistence.RavenDb.UnitOfWork;
     using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
@@ -49,10 +50,15 @@
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
-            DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
+
+            var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDbDocumentStoreProvider>();
+            DocumentStore = documentStoreProvider.GetDocumentStore();
             var bulkInsert = DocumentStore.BulkInsert(
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
-            BodyStorage = new RavenAttachmentsBodyStorage(DocumentStore, bulkInsert, settings.MaxBodySizeToStore);
+
+            var sessionProvider = serviceProvider.GetRequiredService<IRavenDbSessionProvider>();
+
+            BodyStorage = new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, settings.MaxBodySizeToStore);
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
