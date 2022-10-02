@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
 
-    class PersistenceLifecyleManager : IHostedService
+    class PersistenceLifecycleHostedService : IHostedService
     {
-        public PersistenceLifecyleManager(IPersistenceLifecycle lifecycle) => this.lifecycle = lifecycle;
+        public PersistenceLifecycleHostedService(IPersistenceLifecycle lifecycle) => this.lifecycle = lifecycle;
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
