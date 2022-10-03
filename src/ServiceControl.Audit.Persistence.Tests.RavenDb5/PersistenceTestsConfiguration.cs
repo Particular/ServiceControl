@@ -1,12 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
-    using System.IO;
-    using System.Linq;
-    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using NUnit.Framework;
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
@@ -16,6 +12,8 @@
 
     partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
     {
+        public PersistenceTestsConfiguration(string serverUrl) => this.serverUrl = serverUrl;
+
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
         public IBodyStorage BodyStorage { get; set; }
@@ -26,17 +24,12 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
             databaseName = Guid.NewGuid().ToString();
-            Console.WriteLine($"DB Path: {dbPath}");
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = UseEmbeddedInstance.ToString();
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = serverUrl;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
-            settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
-            settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
-            settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
 
             setSettings(settings);
 
@@ -75,23 +68,6 @@
             return persistenceLifecycle?.Stop();
         }
 
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
-        }
         public string Name => "RavenDb5";
 
         public IDocumentStore DocumentStore { get; private set; }
@@ -99,7 +75,6 @@
         IPersistenceLifecycle persistenceLifecycle;
 
         string databaseName;
-
-        const bool UseEmbeddedInstance = true;
+        readonly string serverUrl;
     }
 }

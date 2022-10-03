@@ -16,7 +16,7 @@
         [SetUp]
         public virtual Task Setup()
         {
-            configuration = new PersistenceTestsConfiguration();
+            configuration = oneTimeConfiguration.GetPerTestConfiguration();
 
             return configuration.Configure(SetSettings);
         }
@@ -25,6 +25,20 @@
         public Task Cleanup()
         {
             return configuration.Cleanup();
+        }
+
+        [OneTimeSetUp]
+        public virtual Task OneTimeSetUp()
+        {
+            oneTimeConfiguration = new PersistenceTestsOneTimeConfiguration();
+
+            return oneTimeConfiguration.SetUp();
+        }
+
+        [OneTimeTearDown]
+        public Task OneTimeTearDown()
+        {
+            return oneTimeConfiguration.TearDown();
         }
 
         protected string GetManifestPath()
@@ -62,5 +76,7 @@
             AuditIngestionUnitOfWorkFactory.StartNew(batchSize);
 
         protected PersistenceTestsConfiguration configuration;
+
+        protected PersistenceTestsOneTimeConfiguration oneTimeConfiguration;
     }
 }
