@@ -22,7 +22,7 @@
             var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
             embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new AuditDatabaseConfiguration("audit"));
 
-            await embeddedDatabase.Initialize(cancellationToken)
+            await embeddedDatabase.Connect(cancellationToken)
                 .ConfigureAwait(false);
 
             return embeddedDatabase;

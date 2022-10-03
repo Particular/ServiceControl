@@ -29,7 +29,7 @@
         {
             database = EmbeddedDatabase.Start(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
 
-            documentStore = await database.Initialize(cancellationToken).ConfigureAwait(false);
+            documentStore = await database.Connect(cancellationToken).ConfigureAwait(false);
         }
 
         public Task Stop(CancellationToken cancellationToken)

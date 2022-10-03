@@ -54,19 +54,7 @@
             return new EmbeddedDatabase(auditDatabaseConfiguration, serverUrl);
         }
 
-        public static string ReadLicense()
-        {
-            using (var resourceStream = typeof(EmbeddedDatabase).Assembly.GetManifestResourceStream("ServiceControl.Audit.Persistence.RavenDb5.RavenLicense.json"))
-            using (var reader = new StreamReader(resourceStream))
-            {
-                return reader.ReadToEnd()
-                    .Replace(" ", "")
-                    .Replace(Environment.NewLine, "")
-                    .Replace("\"", "'"); //Remove line breaks to pass value via command line argument
-            }
-        }
-
-        public async Task<IDocumentStore> Initialize(CancellationToken cancellationToken)
+        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
         {
             var dbOptions = new DatabaseOptions(configuration.Name)
             {
@@ -95,6 +83,18 @@
         public void Dispose()
         {
             EmbeddedServer.Instance?.Dispose();
+        }
+
+        static string ReadLicense()
+        {
+            using (var resourceStream = typeof(EmbeddedDatabase).Assembly.GetManifestResourceStream("ServiceControl.Audit.Persistence.RavenDb5.RavenLicense.json"))
+            using (var reader = new StreamReader(resourceStream))
+            {
+                return reader.ReadToEnd()
+                    .Replace(" ", "")
+                    .Replace(Environment.NewLine, "")
+                    .Replace("\"", "'"); //Remove line breaks to pass value via command line argument
+            }
         }
 
         readonly AuditDatabaseConfiguration configuration;
