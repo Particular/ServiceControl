@@ -16,7 +16,7 @@
     {
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence()
         {
-            return CreateWithDefaultPersistence(Assembly.GetExecutingAssembly().Location);
+            return CreateWithDefaultPersistence(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
         }
 
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
