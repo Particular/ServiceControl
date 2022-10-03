@@ -117,7 +117,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
-            persistenceToUse.CustomizeSettings(persistenceSettings.PersisterSpecificSettings);
+            await persistenceToUse.CustomizeSettings(persistenceSettings.PersisterSpecificSettings);
 
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))

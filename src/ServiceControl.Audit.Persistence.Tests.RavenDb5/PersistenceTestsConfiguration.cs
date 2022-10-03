@@ -26,7 +26,9 @@
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = SharedEmbeddedServer.Instance.ServerUrl;
+            var instance = await SharedEmbeddedServer.GetInstance();
+
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
 
             setSettings(settings);
@@ -58,12 +60,12 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup()
+        public async Task Cleanup()
         {
-            DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
+            await DocumentStore?.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
 
-            return persistenceLifecycle?.Stop();
+            await persistenceLifecycle?.Stop();
         }
 
         public string Name => "RavenDb5";
