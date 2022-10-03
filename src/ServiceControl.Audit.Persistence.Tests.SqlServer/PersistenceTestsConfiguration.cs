@@ -9,7 +9,7 @@
     using SqlServer;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration
+    partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
@@ -45,12 +45,7 @@
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public Task CompleteDBOperation()
-        {
-            return Task.CompletedTask;
-        }
-
-        public async Task Cleanup()
+        public override async Task Cleanup()
         {
             using (var connection = new SqlConnection(connectionString))
             {

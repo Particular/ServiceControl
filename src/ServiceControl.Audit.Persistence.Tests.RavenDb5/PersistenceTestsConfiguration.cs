@@ -14,7 +14,7 @@
     using ServiceControl.Audit.Auditing.BodyStorage;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration
+    partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
@@ -61,13 +61,13 @@
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public Task CompleteDBOperation()
+        public override Task CompleteDBOperation()
         {
             DocumentStore.WaitForIndexing();
             return Task.CompletedTask;
         }
 
-        public Task Cleanup()
+        public override Task Cleanup()
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
