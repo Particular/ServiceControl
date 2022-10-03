@@ -15,7 +15,6 @@
             this.configuration = configuration;
         }
 
-
         public IDocumentStore GetDocumentStore()
         {
             if (documentStore == null)

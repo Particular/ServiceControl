@@ -62,8 +62,7 @@
                 var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                var database = EmbeddedDatabase.Start(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
-                var embeddedPersistenceLifecycle = new RavenDbEmbeddedPersistenceLifecycle(database);
+                var embeddedPersistenceLifecycle = new RavenDbEmbeddedPersistenceLifecycle(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
 
                 return embeddedPersistenceLifecycle;
             }

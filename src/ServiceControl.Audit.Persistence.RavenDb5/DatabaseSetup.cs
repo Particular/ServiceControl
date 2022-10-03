@@ -45,7 +45,6 @@
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
-
             }
 
             if (configuration.EnableDocumentCompression)
@@ -57,12 +56,13 @@
                     )), cancellationToken).ConfigureAwait(false);
             }
 
-            var indexList =
-                  new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
+            var indexList = new List<AbstractIndexCreationTask> {
+                new FailedAuditImportIndex(),
+                new SagaDetailsIndex()
+            };
 
             if (enableFullTextSearch)
             {
-
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
                 await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken)
                     .ConfigureAwait(false);
