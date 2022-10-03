@@ -12,7 +12,6 @@
     using Raven.Client.ServerWide.Operations;
     using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Persistence.RavenDb.UnitOfWork;
     using UnitOfWork;
 
     partial class PersistenceTestsConfiguration

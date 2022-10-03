@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
@@ -37,7 +38,7 @@
             return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
 
-        public async Task Setup(PersistenceSettings settings)
+        public async Task Setup(PersistenceSettings settings, CancellationToken cancellationToken)
         {
             using (var documentStore = new EmbeddableDocumentStore())
             {
@@ -63,12 +64,11 @@
                 Logger.Info("Data migrations starting");
 
                 var endpointMigrations = new MigrateKnownEndpoints(documentStore);
-                await endpointMigrations.Migrate()
+                await endpointMigrations.Migrate(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
                 Logger.Info("Data migrations complete");
             }
-
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.SqlServer
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@
             return new SqlDbPersistenceLifecycle();
         }
 
-        public Task Setup(PersistenceSettings settings)
+        public Task Setup(PersistenceSettings settings, CancellationToken cancellationToken)
         {
             //no-op for now
             return Task.CompletedTask;

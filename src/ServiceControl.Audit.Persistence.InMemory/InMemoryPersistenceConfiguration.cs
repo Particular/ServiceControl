@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
@@ -19,7 +20,7 @@
             return new InMemoryPersistenceLifecycle();
         }
 
-        public Task Setup(PersistenceSettings settings)
+        public Task Setup(PersistenceSettings settings, CancellationToken cancellationToken)
         {
             //no-op
             return Task.CompletedTask;

@@ -27,7 +27,7 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            documentStore = await database.Initialize().ConfigureAwait(false);
+            documentStore = await database.Initialize(cancellationToken).ConfigureAwait(false);
         }
 
         public Task Stop(CancellationToken cancellationToken)

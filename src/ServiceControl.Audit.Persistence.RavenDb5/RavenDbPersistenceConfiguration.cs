@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
@@ -26,13 +27,13 @@
             return persistenceLifecycle;
         }
 
-        public async Task Setup(PersistenceSettings settings)
+        public async Task Setup(PersistenceSettings settings, CancellationToken cancellationToken = default)
         {
             using (var database = CreateDatabase(settings))
             {
-                await database.Initialize()
+                await database.Initialize(cancellationToken)
                     .ConfigureAwait(false);
-                await database.Setup()
+                await database.Setup(cancellationToken)
                     .ConfigureAwait(false);
             }
         }
