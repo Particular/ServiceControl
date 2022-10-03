@@ -5,24 +5,21 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
 
-    class RavenDbPersistenceLifecycle : IPersistenceLifecycle
+    class RavenDbEmbeddedPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
-        public RavenDbPersistenceLifecycle(EmbeddedDatabase database)
+        public RavenDbEmbeddedPersistenceLifecycle(EmbeddedDatabase database)
         {
             this.database = database;
         }
 
-        public IDocumentStore DocumentStore
+        public IDocumentStore GetDocumentStore()
         {
-            get
+            if (documentStore == null)
             {
-                if (documentStore == null)
-                {
-                    throw new InvalidOperationException("Document store is not available until the persistence have been started");
-                }
-
-                return documentStore;
+                throw new InvalidOperationException("Document store is not available until the persistence have been started");
             }
+
+            return documentStore;
         }
 
         public async Task Start(CancellationToken cancellationToken)

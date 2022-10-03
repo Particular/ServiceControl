@@ -13,25 +13,28 @@
     {
         public IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
         {
-            var database = CreateDatabase(settings);
-            var persistenceLifecycle = new RavenDbPersistenceLifecycle(database);
+            var persistenceLifeCycle = CreatePersistenceLifecycle(settings);
 
             serviceCollection.AddSingleton(settings);
-
-            serviceCollection.AddSingleton<IRavenDbDocumentStoreProvider>(_ => new RavenDbDocumentStoreProvider(persistenceLifecycle));
             serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
+            serviceCollection.AddSingleton<IRavenDbDocumentStoreProvider>(_ => persistenceLifeCycle);
 
-            return persistenceLifecycle;
+            return persistenceLifeCycle;
         }
 
         public async Task Setup(PersistenceSettings settings, CancellationToken cancellationToken = default)
         {
-            using (var database = CreateDatabase(settings))
+            var persistenceLifeCycle = CreatePersistenceLifecycle(settings);
+
+            await persistenceLifeCycle.Start(cancellationToken)
+                .ConfigureAwait(false);
+
+            try
             {
-                using (var documentStore = await database.Initialize(cancellationToken).ConfigureAwait(false))
+                using (var documentStore = persistenceLifeCycle.GetDocumentStore())
                 {
                     var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
                     var dataBaseConfiguration = GetDatabaseConfiguration(settings);
@@ -41,36 +44,33 @@
                         .ConfigureAwait(false);
                 }
             }
+            finally
+            {
+                await persistenceLifeCycle.Stop(cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
 
-        public static EmbeddedDatabase CreateDatabase(PersistenceSettings settings)
+        IRavenDbPersistenceLifecycle CreatePersistenceLifecycle(PersistenceSettings settings)
         {
-            var useEmbeddedInstance = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
-            {
-                useEmbeddedInstance = bool.Parse(useEmbeddedInstanceString);
-            }
-
             var dataBaseConfiguration = GetDatabaseConfiguration(settings);
 
-            EmbeddedDatabase embeddedRavenDb;
-            if (useEmbeddedInstance)
+            if (UseEmbeddedInstance(settings))
             {
                 var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
                 var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
-            }
-            else
-            {
-                var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
+                var database = EmbeddedDatabase.Start(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
+                var embeddedPersistenceLifecycle = new RavenDbEmbeddedPersistenceLifecycle(database);
 
-                embeddedRavenDb = new EmbeddedDatabase(connectionString, useEmbeddedInstance, dataBaseConfiguration);
+                return embeddedPersistenceLifecycle;
             }
 
-            return embeddedRavenDb;
+            var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
+
+            return new RavenDbExternalPersistenceLifecycle(connectionString, dataBaseConfiguration);
         }
 
         static AuditDatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
@@ -81,6 +81,16 @@
             }
 
             return new AuditDatabaseConfiguration(databaseName);
+        }
+
+        static bool UseEmbeddedInstance(PersistenceSettings settings)
+        {
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
+            {
+                return bool.Parse(useEmbeddedInstanceString);
+            }
+
+            return false;
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

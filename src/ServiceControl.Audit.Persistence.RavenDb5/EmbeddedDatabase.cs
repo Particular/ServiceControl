@@ -15,10 +15,8 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(string databaseUrl, bool useEmbeddedInstance, AuditDatabaseConfiguration configuration)
+        public EmbeddedDatabase(AuditDatabaseConfiguration configuration)
         {
-            this.databaseUrl = databaseUrl;
-            this.useEmbeddedInstance = useEmbeddedInstance;
             this.configuration = configuration;
         }
 
@@ -50,7 +48,7 @@
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(databaseMaintenanceUrl, true, auditDatabaseConfiguration);
+            return new EmbeddedDatabase(auditDatabaseConfiguration);
         }
 
         public static string ReadLicense()
@@ -67,36 +65,8 @@
 
         public async Task<IDocumentStore> Initialize(CancellationToken cancellationToken)
         {
-            if (useEmbeddedInstance)
+            var dbOptions = new DatabaseOptions(configuration.Name)
             {
-                var dbOptions = new DatabaseOptions(configuration.Name)
-                {
-                    Conventions = new DocumentConventions
-                    {
-                        SaveEnumsAsIntegers = true
-                    }
-                };
-
-                if (configuration.FindClrType != null)
-                {
-                    dbOptions.Conventions.FindClrType += configuration.FindClrType;
-                }
-
-                if (configuration.EnableDocumentCompression)
-                {
-                    dbOptions.DatabaseRecord.DocumentsCompression = new DocumentsCompressionConfiguration(
-                        false,
-                        configuration.CollectionsToCompress.ToArray()
-                    );
-                }
-
-                return await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
-            }
-
-            var store = new DocumentStore
-            {
-                Database = configuration.Name,
-                Urls = new[] { databaseUrl },
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
@@ -105,25 +75,25 @@
 
             if (configuration.FindClrType != null)
             {
-                store.Conventions.FindClrType += configuration.FindClrType;
+                dbOptions.Conventions.FindClrType += configuration.FindClrType;
             }
 
-            store.Initialize();
+            if (configuration.EnableDocumentCompression)
+            {
+                dbOptions.DatabaseRecord.DocumentsCompression = new DocumentsCompressionConfiguration(
+                    false,
+                    configuration.CollectionsToCompress.ToArray()
+                );
+            }
 
-
-            return store;
+            return await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public void Dispose()
         {
-            if (useEmbeddedInstance)
-            {
-                EmbeddedServer.Instance?.Dispose();
-            }
+            EmbeddedServer.Instance?.Dispose();
         }
 
-        readonly string databaseUrl;
-        readonly bool useEmbeddedInstance;
         readonly AuditDatabaseConfiguration configuration;
 
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
