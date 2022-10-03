@@ -7,7 +7,7 @@
     using ServiceControl.Audit.Persistence.InMemory;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
+    partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
@@ -28,6 +28,16 @@
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
+            return Task.CompletedTask;
+        }
+
+        public Task CompleteDBOperation()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task Cleanup()
+        {
             return Task.CompletedTask;
         }
 

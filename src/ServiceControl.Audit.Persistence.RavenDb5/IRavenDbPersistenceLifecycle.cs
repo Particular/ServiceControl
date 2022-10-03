@@ -2,6 +2,5 @@
 {
     interface IRavenDbPersistenceLifecycle : IPersistenceLifecycle, IRavenDbDocumentStoreProvider
     {
-
     }
 }
