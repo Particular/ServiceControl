@@ -27,7 +27,7 @@
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             var instance = await SharedEmbeddedServer.GetInstance();
-
+            
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
 
