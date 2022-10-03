@@ -39,6 +39,20 @@ namespace Tests
             }
         }
 
+        [Test]
+        public void Raven5_should_include_raver_server()
+        {
+            var storage = "RavenDb5";
+
+            using (var zip = deploymentPackage.Open())
+            {
+                var persisterFiles = zip.Entries.Where(e => e.FullName.StartsWith("Persisters/") && e.FullName.Contains(storage)).Select(e => e.FullName).ToList();
+                var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
+
+                Assert.IsTrue(persisterFiles.Any(fn => fn.Contains("RavenDBServer")));
+            }
+        }
+
         readonly DeploymentPackage deploymentPackage;
     }
 }
