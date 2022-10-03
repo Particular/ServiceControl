@@ -7,7 +7,7 @@
     {
         public EndpointHeartbeatRestoredDefinition()
         {
-            Description(m => $"Endpoint {m.Endpoint.Name} heartbeats have been restored.");
+            Description(m => $"Endpoint {m.Endpoint.Name} heartbeats have been restored on host {m.Endpoint.Host}.");
 
             RelatesToEndpoint(m => m.Endpoint.Name);
             RelatesToHost(m => m.Endpoint.HostId);
