@@ -9,32 +9,20 @@
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using Raven.Client.Documents.Indexes;
-    using Raven.Client.Documents.Operations;
-    using Raven.Client.Documents.Operations.Expiration;
-    using Raven.Client.Documents.Operations.Indexes;
-    using Raven.Client.Exceptions;
-    using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
-    using Raven.Client.ServerWide.Operations;
-    using Raven.Client.ServerWide.Operations.DocumentsCompression;
     using Raven.Embedded;
-    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDb5;
-    using ServiceControl.SagaAudit;
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(int expirationProcessTimerInSeconds, string databaseUrl, bool useEmbeddedInstance, bool enableFullTextSearch, AuditDatabaseConfiguration configuration)
+        public EmbeddedDatabase(string databaseUrl, bool useEmbeddedInstance, AuditDatabaseConfiguration configuration)
         {
-            this.expirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
             this.databaseUrl = databaseUrl;
             this.useEmbeddedInstance = useEmbeddedInstance;
-            this.enableFullTextSearch = enableFullTextSearch;
             this.configuration = configuration;
         }
 
-        public static EmbeddedDatabase Start(string dbPath, int expirationProcessTimerInSecond, string databaseMaintenanceUrl, bool enableFullTextSearch, AuditDatabaseConfiguration auditDatabaseConfiguration)
+        public static EmbeddedDatabase Start(string dbPath, string databaseMaintenanceUrl, AuditDatabaseConfiguration auditDatabaseConfiguration)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -62,7 +50,7 @@
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(expirationProcessTimerInSecond, databaseMaintenanceUrl, true, enableFullTextSearch, auditDatabaseConfiguration);
+            return new EmbeddedDatabase(databaseMaintenanceUrl, true, auditDatabaseConfiguration);
         }
 
         public static string ReadLicense()
@@ -102,113 +90,40 @@
                     );
                 }
 
-                documentStore =
-                    await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
+                return await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
             }
-            else
-            {
-                var store = new DocumentStore
-                {
-                    Database = configuration.Name,
-                    Urls = new[] { databaseUrl },
-                    Conventions = new DocumentConventions
-                    {
-                        SaveEnumsAsIntegers = true
-                    }
-                };
 
-                if (configuration.FindClrType != null)
+            var store = new DocumentStore
+            {
+                Database = configuration.Name,
+                Urls = new[] { databaseUrl },
+                Conventions = new DocumentConventions
                 {
-                    store.Conventions.FindClrType += configuration.FindClrType;
+                    SaveEnumsAsIntegers = true
                 }
-
-                store.Initialize();
-
-                documentStore = store;
-            }
-
-            return documentStore;
-        }
-
-        public async Task Setup(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (DatabaseDoesNotExistException)
-            {
-                try
-                {
-                    await documentStore.Maintenance.Server
-                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)), cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (ConcurrencyException)
-                {
-                    // The database was already created before calling CreateDatabaseOperation
-                }
-
-            }
-
-            if (configuration.EnableDocumentCompression)
-            {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(
-                    new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
-                        false,
-                        configuration.CollectionsToCompress.ToArray()
-                    )), cancellationToken).ConfigureAwait(false);
-            }
-
-            var indexList =
-                  new List<AbstractIndexCreationTask> { new FailedAuditImportIndex(), new SagaDetailsIndex() };
-
-            if (enableFullTextSearch)
-            {
-
-                indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                indexList.Add(new MessagesViewIndex());
-                await documentStore.Maintenance
-                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken).ConfigureAwait(false);
-
-            // TODO: Check to see if the configuration has changed.
-            // If it has, then send an update to the server to change the expires metadata on all documents
-            var expirationConfig = new ExpirationConfiguration
-            {
-                Disabled = false,
-                DeleteFrequencyInSec = expirationProcessTimerInSeconds
             };
 
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken)
-                .ConfigureAwait(false);
+            if (configuration.FindClrType != null)
+            {
+                store.Conventions.FindClrType += configuration.FindClrType;
+            }
+
+            store.Initialize();
+
+
+            return store;
         }
 
         public void Dispose()
         {
-            documentStore?.Dispose();
-
             if (useEmbeddedInstance)
             {
                 EmbeddedServer.Instance?.Dispose();
             }
         }
 
-        IDocumentStore documentStore;
-
-        readonly int expirationProcessTimerInSeconds;
         readonly string databaseUrl;
         readonly bool useEmbeddedInstance;
-        readonly bool enableFullTextSearch;
         readonly AuditDatabaseConfiguration configuration;
 
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
