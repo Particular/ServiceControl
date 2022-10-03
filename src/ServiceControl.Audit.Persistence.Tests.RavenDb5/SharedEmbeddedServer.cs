@@ -3,31 +3,32 @@
     using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
-    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.Audit.Persistence.RavenDb5;
 
-    partial class PersistenceTestsOneTimeConfiguration
+    class SharedEmbeddedServer
     {
-        public Task SetUp()
+        public static EmbeddedDatabase Instance
         {
-            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
-            serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
-            embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new AuditDatabaseConfiguration("audit"));
-            return Task.CompletedTask;
+            get
+            {
+                lock (lockObject)
+                {
+                    if (embeddedDatabase != null)
+                    {
+                        return embeddedDatabase;
+                    }
+
+                    var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
+                    var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
+                    embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new AuditDatabaseConfiguration("audit"));
+
+                    return embeddedDatabase;
+                }
+            }
         }
 
-        public Task TearDown()
-        {
-            embeddedDatabase.Dispose();
-            return Task.CompletedTask;
-        }
-
-        public PersistenceTestsConfiguration GetPerTestConfiguration()
-        {
-            return new PersistenceTestsConfiguration(serverUrl);
-        }
         static int FindAvailablePort(int startPort)
         {
             var activeTcpListeners = IPGlobalProperties
@@ -46,7 +47,8 @@
             return startPort;
         }
 
-        string serverUrl;
-        EmbeddedDatabase embeddedDatabase;
+        static EmbeddedDatabase embeddedDatabase;
+
+        static object lockObject = new object();
     }
 }

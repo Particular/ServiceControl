@@ -15,12 +15,15 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(AuditDatabaseConfiguration configuration)
+        public EmbeddedDatabase(AuditDatabaseConfiguration configuration, string serverUrl)
         {
             this.configuration = configuration;
+            ServerUrl = serverUrl;
         }
 
-        public static EmbeddedDatabase Start(string dbPath, string databaseMaintenanceUrl, AuditDatabaseConfiguration auditDatabaseConfiguration)
+        public string ServerUrl { get; private set; }
+
+        public static EmbeddedDatabase Start(string dbPath, string serverUrl, AuditDatabaseConfiguration auditDatabaseConfiguration)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -42,13 +45,13 @@
                 CommandLineArgs = commandLineArgs,
                 AcceptEula = true,
                 DataDirectory = dbPath,
-                ServerUrl = databaseMaintenanceUrl,
+                ServerUrl = serverUrl,
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(auditDatabaseConfiguration);
+            return new EmbeddedDatabase(auditDatabaseConfiguration, serverUrl);
         }
 
         public static string ReadLicense()

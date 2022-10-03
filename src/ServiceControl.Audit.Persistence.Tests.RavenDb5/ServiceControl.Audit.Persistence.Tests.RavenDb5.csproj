@@ -26,4 +26,8 @@
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceTestsConfigurationBase.cs" />
+  </ItemGroup>
+
 </Project>

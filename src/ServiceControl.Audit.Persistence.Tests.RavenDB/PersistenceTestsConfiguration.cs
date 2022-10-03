@@ -10,7 +10,7 @@
     using ServiceControl.Audit.Persistence.RavenDb;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
+    partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
@@ -43,13 +43,13 @@
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public override Task CompleteDBOperation()
+        public Task CompleteDBOperation()
         {
             DocumentStore.WaitForIndexing();
             return Task.CompletedTask;
         }
 
-        public override Task Cleanup()
+        public Task Cleanup()
         {
             return persistenceLifecycle?.Stop();
         }

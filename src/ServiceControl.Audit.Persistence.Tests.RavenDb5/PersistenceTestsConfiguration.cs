@@ -10,10 +10,8 @@
     using ServiceControl.Audit.Auditing.BodyStorage;
     using UnitOfWork;
 
-    partial class PersistenceTestsConfiguration : PersistenceTestsConfigurationBase
+    partial class PersistenceTestsConfiguration
     {
-        public PersistenceTestsConfiguration(string serverUrl) => this.serverUrl = serverUrl;
-
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
         public IBodyStorage BodyStorage { get; set; }
@@ -28,7 +26,7 @@
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = serverUrl;
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = SharedEmbeddedServer.Instance.ServerUrl;
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
 
             setSettings(settings);
@@ -54,13 +52,13 @@
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
-        public override Task CompleteDBOperation()
+        public Task CompleteDBOperation()
         {
             DocumentStore.WaitForIndexing();
             return Task.CompletedTask;
         }
 
-        public override Task Cleanup()
+        public Task Cleanup()
         {
             DocumentStore?.Maintenance.Server.Send(new DeleteDatabasesOperation(
                 new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
@@ -75,6 +73,5 @@
         IPersistenceLifecycle persistenceLifecycle;
 
         string databaseName;
-        readonly string serverUrl;
     }
 }
