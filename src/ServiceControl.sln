@@ -144,8 +144,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persis
 		{DEDC8155-F9EF-4A8D-9476-B44610AABCA1} = {DEDC8155-F9EF-4A8D-9476-B44610AABCA1}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.SqlServer", "ServiceControl.Audit.Persistence.Tests.SqlServer\ServiceControl.Audit.Persistence.Tests.SqlServer.csproj", "{47CF0D99-2926-4376-83D7-DDCAE437C4D7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.AcceptanceTests.RavenDB", "ServiceControl.Audit.AcceptanceTests.RavenDB\ServiceControl.Audit.AcceptanceTests.RavenDB.csproj", "{7274653C-5E5E-4AA7-A565-5B89F488E1D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.RavenDb5", "ServiceControl.Audit.Persistence.Tests.RavenDb5\ServiceControl.Audit.Persistence.Tests.RavenDb5.csproj", "{A67C7407-BB65-4C81-9DE8-65D69A8E97C5}"
@@ -156,7 +154,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Accept
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence", "ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj", "{41D7051A-013E-42EC-87A2-FF30F564CDB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Audit.Persistence.SagaAudit", "ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj", "{CD8495ED-3C98-41FC-8643-61B35B50C413}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.SagaAudit", "ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj", "{CD8495ED-3C98-41FC-8643-61B35B50C413}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -360,10 +358,6 @@ Global
 		{04359CC6-170E-4AB7-8291-FA58AAA9C441}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04359CC6-170E-4AB7-8291-FA58AAA9C441}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04359CC6-170E-4AB7-8291-FA58AAA9C441}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47CF0D99-2926-4376-83D7-DDCAE437C4D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47CF0D99-2926-4376-83D7-DDCAE437C4D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47CF0D99-2926-4376-83D7-DDCAE437C4D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47CF0D99-2926-4376-83D7-DDCAE437C4D7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7274653C-5E5E-4AA7-A565-5B89F488E1D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7274653C-5E5E-4AA7-A565-5B89F488E1D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7274653C-5E5E-4AA7-A565-5B89F488E1D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -451,7 +445,6 @@ Global
 		{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
 		{6C4077F7-7507-487B-9E93-66BF8768343A} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{04359CC6-170E-4AB7-8291-FA58AAA9C441} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
-		{47CF0D99-2926-4376-83D7-DDCAE437C4D7} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
 		{7274653C-5E5E-4AA7-A565-5B89F488E1D0} = {E2249BAA-D9E9-4369-9C70-0E21C69A3E56}
 		{A67C7407-BB65-4C81-9DE8-65D69A8E97C5} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
 		{7FD0C9BD-BF75-45FA-AD03-AE5F887A9CA8} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
