@@ -35,7 +35,7 @@
 
             var persistence = config.Create(settings);
             await persistence.CreateInstaller().Install();
-            persistenceLifecycle = persistence.CreateLifecycle(serviceCollection);
+            persistenceLifecycle = persistence.Configure(serviceCollection);
             await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();

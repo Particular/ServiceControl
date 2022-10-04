@@ -17,7 +17,7 @@
             this.ravenStartup = ravenStartup;
         }
 
-        public IPersistenceLifecycle CreateLifecycle(IServiceCollection serviceCollection)
+        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);

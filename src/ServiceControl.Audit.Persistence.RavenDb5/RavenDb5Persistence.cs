@@ -14,7 +14,7 @@
             this.settings = settings;
         }
 
-        public IPersistenceLifecycle CreateLifecycle(IServiceCollection serviceCollection)
+        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();

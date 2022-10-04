@@ -8,7 +8,7 @@
     {
         public InMemoryPersistence(PersistenceSettings persistenceSettings) => settings = persistenceSettings;
 
-        public IPersistenceLifecycle CreateLifecycle(IServiceCollection serviceCollection)
+        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<InMemoryAuditDataStore>();

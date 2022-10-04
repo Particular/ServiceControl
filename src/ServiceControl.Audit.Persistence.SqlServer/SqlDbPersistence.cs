@@ -9,7 +9,7 @@
     {
         public SqlDbPersistence(string connectionString) => this.connectionString = connectionString;
 
-        public IPersistenceLifecycle CreateLifecycle(IServiceCollection serviceCollection)
+        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton(sp => new SqlDbConnectionManager(connectionString));
             serviceCollection.AddSingleton<IAuditDataStore, SqlDbAuditDataStore>();

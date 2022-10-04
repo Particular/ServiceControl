@@ -12,7 +12,7 @@ namespace ServiceControl.Audit.Persistence
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                var lifecycle = persistence.CreateLifecycle(serviceCollection);
+                var lifecycle = persistence.Configure(serviceCollection);
 
                 serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
             });
