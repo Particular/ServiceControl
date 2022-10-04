@@ -34,7 +34,7 @@ namespace Tests
 
                 foreach (var persisterFolder in persisterFolders)
                 {
-                    Assert.IsNotNull(zip.Entries.SingleOrDefault(e => e.FullName == $"Persisters/{persisterFolder}/manifest.json"), $"{persisterFolder} doesn't contain a manifest.json file");
+                    Assert.IsNotNull(zip.Entries.SingleOrDefault(e => e.FullName == $"Persisters/{persisterFolder}/persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
                 }
             }
         }

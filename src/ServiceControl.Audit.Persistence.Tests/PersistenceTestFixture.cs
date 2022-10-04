@@ -38,7 +38,7 @@
 
                 if (file != null)
                 {
-                    return Path.Combine(file.Directory.FullName, $"ServiceControl.Audit.Persistence.{PersisterName}", "manifest.json");
+                    return Path.Combine(file.Directory.FullName, $"ServiceControl.Audit.Persistence.{PersisterName}", "persistence.manifest");
                 }
 
                 currentFolder = currentFolder.Parent;
