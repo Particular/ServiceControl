@@ -19,10 +19,8 @@
 
     class DatabaseSetup
     {
-        public DatabaseSetup(int expirationProcessTimerInSeconds, bool enableFullTextSearch, AuditDatabaseConfiguration configuration)
+        public DatabaseSetup(DatabaseConfiguration configuration)
         {
-            this.expirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
-            this.enableFullTextSearch = enableFullTextSearch;
             this.configuration = configuration;
         }
 
@@ -61,7 +59,7 @@
                 new SagaDetailsIndex()
             };
 
-            if (enableFullTextSearch)
+            if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
                 await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken)
@@ -82,15 +80,13 @@
             var expirationConfig = new ExpirationConfiguration
             {
                 Disabled = false,
-                DeleteFrequencyInSec = expirationProcessTimerInSeconds
+                DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
             };
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken)
                 .ConfigureAwait(false);
         }
 
-        readonly int expirationProcessTimerInSeconds;
-        readonly bool enableFullTextSearch;
-        readonly AuditDatabaseConfiguration configuration;
+        readonly DatabaseConfiguration configuration;
     }
 }

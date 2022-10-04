@@ -8,20 +8,21 @@
     {
         public IPersistence Create(PersistenceSettings settings)
         {
-            var dataBaseConfiguration = GetDatabaseConfiguration(settings);
-            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
-            var databaseSetup = new DatabaseSetup(expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
+            var databaseConfiguration = GetDatabaseConfiguration(settings);
+            var databaseSetup = new DatabaseSetup(databaseConfiguration);
 
-            return new RavenDb5Persistence(dataBaseConfiguration, databaseSetup, settings);
+            return new RavenDb5Persistence(databaseConfiguration, databaseSetup, settings);
         }
-        static AuditDatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
+        static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
         {
             if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
             {
                 databaseName = "audit";
             }
 
-            return new AuditDatabaseConfiguration(databaseName);
+            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+
+            return new DatabaseConfiguration(databaseName, expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies);
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

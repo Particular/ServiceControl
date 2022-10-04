@@ -3,42 +3,23 @@
     using Sparrow.Json;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System;
 
-    public abstract class DatabaseConfiguration
+    public class DatabaseConfiguration
     {
-        protected DatabaseConfiguration(string name)
+        public DatabaseConfiguration(string name, int expirationProcessTimerInSeconds, bool enableFullTextSearch)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException($"{nameof(name)} is required", nameof(name));
-            }
-
             Name = name;
+            ExpirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
+            EnableFullTextSearch = enableFullTextSearch;
         }
 
         public string Name { get; }
-        public virtual IEnumerable<Assembly> IndexAssemblies => Enumerable.Empty<Assembly>();
-        public virtual IEnumerable<string> CollectionsToCompress => Enumerable.Empty<string>();
+        public int ExpirationProcessTimerInSeconds { get; }
+        public bool EnableFullTextSearch { get; }
+
+        public IEnumerable<string> CollectionsToCompress => Enumerable.Empty<string>();
         public bool EnableDocumentCompression => CollectionsToCompress.Any();
-        public virtual Func<string, BlittableJsonReaderObject, string> FindClrType { get; }
-    }
-
-    public class AuditDatabaseConfiguration : DatabaseConfiguration
-    {
-        public AuditDatabaseConfiguration(string name = null) : base(name ?? "audit")
-        {
-        }
-
-        public override IEnumerable<Assembly> IndexAssemblies { get; } = new[]
-        {
-            typeof(AuditDatabaseConfiguration).Assembly
-        };
-
-        // public override IEnumerable<string> CollectionsToCompress { get; } = new[]
-        // {
-        //     "ProcessedMessages"
-        // };
+        public Func<string, BlittableJsonReaderObject, string> FindClrType { get; }
     }
 }
