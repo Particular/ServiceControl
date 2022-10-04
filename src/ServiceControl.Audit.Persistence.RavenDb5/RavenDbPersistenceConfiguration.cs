@@ -11,28 +11,9 @@
             var dataBaseConfiguration = GetDatabaseConfiguration(settings);
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
             var databaseSetup = new DatabaseSetup(expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
-            var lifecycle = CreateLifecycle(settings, dataBaseConfiguration);
 
-            return new RavenDb5Persistence(lifecycle, databaseSetup, settings);
+            return new RavenDb5Persistence(dataBaseConfiguration, databaseSetup, settings);
         }
-
-        static IRavenDbPersistenceLifecycle CreateLifecycle(PersistenceSettings settings, AuditDatabaseConfiguration dataBaseConfiguration)
-        {
-            if (UseEmbeddedInstance(settings))
-            {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
-                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
-                var databaseMaintenancePort =
-                    int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
-                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
-
-                return new RavenDbEmbeddedPersistenceLifecycle(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
-            }
-
-            var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
-            return new RavenDbExternalPersistenceLifecycle(connectionString, dataBaseConfiguration);
-        }
-
         static AuditDatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
         {
             if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
@@ -41,16 +22,6 @@
             }
 
             return new AuditDatabaseConfiguration(databaseName);
-        }
-
-        static bool UseEmbeddedInstance(PersistenceSettings settings)
-        {
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
-            {
-                return bool.Parse(useEmbeddedInstanceString);
-            }
-
-            return false;
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
