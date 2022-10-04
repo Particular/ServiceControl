@@ -1,10 +1,5 @@
 {
   "settings": {
-    "CustomChecks": {
-      "Enabled": true,
-      "CustomChecksQueue": "Particular.ServiceControl"
-    },
-    "ErrorQueue": "error",
     "Heartbeats": {
       "Enabled": true,
       "HeartbeatsQueue": "Particular.ServiceControl",
@@ -15,6 +10,11 @@
       "Enabled": true,
       "AuditQueue": "audit"
     },
+    "CustomChecks": {
+      "Enabled": true,
+      "CustomChecksQueue": "Particular.ServiceControl"
+    },
+    "ErrorQueue": "error",
     "SagaAudit": {
       "Enabled": true,
       "SagaAuditQueue": "audit"
