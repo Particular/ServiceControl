@@ -14,7 +14,7 @@
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; set; }
+        public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
@@ -39,7 +39,7 @@
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
+            BodyStorage = serviceProvider.GetRequiredService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
