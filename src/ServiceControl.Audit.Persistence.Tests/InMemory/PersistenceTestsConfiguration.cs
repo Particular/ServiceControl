@@ -21,7 +21,8 @@
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(settings);
-            config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistence.CreateLifecycle(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();

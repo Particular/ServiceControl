@@ -1,74 +1,35 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Logging;
-    using Persistence.UnitOfWork;
     using ServiceControl.Audit.Persistence.RavenDb5;
-    using UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public IPersistenceLifecycle ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
-        {
-            var persistenceLifeCycle = CreatePersistenceLifecycle(settings);
-
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();
-            serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-            serviceCollection.AddSingleton<IRavenDbDocumentStoreProvider>(_ => persistenceLifeCycle);
-
-            return persistenceLifeCycle;
-        }
-
-        public async Task Setup(PersistenceSettings settings, CancellationToken cancellationToken = default)
-        {
-            var persistenceLifeCycle = CreatePersistenceLifecycle(settings);
-
-            await persistenceLifeCycle.Start(cancellationToken)
-                .ConfigureAwait(false);
-
-            try
-            {
-                using (var documentStore = persistenceLifeCycle.GetDocumentStore())
-                {
-                    var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
-                    var dataBaseConfiguration = GetDatabaseConfiguration(settings);
-                    var databaseSetup = new DatabaseSetup(expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
-
-                    await databaseSetup.Execute(documentStore, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                await persistenceLifeCycle.Stop(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        IRavenDbPersistenceLifecycle CreatePersistenceLifecycle(PersistenceSettings settings)
+        public IPersistence Create(PersistenceSettings settings)
         {
             var dataBaseConfiguration = GetDatabaseConfiguration(settings);
+            var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+            var databaseSetup = new DatabaseSetup(expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
+            var lifecycle = CreateLifecycle(settings, dataBaseConfiguration);
 
+            return new RavenDb5Persistence(lifecycle, databaseSetup, settings);
+        }
+
+        static IRavenDbPersistenceLifecycle CreateLifecycle(PersistenceSettings settings, AuditDatabaseConfiguration dataBaseConfiguration)
+        {
             if (UseEmbeddedInstance(settings))
             {
                 var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
-                var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
+                var databaseMaintenancePort =
+                    int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
                 var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                var embeddedPersistenceLifecycle = new RavenDbEmbeddedPersistenceLifecycle(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
-
-                return embeddedPersistenceLifecycle;
+                return new RavenDbEmbeddedPersistenceLifecycle(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
             }
 
             var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
-
             return new RavenDbExternalPersistenceLifecycle(connectionString, dataBaseConfiguration);
         }
 

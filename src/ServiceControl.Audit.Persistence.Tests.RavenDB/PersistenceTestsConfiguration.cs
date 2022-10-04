@@ -30,7 +30,8 @@
 
             setSettings(settings);
 
-            persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistenceLifecycle = persistence.CreateLifecycle(serviceCollection);
 
             await persistenceLifecycle.Start();
 

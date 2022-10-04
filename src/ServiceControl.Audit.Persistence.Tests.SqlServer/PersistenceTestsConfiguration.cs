@@ -36,7 +36,8 @@
 
             settings.PersisterSpecificSettings["Sql/ConnectionString"] = connectionString;
 
-            config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistence.CreateLifecycle(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();

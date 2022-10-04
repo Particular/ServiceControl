@@ -8,10 +8,11 @@ namespace ServiceControl.Audit.Persistence
         public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                var lifecycle = persistenceConfiguration.ConfigureServices(serviceCollection, persistenceSettings);
+                var lifecycle = persistence.CreateLifecycle(serviceCollection);
 
                 serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
             });

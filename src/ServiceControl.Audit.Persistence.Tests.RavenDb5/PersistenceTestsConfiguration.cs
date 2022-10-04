@@ -33,9 +33,9 @@
 
             setSettings(settings);
 
-            await config.Setup(settings);
-            persistenceLifecycle = config.ConfigureServices(serviceCollection, settings);
-
+            var persistence = config.Create(settings);
+            await persistence.CreateInstaller().Install();
+            persistenceLifecycle = persistence.CreateLifecycle(serviceCollection);
             await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();

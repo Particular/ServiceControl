@@ -89,8 +89,10 @@ namespace ServiceControl.Audit.Infrastructure
 
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
 
-            await persistenceConfiguration.Setup(persistenceSettings)
-                 .ConfigureAwait(false);
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var installer = persistence.CreateInstaller();
+            await installer.Install()
+                .ConfigureAwait(false);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                 ctx => { }, configuration, false);
