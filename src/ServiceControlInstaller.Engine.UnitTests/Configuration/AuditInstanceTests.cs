@@ -66,6 +66,8 @@
 
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
 
             newInstance.CopyFiles(ZipFilePath);
             newInstance.WriteConfigurationFile();
@@ -96,7 +98,9 @@
                 InstallPath = InstallPath,
                 TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ),
                 DBPath = DbPath,
-                LogPath = LogPath
+                LogPath = LogPath,
+                HostName = "localhost",
+                DatabaseMaintenancePort = 33333
             };
 
             newInstance.CopyFiles(ZipFilePath);

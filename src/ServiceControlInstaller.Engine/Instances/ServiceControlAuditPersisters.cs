@@ -20,7 +20,7 @@
 
                 foreach (var persitenceFolder in persitenceFolders)
                 {
-                    var manifestEntry = zipArchive.GetEntry($"Persisters/{persitenceFolder}/manifest.json");
+                    var manifestEntry = zipArchive.GetEntry($"Persisters/{persitenceFolder}/persistence.manifest");
 
                     using (var reader = new StreamReader(manifestEntry.Open()))
                     {

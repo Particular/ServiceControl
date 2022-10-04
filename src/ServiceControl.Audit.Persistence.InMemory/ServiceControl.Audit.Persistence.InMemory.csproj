@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="manifest.json" />
+    <None Remove="persistence.manifest" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="manifest.json">
+    <Content Include="persistence.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
