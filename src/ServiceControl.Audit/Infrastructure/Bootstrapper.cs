@@ -131,6 +131,11 @@ namespace ServiceControl.Audit.Infrastructure
 
         long FolderSize(string dbPath)
         {
+            if (string.IsNullOrEmpty(dbPath))
+            {
+                return 0;
+            }
+
             try
             {
                 var dir = new DirectoryInfo(dbPath);
