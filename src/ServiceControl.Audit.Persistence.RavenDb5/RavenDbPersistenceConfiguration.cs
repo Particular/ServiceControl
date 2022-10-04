@@ -1,64 +1,30 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using Persistence.UnitOfWork;
-    using UnitOfWork;
-    using ServiceControl.Audit.Persistence.RavenDb5;
-    using Raven.Embedded;
-    using Raven.Client.Documents;
     using System;
     using NServiceBus.Logging;
+    using ServiceControl.Audit.Persistence.RavenDb5;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        public void ConfigureServices(IServiceCollection serviceCollection, PersistenceSettings settings)
+        public IPersistence Create(PersistenceSettings settings)
         {
-            var documentStore = InitializeDatabase(settings);
-
-            serviceCollection.AddSingleton(documentStore);
-
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-        }
-
-        IDocumentStore InitializeDatabase(PersistenceSettings settings)
-        {
-            var useEmbeddedInstance = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
-            {
-                useEmbeddedInstance = bool.Parse(useEmbeddedInstanceString);
-            }
-
+            var dataBaseConfiguration = GetDatabaseConfiguration(settings);
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
+            var databaseSetup = new DatabaseSetup(expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies, dataBaseConfiguration);
 
-            if (useEmbeddedInstance)
-            {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
-                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
-                var databaseMaintenancePort = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
-                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
-
-                embeddedRavenDb = EmbeddedDatabase.Start(dbPath, expirationProcessTimerInSeconds, databaseMaintenanceUrl, settings.EnableFullTextSearchOnBodies, settings.IsSetup);
-            }
-            else
-            {
-                var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
-
-                embeddedRavenDb = new EmbeddedDatabase(expirationProcessTimerInSeconds, connectionString, useEmbeddedInstance, settings.EnableFullTextSearchOnBodies);
-            }
-
+            return new RavenDb5Persistence(dataBaseConfiguration, databaseSetup, settings);
+        }
+        static AuditDatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
+        {
             if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
             {
                 databaseName = "audit";
             }
 
-            return embeddedRavenDb.PrepareDatabase(new AuditDatabaseConfiguration(databaseName), settings.IsSetup).GetAwaiter().GetResult();
+            return new AuditDatabaseConfiguration(databaseName);
         }
 
-        int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
+        static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
         {
             var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
 
@@ -82,9 +48,7 @@
             return expirationProcessTimerInSeconds;
         }
 
-        EmbeddedDatabase embeddedRavenDb;
-
-        ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
+        static ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
     }

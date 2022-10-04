@@ -12,13 +12,14 @@
 
     class RavenDbFailedAuditStorage : IFailedAuditStorage
     {
-        readonly IDocumentStore store;
-
-        public RavenDbFailedAuditStorage(IDocumentStore store) => this.store = store;
+        public RavenDbFailedAuditStorage(IRavenDbSessionProvider sessionProvider)
+        {
+            this.sessionProvider = sessionProvider;
+        }
 
         public async Task Store(dynamic failure)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 await session.StoreAsync(failure)
                     .ConfigureAwait(false);
@@ -30,7 +31,7 @@
 
         public async Task SaveFailedAuditImport(FailedAuditImport message)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 await session.StoreAsync(message).ConfigureAwait(false);
                 await session.SaveChangesAsync().ConfigureAwait(false);
@@ -41,7 +42,7 @@
             Func<FailedTransportMessage, Func<CancellationToken, Task>, CancellationToken, Task> onMessage,
             CancellationToken cancellationToken)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
 
@@ -78,12 +79,14 @@
 
         public async Task<int> GetFailedAuditsCount()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
                     .CountAsync()
                     .ConfigureAwait(false);
             }
         }
+
+        readonly IRavenDbSessionProvider sessionProvider;
     }
 }

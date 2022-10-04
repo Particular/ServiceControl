@@ -14,18 +14,15 @@
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; set; }
+        public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure(Action<PersistenceSettings> setSettings)
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
-            {
-                IsSetup = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
@@ -33,17 +30,18 @@
 
             setSettings(settings);
 
-            config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistenceLifecycle = persistence.Configure(serviceCollection);
+
+            await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
-            BodyStorage = serviceProvider.GetService<IBodyStorage>();
+            BodyStorage = serviceProvider.GetRequiredService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-
-            return Task.CompletedTask;
         }
 
         public Task CompleteDBOperation()
@@ -54,9 +52,10 @@
 
         public Task Cleanup()
         {
-            DocumentStore?.Dispose();
-            return Task.CompletedTask;
+            return persistenceLifecycle?.Stop();
         }
+
+        IPersistenceLifecycle persistenceLifecycle;
 
         public IDocumentStore DocumentStore { get; private set; }
 

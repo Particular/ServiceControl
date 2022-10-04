@@ -271,14 +271,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
 
+            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupPersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
-                {
-                    IsSetup = true
-                };
-
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, setupPersistenceSettings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, persistenceSettings, excludeAssemblies: excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
@@ -319,13 +316,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-
-                var runtimePersistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
-
                 var bootstrapper = new Audit.Infrastructure.Bootstrapper(ctx =>
                 {
-                    var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
-
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.ServiceName,
@@ -339,7 +331,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 settings,
                 configuration,
                 loggingSettings,
-                runtimePersistenceSettings);
+                persistenceSettings);
 
                 host = bootstrapper.HostBuilder.Build();
 

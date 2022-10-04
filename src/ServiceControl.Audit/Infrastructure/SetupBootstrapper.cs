@@ -87,20 +87,18 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.AddSingleton(loggingSettings);
             containerBuilder.AddSingleton(settings);
 
-            containerBuilder.AddServiceControlAuditPersistence(persistenceSettings);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var installer = persistence.CreateInstaller();
+            await installer.Install()
+                .ConfigureAwait(false);
 
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
                 ctx => { }, configuration, false);
 
             await Endpoint.Create(configuration)
                 .ConfigureAwait(false);
-
-            var serviceProvider = providerFactory.CreateServiceProvider(containerBuilder);
-            var persistenceLifecycle = serviceProvider.GetService<IPersistenceLifecycle>();
-            if (persistenceLifecycle != null)
-            {
-                await persistenceLifecycle.Initialize().ConfigureAwait(false);
-            }
         }
 
         bool ValidateLicense(Settings.Settings settings)

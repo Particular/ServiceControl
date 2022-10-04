@@ -22,7 +22,7 @@
         }
 
         [TearDown]
-        public Task Cleanup()
+        public virtual Task Cleanup()
         {
             return configuration.Cleanup();
         }

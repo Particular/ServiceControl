@@ -3,18 +3,13 @@
     using System.IO;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        readonly IDocumentStore documentStore;
-        readonly BulkInsertOperation bulkInsertOperation;
-        readonly int settingsMaxBodySizeToStore;
-
-        public RavenAttachmentsBodyStorage(IDocumentStore documentStore, BulkInsertOperation bulkInsert, int settingsMaxBodySizeToStore)
+        public RavenAttachmentsBodyStorage(IRavenDbSessionProvider sessionProvider, BulkInsertOperation bulkInsert, int settingsMaxBodySizeToStore)
         {
-            this.documentStore = documentStore;
+            this.sessionProvider = sessionProvider;
             bulkInsertOperation = bulkInsert;
             this.settingsMaxBodySizeToStore = settingsMaxBodySizeToStore;
         }
@@ -32,7 +27,7 @@
 
         public async Task<StreamResult> TryFetch(string bodyId)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var result = await session.Advanced.Attachments.GetAsync($"message/{bodyId}", "body")
                     .ConfigureAwait(false);
@@ -52,5 +47,9 @@
                 };
             }
         }
+
+        readonly IRavenDbSessionProvider sessionProvider;
+        readonly BulkInsertOperation bulkInsertOperation;
+        readonly int settingsMaxBodySizeToStore;
     }
 }
