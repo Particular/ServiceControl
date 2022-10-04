@@ -21,7 +21,8 @@
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(settings);
-            config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistence.Configure(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
@@ -31,9 +32,15 @@
             return Task.CompletedTask;
         }
 
-        public Task CompleteDBOperation() => Task.CompletedTask;
+        public Task CompleteDBOperation()
+        {
+            return Task.CompletedTask;
+        }
 
-        public Task Cleanup() => Task.CompletedTask;
+        public Task Cleanup()
+        {
+            return Task.CompletedTask;
+        }
 
         public string Name => "InMemory";
     }

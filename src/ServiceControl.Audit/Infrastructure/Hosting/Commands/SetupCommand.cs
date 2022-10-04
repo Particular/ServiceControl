@@ -13,10 +13,7 @@
                 SkipQueueCreation = args.SkipQueueCreation
             };
 
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore)
-            {
-                IsSetup = true
-            };
+            var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings);
 
             await new SetupBootstrapper(settings, persistenceSettings).Run(args.Username)
                 .ConfigureAwait(false);

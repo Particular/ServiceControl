@@ -49,13 +49,6 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
     }
 }
-namespace ServiceControl.Audit.Persistence
-{
-    public static class SetupSqlPersistence
-    {
-        public static System.Threading.Tasks.Task SetupAuditTables(string connectionString) { }
-    }
-}
 namespace ServiceControl.Audit.Recoverability
 {
     public class QueueAddress

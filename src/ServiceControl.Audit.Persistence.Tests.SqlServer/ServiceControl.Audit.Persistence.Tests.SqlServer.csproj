@@ -23,12 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
   <!-- These files can be included again once the sql persister is fully implemented-->
   <ItemGroup>
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\AuditDataStoreTests.cs" />
-    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\CustomCheckTests.cs" />
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\Shared\AuditDataStoreTests.cs" />
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\Shared\CustomCheckTests.cs" />
   </ItemGroup>
 </Project>

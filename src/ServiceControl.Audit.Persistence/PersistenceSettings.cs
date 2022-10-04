@@ -17,8 +17,6 @@
             PersisterSpecificSettings = new Dictionary<string, string>();
         }
 
-        public bool IsSetup { get; set; }
-
         public bool MaintenanceMode { get; set; }
 
         public TimeSpan AuditRetentionPeriod { get; set; }

@@ -17,15 +17,15 @@
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
-        public RavenDbAuditDataStore(IDocumentStore store, PersistenceSettings settings)
+        public RavenDbAuditDataStore(IRavenDbSessionProvider sessionProvider, PersistenceSettings settings)
         {
-            documentStore = store;
+            this.sessionProvider = sessionProvider;
             isFullTextSearchEnabled = settings.EnableFullTextSearchOnBodies;
         }
 
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var sagaHistory = await
                     session.Query<SagaHistory, SagaDetailsIndex>()
@@ -44,7 +44,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
@@ -61,7 +61,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
@@ -78,7 +78,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
@@ -96,7 +96,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
@@ -114,7 +114,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
@@ -131,7 +131,7 @@
 
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var result = await session.Advanced.Attachments.GetAsync(messageId, "body").ConfigureAwait(false);
 
@@ -151,7 +151,7 @@
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = sessionProvider.OpenSession())
             {
                 var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
                     .ConfigureAwait(false);
@@ -179,9 +179,8 @@
             return isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";
         }
 
-        public Task Setup() => Task.CompletedTask;
-
-        IDocumentStore documentStore;
         bool isFullTextSearchEnabled;
+
+        readonly IRavenDbSessionProvider sessionProvider;
     }
 }

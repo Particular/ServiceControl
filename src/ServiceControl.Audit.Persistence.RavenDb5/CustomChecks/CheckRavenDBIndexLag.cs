@@ -9,21 +9,20 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
-    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IDocumentStore store)
+        public CheckRavenDBIndexLag(IRavenDbDocumentStoreProvider documentStoreProvider)
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
-            _store = store;
-            // TODO verify that this is really not needed anymore
-            //LogPath = logPath;
+            this.documentStoreProvider = documentStoreProvider;
         }
 
         public override async Task<CheckResult> PerformCheck()
         {
-            var statistics = await _store.Maintenance.SendAsync(new GetIndexesStatisticsOperation())
+            var store = documentStoreProvider.GetDocumentStore();
+            var statistics = await store.Maintenance.SendAsync(new GetIndexesStatisticsOperation())
                 .ConfigureAwait(false);
             var indexes = statistics.OrderBy(x => x.Name).ToArray();
 
@@ -86,10 +85,11 @@
             _log.Debug(report.ToString());
         }
 
+        readonly IRavenDbDocumentStoreProvider documentStoreProvider;
+
         const int IndexLagThresholdWarning = 10000;
         const int IndexLagThresholdError = 100000;
+
         static ILog _log = LogManager.GetLogger<CheckRavenDBIndexLag>();
-        IDocumentStore _store;
-        //string LogPath;
     }
 }

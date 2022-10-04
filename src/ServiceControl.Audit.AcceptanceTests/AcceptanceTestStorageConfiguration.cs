@@ -9,9 +9,10 @@
         public string PersistenceType { get; protected set; }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        public void CustomizeSettings(IDictionary<string, string> settings)
+        public Task CustomizeSettings(IDictionary<string, string> settings)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
+            return Task.CompletedTask;
         }
 
         public Task Configure()

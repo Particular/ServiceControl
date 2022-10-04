@@ -30,26 +30,20 @@
             var config = new SqlDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000)
-            {
-                IsSetup = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
+
             setSettings(settings);
 
             settings.PersisterSpecificSettings["Sql/ConnectionString"] = connectionString;
 
-            config.ConfigureServices(serviceCollection, settings);
+            var persistence = config.Create(settings);
+            persistence.Configure(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             BodyStorage = serviceProvider.GetService<IBodyStorage>();
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
-        }
-
-        public Task CompleteDBOperation()
-        {
-            return Task.CompletedTask;
         }
 
         public async Task Cleanup()
@@ -63,6 +57,11 @@
                 await connection.ExecuteAsync(dropConstraints).ConfigureAwait(false);
                 await connection.ExecuteAsync(dropTables).ConfigureAwait(false);
             }
+        }
+
+        public Task CompleteDBOperation()
+        {
+            return Task.CompletedTask;
         }
 
         public string Name => "SqlServer";
