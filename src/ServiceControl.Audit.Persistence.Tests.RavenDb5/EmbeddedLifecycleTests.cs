@@ -14,7 +14,7 @@
             SetSettings = s =>
             {
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded");
-                var databaseMaintenancePort = FindAvailablePort(33333);
+                var databaseMaintenancePort = FindAvailablePort(33335);
 
                 s.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"] = bool.TrueString;
                 s.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
