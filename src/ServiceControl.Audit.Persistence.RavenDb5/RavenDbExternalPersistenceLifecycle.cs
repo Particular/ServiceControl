@@ -9,7 +9,7 @@
 
     class RavenDbExternalPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
-        public RavenDbExternalPersistenceLifecycle(string connectionString, AuditDatabaseConfiguration configuration)
+        public RavenDbExternalPersistenceLifecycle(string connectionString, DatabaseConfiguration configuration)
         {
             this.connectionString = connectionString;
             this.configuration = configuration;
@@ -58,7 +58,7 @@
 
         IDocumentStore documentStore;
 
-        readonly AuditDatabaseConfiguration configuration;
+        readonly DatabaseConfiguration configuration;
         readonly string connectionString;
     }
 }

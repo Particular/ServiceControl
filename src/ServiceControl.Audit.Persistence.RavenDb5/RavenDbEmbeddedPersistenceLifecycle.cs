@@ -8,7 +8,7 @@
 
     class RavenDbEmbeddedPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
-        public RavenDbEmbeddedPersistenceLifecycle(string dbPath, string databaseMaintenanceUrl, AuditDatabaseConfiguration dataBaseConfiguration)
+        public RavenDbEmbeddedPersistenceLifecycle(string dbPath, string databaseMaintenanceUrl, DatabaseConfiguration dataBaseConfiguration)
         {
             this.dbPath = dbPath;
             this.databaseMaintenanceUrl = databaseMaintenanceUrl;
@@ -45,6 +45,6 @@
 
         readonly string dbPath;
         readonly string databaseMaintenanceUrl;
-        readonly AuditDatabaseConfiguration dataBaseConfiguration;
+        readonly DatabaseConfiguration dataBaseConfiguration;
     }
 }

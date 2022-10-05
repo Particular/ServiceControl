@@ -7,7 +7,7 @@
 
     class RavenDb5Persistence : IPersistence
     {
-        public RavenDb5Persistence(AuditDatabaseConfiguration databaseConfiguration, DatabaseSetup databaseSetup, PersistenceSettings settings)
+        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration, DatabaseSetup databaseSetup, PersistenceSettings settings)
         {
             this.databaseConfiguration = databaseConfiguration;
             this.databaseSetup = databaseSetup;
@@ -58,7 +58,7 @@
             return false;
         }
 
-        readonly AuditDatabaseConfiguration databaseConfiguration;
+        readonly DatabaseConfiguration databaseConfiguration;
         readonly DatabaseSetup databaseSetup;
         readonly PersistenceSettings settings;
     }

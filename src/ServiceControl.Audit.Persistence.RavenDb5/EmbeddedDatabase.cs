@@ -15,7 +15,7 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(AuditDatabaseConfiguration configuration, string serverUrl)
+        public EmbeddedDatabase(DatabaseConfiguration configuration, string serverUrl)
         {
             this.configuration = configuration;
             ServerUrl = serverUrl;
@@ -23,7 +23,7 @@
 
         public string ServerUrl { get; private set; }
 
-        public static EmbeddedDatabase Start(string dbPath, string serverUrl, AuditDatabaseConfiguration auditDatabaseConfiguration)
+        public static EmbeddedDatabase Start(string dbPath, string serverUrl, DatabaseConfiguration auditDatabaseConfiguration)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -97,7 +97,7 @@
             }
         }
 
-        readonly AuditDatabaseConfiguration configuration;
+        readonly DatabaseConfiguration configuration;
 
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
