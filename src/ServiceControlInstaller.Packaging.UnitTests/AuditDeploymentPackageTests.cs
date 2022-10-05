@@ -1,7 +1,9 @@
 namespace Tests
 {
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
+    using System.Xml.Linq;
     using NUnit.Framework;
 
     [TestFixture]
@@ -25,7 +27,10 @@ namespace Tests
 
             using (var zip = deploymentPackage.Open())
             {
-                var persisterFiles = zip.Entries.Where(e => e.FullName.StartsWith("Persisters/")).Select(e => e.FullName).ToList();
+                var persisterFiles = zip.Entries
+                    .Where(e => e.FullName.StartsWith("Persisters/"))
+                    .Where(WillEndUpInInstallationFolder)
+                    .Select(e => e.FullName).ToList();
                 var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 
                 CollectionAssert.AreEquivalent(allStorages, persisterFolders, $"Expected persisters folder to contain {string.Join(",", allStorages)}");
@@ -37,6 +42,12 @@ namespace Tests
                     Assert.IsNotNull(zip.Entries.SingleOrDefault(e => e.FullName == $"Persisters/{persisterFolder}/persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
                 }
             }
+        }
+
+        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
+        {
+            // Persisters/<name>/<filename.ext>
+            return entry.FullName.Count(c => c == '/') == 2;
         }
 
         [Test]
