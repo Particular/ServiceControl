@@ -27,7 +27,7 @@
             {
                 if (settings.PersisterSpecificSettings.ContainsKey(ConnectionStringKey))
                 {
-                    throw new InvalidOperationException($"Both {DatabasePathKey} and {ConnectionStringKey} cant be specified at the same ftime");
+                    throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time");
                 }
 
                 var hostName = settings.PersisterSpecificSettings[HostNameKey];
