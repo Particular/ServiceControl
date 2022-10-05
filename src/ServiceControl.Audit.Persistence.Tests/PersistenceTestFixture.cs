@@ -24,7 +24,7 @@
         [TearDown]
         public virtual Task Cleanup()
         {
-            return configuration.Cleanup();
+            return configuration?.Cleanup();
         }
 
         protected string GetManifestPath()

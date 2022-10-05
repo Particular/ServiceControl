@@ -22,16 +22,27 @@
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            databaseName = Guid.NewGuid().ToString();
-
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            var instance = await SharedEmbeddedServer.GetInstance();
-
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
-
             setSettings(settings);
+
+            if (!settings.PersisterSpecificSettings.ContainsKey("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"))
+            {
+                var instance = SharedEmbeddedServer.GetInstance();
+
+                settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
+            }
+
+            if (!settings.PersisterSpecificSettings.ContainsKey("ServiceControl/Audit/RavenDb5/DatabaseName"))
+            {
+                databaseName = Guid.NewGuid().ToString();
+
+                settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
+            }
+            else
+            {
+                databaseName = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"];
+            }
 
             var persistence = config.Create(settings);
             await persistence.CreateInstaller().Install();
