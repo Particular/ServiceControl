@@ -2,7 +2,6 @@
 {
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using RavenDb5;
     using UnitOfWork;
 
     class RavenDb5Persistence : IPersistence

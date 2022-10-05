@@ -8,13 +8,12 @@
     using Auditing.MessagesView;
     using ServiceControl.SagaAudit;
     using Monitoring;
-    using Infrastructure;
     using Extensions;
     using Indexes;
     using Transformers;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {

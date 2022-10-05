@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb5.Infrastructure
+﻿namespace ServiceControl.Audit.Persistence.RavenDb.Infrastructure
 {
     using Microsoft.IO;
 

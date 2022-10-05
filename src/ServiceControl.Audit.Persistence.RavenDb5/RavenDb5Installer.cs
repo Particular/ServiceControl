@@ -2,7 +2,6 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using RavenDb5;
 
     class RavenDb5Installer : IPersistenceInstaller
     {

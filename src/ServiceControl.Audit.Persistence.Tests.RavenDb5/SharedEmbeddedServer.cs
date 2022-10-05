@@ -6,7 +6,6 @@
     using System.Net.NetworkInformation;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDb;
-    using ServiceControl.Audit.Persistence.RavenDb5;
 
     class SharedEmbeddedServer
     {

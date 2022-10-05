@@ -2,7 +2,7 @@
 {
     using System;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {

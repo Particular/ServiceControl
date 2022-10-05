@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb5
+﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     public class ServerConfiguration
     {

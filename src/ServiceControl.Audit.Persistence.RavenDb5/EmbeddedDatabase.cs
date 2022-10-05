@@ -11,7 +11,7 @@
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide;
     using Raven.Embedded;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     public class EmbeddedDatabase : IDisposable
     {

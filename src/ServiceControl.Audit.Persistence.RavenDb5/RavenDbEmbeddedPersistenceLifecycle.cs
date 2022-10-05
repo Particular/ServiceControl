@@ -4,7 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     class RavenDbEmbeddedPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
