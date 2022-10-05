@@ -51,7 +51,7 @@ namespace Tests
         }
 
         [Test]
-        public void Raven5_should_include_raver_server()
+        public void Raven5_should_include_raven_server()
         {
             var storage = "RavenDb5";
 
