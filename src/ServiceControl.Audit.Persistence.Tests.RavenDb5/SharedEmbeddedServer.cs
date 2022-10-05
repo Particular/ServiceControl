@@ -28,6 +28,12 @@
             return embeddedDatabase;
         }
 
+        public static void Stop()
+        {
+            embeddedDatabase?.Dispose();
+            embeddedDatabase = null;
+        }
+
         static int FindAvailablePort(int startPort)
         {
             var activeTcpListeners = IPGlobalProperties

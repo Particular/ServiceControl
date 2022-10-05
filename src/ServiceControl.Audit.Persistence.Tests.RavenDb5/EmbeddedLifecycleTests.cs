@@ -22,10 +22,8 @@
                 s.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = databaseMaintenancePort.ToString();
             };
 
-            var instance = await SharedEmbeddedServer.GetInstance();
-
             //make sure to stop the global instance first
-            instance.Dispose();
+            SharedEmbeddedServer.Stop();
 
             await base.Setup();
         }
