@@ -27,12 +27,24 @@
             {
                 if (settings.PersisterSpecificSettings.ContainsKey(ConnectionStringKey))
                 {
-                    throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time");
+                    throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time.");
                 }
 
-                var hostName = settings.PersisterSpecificSettings[HostNameKey];
-                var databaseMaintenancePort =
-                    int.Parse(settings.PersisterSpecificSettings[DatabaseMaintenancePortKey]);
+                if (!settings.PersisterSpecificSettings.TryGetValue(HostNameKey, out var hostName))
+                {
+                    throw new InvalidOperationException($"{HostNameKey} must be specified when using embedded server.");
+                }
+
+                if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePortString))
+                {
+                    throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be specified when using embedded server.");
+                }
+
+                if (!int.TryParse(databaseMaintenancePortString, out var databaseMaintenancePort))
+                {
+                    throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be an integer.");
+                }
+
                 var serverUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
@@ -43,7 +55,7 @@
             }
             else
             {
-                throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified");
+                throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified.");
             }
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
