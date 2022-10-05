@@ -13,29 +13,37 @@
 
             return new RavenDb5Persistence(databaseConfiguration, databaseSetup);
         }
-        static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
+
+        internal static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
         {
-            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/DatabaseName", out var databaseName))
+            if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseNameKey, out var databaseName))
             {
                 databaseName = "audit";
             }
 
             ServerConfiguration serverConfiguration;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/DbPath", out var dbPath))
+            if (settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out var dbPath))
             {
-                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
+                if (settings.PersisterSpecificSettings.ContainsKey(ConnectionStringKey))
+                {
+                    throw new InvalidOperationException($"Both {DatabasePathKey} and {ConnectionStringKey} cant be specified at the same ftime");
+                }
+
+                var hostName = settings.PersisterSpecificSettings[HostNameKey];
                 var databaseMaintenancePort =
-                    int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
+                    int.Parse(settings.PersisterSpecificSettings[DatabaseMaintenancePortKey]);
                 var serverUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
             }
+            else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
+            {
+                serverConfiguration = new ServerConfiguration(connectionString);
+            }
             else
             {
-                var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
-
-                serverConfiguration = new ServerConfiguration(connectionString);
+                throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified");
             }
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
@@ -53,7 +61,7 @@
         {
             var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessTimerInSeconds", out var expirationProcessTimerInSecondsString))
+            if (settings.PersisterSpecificSettings.TryGetValue(ExpirationProcessTimerInSecondsKey, out var expirationProcessTimerInSecondsString))
             {
                 expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
             }
@@ -76,5 +84,12 @@
         static ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
+
+        internal const string DatabaseNameKey = "ServiceControl/Audit/RavenDb5/DatabaseName";
+        internal const string DatabasePathKey = "ServiceControl.Audit/DbPath";
+        internal const string ConnectionStringKey = "ServiceControl/Audit/RavenDb5/ConnectionString";
+        internal const string HostNameKey = "ServiceControl.Audit/HostName";
+        internal const string DatabaseMaintenancePortKey = "ServiceControl.Audit/DatabaseMaintenancePort";
+        internal const string ExpirationProcessTimerInSecondsKey = "ServiceControl.Audit/ExpirationProcessTimerInSeconds";
     }
 }
