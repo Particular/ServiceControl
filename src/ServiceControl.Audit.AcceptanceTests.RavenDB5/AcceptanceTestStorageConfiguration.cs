@@ -10,14 +10,16 @@
     {
         public string PersistenceType { get; protected set; }
 
-        public async Task CustomizeSettings(IDictionary<string, string> settings)
+        public Task CustomizeSettings(IDictionary<string, string> settings)
         {
             var databaseName = Guid.NewGuid().ToString();
 
-            var instance = await SharedEmbeddedServer.GetInstance();
+            var instance = SharedEmbeddedServer.GetInstance();
 
             settings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
             settings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
+
+            return Task.CompletedTask;
         }
 
         public Task Configure()

@@ -3,35 +3,37 @@
     using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
-    using System.Threading;
-    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.Audit.Persistence.RavenDb5;
 
     class SharedEmbeddedServer
     {
-        public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
+        public static EmbeddedDatabase GetInstance()
         {
-            if (embeddedDatabase != null)
+            lock (lockObject)
             {
+                if (embeddedDatabase != null)
+                {
+                    return embeddedDatabase;
+                }
+
+                var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
+                var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
+
+                embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new AuditDatabaseConfiguration("audit"));
+
                 return embeddedDatabase;
             }
-
-            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
-            var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
-            embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new DatabaseConfiguration("audit", 60, true));
-
-            await embeddedDatabase.Connect(cancellationToken)
-                .ConfigureAwait(false);
-
-            return embeddedDatabase;
         }
 
         public static void Stop()
         {
-            embeddedDatabase?.Dispose();
-            embeddedDatabase = null;
+            lock (lockObject)
+            {
+                embeddedDatabase?.Dispose();
+                embeddedDatabase = null;
+            }
         }
 
         static int FindAvailablePort(int startPort)
@@ -53,5 +55,6 @@
         }
 
         static EmbeddedDatabase embeddedDatabase;
+        static object lockObject = new object();
     }
 }

@@ -24,12 +24,11 @@
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-
             setSettings(settings);
 
             if (!settings.PersisterSpecificSettings.ContainsKey("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"))
             {
-                var instance = await SharedEmbeddedServer.GetInstance();
+                var instance = SharedEmbeddedServer.GetInstance();
 
                 settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
             }
