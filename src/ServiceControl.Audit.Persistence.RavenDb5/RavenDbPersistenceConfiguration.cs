@@ -11,7 +11,7 @@
             var databaseConfiguration = GetDatabaseConfiguration(settings);
             var databaseSetup = new DatabaseSetup(databaseConfiguration);
 
-            return new RavenDb5Persistence(databaseConfiguration, databaseSetup, settings);
+            return new RavenDb5Persistence(databaseConfiguration, databaseSetup);
         }
         static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
         {
@@ -20,10 +20,34 @@
                 databaseName = "audit";
             }
 
+            ServerOptions serverOptions;
+
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/DbPath", out var dbPath))
+            {
+                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
+                var databaseMaintenancePort =
+                    int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
+                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
+
+                serverOptions = new ServerOptions(dbPath, databaseMaintenanceUrl);
+            }
+            else
+            {
+                var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
+
+                serverOptions = new ServerOptions(connectionString);
+            }
+
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
-            return new DatabaseConfiguration(databaseName, expirationProcessTimerInSeconds, settings.EnableFullTextSearchOnBodies);
+            return new DatabaseConfiguration(
+                databaseName,
+                expirationProcessTimerInSeconds,
+                settings.EnableFullTextSearchOnBodies,
+                serverOptions);
         }
+
+
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
         {

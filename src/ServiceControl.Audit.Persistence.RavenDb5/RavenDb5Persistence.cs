@@ -7,16 +7,15 @@
 
     class RavenDb5Persistence : IPersistence
     {
-        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration, DatabaseSetup databaseSetup, PersistenceSettings settings)
+        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration, DatabaseSetup databaseSetup)
         {
             this.databaseConfiguration = databaseConfiguration;
             this.databaseSetup = databaseSetup;
-            this.settings = settings;
         }
 
         public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton(settings);
+            serviceCollection.AddSingleton(databaseConfiguration);
             serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
@@ -60,6 +59,5 @@
 
         readonly DatabaseConfiguration databaseConfiguration;
         readonly DatabaseSetup databaseSetup;
-        readonly PersistenceSettings settings;
     }
 }

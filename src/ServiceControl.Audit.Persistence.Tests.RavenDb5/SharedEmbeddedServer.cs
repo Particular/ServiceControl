@@ -21,7 +21,7 @@
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new DatabaseConfiguration("audit", 60, true));
+                embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new DatabaseConfiguration("audit", 60, true, new ServerOptions(serverUrl)));
 
                 return embeddedDatabase;
             }
