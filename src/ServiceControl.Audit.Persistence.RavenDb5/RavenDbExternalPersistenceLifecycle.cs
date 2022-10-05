@@ -9,9 +9,8 @@
 
     class RavenDbExternalPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
-        public RavenDbExternalPersistenceLifecycle(string connectionString, DatabaseConfiguration configuration)
+        public RavenDbExternalPersistenceLifecycle(DatabaseConfiguration configuration)
         {
-            this.connectionString = connectionString;
             this.configuration = configuration;
         }
 
@@ -30,7 +29,7 @@
             var store = new DocumentStore
             {
                 Database = configuration.Name,
-                Urls = new[] { connectionString },
+                Urls = new[] { configuration.ServerConfiguration.ConnectionString },
                 Conventions = new DocumentConventions
                 {
                     SaveEnumsAsIntegers = true
@@ -59,6 +58,5 @@
         IDocumentStore documentStore;
 
         readonly DatabaseConfiguration configuration;
-        readonly string connectionString;
     }
 }

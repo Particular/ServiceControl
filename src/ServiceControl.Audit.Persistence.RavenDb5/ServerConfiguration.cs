@@ -1,22 +1,23 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb5
 {
-    public class ServerOptions
+    public class ServerConfiguration
     {
-        public ServerOptions(string connectionString)
+        public ServerConfiguration(string connectionString)
         {
             UseEmbeddedServer = false;
             ConnectionString = connectionString;
         }
-        public ServerOptions(string dbPath, string maintenanceUrl)
+        public ServerConfiguration(string dbPath, string serverUrl)
         {
             UseEmbeddedServer = true;
             DbPath = dbPath;
-            MaintenanceUrl = maintenanceUrl;
+
+            ServerUrl = serverUrl;
         }
 
         public string ConnectionString { get; }
         public bool UseEmbeddedServer { get; }
         public string DbPath { get; }
-        public string MaintenanceUrl { get; }
+        public string ServerUrl { get; }
     }
 }

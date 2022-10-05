@@ -3,17 +3,15 @@
     using System;
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
+    using ServiceControl.Audit.Persistence.RavenDb5;
 
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
-
-        public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider, PersistenceSettings settings)
+        public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
         {
             this.documentStoreProvider = documentStoreProvider;
             this.sessionProvider = sessionProvider;
-
-            auditRetentionPeriod = settings.AuditRetentionPeriod;
-            settingsMaxBodySizeToStore = settings.MaxBodySizeToStore;
+            this.databaseConfiguration = databaseConfiguration;
         }
 
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
@@ -23,13 +21,12 @@
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 
             return new RavenDbAuditIngestionUnitOfWork(
-                bulkInsert, auditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, settingsMaxBodySizeToStore)
+                bulkInsert, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
             );
         }
 
-        readonly TimeSpan auditRetentionPeriod;
-        readonly int settingsMaxBodySizeToStore;
         readonly IRavenDbDocumentStoreProvider documentStoreProvider;
         readonly IRavenDbSessionProvider sessionProvider;
+        readonly DatabaseConfiguration databaseConfiguration;
     }
 }

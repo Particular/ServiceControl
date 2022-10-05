@@ -20,22 +20,22 @@
                 databaseName = "audit";
             }
 
-            ServerOptions serverOptions;
+            ServerConfiguration serverConfiguration;
 
             if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/DbPath", out var dbPath))
             {
                 var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
                 var databaseMaintenancePort =
                     int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
-                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
+                var serverUrl = $"http://{hostName}:{databaseMaintenancePort}";
 
-                serverOptions = new ServerOptions(dbPath, databaseMaintenanceUrl);
+                serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
             }
             else
             {
                 var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
 
-                serverOptions = new ServerOptions(connectionString);
+                serverConfiguration = new ServerConfiguration(connectionString);
             }
 
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
@@ -44,10 +44,10 @@
                 databaseName,
                 expirationProcessTimerInSeconds,
                 settings.EnableFullTextSearchOnBodies,
-                serverOptions);
+                settings.AuditRetentionPeriod,
+                settings.MaxBodySizeToStore,
+                serverConfiguration);
         }
-
-
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
         {

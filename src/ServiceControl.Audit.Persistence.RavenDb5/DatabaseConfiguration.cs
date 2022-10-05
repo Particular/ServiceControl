@@ -7,12 +7,20 @@
 
     public class DatabaseConfiguration
     {
-        public DatabaseConfiguration(string name, int expirationProcessTimerInSeconds, bool enableFullTextSearch, ServerOptions serverOptions)
+        public DatabaseConfiguration(
+            string name,
+            int expirationProcessTimerInSeconds,
+            bool enableFullTextSearch,
+            TimeSpan auditRetentionPeriod,
+            int maxBodySizeToStore,
+            ServerConfiguration serverConfiguration)
         {
             Name = name;
             ExpirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
             EnableFullTextSearch = enableFullTextSearch;
-            ServerOptions = serverOptions;
+            AuditRetentionPeriod = auditRetentionPeriod;
+            MaxBodySizeToStore = maxBodySizeToStore;
+            ServerConfiguration = serverConfiguration;
         }
 
         public string Name { get; }
@@ -27,6 +35,10 @@
 
         public Func<string, BlittableJsonReaderObject, string> FindClrType { get; }
 
-        public ServerOptions ServerOptions { get; }
+        public ServerConfiguration ServerConfiguration { get; }
+
+        public TimeSpan AuditRetentionPeriod { get; }
+
+        public int MaxBodySizeToStore { get; }
     }
 }

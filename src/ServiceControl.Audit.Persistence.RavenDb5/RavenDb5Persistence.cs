@@ -32,29 +32,14 @@
 
         IRavenDbPersistenceLifecycle CreateLifecycle()
         {
-            if (UseEmbeddedInstance(settings))
-            {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
-                var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
-                var databaseMaintenancePort =
-                    int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
-                var databaseMaintenanceUrl = $"http://{hostName}:{databaseMaintenancePort}";
+            var serverConfiguration = databaseConfiguration.ServerConfiguration;
 
-                return new RavenDbEmbeddedPersistenceLifecycle(dbPath, databaseMaintenanceUrl, databaseConfiguration);
+            if (serverConfiguration.UseEmbeddedServer)
+            {
+                return new RavenDbEmbeddedPersistenceLifecycle(databaseConfiguration);
             }
 
-            var connectionString = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"];
-            return new RavenDbExternalPersistenceLifecycle(connectionString, databaseConfiguration);
-        }
-
-        static bool UseEmbeddedInstance(PersistenceSettings settings)
-        {
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance", out var useEmbeddedInstanceString))
-            {
-                return bool.Parse(useEmbeddedInstanceString);
-            }
-
-            return false;
+            return new RavenDbExternalPersistenceLifecycle(databaseConfiguration);
         }
 
         readonly DatabaseConfiguration databaseConfiguration;

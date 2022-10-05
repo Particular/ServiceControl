@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
@@ -21,7 +22,8 @@
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(dbPath, serverUrl, new DatabaseConfiguration("audit", 60, true, new ServerOptions(serverUrl)));
+    
+            embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, new ServerConfiguration(dbPath, serverUrl)));
 
                 return embeddedDatabase;
             }
