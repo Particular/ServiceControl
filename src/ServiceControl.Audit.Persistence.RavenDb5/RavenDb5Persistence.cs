@@ -17,7 +17,7 @@
             serviceCollection.AddSingleton(databaseConfiguration);
             serviceCollection.AddSingleton<IRavenDbSessionProvider, RavenDbSessionProvider>();
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
-            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
+            serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, SessionBasedRavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
 
             var lifecycle = CreateLifecycle();
