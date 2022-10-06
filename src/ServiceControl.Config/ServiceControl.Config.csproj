@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
-    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging" ReferenceOutputAssembly="false"/>
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
   <ItemGroup>
