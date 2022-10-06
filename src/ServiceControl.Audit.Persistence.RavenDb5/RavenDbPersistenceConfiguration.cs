@@ -2,7 +2,6 @@
 {
     using System;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence.RavenDb;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -97,11 +96,11 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
 
-        internal const string DatabaseNameKey = "ServiceControl/Audit/RavenDb5/DatabaseName";
-        internal const string DatabasePathKey = "ServiceControl.Audit/DbPath";
-        internal const string ConnectionStringKey = "ServiceControl/Audit/RavenDb5/ConnectionString";
-        internal const string HostNameKey = "ServiceControl.Audit/HostName";
-        internal const string DatabaseMaintenancePortKey = "ServiceControl.Audit/DatabaseMaintenancePort";
-        internal const string ExpirationProcessTimerInSecondsKey = "ServiceControl.Audit/ExpirationProcessTimerInSeconds";
+        public const string DatabaseNameKey = "ServiceControl/Audit/RavenDb5/DatabaseName";
+        public const string DatabasePathKey = "ServiceControl.Audit/DbPath";
+        public const string ConnectionStringKey = "ServiceControl/Audit/RavenDb5/ConnectionString";
+        public const string HostNameKey = "ServiceControl.Audit/HostName";
+        public const string DatabaseMaintenancePortKey = "ServiceControl.Audit/DatabaseMaintenancePort";
+        public const string ExpirationProcessTimerInSecondsKey = "ServiceControl.Audit/ExpirationProcessTimerInSeconds";
     }
 }

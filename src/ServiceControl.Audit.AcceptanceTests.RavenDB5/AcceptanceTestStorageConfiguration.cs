@@ -16,8 +16,8 @@
 
             var instance = SharedEmbeddedServer.GetInstance();
 
-            settings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
-            settings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
+            settings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+            settings[RavenDbPersistenceConfiguration.DatabaseNameKey] = databaseName;
 
             return Task.CompletedTask;
         }
