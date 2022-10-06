@@ -8,19 +8,19 @@
     using Auditing.MessagesView;
     using ServiceControl.SagaAudit;
     using Monitoring;
-    using Infrastructure;
     using Extensions;
     using Indexes;
     using Transformers;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
-        public RavenDbAuditDataStore(IRavenDbSessionProvider sessionProvider, PersistenceSettings settings)
+        public RavenDbAuditDataStore(IRavenDbSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
         {
             this.sessionProvider = sessionProvider;
-            isFullTextSearchEnabled = settings.EnableFullTextSearchOnBodies;
+            isFullTextSearchEnabled = databaseConfiguration.EnableFullTextSearch;
         }
 
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)

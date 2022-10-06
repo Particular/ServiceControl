@@ -4,15 +4,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     class RavenDbEmbeddedPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
-        public RavenDbEmbeddedPersistenceLifecycle(string dbPath, string databaseMaintenanceUrl, DatabaseConfiguration dataBaseConfiguration)
+        public RavenDbEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration)
         {
-            this.dbPath = dbPath;
-            this.databaseMaintenanceUrl = databaseMaintenanceUrl;
-            this.dataBaseConfiguration = dataBaseConfiguration;
+            this.databaseConfiguration = databaseConfiguration;
         }
 
         public IDocumentStore GetDocumentStore()
@@ -27,7 +25,7 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            database = EmbeddedDatabase.Start(dbPath, databaseMaintenanceUrl, dataBaseConfiguration);
+            database = EmbeddedDatabase.Start(databaseConfiguration);
 
             documentStore = await database.Connect(cancellationToken).ConfigureAwait(false);
         }
@@ -43,8 +41,6 @@
         IDocumentStore documentStore;
         EmbeddedDatabase database;
 
-        readonly string dbPath;
-        readonly string databaseMaintenanceUrl;
-        readonly DatabaseConfiguration dataBaseConfiguration;
+        readonly DatabaseConfiguration databaseConfiguration;
     }
 }

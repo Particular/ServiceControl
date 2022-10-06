@@ -10,7 +10,7 @@
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
-    using ServiceControl.Audit.Persistence.RavenDb5.Infrastructure;
+    using ServiceControl.Audit.Persistence.RavenDb.Infrastructure;
     using ServiceControl.SagaAudit;
 
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork

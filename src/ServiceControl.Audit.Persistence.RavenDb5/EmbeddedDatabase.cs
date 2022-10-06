@@ -11,19 +11,19 @@
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide;
     using Raven.Embedded;
-    using ServiceControl.Audit.Persistence.RavenDb5;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(DatabaseConfiguration configuration, string serverUrl)
+        public EmbeddedDatabase(DatabaseConfiguration configuration)
         {
             this.configuration = configuration;
-            ServerUrl = serverUrl;
+            ServerUrl = configuration.ServerConfiguration.ServerUrl;
         }
 
         public string ServerUrl { get; private set; }
 
-        public static EmbeddedDatabase Start(string dbPath, string serverUrl, DatabaseConfiguration auditDatabaseConfiguration)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
         {
             var commandLineArgs = new List<string>();
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RavenLicense.json");
@@ -44,14 +44,14 @@
             {
                 CommandLineArgs = commandLineArgs,
                 AcceptEula = true,
-                DataDirectory = dbPath,
-                ServerUrl = serverUrl,
+                DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
+                ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,
                 MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
             };
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(auditDatabaseConfiguration, serverUrl);
+            return new EmbeddedDatabase(databaseConfiguration);
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
