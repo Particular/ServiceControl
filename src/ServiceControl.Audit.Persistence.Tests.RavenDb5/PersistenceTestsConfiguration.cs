@@ -26,22 +26,22 @@
 
             setSettings(settings);
 
-            if (!settings.PersisterSpecificSettings.ContainsKey("ServiceControl/Audit/RavenDb5/UseEmbeddedInstance"))
+            if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
             {
                 var instance = SharedEmbeddedServer.GetInstance();
 
-                settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/ConnectionString"] = instance.ServerUrl;
+                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
 
-            if (!settings.PersisterSpecificSettings.ContainsKey("ServiceControl/Audit/RavenDb5/DatabaseName"))
+            if (settings.PersisterSpecificSettings.TryGetValue(RavenDbPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
             {
-                databaseName = Guid.NewGuid().ToString();
-
-                settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"] = databaseName;
+                databaseName = configuredDatabaseName;
             }
             else
             {
-                databaseName = settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb5/DatabaseName"];
+                databaseName = Guid.NewGuid().ToString();
+
+                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseNameKey] = databaseName;
             }
 
             var persistence = config.Create(settings);
@@ -73,10 +73,16 @@
 
         public async Task Cleanup()
         {
-            await DocumentStore?.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
-                new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
+            if (DocumentStore != null)
+            {
+                await DocumentStore.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(
+                    new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
+            }
 
-            await persistenceLifecycle?.Stop();
+            if (persistenceLifecycle != null)
+            {
+                await persistenceLifecycle.Stop();
+            }
         }
 
         public string Name => "RavenDb5";
