@@ -2,6 +2,7 @@ namespace Tests
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using NUnit.Framework;
 
@@ -23,13 +24,20 @@ namespace Tests
                 CollectionAssert.IsNotEmpty(mainEntries, $"Expected a {deploymentPackage.ServiceName} folder in {deploymentPackage.FullName}");
 
                 var entries = mainEntries
-                    .Join(zip.Entries.Except(mainEntries), mainEntry => mainEntry.Name, entry => entry.Name, (mainEntry, entry) => new { mainEntry, entry })
+                    .Join(zip.Entries.Except(mainEntries).Where(WillEndUpInInstallationFolder), mainEntry => mainEntry.Name, entry => entry.Name, (mainEntry, entry) => new { mainEntry, entry })
                     .Where(t => t.entry.Length != t.mainEntry.Length && !IgnoreList.Contains(@t.entry.FullName))
                     .Select(t => t.entry.FullName)
                     .ToList();
 
                 CollectionAssert.IsEmpty(entries, $"File sizes should match the ones in the {deploymentPackage.ServiceName} folder. Check versions of dependencies.");
             }
+        }
+
+        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
+        {
+            // Peristers/<name>/<filename.ext>
+            // Transports/<name>/<filename.ext>
+            return entry.FullName.Count(c => c == '/') == 2;
         }
 
         [Test]

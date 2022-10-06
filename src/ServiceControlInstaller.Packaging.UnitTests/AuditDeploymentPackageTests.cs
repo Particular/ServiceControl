@@ -1,6 +1,7 @@
 namespace Tests
 {
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using NUnit.Framework;
 
@@ -25,7 +26,10 @@ namespace Tests
 
             using (var zip = deploymentPackage.Open())
             {
-                var persisterFiles = zip.Entries.Where(e => e.FullName.StartsWith("Persisters/")).Select(e => e.FullName).ToList();
+                var persisterFiles = zip.Entries
+                    .Where(e => e.FullName.StartsWith("Persisters/"))
+                    .Where(WillEndUpInInstallationFolder)
+                    .Select(e => e.FullName).ToList();
                 var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 
                 CollectionAssert.AreEquivalent(allStorages, persisterFolders, $"Expected persisters folder to contain {string.Join(",", allStorages)}");
@@ -36,6 +40,26 @@ namespace Tests
                 {
                     Assert.IsNotNull(zip.Entries.SingleOrDefault(e => e.FullName == $"Persisters/{persisterFolder}/persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
                 }
+            }
+        }
+
+        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
+        {
+            // Persisters/<name>/<filename.ext>
+            return entry.FullName.Count(c => c == '/') == 2;
+        }
+
+        [Test]
+        public void Raven5_should_include_raven_server()
+        {
+            var storage = "RavenDb5";
+
+            using (var zip = deploymentPackage.Open())
+            {
+                var persisterFiles = zip.Entries.Where(e => e.FullName.StartsWith("Persisters/") && e.FullName.Contains(storage)).Select(e => e.FullName).ToList();
+                var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
+
+                Assert.IsTrue(persisterFiles.Any(fn => fn.Contains("RavenDBServer")));
             }
         }
 

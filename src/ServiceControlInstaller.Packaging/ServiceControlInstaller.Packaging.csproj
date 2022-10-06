@@ -121,7 +121,7 @@
       <AuditLearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
       <AuditInMemoryPersistence Include="$(InMemoryPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(InMemoryPersistenceFolder)%(identity)')" />
       <AuditRavenDbPersistence Include="$(RavenDbPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDbPersistenceFolder)%(identity)')" />
-      <AuditRavenDb5Persistence Include="$(RavenDb5PersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDb5PersistenceFolder)%(identity)')" />
+      <AuditRavenDb5Persistence Include="$(RavenDb5PersistenceFolder)\**\*.*" Exclude="@(FilesToExclude->'$(RavenDb5PersistenceFolder)%(identity)')" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
@@ -135,7 +135,7 @@
     <Copy SourceFiles="@(AuditLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
     <Copy SourceFiles="@(AuditInMemoryPersistence)" DestinationFolder="$(StagingFolder)Persisters\InMemory" />
     <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDb35" />
-    <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDb5" />
+    <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDb5\%(RecursiveDir)" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />

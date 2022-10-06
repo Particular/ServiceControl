@@ -16,6 +16,10 @@
     {
       "Name": "ServiceControl.Audit/DatabaseMaintenancePort",
       "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl/Audit/RavenDb5/UseEmbeddedInstance",
+      "DefaultValue": "true"
     }
   ],
   "SettingsWithPathsToCleanup": [

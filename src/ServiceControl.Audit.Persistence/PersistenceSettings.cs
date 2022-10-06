@@ -14,7 +14,7 @@
             EnableFullTextSearchOnBodies = enableFullTextSearchOnBodies;
             MaxBodySizeToStore = maxBodySizeToStore;
 
-            PersisterSpecificSettings = new Dictionary<string, string>();
+            PersisterSpecificSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public bool MaintenanceMode { get; set; }
