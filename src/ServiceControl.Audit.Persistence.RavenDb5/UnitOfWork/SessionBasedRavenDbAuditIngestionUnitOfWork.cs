@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using Auditing;
     using Infrastructure;
@@ -25,6 +27,11 @@
         {
             await session.SaveChangesAsync().ConfigureAwait(false);
             session.Dispose();
+            foreach (var stream in bodyStreams)
+            {
+                stream.Dispose();
+            }
+            bodyStreams.Clear();
         }
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body = null)
@@ -48,16 +55,15 @@
 
             if (body != null && body.Length <= maxBodySizeToStore)
             {
-                using (var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length))
+                var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length);
+                bodyStreams.Add(stream);
+                if (!processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType))
                 {
-                    if (!processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType))
-                    {
-                        // TODO: is there a use case for no content type? and if that's the case is it expected that the default is text/xml?
-                        contentType = "text/xml";
-                    }
-
-                    session.Advanced.Attachments.Store(processedMessage, "body", stream, contentType);
+                    // TODO: is there a use case for no content type? and if that's the case is it expected that the default is text/xml?
+                    contentType = "text/xml";
                 }
+
+                session.Advanced.Attachments.Store(processedMessage, "body", stream, contentType);
             }
         }
 
@@ -80,5 +86,6 @@
         readonly IAsyncDocumentSession session;
         readonly TimeSpan auditRetentionPeriod;
         readonly int maxBodySizeToStore;
+        readonly List<Stream> bodyStreams = new List<Stream>();
     }
 }
