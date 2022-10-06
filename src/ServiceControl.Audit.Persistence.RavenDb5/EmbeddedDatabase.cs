@@ -11,7 +11,6 @@
     using Raven.Client.Documents.Conventions;
     using Raven.Client.ServerWide;
     using Raven.Embedded;
-    using ServiceControl.Audit.Persistence.RavenDb;
 
     public class EmbeddedDatabase : IDisposable
     {
@@ -39,14 +38,12 @@
                 commandLineArgs.Add($"--License=\"{license}\"");
             }
 
-            commandLineArgs.Add($"--Server.MaxTimeForTaskToWaitForDatabaseToLoadInSec={(int)TimeSpan.FromDays(1).TotalSeconds}");
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs = commandLineArgs,
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
-                ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,
-                MaxServerStartupTimeDuration = TimeSpan.FromDays(1) //TODO: RAVEN5 allow command line override?
+                ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl
             };
 
             EmbeddedServer.Instance.StartServer(serverOptions);
