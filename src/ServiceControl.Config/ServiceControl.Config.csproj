@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
-    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -58,15 +57,6 @@
     <None Remove="Resources\**\*.*" />
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
-
-  <Target Name="CopyZips" AfterTargets="Build">
-    <ItemGroup>
-      <OutputFiles Include="..\..\zip\*.zip" />
-      <ExistingZipsToRemove Include="$(OutputPath)*.zip" />
-    </ItemGroup>
-    <Delete Files="@(ExistingZipsToRemove)" />
-    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="false" />
-  </Target>
 
   <Target Name="RemoveTranslationAssemblies" AfterTargets="Build">
     <ItemGroup>
