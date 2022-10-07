@@ -121,6 +121,76 @@
 
         }
 
+        [Test]
+        public async Task Deduplicates_messages_in_same_batch()
+        {
+            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var messageId = "duplicatedId";
+            var processingEndpoint = "endpoint";
+            var processingStarted = DateTime.UtcNow;
+
+            var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
+            var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
+            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
+
+            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+
+            await configuration.CompleteDBOperation();
+
+            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"));
+
+            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Deduplicates_messages_in_different_batches()
+        {
+            var messageId = "duplicatedId";
+            var processingEndpoint = "endpoint";
+            var processingStarted = DateTime.UtcNow;
+
+            var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
+            var unitOfWork1 = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            await unitOfWork1.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
+            await unitOfWork1.DisposeAsync().ConfigureAwait(false);
+
+            var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
+            var unitOfWork2 = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            await unitOfWork2.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
+            await unitOfWork2.DisposeAsync().ConfigureAwait(false);
+
+            await configuration.CompleteDBOperation();
+
+            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"));
+
+            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task Does_not_deduplicate_with_different_processing_started_header()
+        {
+            var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
+            var messageId = "duplicatedId";
+            var processingEndpoint = "endpoint";
+            var processingStarted = DateTime.UtcNow;
+            var duplicatedProcessingStarted = processingStarted.AddSeconds(5);
+
+            var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
+            var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: duplicatedProcessingStarted);
+            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
+
+            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+
+            await configuration.CompleteDBOperation();
+
+            var queryResult = await DataStore.GetMessages(false, new PagingInfo(), new SortInfo("message_id", "asc"));
+
+            Assert.That(queryResult.QueryStats.TotalCount, Is.EqualTo(2));
+        }
+
+
         string GetBodyId(ProcessedMessage processedMessage)
         {
             if (processedMessage.MessageMetadata.TryGetValue("BodyUrl", out var bodyUrlObj)
@@ -142,7 +212,8 @@
             string messageId = null,
             MessageIntentEnum intent = MessageIntentEnum.Send,
             string conversationId = null,
-            string processingEndpoint = null
+            string processingEndpoint = null,
+            DateTime? processingStarted = null
         )
         {
             messageId = messageId ?? Guid.NewGuid().ToString();
@@ -168,7 +239,8 @@
                 { Headers.MessageId, messageId },
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, intent.ToString() },
-                { Headers.ConversationId, conversationId }
+                { Headers.ConversationId, conversationId },
+                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) }
             };
 
 
@@ -180,8 +252,7 @@
             var unitOfWork = StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
-                await unitOfWork.RecordProcessedMessage(processedMessage)
-                    ;
+                await unitOfWork.RecordProcessedMessage(processedMessage);
             }
             await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();
