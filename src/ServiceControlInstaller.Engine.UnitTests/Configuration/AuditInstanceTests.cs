@@ -17,20 +17,14 @@
         [Test]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
-            var zipInfo = ServiceControlAuditZipInfo.Find(ZipFileFolder.FullName);
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb35");
 
-            var persistenceManifest = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath)
-                .Single(manifest => manifest.Name == "RavenDb35");
-
-            var newInstance = new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest)
-            {
-                InstallPath = InstallPath,
-                TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ),
-                DBPath = DbPath,
-                LogPath = LogPath,
-                HostName = "localhost",
-                DatabaseMaintenancePort = 33333
-            };
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.DBPath = DbPath;
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
 
             newInstance.CopyFiles(ZipFilePath);
             newInstance.WriteConfigurationFile();
@@ -59,7 +53,7 @@
         [Test]
         public void Should_update_existing_persister()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(ZipFileFolder.FullName);
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb5");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -88,20 +82,15 @@
         [Test]
         public void Should_remove_log_and_db_folders_on_uninstall()
         {
-            var zipInfo = ServiceControlAuditZipInfo.Find(ZipFileFolder.FullName);
 
-            var persistenceManifest = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath)
-                .Single(manifest => manifest.Name == "RavenDb35");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb35");
 
-            var newInstance = new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest)
-            {
-                InstallPath = InstallPath,
-                TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ),
-                DBPath = DbPath,
-                LogPath = LogPath,
-                HostName = "localhost",
-                DatabaseMaintenancePort = 33333
-            };
+            newInstance.InstallPath = InstallPath;
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.DBPath = DbPath;
+            newInstance.LogPath = LogPath;
+            newInstance.HostName = "localhost";
+            newInstance.DatabaseMaintenancePort = 33333;
 
             newInstance.CopyFiles(ZipFilePath);
             newInstance.WriteConfigurationFile();

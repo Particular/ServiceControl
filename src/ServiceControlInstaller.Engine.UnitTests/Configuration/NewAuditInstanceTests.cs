@@ -10,6 +10,7 @@
     class NewAuditInstanceTests : InstallationFixture
     {
         [Test]
+        [Ignore("Re-enable once we switch the default back to RavenDb5 again")]
         public void Should_install_raven5_for_new_instances()
         {
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(ZipFileFolder.FullName);
