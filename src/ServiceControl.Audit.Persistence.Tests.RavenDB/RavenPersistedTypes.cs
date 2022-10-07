@@ -8,12 +8,9 @@
     using NUnit.Framework;
     using Particular.Approvals;
     using Raven.Abstractions.Data;
-    using Raven.Client.Connection.Async;
     using Raven.Client.Indexes;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
-    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.Audit.Persistence.Tests;
 
