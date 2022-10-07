@@ -65,6 +65,20 @@
         }
 
         [Test]
+        public async Task Can_query_by_message_type()
+        {
+            await IngestProcessedMessagesAudits(
+                MakeMessage(messageType: "MyMessageType"),
+                MakeMessage(messageType: "OtherMessageType"),
+                MakeMessage(messageType: "MyMessageType")
+            );
+
+            var queryResult = await DataStore.QueryMessages("MyMessageType", new PagingInfo(),
+                new SortInfo("message_id", "asc"));
+
+            Assert.That(queryResult.Results.Count, Is.EqualTo(2));
+        }
+        [Test]
         public async Task Can_roundtrip_message_body()
         {
             string expectedContentType = "text/xml";
@@ -213,12 +227,14 @@
             MessageIntentEnum intent = MessageIntentEnum.Send,
             string conversationId = null,
             string processingEndpoint = null,
-            DateTime? processingStarted = null
+            DateTime? processingStarted = null,
+            string messageType = null
         )
         {
             messageId = messageId ?? Guid.NewGuid().ToString();
             conversationId = conversationId ?? Guid.NewGuid().ToString();
             processingEndpoint = processingEndpoint ?? "SomeEndpoint";
+            messageType = messageType ?? "MyMessageType";
 
             var metadata = new Dictionary<string, object>
             {
@@ -228,7 +244,7 @@
                 { "ProcessingTime", TimeSpan.FromSeconds(1) },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
                 { "IsSystemMessage", false },
-                { "MessageType", "MyMessageType" },
+                { "MessageType", messageType },
                 { "IsRetried", false },
                 { "ConversationId", conversationId },
                 //{ "ContentLength", 10}
@@ -240,7 +256,8 @@
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId },
-                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) }
+                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
+                { Headers.EnclosedMessageTypes, messageType }
             };
 
 
