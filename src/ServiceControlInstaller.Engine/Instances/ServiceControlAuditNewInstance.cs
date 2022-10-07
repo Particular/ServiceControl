@@ -21,12 +21,18 @@
 
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
         {
+            return CreateWithPersistence(deploymentCachePath, DefaultPersister);
+        }
+
+        public static ServiceControlAuditNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
+        {
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
             var persistenceManifest = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath)
-                .Single(manifest => manifest.Name == "RavenDb5");
+                .Single(manifest => manifest.Name == persistence);
 
             return new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest);
         }
+
 
         public ServiceControlAuditNewInstance(Version version, PersistenceManifest persistenceManifest)
         {
@@ -92,5 +98,7 @@
 
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
+
+        const string DefaultPersister = "RavenDb35";
     }
 }
