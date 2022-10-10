@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Audit.Auditing;
-    using ServiceControl.Audit.Infrastructure.WebApi;
     using ServiceControl.Audit.Persistence;
 
     class FailedAuditsController : ApiController

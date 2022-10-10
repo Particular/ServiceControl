@@ -181,7 +181,7 @@
 
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)
         {
-            if (processedMessages.Any(pm => pm.UniqueMessageId == processedMessage.UniqueMessageId))
+            if (processedMessages.Any(pm => pm.Id == processedMessage.Id))
             {
                 return Task.CompletedTask;
             }
