@@ -58,7 +58,7 @@
         static void AssertInitiatedHas2Sagas(IEnumerable<MessagesView> messages, MyContext context)
         {
             var m = messages.First(message => message.MessageType == typeof(InitiateSaga).FullName);
-            var value = (string)m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
+            var value = m.Headers.First(kv => kv.Key == "ServiceControl.SagaStateChange").Value;
             var strings = value.Split(';');
 
             Assert.IsTrue(strings.Any(s => s == context.Saga1Id + ":New"));

@@ -14,11 +14,10 @@
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Persistence.RavenDb.Extensions;
-    using NServiceBus.Logging;
-    using NServiceBus.CustomChecks;
-    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDb.Transformers;
+    using ServiceControl.Audit.Persistence.Monitoring;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
@@ -80,14 +79,14 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
-                    .Search(x => x.Query, input.Keyword)
-                    .Where(m => m.ReceivingEndpointName == input.Endpoint)
+                    .Search(x => x.Query, keyword)
+                    .Where(m => m.ReceivingEndpointName == endpoint)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
@@ -133,7 +132,23 @@
             }
         }
 
-        public async Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId)
+        public async Task<MessageBodyView> GetMessageBody(string messageId)
+        {
+            var fromIndex = await GetMessageBodyFromIndex(messageId).ConfigureAwait(false);
+
+            if (!fromIndex.Found)
+            {
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                if (fromAttachments.Found)
+                {
+                    return fromAttachments;
+                }
+            }
+
+            return fromIndex;
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromIndex(string messageId)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -145,30 +160,41 @@
 
                 if (message == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
+                    return MessageBodyView.NotFound();
                 }
 
                 if (message.BodyNotStored && message.Body == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NoContent);
+                    return MessageBodyView.NoContent();
                 }
 
                 if (message.Body == null)
                 {
-                    return request.CreateResponse(HttpStatusCode.NotFound);
+                    return MessageBodyView.NotFound();
                 }
 
-                var response = request.CreateResponse(HttpStatusCode.OK);
-                var content = new StringContent(message.Body);
-
-                MediaTypeHeaderValue.TryParse(message.ContentType, out var parsedContentType);
-                content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
-
-                content.Headers.ContentLength = message.BodySize;
-                response.Headers.ETag = new EntityTagHeaderValue($"\"{stats.IndexEtag}\"");
-                response.Content = content;
-                return response;
+                return MessageBodyView.FromString(message.Body, message.ContentType, message.BodySize, stats.IndexEtag);
             }
+        }
+
+        async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
+        {
+            //We want to continue using attachments for now
+#pragma warning disable 618
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}").ConfigureAwait(false);
+#pragma warning restore 618
+
+            if (attachment == null)
+            {
+                return MessageBodyView.NoContent();
+            }
+
+            return MessageBodyView.FromStream(
+                attachment.Data(),
+                attachment.Metadata["ContentType"].Value<string>(),
+                attachment.Metadata["ContentLength"].Value<int>(),
+                attachment.Etag
+            );
         }
 
         public async Task<QueryResult<IList<KnownEndpointsView>>> QueryKnownEndpoints()
@@ -196,38 +222,8 @@
             }
         }
 
-        public async Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false))
-                {
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        Logger.Warn(errorMessage);
-                        return CheckResult.Failed(errorMessage);
-                    }
-                }
-            }
-
-            return CheckResult.Pass;
-        }
-
-        public async Task SaveFailedAuditImport(FailedAuditImport message)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                await session.StoreAsync(message).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
-        }
-
         public Task Setup() => Task.CompletedTask;
 
         IDocumentStore documentStore;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbAuditDataStore));
     }
 }

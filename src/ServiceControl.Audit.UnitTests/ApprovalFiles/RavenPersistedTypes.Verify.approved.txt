@@ -1,4 +1,0 @@
-ServiceControl.Audit.Monitoring.KnownEndpoint, ServiceControl.Audit, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Audit.Auditing.ProcessedMessage, ServiceControl.Audit, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Audit.Auditing.FailedAuditImport, ServiceControl.Audit, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Audit.Persistence.RavenDb.Indexes.MessagesViewIndex+SortAndFilterOptions, ServiceControl.Audit.Persistence.RavenDb, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null

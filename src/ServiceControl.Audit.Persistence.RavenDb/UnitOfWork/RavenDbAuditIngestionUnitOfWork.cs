@@ -5,17 +5,31 @@
     using Monitoring;
     using Persistence.UnitOfWork;
     using Raven.Client.Document;
+    using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.SagaAudit;
 
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         BulkInsertOperation bulkInsert;
+        BodyStorageEnricher bodyStorageEnricher;
 
-        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert)
-            => this.bulkInsert = bulkInsert;
+        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, BodyStorageEnricher bodyStorageEnricher)
+        {
+            this.bulkInsert = bulkInsert;
+            this.bodyStorageEnricher = bodyStorageEnricher;
+        }
 
-        public Task RecordProcessedMessage(ProcessedMessage processedMessage)
-            => bulkInsert.StoreAsync(processedMessage);
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
+        {
+            if (body != null)
+            {
+                await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage)
+                .ConfigureAwait(false);
+            }
+
+            await bulkInsert.StoreAsync(processedMessage)
+                .ConfigureAwait(false);
+        }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
             => bulkInsert.StoreAsync(sagaSnapshot);

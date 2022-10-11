@@ -594,6 +594,13 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
         public ExpiryProcessedMessageIndex() { }
     }
 }
+namespace ServiceControl.Infrastructure.RavenDB
+{
+    public interface IDataMigration
+    {
+        System.Threading.Tasks.Task Migrate(Raven.Client.IDocumentStore store);
+    }
+}
 namespace ServiceControl.Infrastructure.SignalR
 {
     public class Envelope

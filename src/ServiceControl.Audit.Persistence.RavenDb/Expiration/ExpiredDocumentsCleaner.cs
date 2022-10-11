@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.Expiration
 {
+    using System;
     using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
@@ -7,14 +8,13 @@
     using Raven.Abstractions;
     using Raven.Database;
     using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
 
     class ExpiredDocumentsCleaner
     {
-        public static Task<TimerJobExecutionResult> RunCleanup(int deletionBatchSize, DocumentDatabase database, Settings settings, CancellationToken cancellationToken = default)
+        public static Task<TimerJobExecutionResult> RunCleanup(int deletionBatchSize, DocumentDatabase database, TimeSpan auditRetentionPeriod, CancellationToken cancellationToken = default)
         {
-            var threshold = SystemTime.UtcNow.Add(-settings.AuditRetentionPeriod);
+            var threshold = SystemTime.UtcNow.Add(-auditRetentionPeriod);
 
             if (logger.IsDebugEnabled)
             {

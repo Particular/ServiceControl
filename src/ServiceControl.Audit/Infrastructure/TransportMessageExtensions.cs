@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.Faults;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     static class HeaderExtensions
     {

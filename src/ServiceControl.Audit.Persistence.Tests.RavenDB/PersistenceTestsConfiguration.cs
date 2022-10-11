@@ -1,33 +1,47 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.RavenDb;
+    using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
     {
         public IAuditDataStore AuditDataStore { get; protected set; }
+        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
+        public IBodyStorage BodyStorage { get; protected set; }
+        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
 
-        public Task Configure()
+        public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenDbPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new FakeSettings
-            {
-                RunInMemory = true
-            };
+            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            config.ConfigureServices(serviceCollection, settings, false, true);
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
+
+            setSettings(settings);
+
+            var persistence = config.Create(settings);
+            persistenceLifecycle = persistence.Configure(serviceCollection);
+
+            await persistenceLifecycle.Start();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
+            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
             DocumentStore = serviceProvider.GetRequiredService<IDocumentStore>();
-
-            return Task.CompletedTask;
+            BodyStorage = serviceProvider.GetRequiredService<IBodyStorage>();
+            AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
         }
 
         public Task CompleteDBOperation()
@@ -38,20 +52,31 @@
 
         public Task Cleanup()
         {
-            DocumentStore?.Dispose();
-            return Task.CompletedTask;
+            return persistenceLifecycle?.Stop();
         }
 
-        public override string ToString() => "RavenDb";
+        IPersistenceLifecycle persistenceLifecycle;
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        class FakeSettings : Settings
+        public string Name => "RavenDb";
+
+        static int FindAvailablePort(int startPort)
         {
-            //bypass the public ctor to avoid all mandatory settings
-            public FakeSettings() : base()
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
             {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
             }
+
+            return startPort;
         }
     }
 }

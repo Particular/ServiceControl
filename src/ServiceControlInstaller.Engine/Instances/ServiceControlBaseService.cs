@@ -20,11 +20,10 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public abstract class ServiceControlBaseService : BaseService
     {
-        protected ServiceControlBaseService(WindowsServiceController service)
+        protected ServiceControlBaseService(IWindowsServiceController service)
         {
             Service = service;
             AppConfig = CreateAppConfig();
-            Reload();
         }
 
         public bool InMaintenanceMode { get; set; }
@@ -218,7 +217,7 @@ namespace ServiceControlInstaller.Engine.Instances
             //We need that to make sure we can clean-up old registration when removing instances created
             //by previous versions of ServiceControl
 
-            //pre 4.17 versions of ServiceControl were using hostnames in all cases 
+            //pre 4.17 versions of ServiceControl were using hostnames in all cases
             var pre417LegacyAclMaintenanceUrl = $"http://{HostName}:{DatabaseMaintenancePort}/";
 
             //pre 4.21 version of ServiceControl were using + in all cases
@@ -274,7 +273,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public void RemoveDataBaseFolder()
         {
             //Order by length descending in case they are nested paths
-            var folders = GetDatabaseIndexes().ToList();
+            var folders = GetPersistencePathsToCleanUp().ToList();
 
             foreach (var folder in folders.OrderByDescending(p => p.Length))
             {
@@ -284,16 +283,9 @@ namespace ServiceControlInstaller.Engine.Instances
                 }
                 catch
                 {
-                    ReportCard.Warnings.Add($"Could not delete the RavenDB directory '{folder}'. Please remove manually");
+                    ReportCard.Warnings.Add($"Could not delete '{folder}'. Please remove manually");
                 }
             }
-        }
-
-        public double GetDatabaseSizeInGb()
-        {
-            var folders = GetDatabaseIndexes().ToList();
-
-            return folders.Sum(path => new DirectoryInfo(path).GetDirectorySize()) / (1024.0 * 1024 * 1024);
         }
 
         public void ApplyConfigChange()
@@ -363,7 +355,7 @@ namespace ServiceControlInstaller.Engine.Instances
             InMaintenanceMode = false;
         }
 
-        protected virtual IEnumerable<string> GetDatabaseIndexes()
+        protected virtual IEnumerable<string> GetPersistencePathsToCleanUp()
         {
             return Enumerable.Empty<string>();
         }

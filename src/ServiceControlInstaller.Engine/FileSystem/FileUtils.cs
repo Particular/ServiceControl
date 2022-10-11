@@ -1,6 +1,7 @@
 namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Security.AccessControl;
@@ -96,6 +97,13 @@ namespace ServiceControlInstaller.Engine.FileSystem
                         {
                             Directory.CreateDirectory(filename);
                             continue;
+                        }
+
+                        // Ensure folder exists
+                        var folder = Path.GetDirectoryName(filename);
+                        if (!Directory.Exists(folder))
+                        {
+                            Directory.CreateDirectory(folder);
                         }
 
                         using (var stream = new FileStream(filename, FileMode.OpenOrCreate))

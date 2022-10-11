@@ -2,7 +2,7 @@ namespace ServiceControl.Audit.Monitoring
 {
     using System;
     using System.Collections.Concurrent;
-    using Infrastructure;
+    using ServiceControl.Audit.Persistence.Infrastructure;
 
     class EndpointInstanceMonitoring
     {

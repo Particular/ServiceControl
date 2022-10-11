@@ -8,7 +8,7 @@
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
     <NoWarn>$(NoWarn);NU5100</NoWarn>
     <IsPackable>true</IsPackable>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PrepareAuditInstance;AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,13 +24,33 @@
     <Content Include="buildProps\**\*" PackagePath="" />
   </ItemGroup>
 
-  <Target Name="AddFilesToPackage">
+  <Target Name="PrepareAuditInstance">
+    <PropertyGroup>
+      <AuditWithPersistenceFolder>.\$(OutputPath)\audit-with-persistence\</AuditWithPersistenceFolder>
+      <ServiceControlAuditFolder>..\ServiceControl.Audit\$(OutputPath)\</ServiceControlAuditFolder>
+      <AuditRavenPersistenceFolder>..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)\</AuditRavenPersistenceFolder>
+    </PropertyGroup>
+    <ItemGroup>
+      <ServiceControlAudit Include="$(ServiceControlAuditFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <AuditRavenPersistence Include="$(AuditRavenPersistenceFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
+    </ItemGroup>
+    
+    <MakeDir Directories="$(AuditWithPersistenceFolder)" />
+    <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(AuditWithPersistenceFolder)" />
+    <Copy SourceFiles="@(AuditRavenPersistence)" DestinationFolder="$(AuditWithPersistenceFolder)" />
+  </Target>
+  
+  <Target Name="AddFilesToPackage" BeforeTargets="CleanUp">
     <ItemGroup>
       <TfmSpecificPackageFile Include="..\ServiceControl\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(AuditWithPersistenceFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
       <TfmSpecificPackageFile Include="..\ServiceControl.Monitoring\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" />
       <TfmSpecificPackageFile Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-instance;platform\servicecontrol\servicecontrol-audit-instance;platform\servicecontrol\monitoring-instance" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="CleanUp" AfterTargets="AddFilesToPackage">
+    <!--<RemoveDir Directories="$(AuditWithPersistenceFolder)" />-->
   </Target>
 
 </Project>

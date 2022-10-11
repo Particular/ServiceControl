@@ -2,14 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Dapper;
     using Infrastructure;
-    using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
-    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
+    using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
 
@@ -177,7 +174,7 @@
             return new QueryResult<IList<MessagesView>>(messagesViews, new QueryStatsInfo(string.Empty, messagesViews.Count));
         }
 
-        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(SearchEndpointApi.Input input, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+        public Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)
         {
             SagaHistory sagaHistory = default;
@@ -214,12 +211,6 @@
 
         }
 
-        public Task<HttpResponseMessage> TryFetchFromIndex(HttpRequestMessage request, string messageId) => throw new NotImplementedException();
-
-        public Task<CheckResult> PerformFailedAuditImportCheck(string errorMessage) => throw new NotImplementedException();
-
-        public Task SaveFailedAuditImport(FailedAuditImport message) => throw new NotImplementedException();
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(SqlDbAuditDataStore));
+        public Task<MessageBodyView> GetMessageBody(string messageId) => throw new NotImplementedException();
     }
 }

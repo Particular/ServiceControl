@@ -7,7 +7,7 @@
   "ValidateConfiguration": true,
   "ExternalIntegrationsDispatchingBatchSize": 100,
   "DisableExternalIntegrationsPublishing": false,
-  "DisableRavenDBPerformanceCounters": true,
+  "DisableRavenDBPerformanceCounters": false,
   "SkipQueueCreation": false,
   "RunCleanupBundle": false,
   "RootUrl": "http://localhost:8888/",

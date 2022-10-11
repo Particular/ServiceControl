@@ -1,6 +1,8 @@
 namespace Tests
 {
     using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using NUnit.Framework;
 
@@ -17,17 +19,46 @@ namespace Tests
         {
             using (var zip = deploymentPackage.Open())
             {
-                var mainEntries = zip.Entries.Where(x => x.FullName.StartsWith(deploymentPackage.ServiceName)).ToList();
+                var mainEntries = zip.Entries.Where(x => x.FullName.StartsWith(deploymentPackage.ServiceName) && !x.FullName.EndsWith(".json")).ToList();
 
                 CollectionAssert.IsNotEmpty(mainEntries, $"Expected a {deploymentPackage.ServiceName} folder in {deploymentPackage.FullName}");
 
                 var entries = mainEntries
-                    .Join(zip.Entries.Except(mainEntries), mainEntry => mainEntry.Name, entry => entry.Name, (mainEntry, entry) => new { mainEntry, entry })
+                    .Join(zip.Entries.Except(mainEntries).Where(WillEndUpInInstallationFolder), mainEntry => mainEntry.Name, entry => entry.Name, (mainEntry, entry) => new { mainEntry, entry })
                     .Where(t => t.entry.Length != t.mainEntry.Length && !IgnoreList.Contains(@t.entry.FullName))
                     .Select(t => t.entry.FullName)
                     .ToList();
 
                 CollectionAssert.IsEmpty(entries, $"File sizes should match the ones in the {deploymentPackage.ServiceName} folder. Check versions of dependencies.");
+            }
+        }
+
+        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
+        {
+            // Peristers/<name>/<filename.ext>
+            // Transports/<name>/<filename.ext>
+            return entry.FullName.Count(c => c == '/') == 2;
+        }
+
+        [Test]
+        public void Should_package_transports_individually()
+        {
+            var allTransports = new string[] {
+                "SQLServer",
+                "AzureStorageQueue",
+                "AzureServiceBus",
+                "NetStandardAzureServiceBus",
+                "RabbitMQ",
+                "MSMQ",
+                "AmazonSQS",
+                "LearningTransport"};
+
+            using (var zip = deploymentPackage.Open())
+            {
+                var transportFiles = zip.Entries.Where(e => e.FullName.StartsWith("Transports/")).Select(e => e.FullName).ToList();
+                var transportFolders = transportFiles.Select(f => Directory.GetParent(f).Name).Distinct();
+
+                CollectionAssert.AreEquivalent(allTransports, transportFolders, $"Expected transports folder to contain {string.Join(",", allTransports)}");
             }
         }
 

@@ -44,7 +44,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
             HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
-            DisableRavenDBPerformanceCounters = SettingsReader<bool>.Read("DisableRavenDBPerformanceCounters", true);
             AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
             NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();

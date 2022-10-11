@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Migration
 {
     using System;
+    using System.Linq;
     using Monitoring;
     using Raven.Imports.Newtonsoft.Json.Serialization;
     using ServiceControl.SagaAudit;
@@ -19,7 +20,19 @@
                 return typeof(SagaInfo);
             }
 
-            return base.BindToType(assemblyName, typeName);
+            var className = GetClassName(typeName);
+            switch (className)
+            {
+                case nameof(EndpointDetails):
+                    return typeof(EndpointDetails);
+                default:
+                    return base.BindToType(assemblyName, typeName);
+            }
+        }
+
+        string GetClassName(string typeName)
+        {
+            return typeName.Split('.').Last();
         }
     }
 }

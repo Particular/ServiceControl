@@ -58,15 +58,6 @@
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
-  <Target Name="CopyZips" AfterTargets="Build">
-    <ItemGroup>
-      <OutputFiles Include="..\..\zip\*.zip" />
-      <ExistingZipsToRemove Include="$(OutputPath)*.zip" />
-    </ItemGroup>
-    <Delete Files="@(ExistingZipsToRemove)" />
-    <Copy SourceFiles="@(OutputFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="false" />
-  </Target>
-
   <Target Name="RemoveTranslationAssemblies" AfterTargets="Build">
     <ItemGroup>
       <FluentValidationExcludedCultures Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN" />

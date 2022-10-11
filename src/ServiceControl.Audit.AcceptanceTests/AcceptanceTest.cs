@@ -9,12 +9,12 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure.Settings;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
+    using ServiceControl.Audit.Infrastructure.Settings;
     using TestSupport;
 
     [TestFixture]
@@ -72,9 +72,9 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration.DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            TestContext.WriteLine($"Using data store {StorageConfiguration.DataStoreConfiguration.DataStoreTypeName}");
+            TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }

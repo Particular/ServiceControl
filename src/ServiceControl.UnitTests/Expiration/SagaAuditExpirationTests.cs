@@ -8,7 +8,6 @@
     using MessageFailures;
     using NUnit.Framework;
     using Raven.Client.Embedded;
-    using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
@@ -22,7 +21,7 @@
                 var expiredDate = DateTime.UtcNow.AddDays(-3);
                 var thresholdDate = DateTime.UtcNow.AddDays(-2);
 
-                var sagaHistoryId = Guid.NewGuid();
+                var sagaHistoryId = Guid.NewGuid().ToString();
                 var sagaHistory = new SagaSnapshot
                 {
                     Id = sagaHistoryId
@@ -71,7 +70,7 @@
                 {
                     var recentSagaHistory = new SagaSnapshot
                     {
-                        Id = Guid.NewGuid()
+                        Id = Guid.NewGuid().ToString()
                     };
                     session.Store(recentSagaHistory);
                     session.SaveChanges();
@@ -92,7 +91,7 @@
             {
                 yield return new SagaSnapshot
                 {
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid().ToString()
                 };
             }
         }
@@ -116,7 +115,7 @@
 
                 var expiredSagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid().ToString()
                 };
 
                 using (new RavenLastModifiedScope(expiredDate))
@@ -128,7 +127,7 @@
 
                 var recentSagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid().ToString()
                 };
                 using (new RavenLastModifiedScope(recentDate))
                 using (var session = documentStore.OpenSession())
@@ -157,7 +156,7 @@
                 var recentDate = DateTime.UtcNow.AddDays(-1);
                 var sagaHistory = new SagaSnapshot
                 {
-                    Id = Guid.NewGuid()
+                    Id = Guid.NewGuid().ToString()
                 };
 
                 using (new RavenLastModifiedScope(recentDate))
