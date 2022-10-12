@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Instances;
@@ -21,14 +20,14 @@
             settings.Set(AuditInstanceSettingsList.Port, instance.Port.ToString());
             settings.Set(AuditInstanceSettingsList.HostName, instance.HostName);
             settings.Set(AuditInstanceSettingsList.LogPath, instance.LogPath);
-            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString());
+            settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString().ToLowerInvariant());
             settings.Set(AuditInstanceSettingsList.TransportType, instance.TransportPackage.TypeName, version);
             settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceManifest.TypeName);
             settings.Set(AuditInstanceSettingsList.AuditQueue, instance.AuditQueue);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);
             settings.Set(AuditInstanceSettingsList.ServiceControlQueueAddress, instance.ServiceControlQueueAddress);
-            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString(), version);
+            settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, instance.EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), version);
 
             foreach (var manifestSetting in instance.PersistenceManifest.Settings)
             {
