@@ -7,26 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System.ServiceProcess" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.1" />
     <PackageReference Include="NServiceBus.Extensions.DependencyInjection" Version="1.1.0" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.2" />
-    <PackageReference Include="Microsoft.AspNet.Cors" Version="5.2.9" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
-    <PackageReference Include="NServiceBus" Version="7.8.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
     <PackageReference Include="NServiceBus.Extensions.Logging" Version="1.0.0" />
-    <PackageReference Include="Particular.Licensing.Sources" Version="5.0.1" PrivateAssets="All" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="5.0.1" PrivateAssets="All" TreatAsUsed="true" />
+    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
   </ItemGroup>
 
   <ItemGroup>

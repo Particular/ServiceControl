@@ -6,11 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Particular.Licensing.Sources" Version="5.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Security" />
+    <PackageReference Include="Particular.Licensing.Sources" Version="5.0.1" TreatAsUsed="true" />
   </ItemGroup>
 
 </Project>
