@@ -42,8 +42,12 @@
   </ItemGroup>
 
   <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
+    <PropertyGroup>
+      <PackageReferenceIdentity>%(PackageReference.Identity)</PackageReferenceIdentity>
+      <PackageReferenceIdentityLower>$(PackageReferenceIdentity.ToLower())</PackageReferenceIdentityLower>
+    </PropertyGroup>
     <ItemGroup>
-      <None Include="$(NuGetPackageRoot)%(PackageReference.Identity)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'%(PackageReference.Identity)' == 'RavenDB.Database'" />
+      <None Include="$(NuGetPackageRoot)$(PackageReferenceIdentityLower)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'$(PackageReferenceIdentityLower)' == 'ravendb.database'" />
     </ItemGroup>
   </Target>
 
