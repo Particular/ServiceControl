@@ -50,6 +50,13 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
+            if (instance.PersistenceManifest.Name == "RavenDb35")
+            {
+                var docsUrl = "http://docs.particular.net/TODO";
+
+                await windowManager.ShowMessage("UPGRADE NOTE", $"Please note that upgrading instances using RavenDb 3.5 will soon no longer be supported. Please consider adding a new audit instance to your installation. Please see {docsUrl} for more details.", hideCancel: true);
+            }
+
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
 
