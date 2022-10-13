@@ -14,8 +14,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition=" '$(OS)' == 'Windows_NT' " Command="copy /Y &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(SolutionDir)ServiceControl\bin\$(ConfigurationName)\$(TargetFramework)\$(ProjectName).dll&quot;" />
-    <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="cp &quot;$(TargetDir)$(ProjectName).dll&quot; &quot;$(SolutionDir)ServiceControl/bin/$(ConfigurationName)/$(TargetFramework)/&quot;" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SolutionDir)ServiceControl\$(OutputPath)" />
   </Target>
 
 </Project>
