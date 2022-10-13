@@ -12,11 +12,12 @@ namespace ServiceControl.Audit.Infrastructure
         {
             var settings = new Settings.Settings(args.ServiceName);
             var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
 
             persistenceSettings.MaintenanceMode = true;
 
             var hostBuilder = new HostBuilder()
-                .SetupPersistence(persistenceSettings);
+                .SetupPersistence(persistenceSettings, persistenceConfiguration);
 
             if (args.RunAsWindowsService)
             {
