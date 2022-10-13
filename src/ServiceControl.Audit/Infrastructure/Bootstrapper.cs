@@ -43,7 +43,9 @@ namespace ServiceControl.Audit.Infrastructure
 
         void CreateHost()
         {
-            RecordStartup(loggingSettings, configuration);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+
+            RecordStartup(loggingSettings, configuration, persistenceConfiguration);
 
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
@@ -79,7 +81,7 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
                 })
                 .UseMetrics(settings.PrintMetrics)
-                .SetupPersistence(persistenceSettings)
+                .SetupPersistence(persistenceSettings, persistenceConfiguration)
                 .UseNServiceBus(context =>
                 {
                     NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration, false);
@@ -164,12 +166,13 @@ namespace ServiceControl.Audit.Infrastructure
             return size;
         }
 
-        void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
+        void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
             var dbPath = SettingsReader<string>.Read("DbPath", null);
             var dataSize = DataSize(dbPath);
             var folderSize = FolderSize(dbPath);
+
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
@@ -179,7 +182,8 @@ Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
-Selected Transport Customization:   {settings.TransportCustomizationType}
+Transport Customization:            {settings.TransportCustomizationType},
+Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
