@@ -98,6 +98,3 @@ src/scaffolding.config
 
 # Visual Studio Code
 .vscode
-
-# learning transport root folder
-.transport/
