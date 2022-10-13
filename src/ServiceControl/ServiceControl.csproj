@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
-    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35312" />
+    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35312" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="NServiceBus" Version="7.8.0" />
     <PackageReference Include="NServiceBus.Autofac" Version="7.1.0" />
@@ -61,14 +61,8 @@
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
-  <Target Name="CopyRavenStudio" BeforeTargets="AssignTargetPaths">
-    <PropertyGroup>
-      <PackageReferenceIdentity>%(PackageReference.Identity)</PackageReferenceIdentity>
-      <PackageReferenceIdentityLower>$(PackageReferenceIdentity.ToLower())</PackageReferenceIdentityLower>
-    </PropertyGroup>
-    <ItemGroup>
-      <None Include="$(NuGetPackageRoot)$(PackageReferenceIdentityLower)\%(PackageReference.Version)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Condition="'$(PackageReferenceIdentityLower)' == 'ravendb.database'" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup>
+    <None Include="$(PkgRavenDB_Database)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
 
 </Project>
