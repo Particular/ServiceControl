@@ -5,9 +5,10 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings)
+        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder,
+            PersistenceSettings persistenceSettings,
+            IPersistenceConfiguration persistenceConfiguration)
         {
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
             var persistence = persistenceConfiguration.Create(persistenceSettings);
 
             hostBuilder.ConfigureServices(serviceCollection =>

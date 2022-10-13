@@ -5,6 +5,8 @@
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
+        public string Name => "RavenDb5";
+
         public IPersistence Create(PersistenceSettings settings)
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
