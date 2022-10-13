@@ -83,7 +83,7 @@
 
         protected override async void OnStartup(object sender, StartupEventArgs e)
         {
-            await DisplayRootViewFor<ShellViewModel>();
+            await DisplayRootViewForAsync<ShellViewModel>();
         }
 
         IContainer container;
