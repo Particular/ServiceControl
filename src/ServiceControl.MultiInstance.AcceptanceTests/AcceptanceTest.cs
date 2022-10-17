@@ -66,7 +66,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            TransportIntegration = new ConfigureEndpointLearningTransport();
+            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+
+            if (TransportIntegration.GetType() != typeof(ConfigureEndpointLearningTransport))
+            {
+                Assert.Inconclusive($"Multi instance tests are only run for the learning transport");
+            }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
