@@ -16,6 +16,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using TestSupport;
 
     [TestFixture]
@@ -67,10 +68,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
 
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
+            if (TransportIntegration.GetType() != typeof(ConfigureEndpointLearningTransport))
             {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
+                Assert.Inconclusive($"Multi instance tests are only run for the learning transport");
             }
 
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
