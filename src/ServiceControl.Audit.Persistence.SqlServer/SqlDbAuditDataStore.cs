@@ -10,7 +10,7 @@
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.SagaAudit;
 
-    //TODO - not done as not sure on the table structure required here
+    //TODO! - not done as not sure on the table structure required here
     class SqlDbAuditDataStore : IAuditDataStore
     {
         readonly SqlDbConnectionManager connectionManager;

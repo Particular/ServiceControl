@@ -179,7 +179,7 @@
 
             try
             {
-                //TODO : QUEUE Validation
+                //TODO! : QUEUE Validation
                 // QueueNameValidator.Validate(this);
             }
             catch (EngineValidationException ex)

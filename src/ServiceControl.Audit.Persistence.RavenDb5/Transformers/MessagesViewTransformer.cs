@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
 
     static class MessagesViewTransformerExtensions
     {
-        //TODO: figure out headers and everything else ;) 
+        //TODO!: figure out headers and everything else ;) 
         public static IQueryable<MessagesView> ToMessagesView(
             this IQueryable<MessagesViewIndex.SortAndFilterOptions> messages)
         => messages.OfType<ProcessedMessage>()

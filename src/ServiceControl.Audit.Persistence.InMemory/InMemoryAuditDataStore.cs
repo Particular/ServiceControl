@@ -83,7 +83,7 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            //TODO how should input.Keyword be used in this query?
+            //TODO! how should input.Keyword be used in this query?
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }

@@ -15,7 +15,7 @@
 
         public DateTime LastSeen { get; set; }
 
-        //TODO: move to ravendb projects
+        //TODO!: move to ravendb projects
         public static string MakeDocumentId(string endpointName, Guid endpointHostId)
         {
             return $"{CollectionName}/{DeterministicGuid.MakeId(endpointName, endpointHostId.ToString())}";

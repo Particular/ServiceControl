@@ -10,7 +10,7 @@ namespace ServiceControl.Monitoring
     using Transports;
     using ServiceControl.Monitoring.Infrastructure.Settings;
 
-    //TODO: align names with SC and SC.Audit
+    //TODO!: align names with SC and SC.Audit
     public class Settings
     {
         public Settings()

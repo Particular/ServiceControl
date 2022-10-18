@@ -64,7 +64,7 @@
                 AuditQueue = "audittest",
                 ForwardAuditMessages = false,
                 ForwardErrorMessages = false,
-                //TODO: Fix
+                //TODO!: Fix
                 //AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI),
                 ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
                 ErrorQueue = "testerror",

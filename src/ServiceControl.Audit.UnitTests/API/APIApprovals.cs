@@ -53,7 +53,7 @@
             Approver.Verify(settings);
         }
 
-        //TODO: Move these to the individual test projects?
+        //TODO!: Move these to the individual test projects?
         //    [Test]
         //    public void CustomCheckDetails()
         //    {
