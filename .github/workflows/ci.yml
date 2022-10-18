@@ -88,7 +88,7 @@ jobs:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
         if: matrix.transport == 'SqlServer'
-        uses: Particular/install-sql-server-action@v1.0.0
+        uses: Particular/install-sql-server-action@v1.0.1
         with:
           connection-string-env-var: ServiceControl.AcceptanceTests.ConnectionString
           catalog: nservicebus
@@ -125,7 +125,7 @@ jobs:
 
       - name: Setup Microsoft SQL Server Data Store
         if: matrix.storage == 'SqlDb'
-        uses: Particular/install-sql-server-action@v1.0.0
+        uses: Particular/install-sql-server-action@v1.0.1
         with:
           connection-string-env-var: ServiceControl/SqlStorageConnectionString
           catalog: servicecontrol
