@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using BodyStorage;
     using Infrastructure;
     using Monitoring;
     using Newtonsoft.Json;

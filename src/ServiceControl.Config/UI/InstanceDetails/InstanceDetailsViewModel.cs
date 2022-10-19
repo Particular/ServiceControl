@@ -308,7 +308,7 @@
 
             try
             {
-                progress = progress ?? this.GetProgressObject(string.Empty);
+                progress ??= this.GetProgressObject(string.Empty);
 
                 progress.Report(new ProgressDetails("Stopping Service"));
                 await Task.Run(() =>

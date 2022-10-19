@@ -4,7 +4,6 @@
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using Persistence;
-    using Raven.Client;
 
     class DeleteCustomCheckHandler : IHandleMessages<DeleteCustomCheck>
     {
