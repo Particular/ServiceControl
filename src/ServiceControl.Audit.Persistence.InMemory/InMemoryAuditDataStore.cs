@@ -50,30 +50,9 @@
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string searchParam, PagingInfo pagingInfo, SortInfo sortInfo)
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            var messages = processedMessages
-                .Where(pm =>
-                {
-                    if ((pm.MessageMetadata["MessageId"] as string) == searchParam)
-                    {
-                        return true;
-                    }
-
-                    if (TryGet(pm.MessageMetadata, "MessageType") is string messageType && messageType.Contains(searchParam))
-                    {
-                        return true;
-                    }
-
-                    if (pm.Headers.Values.Contains(searchParam))
-                    {
-                        return true;
-                    }
-
-                    return pm.MessageMetadata.ContainsKey("Body") && (pm.MessageMetadata["Body"] as string).Contains(searchParam);
-                })
-                .Select(pm => pm.MessageMetadata["MessageId"] as string)
-                .ToList();
+            var messages = GetMessageIdsMatchingQuery(keyword);
 
             var matched = messageViews
                 .Where(w => messages.Contains(w.MessageId))
@@ -83,8 +62,9 @@
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
         {
-            //TODO! how should input.Keyword be used in this query?
-            var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint).ToList();
+            var messages = GetMessageIdsMatchingQuery(keyword);
+
+            var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint && messages.Contains(w.MessageId)).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
         }
 
@@ -116,6 +96,31 @@
             return result;
         }
 
+        IList<string> GetMessageIdsMatchingQuery(string keyword)
+        {
+            return processedMessages
+             .Where(pm =>
+             {
+                 if ((pm.MessageMetadata["MessageId"] as string) == keyword)
+                 {
+                     return true;
+                 }
+
+                 if (TryGet(pm.MessageMetadata, "MessageType") is string messageType && messageType.Contains(keyword))
+                 {
+                     return true;
+                 }
+
+                 if (pm.Headers.Values.Contains(keyword))
+                 {
+                     return true;
+                 }
+
+                 return pm.MessageMetadata.ContainsKey("Body") && (pm.MessageMetadata["Body"] as string).Contains(keyword);
+             })
+             .Select(pm => pm.MessageMetadata["MessageId"] as string)
+             .ToList();
+        }
         async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
         {
             var fromBodyStorage = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);

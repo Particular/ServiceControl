@@ -7,10 +7,9 @@ namespace ServiceControl.Monitoring
     using System.Reflection;
     using System.Threading.Tasks;
     using NLog;
-    using Transports;
     using ServiceControl.Monitoring.Infrastructure.Settings;
+    using Transports;
 
-    //TODO!: align names with SC and SC.Audit
     public class Settings
     {
         public Settings()
