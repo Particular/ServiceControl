@@ -24,16 +24,13 @@ namespace ServiceControl.Config.Commands
 
         ServiceControlAdvancedViewModel CreateAdvancedScreen(InstanceDetailsViewModel viewModel)
         {
-            switch (viewModel.InstanceType)
+            return viewModel.InstanceType switch
             {
-                case InstanceType.ServiceControl:
-                    return advancedOptionsModel(viewModel.ServiceControlInstance);
-                case InstanceType.ServiceControlAudit:
-                    return advancedOptionsModel(viewModel.ServiceControlAuditInstance);
-                case InstanceType.Monitoring:
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                InstanceType.ServiceControl => advancedOptionsModel(viewModel.ServiceControlInstance),
+                InstanceType.ServiceControlAudit => advancedOptionsModel(viewModel.ServiceControlAuditInstance),
+                InstanceType.Monitoring => throw new NotImplementedException(),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;

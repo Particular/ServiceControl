@@ -129,7 +129,7 @@
             var result = false;
             try
             {
-                progress = progress ?? this.GetProgressObject();
+                progress ??= this.GetProgressObject();
 
                 progress.Report(new ProgressDetails("Starting Service"));
                 await Task.Run(() =>

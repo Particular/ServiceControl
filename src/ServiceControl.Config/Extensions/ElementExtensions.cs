@@ -20,7 +20,7 @@
             {
                 var child = VisualTreeHelper.GetChild(parent, i);
 
-                if (!(child is T typedChild))
+                if (child is not T typedChild)
                 {
                     foundChild = TryFindChild<T>(child, childName);
                     if (foundChild != null)

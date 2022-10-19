@@ -137,7 +137,7 @@
 
         ShellViewModel GetShell()
         {
-            if (!(Application.Current.MainWindow.DataContext is ShellViewModel shell))
+            if (Application.Current.MainWindow.DataContext is not ShellViewModel shell)
             {
                 throw new Exception("Main window is not a shell.");
             }

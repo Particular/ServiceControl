@@ -87,7 +87,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         internal ReportCard Upgrade(ServiceControlBaseService instance, ServiceControlUpgradeOptions upgradeOptions, IProgress<ProgressDetails> progress = null)
         {
-            progress = progress ?? new Progress<ProgressDetails>();
+            progress ??= new Progress<ProgressDetails>();
 
             instance.ReportCard = new ReportCard();
             ZipInfo.ValidateZip();
@@ -173,7 +173,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         internal ReportCard Delete(string instanceName, bool removeDB, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
-            progress = progress ?? new Progress<ProgressDetails>();
+            progress ??= new Progress<ProgressDetails>();
             progress.Report(0, 7, "Stopping instance...");
             var instance = InstanceFinder.FindServiceControlInstance(instanceName);
             instance.ReportCard = new ReportCard();
@@ -309,7 +309,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         internal ReportCard Upgrade(string instanceName, IProgress<ProgressDetails> progress = null)
         {
-            progress = progress ?? new Progress<ProgressDetails>();
+            progress ??= new Progress<ProgressDetails>();
 
             var instance = InstanceFinder.FindMonitoringInstance(instanceName);
             instance.ReportCard = new ReportCard();
@@ -385,7 +385,7 @@ namespace ServiceControl.Config.Framework.Modules
 
         internal ReportCard Delete(string instanceName, bool removeLogs, IProgress<ProgressDetails> progress = null)
         {
-            progress = progress ?? new Progress<ProgressDetails>();
+            progress ??= new Progress<ProgressDetails>();
             progress.Report(0, 7, "Stopping instance...");
             var instance = InstanceFinder.FindMonitoringInstance(instanceName);
             instance.ReportCard = new ReportCard();

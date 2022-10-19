@@ -277,7 +277,7 @@
 
             try
             {
-                progress = progress ?? this.GetProgressObject(string.Empty);
+                progress ??= this.GetProgressObject(string.Empty);
 
                 // We need this one here in case the user stopped the service by other means
                 if (InstanceType == InstanceType.ServiceControl && InMaintenanceMode)

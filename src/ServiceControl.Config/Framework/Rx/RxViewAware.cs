@@ -37,7 +37,7 @@
                 Context = context
             });
 
-            if (!(this is IActivate activatable) || activatable.IsActive)
+            if (this is not IActivate activatable || activatable.IsActive)
             {
                 PlatformProvider.Current.ExecuteOnLayoutUpdated(nonGeneratedView, OnViewReady);
             }

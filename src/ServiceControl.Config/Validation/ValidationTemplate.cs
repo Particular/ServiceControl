@@ -91,7 +91,7 @@
 
         void Validate(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Error" || e.PropertyName == "HasErrors")
+            if (e.PropertyName is "Error" or "HasErrors")
             {
                 return;
             }
