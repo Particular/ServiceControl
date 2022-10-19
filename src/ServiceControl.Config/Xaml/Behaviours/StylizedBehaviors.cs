@@ -53,7 +53,7 @@
 
         static void OnPropertyChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e)
         {
-            if (!(dpo is UIElement uie))
+            if (dpo is not UIElement uie)
             {
                 return;
             }

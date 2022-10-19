@@ -22,19 +22,14 @@ namespace ServiceControl.Config.Commands
             return windowManager.ShowInnerDialog(screen);
         }
 
-        ServiceControlAdvancedViewModel CreateAdvancedScreen(InstanceDetailsViewModel viewModel)
-        {
-            switch (viewModel.InstanceType)
+        ServiceControlAdvancedViewModel CreateAdvancedScreen(InstanceDetailsViewModel viewModel) =>
+            viewModel.InstanceType switch
             {
-                case InstanceType.ServiceControl:
-                    return advancedOptionsModel(viewModel.ServiceControlInstance);
-                case InstanceType.ServiceControlAudit:
-                    return advancedOptionsModel(viewModel.ServiceControlAuditInstance);
-                case InstanceType.Monitoring:
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                InstanceType.ServiceControl => advancedOptionsModel(viewModel.ServiceControlInstance),
+                InstanceType.ServiceControlAudit => advancedOptionsModel(viewModel.ServiceControlAuditInstance),
+                InstanceType.Monitoring => throw new ArgumentOutOfRangeException(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         readonly Func<BaseService, ServiceControlAdvancedViewModel> advancedOptionsModel;
         readonly IServiceControlWindowManager windowManager;

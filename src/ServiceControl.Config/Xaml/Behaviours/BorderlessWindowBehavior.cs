@@ -97,7 +97,7 @@
 
                     // don't process the message on windows that can't be resized
                     var resizeMode = AssociatedObject.ResizeMode;
-                    if (resizeMode == ResizeMode.CanMinimize || resizeMode == ResizeMode.NoResize)
+                    if (resizeMode is ResizeMode.CanMinimize or ResizeMode.NoResize)
                     {
                         break;
                     }
