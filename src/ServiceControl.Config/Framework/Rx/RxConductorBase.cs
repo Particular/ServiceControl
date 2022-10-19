@@ -11,7 +11,7 @@
     {
         public ICloseStrategy<T> CloseStrategy
         {
-            get { return closeStrategy ?? (closeStrategy = new DefaultCloseStrategy<T>()); }
+            get { return closeStrategy ??= new DefaultCloseStrategy<T>(); }
             set { closeStrategy = value; }
         }
 

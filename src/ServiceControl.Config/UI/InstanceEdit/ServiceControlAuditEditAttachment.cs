@@ -67,7 +67,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.Description = viewModel.ServiceControlAudit.Description;
             instance.HostName = viewModel.ServiceControlAudit.HostName;
             instance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
-            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) : (int?)null;
+            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber) : null;
             instance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwardingQueueName;
             instance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
             instance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;

@@ -67,7 +67,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             instance.Description = viewModel.ServiceControl.Description;
             instance.HostName = viewModel.ServiceControl.HostName;
             instance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
-            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControl.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : (int?)null;
+            instance.DatabaseMaintenancePort = !string.IsNullOrWhiteSpace(viewModel.ServiceControl.DatabaseMaintenancePortNumber) ? Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber) : null;
             instance.VirtualDirectory = null;
             instance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
             instance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
