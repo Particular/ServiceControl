@@ -1,0 +1,2 @@
+ServiceControl.Audit Health: Audit Database Index Errors
+ServiceControl.Audit Health: Audit Database Index Lag
