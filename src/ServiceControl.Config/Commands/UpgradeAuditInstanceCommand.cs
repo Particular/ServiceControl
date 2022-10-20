@@ -52,7 +52,7 @@
 
             if (instance.PersistenceManifest.Name == "RavenDb35")
             {
-                var docsUrl = "http://docs.particular.net/servicecontrol/upgrades/zero-downtime";
+                var docsUrl = "https://docs.particular.net/servicecontrol/upgrades/zero-downtime";
 
                 await windowManager.ShowMessage("UPGRADE NOTE",
 $@"Please note that the storage format has changed and that upgrading existing instances using RavenDb 3.5 will only be supported for a limited period of time.
