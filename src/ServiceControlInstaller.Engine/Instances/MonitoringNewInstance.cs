@@ -179,16 +179,6 @@
 
             try
             {
-                //TODO : QUEUE Validation
-                // QueueNameValidator.Validate(this);
-            }
-            catch (EngineValidationException ex)
-            {
-                ReportCard.Errors.Add(ex.Message);
-            }
-
-            try
-            {
                 CheckForConflictingUrlAclReservations();
             }
             catch (EngineValidationException ex)

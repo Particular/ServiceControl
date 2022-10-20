@@ -20,7 +20,7 @@ namespace ServiceControl.Persistence
                 serviceCollection.AddSingleton<IDocumentStore>(documentStore);
                 serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
                 serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
-                //TODO:serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
+                serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
 
                 serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
             });
