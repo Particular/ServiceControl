@@ -52,9 +52,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var mainInstancePort = FindAvailablePort(startPort);
             var mainInstanceDbPort = FindAvailablePort(mainInstancePort + 1);
             var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
-            var auditInstanceDbPort = FindAvailablePort(auditInstancePort + 1);
 
-            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort, auditInstanceDbPort).ConfigureAwait(false);
+            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort).ConfigureAwait(false);
             await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
         }
 
@@ -216,7 +215,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             }
         }
 
-        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort, int instanceDbPort)
+        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort)
         {
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -272,13 +271,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
 
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration).AssemblyQualifiedName);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName);
 
             var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
-
-            persistenceSettings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
-            persistenceSettings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = instanceDbPort.ToString();
-            persistenceSettings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
