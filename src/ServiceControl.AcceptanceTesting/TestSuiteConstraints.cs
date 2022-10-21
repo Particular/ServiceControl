@@ -46,7 +46,7 @@
             return new DataStoreConfiguration
             {
                 ConnectionString = Environment.GetEnvironmentVariable("ServiceControl/SqlStorageConnectionString"),
-                DataStoreTypeName = Environment.GetEnvironmentVariable("ServiceControl/DataStoreType") ?? "RavenDB"
+                DataStoreTypeName = Environment.GetEnvironmentVariable("ServiceControl/DataStoreType") ?? "RavenDB35"
             };
         }
 

@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
-        storage: [RavenDb, SqlDb]
+        storage: [RavenDB35, SqlDb]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -73,7 +73,7 @@ jobs:
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Upload packages
-        if: matrix.transport == 'Msmq' && matrix.storage == 'RavenDb'
+        if: matrix.transport == 'Msmq' && matrix.storage == 'RavenDB35'
         uses: actions/upload-artifact@v3.1.0
         with:
           name: assets

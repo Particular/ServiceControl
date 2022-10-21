@@ -207,7 +207,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
 
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDB;
+        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDB35;
 
         public string SqlStorageConnectionString { get; set; }
 
@@ -534,7 +534,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         DataStoreType GetDataStoreType()
         {
-            var value = SettingsReader<string>.Read("DataStoreType", "RavenDB");
+            var value = SettingsReader<string>.Read("DataStoreType", "RavenDB35");
 
             return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }

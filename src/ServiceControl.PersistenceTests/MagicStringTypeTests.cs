@@ -34,8 +34,8 @@
         [Test]
         public Task Verify_ravendb_persistence_type_string()
         {
-            var typeNamespace = DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName.Split(',')[1].Trim();
-            var typeFullName = DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName.Split(',')[0].Trim();
+            var typeNamespace = DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName.Split(',')[1].Trim();
+            var typeFullName = DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName.Split(',')[0].Trim();
             var type = typeof(RavenDbPersistenceConfiguration);
             Assert.AreEqual(type.Namespace, typeNamespace);
             Assert.AreEqual(type.FullName, typeFullName);

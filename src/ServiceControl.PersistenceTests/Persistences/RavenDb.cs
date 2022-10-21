@@ -15,7 +15,7 @@
             var serviceCollection = new ServiceCollection();
 
             documentStore = await serviceCollection.AddInitializedDocumentStore().ConfigureAwait(false);
-            serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDB);
+            serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDB35);
             var serviceProvider = serviceCollection.BuildServiceProvider();
             MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
             CustomCheckDataStore = serviceProvider.GetRequiredService<ICustomChecksDataStore>();
@@ -34,7 +34,7 @@
             return base.CleanupDB();
         }
 
-        public override string ToString() => "RavenDB";
+        public override string ToString() => "RavenDB35";
 
         EmbeddableDocumentStore documentStore;
     }
