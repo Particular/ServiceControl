@@ -3,7 +3,7 @@
     public enum DataStoreType
     {
         InMemory = 1,
-        RavenDb = 2,
+        RavenDB = 2,
         SqlDb = 3
     }
 

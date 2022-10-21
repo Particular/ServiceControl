@@ -27,7 +27,7 @@ namespace ServiceControl.Persistence
             {
                 case DataStoreType.InMemory:
                     return Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.RavenDb:
+                case DataStoreType.RavenDB:
                     return Type.GetType(DataStoreConfig.RavenDbPersistenceTypeFullyQualifiedName, true);
                 case DataStoreType.SqlDb:
                     return Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);

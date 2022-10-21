@@ -74,7 +74,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
 
-            if (DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDb))
+            if (DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDB))
             {
                 Assert.Inconclusive($"Multi-instance tests are only with RavenDb for the main instance and InMemory for the audit instance");
             }

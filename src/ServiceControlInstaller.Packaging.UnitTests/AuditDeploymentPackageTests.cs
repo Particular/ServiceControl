@@ -20,7 +20,7 @@ namespace Tests
         public void Should_package_storages_individually()
         {
             var allStorages = new string[] {
-                "RavenDb35",
+                "RavenDB35",
                 "RavenDb5",
                 "InMemory"};
 

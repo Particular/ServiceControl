@@ -50,7 +50,7 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
-            if (instance.PersistenceManifest.Name == "RavenDb35")
+            if (instance.PersistenceManifest.Name == "RavenDB35")
             {
                 var docsUrl = "https://docs.particular.net/servicecontrol/upgrades/zero-downtime";
 

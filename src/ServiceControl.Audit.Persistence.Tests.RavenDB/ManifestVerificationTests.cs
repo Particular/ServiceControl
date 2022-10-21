@@ -18,7 +18,7 @@
                 var manifest = JsonSerializer.Deserialize<PersistenceManifest>(manifestContent);
 
                 Assert.AreEqual(manifest.Version, "1.0.0");
-                Assert.AreEqual(manifest.Name, "RavenDb35");
+                Assert.AreEqual(manifest.Name, "RavenDB35");
 
                 var cleanupSetting = manifest.Settings.Single(s => s.Name == "ServiceControl/Audit/RavenDb35/RunCleanupBundle");
 

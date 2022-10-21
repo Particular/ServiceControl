@@ -59,7 +59,7 @@
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        public string Name => "RavenDb";
+        public string Name => "RavenDB";
 
         static int FindAvailablePort(int startPort)
         {
