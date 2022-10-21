@@ -33,6 +33,5 @@
         public string Name => "Learning";
         public string TypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.transport");
-        public string ScrubPlatformConnection(string input) => input;
     }
 }
