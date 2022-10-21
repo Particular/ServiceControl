@@ -152,6 +152,19 @@
 
         public TransportInfo Transport => ((ITransportConfig)ServiceInstance).TransportPackage;
 
+        public string Persister
+        {
+            get
+            {
+                if (ServiceInstance is IServiceControlAuditInstance auditInstance)
+                {
+                    return auditInstance.PersistenceManifest.DisplayName;
+                }
+
+                return "RavenDB 3.5";
+            }
+        }
+
         public string Status
         {
             get
