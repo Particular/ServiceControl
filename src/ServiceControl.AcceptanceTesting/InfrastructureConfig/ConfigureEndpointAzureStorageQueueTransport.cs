@@ -31,6 +31,5 @@
         public string Name => TransportNames.AzureStorageQueue;
         public string TypeName => $"{typeof(ASQTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
-        public string ScrubPlatformConnection(string input) => input;
     }
 }

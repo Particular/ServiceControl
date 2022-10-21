@@ -40,6 +40,5 @@
         public string Name => TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated;
         public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
-        public string ScrubPlatformConnection(string input) => input;
     }
 }

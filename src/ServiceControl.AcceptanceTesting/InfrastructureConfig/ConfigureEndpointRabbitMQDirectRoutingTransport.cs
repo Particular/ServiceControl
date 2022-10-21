@@ -43,7 +43,6 @@
         public abstract string TypeName { get; }
 
         public string ConnectionString { get; set; }
-        public string ScrubPlatformConnection(string input) => input;
 
         void PurgeQueues()
         {
