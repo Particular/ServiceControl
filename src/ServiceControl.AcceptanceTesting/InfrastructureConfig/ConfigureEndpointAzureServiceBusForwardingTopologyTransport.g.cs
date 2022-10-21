@@ -34,6 +34,5 @@
         public string TypeName => $"{typeof(ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization).AssemblyQualifiedName}";
 
         public string ConnectionString { get; set; }
-        public string ScrubPlatformConnection(string input) => input;
     }
 }
