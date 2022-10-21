@@ -34,10 +34,10 @@
         <Border Grid.Row="9"
                 Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource Gray90Brush}"
-                BorderThickness="0,1,0,0" 
+                BorderThickness="0,1,0,0"
                 Padding="0 10"
-                Visibility="{Binding Converter={StaticResource lastItemCollapseConverter}, 
-                                     RelativeSource={RelativeSource AncestorType={x:Type ContentPresenter}, 
+                Visibility="{Binding Converter={StaticResource lastItemCollapseConverter},
+                                     RelativeSource={RelativeSource AncestorType={x:Type ContentPresenter},
                                                                     AncestorLevel=3}}" />
 
         <TextBlock VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2"
@@ -48,7 +48,7 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 0 0 10px">
             <ContentControl Margin="0,0,0,-3"
                             VerticalContentAlignment="Bottom"
-                            Template="{Binding InstanceTypeIcon, Converter={StaticResource nameToResourceConverter}}" 
+                            Template="{Binding InstanceTypeIcon, Converter={StaticResource nameToResourceConverter}}"
                             Height="14px" />
             <TextBlock Margin="3,0,0,0"
                        VerticalAlignment="Center"
@@ -78,8 +78,8 @@
                            Foreground="{StaticResource Gray40Brush}"
                            Text="{Binding Status}" />
 
-                <TextBlock  Margin="3,0,0,0" 
-                            VerticalAlignment="Center"  
+                <TextBlock  Margin="3,0,0,0"
+                            VerticalAlignment="Center"
                             FontSize="13px"
                             Visibility="{Binding InMaintenanceMode, Converter={StaticResource boolToVis}}">
                     <Hyperlink Foreground="DarkOrange" Command="{Binding AdvancedOptionsCommand}" CommandParameter="{Binding DataContext, ElementName=root}">IN MAINTENANCE MODE</Hyperlink>
@@ -166,7 +166,7 @@
                 <StackPanel Orientation="Horizontal">
                     <ContentControl Margin="0,1,0,0"
                                         VerticalAlignment="Center"
-                                        Template="{StaticResource BrowseIcon}" 
+                                        Template="{StaticResource BrowseIcon}"
                                         Height="12px" />
                     <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -189,7 +189,7 @@
                 <StackPanel Orientation="Horizontal">
                     <ContentControl Margin="0,1,0,0"
                                     VerticalAlignment="Center"
-                                    Template="{StaticResource BrowseIcon}" 
+                                    Template="{StaticResource BrowseIcon}"
                                     Height="12px" />
                     <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
@@ -197,7 +197,7 @@
             </Hyperlink>
         </GroupBox>
 
-        <GroupBox Grid.Row="7" 
+        <GroupBox Grid.Row="7"
                   Grid.Column="0"
                   Visibility="{Binding HasBrowsableDBPath, Converter={StaticResource boolToVis}}"
                   Header="DB PATH"
@@ -214,13 +214,13 @@
                 <StackPanel Orientation="Horizontal">
                     <ContentControl Margin="0,1,0,0"
                                     VerticalAlignment="Center"
-                                    Template="{StaticResource BrowseIcon}" 
+                                    Template="{StaticResource BrowseIcon}"
                                     Height="12px" />
                     <TextBlock FontSize="14px" Text="Browse..." Margin="3,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Hyperlink>
         </GroupBox>
-        <GroupBox Grid.Row="8"
+        <GroupBox Grid.Row="7"
                   Grid.Column="1"
                   Header="ENDPOINT NAME"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
@@ -231,6 +231,12 @@
                   Header="TRANSPORT"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <TextBlock FontSize="14px" Text="{Binding Transport.Name}" />
+        </GroupBox>
+        <GroupBox Grid.Row="8"
+                   Grid.Column="1"
+                  Header="PERSISTER"
+                  HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}" >
+            <TextBlock FontSize="14px" Text="{Binding Persister}" />
         </GroupBox>
 
         <Border Grid.Row="1"
