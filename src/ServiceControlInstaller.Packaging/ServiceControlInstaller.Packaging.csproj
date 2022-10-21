@@ -134,8 +134,8 @@
     <Copy SourceFiles="@(AuditSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
     <Copy SourceFiles="@(AuditLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
     <Copy SourceFiles="@(AuditInMemoryPersistence)" DestinationFolder="$(StagingFolder)Persisters\InMemory" />
-    <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDb35" />
-    <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDb5\%(RecursiveDir)" />
+    <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB35" />
+    <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB5\%(RecursiveDir)" />
 
     <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
     <RemoveDir Directories="$(StagingFolder)" />

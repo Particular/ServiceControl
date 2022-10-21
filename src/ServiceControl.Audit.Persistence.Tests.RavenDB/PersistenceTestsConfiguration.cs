@@ -24,7 +24,7 @@
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
-            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            settings.PersisterSpecificSettings["ServiceControl/Audit/RavenDB35/RunInMemory"] = bool.TrueString;
             settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
             settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
 

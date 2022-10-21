@@ -53,7 +53,7 @@
         [Test]
         public void Should_update_existing_persister()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb5");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB5");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);

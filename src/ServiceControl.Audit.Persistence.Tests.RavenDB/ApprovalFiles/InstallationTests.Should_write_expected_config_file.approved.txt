@@ -9,7 +9,7 @@
         <add key="ServiceControl.Audit/PersistenceType" value="ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb" />
         <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
         <add key="Raven/ESENT/MaxPageSize" value="4096" />
-        <add key="ServiceControl/Audit/RavenDb35/RunCleanupBundle" value="true" />
+        <add key="ServiceControl/Audit/RavenDB35/RunCleanupBundle" value="true" />
         <add key="ServiceControl.Audit/DBPath" value="value-not-asserted" />
         <add key="ServiceControl.Audit/DatabaseMaintenancePort" value="33333" />
     </appSettings>
