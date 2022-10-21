@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests
 {
+    using System.Text.Json;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -27,11 +27,7 @@
 
             Assert.IsNotNull(config.Connection);
 
-            var formatted =
-                JsonConvert.SerializeObject(
-                    JsonConvert.DeserializeObject(config.Connection),
-                    Formatting.Indented
-                );
+            var formatted = JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(config.Connection), new JsonSerializerOptions { WriteIndented = true });
 
             Approver.Verify(formatted);
         }
