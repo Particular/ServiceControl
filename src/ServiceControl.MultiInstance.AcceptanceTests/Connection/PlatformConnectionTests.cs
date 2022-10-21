@@ -5,10 +5,9 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Particular.Approvals;
+    using ServiceControl.AcceptanceTesting;
     using TestSupport;
     using TestSupport.EndpointTemplates;
-    using ServiceControl.AcceptanceTesting;
-    using ServiceControlInstaller.Engine.Instances;
 
     [RunOnAllTransports]
     class PlatformConnectionTests : AcceptanceTest
@@ -34,45 +33,7 @@
                     Formatting.Indented
                 );
 
-            Approver.Verify(
-                formatted,
-                scenario: ScenarioName,
-                scrubber: TransportIntegration.ScrubPlatformConnection
-            );
-        }
-
-        string ScenarioName
-        {
-            get
-            {
-                switch (TransportIntegration.Name)
-                {
-                    case TransportNames.AmazonSQS:
-                        return "SQS";
-                    case TransportNames.AzureServiceBus:
-                        return "ASB";
-                    case TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated:
-                    case TransportNames.AzureServiceBusEndpointOrientedTopologyLegacy:
-                    case TransportNames.AzureServiceBusEndpointOrientedTopologyOld:
-                    case TransportNames.AzureServiceBusForwardingTopologyDeprecated:
-                    case TransportNames.AzureServiceBusForwardingTopologyLegacy:
-                    case TransportNames.AzureServiceBusForwardingTopologyOld:
-                        return "ASB.Old";
-                    case TransportNames.AzureStorageQueue:
-                        return "ASQ";
-                    case TransportNames.MSMQ:
-                        return "MSMQ";
-                    case TransportNames.SQLServer:
-                        return "SQL";
-                    case TransportNames.RabbitMQClassicConventionalRoutingTopology:
-                    case TransportNames.RabbitMQQuorumConventionalRoutingTopology:
-                    case TransportNames.RabbitMQClassicDirectRoutingTopology:
-                    case TransportNames.RabbitMQQuorumDirectRoutingTopology:
-                        return "RabbitMQ";
-                    default:
-                        return TransportIntegration.Name;
-                }
-            }
+            Approver.Verify(formatted);
         }
 
         class MyEndpoint : EndpointConfigurationBuilder

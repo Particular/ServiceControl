@@ -1,8 +1,13 @@
 {
   "settings": {
+    "CustomChecks": {
+      "Enabled": true,
+      "CustomChecksQueue": "Particular.ServiceControl"
+    },
+    "ErrorQueue": "error",
     "Heartbeats": {
       "Enabled": true,
-      "HeartbeatsQueue": "queue-prefix-Particular-ServiceControl",
+      "HeartbeatsQueue": "Particular.ServiceControl",
       "Frequency": "00:00:10",
       "TimeToLive": "00:00:40"
     },
@@ -10,11 +15,6 @@
       "Enabled": true,
       "AuditQueue": "audit"
     },
-    "CustomChecks": {
-      "Enabled": true,
-      "CustomChecksQueue": "queue-prefix-Particular-ServiceControl"
-    },
-    "ErrorQueue": "error",
     "SagaAudit": {
       "Enabled": true,
       "SagaAuditQueue": "audit"
