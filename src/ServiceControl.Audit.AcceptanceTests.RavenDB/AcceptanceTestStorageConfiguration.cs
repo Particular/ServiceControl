@@ -12,7 +12,7 @@
 
         public Task CustomizeSettings(IDictionary<string, string> settings)
         {
-            settings["ServiceControl/Audit/RavenDb35/RunInMemory"] = bool.TrueString;
+            settings["ServiceControl/Audit/RavenDB35/RunInMemory"] = bool.TrueString;
             settings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
             settings["ServiceControl.Audit/HostName"] = "localhost";
 
