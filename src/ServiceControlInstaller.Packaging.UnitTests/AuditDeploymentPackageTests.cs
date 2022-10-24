@@ -20,8 +20,8 @@ namespace Tests
         public void Should_package_storages_individually()
         {
             var allStorages = new string[] {
-                "RavenDb35",
-                "RavenDb5",
+                "RavenDB35",
+                "RavenDB5",
                 "InMemory"};
 
             using (var zip = deploymentPackage.Open())
@@ -52,7 +52,7 @@ namespace Tests
         [Test]
         public void Raven5_should_include_raven_server()
         {
-            var storage = "RavenDb5";
+            var storage = "RavenDB5";
 
             using (var zip = deploymentPackage.Open())
             {

@@ -88,7 +88,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (string.IsNullOrEmpty(persistenceType))
             {
-                PersistenceManifest = manifests.Single(m => m.Name == "RavenDb35");
+                PersistenceManifest = manifests.Single(m => m.Name == "RavenDB35");
             }
             else
             {
