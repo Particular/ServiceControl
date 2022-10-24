@@ -9,6 +9,8 @@ ADD /ServiceControl.Audit/bin/Release/net472 .
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
 ENV "ServiceControl.Audit/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+ENV "ServiceControl.Audit/PersistenceType"="ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb"
+
 ENV "ServiceControl.Audit/Hostname"="*"
 
 ENV "ServiceControl.Audit/DBPath"="C:\\Data\\DB\\"
