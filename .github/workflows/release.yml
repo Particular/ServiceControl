@@ -52,19 +52,19 @@ jobs:
           client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
           certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Publish installer
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: installer
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: nugets
           path: nugets/*
           retention-days: 1
       - name: Publish zips
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: zips
           path: zip/*
@@ -126,7 +126,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.1.0
       - name: Download zip artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v3.0.1
         with:
           name: zips
           path: zip
