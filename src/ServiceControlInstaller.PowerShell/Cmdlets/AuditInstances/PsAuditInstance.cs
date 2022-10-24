@@ -18,6 +18,8 @@
         public string TransportPackageName { get; set; }
         public string ConnectionString { get; set; }
 
+        public string PersistencePackageName { get; set; }
+
         public string AuditQueue { get; set; }
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
@@ -53,6 +55,7 @@
                 AuditRetentionPeriod = instance.AuditRetentionPeriod,
                 ServiceControlQueueAddress = instance.ServiceControlQueueAddress,
                 EnableFullTextSearchOnBodies = instance.EnableFullTextSearchOnBodies,
+                PersistencePackageName = instance.PersistenceManifest?.DisplayName,
             };
     }
 }
