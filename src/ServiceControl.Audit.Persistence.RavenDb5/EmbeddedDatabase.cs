@@ -29,7 +29,7 @@
             if (File.Exists(localRavenLicense))
             {
                 logger.InfoFormat("Loading RavenDB license found from {0}", localRavenLicense);
-                commandLineArgs.Add($"--License.Path={localRavenLicense}");
+                commandLineArgs.Add($"--License.Path=\"{localRavenLicense}\"");
             }
             else
             {
