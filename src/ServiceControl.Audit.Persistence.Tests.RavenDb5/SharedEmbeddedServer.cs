@@ -28,7 +28,7 @@
                 embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, new ServerConfiguration(dbPath, serverUrl)));
 
                 //make sure that the database is up
-                while (!cancellationToken.IsCancellationRequested)
+                while (true)
                 {
                     try
                     {
@@ -36,15 +36,14 @@
                         {
                             //no-op
                         }
+
+                        return embeddedDatabase;
                     }
                     catch (Exception)
                     {
                         await Task.Delay(500, cancellationToken).ConfigureAwait(false);
                     }
                 }
-
-                return embeddedDatabase;
-
             }
             finally
             {
