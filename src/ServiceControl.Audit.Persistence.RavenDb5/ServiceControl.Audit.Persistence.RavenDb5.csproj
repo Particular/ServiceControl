@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <None Remove="persistence.manifest" />
-    <None Remove="RavenLicense.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,7 +34,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="RavenLicense.json" />
+    <None Update="RavenLicense.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
