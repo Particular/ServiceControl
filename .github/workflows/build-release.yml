@@ -1,0 +1,68 @@
+name: Build release
+on: workflow_dispatch
+  
+env:
+  DOTNET_NOLOGO: true
+  # Signals build to create the installer
+  RELEASE_WORKFLOW: true
+jobs:
+  release:
+    runs-on: windows-2022 # Code signing requirement https://github.com/NuGet/Home/issues/7939
+    outputs:
+      semver: ${{ steps.save-version.outputs.semver }}
+      majorminorpatch: ${{ steps.save-version.outputs.majorminorpatch }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        with:
+          fetch-depth: 0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3.0.1
+        with:
+          dotnet-version: 6.0.x
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Setup Advanced Installer
+        run: |
+          $version = "18.8.1"
+          choco install advanced-installer --version=$version
+          & "C:\Program Files (x86)\Caphyon\Advanced Installer $version\bin\x86\AdvancedInstaller.com" /register ${{ secrets.ADVANCED_INSTALLER_LICENSE_KEY }}
+      - name: Prepare AIP file
+        run: |
+          $content = Get-Content -Raw -Path src/Setup/ServiceControl.aip
+          $content = $content -replace "replace-tenant-id", "${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}" -replace "replace-app-id", "${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}" -replace "replace-cert-name", "${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}"
+          Set-Content src/Setup/ServiceControl.aip $content
+      - name: Build
+        env:
+          AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
+        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - id: save-version
+        name: Save version
+        run: |
+          echo "::set-output name=semver::${{env.MinVerVersion}}"
+          echo "::set-output name=majorminorpatch::${{env.MinVerMajor}}.${{env.MinVerMinor}}.${{env.MinVerPatch}}"
+      - name: Sign NuGet packages
+        uses: Particular/sign-nuget-packages-action@v1.0.0
+        with:
+          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
+          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+      - name: Publish installer
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: installer
+          path: assets/*
+          retention-days: 1
+      - name: Publish NuGet packages
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: nugets
+          path: nugets/*
+          retention-days: 1
+      - name: Publish zips
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          name: zips
+          path: zip/*
+          retention-days: 1
