@@ -75,8 +75,6 @@
 
             await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken).ConfigureAwait(false);
 
-            // TODO: Check to see if the configuration has changed.
-            // If it has, then send an update to the server to change the expires metadata on all documents
             var expirationConfig = new ExpirationConfiguration
             {
                 Disabled = false,
