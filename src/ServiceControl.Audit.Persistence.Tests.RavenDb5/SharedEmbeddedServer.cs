@@ -32,10 +32,14 @@
                 {
                     try
                     {
-                        await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false);
+                        using (await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
+                        {
+                            //no-op
+                        }
                     }
                     catch (Exception)
                     {
+                        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
