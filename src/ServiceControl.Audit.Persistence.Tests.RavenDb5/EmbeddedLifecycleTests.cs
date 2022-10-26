@@ -22,7 +22,7 @@
             };
 
             //make sure to stop the global instance first
-            SharedEmbeddedServer.Stop();
+            await SharedEmbeddedServer.Stop();
 
             await base.Setup();
         }

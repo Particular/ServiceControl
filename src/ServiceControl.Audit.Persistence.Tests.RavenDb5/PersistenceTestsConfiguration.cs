@@ -28,7 +28,7 @@
 
             if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
             {
-                var instance = SharedEmbeddedServer.GetInstance();
+                var instance = await SharedEmbeddedServer.GetInstance();
 
                 settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
