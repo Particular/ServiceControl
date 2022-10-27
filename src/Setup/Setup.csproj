@@ -26,6 +26,7 @@
     <PropertyGroup>
       <SetupExeOutputFolder>$(SolutionDir)..\assets\</SetupExeOutputFolder>
       <SetupExeName>Particular.ServiceControl-$(MinVerVersion).exe</SetupExeName>
+      <ZipFolder>$(SolutionDir)..\zip\</ZipFolder>
     </PropertyGroup>
     <MakeDir Directories="$(SetupExeOutputFolder)" />
     <ItemGroup>
@@ -38,7 +39,7 @@
     <Copy SourceFiles="@(Prerequisites)" DestinationFolder="$(IntermediateOutputPath)Prerequisites\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name PROJECT_PATH -value $(SolutionDir)Setup -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name WPF_PATH -value $(SolutionDir)ServiceControl.Config\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
-    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name ZIP_PATH -value $(SolutionDir)..\zip -valuetype Folder" />
+    <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name ZIP_PATH -value $(ZipFolder) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name POSH_PATH -value $(SolutionDir)ServiceControlInstaller.PowerShell\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /NewPathVariable -name CUSTOMACTIONS_PATH -value $(SolutionDir)ServiceControlInstaller.CustomActions\bin\$(Configuration)\$(TargetFramework) -valuetype Folder" />
     <Exec Command="$(AdvancedInstallerExe) /edit $(IntermediateOutputPath)$(AIPFile) /SetVersion $(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
