@@ -26,7 +26,7 @@
     <PropertyGroup>
       <SetupExeOutputFolder>$(SolutionDir)..\assets\</SetupExeOutputFolder>
       <SetupExeName>Particular.ServiceControl-$(MinVerVersion).exe</SetupExeName>
-      <ZipFolder>$(SolutionDir)..\zip\</ZipFolder>
+      <ZipFolder>$([System.IO.Path]::GetFullPath($(SolutionDir)..\zip\))</ZipFolder>
     </PropertyGroup>
     <MakeDir Directories="$(SetupExeOutputFolder)" />
     <ItemGroup>
