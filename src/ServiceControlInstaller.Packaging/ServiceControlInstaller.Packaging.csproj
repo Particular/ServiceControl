@@ -72,6 +72,7 @@
     </ItemGroup>
 
     <Copy SourceFiles="@(ServiceControl)" DestinationFolder="$(StagingFolder)ServiceControl\" />
+    <Copy SourceFiles="@(RavenDB35Persister)" DestinationFolder="$(StagingFolder)ServiceControl\" />
     <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
     <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
     <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
