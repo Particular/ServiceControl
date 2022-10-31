@@ -3,13 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using Raven.Client.ServerWide;
     using Raven.Embedded;
 
     public class EmbeddedDatabase : IDisposable
@@ -61,14 +59,6 @@
             if (configuration.FindClrType != null)
             {
                 dbOptions.Conventions.FindClrType += configuration.FindClrType;
-            }
-
-            if (configuration.EnableDocumentCompression)
-            {
-                dbOptions.DatabaseRecord.DocumentsCompression = new DocumentsCompressionConfiguration(
-                    false,
-                    configuration.CollectionsToCompress.ToArray()
-                );
             }
 
             return await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
