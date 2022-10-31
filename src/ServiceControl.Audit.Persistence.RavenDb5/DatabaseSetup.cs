@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -13,7 +12,6 @@
     using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
-    using Raven.Client.ServerWide.Operations.DocumentsCompression;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.SagaAudit;
 
@@ -43,15 +41,6 @@
                 {
                     // The database was already created before calling CreateDatabaseOperation
                 }
-            }
-
-            if (configuration.EnableDocumentCompression)
-            {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(
-                    new UpdateDocumentsCompressionConfigurationOperation(new DocumentsCompressionConfiguration(
-                        false,
-                        configuration.CollectionsToCompress.ToArray()
-                    )), cancellationToken).ConfigureAwait(false);
             }
 
             var indexList = new List<AbstractIndexCreationTask> {
