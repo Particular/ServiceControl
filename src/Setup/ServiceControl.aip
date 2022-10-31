@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="10.6" version="17.7" Modules="enterprise" RootPath="." Language="en" Id="{D5FBDAF4-B426-436A-ABC2-D10F5C54F8FF}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="10.6" version="20.0" Modules="enterprise" RootPath="." Language="en" Id="{D5FBDAF4-B426-436A-ABC2-D10F5C54F8FF}">
+  <COMPONENT cid="caphyon.advinst.msicomp.ProjectOptionsComponent">
+    <ROW Name="HiddenItems" Value="ActSyncAppComponent;CPLAppletComponent;AutorunComponent;GameUxComponent;SilverlightSlnComponent;SharePointSlnComponent;AppXAppDetailsComponent;FixupComponent;AppXCapabilitiesComponent;AppXDependenciesComponent;AppXProductDetailsComponent;AppXVisualAssetsComponent;AppXAppDeclarationsComponent;AppXUriRulesComponent;MsiXDiffComponent;MsixManifestEditorComponent"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
+    <ROW Property="AI_CURRENT_YEAR" Value="2022" ValueLocId="-"/>
     <ROW Property="AI_EXTERNALUIUNINSTALLERNAME" MultiBuildValue="DefaultBuild:aiui"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
+    <ROW Property="AI_PACKAGING_TOOL" Value="Advanced Installer 20.0 build e4706cc2" ValueLocId="-"/>
     <ROW Property="AI_PREDEF_LCONDS_PROPS" Value="AI_DETECTED_DOTNET_VERSION"/>
     <ROW Property="AI_PRODUCTNAME_ARP" Value="Particular Software ServiceControl Management"/>
     <ROW Property="AI_REQUIRED_DOTNET_DISPLAY" MultiBuildValue="DefaultBuild:4.6.2" ValueLocId="-"/>
@@ -21,7 +26,7 @@
     <ROW Property="ProductCode" Value="1033:{E81799B3-F7D0-4EDE-8BB8-92E7590BEAA2} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="ServiceControl"/>
-    <ROW Property="ProductVersion" Value="1.6.0" Type="32"/>
+    <ROW Property="ProductVersion" Value="1.6.0"/>
     <ROW Property="RUNAPPLICATION" Value="1" Type="4"/>
     <ROW Property="SCINSTANCESPRESENT" Value="NO"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
@@ -47,6 +52,17 @@
     <ROW Directory="ProgramMenuFolder" Directory_Parent="TARGETDIR" DefaultDir="Progra~1|ProgramMenuFolder" IsPseudoRoot="1"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
+    <ROW Directory="Zips_Dir" Directory_Parent="APPDIR" DefaultDir=".:Zips" DirectoryOptions="3"/>
+    <ROW Directory="de_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="de" DirectoryOptions="3"/>
+    <ROW Directory="es_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="es" DirectoryOptions="3"/>
+    <ROW Directory="fr_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="fr" DirectoryOptions="3"/>
+    <ROW Directory="it_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="it" DirectoryOptions="3"/>
+    <ROW Directory="ja_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="ja" DirectoryOptions="3"/>
+    <ROW Directory="ko_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="ko" DirectoryOptions="3"/>
+    <ROW Directory="ptBR_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="pt-BR" DirectoryOptions="3"/>
+    <ROW Directory="ru_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="ru" DirectoryOptions="3"/>
+    <ROW Directory="zhHans_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="zh-Hans" DirectoryOptions="3"/>
+    <ROW Directory="zhHant_Dir" Directory_Parent="POWERSHELLDIR" DefaultDir="zh-Hant" DirectoryOptions="3"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_CustomARPName" ComponentId="{86B714D7-9C86-41C8-9C3F-D3988F63F047}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
@@ -54,23 +70,54 @@
     <ROW Component="APPDIR" ComponentId="{84AD6BEA-0DEE-4213-AB2C-677765A3D533}" Directory_="APPDIR" Attributes="0"/>
     <ROW Component="Autofac.dll" ComponentId="{D6F6725A-F61B-4DD9-A263-F8D2C4ED0E3F}" Directory_="APPDIR" Attributes="0" KeyPath="Autofac.dll"/>
     <ROW Component="Autofac.xml" ComponentId="{A6EFDA0A-3642-408F-91DF-34D2C740CBA8}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControlConfig.exe.config" Type="0"/>
+    <ROW Component="Caliburn.Micro.Core.dll" ComponentId="{00470568-406F-45AD-95E3-1AA651933E31}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.Core.dll"/>
     <ROW Component="Caliburn.Micro.Platform.Core.dll" ComponentId="{51AD0E00-547F-4102-BECD-B2AD294883B7}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.Platform.Core.dll"/>
     <ROW Component="Caliburn.Micro.Platform.dll" ComponentId="{27C13C07-9130-44BE-807B-26EE04C78A21}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.Platform.dll"/>
-    <ROW Component="Caliburn.Micro.dll" ComponentId="{36A52D16-4AD9-4754-B55D-BA18B1B513C4}" Directory_="APPDIR" Attributes="0" KeyPath="Caliburn.Micro.dll"/>
     <ROW Component="DotNetZip.dll" ComponentId="{AB3536D1-0C0D-4A9B-80C9-46ACBF693656}" Directory_="APPDIR" Attributes="0" KeyPath="DotNetZip.dll"/>
     <ROW Component="DotNetZip.dll_1" ComponentId="{92784515-FBAD-4F1F-8066-A2B70E451EFD}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="DotNetZip.dll_1"/>
+    <ROW Component="DynamicData.dll" ComponentId="{A77DCC30-39A0-400A-9B22-D94505EF0D45}" Directory_="APPDIR" Attributes="0" KeyPath="DynamicData.dll"/>
     <ROW Component="FluentValidation.dll" ComponentId="{76E4C3A9-A85A-45CD-9F30-0D65A5DFEEC4}" Directory_="APPDIR" Attributes="0" KeyPath="FluentValidation.dll"/>
+    <ROW Component="Microsoft.Bcl.AsyncInterfaces.dll" ComponentId="{AC976397-63BA-4552-9122-542A009E3FFF}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Bcl.AsyncInterfaces.dll"/>
+    <ROW Component="Microsoft.Data.SqlClient.SNI.x64.dll" ComponentId="{9426EAD2-4331-497F-9481-1012D9362AA4}" Directory_="APPDIR" Attributes="256" KeyPath="Microsoft.Data.SqlClient.SNI.x64.dll"/>
+    <ROW Component="Microsoft.Data.SqlClient.SNI.x64.dll_1" ComponentId="{60D6C15A-A842-4E35-8B7F-7B8513CD83A6}" Directory_="POWERSHELLDIR" Attributes="256" KeyPath="Microsoft.Data.SqlClient.SNI.x64.dll_1"/>
+    <ROW Component="Microsoft.Data.SqlClient.SNI.x86.dll" ComponentId="{D408D6EB-E209-41E9-80C1-DAD3432778ED}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.SqlClient.SNI.x86.dll"/>
+    <ROW Component="Microsoft.Data.SqlClient.SNI.x86.dll_1" ComponentId="{0DBF93D7-A6D5-4824-9CC1-614E5324C686}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.Data.SqlClient.SNI.x86.dll_1"/>
+    <ROW Component="Microsoft.Data.SqlClient.dll" ComponentId="{62F9ED8A-1999-46BE-BEC9-3CAD62A50510}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Data.SqlClient.dll"/>
+    <ROW Component="Microsoft.Data.SqlClient.dll_1" ComponentId="{CC50AAD1-8C70-426F-A1F5-7E17D8064AF3}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.Data.SqlClient.dll_1"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll" ComponentId="{D4257A05-E241-4D22-B935-9BAAE3536B00}" Directory_="de_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_1" ComponentId="{09E252CA-8DBF-4302-94CF-5F47AE40FB21}" Directory_="es_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_1"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_2" ComponentId="{8F24598C-3EFC-4F05-B410-102213D0470E}" Directory_="fr_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_2"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_3" ComponentId="{611ECF0A-254A-4E7A-92E1-C647E57415DC}" Directory_="it_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_3"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_4" ComponentId="{DA884703-B7DF-4A8B-BD6D-239EAD409441}" Directory_="ja_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_4"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_5" ComponentId="{0C27A475-5C0F-44EA-80BB-FB94B95551E5}" Directory_="ko_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_5"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_6" ComponentId="{F4BB9F81-9564-4C4A-A8C9-D3D9CEA5A5FA}" Directory_="ptBR_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_6"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_7" ComponentId="{F27C4876-9577-400C-8243-E25C00B259D1}" Directory_="ru_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_7"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_8" ComponentId="{F00E6956-C989-4BA0-87FF-AF743C00DAF7}" Directory_="zhHans_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_8"/>
+    <ROW Component="Microsoft.Data.SqlClient.resources.dll_9" ComponentId="{CF07A9BC-4D59-45B4-A7FF-95E62594862D}" Directory_="zhHant_Dir" Attributes="0" KeyPath="Microsoft.Data.SqlClient.resources.dll_9"/>
+    <ROW Component="Microsoft.Identity.Client.dll" ComponentId="{48C0FD24-405E-42CF-A6CE-E3D71C4507CF}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Identity.Client.dll"/>
+    <ROW Component="Microsoft.Identity.Client.dll_1" ComponentId="{B0D9B0AE-45A0-4BFD-B870-BCEE8C4CCA67}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.Identity.Client.dll_1"/>
+    <ROW Component="Microsoft.IdentityModel.JsonWebTokens.dll" ComponentId="{C561006F-C309-460A-A1D8-E65B20FE0AB5}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.JsonWebTokens.dll"/>
+    <ROW Component="Microsoft.IdentityModel.JsonWebTokens.dll_1" ComponentId="{4072A98B-9E96-45F5-A5B7-A7BA9E77CFB6}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.JsonWebTokens.dll_1"/>
+    <ROW Component="Microsoft.IdentityModel.Logging.dll" ComponentId="{D6CDEDA2-A9EE-4D77-B087-76A8C25A790F}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Logging.dll"/>
+    <ROW Component="Microsoft.IdentityModel.Logging.dll_1" ComponentId="{77E546A9-573E-4A08-B6F2-E7D41344C27E}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Logging.dll_1"/>
+    <ROW Component="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" ComponentId="{897C0452-94DE-4888-A57B-BD9EFD7A638B}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll"/>
+    <ROW Component="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll_1" ComponentId="{7BCE4FC8-2A40-4D88-8815-7F9AA3ECE2FC}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll_1"/>
+    <ROW Component="Microsoft.IdentityModel.Protocols.dll" ComponentId="{FA5C0559-8319-4C6E-9DF1-5157410C080C}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Protocols.dll"/>
+    <ROW Component="Microsoft.IdentityModel.Protocols.dll_1" ComponentId="{603D95C2-C961-4F8D-A8FD-EB70113E8063}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Protocols.dll_1"/>
+    <ROW Component="Microsoft.IdentityModel.Tokens.dll" ComponentId="{C5AE5E1B-542D-41AD-8417-9BAAC5C22AA0}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Tokens.dll"/>
+    <ROW Component="Microsoft.IdentityModel.Tokens.dll_1" ComponentId="{3961EED1-D8AF-49E1-979D-2947000BB3BD}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Microsoft.IdentityModel.Tokens.dll_1"/>
     <ROW Component="Microsoft.WindowsAPICodePack.Shell.dll" ComponentId="{943DC936-83AE-444A-B4D2-99C616B82BFD}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.Shell.dll"/>
     <ROW Component="Microsoft.WindowsAPICodePack.dll" ComponentId="{C5C6B685-AABC-4C76-BA63-67E3DCC5799B}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.WindowsAPICodePack.dll"/>
+    <ROW Component="Microsoft.Xaml.Behaviors.dll" ComponentId="{A3BA2147-4946-4BE9-8A2D-ACB8C6581904}" Directory_="APPDIR" Attributes="0" KeyPath="Microsoft.Xaml.Behaviors.dll"/>
     <ROW Component="Mindscape.Raygun4Net.dll" ComponentId="{F019EB46-BC4B-40BA-9F03-36ADF158949F}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net.dll"/>
     <ROW Component="Mindscape.Raygun4Net4.dll" ComponentId="{C844C639-AE9E-4361-B4CD-DC1ADACAB74F}" Directory_="APPDIR" Attributes="0" KeyPath="Mindscape.Raygun4Net4.dll"/>
     <ROW Component="Newtonsoft.Json.dll" ComponentId="{14F4E0A0-27EB-4AE5-9B1B-9591A9097C91}" Directory_="APPDIR" Attributes="0" KeyPath="Newtonsoft.Json.dll"/>
     <ROW Component="Newtonsoft.Json.dll_1" ComponentId="{F7B2A24F-B8E5-430E-9223-A22182E55905}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="Newtonsoft.Json.dll_1"/>
+    <ROW Component="Particular.ServiceControl4.26.0.zip" ComponentId="{6B899DBD-8E0C-4FED-A995-6E94557957A6}" Directory_="Zips_Dir" Attributes="0" KeyPath="Particular.ServiceControl4.26.0.zip_1" Type="0"/>
     <ROW Component="PowerShell" ComponentId="{E78C4FB6-E073-4899-BE09-BC15A8AF04B9}" Directory_="MODULEDIR" Attributes="0"/>
     <ROW Component="REG_ManagementApp" ComponentId="{33DAA3D2-7FB3-41EF-ACCC-39D6BC579FD0}" Directory_="APPDIR" Attributes="260" KeyPath="ManagementApp"/>
     <ROW Component="REG_Version" ComponentId="{0334C672-95CB-4DAC-8971-8BC6B16BFDF9}" Directory_="APPDIR" Attributes="260" KeyPath="Version_1"/>
-    <ROW Component="ReactiveUI.Blend.dll" ComponentId="{21CA9CDF-BB06-446C-AE2E-E10300D5CF6F}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Blend.dll"/>
-    <ROW Component="ReactiveUI.Xaml.dll" ComponentId="{42EEA5E3-8E69-455C-9DA4-F7A6BBD56402}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Xaml.dll"/>
+    <ROW Component="ReactiveUI.Wpf.dll" ComponentId="{96A6F778-E9DE-4539-BE1E-1D3D83C11C3C}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.Wpf.dll"/>
     <ROW Component="ReactiveUI.dll" ComponentId="{477DADE0-86E1-45D9-83EB-0F73AB164553}" Directory_="APPDIR" Attributes="0" KeyPath="ReactiveUI.dll"/>
     <ROW Component="SHORTCUTDIR" ComponentId="{A34B0A89-3EB3-443B-9DD8-ACA01E02839A}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="ServiceControl.LicenseManagement.dll" ComponentId="{6940E26F-E6DD-494B-832F-C238AAEA95F9}" Directory_="APPDIR" Attributes="0" KeyPath="ServiceControl.LicenseManagement.dll"/>
@@ -80,14 +127,34 @@
     <ROW Component="ServiceControlInstaller.Engine.dll_1" ComponentId="{0707B5D5-62D6-4A96-9538-31A386E1D5DD}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.Engine.dll_1"/>
     <ROW Component="ServiceControlInstaller.PowerShell.dll" ComponentId="{7EBAE1D8-BD2F-47D5-A68F-D92496F4BDAA}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlInstaller.PowerShell.dll"/>
     <ROW Component="ServiceControlMgmt.psd1" ComponentId="{6AB21C40-0BF4-461B-A4FF-5C3541832ED5}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="ServiceControlMgmt.psd1" Type="0"/>
+    <ROW Component="Splat.dll" ComponentId="{05739A17-82C0-471A-88ED-60F6DC88E286}" Directory_="APPDIR" Attributes="0" KeyPath="Splat.dll"/>
+    <ROW Component="System.Buffers.dll" ComponentId="{9D88BA84-9528-4FD4-A223-AB7F73F19C6D}" Directory_="APPDIR" Attributes="0" KeyPath="System.Buffers.dll"/>
+    <ROW Component="System.Buffers.dll_1" ComponentId="{A2B8221C-185A-4468-827F-0D3988E39052}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Buffers.dll_1"/>
+    <ROW Component="System.Collections.Immutable.dll" ComponentId="{EDEC3D0B-2ABD-4705-989A-870F1C66B57D}" Directory_="APPDIR" Attributes="0" KeyPath="System.Collections.Immutable.dll"/>
+    <ROW Component="System.Collections.Immutable.dll_1" ComponentId="{6337B7A1-E73D-4FC1-85C6-05F666590281}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Collections.Immutable.dll_1"/>
+    <ROW Component="System.Diagnostics.DiagnosticSource.dll" ComponentId="{CAEA1A0F-F714-4963-8ABA-922B1C68FA9A}" Directory_="APPDIR" Attributes="0" KeyPath="System.Diagnostics.DiagnosticSource.dll"/>
+    <ROW Component="System.IdentityModel.Tokens.Jwt.dll" ComponentId="{02925E0D-80CC-457F-8F85-1FB6C313FE6F}" Directory_="APPDIR" Attributes="0" KeyPath="System.IdentityModel.Tokens.Jwt.dll"/>
+    <ROW Component="System.IdentityModel.Tokens.Jwt.dll_1" ComponentId="{3773BC74-2543-43DB-882E-402437879123}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.IdentityModel.Tokens.Jwt.dll_1"/>
     <ROW Component="System.Management.Automation.dll" ComponentId="{0E1ABF46-7F1E-4BB0-8C19-23545CE9503F}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Management.Automation.dll"/>
-    <ROW Component="System.Reactive.Core.dll" ComponentId="{19132965-8FE8-4656-9DF4-87299FA9BE38}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Core.dll"/>
-    <ROW Component="System.Reactive.Interfaces.dll" ComponentId="{E8EDFC57-E80E-4BE5-9080-92D75F556DBF}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Interfaces.dll"/>
-    <ROW Component="System.Reactive.Linq.dll" ComponentId="{66287EE4-DA0C-468C-8069-B781C847AEFA}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Linq.dll"/>
-    <ROW Component="System.Reactive.PlatformServices.dll" ComponentId="{152F3A06-A77A-4004-A424-F36472111CCC}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.PlatformServices.dll"/>
-    <ROW Component="System.Reactive.Windows.Threading.dll" ComponentId="{3533DEAA-9359-4340-B213-58968125D43C}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.Windows.Threading.dll"/>
+    <ROW Component="System.Memory.dll" ComponentId="{A9FCBD42-5955-48F3-B6E3-B0FE3CD36CE1}" Directory_="APPDIR" Attributes="0" KeyPath="System.Memory.dll"/>
+    <ROW Component="System.Memory.dll_1" ComponentId="{0659FDC9-566C-4D05-963C-47E9F0687210}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Memory.dll_1"/>
+    <ROW Component="System.Numerics.Vectors.dll" ComponentId="{147BCE73-25CB-48EC-A027-36210D998323}" Directory_="APPDIR" Attributes="0" KeyPath="System.Numerics.Vectors.dll"/>
+    <ROW Component="System.Numerics.Vectors.dll_1" ComponentId="{06A2D80F-317B-4394-9F95-C4F278C0DA57}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Numerics.Vectors.dll_1"/>
+    <ROW Component="System.Reactive.dll" ComponentId="{90111B9F-4D23-4335-8024-E7BAFC23F555}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reactive.dll"/>
+    <ROW Component="System.Reflection.Metadata.dll" ComponentId="{5EEE05E4-7C4F-45B8-B4D8-FA3F6F188945}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reflection.Metadata.dll"/>
+    <ROW Component="System.Reflection.Metadata.dll_1" ComponentId="{1C2D7F7E-3754-4040-8197-4434BFFD9BEA}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Reflection.Metadata.dll_1"/>
+    <ROW Component="System.Reflection.MetadataLoadContext.dll" ComponentId="{A0D3A31A-ED8D-4401-8DF2-AD92B1568172}" Directory_="APPDIR" Attributes="0" KeyPath="System.Reflection.MetadataLoadContext.dll"/>
+    <ROW Component="System.Reflection.MetadataLoadContext.dll_1" ComponentId="{DDE9D156-3942-4B56-B00C-20CA4D7F66A1}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Reflection.MetadataLoadContext.dll_1"/>
+    <ROW Component="System.Runtime.CompilerServices.Unsafe.dll" ComponentId="{1F7F82E3-95EF-4758-A4B5-B761807BE303}" Directory_="APPDIR" Attributes="0" KeyPath="System.Runtime.CompilerServices.Unsafe.dll"/>
+    <ROW Component="System.Runtime.CompilerServices.Unsafe.dll_1" ComponentId="{2C63B7D0-CF9C-4559-B39D-4D56815C269F}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Runtime.CompilerServices.Unsafe.dll_1"/>
+    <ROW Component="System.Security.AccessControl.dll" ComponentId="{D06479F3-CBA4-4986-95B3-461A6AE7780F}" Directory_="APPDIR" Attributes="0" KeyPath="System.Security.AccessControl.dll"/>
+    <ROW Component="System.Security.AccessControl.dll_1" ComponentId="{B5575D9F-5FDE-41E9-BD32-61E6C9F55F93}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Security.AccessControl.dll_1"/>
+    <ROW Component="System.Security.Cryptography.Xml.dll" ComponentId="{E3115A66-1034-4A18-AD5A-80EEFF8CF7A3}" Directory_="APPDIR" Attributes="0" KeyPath="System.Security.Cryptography.Xml.dll"/>
+    <ROW Component="System.Security.Cryptography.Xml.dll_1" ComponentId="{FEF4DB4B-F561-429F-B5FE-3961E2DDFABE}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Security.Cryptography.Xml.dll_1"/>
+    <ROW Component="System.Security.Principal.Windows.dll" ComponentId="{AB62486B-473B-4790-9CD2-64F73BCA8EB8}" Directory_="APPDIR" Attributes="0" KeyPath="System.Security.Principal.Windows.dll"/>
+    <ROW Component="System.Security.Principal.Windows.dll_1" ComponentId="{342C07B9-AC02-4B0F-A5E2-646D12388600}" Directory_="POWERSHELLDIR" Attributes="0" KeyPath="System.Security.Principal.Windows.dll_1"/>
+    <ROW Component="System.Threading.Tasks.Extensions.dll" ComponentId="{42D7BA17-53FD-47DD-80A5-6508B95CEBC6}" Directory_="APPDIR" Attributes="0" KeyPath="System.Threading.Tasks.Extensions.dll"/>
     <ROW Component="System.ValueTuple.dll" ComponentId="{8B37AE9D-85A8-46FE-9E70-C4084556D190}" Directory_="APPDIR" Attributes="0" KeyPath="System.ValueTuple.dll"/>
-    <ROW Component="System.Windows.Interactivity.dll" ComponentId="{5CAFEA8A-8F88-4640-A0B9-009AC54E479A}" Directory_="APPDIR" Attributes="0" KeyPath="System.Windows.Interactivity.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="ServiceControlManagment" Title="ServiceControlManagement" Description="Description" Display="3" Level="1" Directory_="APPDIR" Attributes="0"/>
@@ -96,24 +163,15 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
     <ROW File="ServiceControlConfig.exe" Component_="ServiceControlConfig.exe" FileName="Servic~1.exe|ServiceControlConfig.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.exe" SelfReg="false" DigSign="true"/>
     <ROW File="Autofac.dll" Component_="Autofac.dll" FileName="Autofac.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Autofac.dll" SelfReg="false"/>
-    <ROW File="Caliburn.Micro.dll" Component_="Caliburn.Micro.dll" FileName="Calibu~1.dll|Caliburn.Micro.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.dll" SelfReg="false"/>
     <ROW File="Caliburn.Micro.Platform.dll" Component_="Caliburn.Micro.Platform.dll" FileName="Calibu~2.dll|Caliburn.Micro.Platform.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.dll" SelfReg="false"/>
     <ROW File="FluentValidation.dll" Component_="FluentValidation.dll" FileName="Fluent~1.dll|FluentValidation.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;FluentValidation.dll" SelfReg="false"/>
     <ROW File="Microsoft.WindowsAPICodePack.dll" Component_="Microsoft.WindowsAPICodePack.dll" FileName="Micros~1.dll|Microsoft.WindowsAPICodePack.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.dll" SelfReg="false"/>
     <ROW File="Microsoft.WindowsAPICodePack.Shell.dll" Component_="Microsoft.WindowsAPICodePack.Shell.dll" FileName="Micros~2.dll|Microsoft.WindowsAPICodePack.Shell.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.WindowsAPICodePack.Shell.dll" SelfReg="false"/>
     <ROW File="Mindscape.Raygun4Net.dll" Component_="Mindscape.Raygun4Net.dll" FileName="Mindsc~1.dll|Mindscape.Raygun4Net.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net.dll" SelfReg="false"/>
     <ROW File="Mindscape.Raygun4Net4.dll" Component_="Mindscape.Raygun4Net4.dll" FileName="Mindsc~2.dll|Mindscape.Raygun4Net4.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Mindscape.Raygun4Net4.dll" SelfReg="false"/>
-    <ROW File="ReactiveUI.Blend.dll" Component_="ReactiveUI.Blend.dll" FileName="Reacti~1.dll|ReactiveUI.Blend.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Blend.dll" SelfReg="false"/>
     <ROW File="ReactiveUI.dll" Component_="ReactiveUI.dll" FileName="Reacti~2.dll|ReactiveUI.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.dll" SelfReg="false"/>
-    <ROW File="ReactiveUI.Xaml.dll" Component_="ReactiveUI.Xaml.dll" FileName="Reacti~3.dll|ReactiveUI.Xaml.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Xaml.dll" SelfReg="false"/>
     <ROW File="ServiceControlConfig.exe.config" Component_="Autofac.xml" FileName="Servic~1.con|ServiceControlConfig.exe.config" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlConfig.exe.config" SelfReg="false"/>
     <ROW File="ServiceControlInstaller.Engine.dll" Component_="ServiceControlInstaller.Engine.dll" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false"/>
-    <ROW File="System.Reactive.Core.dll" Component_="System.Reactive.Core.dll" FileName="System~1.dll|System.Reactive.Core.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Core.dll" SelfReg="false"/>
-    <ROW File="System.Reactive.Interfaces.dll" Component_="System.Reactive.Interfaces.dll" FileName="System~2.dll|System.Reactive.Interfaces.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Interfaces.dll" SelfReg="false"/>
-    <ROW File="System.Reactive.Linq.dll" Component_="System.Reactive.Linq.dll" FileName="System~3.dll|System.Reactive.Linq.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Linq.dll" SelfReg="false"/>
-    <ROW File="System.Reactive.PlatformServices.dll" Component_="System.Reactive.PlatformServices.dll" FileName="System~4.dll|System.Reactive.PlatformServices.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.PlatformServices.dll" SelfReg="false"/>
-    <ROW File="System.Reactive.Windows.Threading.dll" Component_="System.Reactive.Windows.Threading.dll" FileName="System~5.dll|System.Reactive.Windows.Threading.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.Windows.Threading.dll" SelfReg="false"/>
-    <ROW File="System.Windows.Interactivity.dll" Component_="System.Windows.Interactivity.dll" FileName="System~6.dll|System.Windows.Interactivity.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Windows.Interactivity.dll" SelfReg="false"/>
     <ROW File="ServiceControlInstaller.Engine.dll_1" Component_="ServiceControlInstaller.Engine.dll_1" FileName="Servic~1.dll|ServiceControlInstaller.Engine.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Engine.dll" SelfReg="false"/>
     <ROW File="ServiceControlInstaller.PowerShell.dll" Component_="ServiceControlInstaller.PowerShell.dll" FileName="Servic~2.dll|ServiceControlInstaller.PowerShell.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.PowerShell.dll" SelfReg="false"/>
     <ROW File="ServiceControlMgmt.psd1" Component_="ServiceControlMgmt.psd1" FileName="Servic~1.psd|ServiceControlMgmt.psd1" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlMgmt.psd1" SelfReg="false"/>
@@ -124,25 +182,85 @@
     <ROW File="Caliburn.Micro.Platform.Core.dll" Component_="Caliburn.Micro.Platform.Core.dll" FileName="CALIBU~3.DLL|Caliburn.Micro.Platform.Core.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Platform.Core.dll" SelfReg="false"/>
     <ROW File="Newtonsoft.Json.dll" Component_="Newtonsoft.Json.dll" FileName="NEWTON~1.DLL|Newtonsoft.Json.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Newtonsoft.Json.dll" SelfReg="false"/>
     <ROW File="System.ValueTuple.dll" Component_="System.ValueTuple.dll" FileName="SYSTEM~7.DLL|System.ValueTuple.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.ValueTuple.dll" SelfReg="false"/>
-    <ROW File="Particular.ServiceControl.Monitoring4.14.0.zip" Component_="Autofac.xml" FileName="PARTIC~2.ZIP|Particular.ServiceControl.Monitoring-4.14.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Particular.ServiceControl.Monitoring-4.14.0.zip" SelfReg="false"/>
     <ROW File="DotNetZip.dll" Component_="DotNetZip.dll" FileName="DOTNET~1.DLL|DotNetZip.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;DotNetZip.dll" SelfReg="false"/>
-    <ROW File="Particular.ServiceControl.Audit4.14.0.zip" Component_="Autofac.xml" FileName="PARTIC~3.ZIP|Particular.ServiceControl.Audit-4.14.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Particular.ServiceControl.Audit-4.14.0.zip" SelfReg="false"/>
-    <ROW File="Particular.ServiceControl4.14.0.zip" Component_="Autofac.xml" FileName="PARTIC~4.ZIP|Particular.ServiceControl-4.14.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Particular.ServiceControl-4.14.0.zip" SelfReg="false"/>
     <ROW File="ServiceControl.LicenseManagement.dll_1" Component_="ServiceControl.LicenseManagement.dll_1" FileName="SERVIC~3.DLL|ServiceControl.LicenseManagement.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControl.LicenseManagement.dll" SelfReg="false"/>
     <ROW File="ServiceControlInstaller.Powershell.dllhelp.xml" Component_="ServiceControlMgmt.psd1" FileName="SERVIC~1.XML|ServiceControlInstaller.Powershell.dll-help.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ServiceControlInstaller.Powershell.dll-help.xml" SelfReg="false"/>
     <ROW File="Newtonsoft.Json.dll_1" Component_="Newtonsoft.Json.dll_1" FileName="NEWTON~1.DLL|Newtonsoft.Json.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Newtonsoft.Json.dll" SelfReg="false"/>
     <ROW File="DotNetZip.dll_1" Component_="DotNetZip.dll_1" FileName="DOTNET~1.DLL|DotNetZip.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;DotNetZip.dll" SelfReg="false"/>
     <ROW File="System.Management.Automation.dll" Component_="System.Management.Automation.dll" FileName="SYSTEM~1.DLL|System.Management.Automation.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Management.Automation.dll" SelfReg="false"/>
-  </COMPONENT>
-  <COMPONENT cid="caphyon.advinst.custcomp.AiBinaryAliasComponent">
-    <ROW AliasRowId="banner" AliasRowOperation="2" Data="Res\banner.jpg"/>
-    <ROW AliasRowId="dialog" AliasRowOperation="2" Data="Res\dialog.jpg"/>
+    <ROW File="Caliburn.Micro.Core.dll" Component_="Caliburn.Micro.Core.dll" FileName="CALIBU~4.DLL|Caliburn.Micro.Core.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Caliburn.Micro.Core.dll" SelfReg="false"/>
+    <ROW File="DynamicData.dll" Component_="DynamicData.dll" FileName="DYNAMI~1.DLL|DynamicData.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;DynamicData.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Bcl.AsyncInterfaces.dll" Component_="Microsoft.Bcl.AsyncInterfaces.dll" FileName="MICROS~3.DLL|Microsoft.Bcl.AsyncInterfaces.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Bcl.AsyncInterfaces.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.dll" Component_="Microsoft.Data.SqlClient.dll" FileName="MICROS~4.DLL|Microsoft.Data.SqlClient.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Data.SqlClient.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x64.dll" Component_="Microsoft.Data.SqlClient.SNI.x64.dll" FileName="MICROS~5.DLL|Microsoft.Data.SqlClient.SNI.x64.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Data.SqlClient.SNI.x64.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x64.pdb" Component_="Microsoft.Data.SqlClient.SNI.x64.dll" FileName="MICROS~1.PDB|Microsoft.Data.SqlClient.SNI.x64.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Data.SqlClient.SNI.x64.pdb" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x86.dll" Component_="Microsoft.Data.SqlClient.SNI.x86.dll" FileName="MICROS~6.DLL|Microsoft.Data.SqlClient.SNI.x86.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Data.SqlClient.SNI.x86.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x86.pdb" Component_="Microsoft.Data.SqlClient.SNI.x86.dll" FileName="MICROS~2.PDB|Microsoft.Data.SqlClient.SNI.x86.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Data.SqlClient.SNI.x86.pdb" SelfReg="false"/>
+    <ROW File="Microsoft.Identity.Client.dll" Component_="Microsoft.Identity.Client.dll" FileName="MICROS~7.DLL|Microsoft.Identity.Client.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Identity.Client.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.JsonWebTokens.dll" Component_="Microsoft.IdentityModel.JsonWebTokens.dll" FileName="MICROS~8.DLL|Microsoft.IdentityModel.JsonWebTokens.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.IdentityModel.JsonWebTokens.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Logging.dll" Component_="Microsoft.IdentityModel.Logging.dll" FileName="MICROS~9.DLL|Microsoft.IdentityModel.Logging.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.IdentityModel.Logging.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Protocols.dll" Component_="Microsoft.IdentityModel.Protocols.dll" FileName="MICRO~10.DLL|Microsoft.IdentityModel.Protocols.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.IdentityModel.Protocols.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" Component_="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" FileName="MICRO~11.DLL|Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Tokens.dll" Component_="Microsoft.IdentityModel.Tokens.dll" FileName="MICRO~12.DLL|Microsoft.IdentityModel.Tokens.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.IdentityModel.Tokens.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Xaml.Behaviors.dll" Component_="Microsoft.Xaml.Behaviors.dll" FileName="MICRO~13.DLL|Microsoft.Xaml.Behaviors.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Microsoft.Xaml.Behaviors.dll" SelfReg="false"/>
+    <ROW File="ReactiveUI.Wpf.dll" Component_="ReactiveUI.Wpf.dll" FileName="REACTI~4.DLL|ReactiveUI.Wpf.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;ReactiveUI.Wpf.dll" SelfReg="false"/>
+    <ROW File="Splat.dll" Component_="Splat.dll" FileName="Splat.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;Splat.dll" SelfReg="false"/>
+    <ROW File="System.Buffers.dll" Component_="System.Buffers.dll" FileName="SYSTEM~8.DLL|System.Buffers.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Buffers.dll" SelfReg="false"/>
+    <ROW File="System.Collections.Immutable.dll" Component_="System.Collections.Immutable.dll" FileName="SYSTEM~9.DLL|System.Collections.Immutable.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Collections.Immutable.dll" SelfReg="false"/>
+    <ROW File="System.Diagnostics.DiagnosticSource.dll" Component_="System.Diagnostics.DiagnosticSource.dll" FileName="SYSTE~10.DLL|System.Diagnostics.DiagnosticSource.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Diagnostics.DiagnosticSource.dll" SelfReg="false"/>
+    <ROW File="System.IdentityModel.Tokens.Jwt.dll" Component_="System.IdentityModel.Tokens.Jwt.dll" FileName="SYSTE~11.DLL|System.IdentityModel.Tokens.Jwt.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.IdentityModel.Tokens.Jwt.dll" SelfReg="false"/>
+    <ROW File="System.Memory.dll" Component_="System.Memory.dll" FileName="SYSTE~12.DLL|System.Memory.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Memory.dll" SelfReg="false"/>
+    <ROW File="System.Numerics.Vectors.dll" Component_="System.Numerics.Vectors.dll" FileName="SYSTE~13.DLL|System.Numerics.Vectors.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Numerics.Vectors.dll" SelfReg="false"/>
+    <ROW File="System.Reactive.dll" Component_="System.Reactive.dll" FileName="SYSTE~14.DLL|System.Reactive.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reactive.dll" SelfReg="false"/>
+    <ROW File="System.Reflection.Metadata.dll" Component_="System.Reflection.Metadata.dll" FileName="SYSTE~15.DLL|System.Reflection.Metadata.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reflection.Metadata.dll" SelfReg="false"/>
+    <ROW File="System.Reflection.MetadataLoadContext.dll" Component_="System.Reflection.MetadataLoadContext.dll" FileName="SYSTE~16.DLL|System.Reflection.MetadataLoadContext.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Reflection.MetadataLoadContext.dll" SelfReg="false"/>
+    <ROW File="System.Runtime.CompilerServices.Unsafe.dll" Component_="System.Runtime.CompilerServices.Unsafe.dll" FileName="SYSTE~17.DLL|System.Runtime.CompilerServices.Unsafe.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Runtime.CompilerServices.Unsafe.dll" SelfReg="false"/>
+    <ROW File="System.Security.AccessControl.dll" Component_="System.Security.AccessControl.dll" FileName="SYSTE~18.DLL|System.Security.AccessControl.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Security.AccessControl.dll" SelfReg="false"/>
+    <ROW File="System.Security.Cryptography.Xml.dll" Component_="System.Security.Cryptography.Xml.dll" FileName="SYSTE~19.DLL|System.Security.Cryptography.Xml.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Security.Cryptography.Xml.dll" SelfReg="false"/>
+    <ROW File="System.Security.Principal.Windows.dll" Component_="System.Security.Principal.Windows.dll" FileName="SYSTE~20.DLL|System.Security.Principal.Windows.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Security.Principal.Windows.dll" SelfReg="false"/>
+    <ROW File="System.Threading.Tasks.Extensions.dll" Component_="System.Threading.Tasks.Extensions.dll" FileName="SYSTE~21.DLL|System.Threading.Tasks.Extensions.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;WPF_PATH&gt;System.Threading.Tasks.Extensions.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll" Component_="Microsoft.Data.SqlClient.resources.dll" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;de\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_1" Component_="Microsoft.Data.SqlClient.resources.dll_1" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;es\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_2" Component_="Microsoft.Data.SqlClient.resources.dll_2" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;fr\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_3" Component_="Microsoft.Data.SqlClient.resources.dll_3" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;it\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_4" Component_="Microsoft.Data.SqlClient.resources.dll_4" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ja\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_5" Component_="Microsoft.Data.SqlClient.resources.dll_5" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ko\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.dll_1" Component_="Microsoft.Data.SqlClient.dll_1" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Data.SqlClient.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x64.dll_1" Component_="Microsoft.Data.SqlClient.SNI.x64.dll_1" FileName="MICROS~2.DLL|Microsoft.Data.SqlClient.SNI.x64.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Data.SqlClient.SNI.x64.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x64.pdb_1" Component_="Microsoft.Data.SqlClient.SNI.x64.dll_1" FileName="MICROS~1.PDB|Microsoft.Data.SqlClient.SNI.x64.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Data.SqlClient.SNI.x64.pdb" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x86.dll_1" Component_="Microsoft.Data.SqlClient.SNI.x86.dll_1" FileName="MICROS~3.DLL|Microsoft.Data.SqlClient.SNI.x86.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Data.SqlClient.SNI.x86.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.SNI.x86.pdb_1" Component_="Microsoft.Data.SqlClient.SNI.x86.dll_1" FileName="MICROS~2.PDB|Microsoft.Data.SqlClient.SNI.x86.pdb" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Data.SqlClient.SNI.x86.pdb" SelfReg="false"/>
+    <ROW File="Microsoft.Identity.Client.dll_1" Component_="Microsoft.Identity.Client.dll_1" FileName="MICROS~4.DLL|Microsoft.Identity.Client.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.Identity.Client.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.JsonWebTokens.dll_1" Component_="Microsoft.IdentityModel.JsonWebTokens.dll_1" FileName="MICROS~5.DLL|Microsoft.IdentityModel.JsonWebTokens.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.IdentityModel.JsonWebTokens.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Logging.dll_1" Component_="Microsoft.IdentityModel.Logging.dll_1" FileName="MICROS~6.DLL|Microsoft.IdentityModel.Logging.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.IdentityModel.Logging.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Protocols.dll_1" Component_="Microsoft.IdentityModel.Protocols.dll_1" FileName="MICROS~7.DLL|Microsoft.IdentityModel.Protocols.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.IdentityModel.Protocols.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll_1" Component_="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll_1" FileName="MICROS~8.DLL|Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" SelfReg="false"/>
+    <ROW File="Microsoft.IdentityModel.Tokens.dll_1" Component_="Microsoft.IdentityModel.Tokens.dll_1" FileName="MICROS~9.DLL|Microsoft.IdentityModel.Tokens.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;Microsoft.IdentityModel.Tokens.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_6" Component_="Microsoft.Data.SqlClient.resources.dll_6" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;pt-BR\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_7" Component_="Microsoft.Data.SqlClient.resources.dll_7" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;ru\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="System.Buffers.dll_1" Component_="System.Buffers.dll_1" FileName="SYSTEM~2.DLL|System.Buffers.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Buffers.dll" SelfReg="false"/>
+    <ROW File="System.Collections.Immutable.dll_1" Component_="System.Collections.Immutable.dll_1" FileName="SYSTEM~3.DLL|System.Collections.Immutable.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Collections.Immutable.dll" SelfReg="false"/>
+    <ROW File="System.IdentityModel.Tokens.Jwt.dll_1" Component_="System.IdentityModel.Tokens.Jwt.dll_1" FileName="SYSTEM~4.DLL|System.IdentityModel.Tokens.Jwt.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.IdentityModel.Tokens.Jwt.dll" SelfReg="false"/>
+    <ROW File="System.Memory.dll_1" Component_="System.Memory.dll_1" FileName="SYSTEM~5.DLL|System.Memory.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Memory.dll" SelfReg="false"/>
+    <ROW File="System.Numerics.Vectors.dll_1" Component_="System.Numerics.Vectors.dll_1" FileName="SYSTEM~6.DLL|System.Numerics.Vectors.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Numerics.Vectors.dll" SelfReg="false"/>
+    <ROW File="System.Reflection.Metadata.dll_1" Component_="System.Reflection.Metadata.dll_1" FileName="SYSTEM~7.DLL|System.Reflection.Metadata.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Reflection.Metadata.dll" SelfReg="false"/>
+    <ROW File="System.Reflection.MetadataLoadContext.dll_1" Component_="System.Reflection.MetadataLoadContext.dll_1" FileName="SYSTEM~8.DLL|System.Reflection.MetadataLoadContext.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Reflection.MetadataLoadContext.dll" SelfReg="false"/>
+    <ROW File="System.Runtime.CompilerServices.Unsafe.dll_1" Component_="System.Runtime.CompilerServices.Unsafe.dll_1" FileName="SYSTEM~9.DLL|System.Runtime.CompilerServices.Unsafe.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Runtime.CompilerServices.Unsafe.dll" SelfReg="false"/>
+    <ROW File="System.Security.AccessControl.dll_1" Component_="System.Security.AccessControl.dll_1" FileName="SYSTE~10.DLL|System.Security.AccessControl.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Security.AccessControl.dll" SelfReg="false"/>
+    <ROW File="System.Security.Cryptography.Xml.dll_1" Component_="System.Security.Cryptography.Xml.dll_1" FileName="SYSTE~11.DLL|System.Security.Cryptography.Xml.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Security.Cryptography.Xml.dll" SelfReg="false"/>
+    <ROW File="System.Security.Principal.Windows.dll_1" Component_="System.Security.Principal.Windows.dll_1" FileName="SYSTE~12.DLL|System.Security.Principal.Windows.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;System.Security.Principal.Windows.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_8" Component_="Microsoft.Data.SqlClient.resources.dll_8" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;zh-Hans\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Microsoft.Data.SqlClient.resources.dll_9" Component_="Microsoft.Data.SqlClient.resources.dll_9" FileName="MICROS~1.DLL|Microsoft.Data.SqlClient.resources.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;POSH_PATH&gt;zh-Hant\Microsoft.Data.SqlClient.resources.dll" SelfReg="false"/>
+    <ROW File="Particular.ServiceControl4.26.0.zip_1" Component_="Particular.ServiceControl4.26.0.zip" FileName="PARTIC~1.ZIP|Particular.ServiceControl-4.26.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;ZIP_PATH&gt;Particular.ServiceControl-4.26.0.zip" SelfReg="false"/>
+    <ROW File="Particular.ServiceControl.Audit4.26.0.zip_1" Component_="Particular.ServiceControl4.26.0.zip" FileName="PARTIC~2.ZIP|Particular.ServiceControl.Audit-4.26.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;ZIP_PATH&gt;Particular.ServiceControl.Audit-4.26.0.zip" SelfReg="false"/>
+    <ROW File="Particular.ServiceControl.Monitoring4.26.0.zip_1" Component_="Particular.ServiceControl4.26.0.zip" FileName="PARTIC~3.ZIP|Particular.ServiceControl.Monitoring-4.26.0.zip" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;ZIP_PATH&gt;Particular.ServiceControl.Monitoring-4.26.0.zip" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AppPathsComponent">
     <ROW Name="CUSTOMACTIONS_PATH" Path="..\ServiceControlInstaller.CustomActions\bin\Release\net472" Type="2" Content="0"/>
     <ROW Name="POSH_PATH" Path="..\ServiceControlInstaller.PowerShell\bin\Release\net472" Type="2" Content="0"/>
     <ROW Name="PROJECT_PATH" Path="." Type="2" Content="0"/>
     <ROW Name="WPF_PATH" Path="..\ServiceControl.Config\bin\Release\net472" Type="2" Content="0"/>
+    <ROW Name="ZIP_PATH" Path="..\..\zip" Type="2" Content="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="hq" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
@@ -151,14 +269,14 @@
     <ROW Action="AI_DetectSoftware" Sequence="151"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFileName="Particular.ServiceControl" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="Res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="Particular.ServiceControl" UACExecutionLevel="2"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFileName="Particular.ServiceControl" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="Res\Operations.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="Particular.ServiceControl" UACExecutionLevel="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" Subject="CN=VeriSign Class 3 Public Primary Certification Authority - G5, OU=&quot;(c) 2006 VeriSign, Inc. - For authorized use only&quot;, OU=VeriSign Trust Network, O=&quot;VeriSign, Inc.&quot;, C=US" KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
@@ -171,6 +289,7 @@
     <ROW Fragment="SequenceDialogs.aip" Path="&lt;AI_THEMES&gt;classic\fragments\SequenceDialogs.aip"/>
     <ROW Fragment="Sequences.aip" Path="&lt;AI_FRAGS&gt;Sequences.aip"/>
     <ROW Fragment="StaticUIStrings.aip" Path="&lt;AI_FRAGS&gt;StaticUIStrings.aip"/>
+    <ROW Fragment="Themes.aip" Path="&lt;AI_FRAGS&gt;Themes.aip"/>
     <ROW Fragment="UI.aip" Path="&lt;AI_THEMES&gt;classic\fragments\UI.aip"/>
     <ROW Fragment="Validation.aip" Path="&lt;AI_FRAGS&gt;Validation.aip"/>
     <ROW Fragment="VerifyRemoveDlg.aip" Path="&lt;AI_THEMES&gt;classic\fragments\VerifyRemoveDlg.aip"/>
@@ -317,7 +436,6 @@
     <ROW Feature_="ServiceControlManagment" Component_="Autofac.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Autofac.xml"/>
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.Platform.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="FluentValidation.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.Shell.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Microsoft.WindowsAPICodePack.dll"/>
@@ -325,8 +443,6 @@
     <ROW Feature_="ServiceControlManagment" Component_="Mindscape.Raygun4Net4.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="REG_ManagementApp"/>
     <ROW Feature_="ServiceControlManagment" Component_="REG_Version"/>
-    <ROW Feature_="ServiceControlManagment" Component_="ReactiveUI.Blend.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="ReactiveUI.Xaml.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="ReactiveUI.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="SHORTCUTDIR"/>
     <ROW Feature_="ServiceControlManagment" Component_="ServiceControlConfig.exe"/>
@@ -334,12 +450,6 @@
     <ROW Feature_="ServiceControlManagment" Component_="ServiceControlInstaller.Engine.dll_1"/>
     <ROW Feature_="ServiceControlManagment" Component_="ServiceControlInstaller.PowerShell.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="ServiceControlMgmt.psd1"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.Core.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.Interfaces.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.Linq.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.PlatformServices.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.Windows.Threading.dll"/>
-    <ROW Feature_="ServiceControlManagment" Component_="System.Windows.Interactivity.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="APPDIR"/>
     <ROW Feature_="ServiceControlManagment" Component_="ServiceControl.LicenseManagement.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.Platform.Core.dll"/>
@@ -351,6 +461,66 @@
     <ROW Feature_="ServiceControlManagment" Component_="DotNetZip.dll_1"/>
     <ROW Feature_="ServiceControlManagment" Component_="System.Management.Automation.dll"/>
     <ROW Feature_="ServiceControlManagment" Component_="PowerShell"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Caliburn.Micro.Core.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="DynamicData.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Bcl.AsyncInterfaces.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.SNI.x64.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.SNI.x86.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Identity.Client.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.JsonWebTokens.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Logging.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Protocols.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Tokens.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Xaml.Behaviors.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="ReactiveUI.Wpf.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Splat.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Buffers.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Collections.Immutable.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Diagnostics.DiagnosticSource.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.IdentityModel.Tokens.Jwt.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Memory.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Numerics.Vectors.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Reactive.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Reflection.Metadata.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Reflection.MetadataLoadContext.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Runtime.CompilerServices.Unsafe.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.AccessControl.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.Cryptography.Xml.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.Principal.Windows.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Threading.Tasks.Extensions.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_2"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_3"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_4"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_5"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.SNI.x64.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.SNI.x86.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Identity.Client.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.JsonWebTokens.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Logging.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Protocols.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.IdentityModel.Tokens.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_6"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_7"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Buffers.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Collections.Immutable.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.IdentityModel.Tokens.Jwt.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Memory.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Numerics.Vectors.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Reflection.Metadata.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Reflection.MetadataLoadContext.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Runtime.CompilerServices.Unsafe.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.AccessControl.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.Cryptography.Xml.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="System.Security.Principal.Windows.dll_1"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_8"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Microsoft.Data.SqlClient.resources.dll_9"/>
+    <ROW Feature_="ServiceControlManagment" Component_="Particular.ServiceControl4.26.0.zip"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Operations.exe" SourcePath="Res\Operations.ico" Index="0"/>
@@ -361,10 +531,10 @@
     <ROW Action="AI_STORE_LOCATION" Condition="(Not Installed) OR REINSTALL" Sequence="1502"/>
     <ROW Action="AI_PREPARE_UPGRADE" Condition="AI_UPGRADE=&quot;No&quot; AND (Not Installed)" Sequence="1397"/>
     <ROW Action="AI_ResolveKnownFolders" Sequence="52"/>
-    <ROW Action="InstallFinalize" Sequence="6596" SeqType="0" MsiKey="InstallFinalize"/>
+    <ROW Action="InstallFinalize" Sequence="6599" SeqType="0" MsiKey="InstallFinalize"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
-    <ROW Action="MigrationInstallationWithoutUninstall" Condition="( NOT Installed )" Sequence="6598"/>
-    <ROW Action="ServiceControlUnattendedInstall" Condition="( NOT Installed )" Sequence="6597"/>
+    <ROW Action="MigrationInstallationWithoutUninstall" Condition="( NOT Installed )" Sequence="6601"/>
+    <ROW Action="ServiceControlUnattendedInstall" Condition="( NOT Installed )" Sequence="6600"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99" Builds="DefaultBuild"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="103" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteCadLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="199" Builds="DefaultBuild"/>
@@ -373,9 +543,9 @@
     <ROW Action="AI_FindExeLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="196" Builds="DefaultBuild"/>
     <ROW Action="AI_ExtractLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1549" Builds="DefaultBuild"/>
     <ROW Action="AI_DeleteRLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="1548" Builds="DefaultBuild"/>
-    <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6594" Builds="DefaultBuild"/>
+    <ROW Action="AI_DeleteLzma" Condition="SETUPEXEDIR=&quot;&quot; AND Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;) AND (NOT PATCH)" Sequence="6593" Builds="DefaultBuild"/>
     <ROW Action="AI_PrepareShortcutFlags" Condition="(VersionNT &gt; 501) AND ((NOT Installed) OR (Installed AND (REMOVE&lt;&gt;&quot;ALL&quot;) AND (AI_INSTALL_MODE&lt;&gt;&quot;Remove&quot;)))" Sequence="4501"/>
-    <ROW Action="ServiceControlUnattendedRemoval" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="6595"/>
+    <ROW Action="ServiceControlUnattendedRemoval" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="6594"/>
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="RemoveFromPSModuleEnvironmentVar" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="6402"/>
     <ROW Action="AddToPSModuleEnvironmentVar" Condition="( NOT Installed )" Sequence="6401"/>
@@ -413,23 +583,36 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
     <ROW Registry="AI_ExePath" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Value="[AI_SETUPEXEPATH]" Component_="AI_ExePath"/>
+    <ROW Registry="AdvancedInstaller" Root="-1" Key="Software\Caphyon\Advanced Installer" Name="\"/>
+    <ROW Registry="Caphyon" Root="-1" Key="Software\Caphyon" Name="\"/>
     <ROW Registry="Comments" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Comments" Value="[ARPCOMMENTS]" Component_="AI_CustomARPName"/>
     <ROW Registry="Contact" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Contact" Value="[ARPCONTACT]" Component_="AI_CustomARPName"/>
+    <ROW Registry="CurrentVersion" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion" Name="\"/>
     <ROW Registry="DisplayIcon" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayIcon" Value="[ARP_ICON_PATH]" Component_="AI_CustomARPName"/>
     <ROW Registry="DisplayName" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayName" Value="[AI_PRODUCTNAME_ARP]" Component_="AI_CustomARPName"/>
     <ROW Registry="DisplayVersion" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="DisplayVersion" Value="[ProductVersion]" Component_="AI_CustomARPName"/>
     <ROW Registry="HelpLink" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpLink" Value="[ARPHELPLINK]" Component_="AI_CustomARPName"/>
     <ROW Registry="HelpTelephone" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="HelpTelephone" Value="[ARPHELPTELEPHONE]" Component_="AI_CustomARPName"/>
     <ROW Registry="InstallLocation" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="InstallLocation" Value="[APPDIR]" Component_="AI_CustomARPName"/>
+    <ROW Registry="LZMA" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA" Name="\"/>
     <ROW Registry="ManagementApp" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="ManagementApp" Value="[#ServiceControlConfig.exe]" Component_="REG_ManagementApp"/>
+    <ROW Registry="Microsoft" Root="-1" Key="Software\Microsoft" Name="\"/>
+    <ROW Registry="ParticularSoftware" Root="-1" Key="Software\ParticularSoftware" Name="\"/>
+    <ROW Registry="ProductCode" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]" Name="\"/>
+    <ROW Registry="ProductNameProductVersion" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="\"/>
+    <ROW Registry="ProductVersion" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="\"/>
     <ROW Registry="Publisher" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="Publisher" Value="[Manufacturer]" Component_="AI_CustomARPName"/>
+    <ROW Registry="ServiceControl" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="\"/>
+    <ROW Registry="Software" Root="-1" Key="Software" Name="\"/>
     <ROW Registry="URLInfoAbout" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLInfoAbout" Value="[ARPURLINFOABOUT]" Component_="AI_CustomARPName"/>
     <ROW Registry="URLUpdateInfo" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="URLUpdateInfo" Value="[ARPURLUPDATEINFO]" Component_="AI_CustomARPName"/>
+    <ROW Registry="Uninstall" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall" Name="\"/>
     <ROW Registry="UninstallPath" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallPath" Value="[AI_UNINSTALLER] /i [ProductCode] AI_UNINSTALLER_CTP=1" Component_="AI_CustomARPName"/>
     <ROW Registry="UninstallString" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="UninstallString" Value="[AI_UNINSTALLER] /i [ProductCode] AI_UNINSTALLER_CTP=1" Component_="AI_CustomARPName"/>
     <ROW Registry="VersionMajor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMajor" Value="#1" Component_="AI_CustomARPName" VirtualValue="#"/>
     <ROW Registry="VersionMinor" Root="-1" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[ProductName] [ProductVersion]" Name="VersionMinor" Value="#6" Component_="AI_CustomARPName" VirtualValue="#"/>
     <ROW Registry="Version_1" Root="-1" Key="Software\ParticularSoftware\ServiceControl" Name="Version" Value="[ProductVersion]" Component_="REG_Version"/>
+    <ROW Registry="Windows" Root="-1" Key="Software\Microsoft\Windows" Name="\"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="ServiceControlManagementPowershell" Directory_="SHORTCUTDIR" Name="Servic~2|ServiceControl Management Powershell" Component_="AI_ExePath" Target="[SystemFolder]WindowsPowerShell\v1.0\powershell.exe" Arguments="-NoExit -ExecutionPolicy Bypass -File &quot;[MODULEDIR]ShortcutStartup.ps1&quot;" Hotkey="0" IconIndex="0" ShowCmd="1" CustomFlags="1"/>
@@ -446,14 +629,21 @@
     <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
+    <ROW PrereqKey="C4FE6FD5B7C4D07B3A313E754A9A6A8" DisplayName="Visual C++ Redistributable for Visual Studio 2015-2019 x64" VersionMin="14.26" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/d60aa805-26e9-47df-b4e3-cd6fcc392333/7D7105C52FCD6766BEEE1AE162AA81E278686122C1E44890712326634D0B055E/VC_redist.x64.exe" Location="1" ExactSize="14974616" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista RTM x64, Windows Vista SP1 x64, Windows Server 2008 RTM x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" MD5="264c296cc0bf00db6ba8e7bf8cc4e706" TargetName="Visual C++ Redistributable for Visual Studio 2015-2019"/>
     <ROW PrereqKey="C676C2BD547E7A6181C255B343B7A" DisplayName=".NET Framework 4.7.2 (web installer)" SetupFileUrl="Prerequisites\.NET Framework 4.7.2\NDP472-KB4054531-Web.exe" Location="0" ExactSize="0" WinNTVersions="Windows Vista x86, Windows Server 2008 x86, Windows 7 RTM x86, Windows 10 version 1507 x86, Windows 10 version 1511 x86, Windows 10 version 1803 x86, Windows 10 version 1809 x86, Windows 10 version 1903 x86, Windows 10 version 1909 x86, Windows 10 version 2004 x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64, Windows 10 version 1803 x64, Windows 10 version 1809 x64, Windows 10 version 1903 x64, Windows 10 version 1909 x64, Windows 10 version 2004 x64, Windows Server 2019 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" TargetName=".NET Framework 4.7.2\NDP472-KB4054531-Web.exe"/>
-    <ATTRIBUTE name="PrereqsOrder" value="C676C2BD547E7A6181C255B343B7A"/>
+    <ROW PrereqKey="C6F7BF650B714DC58735D62C12F214E4" DisplayName=".NET Runtime 6.0.10 x64" VersionMin="6.0.10" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/50336bc7-7fd1-4a12-b5a2-81ce0219edf9/8d862413975808de0d835888e41e49a7/dotnet-runtime-6.0.10-win-x64.exe" Location="1" ExactSize="27912752" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 x64, Windows 8 x64, Windows Server 2012 x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64" Operator="1" NoUiComLine="/q /norestart" Options="y" MD5="bce7278dd372129810374c247482743b" TargetName=".NET 6.0"/>
+    <ROW PrereqKey="E25D6A62194038942640BDE651049C" DisplayName="ASP.NET Core Runtime 6.0.10 x64" VersionMin="6.0" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/2370bcad-45b1-4ccb-bc61-21ffd7116d63/1aa8efcabfb60ee778b913a5eb237a56/aspnetcore-runtime-6.0.10-win-x64.exe" Location="1" ExactSize="8997144" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista x64, Windows Server 2008 x64, Windows 7 RTM x64, Windows Server 2008 R2 x64, Windows 8 x64, Windows Server 2012 x64, Windows 10 version 1507 x64, Windows 10 version 1511 x64" Operator="1" NoUiComLine="/q /norestart" Options="xy" MD5="dacc5aefd5f8e0f12240d1193e64785a" TargetName="ASP.NET Core 6.0"/>
+    <ATTRIBUTE name="PrereqsOrder" value="C676C2BD547E7A6181C255B343B7A C4FE6FD5B7C4D07B3A313E754A9A6A8 C6F7BF650B714DC58735D62C12F214E4 E25D6A62194038942640BDE651049C"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
+    <ROW SearchKey="C4FE6FD5B7C4D07B3A313E754A9A6A8Vers" Prereq="C4FE6FD5B7C4D07B3A313E754A9A6A8" SearchType="2" SearchString="HKLM\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum\Version" VerMin="14.26.28720" Order="1" Property="PreReqSearch_C4FE6FD5B7C4D07B3A313E"/>
     <ROW SearchKey="C676C2BD547E7A6181C255B343B7AReleas" Prereq="C676C2BD547E7A6181C255B343B7A" SearchType="9" SearchString="HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release" RefContent="G461813" Order="1" Property="PreReqSearch_C676C2BD547E7A6181C255"/>
+    <ROW SearchKey="C6F7BF650B714DC58735D62C12F214E4M_1" Prereq="C6F7BF650B714DC58735D62C12F214E4" SearchType="12" SearchString="HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App" VerMin="6.0.10" Order="2" Property="PreReqSearch_1"/>
+    <ROW SearchKey="E25D6A62194038942640BDE651049CASP.N" Prereq="E25D6A62194038942640BDE651049C" SearchType="1" SearchString="HKLM\SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v6.0" VerMin="6.0.10" Order="1" Property="PreReqSearch_E25D6A62194038942640BD"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.SynchronizedFolderComponent">
     <ROW Directory_="APPDIR" SourcePath="&lt;WPF_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store|\*|*.vshost.*" ExcludeFlags="6" FileAddOptions="4"/>
     <ROW Directory_="POWERSHELLDIR" SourcePath="&lt;POSH_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6" FileAddOptions="4"/>
+    <ROW Directory_="Zips_Dir" SourcePath="&lt;ZIP_PATH&gt;" Feature="ServiceControlManagment" ExcludePattern="*~|#*#|%*%|._|CVS|.cvsignore|SCCS|vssver.scc|mssccprj.scc|vssver2.scc|.svn|.DS_Store" ExcludeFlags="6" FileAddOptions="4"/>
   </COMPONENT>
 </DOCUMENT>
