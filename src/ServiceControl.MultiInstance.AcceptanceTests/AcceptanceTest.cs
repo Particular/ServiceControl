@@ -9,13 +9,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
-    using Microsoft.Data.SqlClient;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using TestSupport;
 
     [TestFixture]
@@ -67,27 +67,17 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
 
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
+            if (TransportIntegration.GetType() != typeof(ConfigureEndpointLearningTransport))
             {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
+                Assert.Inconclusive($"Multi instance tests are only run for the learning transport");
             }
-
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
 
             DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
 
-            if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
+            if (DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDB35))
             {
-                ResetSqlDb(DataStoreConfiguration.ConnectionString);
+                Assert.Inconclusive($"Multi-instance tests are only with RavenDB 3.5 for the main instance and InMemory for the audit instance");
             }
-            var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
-            if (!shouldBeRunOnAllDataStores && DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDb))
-            {
-                Assert.Inconclusive($"Not flagged with [RunOnAllDataStores] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
-            }
-
-            TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
 
@@ -102,34 +92,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
         }
-
-        void ResetSqlDb(string connectionString)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-
-                var command = new SqlCommand(@"
-DECLARE @name NVARCHAR(128)
-DECLARE @schema NVARCHAR(128)
-DECLARE @SQL NVARCHAR(254)
-
-SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
-
-WHILE @name IS NOT NULL
-BEGIN
-    SELECT @SQL = 'DROP TABLE ' + QUOTENAME(@schema) + '.' + QUOTENAME(RTRIM(@name))
-    EXEC (@SQL)
-    PRINT 'Dropped Table: ' + @schema + '.' + @name
-	SELECT  @name = NULL
-    SELECT TOP 1 @name = sys.objects.name, @schema = sys.schemas.name FROM sys.objects INNER JOIN sys.schemas ON sys.objects.schema_id = sys.schemas.schema_id WHERE [type] = 'U' ORDER BY sys.objects.name
-END
-", connection);
-
-                command.ExecuteNonQuery();
-            }
-        }
-
 
         static void RemoveOtherTransportAssemblies(string name)
         {

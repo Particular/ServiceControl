@@ -28,7 +28,7 @@
 
             if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
             {
-                var instance = SharedEmbeddedServer.GetInstance();
+                var instance = await SharedEmbeddedServer.GetInstance();
 
                 settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
@@ -85,7 +85,7 @@
             }
         }
 
-        public string Name => "RavenDb5";
+        public string Name => "RavenDB5";
 
         public IDocumentStore DocumentStore { get; private set; }
 

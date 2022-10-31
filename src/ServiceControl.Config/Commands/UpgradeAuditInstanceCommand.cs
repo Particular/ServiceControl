@@ -50,6 +50,16 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
+            if (instance.PersistenceManifest.Name == "RavenDB35")
+            {
+                var docsUrl = "https://docs.particular.net/servicecontrol/upgrades/zero-downtime";
+
+                await windowManager.ShowMessage("UPGRADE NOTE",
+$@"Please note that the storage format has changed and that upgrading existing instances using RavenDB 3.5 will only be supported for a limited period of time.
+
+See our zero downtime upgrade guidance, {docsUrl}, for instructions how migrate to the new storage format by adding a new audit instance.", hideCancel: true);
+            }
+
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
             var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
 

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
     using System;
-    using System.Data.Common;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Threading.Tasks;
@@ -46,27 +45,6 @@
         public string Name => TransportNames.SQLServer;
         public string TypeName => $"{typeof(SqlServerTransportCustomization).AssemblyQualifiedName}";
         public string ConnectionString { get; set; }
-
-        public string ScrubPlatformConnection(string input)
-        {
-            var builder = new DbConnectionStringBuilder { ConnectionString = ConnectionString };
-
-            var result = input;
-
-            if (builder.TryGetValue("Database", out var database) || builder.TryGetValue("Initial Catalog", out database))
-            {
-                var databaseAsString = (string)database;
-                if (!string.IsNullOrEmpty(databaseAsString))
-                {
-                    result = result.Replace(
-                        $"[{databaseAsString}]",
-                        "[DATABASE]"
-                    );
-                }
-            }
-
-            return result;
-        }
 
         static async Task TryDeleteTable(SqlConnection conn, QueueAddress address)
         {

@@ -24,7 +24,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.1
       - name: Setup Advanced Installer
         run: |
-          $version = "18.8.1"
+          $version = "20.0"
           choco install advanced-installer --version=$version
           & "C:\Program Files (x86)\Caphyon\Advanced Installer $version\bin\x86\AdvancedInstaller.com" /register ${{ secrets.ADVANCED_INSTALLER_LICENSE_KEY }}
       - name: Prepare AIP file

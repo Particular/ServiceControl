@@ -19,13 +19,13 @@
         {
             var failedMessageId = Guid.NewGuid().ToString();
             var context = await Define<Context>()
-                .WithEndpoint<AcknowledgementSpy>()
+                .WithEndpoint<AckSpy>()
                 .WithEndpoint<Receiver>(b => b.When(s =>
                 {
                     var options = new SendOptions();
 
                     options.SetHeader("ServiceControl.Retry.UniqueMessageId", failedMessageId);
-                    options.SetHeader("ServiceControl.Retry.AcknowledgementQueue", Conventions.EndpointNamingConvention(typeof(AcknowledgementSpy)));
+                    options.SetHeader("ServiceControl.Retry.AcknowledgementQueue", Conventions.EndpointNamingConvention(typeof(AckSpy)));
                     options.RouteToThisEndpoint();
                     return s.Send(new MyMessage(), options);
                 }))
@@ -40,9 +40,9 @@
             public bool AcknowledgementSent { get; set; }
         }
 
-        public class AcknowledgementSpy : EndpointConfigurationBuilder
+        public class AckSpy : EndpointConfigurationBuilder
         {
-            public AcknowledgementSpy()
+            public AckSpy()
             {
                 EndpointSetup<DefaultServerWithoutAudit>(cfg =>
                 {

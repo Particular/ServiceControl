@@ -17,7 +17,7 @@
         [Test]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb35");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -53,7 +53,7 @@
         [Test]
         public void Should_update_existing_persister()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb5");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB5");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -83,7 +83,7 @@
         public void Should_remove_log_and_db_folders_on_uninstall()
         {
 
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDb35");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);

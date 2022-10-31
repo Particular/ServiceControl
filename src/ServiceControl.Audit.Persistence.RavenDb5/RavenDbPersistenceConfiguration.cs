@@ -5,6 +5,8 @@
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
+        public string Name => "RavenDB5";
+
         public IPersistence Create(PersistenceSettings settings)
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
@@ -96,9 +98,9 @@
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
 
-        public const string DatabaseNameKey = "ServiceControl/Audit/RavenDb5/DatabaseName";
+        public const string DatabaseNameKey = "ServiceControl/Audit/RavenDB5/DatabaseName";
         public const string DatabasePathKey = "ServiceControl.Audit/DbPath";
-        public const string ConnectionStringKey = "ServiceControl/Audit/RavenDb5/ConnectionString";
+        public const string ConnectionStringKey = "ServiceControl/Audit/RavenDB5/ConnectionString";
         public const string HostNameKey = "ServiceControl.Audit/HostName";
         public const string DatabaseMaintenancePortKey = "ServiceControl.Audit/DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ServiceControl.Audit/ExpirationProcessTimerInSeconds";

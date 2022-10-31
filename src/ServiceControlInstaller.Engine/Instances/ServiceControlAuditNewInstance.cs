@@ -99,6 +99,6 @@
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
 
-        const string DefaultPersister = "RavenDb35";
+        const string DefaultPersister = "RavenDB5";
     }
 }

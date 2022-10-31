@@ -13,8 +13,4 @@
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SolutionDir)ServiceControl\$(OutputPath)" />
-  </Target>
-
 </Project>

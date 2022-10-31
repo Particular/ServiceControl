@@ -1,6 +1,7 @@
 ﻿{
   "Version": "1.0.0",
-  "Name": "RavenDb35",
+  "Name": "RavenDB35",
+  "DisplayName": "RavenDB 3.5",
   "Description": "RavenDB 3.5 ServiceControl Audit persister",
   "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb",
   "Settings": [
@@ -9,7 +10,7 @@
       "DefaultValue": "4096"
     },
     {
-      "Name": "ServiceControl/Audit/RavenDb35/RunCleanupBundle",
+      "Name": "ServiceControl/Audit/RavenDB35/RunCleanupBundle",
       "DefaultValue": "true"
     },
     {

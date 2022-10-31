@@ -4,14 +4,18 @@
     using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
+    using System.Threading;
+    using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDb;
 
     class SharedEmbeddedServer
     {
-        public static EmbeddedDatabase GetInstance()
+        public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
-            lock (lockObject)
+            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            try
             {
                 if (embeddedDatabase != null)
                 {
@@ -23,16 +27,41 @@
 
                 embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, new ServerConfiguration(dbPath, serverUrl)));
 
-                return embeddedDatabase;
+                //make sure that the database is up
+                while (true)
+                {
+                    try
+                    {
+                        using (await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
+                        {
+                            //no-op
+                        }
+
+                        return embeddedDatabase;
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
         }
 
-        public static void Stop()
+        public static async Task Stop(CancellationToken cancellationToken = default)
         {
-            lock (lockObject)
+            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
                 embeddedDatabase?.Dispose();
                 embeddedDatabase = null;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
         }
 
@@ -55,6 +84,6 @@
         }
 
         static EmbeddedDatabase embeddedDatabase;
-        static object lockObject = new object();
+        static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
     }
 }

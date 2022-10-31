@@ -19,7 +19,7 @@
             Settings = settings;
 
             var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb35/RunInMemory", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDB35/RunInMemory", out var runInMemoryString))
             {
                 runInMemory = bool.Parse(runInMemoryString);
             }
@@ -66,7 +66,7 @@
 
             var runCleanupBundle = false;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDb35/RunCleanupBundle", out var runCleanupBundleString))
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDB35/RunCleanupBundle", out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
             }

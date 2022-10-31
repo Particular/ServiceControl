@@ -5,6 +5,8 @@
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
+        public string Name => "RavenDB35";
+
         public IPersistence Create(PersistenceSettings settings)
         {
             var documentStore = new EmbeddableDocumentStore();
