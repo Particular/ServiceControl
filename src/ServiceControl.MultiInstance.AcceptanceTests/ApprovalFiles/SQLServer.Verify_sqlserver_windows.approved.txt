@@ -4,6 +4,7 @@ WORKDIR /servicecontrol
 
 ADD /ServiceControl.Transports.SqlServer/bin/Release/net472 .
 ADD /ServiceControl/bin/Release/net472 .
+ADD /ServiceControl.Persistence.RavenDb/bin/Release/net472 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
