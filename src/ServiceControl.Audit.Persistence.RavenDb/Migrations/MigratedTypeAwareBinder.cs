@@ -25,6 +25,8 @@
             {
                 case nameof(EndpointDetails):
                     return typeof(EndpointDetails);
+                case nameof(SagaInfo):
+                    return typeof(SagaInfo);
                 default:
                     return base.BindToType(assemblyName, typeName);
             }

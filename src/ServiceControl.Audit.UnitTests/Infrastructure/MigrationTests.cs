@@ -6,14 +6,15 @@ using ServiceControl.Audit.Infrastructure.Migration;
 [TestFixture]
 class MigrationTests
 {
-    [Test]
-    public void VerifyMigration()
+    [TestCase("ServiceControl.SagaAudit.SagaInfo, ServiceControl.Audit")]
+    [TestCase("ServiceControl.SagaAudit.SagaInfo, ServiceControl.SagaAudit")]
+    public void VerifyMigration(string oldType)
     {
-        var serializedForm = @"{
-""$type"":""ServiceControl.SagaAudit.SagaInfo, ServiceControl.Audit"",
+        var serializedForm = $@"{{
+""$type"":""{oldType}"",
 ""ChangeStatus"":null,
 ""SagaType"":null,
-""SagaId"":""00000000-0000-0000-0000-000000000000""}";
+""SagaId"":""00000000-0000-0000-0000-000000000000""}}";
 
         var serializer = new JsonSerializer
         {
