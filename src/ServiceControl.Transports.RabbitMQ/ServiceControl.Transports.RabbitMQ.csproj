@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="$(SolutionDir)TransitiveDependencies.Build.props" />
-
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
@@ -12,11 +10,11 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.RabbitMQ" Version="7.0.3" />
-    <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+    <PackageReference Include="System.Threading.Channels" Version="6.0.0" TreatAsUsed="true" />
   </ItemGroup>
 
   <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
   </ItemGroup>
 
 </Project>

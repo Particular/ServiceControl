@@ -5,17 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="persistence.manifest" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="persistence.manifest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
   </ItemGroup>
 
   <ItemGroup>
