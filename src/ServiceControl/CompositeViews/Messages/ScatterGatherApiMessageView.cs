@@ -34,9 +34,10 @@ namespace ServiceControl.CompositeViews.Messages
                     //HINT: De-duplicate the results as some messages might be present in multiple instances (e.g. when they initially failed and later were successfully processed)
                     //The Execute method guarantees that the first item in the results collection comes from the main SC instance so the data fetched from failed messages has
                     //precedence over the data from the audit instances.
-                    if (!deduplicated.ContainsKey(result.MessageId))
+                    var key = $"{result.ReceivingEndpoint?.Name}-{result.MessageId}";
+                    if (!deduplicated.ContainsKey(key))
                     {
-                        deduplicated.Add(result.MessageId, result);
+                        deduplicated.Add(key, result);
                     }
                 }
             }
