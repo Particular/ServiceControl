@@ -223,6 +223,7 @@
         <GroupBox Grid.Row="7"
                   Grid.Column="1"
                   Header="ENDPOINT NAME"
+                  Margin="0 1 0 0"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
             <TextBlock FontSize="14px" Text="{Binding Name}" />
         </GroupBox>
