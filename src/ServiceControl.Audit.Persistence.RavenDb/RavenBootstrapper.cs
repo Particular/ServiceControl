@@ -64,9 +64,9 @@
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            var runCleanupBundle = false;
+            var runCleanupBundle = true;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDB35/RunCleanupBundle", out var runCleanupBundleString))
+            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/RavenDB35/RunCleanupBundle", out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
             }

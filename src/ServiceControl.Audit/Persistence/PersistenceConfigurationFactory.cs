@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
-    using System.Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceConfigurationFactory
@@ -26,13 +25,20 @@ namespace ServiceControl.Audit.Persistence
         {
             var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
-            //hardcode for now
-            foreach (var key in ConfigurationManager.AppSettings.AllKeys)
+            foreach (var key in ConfigurationKeys)
             {
-                persistenceSettings.PersisterSpecificSettings[key] = ConfigurationManager.AppSettings[key];
+                var value = SettingsReader<string>.Read("ServiceControl.Audit", key, null);
+                persistenceSettings.PersisterSpecificSettings[$"ServiceControl.Audit/{key}"] = value;
             }
 
             return persistenceSettings;
         }
+
+        static string[] ConfigurationKeys = {
+            "DBPath",
+            "HostName",
+            "DatabaseMaintenancePort",
+            "RavenDB35/RunCleanupBundle"
+        };
     }
 }
