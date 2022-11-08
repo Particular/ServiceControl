@@ -18,6 +18,7 @@ ENV "ServiceControl.Audit/LogPath"="C:\\Data\\Logs\\"
 # Defaults
 ENV "ServiceControl.Audit/ForwardAuditMessages"="False"
 ENV "ServiceControl.Audit/AuditRetentionPeriod"="365"
+ENV "ServiceControl.Audit/DatabaseMaintenancePort"="44445"
 
 VOLUME [ "C:/Data" ]
 
