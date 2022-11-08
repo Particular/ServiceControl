@@ -28,7 +28,10 @@ namespace ServiceControl.Audit.Persistence
             foreach (var key in ConfigurationKeys)
             {
                 var value = SettingsReader<string>.Read("ServiceControl.Audit", key, null);
-                persistenceSettings.PersisterSpecificSettings[$"ServiceControl.Audit/{key}"] = value;
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    persistenceSettings.PersisterSpecificSettings[$"ServiceControl.Audit/{key}"] = value;
+                }
             }
 
             return persistenceSettings;
