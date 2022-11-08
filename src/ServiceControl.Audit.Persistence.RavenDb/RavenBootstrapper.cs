@@ -30,7 +30,10 @@
             }
             else
             {
-                var dbPath = settings.PersisterSpecificSettings["ServiceControl.Audit/DbPath"];
+                if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/DbPath", out string dbPath))
+                {
+                    throw new InvalidOperationException("The 'ServiceControl.Audit/DbPath' is mandatory and is missing.");
+                }
 
                 Directory.CreateDirectory(dbPath);
 
@@ -80,7 +83,10 @@
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
             documentStore.Configuration.Port = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
 
-            var hostName = settings.PersisterSpecificSettings["ServiceControl.Audit/HostName"];
+            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/HostName", out var hostName))
+            {
+                throw new Exception("The 'ServiceControl.Audit/HostName' is mandatory and is missing.");
+            }
 
             documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
                 ? "localhost"
