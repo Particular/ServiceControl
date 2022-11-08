@@ -21,27 +21,20 @@ namespace ServiceControl.Audit.Persistence
             }
         }
 
-        public static PersistenceSettings BuildPersistenceSettings(Settings settings)
+        public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)
         {
             var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
-            foreach (var key in ConfigurationKeys)
+            foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
                 var value = SettingsReader<string>.Read("ServiceControl.Audit", key, null);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    persistenceSettings.PersisterSpecificSettings[$"ServiceControl.Audit/{key}"] = value;
+                    persistenceSettings.PersisterSpecificSettings[key] = value;
                 }
             }
 
             return persistenceSettings;
         }
-
-        static string[] ConfigurationKeys = {
-            "DBPath",
-            "HostName",
-            "DatabaseMaintenancePort",
-            "RavenDB35/RunCleanupBundle"
-        };
     }
 }

@@ -17,7 +17,7 @@
             SetSettings = s =>
             {
                 s.AuditRetentionPeriod = TimeSpan.FromSeconds(2);
-                s.PersisterSpecificSettings["ServiceControl.Audit/ExpirationProcessTimerInSeconds"] = 3.ToString();
+                s.PersisterSpecificSettings["ExpirationProcessTimerInSeconds"] = 3.ToString();
             };
             return base.Setup();
         }

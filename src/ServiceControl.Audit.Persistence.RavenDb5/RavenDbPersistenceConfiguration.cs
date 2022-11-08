@@ -1,10 +1,27 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
     using System;
+    using System.Collections.Generic;
     using NServiceBus.Logging;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
+        public const string DatabaseNameKey = "RavenDB5/DatabaseName";
+        public const string DatabasePathKey = "DbPath";
+        public const string ConnectionStringKey = "RavenDB5/ConnectionString";
+        public const string HostNameKey = "HostName";
+        public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
+        public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
+
+        public IEnumerable<string> ConfigurationKeys => new string[]{
+            DatabaseNameKey,
+            HostNameKey,
+            DatabasePathKey,
+            ConnectionStringKey,
+            DatabaseMaintenancePortKey,
+            ExpirationProcessTimerInSecondsKey
+        };
+
         public string Name => "RavenDB5";
 
         public IPersistence Create(PersistenceSettings settings)
@@ -97,12 +114,5 @@
         static ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
-
-        public const string DatabaseNameKey = "ServiceControl/Audit/RavenDB5/DatabaseName";
-        public const string DatabasePathKey = "ServiceControl.Audit/DbPath";
-        public const string ConnectionStringKey = "ServiceControl/Audit/RavenDB5/ConnectionString";
-        public const string HostNameKey = "ServiceControl.Audit/HostName";
-        public const string DatabaseMaintenancePortKey = "ServiceControl.Audit/DatabaseMaintenancePort";
-        public const string ExpirationProcessTimerInSecondsKey = "ServiceControl.Audit/ExpirationProcessTimerInSeconds";
     }
 }

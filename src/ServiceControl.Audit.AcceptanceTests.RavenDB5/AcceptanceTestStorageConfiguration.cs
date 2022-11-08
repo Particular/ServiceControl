@@ -10,14 +10,17 @@
     {
         public string PersistenceType { get; protected set; }
 
-        public async Task CustomizeSettings(IDictionary<string, string> settings)
+        public async Task<IDictionary<string, string>> CustomizeSettings()
         {
             var databaseName = Guid.NewGuid().ToString();
 
             var instance = await SharedEmbeddedServer.GetInstance();
 
-            settings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
-            settings[RavenDbPersistenceConfiguration.DatabaseNameKey] = databaseName;
+            return new Dictionary<string, string>
+            {
+                { RavenDbPersistenceConfiguration.ConnectionStringKey,instance.ServerUrl },
+                { RavenDbPersistenceConfiguration.DatabaseNameKey,databaseName}
+            };
         }
 
         public Task Configure()

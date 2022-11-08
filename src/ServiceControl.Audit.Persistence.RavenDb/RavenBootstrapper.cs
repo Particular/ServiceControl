@@ -12,6 +12,15 @@
 
     class RavenBootstrapper
     {
+        public const string DatabasePathKey = "DbPath";
+        public const string HostNameKey = "HostName";
+        public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
+        public const string ExposeRavenDBKey = "ExposeRavenDB";
+        public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
+        public const string ExpirationProcessBatchSizeKey = "ExpirationProcessBatchSize";
+        public const string RunCleanupBundleKey = "RavenDB35/RunCleanupBundle";
+        public const string RunInMemoryKey = "RavenDB35/RunInMemory";
+
         public static PersistenceSettings Settings { get; private set; }
 
         public static void Configure(EmbeddableDocumentStore documentStore, PersistenceSettings settings)
@@ -19,7 +28,7 @@
             Settings = settings;
 
             var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl/Audit/RavenDB35/RunInMemory", out var runInMemoryString))
+            if (settings.PersisterSpecificSettings.TryGetValue(RunInMemoryKey, out var runInMemoryString))
             {
                 runInMemory = bool.Parse(runInMemoryString);
             }
@@ -30,9 +39,9 @@
             }
             else
             {
-                if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/DbPath", out string dbPath))
+                if (!settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out string dbPath))
                 {
-                    throw new InvalidOperationException("The 'ServiceControl.Audit/DbPath' is mandatory and is missing.");
+                    throw new InvalidOperationException($"{DatabasePathKey} is mandatory");
                 }
 
                 Directory.CreateDirectory(dbPath);
@@ -43,7 +52,7 @@
 
             var exposeRavenDB = false;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExposeRavenDB", out var exposeRavenDBString))
+            if (settings.PersisterSpecificSettings.TryGetValue(ExposeRavenDBKey, out var exposeRavenDBString))
             {
                 exposeRavenDB = bool.Parse(exposeRavenDBString);
             }
@@ -69,7 +78,7 @@
 
             var runCleanupBundle = true;
 
-            if (settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/RavenDB35/RunCleanupBundle", out var runCleanupBundleString))
+            if (settings.PersisterSpecificSettings.TryGetValue(RunCleanupBundleKey, out var runCleanupBundleString))
             {
                 runCleanupBundle = bool.Parse(runCleanupBundleString);
             }
@@ -81,11 +90,17 @@
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
-            documentStore.Configuration.Port = int.Parse(settings.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"]);
 
-            if (!settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/HostName", out var hostName))
+            if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePort))
             {
-                throw new Exception("The 'ServiceControl.Audit/HostName' is mandatory and is missing.");
+                throw new Exception($"{DatabaseMaintenancePortKey} is mandatory.");
+            }
+
+            documentStore.Configuration.Port = int.Parse(databaseMaintenancePort);
+
+            if (!settings.PersisterSpecificSettings.TryGetValue(HostNameKey, out var hostName))
+            {
+                throw new Exception($"{HostNameKey} is mandatory.");
             }
 
             documentStore.Configuration.HostName = hostName == "*" || hostName == "+"

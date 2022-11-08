@@ -23,7 +23,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Audit.Persistence;
     using ServiceControl.Infrastructure.WebApi;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
@@ -273,17 +272,15 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName);
 
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+            customServiceControlAuditSettings(settings);
+            SettingsPerInstance[instanceName] = settings;
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, persistenceSettings, excludeAssemblies: excludedAssemblies
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
                     .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
                 await setupBootstrapper.Run(null);
             }
-
-            customServiceControlAuditSettings(settings);
-            SettingsPerInstance[instanceName] = settings;
 
             var configuration = new EndpointConfiguration(instanceName);
             configuration.EnableInstallers();
@@ -332,8 +329,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 settings,
                 configuration,
-                loggingSettings,
-                persistenceSettings);
+                loggingSettings);
 
                 host = bootstrapper.HostBuilder.Build();
 
