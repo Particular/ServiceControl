@@ -7,7 +7,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using NLog;
     using NServiceBus;
-    using ServiceControl.Audit.Persistence;
     using Settings;
 
     class ImportFailedAuditsCommand : AbstractCommand
@@ -19,8 +18,6 @@
                 IngestAuditMessages = false
             };
 
-            var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings);
-
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
 
             using (var tokenSource = new CancellationTokenSource())
@@ -30,8 +27,7 @@
                     ctx => { tokenSource.Cancel(); },
                     settings,
                     busConfiguration,
-                    loggingSettings,
-                    persistenceSettings);
+                    loggingSettings);
 
                 var host = bootstrapper.HostBuilder.Build();
 

@@ -23,7 +23,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -68,7 +67,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             var instancePort = FindAvailablePort(33333);
 
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
 
             settings = new Settings(instanceName)
             {
@@ -115,15 +113,19 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
+            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
 
-            await persistenceToUse.CustomizeSettings(persistenceSettings.PersisterSpecificSettings);
+            var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
 
+            foreach (var persisterSpecificSetting in persisterSpecificSettings)
+            {
+                ConfigurationManager.AppSettings.Set($"ServiceControl.Audit/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
+            }
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
 
-                var setupBootstrapper = new SetupBootstrapper(settings, persistenceSettings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
+                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[] { typeof(IComponentBehavior).Assembly.GetName().Name });
                 await setupBootstrapper.Run(null);
             }
 
@@ -173,8 +175,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 },
                 settings,
                 configuration,
-                loggingSettings,
-                persistenceSettings);
+                loggingSettings);
 
                 bootstrapper.HostBuilder
                     .ConfigureServices(s => s.AddTransient<FailedAuditsController>());

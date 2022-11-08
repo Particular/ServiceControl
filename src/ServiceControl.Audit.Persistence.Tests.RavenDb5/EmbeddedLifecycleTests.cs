@@ -5,6 +5,7 @@
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using ServiceControl.Audit.Persistence.RavenDb;
 
     [TestFixture]
     class EmbeddedLifecycleTests : PersistenceTestFixture
@@ -16,9 +17,9 @@
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded");
                 var databaseMaintenancePort = FindAvailablePort(33335);
 
-                s.PersisterSpecificSettings["ServiceControl.Audit/DbPath"] = dbPath;
-                s.PersisterSpecificSettings["ServiceControl.Audit/HostName"] = "localhost";
-                s.PersisterSpecificSettings["ServiceControl.Audit/DatabaseMaintenancePort"] = databaseMaintenancePort.ToString();
+                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dbPath;
+                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.HostNameKey] = "localhost";
+                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
             };
 
             //make sure to stop the global instance first

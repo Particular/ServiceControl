@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
-    using System.Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceConfigurationFactory
@@ -22,14 +21,17 @@ namespace ServiceControl.Audit.Persistence
             }
         }
 
-        public static PersistenceSettings BuildPersistenceSettings(Settings settings)
+        public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)
         {
             var persistenceSettings = new PersistenceSettings(settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore);
 
-            //hardcode for now
-            foreach (var key in ConfigurationManager.AppSettings.AllKeys)
+            foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
-                persistenceSettings.PersisterSpecificSettings[key] = ConfigurationManager.AppSettings[key];
+                var value = SettingsReader<string>.Read("ServiceControl.Audit", key, null);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    persistenceSettings.PersisterSpecificSettings[key] = value;
+                }
             }
 
             return persistenceSettings;

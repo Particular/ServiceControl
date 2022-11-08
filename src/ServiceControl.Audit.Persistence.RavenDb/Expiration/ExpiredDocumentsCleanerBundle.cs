@@ -67,7 +67,7 @@
             {
                 var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
 
-                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessTimerInSeconds", out var expirationProcessTimerInSecondsString))
+                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, out var expirationProcessTimerInSecondsString))
                 {
                     expirationProcessTimerInSeconds = int.Parse(expirationProcessTimerInSecondsString);
                 }
@@ -94,7 +94,7 @@
             {
                 var expirationProcessBatchSize = ExpirationProcessBatchSizeDefault;
 
-                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue("ServiceControl.Audit/ExpirationProcessBatchSize", out var expirationProcessBatchSizeString))
+                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.ExpirationProcessBatchSizeKey, out var expirationProcessBatchSizeString))
                 {
                     expirationProcessBatchSize = int.Parse(expirationProcessBatchSizeString);
                 }

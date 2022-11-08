@@ -8,12 +8,7 @@
     {
         public string PersistenceType { get; protected set; }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        public Task CustomizeSettings(IDictionary<string, string> settings)
-#pragma warning restore IDE0060 // Remove unused parameter
-        {
-            return Task.CompletedTask;
-        }
+        public Task<IDictionary<string, string>> CustomizeSettings() => Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>());
 
         public Task Configure()
         {

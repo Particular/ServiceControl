@@ -29,13 +29,11 @@ namespace ServiceControl.Audit.Infrastructure
             Action<ICriticalErrorContext> onCriticalError,
             Settings.Settings settings,
             EndpointConfiguration configuration,
-            LoggingSettings loggingSettings,
-            PersistenceSettings persistenceSettings)
+            LoggingSettings loggingSettings)
         {
             this.onCriticalError = onCriticalError;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.loggingSettings = loggingSettings;
-            this.persistenceSettings = persistenceSettings;
             this.settings = settings;
 
             CreateHost();
@@ -44,6 +42,7 @@ namespace ServiceControl.Audit.Infrastructure
         void CreateHost()
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             RecordStartup(loggingSettings, configuration, persistenceConfiguration);
 
@@ -212,7 +211,6 @@ Persistence:                        {persistenceConfiguration.Name}
 
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
-        readonly PersistenceSettings persistenceSettings;
         Action<ICriticalErrorContext> onCriticalError;
         Settings.Settings settings;
         TransportSettings transportSettings;

@@ -10,13 +10,14 @@
     {
         public string PersistenceType { get; protected set; }
 
-        public Task CustomizeSettings(IDictionary<string, string> settings)
+        public Task<IDictionary<string, string>> CustomizeSettings()
         {
-            settings["ServiceControl/Audit/RavenDB35/RunInMemory"] = bool.TrueString;
-            settings["ServiceControl.Audit/DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
-            settings["ServiceControl.Audit/HostName"] = "localhost";
-
-            return Task.CompletedTask;
+            return Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>
+            {
+                { "RavenDB35/RunInMemory", bool.TrueString},
+                { "DatabaseMaintenancePort", FindAvailablePort(33334).ToString()},
+                { "HostName", "localhost" }
+            });
         }
 
         public Task Configure()

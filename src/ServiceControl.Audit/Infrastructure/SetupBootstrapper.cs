@@ -13,11 +13,10 @@ namespace ServiceControl.Audit.Infrastructure
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, PersistenceSettings persistenceSettings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
         {
             this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
-            this.persistenceSettings = persistenceSettings;
         }
 
         public async Task Run(string username)
@@ -88,7 +87,7 @@ namespace ServiceControl.Audit.Infrastructure
             containerBuilder.AddSingleton(settings);
 
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
-
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();
             await installer.Install()
@@ -142,7 +141,6 @@ namespace ServiceControl.Audit.Infrastructure
         }
 
         readonly Settings.Settings settings;
-        readonly PersistenceSettings persistenceSettings;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
         string[] excludeAssemblies;
     }

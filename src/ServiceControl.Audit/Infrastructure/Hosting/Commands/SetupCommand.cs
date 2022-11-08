@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using ServiceControl.Audit.Persistence;
     using Settings;
 
     class SetupCommand : AbstractCommand
@@ -13,9 +12,7 @@
                 SkipQueueCreation = args.SkipQueueCreation
             };
 
-            var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings);
-
-            await new SetupBootstrapper(settings, persistenceSettings).Run(args.Username)
+            await new SetupBootstrapper(settings).Run(args.Username)
                 .ConfigureAwait(false);
         }
     }

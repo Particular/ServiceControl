@@ -3,7 +3,6 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
-    using ServiceControl.Audit.Persistence;
     using Settings;
 
     class RunCommand : AbstractCommand
@@ -18,13 +17,11 @@
             var loggingSettings = new LoggingSettings(args.ServiceName);
 
             var settings = new Settings(args.ServiceName);
-            var persistenceSettings = PersistenceConfigurationFactory.BuildPersistenceSettings(settings);
             var host = new Bootstrapper(
                 ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 settings,
                 busConfiguration,
-                loggingSettings,
-                persistenceSettings).HostBuilder;
+                loggingSettings).HostBuilder;
 
             if (runAsWindowsService)
             {

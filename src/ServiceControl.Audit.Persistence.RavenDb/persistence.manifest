@@ -10,7 +10,7 @@
       "DefaultValue": "4096"
     },
     {
-      "Name": "ServiceControl/Audit/RavenDB35/RunCleanupBundle",
+      "Name": "ServiceControl.Audit/RavenDB35/RunCleanupBundle",
       "DefaultValue": "true"
     },
     {
