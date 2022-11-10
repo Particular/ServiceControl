@@ -24,6 +24,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 ServiceName = DEFAULT_SERVICE_NAME;
             }
 
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
+
             {
                 // order matters
                 ErrorQueue = GetErrorQueue();
