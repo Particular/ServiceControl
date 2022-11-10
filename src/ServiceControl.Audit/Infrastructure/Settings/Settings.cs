@@ -23,11 +23,9 @@
             // Overwrite the service name if it is specified in ENVVAR, reg, or config file
             ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
 
-            {
-                // order matters
-                AuditQueue = GetAuditQueue();
-                AuditLogQueue = GetAuditLogQueue();
-            }
+            // order matters
+            AuditQueue = GetAuditQueue();
+            AuditLogQueue = GetAuditLogQueue();
 
             TryLoadLicenseFromConfig();
 
