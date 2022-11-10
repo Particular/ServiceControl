@@ -13,7 +13,7 @@ Each zip has the following folder structure:
 
 ## Assembly Mismatches
 
-There can be an issue when the main instance folder and the selected transport each have a copy of the same assembly. This can happen when the transport/persitence package and the instance each reference the same dependency, but select different versions. At install time, one version or the other will be copied into the instance binary folder and things may break unexpectedly at runtime.
+There can be an issue when the main instance folder and the selected transport each have a copy of the same assembly. This can happen when the transport/persistence package and the instance each reference the same dependency, but select different versions. At install time, one version or the other will be copied into the instance binary folder and things may break unexpectedly at runtime.
 
 To prevent this, the unit test `DeploymentPackageTests.DuplicatAssemblyFileSizesShouldMatch` tests the generated zip files for duplicated assemblies. If their file sizes match, then the test passes. If the file sizes do not match, then the test will fail with a message:
 
