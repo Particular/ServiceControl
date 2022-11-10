@@ -1,6 +1,8 @@
 # Packaging
 
-Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit),  is packaged into its own versioned zip file in the `./zip` folder. These zip files are included in the installation package. When ServiceControl Management installs a new instance, it uses the files in these zips. Each zip contain two top-level folders
+Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit),  is packaged into its own versioned zip file in the `./zip` folder. These zip files are included in the installation package. 
+
+Each zip has the following folder structure:
 
 - `/Transports` contains a folder for each supported transport
 - `/Persistence` contains a folder for each supported persister (Only the Audit instance use this currently)
@@ -8,8 +10,6 @@ Each product (ServiceControl, ServiceControl.Monitoring and ServiceControl.Audit
   - `/ServiceControl`
   - `/ServiceControl.Audit`
   - `/ServiceControl.Monitoring`
-  
-When ServiceControl Management Utility (SCMU) installs a product, it unzips the main instance files, selected persister (if present) and the selected transport files into the same folder.
 
 ## Assembly Mismatches
 
