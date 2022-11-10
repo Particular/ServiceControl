@@ -27,9 +27,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             // Overwrite the service name if it is specified in ENVVAR, reg, or config file
             ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
 
-            // order matters
             ErrorQueue = GetErrorQueue();
-            ErrorLogQueue = GetErrorLogQueue();
+            ErrorLogQueue = GetErrorLogQueue(ErrorQueue);
 
             TryLoadLicenseFromConfig();
 
@@ -258,9 +257,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return value;
         }
 
-        string GetErrorLogQueue()
+        string GetErrorLogQueue(string errorQueue)
         {
-            if (ErrorQueue == null)
+            if (errorQueue == null)
             {
                 return null;
             }
@@ -270,7 +269,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             if (value == null)
             {
                 logger.Info("No settings found for error log queue to import, default name will be used");
-                return Subscope(ErrorQueue);
+                return Subscope(errorQueue);
             }
 
             return value;
