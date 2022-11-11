@@ -64,7 +64,7 @@
                 AuditQueue = "audittest",
                 ForwardAuditMessages = false,
                 ForwardErrorMessages = false,
-                AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInHoursForUI),
+                AuditRetentionPeriod = TimeSpan.FromHours(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI),
                 ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
                 ErrorQueue = "testerror",
                 TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
