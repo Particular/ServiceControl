@@ -223,7 +223,7 @@
                     Value = false
                 }
             };
-            AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInHoursForUI;
+            AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInDaysForUI;
             Description = "ServiceControl Audit";
             HostName = "localhost";
             AuditQueueName = "audit";
@@ -235,11 +235,11 @@
             EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
         }
 
-        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInHours;
+        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInDays;
 
-        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInHours;
+        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInDays;
 
-        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Hours;
+        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Days;
 
         public double AuditRetention { get; set; }
 
