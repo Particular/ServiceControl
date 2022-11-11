@@ -161,6 +161,11 @@
                     return auditInstance.PersistenceManifest.DisplayName;
                 }
 
+                if (ServiceInstance is IMonitoringInstance)
+                {
+                    return "InMemory";
+                }
+
                 return "RavenDB 3.5";
             }
         }
