@@ -35,9 +35,3 @@ Run ServiceControl full version and use the HTTP API to validate results.
 ## Multi-instance tests
 
 Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process.
-
-## Docker tests
-
-Are included in the multi-instance tests project, they validate text in the `dockerfile` files using approval tests.
-
-TBD: delete tests, add some instructions on how to manually test docker images
