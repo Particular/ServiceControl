@@ -20,7 +20,7 @@
     <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.1.0" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.2" />    
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.2" />
