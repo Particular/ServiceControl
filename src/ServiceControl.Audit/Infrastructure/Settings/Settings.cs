@@ -20,11 +20,11 @@
                 ServiceName = DEFAULT_SERVICE_NAME;
             }
 
-            {
-                // order matters
-                AuditQueue = GetAuditQueue();
-                AuditLogQueue = GetAuditLogQueue();
-            }
+            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
+            ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
+
+            AuditQueue = GetAuditQueue();
+            AuditLogQueue = GetAuditLogQueue(AuditQueue);
 
             TryLoadLicenseFromConfig();
 
@@ -162,9 +162,9 @@
             return result;
         }
 
-        string GetAuditLogQueue()
+        string GetAuditLogQueue(string auditQueue)
         {
-            if (AuditQueue == null)
+            if (auditQueue == null)
             {
                 return null;
             }
@@ -174,7 +174,7 @@
             if (value == null)
             {
                 logger.Info("No settings found for audit log queue to import, default name will be used");
-                return Subscope(AuditQueue);
+                return Subscope(auditQueue);
             }
 
             return value;
