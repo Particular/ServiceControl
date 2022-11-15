@@ -44,6 +44,11 @@ namespace ServiceControl.Audit.Infrastructure
                 var routing = new RoutingSettings(configuration.GetSettings());
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
+
+                if (!isRunningAcceptanceTests)
+                {
+                    configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
+                }
             }
 
             configuration.GetSettings().Set(loggingSettings);
@@ -55,11 +60,6 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-
-            if (!isRunningAcceptanceTests)
-            {
-                configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
-            }
 
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {
