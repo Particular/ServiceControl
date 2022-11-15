@@ -32,7 +32,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `TODO` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See the ServiceControl log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
