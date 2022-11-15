@@ -22,28 +22,20 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" ReferenceOutputAssembly="false" Private="false"/>
   </ItemGroup>
 
-  <Target Name="CleanStaging" AfterTargets="Build">
-    <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
-    </PropertyGroup>
+  <PropertyGroup>
+    <DeployFolder>..\..\deploy\</DeployFolder>
+  </PropertyGroup>
+
+
+  <Target Name="CleanDeployFolder" AfterTargets="Build">
     <!-- Ensure Folder Exists  -->
-    <MakeDir Directories="$(ZipTargetFolder)" />
-    <RemoveDir Directories="$(StagingFolder)" />
-    <MakeDir Directories="$(StagingFolder)" />
-    <!-- Remove any existing files -->
-    <ItemGroup>
-      <OldZips Include="$(ZipTargetFolder)*.*" />
-    </ItemGroup>
-    <Delete Files="@(OldZips)" />
+    <RemoveDir Directories="$(DeployFolder)" />
+    <MakeDir Directories="$(DeployFolder)" />
   </Target>
 
-  <Target Name="CreateServiceControlZip" AfterTargets="CleanStaging">
+  <Target Name="PrepareServiceControl" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -86,15 +78,11 @@
     <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
     <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
 
-    <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
-    <RemoveDir Directories="$(StagingFolder)" />
   </Target>
-
-  <Target Name="CreateServiceControlAuditZip" AfterTargets="CreateServiceControlZip">
+  
+  <Target Name="PrepareServiceControlAudit" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Audit-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Audit\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -141,16 +129,11 @@
     <Copy SourceFiles="@(AuditInMemoryPersistence)" DestinationFolder="$(StagingFolder)Persisters\InMemory" />
     <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB35" />
     <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB5\%(RecursiveDir)" />
-
-    <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
-    <RemoveDir Directories="$(StagingFolder)" />
   </Target>
 
-  <Target Name="CreateServiceControlMonitoringZip" AfterTargets="CreateServiceControlAuditZip">
+  <Target Name="PrepareServiceControlMonitoring" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <ZipTargetFolder>..\..\zip\</ZipTargetFolder>
-      <ZipToCreate>$(ZipTargetFolder)Particular.ServiceControl.Monitoring-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-      <StagingFolder>$(ZipTargetFolder)Staging\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Monitoring\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -189,7 +172,6 @@
     <Copy SourceFiles="@(MonitoringSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
     <Copy SourceFiles="@(MonitoringLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
 
-    <ZipDirectory SourceDirectory="$(StagingFolder)" DestinationFile="$(ZipToCreate)" />
-    <RemoveDir Directories="$(StagingFolder)" />
   </Target>
+
 </Project>

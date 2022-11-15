@@ -104,9 +104,7 @@ namespace ServiceControl.Persistence.InMemory
 
         public Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            if (endpoints != null)
-            {
-                endpoints.ForEach(e =>
+            endpoints?.ForEach(e =>
                 {
                     endpointInstanceMonitoring.DetectEndpointFromPersistentStore(new EndpointDetails
                     {
@@ -115,7 +113,6 @@ namespace ServiceControl.Persistence.InMemory
                         Name = e.HostDisplayName
                     }, e.Monitored);
                 });
-            }
 
             return Task.CompletedTask;
         }

@@ -8,15 +8,17 @@
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
     <NoWarn>$(NoWarn);NU5100</NoWarn>
     <IsPackable>true</IsPackable>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PreparePrimaryInstance;PrepareAuditInstance;AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PreparePrimaryInstance;PrepareAuditInstance;PrepareMonitoringInstance;AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" />
-    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+  <ItemGroup>  
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DeployFolder>..\..\deploy\</DeployFolder>
+  </PropertyGroup>
+  
   <ItemGroup>
     <None Remove="buildProps\**\*" />
     <Content Include="buildProps\**\*" PackagePath="" />
@@ -29,18 +31,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ServiceControlZip Include="..\..\zip\Particular.ServiceControl-*.zip" />
+      <ServiceControl Include="$(DeployFolder)\Particular.ServiceControl\ServiceControl\**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
     </ItemGroup>
 
-    <MakeDir Directories="$(PrimaryStagingFolder)" />
-    <Unzip SourceFiles="@(ServiceControlZip)" DestinationFolder="$(PrimaryStagingFolder)" />
-
-    <ItemGroup>
-      <ServiceControl Include="$(PrimaryStagingFolder)\ServiceControl\**\*.*" Exclude="**\*.config;**\*.pdb" />
-    </ItemGroup>
-
+    <RemoveDir Directories="$(PrimaryWithPersistenceFolder)" />
     <MakeDir Directories="$(PrimaryWithPersistenceFolder)" />
     <Copy SourceFiles="@(ServiceControl)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
+    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
   </Target>
 
   <Target Name="PrepareAuditInstance">
@@ -50,28 +48,40 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ServiceControlAuditZip Include="..\..\zip\Particular.ServiceControl.Audit-*.zip" />
+      <ServiceControlAudit Include="$(DeployFolder)\Particular.ServiceControl.Audit\ServiceControl.Audit\**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <AuditRavenPersistence Include="$(DeployFolder)\Particular.ServiceControl.Audit\Persisters\RavenDB35\**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl.Audit\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
     </ItemGroup>
 
-    <MakeDir Directories="$(AuditStagingFolder)" />
-    <Unzip SourceFiles="@(ServiceControlAuditZip)" DestinationFolder="$(AuditStagingFolder)" />
-
-    <ItemGroup>
-      <ServiceControlAudit Include="$(AuditStagingFolder)\ServiceControl.Audit\**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <AuditRavenPersistence Include="$(AuditStagingFolder)\Persisters\RavenDB35\**\*.*" Exclude="**\*.config;**\*.pdb" />
-    </ItemGroup>
-
+    <RemoveDir Directories="$(AuditWithPersistenceFolder)" />
     <MakeDir Directories="$(AuditWithPersistenceFolder)" />
     <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(AuditWithPersistenceFolder)" />
     <Copy SourceFiles="@(AuditRavenPersistence)" DestinationFolder="$(AuditWithPersistenceFolder)" />
+    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(AuditWithPersistenceFolder)" />
+  </Target>
+  
+  <Target Name="PrepareMonitoringInstance">
+    <PropertyGroup>
+      <MonitoringFolder>.\$(OutputPath)\monitoring-persistence\</MonitoringFolder>
+      <MonitoringStagingFolder>$(OutputPath)\monitoring-staging\</MonitoringStagingFolder>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ServiceControlMonitoring Include="$(DeployFolder)\Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl.Monitoring\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(MonitoringFolder)" />
+    <MakeDir Directories="$(MonitoringFolder)" />
+    <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(MonitoringFolder)" />
+    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(MonitoringFolder)" />
   </Target>
 
   <Target Name="AddFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(PrimaryWithPersistenceFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" />
       <TfmSpecificPackageFile Include="$(AuditWithPersistenceFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
-      <TfmSpecificPackageFile Include="..\ServiceControl.Monitoring\$(OutputPath)**\*" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" />
-      <TfmSpecificPackageFile Include="..\ServiceControl.Transports.Learning\$(OutputPath)\ServiceControl.Transports.Learning.dll" PackagePath="platform\servicecontrol\servicecontrol-instance;platform\servicecontrol\servicecontrol-audit-instance;platform\servicecontrol\monitoring-instance" />
+      <TfmSpecificPackageFile Include="$(MonitoringFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" />
     </ItemGroup>
   </Target>
 
