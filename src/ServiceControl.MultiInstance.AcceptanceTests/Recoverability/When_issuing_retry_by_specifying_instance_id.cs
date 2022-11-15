@@ -19,6 +19,8 @@
         [Test]
         public async Task Should_be_work()
         {
+            string addressOfItself = null;
+
             // instead of setting up a multiple crazy instances we just use the current instance and rely on it forwarding the instance call to itself
             CustomServiceControlSettings = s => { addressOfItself = s.ApiUrl; };
 
@@ -34,6 +36,8 @@
                         failure = result;
                         if (result)
                         {
+                            Assert.False(string.IsNullOrEmpty(addressOfItself));
+
                             c.RetryIssued = true;
                             await this.Post<object>($"/api/errors/{failure.UniqueMessageId}/retry?instance_id={InstanceIdGenerator.FromApiUrl(addressOfItself)}", null, null, ServiceControlInstanceName);
                         }
@@ -55,8 +59,6 @@
 
             return this.TryGet<FailedMessage>("/api/errors/" + c.UniqueMessageId, f => f.Status == expectedStatus, instance);
         }
-
-        string addressOfItself = "TODO";
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
