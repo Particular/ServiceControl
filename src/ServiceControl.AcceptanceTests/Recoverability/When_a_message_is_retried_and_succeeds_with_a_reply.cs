@@ -93,7 +93,7 @@
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
-                    // TODO: Check if the local address needs to be sanitized
+
                     Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (!Context.RetryIssued)
