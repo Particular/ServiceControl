@@ -65,7 +65,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 HostName = viewModel.ServiceControl.HostName,
                 Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber),
                 DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber),
-                VirtualDirectory = null, // TODO
+                VirtualDirectory = null,
                 ErrorQueue = viewModel.ServiceControl.ErrorQueueName,
                 ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null,
                 ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value,
