@@ -12,10 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
   </ItemGroup>
@@ -28,30 +25,40 @@
   <Target Name="PreparePrimaryInstance">
     <PropertyGroup>
       <PrimaryWithPersistenceFolder>.\$(OutputPath)\primary-with-persistence\</PrimaryWithPersistenceFolder>
-      <ServiceControlFolder>..\ServiceControl\$(OutputPath)\</ServiceControlFolder>
-      <PrimaryRavenPersistenceFolder>..\ServiceControl.Persistence.RavenDb\$(OutputPath)\</PrimaryRavenPersistenceFolder>
+      <PrimaryStagingFolder>$(OutputPath)\primary-staging\</PrimaryStagingFolder>
     </PropertyGroup>
 
     <ItemGroup>
-      <ServiceControl Include="$(ServiceControlFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <PrimaryRavenPersistence Include="$(PrimaryRavenPersistenceFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <ServiceControlZip Include="..\..\zip\Particular.ServiceControl-*.zip" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(PrimaryStagingFolder)" />
+    <Unzip SourceFiles="@(ServiceControlZip)" DestinationFolder="$(PrimaryStagingFolder)" />
+
+    <ItemGroup>
+      <ServiceControl Include="$(PrimaryStagingFolder)\ServiceControl\**\*.*" Exclude="**\*.config;**\*.pdb" />
     </ItemGroup>
 
     <MakeDir Directories="$(PrimaryWithPersistenceFolder)" />
     <Copy SourceFiles="@(ServiceControl)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
-    <Copy SourceFiles="@(PrimaryRavenPersistence)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
   </Target>
 
   <Target Name="PrepareAuditInstance">
     <PropertyGroup>
       <AuditWithPersistenceFolder>.\$(OutputPath)\audit-with-persistence\</AuditWithPersistenceFolder>
-      <ServiceControlAuditFolder>..\ServiceControl.Audit\$(OutputPath)\</ServiceControlAuditFolder>
-      <AuditRavenPersistenceFolder>..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)\</AuditRavenPersistenceFolder>
+      <AuditStagingFolder>$(OutputPath)\audit-staging\</AuditStagingFolder>
     </PropertyGroup>
 
     <ItemGroup>
-      <ServiceControlAudit Include="$(ServiceControlAuditFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <AuditRavenPersistence Include="$(AuditRavenPersistenceFolder)**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <ServiceControlAuditZip Include="..\..\zip\Particular.ServiceControl.Audit-*.zip" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(AuditStagingFolder)" />
+    <Unzip SourceFiles="@(ServiceControlAuditZip)" DestinationFolder="$(AuditStagingFolder)" />
+
+    <ItemGroup>
+      <ServiceControlAudit Include="$(AuditStagingFolder)\ServiceControl.Audit\**\*.*" Exclude="**\*.config;**\*.pdb" />
+      <AuditRavenPersistence Include="$(AuditStagingFolder)\Persisters\RavenDB35\**\*.*" Exclude="**\*.config;**\*.pdb" />
     </ItemGroup>
 
     <MakeDir Directories="$(AuditWithPersistenceFolder)" />
