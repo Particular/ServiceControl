@@ -39,14 +39,12 @@
             {
                 foreach (var property in writeableMessageViewProperties[metadata.Key])
                 {
-                    // TODO: Check types
                     property.SetValue(result, metadata.Value);
                 }
                 foreach (var mappedName in propertyMapping[metadata.Key])
                 {
                     foreach (var property in writeableMessageViewProperties[mappedName])
                     {
-                        // TODO: Check types
                         property.SetValue(result, metadata.Value);
                     }
                 }
