@@ -19,10 +19,12 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.ServiceControl.ServiceAccount)
                 .NotEmpty()
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.ServiceAccount)
                 .NotEmpty()
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.PortNumber)
@@ -34,6 +36,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports"))
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.PortNumber)
@@ -45,6 +48,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .NotEqual(x => x.ServiceControl.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Audit Instance Ports"))
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DatabaseMaintenancePortNumber)
@@ -56,6 +60,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports"))
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
@@ -67,6 +72,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.PortNumber)
                 .NotEqual(x => x.ServiceControl.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Audit Instance Ports"))
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DestinationPath)
@@ -74,6 +80,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControl.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DestinationPath)
@@ -81,6 +88,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControlAudit.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControl.DatabasePath)
@@ -88,6 +96,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControl.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Database Paths"))
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.DatabasePath)
@@ -95,13 +104,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControlAudit.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Database Paths"))
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ServiceControlAudit.AuditForwarding)
-                .NotNull().WithMessage(Validation.Validations.MSG_SELECTAUDITFORWARDING);
+                .NotNull().WithMessage(Validation.Validations.MSG_SELECTAUDITFORWARDING)
+                .Unless(x => !x.InstallAuditInstance);
 
             RuleFor(x => x.ServiceControl.ErrorForwarding)
-                .NotNull().WithMessage(Validation.Validations.MSG_SELECTERRORFORWARDING);
+                .NotNull().WithMessage(Validation.Validations.MSG_SELECTERRORFORWARDING)
+                .Unless(x => !x.InstallErrorInstance);
 
 
             RuleFor(x => x.ServiceControl.ErrorQueueName)
@@ -111,6 +123,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted && x.ServiceControl.ErrorQueueName != "!disable");
 
             RuleFor(x => x.ServiceControl.ErrorForwardingQueueName)
@@ -120,6 +133,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .Unless(x => !x.InstallErrorInstance)
                 .When(x => x.SubmitAttempted && x.ServiceControl.ErrorForwarding.Value);
 
             RuleFor(x => x.ServiceControlAudit.AuditQueueName)
@@ -128,6 +142,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.ErrorForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding"))
                 .NotEqual(x => x.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControlAudit.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted && x.ServiceControlAudit.AuditQueueName != "!disable");
 
             RuleFor(x => x.ServiceControlAudit.AuditForwardingQueueName)
@@ -137,6 +152,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ServiceControl.ErrorForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ServiceControl.InstanceName, x.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
+                .Unless(x => !x.InstallAuditInstance)
                 .When(x => x.SubmitAttempted && (x.ServiceControlAudit.AuditForwarding?.Value ?? false));
 
             RuleFor(x => x.ConnectionString)

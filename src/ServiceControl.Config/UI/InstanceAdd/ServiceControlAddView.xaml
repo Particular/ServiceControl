@@ -67,89 +67,90 @@
                              Visibility="{Binding ShowConnectionString,
                                                   Converter={StaticResource boolToVis}}" />
                 </StackPanel>
-                <Expander Header="ServiceControl" IsExpanded="{Binding IsServiceControlExpanded}" Margin="0,5,0,5">
-                    <StackPanel Margin="60,0,60,0">
-                        <Border Margin="0,40,0,20"
+                <CheckBox Padding="0, -10, 0, 0" IsChecked="{Binding InstallErrorInstance}">
+                    <Expander Header="ServiceControl" IsExpanded="{Binding IsServiceControlExpanded}" Margin="0,5,0,5">
+                        <StackPanel Margin="60,0,60,0">
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray70Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="GENERAL" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding ServiceControl.InstanceName}" />
+                            <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding ServiceControl.InstanceName}" />
 
-                        <GroupBox Header="USER ACCOUNT">
-                            <StackPanel>
-                                <RadioButton IsChecked="{Binding ServiceControl.UseSystemAccount}">
-                                    <TextBlock Text="LOCAL SYSTEM" />
-                                </RadioButton>
-                                <RadioButton IsChecked="{Binding ServiceControl.UseServiceAccount}">
-                                    <TextBlock Text="LOCAL SERVICE" />
-                                </RadioButton>
-                                <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControl.UseProvidedAccount}">
-                                    <TextBlock Text="USER" />
-                                </RadioButton>
-                                <Grid Margin="15,0,0,0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-                                    <controls:FormTextBox Grid.Row="1"
+                            <GroupBox Header="USER ACCOUNT">
+                                <StackPanel>
+                                    <RadioButton IsChecked="{Binding ServiceControl.UseSystemAccount}">
+                                        <TextBlock Text="LOCAL SYSTEM" />
+                                    </RadioButton>
+                                    <RadioButton IsChecked="{Binding ServiceControl.UseServiceAccount}">
+                                        <TextBlock Text="LOCAL SERVICE" />
+                                    </RadioButton>
+                                    <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControl.UseProvidedAccount}">
+                                        <TextBlock Text="USER" />
+                                    </RadioButton>
+                                    <Grid Margin="15,0,0,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="auto" />
+                                            <RowDefinition Height="auto" />
+                                        </Grid.RowDefinitions>
+                                        <controls:FormTextBox Grid.Row="1"
                                                       Header="SERVICE ACCOUNT"
                                                       Text="{Binding ServiceControl.ServiceAccount}"
                                                       Visibility="{Binding ServiceControl.UseProvidedAccount,
                                                                            Converter={StaticResource boolToVis}}" />
 
-                                    <controls:FormPasswordBox Grid.Row="2"
+                                        <controls:FormPasswordBox Grid.Row="2"
                                                           Header="PASSWORD"
                                                           Text="{Binding ServiceControl.Password}"
                                                           Visibility="{Binding ServiceControl.PasswordEnabled,
                                                                                Converter={StaticResource boolToVis}}" />
-                                    <TextBlock Grid.Row="2"
+                                        <TextBlock Grid.Row="2"
                                            Text="No password is required for an AD Group Managed Service Account"
                                            Visibility="{Binding ServiceControl.ManagedAccount,
                                                                 Converter={StaticResource boolToVis}}" />
-                                </Grid>
-                            </StackPanel>
-                        </GroupBox>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
 
-                        <controls:FormTextBox Header="HOST NAME"
+                            <controls:FormTextBox Header="HOST NAME"
                                           Text="{Binding ServiceControl.HostName}"
                                           Warning="{Binding ServiceControl.HostNameWarning}" />
-                        <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.PortNumber}" />
-                        <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.DatabaseMaintenancePortNumber}" />
+                            <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.PortNumber}" />
+                            <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.DatabaseMaintenancePortNumber}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                    FontWeight="Bold"
                                    Text="PATHS" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormPathTextBox Header="DESTINATION PATH"
+                            <controls:FormPathTextBox Header="DESTINATION PATH"
                                               SelectCommand="{Binding ServiceControl.SelectDestinationPath}"
                                               Text="{Binding ServiceControl.DestinationPath}" />
 
-                        <controls:FormPathTextBox Header="LOG PATH"
+                            <controls:FormPathTextBox Header="LOG PATH"
                                               SelectCommand="{Binding ServiceControl.SelectLogPath}"
                                               Text="{Binding ServiceControl.LogPath}" />
 
-                        <controls:FormPathTextBox Header="DATABASE PATH"
+                            <controls:FormPathTextBox Header="DATABASE PATH"
                                               SelectCommand="{Binding ServiceControl.SelectDatabasePath}"
                                               Text="{Binding ServiceControl.DatabasePath}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                    FontWeight="Bold"
                                    Text="DATABASE RETENTION CONFIGURATION" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
+                            <controls:FormSlider Explanation="Error Messages that have been archived or resolved will be removed after this period"
                                          Header="ERROR RETENTION PERIOD"
                                          LargeChange="1"
                                          Maximum="{Binding ServiceControl.MaximumErrorRetentionPeriod}"
@@ -158,31 +159,31 @@
                                          Units="{Binding ServiceControl.ErrorRetentionUnits}"
                                          Value="{Binding ServiceControl.ErrorRetention}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                             BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                    FontWeight="Bold"
                                    Text="QUEUES CONFIGURATION" />
-                        </Border>
+                            </Border>
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <controls:FormTextBox  Grid.Column="0"
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <controls:FormTextBox  Grid.Column="0"
                                                Grid.Row="0"
                                                Grid.ColumnSpan="2"
                                                Header="ERROR QUEUE NAME"
                                                Text="{Binding ServiceControl.ErrorQueueName}" />
 
-                            <controls:FormComboBox Grid.Column="0"
+                                <controls:FormComboBox Grid.Column="0"
                                                Grid.Row="1"
                                                HorizontalAlignment="Stretch"
                                                VerticalAlignment="Top"
@@ -191,119 +192,121 @@
                                                ItemsSource="{Binding ServiceControl.ErrorForwardingOptions}"
                                                SelectedValue="{Binding ServiceControl.ErrorForwarding}" />
 
-                            <controls:FormTextBox Grid.Column="1"
+                                <controls:FormTextBox Grid.Column="1"
                                               Grid.Row="1"
                                               Header="ERROR FORWARDING QUEUE NAME"
                                               Text="{Binding ServiceControl.ErrorForwardingQueueName}"
                                               Visibility="{Binding ServiceControl.ShowErrorForwardingQueue, Converter={StaticResource boolToVis}}"/>
 
-                            <controls:FormWarningTextBlock Grid.Column="0"
+                                <controls:FormWarningTextBlock Grid.Column="0"
                                                Grid.ColumnSpan="2"
                                                Grid.Row="2"
                                                Text="{Binding ServiceControl.ErrorForwardingWarning}"
                                                Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
 
-                        </Grid>
+                            </Grid>
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="ADVANCED CONFIGURATION" />
-                        </Border>
-                        <controls:FormComboBox HorizontalAlignment="Stretch"
+                            </Border>
+                            <controls:FormComboBox HorizontalAlignment="Stretch"
                                                VerticalAlignment="Top"
                                                DisplayMemberPath="Name"
                                                Header="FULL TEXT SEARCH ON MESSAGE BODIES"
                                                ItemsSource="{Binding ServiceControl.EnableFullTextSearchOnBodiesOptions}"
                                                SelectedValue="{Binding ServiceControl.EnableFullTextSearchOnBodies}" />
-                    </StackPanel>
-                </Expander>
+                        </StackPanel>
+                    </Expander>
+                </CheckBox>
 
-                <Expander Header="ServiceControl Audit" IsExpanded="{Binding IsServiceControlAuditExpanded}" Margin="0,5,0,5">
-                    <StackPanel Margin="60,0,60,0">
-                        <Border Margin="0,40,0,20"
+                <CheckBox Padding="0, -10, 0, 0" IsChecked="{Binding InstallAuditInstance}">
+                    <Expander Header="ServiceControl Audit" IsExpanded="{Binding IsServiceControlAuditExpanded}" Margin="0,5,0,5">
+                        <StackPanel Margin="60,0,60,0">
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray70Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="GENERAL" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding ServiceControlAudit.InstanceName}" />
+                            <controls:FormTextBox Header="NAME / WINDOWS SERVICE NAME" Text="{Binding ServiceControlAudit.InstanceName}" />
 
-                        <GroupBox Header="USER ACCOUNT">
-                            <StackPanel>
-                                <RadioButton IsChecked="{Binding ServiceControlAudit.UseSystemAccount}">
-                                    <TextBlock Text="LOCAL SYSTEM" />
-                                </RadioButton>
-                                <RadioButton IsChecked="{Binding ServiceControlAudit.UseServiceAccount}">
-                                    <TextBlock Text="LOCAL SERVICE" />
-                                </RadioButton>
-                                <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControlAudit.UseProvidedAccount}">
-                                    <TextBlock Text="USER" />
-                                </RadioButton>
-                                <Grid Margin="15,0,0,0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-                                    <controls:FormTextBox Grid.Row="1"
+                            <GroupBox Header="USER ACCOUNT">
+                                <StackPanel>
+                                    <RadioButton IsChecked="{Binding ServiceControlAudit.UseSystemAccount}">
+                                        <TextBlock Text="LOCAL SYSTEM" />
+                                    </RadioButton>
+                                    <RadioButton IsChecked="{Binding ServiceControlAudit.UseServiceAccount}">
+                                        <TextBlock Text="LOCAL SERVICE" />
+                                    </RadioButton>
+                                    <RadioButton HorizontalContentAlignment="Stretch" IsChecked="{Binding ServiceControlAudit.UseProvidedAccount}">
+                                        <TextBlock Text="USER" />
+                                    </RadioButton>
+                                    <Grid Margin="15,0,0,0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="auto" />
+                                            <RowDefinition Height="auto" />
+                                        </Grid.RowDefinitions>
+                                        <controls:FormTextBox Grid.Row="1"
                                                           Header="SERVICE ACCOUNT"
                                                           Text="{Binding ServiceControlAudit.ServiceAccount}"
                                                           Visibility="{Binding ServiceControlAudit.UseProvidedAccount,
                                                                                Converter={StaticResource boolToVis}}" />
 
-                                    <controls:FormPasswordBox Grid.Row="2"
+                                        <controls:FormPasswordBox Grid.Row="2"
                                                               Header="PASSWORD"
                                                               Text="{Binding ServiceControlAudit.Password}"
                                                               Visibility="{Binding ServiceControlAudit.PasswordEnabled,
                                                                                    Converter={StaticResource boolToVis}}" />
-                                    <TextBlock Grid.Row="2"
+                                        <TextBlock Grid.Row="2"
                                                Text="No password is required for an AD Group Managed Service Account"
                                                Visibility="{Binding ServiceControlAudit.ManagedAccount,
                                                                     Converter={StaticResource boolToVis}}" />
-                                </Grid>
-                            </StackPanel>
-                        </GroupBox>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
 
-                        <controls:FormTextBox Header="HOST NAME"
+                            <controls:FormTextBox Header="HOST NAME"
                                               Text="{Binding ServiceControlAudit.HostName}"
                                               Warning="{Binding ServiceControlAudit.HostNameWarning}" />
-                        <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.PortNumber}" />
-                        <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}" />
+                            <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.PortNumber}" />
+                            <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="PATHS" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormPathTextBox Header="DESTINATION PATH"
+                            <controls:FormPathTextBox Header="DESTINATION PATH"
                                                   SelectCommand="{Binding ServiceControlAudit.SelectDestinationPath}"
                                                   Text="{Binding ServiceControlAudit.DestinationPath}" />
 
-                        <controls:FormPathTextBox Header="LOG PATH"
+                            <controls:FormPathTextBox Header="LOG PATH"
                                                   SelectCommand="{Binding ServiceControlAudit.SelectLogPath}"
                                                   Text="{Binding ServiceControlAudit.LogPath}" />
 
-                        <controls:FormPathTextBox Header="DATABASE PATH"
+                            <controls:FormPathTextBox Header="DATABASE PATH"
                                                   SelectCommand="{Binding ServiceControlAudit.SelectDatabasePath}"
                                                   Text="{Binding ServiceControlAudit.DatabasePath}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="DATABASE RETENTION CONFIGURATION" />
-                        </Border>
+                            </Border>
 
-                        <controls:FormSlider Explanation="Audit Messages will be removed after this period"
+                            <controls:FormSlider Explanation="Audit Messages will be removed after this period"
                                              Header="AUDIT RETENTION PERIOD"
                                              LargeChange="24"
                                              Maximum="{Binding ServiceControlAudit.MaximumAuditRetentionPeriod}"
@@ -312,31 +315,31 @@
                                              Units="{Binding ServiceControlAudit.AuditRetentionUnits}"
                                              Value="{Binding ServiceControlAudit.AuditRetention}" />
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="QUEUES CONFIGURATION" />
-                        </Border>
+                            </Border>
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <controls:FormTextBox Grid.Column="0"
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <controls:FormTextBox Grid.Column="0"
                                                   Grid.ColumnSpan="2"
                                                   Grid.Row="0"
                                                   Header="AUDIT QUEUE NAME"
                                                   Text="{Binding ServiceControlAudit.AuditQueueName}" />
 
-                            <controls:FormComboBox Grid.Column="0"
+                                <controls:FormComboBox Grid.Column="0"
                                                    Grid.Row="1"
                                                    HorizontalAlignment="Stretch"
                                                    VerticalAlignment="Top"
@@ -346,35 +349,36 @@
                                                    SelectedValue="{Binding ServiceControlAudit.AuditForwarding}"
                                                    />
 
-                            <controls:FormTextBox Grid.Column="1"
+                                <controls:FormTextBox Grid.Column="1"
                                                   Grid.Row="1"
                                                   Header="AUDIT FORWARDING QUEUE NAME"
                                                   Text="{Binding ServiceControlAudit.AuditForwardingQueueName}"
                                                   Visibility="{Binding ServiceControlAudit.ShowAuditForwardingQueue, Converter={StaticResource boolToVis}}"/>
 
-                            <controls:FormWarningTextBlock Grid.Column="0"
+                                <controls:FormWarningTextBlock Grid.Column="0"
                                                    Grid.ColumnSpan="2"
                                                    Grid.Row="2"
                                                    Text="{Binding ServiceControlAudit.AuditForwardingWarning}"
                                                    Visibility="{Binding Path=(cm:IDataErrorInfo.Error), Converter={StaticResource nullOrEmptyToVisInverted}}" />
 
-                        </Grid>
+                            </Grid>
 
-                        <Border Margin="0,40,0,20"
+                            <Border Margin="0,40,0,20"
                                 BorderBrush="{StaticResource Gray90Brush}"
                                 BorderThickness="0,0,0,1">
-                            <TextBlock FontSize="13px"
+                                <TextBlock FontSize="13px"
                                        FontWeight="Bold"
                                        Text="ADVANCED CONFIGURATION" />
-                        </Border>
-                        <controls:FormComboBox HorizontalAlignment="Stretch"
+                            </Border>
+                            <controls:FormComboBox HorizontalAlignment="Stretch"
                                                VerticalAlignment="Top"
                                                DisplayMemberPath="Name"
                                                Header="FULL TEXT SEARCH ON MESSAGE BODIES"
                                                ItemsSource="{Binding ServiceControlAudit.EnableFullTextSearchOnBodiesOptions}"
                                                SelectedValue="{Binding ServiceControlAudit.EnableFullTextSearchOnBodies}" />
-                    </StackPanel>
-                </Expander>
+                        </StackPanel>
+                    </Expander>
+                </CheckBox>
             </StackPanel>
         </sie:SharedServiceControlEditorView.SharedContent>
     </sie:SharedServiceControlEditorView>
