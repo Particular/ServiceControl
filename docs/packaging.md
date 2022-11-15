@@ -41,3 +41,11 @@ There are two mechanisms for doing that:
 
 1. Add an explicit version of the package as a dependency on the transport/persistence package that matches the version being used by ServiceControl. This is the preferred option, as Dependabot will pick up when a new version of the dependency has been released and raise a PR for us to test and review.
 2. [Exclude a specific assembly from being included in any transport folder during the packaging process](https://github.com/Particular/ServiceControl/pull/1735/files#diff-181a8bea53d298736c8183d4d5821665e2ec3c854e5f7a4f7e8694b4cddc4b3f). This is a legacy option and should only be used for packages that most transports rely on. This will cause a mismatch between what is automatically tested and what goes into the deployment package.
+
+## The mechanics
+
+The `ServiceControlInstaller.Packaging` project is responsible to output to a `deploy` folder in the root all the required artifacts for `ServiceControl`, `ServiceControl.Audit`, and `ServiceControl.Monitoring`. Those artifacts are later needed by:
+
+- the `ServiceControlInstaller.Engine` project to create the above-mentioned required zip files
+- the `Particular.PlatformSample.ServiceControl` project to create the Platform sample required NuGet package
+- The Docker `dockerfile`(s) to build the Docker container images
