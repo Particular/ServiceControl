@@ -23,6 +23,9 @@
   </ItemGroup>
 
   <Target Name="PreparePrimaryInstance">
+
+    <Exec Command="sleep 5" />
+    
     <PropertyGroup>
       <PrimaryWithPersistenceFolder>.\$(OutputPath)\primary-with-persistence\</PrimaryWithPersistenceFolder>
       <PrimaryStagingFolder>$(OutputPath)\primary-staging\</PrimaryStagingFolder>
@@ -44,6 +47,9 @@
   </Target>
 
   <Target Name="PrepareAuditInstance">
+
+    <Exec Command="sleep 5" />
+    
     <PropertyGroup>
       <AuditWithPersistenceFolder>.\$(OutputPath)\audit-with-persistence\</AuditWithPersistenceFolder>
       <AuditStagingFolder>$(OutputPath)\audit-staging\</AuditStagingFolder>
