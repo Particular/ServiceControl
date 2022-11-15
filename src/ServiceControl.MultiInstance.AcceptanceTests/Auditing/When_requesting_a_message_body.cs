@@ -21,6 +21,8 @@
         [Test]
         public async Task Should_be_forwarded_to_audit_instance()
         {
+            string addressOfAuditInstance = null;
+
             CustomServiceControlAuditSettings = s => addressOfAuditInstance = s.ApiUrl;
 
             HttpResponseMessage response = null;
@@ -29,6 +31,8 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<RemoteEndpoint>(b => b.When(async (bus, ctx) =>
                 {
+                    Assert.False(string.IsNullOrEmpty(addressOfAuditInstance));
+
                     ctx.AuditInstanceId = InstanceIdGenerator.FromApiUrl(addressOfAuditInstance);
                     await bus.SendLocal(new MyMessage());
                 }))
@@ -66,8 +70,6 @@
 
             Assert.NotNull(response.Headers.GetValues("ETag").SingleOrDefault(), "Etag not set");
         }
-
-        string addressOfAuditInstance = "TODO";
 
         class MyContext : ScenarioContext
         {
