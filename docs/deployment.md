@@ -27,4 +27,6 @@ Multiple docker images, windows only, are generated using the following matrix [
 
 All required configuration values are defaulted in the `dockerfile` but can be overrided via environment variables. To simulate an instance running in docker the `{instance}.exe` passing in the `--portable` option.
 
+NOTE: Persister is hardcoded to `RavenDB 3.5`.
+
 NOTE: In CI the binaries for the docker files are extracted from the zipfile produced by packaging while locally they are pulled from the bin folders. https://github.com/Particular/ServiceControl/issues/3184 tracks fixing this.
