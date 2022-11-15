@@ -41,8 +41,7 @@
             }
             else
             {
-                // TODO: What do we do here
-                throw new Exception("We should never get here");
+                throw new Exception($"Metadata for message '{messageId}' indicated that a body was present but no content could be found in storage");
             }
 
             MediaTypeHeaderValue.TryParse(result.ContentType, out var parsedContentType);
