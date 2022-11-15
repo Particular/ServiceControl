@@ -28,7 +28,6 @@ namespace ServiceControl.SagaAudit
                     }
                                          });
 
-            // TODO: Do we still need this? No RavenDb5 instance should ever have these documents
             //Legacy so we still scan old sagahistories
             AddMap<SagaHistory>(docs => from doc in docs
                                         select new
