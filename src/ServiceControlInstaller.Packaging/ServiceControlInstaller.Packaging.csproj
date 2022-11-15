@@ -40,19 +40,19 @@
   -->
 
   <PropertyGroup>
-    <PackagingFolder>..\..\deploy\</PackagingFolder>
+    <DeployFolder>..\..\deploy\</DeployFolder>
   </PropertyGroup>
 
 
-  <Target Name="CleanPackagingFolder" AfterTargets="Build">
+  <Target Name="CleanDeployFolder" AfterTargets="Build">
     <!-- Ensure Folder Exists  -->
-    <RemoveDir Directories="$(PackagingFolder)" />
-    <MakeDir Directories="$(PackagingFolder)" />
+    <RemoveDir Directories="$(DeployFolder)" />
+    <MakeDir Directories="$(DeployFolder)" />
   </Target>
 
-  <Target Name="PrepareServiceControl" AfterTargets="CleanPackagingFolder">
+  <Target Name="PrepareServiceControl" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <StagingFolder>$(PackagingFolder)Particular.ServiceControl\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -152,9 +152,9 @@
   </Target>
   -->
 
-  <Target Name="PrepareServiceControlAudit" AfterTargets="CleanPackagingFolder">
+  <Target Name="PrepareServiceControlAudit" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <StagingFolder>$(PackagingFolder)Particular.ServiceControl.Audit\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Audit\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -261,9 +261,9 @@
   </Target>
   -->
 
-  <Target Name="PrepareServiceControlMonitoring" AfterTargets="CleanPackagingFolder">
+  <Target Name="PrepareServiceControlMonitoring" AfterTargets="CleanDeployFolder">
     <PropertyGroup>
-      <StagingFolder>$(PackagingFolder)Particular.ServiceControl.Monitoring\</StagingFolder>
+      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Monitoring\</StagingFolder>
     </PropertyGroup>
 
     <PropertyGroup>
