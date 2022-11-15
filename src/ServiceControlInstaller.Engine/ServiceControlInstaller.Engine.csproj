@@ -21,6 +21,41 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DeployFolder>..\..\deploy\</DeployFolder>
+    <ZipFolder>..\..\zip\</ZipFolder>
+  </PropertyGroup>
+
+  <Target Name="CleanZipFolder" AfterTargets="Build">
+    <RemoveDir Directories="$(ZipFolder)" />
+    <MakeDir Directories="$(ZipFolder)" />
+  </Target>
+
+  <Target Name="ZipServiceControl" AfterTargets="CleanZipFolder">
+    <PropertyGroup>
+      <InstanceName>Particular.ServiceControl</InstanceName>
+      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
+    </PropertyGroup>
+    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
+  </Target>
+
+  <Target Name="ZipServiceControlAudit" AfterTargets="CleanZipFolder">
+    <PropertyGroup>
+      <InstanceName>Particular.ServiceControl.Audit</InstanceName>
+      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
+    </PropertyGroup>
+    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
+  </Target>
+
+  <Target Name="ZipServiceControlMonitoring" AfterTargets="CleanZipFolder">
+    <PropertyGroup>
+      <InstanceName>Particular.ServiceControl.Monitoring</InstanceName>
+      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
+    </PropertyGroup>
+    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
+  </Target>
+  
 </Project>
