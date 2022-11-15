@@ -48,7 +48,7 @@
         }
 
         public bool InstallErrorInstance { get; set; } = true;
-        public bool InstallAuditInstance { get; set; } = false;
+        public bool InstallAuditInstance { get; set; } = true;
 
         public string TransportWarning => SelectedTransport?.Help;
 
