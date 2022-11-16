@@ -2,9 +2,9 @@ FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
 
 WORKDIR /servicecontrol.audit
 
-ADD /ServiceControl.Transports.ASBS/bin/Release/net472 .
-ADD /ServiceControl.Audit.Persistence.RavenDb/bin/Release/net472 .
-ADD /ServiceControl.Audit/bin/Release/net472 .
+ADD /deploy/Particular.ServiceControl.Audit/ServiceControl.Audit .
+ADD /deploy/Particular.ServiceControl.Audit/Transports/NetStandardAzureServiceBus .
+ADD /deploy/Particular.ServiceControl.Audit/Persisters/RavenDB35 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
