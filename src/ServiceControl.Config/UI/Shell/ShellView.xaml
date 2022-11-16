@@ -164,8 +164,38 @@
                 <TextBlock>
                     <Hyperlink Command="{Binding OpenFeedBack}">Feedback</Hyperlink>
                 </TextBlock>
-                <TextBlock Visibility="{Binding UpdateAvailable, Converter={StaticResource boolToVis}}">
-                    <Hyperlink Command="{Binding OpenUrl}" CommandParameter="{Binding AvailableUpgradeReleaseLink}">Update Available</Hyperlink>
+                <TextBlock Name="upgradeAvailableTextBlock" Visibility="{Binding UpdateAvailable, Converter={StaticResource boolToVis}}">
+                  <TextBlock.Triggers>
+                      <EventTrigger RoutedEvent="Loaded">
+                          <EventTrigger.Actions>
+                              <BeginStoryboard>
+                                  <Storyboard BeginTime="00:00:00" RepeatBehavior="Forever"
+                                              Storyboard.TargetName="upgradeAvailableHyperLink"
+                                              Storyboard.TargetProperty="(Foreground).(SolidColorBrush.Color)"
+                                              AutoReverse="True">
+                                      <ColorAnimation To="{StaticResource WarningColor}" Duration="0:0:02"/>
+                                  </Storyboard>
+                              </BeginStoryboard>
+                              <BeginStoryboard>
+                                  <Storyboard BeginTime="00:00:00" RepeatBehavior="Forever"
+                                              Storyboard.TargetName="upgradeAvailableTextBlock"
+                                              Storyboard.TargetProperty="(Effect).Opacity"
+                                              AutoReverse="True">
+                                      <DoubleAnimation From="0" To="0.8" Duration="0:0:02"/>
+                                  </Storyboard>
+                              </BeginStoryboard>
+                              </EventTrigger.Actions>
+                          </EventTrigger>
+                  </TextBlock.Triggers>
+                    <TextBlock.Effect>
+                        <DropShadowEffect
+                            ShadowDepth="1.5"
+                            Direction="330"
+                            Color="Red"
+                            Opacity="0"
+                            BlurRadius="1.5"/>
+                    </TextBlock.Effect>
+                    <Hyperlink Name="upgradeAvailableHyperLink" Command="{Binding OpenUrl}" CommandParameter="{Binding AvailableUpgradeReleaseLink}">Update Available</Hyperlink>
                 </TextBlock>
             </StackPanel>
 
