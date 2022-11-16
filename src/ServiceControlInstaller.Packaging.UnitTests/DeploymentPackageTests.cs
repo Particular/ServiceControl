@@ -1,8 +1,7 @@
 namespace Tests
 {
     using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
+    using System.Diagnostics;
     using System.Linq;
     using NUnit.Framework;
 
@@ -15,29 +14,60 @@ namespace Tests
         }
 
         [Test]
-        public void DuplicateAssemblyFileSizesShouldMatch()
+        public void DuplicateAssemblyShouldHaveMatchingVersions()
         {
-            using (var zip = deploymentPackage.Open())
+            var rootDirectory = deploymentPackage.Directory;
+
+            DirectoryAssert.Exists($"{rootDirectory.FullName}/{deploymentPackage.ServiceName}", $"Expected a {deploymentPackage.ServiceName} folder");
+            DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports folder");
+
+            var serviceDirectory = rootDirectory.GetDirectories(deploymentPackage.ServiceName).Single();
+            var serviceAssemblies = serviceDirectory.EnumerateFiles();
+
+            var componentCategoryDirectories = rootDirectory.GetDirectories()
+                .Where(d => d.Name != serviceDirectory.Name);
+
+            var detectedMismatches = new List<string>();
+
+            foreach (var componentCategoryDirectory in componentCategoryDirectories)
             {
-                var mainEntries = zip.Entries.Where(x => x.FullName.StartsWith(deploymentPackage.ServiceName) && !x.FullName.EndsWith(".json")).ToList();
+                foreach (var componentDirectory in componentCategoryDirectory.GetDirectories())
+                {
+                    var componentAssemblies = componentDirectory.EnumerateFiles();
+                    var duplicateAssemblies = serviceAssemblies.Where(sa => componentAssemblies.Any(ca => ca.Name == sa.Name));
 
-                CollectionAssert.IsNotEmpty(mainEntries, $"Expected a {deploymentPackage.ServiceName} folder in {deploymentPackage.FullName}");
+                    foreach (var componentAssembly in componentAssemblies)
+                    {
+                        var serviceAssembly = serviceAssemblies.SingleOrDefault(sa => sa.Name == componentAssembly.Name);
 
-                var entries = mainEntries
-                    .Join(zip.Entries.Except(mainEntries).Where(WillEndUpInInstallationFolder), mainEntry => mainEntry.Name, entry => entry.Name, (mainEntry, entry) => new { mainEntry, entry })
-                    .Where(t => t.entry.Length != t.mainEntry.Length && !IgnoreList.Contains(@t.entry.FullName))
-                    .Select(t => t.entry.FullName)
-                    .ToList();
+                        if (serviceAssembly == null)
+                        {
+                            continue;
+                        }
 
-                CollectionAssert.IsEmpty(entries, $"File sizes should match the ones in the {deploymentPackage.ServiceName} folder. Check versions of dependencies.");
+                        var serviceVersion = FileVersionInfo.GetVersionInfo(serviceAssembly.FullName).ProductVersion;
+                        var componentVersion = FileVersionInfo.GetVersionInfo(componentAssembly.FullName).ProductVersion;
+
+                        if (serviceVersion == componentVersion)
+                        {
+                            continue;
+                        }
+
+                        var componentAssemblyFullname = $"{componentCategoryDirectory}/{componentDirectory}/{componentAssembly}";
+                        var mismatch = $"{componentAssemblyFullname} has a version mismatch: {serviceVersion} | {componentVersion}";
+
+                        if (IgnoreList.Contains(componentAssemblyFullname))
+                        {
+                            TestContext.Out.WriteLine($"IGNORED: {mismatch}");
+                            continue;
+                        }
+
+                        detectedMismatches.Add($"{componentAssemblyFullname} has a version mismatch is set to be ignored ({serviceVersion} vs {componentVersion})");
+                    }
+                }
             }
-        }
 
-        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
-        {
-            // Peristers/<name>/<filename.ext>
-            // Transports/<name>/<filename.ext>
-            return entry.FullName.Count(c => c == '/') == 2;
+            CollectionAssert.IsEmpty(detectedMismatches, $"Component assembly version missmatch detected");
         }
 
         [Test]
@@ -53,13 +83,10 @@ namespace Tests
                 "AmazonSQS",
                 "LearningTransport"};
 
-            using (var zip = deploymentPackage.Open())
-            {
-                var transportFiles = zip.Entries.Where(e => e.FullName.StartsWith("Transports/")).Select(e => e.FullName).ToList();
-                var transportFolders = transportFiles.Select(f => Directory.GetParent(f).Name).Distinct();
 
-                CollectionAssert.AreEquivalent(allTransports, transportFolders, $"Expected transports folder to contain {string.Join(",", allTransports)}");
-            }
+            var transportDirectories = deploymentPackage.Directory.GetDirectories("Transports/*");
+
+            CollectionAssert.AreEquivalent(allTransports, transportDirectories.Select(d => d.Name), $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         static IEnumerable<string> IgnoreList

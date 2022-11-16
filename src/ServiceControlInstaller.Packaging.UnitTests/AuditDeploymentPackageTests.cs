@@ -1,7 +1,5 @@
 namespace Tests
 {
-    using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using NUnit.Framework;
 
@@ -10,57 +8,35 @@ namespace Tests
     {
         public AuditDeploymentPackageTests()
         {
-            var fileName = DeploymentPackage.GetZipFolder().EnumerateFiles("*.zip")
-                .Single(f => f.Name.Contains(".Audit"));
-
-            deploymentPackage = new DeploymentPackage(fileName);
+            deploymentPackage = DeploymentPackage.All.Single(d => d.ServiceName.Contains("Audit"));
         }
 
         [Test]
         public void Should_package_storages_individually()
         {
-            var allStorages = new string[] {
+            var expectedPersisters = new string[] {
                 "RavenDB35",
                 "RavenDB5",
                 "InMemory"};
 
-            using (var zip = deploymentPackage.Open())
+            var persisterFolders = deploymentPackage.Directory.GetDirectories("Persisters/*");
+
+            CollectionAssert.AreEquivalent(expectedPersisters, persisterFolders.Select(d => d.Name), $"Expected persisters folder to contain {string.Join(",", expectedPersisters)}");
+
+            foreach (var persisterFolder in persisterFolders)
             {
-                var persisterFiles = zip.Entries
-                    .Where(e => e.FullName.StartsWith("Persisters/"))
-                    .Where(WillEndUpInInstallationFolder)
-                    .Select(e => e.FullName).ToList();
-                var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
+                var persisterFiles = persisterFolder.EnumerateFiles();
 
-                CollectionAssert.AreEquivalent(allStorages, persisterFolders, $"Expected persisters folder to contain {string.Join(",", allStorages)}");
-                Assert.IsFalse(persisterFiles.Any(fn => fn.EndsWith(".config")));
-                Assert.IsFalse(persisterFiles.Any(fn => fn == "ServiceControl.Audit.Persistence.dll"));
-
-                foreach (var persisterFolder in persisterFolders)
-                {
-                    Assert.IsNotNull(zip.Entries.SingleOrDefault(e => e.FullName == $"Persisters/{persisterFolder}/persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
-                }
+                Assert.IsFalse(persisterFiles.Any(f => f.Name.EndsWith(".config")), $"{persisterFolder} contains a config file");
+                Assert.IsFalse(persisterFiles.Any(f => f.Name == "ServiceControl.Audit.Persistence.dll"), $"{persisterFolder} contains the transport seam assembly");
+                Assert.IsTrue(persisterFiles.Any(f => f.Name == "persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
             }
-        }
-
-        static bool WillEndUpInInstallationFolder(ZipArchiveEntry entry)
-        {
-            // Persisters/<name>/<filename.ext>
-            return entry.FullName.Count(c => c == '/') == 2;
         }
 
         [Test]
         public void Raven5_should_include_raven_server()
         {
-            var storage = "RavenDB5";
-
-            using (var zip = deploymentPackage.Open())
-            {
-                var persisterFiles = zip.Entries.Where(e => e.FullName.StartsWith("Persisters/") && e.FullName.Contains(storage)).Select(e => e.FullName).ToList();
-                var persisterFolders = persisterFiles.Select(f => Directory.GetParent(f).Name).Distinct();
-
-                Assert.IsTrue(persisterFiles.Any(fn => fn.Contains("RavenDBServer")));
-            }
+            DirectoryAssert.Exists($"{deploymentPackage.Directory.FullName}/Persisters/RavenDB5/RavenDBServer", "RavenDBServer should be bundled");
         }
 
         readonly DeploymentPackage deploymentPackage;
