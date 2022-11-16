@@ -19,14 +19,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Packaging", "ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj", "{15F811B7-314C-4E9E-B5E9-35596045BBC4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Config", "ServiceControl.Config\ServiceControl.Config.csproj", "{C0EEF6D1-5DF7-4A26-9964-6376F465B085}"
-	ProjectSection(ProjectDependencies) = postProject
-		{15F811B7-314C-4E9E-B5E9-35596045BBC4} = {15F811B7-314C-4E9E-B5E9-35596045BBC4}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Setup", "Setup\Setup.csproj", "{F6473A7A-01B7-4A9A-B30C-4D200BFFFE4D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C0EEF6D1-5DF7-4A26-9964-6376F465B085} = {C0EEF6D1-5DF7-4A26-9964-6376F465B085}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControlInstaller.Engine.UnitTests", "ServiceControlInstaller.Engine.UnitTests\ServiceControlInstaller.Engine.UnitTests.csproj", "{C7EC4072-F74C-410D-B0C3-4C05B7C9CFB7}"
 EndProject
@@ -137,9 +131,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.SagaAudit.Persistence.RavenDb", "ServiceControl.SagaAudit.Persistence.RavenDb\ServiceControl.SagaAudit.Persistence.RavenDb.csproj", "{6C4077F7-7507-487B-9E93-66BF8768343A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.RavenDB", "ServiceControl.Audit.Persistence.Tests.RavenDB\ServiceControl.Audit.Persistence.Tests.RavenDB.csproj", "{04359CC6-170E-4AB7-8291-FA58AAA9C441}"
-	ProjectSection(ProjectDependencies) = postProject
-		{DEDC8155-F9EF-4A8D-9476-B44610AABCA1} = {DEDC8155-F9EF-4A8D-9476-B44610AABCA1}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.AcceptanceTests.RavenDB", "ServiceControl.Audit.AcceptanceTests.RavenDB\ServiceControl.Audit.AcceptanceTests.RavenDB.csproj", "{7274653C-5E5E-4AA7-A565-5B89F488E1D0}"
 EndProject
