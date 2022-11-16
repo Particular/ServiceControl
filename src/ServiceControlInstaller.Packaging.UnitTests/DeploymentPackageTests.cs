@@ -62,7 +62,7 @@ namespace Tests
                             continue;
                         }
 
-                        detectedMismatches.Add($"{componentAssemblyFullname} has a version mismatch is set to be ignored ({serviceVersion} vs {componentVersion})");
+                        detectedMismatches.Add(mismatch);
                     }
                 }
             }
