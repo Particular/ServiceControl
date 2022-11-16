@@ -34,7 +34,6 @@
         {
             try
             {
-                // TODO: move this to some sort of configuration file/storage?
                 var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
 
                 return JsonConvert.DeserializeObject<List<Release>>(json);

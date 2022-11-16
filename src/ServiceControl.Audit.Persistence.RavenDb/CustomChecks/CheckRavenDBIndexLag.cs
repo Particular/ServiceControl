@@ -15,8 +15,6 @@
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             _store = store;
-            // TODO verify that this is really not needed anymore
-            //LogPath = logPath;
         }
 
         public override Task<CheckResult> PerformCheck()
@@ -30,7 +28,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `TODO` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See the ServiceControl logs for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;

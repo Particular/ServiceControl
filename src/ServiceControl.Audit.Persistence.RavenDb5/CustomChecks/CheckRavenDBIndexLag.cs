@@ -32,7 +32,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `TODO` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See the ServiceControl log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
@@ -45,7 +45,6 @@
             foreach (var indexStats in indexes)
             {
                 // IndexingLag is the number of documents that the index is behind, it is not a time unit.
-                // TODO: Should this be MAX instead of a Sum?
                 var indexLag = indexStats.Collections.Values.Sum(x => x.DocumentLag);
                 indexLag = Math.Abs(indexLag);
 
@@ -77,7 +76,6 @@
             foreach (var indexStats in indexes)
             {
                 // IndexingLag is the number of documents that the index is behind, it is not a time unit.
-                // TODO: Should this be MAX instead of a Sum?
                 var indexLag = indexStats.Collections.Values.Sum(x => x.DocumentLag);
                 indexLag = Math.Abs(indexLag);
                 report.AppendLine($"- Index [{indexStats.Name,-44}] Stale: {indexStats.IsStale,-5}, Lag: {indexLag,9:n0}, Valid: {indexStats.IsInvalidIndex,-5}, LastIndexing: {indexStats.LastIndexingTime:u}");

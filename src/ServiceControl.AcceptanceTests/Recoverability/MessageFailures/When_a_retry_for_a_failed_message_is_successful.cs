@@ -137,9 +137,6 @@
                     return false;
                 })
                 .Run(TimeSpan.FromMinutes(2));
-
-            // TODO: How did this ever work. The API should be stopped at this point
-            //await this.Delete($"/api/recoverability/unacknowledgedgroups/{failure.FailureGroups.First().Id}"); // Exception will throw if 404
         }
 
         [Test]

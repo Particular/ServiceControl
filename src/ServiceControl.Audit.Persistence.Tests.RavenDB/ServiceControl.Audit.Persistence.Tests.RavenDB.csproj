@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -15,6 +15,7 @@
     <PackageReference Include="GitHubActionsTestLogger" Version="2.0.1" />
     <PackageReference Include="Particular.Approvals" Version="0.3.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)"/>
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>

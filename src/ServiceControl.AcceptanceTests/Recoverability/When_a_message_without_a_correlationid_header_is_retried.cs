@@ -77,7 +77,6 @@
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    // TODO: Check LocalAddress should just be queue name
                     TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
 
                     if (!TestContext.RetryIssued)
