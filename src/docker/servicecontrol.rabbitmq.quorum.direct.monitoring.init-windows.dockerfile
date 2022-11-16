@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
 
 WORKDIR /servicecontrol.monitoring
 
-ADD /ServiceControl.Transports.RabbitMQ/bin/Release/net472 .
-ADD /ServiceControl.Monitoring/bin/Release/net472 .
+ADD /deploy/Particular.ServiceControl.Monitoring/ServiceControl.Monitoring .
+ADD /deploy/Particular.ServiceControl.Monitoring/Transports/RabbitMQ .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
