@@ -67,7 +67,7 @@ namespace Tests
                 }
             }
 
-            CollectionAssert.IsEmpty(detectedMismatches, $"Component assembly version missmatch detected");
+            CollectionAssert.IsEmpty(detectedMismatches, $"Component assembly version mismatch detected");
         }
 
         [Test]
