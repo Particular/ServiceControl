@@ -2,9 +2,8 @@ FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
 
 WORKDIR /servicecontrol
 
-ADD /ServiceControl.Transports.ASQ/bin/Release/net472 .
-ADD /ServiceControl/bin/Release/net472 .
-ADD /ServiceControl.Persistence.RavenDb/bin/Release/net472 .
+ADD /deploy/Particular.ServiceControl/ServiceControl .
+ADD /deploy/Particular.ServiceControl/Transports/AzureStorageQueue .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
