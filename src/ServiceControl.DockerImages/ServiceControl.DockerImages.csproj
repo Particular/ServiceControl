@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- 
   
@@ -47,6 +47,9 @@
     <!-- audit instance and sidecar dockerfiles -->
     <Exec Command="copy .\servicecontrol.transport.audit.init-windows.dockerfile-template $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows.dockerfile" />
     <Exec Command="copy .\servicecontrol.transport.audit-windows.dockerfile-template $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows.dockerfile" />
+    <!-- monitoring instance and sidecar dockerfiles -->
+    <Exec Command="copy .\servicecontrol.transport.monitoring.init-windows.dockerfile-template $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows.dockerfile" />
+    <Exec Command="copy .\servicecontrol.transport.monitoring-windows.dockerfile-template $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile" />
   </Target>
 
   <Target Name="BuildDockerImages" AfterTargets="ExpandDockerfileTemplates">
@@ -56,6 +59,9 @@
     <!-- Build audit instance and sidecar images -->
     <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
     <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
+    <!-- Build monitoring instance and sidecar images -->
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
   </Target>
 
 </Project>
