@@ -122,8 +122,6 @@ namespace Tests
                 // as that package references V4.7.1.
                 // It should therefore be safe to explicitly exclude this assembly mismatch from
                 // the test.
-                //yield return "Transports/MSMQ/System.Runtime.CompilerServices.Unsafe.dll";
-                yield return "Transports/MSMQ/System.Threading.Channels.dll";
                 yield return "Transports/MSMQ/System.Threading.Channels.dll";
             }
         }
