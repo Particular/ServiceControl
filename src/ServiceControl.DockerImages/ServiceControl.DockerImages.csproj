@@ -49,7 +49,7 @@
   <Target Name="BuildDockerImages" AfterTargets="ExpandDockerfileTemplates">
     <!-- Build primary instance and sidecar images -->
     <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
   </Target>
 
 </Project>
