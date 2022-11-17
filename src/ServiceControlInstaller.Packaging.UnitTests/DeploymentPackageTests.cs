@@ -66,8 +66,8 @@ namespace Tests
                     continue;
                 }
 
-                var leftVersion = FileVersionInfo.GetVersionInfo(leftAssembly.FullName).ProductVersion;
-                var rightVersion = FileVersionInfo.GetVersionInfo(rightAssembly.FullName).ProductVersion;
+                var leftVersion = FileVersionInfo.GetVersionInfo(leftAssembly.FullName).FileVersion;
+                var rightVersion = FileVersionInfo.GetVersionInfo(rightAssembly.FullName).FileVersion;
 
                 if (leftVersion == rightVersion)
                 {
