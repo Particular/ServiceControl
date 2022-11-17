@@ -12,6 +12,10 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <DockerfilesFolder>..\..\dockerfiles\</DockerfilesFolder>
+  </PropertyGroup>
 
   <ItemGroup>
     <!-- property values containing spaces or any command line special character must be quoted -->
@@ -32,15 +36,16 @@
   </ItemGroup>
 
   <Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">
-    <Exec Command="del $(OutputPath)*.dockerfile /F" />
+    <RemoveDir Directories="$(DockerfilesFolder)" />
+    <MakeDir Directories="$(DockerfilesFolder)" />
   </Target>
 
   <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
-      <Exec Command="copy .\servicecontrol.transport.init-windows.dockerfile-template $(OutputPath)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile" />
+      <Exec Command="copy .\servicecontrol.transport.init-windows.dockerfile-template $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile" />
   </Target>
 
   <Target Name="BuildDockerImages" AfterTargets="ExpandDockerfileTemplates">
-    <Exec Command="docker build -f $(OutputPath)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
   </Target>
 
 </Project>
