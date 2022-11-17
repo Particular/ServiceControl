@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 
+  
+  WARNING
+  This project is not automatically built when building the solution
+  to keep the overall build time under control.
+  To build Docker images explicitely build this project.
+  
+  -->
+  
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- property values containing spaces or any command line special character must be quoted -->
+    <SupportedTransport Include="SQS">
+      <DockerfileCustomization>amazonsqs</DockerfileCustomization>
+      <TransportName>AmazonSQS</TransportName>
+      <TransportCustomizationType>"ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="RabbitMQ Classic Conventional Routing">
+      <TransportName>RabbitMQ</TransportName>
+      <DockerfileCustomization>rabbitmq.classic.conventional</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"</TransportCustomizationType>
+    </SupportedTransport>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">
+    <Exec Command="del $(OutputPath)*.dockerfile /F" />
+  </Target>
+
+  <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
+      <Exec Command="copy .\servicecontrol.transport.init-windows.dockerfile-template $(OutputPath)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile" />
+  </Target>
+
+  <Target Name="BuildDockerImages" AfterTargets="ExpandDockerfileTemplates">
+    <Exec Command="docker build -f $(OutputPath)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../" />
+  </Target>
+
+</Project>
