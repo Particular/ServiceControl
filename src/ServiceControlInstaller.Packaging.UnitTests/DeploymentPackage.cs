@@ -64,11 +64,13 @@ namespace Tests
                 Files = directory.EnumerateFiles();
                 Category = category;
                 Name = directory.Name;
+                FullName = $"{Category}/{Name}";
             }
 
             public DirectoryInfo Directory { get; }
             public IEnumerable<FileInfo> Files { get; }
             public string Name { get; }
+            public string FullName { get; }
             public string Category { get; }
         }
     }
