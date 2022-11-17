@@ -14,12 +14,24 @@ namespace Tests
         }
 
         [Test]
-        public void DuplicateAssemblyShouldHaveMatchingVersions()
+        public void CheckPackageStructure()
         {
             var rootDirectory = deploymentPackage.Directory;
 
             DirectoryAssert.Exists($"{rootDirectory.FullName}/{deploymentPackage.ServiceName}", $"Expected a {deploymentPackage.ServiceName} folder");
             DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports folder");
+
+            foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
+            {
+                Assert.False(string.IsNullOrEmpty(deploymentUnit.ComponentCategory), "All deployment units should have a category");
+                CollectionAssert.IsNotEmpty(deploymentUnit.Files, "All deployment units should have assemblies");
+            }
+        }
+
+        [Test]
+        public void DuplicateAssemblyShouldHaveMatchingVersions()
+        {
+            var rootDirectory = deploymentPackage.Directory;
 
             var serviceDirectory = rootDirectory.GetDirectories(deploymentPackage.ServiceName).Single();
             var serviceAssemblies = serviceDirectory.EnumerateFiles();
