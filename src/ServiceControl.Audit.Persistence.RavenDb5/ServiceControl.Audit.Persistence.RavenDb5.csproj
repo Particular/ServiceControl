@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="RavenDB.Embedded" Version="5.4.4" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.CustomChecks" Version="4.0.0" />
     <PackageReference Include="Lucene.Net" Version="3.0.3" />
   </ItemGroup>
 

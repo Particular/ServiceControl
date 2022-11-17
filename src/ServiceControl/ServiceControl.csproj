@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.CustomChecks" Version="4.0.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.2" />

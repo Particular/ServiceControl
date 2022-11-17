@@ -17,7 +17,7 @@
     <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
     <PackageReference Include="NServiceBus.Extensions.DependencyInjection" Version="1.1.0" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.CustomChecks" Version="4.0.0" />
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
