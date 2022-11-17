@@ -17,7 +17,7 @@
     <DockerfilesFolder>..\..\dockerfiles\</DockerfilesFolder>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Label="Supported transports">
     <!-- property values containing spaces or any command line special character must be quoted -->
     <SupportedTransport Include="SQS">
       <DockerfileCustomization>amazonsqs</DockerfileCustomization>
