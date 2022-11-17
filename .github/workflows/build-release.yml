@@ -80,7 +80,7 @@ jobs:
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
       - name: Build dockerfiles
-        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore -m -verbosity:minimal
+        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore
       - name: Diagnostics
         shell: pwsh
         run: |
