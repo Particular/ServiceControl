@@ -1,49 +1,44 @@
 namespace Tests
 {
     using System;
-    using System.Collections;
+    using System.Collections.Generic;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using NUnit.Framework;
 
     public class DeploymentPackage
     {
-        FileInfo zipFile;
-
-        public DeploymentPackage(FileInfo zipFile)
+        public DeploymentPackage(DirectoryInfo directory)
         {
-            this.zipFile = zipFile;
-            ServiceName = zipFile.Name
-                .Replace("Particular.", "")
-                .Split('-')
-                .First();
+            Directory = directory;
+            ServiceName = directory.Name.Replace("Particular.", "");
         }
 
         public override string ToString() => ServiceName.Replace(".", " ");
+
         public string ServiceName { get; }
-        public string FullName => zipFile.FullName;
-        public ZipArchive Open() => ZipFile.OpenRead(FullName);
 
-        public static IEnumerable All => GetZipFolder()
-            .EnumerateFiles("*.zip")
-            .Select(x => new DeploymentPackage(x));
+        public DirectoryInfo Directory { get; private set; }
 
-        public static DirectoryInfo GetZipFolder()
+        public static IEnumerable<DeploymentPackage> All => GetDeployDirectory()
+            .EnumerateDirectories()
+            .Select(d => new DeploymentPackage(d));
+
+        public static DirectoryInfo GetDeployDirectory()
         {
-            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+            var currentDirectory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
 
-            while (currentFolder != null)
+            while (currentDirectory != null)
             {
-                foreach (var folder in currentFolder.EnumerateDirectories("zip", SearchOption.TopDirectoryOnly))
+                foreach (var folder in currentDirectory.EnumerateDirectories("deploy", SearchOption.TopDirectoryOnly))
                 {
                     return folder;
                 }
 
-                currentFolder = currentFolder.Parent;
+                currentDirectory = currentDirectory.Parent;
             }
 
-            throw new Exception("Cannot find zip folder");
+            throw new Exception("Cannot find `deploy` folder");
         }
     }
 }
