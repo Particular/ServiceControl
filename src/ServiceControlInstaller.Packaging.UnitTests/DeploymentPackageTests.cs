@@ -23,7 +23,7 @@ namespace Tests
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
-                Assert.False(string.IsNullOrEmpty(deploymentUnit.ComponentCategory), "All deployment units should have a category");
+                Assert.False(string.IsNullOrEmpty(deploymentUnit.Category), "All deployment units should have a category");
                 CollectionAssert.IsNotEmpty(deploymentUnit.Files, "All deployment units should have assemblies");
             }
         }
@@ -96,9 +96,11 @@ namespace Tests
                 "LearningTransport"};
 
 
-            var transportDirectories = deploymentPackage.Directory.GetDirectories("Transports/*");
+            var transports = deploymentPackage.DeploymentUnits
+                .Where(u => u.Category == "Transports")
+                .Select(u => u.Name);
 
-            CollectionAssert.AreEquivalent(allTransports, transportDirectories.Select(d => d.Name), $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            CollectionAssert.AreEquivalent(allTransports, transports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         static IEnumerable<string> IgnoreList

@@ -58,16 +58,18 @@ namespace Tests
 
         public class DeploymentUnit
         {
-            public DeploymentUnit(DirectoryInfo directory, string componentCategory)
+            public DeploymentUnit(DirectoryInfo directory, string category)
             {
                 Directory = directory;
                 Files = directory.EnumerateFiles();
-                ComponentCategory = componentCategory;
+                Category = category;
+                Name = directory.Name;
             }
 
             public DirectoryInfo Directory { get; }
             public IEnumerable<FileInfo> Files { get; }
-            public string ComponentCategory { get; }
+            public string Name { get; }
+            public string Category { get; }
         }
     }
 }
