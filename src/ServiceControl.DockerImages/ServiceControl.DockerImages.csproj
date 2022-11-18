@@ -19,6 +19,21 @@
 
   <ItemGroup Label="Supported transports">
     <!-- property values containing spaces or any command line special character must be quoted -->
+    <SupportedTransport Include="Azure Service Bus">
+      <TransportName>NetStandardAzureServiceBus</TransportName>
+      <DockerfileCustomization>azureservicebus</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="Azure Storage Queues">
+      <TransportName>AzureStorageQueue</TransportName>
+      <DockerfileCustomization>azurestoragequeues</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="SQL Server">
+      <DockerfileCustomization>sqlserver</DockerfileCustomization>
+      <TransportName>SQLServer</TransportName>
+      <TransportCustomizationType>"ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"</TransportCustomizationType>
+    </SupportedTransport>
     <SupportedTransport Include="SQS">
       <DockerfileCustomization>amazonsqs</DockerfileCustomization>
       <TransportName>AmazonSQS</TransportName>
@@ -28,6 +43,21 @@
       <TransportName>RabbitMQ</TransportName>
       <DockerfileCustomization>rabbitmq.classic.conventional</DockerfileCustomization>
       <TransportCustomizationType>"ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="RabbitMQ Classic Direct Routing">
+      <TransportName>RabbitMQ</TransportName>
+      <DockerfileCustomization>rabbitmq.classic.direct</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="RabbitMQ Quorum Queues Conventional Routing">
+      <TransportName>RabbitMQ</TransportName>
+      <DockerfileCustomization>rabbitmq.quorum.conventional</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"</TransportCustomizationType>
+    </SupportedTransport>
+    <SupportedTransport Include="RabbitMQ Quorum Queues Direct Routing">
+      <TransportName>RabbitMQ</TransportName>
+      <DockerfileCustomization>rabbitmq.quorum.direct</DockerfileCustomization>
+      <TransportCustomizationType>"ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"</TransportCustomizationType>
     </SupportedTransport>
   </ItemGroup>
 
