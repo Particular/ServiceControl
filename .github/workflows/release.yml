@@ -39,8 +39,6 @@ jobs:
         env:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
-      - name: Prepare dockerfiles
-        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore -m -verbosity:minimal -target:ServiceControl.DockerImages:ExpandDockerfileTemplates
       - id: save-version
         name: Save version
         run: |
