@@ -39,6 +39,8 @@ jobs:
         env:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - name: Prepare dockerfiles
+        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore -m -verbosity:minimal -target:ServiceControl.DockerImages:ExpandDockerfileTemplates
       - id: save-version
         name: Save version
         run: |
@@ -69,11 +71,26 @@ jobs:
           name: zips
           path: zip/*
           retention-days: 1
+  docker:
+    needs: release
+    name: Build Docker images
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3.0.3
+        with:
+          dotnet-version: 6.0.x
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+      - name: Build dockerfiles
+        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore -verbosity:minimal
       - name: Prepare ServiceControl metadata
         shell: pwsh
         run: |
           #List of Docker image names used to control re-tagging during push to production
-          $dockerImageNames = Get-ChildItem -Path src/docker -Filter *.dockerfile |
+          $dockerImageNames = Get-ChildItem -Path dockerfiles -Filter *.dockerfile |
               Select-Object -Property @{label = 'Name'; expression = {[System.IO.Path]::GetFileNameWithoutExtension($_.FullName)} } |
               Select-object -ExpandProperty Name
 
@@ -82,94 +99,6 @@ jobs:
           }
 
           $serviceControlMetadata | ConvertTo-Json | Out-File -Path ServiceControlMetadata.json
-      - name: Deploy
-        uses: Particular/push-octopus-package-action@v1.0.0
-        with:
-          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-          additional-metadata-paths: ServiceControlMetadata.json
-  docker:
-    needs: release
-    name: docker-${{ matrix.name }}
-    runs-on: windows-2019
-    strategy:
-      matrix:
-        include:
-          - name: sql-windows
-            filter: '*sqlserver*'
-            transport: SqlServer
-          - name: rabbit-classic-conventional-windows
-            filter: '*rabbitmq.classic.conventional*'
-            transport: RabbitMQ
-          - name: rabbit-classic-direct-windows
-            filter: '*rabbitmq.classic.direct*'
-            transport: RabbitMQ
-          - name: rabbit-quorum-conventional-windows
-            filter: '*rabbitmq.quorum.conventional*'
-            transport: RabbitMQ
-          - name: rabbit-quorum-direct-windows
-            filter: '*rabbitmq.quorum.direct*'
-            transport: RabbitMQ
-          - name: asq-windows
-            filter: '*azurestoragequeues*'
-            transport: ASQ
-            transport-source: AzureStorageQueue
-          - name: sqs-windows
-            filter: '*amazonsqs*'
-            transport: SQS
-            transport-source: AmazonSQS
-          - name: asb-windows
-            filter: '*azureservicebus*'
-            transport: ASBS
-            transport-source: NetStandardAzureServiceBus
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3.1.0
-      - name: Download zip artifacts
-        uses: actions/download-artifact@v3.0.1
-        with:
-          name: zips
-          path: zip
-      - name: Prepare directory structure
-        shell: pwsh
-        run: |
-          Expand-Archive -Force "zip\Particular.ServiceControl-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl"
-          Expand-Archive -Force "zip\Particular.ServiceControl.Audit-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Audit"
-          Expand-Archive -Force "zip\Particular.ServiceControl.Monitoring-${{ needs.release.outputs.majorminorpatch }}.zip" -DestinationPath "unzip\Particular.ServiceControl.Monitoring"
-
-          $transport = "${{ matrix.transport }}"
-          $srcTransport = "${{ matrix.transport-source}}"
-
-          if ( $srcTransport -eq $null -Or $srcTransport -eq "" ) {
-            $srcTransport = $transport
-          }
-      
-          New-Item -ItemType Directory -Force -Path ServiceControl.Transports.$transport/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl\Transports\$srcTransport\*" -Destination "ServiceControl.Transports.$transport\bin\Release\net472" -Recurse
-
-          New-Item -ItemType Directory -Force -Path ServiceControl/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl\ServiceControl\*" -Destination "ServiceControl\bin\Release\net472" -Recurse
-
-          New-Item -ItemType Directory -Force -Path ServiceControl.Persistence.RavenDb/bin/Release/net472
-          # No need to copy anything into this folder as it has already been handled during packaging
-
-          New-Item -ItemType Directory -Force -Path ServiceControl.Audit/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl.Audit\ServiceControl.Audit\*" -Destination "ServiceControl.Audit\bin\Release\net472" -Recurse
-
-          New-Item -ItemType Directory -Force -Path ServiceControl.Audit.Persistence.RavenDb/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl.Audit\Persisters\RavenDB35\*" -Destination "ServiceControl.Audit.Persistence.RavenDb/bin/Release/net472" -Recurse
-
-          New-Item -ItemType Directory -Force -Path ServiceControl.Monitoring/bin/Release/net472
-          Copy-Item -Path "unzip\Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\*" -Destination "ServiceControl.Monitoring\bin\Release\net472" -Recurse
-      - name: Build dockerfiles
-        shell: pwsh
-        run: |
-          Get-ChildItem -Path .\src\docker\ -Filter "${{ matrix.filter }}" | ForEach-Object {
-              $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
-              
-              $dockerbuildcmd = "docker build -t particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}" + " -f .\src\docker\" + $_.Name + " ."
-              Invoke-Expression $dockerbuildcmd.ToLower()
-          }
       - name: Login to Docker Hub
         uses: docker/login-action@v2.1.0
         with:
@@ -180,6 +109,26 @@ jobs:
         run: |
           # List out the docker images on the system
           docker images
+      - name: Download installer
+        uses: actions/download-artifact@v3.0.1
+        with:
+          name: installer
+          path: assets/*
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v3.0.1
+        with:
+          name: nugets
+          path: nugets/*
+      - name: Download zips
+        uses: actions/download-artifact@v3.0.1
+        with:
+          name: zips
+          path: zip/*
+      - name: Deploy
+        uses: Particular/push-octopus-package-action@v1.0.0
+        with:
+          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+          additional-metadata-paths: ServiceControlMetadata.json
       - name: Push Docker images
         shell: pwsh
         run: |
