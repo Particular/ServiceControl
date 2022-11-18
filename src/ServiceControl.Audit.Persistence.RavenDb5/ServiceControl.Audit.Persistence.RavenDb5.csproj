@@ -18,6 +18,7 @@
 
   <ItemGroup Label="ServiceControl compatibility transient dependencies">
     <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" TreatAsUsed="true"/>
   </ItemGroup>
 
   <ItemGroup>

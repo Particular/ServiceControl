@@ -12,6 +12,19 @@ namespace Tests
         {
             Directory = directory;
             ServiceName = directory.Name.Replace("Particular.", "");
+
+            var instanceDirectory = directory.EnumerateDirectories(ServiceName)
+                .Single();
+
+            DeploymentUnits = new List<DeploymentUnit> { new DeploymentUnit(instanceDirectory, "Instance") };
+
+            foreach (var componentCategoryDirectory in Directory.EnumerateDirectories().Where(d => d.Name != ServiceName))
+            {
+                foreach (var componentDirectory in componentCategoryDirectory.EnumerateDirectories())
+                {
+                    DeploymentUnits.Add(new DeploymentUnit(componentDirectory, componentCategoryDirectory.Name));
+                }
+            }
         }
 
         public override string ToString() => ServiceName.Replace(".", " ");
@@ -20,9 +33,11 @@ namespace Tests
 
         public DirectoryInfo Directory { get; private set; }
 
+        public IList<DeploymentUnit> DeploymentUnits { get; protected set; }
+
         public static IEnumerable<DeploymentPackage> All => GetDeployDirectory()
-            .EnumerateDirectories()
-            .Select(d => new DeploymentPackage(d));
+                .EnumerateDirectories()
+                .Select(d => new DeploymentPackage(d));
 
         public static DirectoryInfo GetDeployDirectory()
         {
@@ -39,6 +54,24 @@ namespace Tests
             }
 
             throw new Exception("Cannot find `deploy` folder");
+        }
+
+        public class DeploymentUnit
+        {
+            public DeploymentUnit(DirectoryInfo directory, string category)
+            {
+                Directory = directory;
+                Files = directory.EnumerateFiles();
+                Category = category;
+                Name = directory.Name;
+                FullName = $"{Category}/{Name}";
+            }
+
+            public DirectoryInfo Directory { get; }
+            public IEnumerable<FileInfo> Files { get; }
+            public string Name { get; }
+            public string FullName { get; }
+            public string Category { get; }
         }
     }
 }

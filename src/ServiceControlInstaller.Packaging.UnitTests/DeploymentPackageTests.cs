@@ -14,12 +14,24 @@ namespace Tests
         }
 
         [Test]
-        public void DuplicateAssemblyShouldHaveMatchingVersions()
+        public void CheckPackageStructure()
         {
             var rootDirectory = deploymentPackage.Directory;
 
             DirectoryAssert.Exists($"{rootDirectory.FullName}/{deploymentPackage.ServiceName}", $"Expected a {deploymentPackage.ServiceName} folder");
             DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports folder");
+
+            foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
+            {
+                Assert.False(string.IsNullOrEmpty(deploymentUnit.Category), "All deployment units should have a category");
+                CollectionAssert.IsNotEmpty(deploymentUnit.Files, "All deployment units should have assemblies");
+            }
+        }
+
+        [Test]
+        public void DuplicateAssemblyShouldHaveMatchingVersions()
+        {
+            var rootDirectory = deploymentPackage.Directory;
 
             var serviceDirectory = rootDirectory.GetDirectories(deploymentPackage.ServiceName).Single();
             var serviceAssemblies = serviceDirectory.EnumerateFiles();
@@ -29,45 +41,54 @@ namespace Tests
 
             var detectedMismatches = new List<string>();
 
-            foreach (var componentCategoryDirectory in componentCategoryDirectories)
+            foreach (var leftDeploymentUnit in deploymentPackage.DeploymentUnits)
             {
-                foreach (var componentDirectory in componentCategoryDirectory.GetDirectories())
+                //only check for compatibility with units in other categories
+                foreach (var rightDeploymentUnit in deploymentPackage.DeploymentUnits.Where(u => u.Category != leftDeploymentUnit.Category))
                 {
-                    var componentAssemblies = componentDirectory.EnumerateFiles();
-                    var duplicateAssemblies = serviceAssemblies.Where(sa => componentAssemblies.Any(ca => ca.Name == sa.Name));
-
-                    foreach (var componentAssembly in componentAssemblies)
-                    {
-                        var serviceAssembly = serviceAssemblies.SingleOrDefault(sa => sa.Name == componentAssembly.Name);
-
-                        if (serviceAssembly == null)
-                        {
-                            continue;
-                        }
-
-                        var serviceVersion = FileVersionInfo.GetVersionInfo(serviceAssembly.FullName).ProductVersion;
-                        var componentVersion = FileVersionInfo.GetVersionInfo(componentAssembly.FullName).ProductVersion;
-
-                        if (serviceVersion == componentVersion)
-                        {
-                            continue;
-                        }
-
-                        var componentAssemblyFullname = $"{componentCategoryDirectory}/{componentDirectory}/{componentAssembly}";
-                        var mismatch = $"{componentAssemblyFullname} has a version mismatch: {serviceVersion} | {componentVersion}";
-
-                        if (IgnoreList.Contains(componentAssemblyFullname))
-                        {
-                            TestContext.Out.WriteLine($"IGNORED: {mismatch}");
-                            continue;
-                        }
-
-                        detectedMismatches.Add(mismatch);
-                    }
+                    detectedMismatches.AddRange(GetAssemblyMismatches(leftDeploymentUnit, rightDeploymentUnit));
                 }
             }
 
             CollectionAssert.IsEmpty(detectedMismatches, $"Component assembly version mismatch detected");
+        }
+
+        IEnumerable<string> GetAssemblyMismatches(DeploymentPackage.DeploymentUnit leftDeploymentUnit, DeploymentPackage.DeploymentUnit rightDeploymentUnit)
+        {
+            var detectedMismatches = new List<string>();
+
+            foreach (var leftAssembly in leftDeploymentUnit.Files)
+            {
+                var rightAssembly = rightDeploymentUnit.Files.SingleOrDefault(sa => sa.Name == leftAssembly.Name);
+
+                if (rightAssembly == null)
+                {
+                    continue;
+                }
+
+                var leftVersion = FileVersionInfo.GetVersionInfo(leftAssembly.FullName).FileVersion;
+                var rightVersion = FileVersionInfo.GetVersionInfo(rightAssembly.FullName).FileVersion;
+
+                if (leftVersion == rightVersion)
+                {
+                    continue;
+                }
+
+                var mismatch = $"{leftAssembly.Name} has a different version in {leftDeploymentUnit.FullName} compared to {rightDeploymentUnit.FullName}: {leftVersion} | {rightVersion}";
+
+                var leftAssemblyFullname = $"{leftDeploymentUnit.FullName}/{leftAssembly.Name}";
+                var rightAssemblyFullname = $"{rightDeploymentUnit.FullName}/{rightAssembly.Name}";
+
+                if (IgnoreList.Contains(leftAssemblyFullname) || IgnoreList.Contains(rightAssemblyFullname))
+                {
+                    TestContext.Out.WriteLine($"IGNORED: {mismatch}");
+                    continue;
+                }
+
+                detectedMismatches.Add(mismatch);
+            }
+
+            return detectedMismatches;
         }
 
         [Test]
@@ -84,9 +105,11 @@ namespace Tests
                 "LearningTransport"};
 
 
-            var transportDirectories = deploymentPackage.Directory.GetDirectories("Transports/*");
+            var transports = deploymentPackage.DeploymentUnits
+                .Where(u => u.Category == "Transports")
+                .Select(u => u.Name);
 
-            CollectionAssert.AreEquivalent(allTransports, transportDirectories.Select(d => d.Name), $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            CollectionAssert.AreEquivalent(allTransports, transports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         static IEnumerable<string> IgnoreList
@@ -99,7 +122,6 @@ namespace Tests
                 // as that package references V4.7.1.
                 // It should therefore be safe to explicitly exclude this assembly mismatch from
                 // the test.
-                //yield return "Transports/MSMQ/System.Runtime.CompilerServices.Unsafe.dll";
                 yield return "Transports/MSMQ/System.Threading.Channels.dll";
             }
         }

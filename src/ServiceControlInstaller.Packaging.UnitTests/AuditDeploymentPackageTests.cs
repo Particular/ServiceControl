@@ -19,17 +19,15 @@ namespace Tests
                 "RavenDB5",
                 "InMemory"};
 
-            var persisterFolders = deploymentPackage.Directory.GetDirectories("Persisters/*");
+            var persisters = deploymentPackage.DeploymentUnits.Where(u => u.Category == "Persisters");
 
-            CollectionAssert.AreEquivalent(expectedPersisters, persisterFolders.Select(d => d.Name), $"Expected persisters folder to contain {string.Join(",", expectedPersisters)}");
+            CollectionAssert.AreEquivalent(expectedPersisters, persisters.Select(d => d.Name), $"Expected persisters folder to contain {string.Join(",", expectedPersisters)}");
 
-            foreach (var persisterFolder in persisterFolders)
+            foreach (var persister in persisters)
             {
-                var persisterFiles = persisterFolder.EnumerateFiles();
-
-                Assert.IsFalse(persisterFiles.Any(f => f.Name.EndsWith(".config")), $"{persisterFolder} contains a config file");
-                Assert.IsFalse(persisterFiles.Any(f => f.Name == "ServiceControl.Audit.Persistence.dll"), $"{persisterFolder} contains the transport seam assembly");
-                Assert.IsTrue(persisterFiles.Any(f => f.Name == "persistence.manifest"), $"{persisterFolder} doesn't contain a persistence.manifest file");
+                Assert.IsFalse(persister.Files.Any(f => f.Name.EndsWith(".config")), $"{persister.Name} contains a config file");
+                Assert.IsFalse(persister.Files.Any(f => f.Name == "ServiceControl.Audit.Persistence.dll"), $"{persister.Name} contains the transport seam assembly");
+                Assert.IsTrue(persister.Files.Any(f => f.Name == "persistence.manifest"), $"{persister.Name} doesn't contain a persistence.manifest file");
             }
         }
 
