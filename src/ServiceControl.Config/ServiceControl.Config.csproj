@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.4.0" />
+    <PackageReference Include="Autofac" Version="6.5.0" />
     <PackageReference Include="Caliburn.Micro" Version="4.0.212" />
     <PackageReference Include="FluentValidation" Version="11.3.0" />
     <PackageReference Include="Mindscape.Raygun4Net" Version="5.13.0" />
