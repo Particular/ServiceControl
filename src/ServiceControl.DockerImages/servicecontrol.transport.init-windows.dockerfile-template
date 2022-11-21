@@ -2,12 +2,14 @@ FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
 
 WORKDIR /servicecontrol
 
+ARG TRANSPORT
 ADD /deploy/Particular.ServiceControl/ServiceControl .
-ADD /deploy/Particular.ServiceControl/Transports/RabbitMQ .
+ADD /deploy/Particular.ServiceControl/Transports/${TRANSPORT} .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
-ENV "ServiceControl/TransportType"="ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+ARG TRANSPORT_CUSTOMIZATION_TYPE
+ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}"
 ENV "ServiceControl/Hostname"="*"
 
 ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"

@@ -48,23 +48,15 @@ ConfigureEndpointLearningTransport
 c:\Temp\ServiceControlTemp
 ```
 
-
 ## How to build and run Docker images
 
-NOTE: The following scripts are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
+NOTE: The following instructions are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
 
-Each combination of ServiceControl instance, transport, and topology has a dedicated dockerfile. Select the instance, transport, and topology you want to run and build the `init` container and the runtime container by executing the following commands (using RabbitMQ Conventional topology as an example) from within the `src\docker` folder:
+Docker images are built by the `ServiceControl.DockerImages` project. The project is not automatically built when building the solution to keep the overall build time under control. To build Docker images explicitly build that project using the IDE or MSBuild from the command line.
 
-```
-docker build -f .\dockerfile.rabbitmq.conventional.init -t particular/servicecontrolrabbitconventional.init ./../
-docker build -f .\dockerfile.rabbitmq.conventional -t particular/servicecontrolrabbitconventional ./../
-docker build -f .\dockerfile.rabbitmq.conventional.audit.init -t particular/servicecontrolrabbitconventional.audit.init ./../
-docker build -f .\dockerfile.rabbitmq.conventional.audit -t particular/servicecontrolrabbitconventional.audit ./../
-docker build -f .\dockerfile.rabbitmq.conventional.monitoring.init -t particular/servicecontrolrabbitconventional.monitoring.init ./../
-docker build -f .\dockerfile.rabbitmq.conventional.monitoring -t particular/servicecontrolrabbitconventional.monitoring ./../
-```
+NOTE: The project will build Docker images for all supported transports. To build images for a subset of the transports, edit the `.csproj` file and comment out, or delete the not needed transport definitions in the `SupportedTransport` `ItemGroup`.
 
-Once the images are built, the instances can be started by first running the init container to provision the required queues and databases:
+Once the images are built, the instances can be started by first running the init container to provision the required queues and databases (using RabbitMQ Conventional topology as an example):
 
 ```
 docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl/:c:/data/ particular/servicecontrolrabbitdirect.init
@@ -93,8 +85,10 @@ docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/Connec
 ```
 
 ### Notes
+
 - RabbitMQ can either be installed on the host or run in another [Docker container](https://github.com/Particular/Platform/blob/main/scripts/docker-images.md).  In either case, the ServiceControl connection strings will need to refer to the host IP address.
 - The special DNS name `host.docker.internal` does [not](https://github.com/docker/for-win/issues/12673) [work](https://github.com/docker/for-win/issues/1976) on Docker Desktop for Windows, and it also doesn't support host networks.  To get the IP address of the host for the connection string environment variables, use `ipconfig` and find the IP address of the vEthernet adapter Docker is using, e.g.
+
 ```
 Ethernet adapter vEthernet (nat):
 
@@ -104,6 +98,7 @@ Ethernet adapter vEthernet (nat):
    Subnet Mask . . . . . . . . . . . : 255.255.240.0
    Default Gateway . . . . . . . . . :
 ```
+
 - RabbitMQ's default `guest` account cannot be used, since authentication will fail when ServiceControl is running in a docker container.  
 - The ServiceControl docker images are currently Windows based images while the RabbitMQ docker image is Linux based.  As such, these cannot be managed by docker-compose on a single Windows host.
 - Refer to [here](https://docs.particular.net/servicecontrol/containerization/) for more in depth documentation on running ServiceControl docker images (including on how to mount the license file rather than pass it in as an environment variable)
