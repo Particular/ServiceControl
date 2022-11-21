@@ -10,7 +10,11 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.2.1" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />    
+    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(Product->'$(ArtifactsPath)%(identity)\Transports\MSMQ')" />
   </ItemGroup>
 
 </Project>

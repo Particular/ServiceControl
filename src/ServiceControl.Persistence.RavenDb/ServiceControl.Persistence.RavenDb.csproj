@@ -8,4 +8,8 @@
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+  </ItemGroup>
+
 </Project>

@@ -20,4 +20,8 @@
     <PackageReference Include="System.Collections.Immutable" Version="7.0.0" TreatAsUsed="true"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(Product->'$(ArtifactsPath)%(identity)\Transports\AzureStorageQueue')" />
+  </ItemGroup>
+
 </Project>

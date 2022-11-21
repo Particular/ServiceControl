@@ -21,7 +21,7 @@
     <PackageReference Include="NServiceBus.NLog" Version="3.0.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
-    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.2" />    
+    <PackageReference Include="Microsoft.Owin.Hosting" Version="4.2.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
     <PackageReference Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageReference Include="Particular.Licensing.Sources" Version="5.0.1" PrivateAssets="All" TreatAsUsed="true" />
@@ -32,6 +32,10 @@
   <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Audit.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit" />
   </ItemGroup>
 
 </Project>
