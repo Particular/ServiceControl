@@ -1,6 +1,5 @@
 nugets
 deploy
-dockerfiles
 build32
 binaries
 *.vshost.*
