@@ -23,7 +23,7 @@ The `ServiceControlInstaller.Packaging` project is responsible to output to a `d
 
 There can be an issue when the main instance folder and the selected transport each have a copy of the same assembly. This can happen when the transport/persistence package and the instance each reference the same dependency, but select different versions. At install time, one version or the other will be copied into the instance binary folder and things may break unexpectedly at runtime.
 
-To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHaveMatchingVersions` tests the generated zip files for duplicated assemblies. If their versions match, then the test passes. If not then the test will fail with:
+To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHaveMatchingVersions` tests if duplicated assemblies might be deployed. If their versions match, then the test passes. If not then the test will fail with:
 
 ```
  Component assembly version mismatch detected
@@ -33,7 +33,7 @@ To prevent this, the unit test `DeploymentPackageTests.DuplicateAssemblyShouldHa
 
 > Microsoft.Bcl.AsyncInterfaces.dll has a different version in Instance/ServiceControl.Audit compared to Transports/AzureServiceBus
 
-This is telling you that the mismatch is happing in the ServiceControl.Audit and that the instance it self is clashing with the Azure ServiceBus transport and RavenDB 5 persister.
+This tells that the mismatch is happening in ServiceControl.Audit and that the instance itself is clashing with the Azure ServiceBus transport and RavenDB 5 persister.
 
 ### How to resolve
 
