@@ -9,16 +9,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.8.0" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" TreatAsUsed="true" />
-    <PackageReference Include="System.Text.Json" Version="7.0.0" TreatAsUsed="true" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" TreatAsUsed="true" />
-    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" />
   </ItemGroup>
 
   <ItemGroup>

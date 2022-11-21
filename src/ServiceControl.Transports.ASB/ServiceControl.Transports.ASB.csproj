@@ -9,9 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" Version="10.1.0" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.21.0" />
+    <PackageReference Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
   </ItemGroup>
 
   <ItemGroup>

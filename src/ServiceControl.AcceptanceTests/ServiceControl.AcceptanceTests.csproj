@@ -37,16 +37,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" Version="2.0.1" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.8.0" />
-    <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.1" />
-    <PackageReference Include="NServiceBus.SagaAudit" Version="3.0.1" />
-    <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
-    <PackageReference Include="OwinHttpMessageHandler" Version="2.0.2" />
-    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" />
+    <PackageReference Include="NServiceBus.Heartbeat" />
+    <PackageReference Include="NServiceBus.SagaAudit" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="OwinHttpMessageHandler" />
+    <PackageReference Include="Dapper" />
   </ItemGroup>
 
 </Project>

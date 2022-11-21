@@ -13,8 +13,8 @@
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
 
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
 </Project>

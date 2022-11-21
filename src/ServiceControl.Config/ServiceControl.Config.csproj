@@ -22,19 +22,19 @@
 
   <!-- Fody and friends -->
   <ItemGroup>
-    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
-    <PackageReference Include="PropertyChanging.Fody" Version="1.30.3" PrivateAssets="All" />
-    <PackageReference Include="Validar.Fody" Version="1.9.0" PrivateAssets="All" />
+    <PackageReference Include="PropertyChanged.Fody" PrivateAssets="All" />
+    <PackageReference Include="PropertyChanging.Fody" PrivateAssets="All" />
+    <PackageReference Include="Validar.Fody" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="6.5.0" />
-    <PackageReference Include="Caliburn.Micro" Version="4.0.212" />
-    <PackageReference Include="FluentValidation" Version="11.4.0" />
-    <PackageReference Include="Mindscape.Raygun4Net" Version="5.13.0" />
-    <PackageReference Include="ReactiveUI.WPF" Version="17.1.50" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Windows7APICodePack-Shell" Version="1.1.0" />
+    <PackageReference Include="Autofac" />
+    <PackageReference Include="Caliburn.Micro" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Mindscape.Raygun4Net" />
+    <PackageReference Include="ReactiveUI.WPF" />
+    <PackageReference Include="System.ValueTuple" />
+    <PackageReference Include="Windows7APICodePack-Shell" />
   </ItemGroup>
 
   <ItemGroup>

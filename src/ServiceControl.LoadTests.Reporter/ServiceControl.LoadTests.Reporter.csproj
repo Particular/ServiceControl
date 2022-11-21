@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Metrics.NET" Version="0.5.5" />
-    <PackageReference Include="NServiceBus" Version="7.8.0" />
+    <PackageReference Include="Metrics.NET" />
+    <PackageReference Include="NServiceBus" />
   </ItemGroup>
 
   <ItemGroup>

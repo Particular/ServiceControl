@@ -10,10 +10,6 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>
