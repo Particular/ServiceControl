@@ -17,13 +17,13 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!--<ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
+  <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' == 'true'">
     <GlobalPackageReference Include="Particular.Analyzers" Version="$(ParticularAnalyzersVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(ManagePackageVersionsCentrally)' != 'true'">
     <PackageReference Include="Particular.Analyzers" Version="$(ParticularAnalyzersVersion)" PrivateAssets="All" />
-  </ItemGroup>-->
+  </ItemGroup>
 
   <ItemGroup>
     <SourceRoot Include="$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)..\))" />
