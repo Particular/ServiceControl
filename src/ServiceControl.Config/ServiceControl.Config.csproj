@@ -33,7 +33,6 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Mindscape.Raygun4Net" />
     <PackageReference Include="ReactiveUI.WPF" />
-    <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="Windows7APICodePack-Shell" />
   </ItemGroup>
 

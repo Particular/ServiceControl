@@ -11,14 +11,14 @@
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PreparePrimaryInstance;PrepareAuditInstance;PrepareMonitoringInstance;AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <ItemGroup>  
+  <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
   <PropertyGroup>
     <DeployFolder>..\..\deploy\</DeployFolder>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <None Remove="buildProps\**\*" />
     <Content Include="buildProps\**\*" PackagePath="" />
@@ -59,7 +59,7 @@
     <Copy SourceFiles="@(AuditRavenPersistence)" DestinationFolder="$(AuditWithPersistenceFolder)" />
     <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(AuditWithPersistenceFolder)" />
   </Target>
-  
+
   <Target Name="PrepareMonitoringInstance">
     <PropertyGroup>
       <MonitoringFolder>.\$(OutputPath)\monitoring-persistence\</MonitoringFolder>

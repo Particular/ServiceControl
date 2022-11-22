@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
@@ -14,24 +15,15 @@
     <ProjectReference Include="..\ServiceControl.Persistence.SqlServer\ServiceControl.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Web" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Heartbeat"/>
     <PackageReference Include="NServiceBus.SagaAudit" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="OwinHttpMessageHandler" />
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
+
 </Project>

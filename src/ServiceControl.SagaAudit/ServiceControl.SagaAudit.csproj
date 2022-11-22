@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" />
+    <PackageReference Include="NServiceBus" />
   </ItemGroup>
 
 </Project>

@@ -7,22 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
-    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Owin.Hosting" />
-    <PackageReference Include="Microsoft.Owin.Cors" />
-    <PackageReference Include="NLog.Extensions.Logging" />
-    <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NServiceBus.Extensions.Logging" />
-    <PackageReference Include="Particular.Licensing.Sources" />
-    <PackageReference Include="System.Memory" />
+    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+    <PackageReference Include="Microsoft.Owin.Cors" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
+    <PackageReference Include="NServiceBus.Extensions.Hosting" />
+    <PackageReference Include="NServiceBus.Extensions.Logging" />
+    <PackageReference Include="Particular.Licensing.Sources" />
   </ItemGroup>
 
   <ItemGroup>

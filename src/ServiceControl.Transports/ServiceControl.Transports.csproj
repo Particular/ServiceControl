@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus.Raw" />
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
   </ItemGroup>
 
 </Project>

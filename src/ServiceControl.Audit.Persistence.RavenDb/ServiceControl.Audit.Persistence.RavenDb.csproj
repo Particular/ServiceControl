@@ -5,19 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="persistence.manifest">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="RavenLicense.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
-    <PackageReference Include="NServiceBus.CustomChecks"  />
-    <PackageReference Include="Lucene.Net" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,7 +13,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="NServiceBus.CustomChecks"  />
+    <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="RavenLicense.xml" />
+    <EmbeddedResource Include="RavenLicense.xml" />
   </ItemGroup>
 
   <ItemGroup>

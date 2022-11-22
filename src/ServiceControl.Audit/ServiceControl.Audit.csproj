@@ -16,17 +16,14 @@
   <ItemGroup>
     <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
-    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
-    <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="NServiceBus.NLog" />
-    <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NLog.Extensions.Logging" />
-    <PackageReference Include="Microsoft.Owin.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="Microsoft.Owin.Cors" />
-    <PackageReference Include="Particular.Licensing.Sources" />
+    <PackageReference Include="NLog.Extensions.Logging" />
+    <PackageReference Include="NServiceBus.NLog" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
+    <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="System.Threading.Channels" />
-    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
   <ItemGroup>

@@ -16,24 +16,20 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
+    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="Microsoft.AspNet.SignalR" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices"/>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
+    <PackageReference Include="Microsoft.Owin.Cors"/>
+    <PackageReference Include="NLog.Extensions.Logging"/>
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.NLog" />
-    <PackageReference Include="Microsoft.Owin.Hosting" />
-    <PackageReference Include="NLog.Extensions.Logging"/>
-    <PackageReference Include="ServiceControl.Contracts" />
-    <PackageReference Include="Lucene.Net" />
-    <PackageReference Include="Rx-Linq" />
-    <PackageReference Include="Microsoft.AspNet.SignalR" />
-    <PackageReference Include="Microsoft.AspNet.SignalR.Owin" />
-    <PackageReference Include="Microsoft.Owin.Cors"/>
     <PackageReference Include="Particular.Licensing.Sources" />
+    <PackageReference Include="Rx-Linq" />
+    <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Threading.Channels" />
-    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,10 +40,6 @@
   <ItemGroup>
     <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(PkgRavenDB_Database)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>

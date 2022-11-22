@@ -5,25 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="persistence.manifest">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="RavenDB.Embedded" />
-    <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="Lucene.Net" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="RavenLicense.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="RavenDB.Embedded" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="RavenLicense.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,14 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Metrics.NET" />
-    <PackageReference Include="NServiceBus" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Metrics.NET" />
   </ItemGroup>
 
 </Project>

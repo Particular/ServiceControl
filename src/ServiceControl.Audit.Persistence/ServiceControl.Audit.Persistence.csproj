@@ -5,14 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.SagaAudit\ServiceControl.Audit.Persistence.SagaAudit.csproj" />
+    <PackageReference Include="Microsoft.AspNet.WebApi" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
+    <PackageReference Include="NServiceBus" />
   </ItemGroup>
 
 </Project>

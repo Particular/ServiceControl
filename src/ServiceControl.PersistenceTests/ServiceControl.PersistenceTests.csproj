@@ -6,24 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Dapper" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="GitHubActionsTestLogger" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.InMemory\ServiceControl.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.SqlServer\ServiceControl.Persistence.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
 </Project>

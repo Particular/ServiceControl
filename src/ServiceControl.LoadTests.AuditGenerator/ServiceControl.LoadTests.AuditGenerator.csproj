@@ -11,10 +11,6 @@
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
-
-    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
-    <PackageReference Include="System.Memory" />
   </ItemGroup>
 
 </Project>

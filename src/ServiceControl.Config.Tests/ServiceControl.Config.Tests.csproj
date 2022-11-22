@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Config\ServiceControl.Config.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.ServiceProcess" />
@@ -16,10 +20,6 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Config\ServiceControl.Config.csproj" />
   </ItemGroup>
 
 </Project>
