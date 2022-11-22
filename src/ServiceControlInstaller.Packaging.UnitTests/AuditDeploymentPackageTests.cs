@@ -26,7 +26,6 @@ namespace Tests
             foreach (var persister in persisters)
             {
                 Assert.IsFalse(persister.Files.Any(f => f.Name.EndsWith(".config")), $"{persister.Name} contains a config file");
-                Assert.IsFalse(persister.Files.Any(f => f.Name == "ServiceControl.Audit.Persistence.dll"), $"{persister.Name} contains the transport seam assembly");
                 Assert.IsTrue(persister.Files.Any(f => f.Name == "persistence.manifest"), $"{persister.Name} doesn't contain a persistence.manifest file");
             }
         }
