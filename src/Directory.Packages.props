@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,7 @@
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Lucene.Net" Version="3.0.3" />
     <PackageVersion Include="Metrics.NET" Version="0.5.5" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
     <PackageVersion Include="Microsoft.AspNet.SignalR" Version="2.4.3" />
     <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
     <PackageVersion Include="Microsoft.AspNet.SignalR.Owin" Version="1.2.2" />
@@ -70,18 +72,19 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="17.1.50" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="3.0.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageVersion Include="System.Text.Encodings.Web" Version="7.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="7.0.0" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Windows7APICodePack-Shell" Version="1.1.0" />
     <PackageVersion Include="WiX" Version="3.11.2" />
-
-
-
- 
   </ItemGroup>
 
   <ItemGroup>
