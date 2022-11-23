@@ -20,8 +20,11 @@
     <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.NLog" />
-    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Aliases="TransportASBS" /> <!--Needed for extern alias -->
     <PackageReference Include="OwinHttpMessageHandler" />
+  </ItemGroup>
+
+  <ItemGroup Label="Needed for extern alias">
+    <PackageReference Include="NServiceBus.Transport.AzureServiceBus" Aliases="TransportASBS" />
   </ItemGroup>
 
 </Project>
