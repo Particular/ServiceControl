@@ -1,177 +1,34 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.6.0">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false"/>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" ReferenceOutputAssembly="false" Private="false"/>
+  <ItemGroup Label="Instances">
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />  <!--Deploy artifacts come from this project-->
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <DeployFolder>..\..\deploy\</DeployFolder>
-  </PropertyGroup>
+  <ItemGroup Label="Audit persisters">
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
+  </ItemGroup>
 
+  <ItemGroup Label="Transports">
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj"/>
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
+  </ItemGroup>
 
-  <Target Name="CleanDeployFolder" AfterTargets="Build">
-    <!-- Ensure Folder Exists  -->
-    <RemoveDir Directories="$(DeployFolder)" />
-    <MakeDir Directories="$(DeployFolder)" />
-  </Target>
-
-  <Target Name="PrepareServiceControl" AfterTargets="CleanDeployFolder">
-    <PropertyGroup>
-      <StagingFolder>$(DeployFolder)Particular.ServiceControl\</StagingFolder>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ServiceControlFolder>..\ServiceControl\$(OutputPath)\</ServiceControlFolder>
-      <SqlTransportFolder>..\ServiceControl.Transports.SqlServer\$(OutputPath)\</SqlTransportFolder>
-      <ASQTransportFolder>..\ServiceControl.Transports.ASQ\$(OutputPath)\</ASQTransportFolder>
-      <ASBTransportFolder>..\ServiceControl.Transports.ASB\$(OutputPath)\</ASBTransportFolder>
-      <ASBSTransportFolder>..\ServiceControl.Transports.ASBS\$(OutputPath)\</ASBSTransportFolder>
-      <RabbitMQTransportFolder>..\ServiceControl.Transports.RabbitMQ\$(OutputPath)\</RabbitMQTransportFolder>
-      <MSMQTransportFolder>..\ServiceControl.Transports.Msmq\$(OutputPath)\</MSMQTransportFolder>
-      <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
-      <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
-      <RavenDB35PersistenceFolder>..\ServiceControl.Persistence.RavenDb\$(OutputPath)\</RavenDB35PersistenceFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;Newtonsoft.Json.dll;System.Runtime.CompilerServices.Unsafe.dll" />
-
-      <ServiceControl Include="$(ServiceControlFolder)*.*" Exclude="$(ServiceControlFolder)*.config" />
-      <RavenDB35Persister Include="$(RavenDB35PersistenceFolder)*.dll" Exclude="@(FilesToExclude->'$(RavenDB35PersistenceFolder)%(identity)')" />
-
-      <SqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
-      <ASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
-      <ASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
-      <ASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
-      <RabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
-      <MSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
-      <SQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
-      <LearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(ServiceControl)" DestinationFolder="$(StagingFolder)ServiceControl\" />
-    <Copy SourceFiles="@(RavenDB35Persister)" DestinationFolder="$(StagingFolder)ServiceControl\" />
-    <Copy SourceFiles="@(SqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
-    <Copy SourceFiles="@(ASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
-    <Copy SourceFiles="@(ASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
-    <Copy SourceFiles="@(ASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
-    <Copy SourceFiles="@(RabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
-    <Copy SourceFiles="@(MSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
-    <Copy SourceFiles="@(SQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
-
-  </Target>
-  
-  <Target Name="PrepareServiceControlAudit" AfterTargets="CleanDeployFolder">
-    <PropertyGroup>
-      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Audit\</StagingFolder>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ServiceControlAuditFolder>..\ServiceControl.Audit\$(OutputPath)\</ServiceControlAuditFolder>
-      <SqlTransportFolder>..\ServiceControl.Transports.SqlServer\$(OutputPath)\</SqlTransportFolder>
-      <ASQTransportFolder>..\ServiceControl.Transports.ASQ\$(OutputPath)\</ASQTransportFolder>
-      <ASBTransportFolder>..\ServiceControl.Transports.ASB\$(OutputPath)\</ASBTransportFolder>
-      <ASBSTransportFolder>..\ServiceControl.Transports.ASBS\$(OutputPath)\</ASBSTransportFolder>
-      <RabbitMQTransportFolder>..\ServiceControl.Transports.RabbitMQ\$(OutputPath)\</RabbitMQTransportFolder>
-      <MSMQTransportFolder>..\ServiceControl.Transports.Msmq\$(OutputPath)\</MSMQTransportFolder>
-      <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
-      <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
-      <InMemoryPersistenceFolder>..\ServiceControl.Audit.Persistence.InMemory\$(OutputPath)\</InMemoryPersistenceFolder>
-      <RavenDbPersistenceFolder>..\ServiceControl.Audit.Persistence.RavenDb\$(OutputPath)\</RavenDbPersistenceFolder>
-      <RavenDb5PersistenceFolder>..\ServiceControl.Audit.Persistence.RavenDb5\$(OutputPath)\</RavenDb5PersistenceFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb;ServiceControl.Audit.Persistence.dll;ServiceControl.Audit.Persistence.pdb;ServiceControl.Audit.Persistence.SagaAudit.dll;ServiceControl.Audit.Persistence.SagaAudit.pdb;System.Runtime.CompilerServices.Unsafe.dll" />
-
-      <ServiceControlAudit Include="$(ServiceControlAuditFolder)*.*" Exclude="$(ServiceControlAuditFolder)*.config" />
-      <AuditSqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
-      <AuditASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
-      <AuditASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
-      <AuditASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
-      <AuditRabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
-      <AuditMSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
-      <AuditSQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
-      <AuditLearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
-      <AuditInMemoryPersistence Include="$(InMemoryPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(InMemoryPersistenceFolder)%(identity)')" />
-      <AuditRavenDbPersistence Include="$(RavenDbPersistenceFolder)*.*" Exclude="@(FilesToExclude->'$(RavenDbPersistenceFolder)%(identity)')" />
-      <AuditRavenDb5Persistence Include="$(RavenDb5PersistenceFolder)\**\*.*" Exclude="@(FilesToExclude->'$(RavenDb5PersistenceFolder)%(identity)')" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(StagingFolder)ServiceControl.Audit\" />
-    <Copy SourceFiles="@(AuditSqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
-    <Copy SourceFiles="@(AuditASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
-    <Copy SourceFiles="@(AuditASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
-    <Copy SourceFiles="@(AuditASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
-    <Copy SourceFiles="@(AuditRabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
-    <Copy SourceFiles="@(AuditMSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
-    <Copy SourceFiles="@(AuditSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
-    <Copy SourceFiles="@(AuditLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
-    <Copy SourceFiles="@(AuditInMemoryPersistence)" DestinationFolder="$(StagingFolder)Persisters\InMemory" />
-    <Copy SourceFiles="@(AuditRavenDbPersistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB35" />
-    <Copy SourceFiles="@(AuditRavenDb5Persistence)" DestinationFolder="$(StagingFolder)Persisters\RavenDB5\%(RecursiveDir)" />
-  </Target>
-
-  <Target Name="PrepareServiceControlMonitoring" AfterTargets="CleanDeployFolder">
-    <PropertyGroup>
-      <StagingFolder>$(DeployFolder)Particular.ServiceControl.Monitoring\</StagingFolder>
-    </PropertyGroup>
-
-    <PropertyGroup>
-      <ServiceControlMonitoringFolder>..\ServiceControl.Monitoring\$(OutputPath)\</ServiceControlMonitoringFolder>
-      <SqlTransportFolder>..\ServiceControl.Transports.SqlServer\$(OutputPath)\</SqlTransportFolder>
-      <ASQTransportFolder>..\ServiceControl.Transports.ASQ\$(OutputPath)\</ASQTransportFolder>
-      <ASBTransportFolder>..\ServiceControl.Transports.ASB\$(OutputPath)\</ASBTransportFolder>
-      <ASBSTransportFolder>..\ServiceControl.Transports.ASBS\$(OutputPath)\</ASBSTransportFolder>
-      <RabbitMQTransportFolder>..\ServiceControl.Transports.RabbitMQ\$(OutputPath)\</RabbitMQTransportFolder>
-      <MSMQTransportFolder>..\ServiceControl.Transports.Msmq\$(OutputPath)\</MSMQTransportFolder>
-      <SQSTransportFolder>..\ServiceControl.Transports.SQS\$(OutputPath)\</SQSTransportFolder>
-      <LearningTransportFolder>..\ServiceControl.Transports.Learning\$(OutputPath)\</LearningTransportFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <FilesToExclude Include="NServiceBus.Core.dll;NServiceBus.Raw.dll;ServiceControl.Transports.dll;ServiceControl.Transports.pdb" />
-
-      <ServiceControlMonitoring Include="$(ServiceControlMonitoringFolder)*.*" Exclude="$(ServiceControlMonitoringFolder)*.config" />
-      <MonitoringSqlTransport Include="$(SqlTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SqlTransportFolder)%(identity)')" />
-      <MonitoringASQTransport Include="$(ASQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASQTransportFolder)%(identity)')" />
-      <MonitoringASBTransport Include="$(ASBTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBTransportFolder)%(identity)')" />
-      <MonitoringASBSTransport Include="$(ASBSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(ASBSTransportFolder)%(identity)')" />
-      <MonitoringRabbitMQTransport Include="$(RabbitMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(RabbitMQTransportFolder)%(identity)')" />
-      <MonitoringMSMQTransport Include="$(MSMQTransportFolder)*.*" Exclude="@(FilesToExclude->'$(MSMQTransportFolder)%(identity)')" />
-      <MonitoringSQSTransport Include="$(SQSTransportFolder)*.*" Exclude="@(FilesToExclude->'$(SQSTransportFolder)%(identity)')" />
-      <MonitoringLearningTransport Include="$(LearningTransportFolder)*.*" Exclude="@(FilesToExclude->'$(LearningTransportFolder)%(identity)')" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(StagingFolder)ServiceControl.Monitoring\" />
-    <Copy SourceFiles="@(MonitoringSqlTransport)" DestinationFolder="$(StagingFolder)Transports\SQLServer" />
-    <Copy SourceFiles="@(MonitoringASQTransport)" DestinationFolder="$(StagingFolder)Transports\AzureStorageQueue" />
-    <Copy SourceFiles="@(MonitoringASBTransport)" DestinationFolder="$(StagingFolder)Transports\AzureServiceBus" />
-    <Copy SourceFiles="@(MonitoringASBSTransport)" DestinationFolder="$(StagingFolder)Transports\NetStandardAzureServiceBus" />
-    <Copy SourceFiles="@(MonitoringRabbitMQTransport)" DestinationFolder="$(StagingFolder)Transports\RabbitMQ" />
-    <Copy SourceFiles="@(MonitoringMSMQTransport)" DestinationFolder="$(StagingFolder)Transports\MSMQ" />
-    <Copy SourceFiles="@(MonitoringSQSTransport)" DestinationFolder="$(StagingFolder)Transports\AmazonSQS" />
-    <Copy SourceFiles="@(MonitoringLearningTransport)" DestinationFolder="$(StagingFolder)Transports\LearningTransport" />
-
-  </Target>
+<ItemGroup>
+  <ProjectReference Update="..\**\*" ReferenceOutputAssembly="false" Private="false" />
+</ItemGroup>
 
 </Project>
