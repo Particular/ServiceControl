@@ -42,4 +42,7 @@
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
+  <!-- Artifacts for the primary instance are not currently defined here because we don't yet have selectable persister options.
+  They are defined on the ServiceControl.Persistence.RavenDb project instead. -->
+
 </Project>
