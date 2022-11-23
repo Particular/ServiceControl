@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <MinVerMinimumMajorMinor>4.21</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>4.27</MinVerMinimumMajorMinor>
     <MinVerAutoIncrement>minor</MinVerAutoIncrement>
   </PropertyGroup>
 
