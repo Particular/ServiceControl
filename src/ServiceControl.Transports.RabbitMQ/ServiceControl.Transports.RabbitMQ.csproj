@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(Product->'$(ArtifactsPath)%(identity)\Transports\RabbitMQ')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\RabbitMQ')" />
   </ItemGroup>
 
 </Project>

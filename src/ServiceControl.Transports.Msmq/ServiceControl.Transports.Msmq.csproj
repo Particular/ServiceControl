@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(Product->'$(ArtifactsPath)%(identity)\Transports\MSMQ')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\MSMQ')" />
   </ItemGroup>
 
 </Project>

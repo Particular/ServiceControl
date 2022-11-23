@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <ArtifactsPath>$(MSBuildThisFileDirectory)../deploy/</ArtifactsPath>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)..\deploy\</ArtifactsPath>
     <EnableDefaultArtifacts>false</EnableDefaultArtifacts>
     <!-- Remove after upgrading to NServiceBus 8.x -->
     <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
@@ -19,9 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Product Include="Particular.ServiceControl" />
-    <Product Include="Particular.ServiceControl.Audit" />
-    <Product Include="Particular.ServiceControl.Monitoring" />
+    <InstanceName Include="Particular.ServiceControl" />
+    <InstanceName Include="Particular.ServiceControl.Audit" />
+    <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
 </Project>

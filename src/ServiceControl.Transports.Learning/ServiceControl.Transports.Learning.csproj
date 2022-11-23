@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(Product->'$(ArtifactsPath)%(identity)\Transports\LearningTransport')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\LearningTransport')" />
   </ItemGroup>
 
 </Project>
