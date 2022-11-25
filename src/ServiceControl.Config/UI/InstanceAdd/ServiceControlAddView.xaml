@@ -128,7 +128,7 @@
                                           Warning="{Binding ServiceControl.HostNameWarning}" />
 
 
-                                <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.PortNumber}" ValidationSource="{Binding ServiceControl}" />
+                                <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.PortNumber}" />
                                 
                                 
                                 <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)" Text="{Binding ServiceControl.DatabaseMaintenancePortNumber}" />

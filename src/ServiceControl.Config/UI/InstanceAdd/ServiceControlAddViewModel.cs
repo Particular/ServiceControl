@@ -19,7 +19,7 @@
         {
             Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
             ServiceControl = new ServiceControlInformation(this);
-            ServiceControlAudit = new ServiceControlAuditInformation();
+            ServiceControlAudit = new ServiceControlAuditInformation(this);
         }
 
         [DoNotNotify]
@@ -200,9 +200,10 @@
         }
     }
 
+    [InjectValidation]
     public class ServiceControlAuditInformation : SharedServiceControlEditorViewModel
     {
-        public ServiceControlAuditInformation()
+        public ServiceControlAuditInformation(ServiceControlEditorViewModel viewModelParent)
         {
             AuditForwardingOptions = new[]
             {
@@ -240,7 +241,10 @@
             PortNumber = "44444";
             DatabaseMaintenancePortNumber = "44445";
             EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+            ViewModelParent = viewModelParent;
         }
+
+        public ServiceControlEditorViewModel ViewModelParent { get; }
 
         public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInDays;
 
