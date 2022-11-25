@@ -18,7 +18,7 @@
         public ServiceControlEditorViewModel()
         {
             Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
-            ServiceControl = new ServiceControlInformation();
+            ServiceControl = new ServiceControlInformation(this);
             ServiceControlAudit = new ServiceControlAuditInformation();
         }
 
@@ -94,9 +94,10 @@
         public bool IsServiceControlAuditExpanded { get; set; }
     }
 
+    [InjectValidation]
     public class ServiceControlInformation : SharedServiceControlEditorViewModel
     {
-        public ServiceControlInformation()
+        public ServiceControlInformation(ServiceControlEditorViewModel viewModelParent)
         {
             ErrorForwardingOptions = new[]
             {
@@ -134,6 +135,7 @@
             PortNumber = "33333";
             DatabaseMaintenancePortNumber = "33334";
             EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+            ViewModelParent = viewModelParent;
         }
 
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
@@ -141,6 +143,8 @@
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
 
         public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
+
+        public ServiceControlEditorViewModel ViewModelParent { get; }
 
         public double ErrorRetention { get; set; }
 

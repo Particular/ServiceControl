@@ -73,6 +73,18 @@
             validationResults.Clear();
             var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
             validationResults.AddRange(validationResult.Errors);
+
+            var childValidators = target.GetType().GetProperties()
+                .Where(prop => validators.ContainsKey(prop.PropertyType.TypeHandle))
+                .Select(prop => new { Instace = (RxPropertyChanged)prop.GetValue(target), Validator = GetValidator(prop.PropertyType) })
+                .ToArray();
+
+            foreach (var childValidator in childValidators)
+            {
+                var childValidationResult = childValidator.Validator.Validate(new ValidationContext<RxPropertyChanged>(childValidator.Instace));
+                validationResults.AddRange(childValidationResult.Errors);
+            }
+
             RaiseErrorsChanged();
             return validationResults.Count == 0;
         }
@@ -110,8 +122,7 @@
             else
             {
                 validationResults.Clear();
-                var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
-                validationResults.AddRange(validationResult.Errors);
+                Validate();
             }
 
             RaiseErrorsChanged();
