@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices.WindowsRuntime;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
@@ -49,6 +50,7 @@
 
         public bool InstallErrorInstance { get; set; } = true;
         public bool InstallAuditInstance { get; set; } = true;
+        public bool OneInstanceTypeSelected => InstallErrorInstance || InstallAuditInstance;
 
         public string TransportWarning => SelectedTransport?.Help;
 

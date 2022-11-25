@@ -10,9 +10,8 @@
              d:DesignWidth="800"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <Style TargetType="{x:Type CheckBox}">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Margin" Value="0,5" />
+        <Style TargetType="CheckBox">
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
         </Style>
     </UserControl.Resources>
     <sie:SharedServiceControlEditorView IsTabStop="False" SaveText="Add">
@@ -73,6 +72,12 @@
                              Visibility="{Binding ShowConnectionString,
                                                   Converter={StaticResource boolToVis}}" />
                 </StackPanel>
+
+                <TextBlock Padding="0, 0, 0, 10" Visibility="{Binding OneInstanceTypeSelected, Converter={StaticResource boolToVisInverted}}"
+                            FontSize="13px"
+                            Foreground="{StaticResource ErrorBrush}"
+                            Text="Must select either an audit or an error instance." />
+
                 <CheckBox Padding="0, -10, 0, 0" IsChecked="{Binding InstallErrorInstance}">
                     <StackPanel>
                         <Expander Header="ServiceControl" IsExpanded="{Binding IsServiceControlExpanded}" Margin="0,5,0,5">

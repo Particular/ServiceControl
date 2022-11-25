@@ -72,7 +72,7 @@
         {
             validationResults.Clear();
             var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
-            validationResults.AddRange(validationResult.Errors);
+            var errors = validationResult.Errors;
 
             var childValidators = target.GetType().GetProperties()
                 .Where(prop => validators.ContainsKey(prop.PropertyType.TypeHandle))
@@ -82,8 +82,10 @@
             foreach (var childValidator in childValidators)
             {
                 var childValidationResult = childValidator.Validator.Validate(new ValidationContext<RxPropertyChanged>(childValidator.Instace));
-                validationResults.AddRange(childValidationResult.Errors);
+                errors.AddRange(childValidationResult.Errors);
             }
+
+            validationResults.AddRange(errors.Distinct(ValidationFailureEqualityComparer.Instance));
 
             RaiseErrorsChanged();
             return validationResults.Count == 0;
@@ -117,7 +119,7 @@
                     ValidatorOptions.Global.ValidatorSelectors.MemberNameValidatorSelectorFactory(new[] { e.PropertyName })
                 );
                 var validationResult = validator.Validate(validationContext);
-                validationResults.AddRange(validationResult.Errors);
+                validationResults.AddRange(validationResult.Errors.Distinct(ValidationFailureEqualityComparer.Instance));
             }
             else
             {
