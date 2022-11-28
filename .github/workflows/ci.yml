@@ -100,7 +100,7 @@ jobs:
           tag: ServiceControl
       - name: Setup Azure Service Bus
         if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
-        uses: Particular/setup-azureservicebus-action@v1.0.0
+        uses: Particular/setup-azureservicebus-action@v1.1.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
