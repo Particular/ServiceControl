@@ -29,6 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- This ensures that all the project references listed above are configured to be build ordering references only.
+    No assemblies or content are copied when these are set -->
     <ProjectReference Update="..\**\*" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
