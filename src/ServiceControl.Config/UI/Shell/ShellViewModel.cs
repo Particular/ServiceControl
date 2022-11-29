@@ -85,6 +85,8 @@
 
         public bool UpdateAvailable { get; set; }
 
+        public string UpdateAvailableText { get; set; }
+
         public string AvailableUpgradeReleaseLink { get; set; }
 
         public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
@@ -153,6 +155,7 @@
             else
             {
                 AvailableUpgradeReleaseLink = availableUpgradeRelease.Assets.FirstOrDefault().Download.ToString();
+                UpdateAvailableText = $"v{availableUpgradeRelease.Version} - Update Available";
                 UpdateAvailable = true;
             }
 
