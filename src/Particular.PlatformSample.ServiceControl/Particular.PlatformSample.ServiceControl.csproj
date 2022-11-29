@@ -6,82 +6,31 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <Description>Particular ServiceControl binaries for use by Particular.PlatformSample. Not intended for use outside of Particular.PlatformSample.</Description>
     <PackageProjectUrl>https://docs.particular.net/servicecontrol/</PackageProjectUrl>
-    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100;NU5118</NoWarn>
     <IsPackable>true</IsPackable>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PreparePrimaryInstance;PrepareAuditInstance;PrepareMonitoringInstance;AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddFilesToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
-  <ItemGroup>  
+  <ItemGroup Label="Needed for build ordering">
     <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <DeployFolder>..\..\deploy\</DeployFolder>
-  </PropertyGroup>
-  
   <ItemGroup>
     <None Remove="buildProps\**\*" />
     <Content Include="buildProps\**\*" PackagePath="" />
   </ItemGroup>
 
-  <Target Name="PreparePrimaryInstance">
-    <PropertyGroup>
-      <PrimaryWithPersistenceFolder>.\$(OutputPath)\primary-with-persistence\</PrimaryWithPersistenceFolder>
-      <PrimaryStagingFolder>$(OutputPath)\primary-staging\</PrimaryStagingFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ServiceControl Include="$(DeployFolder)\Particular.ServiceControl\ServiceControl\**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
-    </ItemGroup>
-
-    <RemoveDir Directories="$(PrimaryWithPersistenceFolder)" />
-    <MakeDir Directories="$(PrimaryWithPersistenceFolder)" />
-    <Copy SourceFiles="@(ServiceControl)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(PrimaryWithPersistenceFolder)" />
-  </Target>
-
-  <Target Name="PrepareAuditInstance">
-    <PropertyGroup>
-      <AuditWithPersistenceFolder>.\$(OutputPath)\audit-with-persistence\</AuditWithPersistenceFolder>
-      <AuditStagingFolder>$(OutputPath)\audit-staging\</AuditStagingFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ServiceControlAudit Include="$(DeployFolder)\Particular.ServiceControl.Audit\ServiceControl.Audit\**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <AuditRavenPersistence Include="$(DeployFolder)\Particular.ServiceControl.Audit\Persisters\RavenDB35\**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl.Audit\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
-    </ItemGroup>
-
-    <RemoveDir Directories="$(AuditWithPersistenceFolder)" />
-    <MakeDir Directories="$(AuditWithPersistenceFolder)" />
-    <Copy SourceFiles="@(ServiceControlAudit)" DestinationFolder="$(AuditWithPersistenceFolder)" />
-    <Copy SourceFiles="@(AuditRavenPersistence)" DestinationFolder="$(AuditWithPersistenceFolder)" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(AuditWithPersistenceFolder)" />
-  </Target>
-  
-  <Target Name="PrepareMonitoringInstance">
-    <PropertyGroup>
-      <MonitoringFolder>.\$(OutputPath)\monitoring-persistence\</MonitoringFolder>
-      <MonitoringStagingFolder>$(OutputPath)\monitoring-staging\</MonitoringStagingFolder>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <ServiceControlMonitoring Include="$(DeployFolder)\Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\**\*.*" Exclude="**\*.config;**\*.pdb" />
-      <LearningTransport Include="$(DeployFolder)\Particular.ServiceControl.Monitoring\Transports\LearningTransport\**\*.*" Exclude="**\*.config;**\*.pdb" />
-    </ItemGroup>
-
-    <RemoveDir Directories="$(MonitoringFolder)" />
-    <MakeDir Directories="$(MonitoringFolder)" />
-    <Copy SourceFiles="@(ServiceControlMonitoring)" DestinationFolder="$(MonitoringFolder)" />
-    <Copy SourceFiles="@(LearningTransport)" DestinationFolder="$(MonitoringFolder)" />
-  </Target>
-
   <Target Name="AddFilesToPackage">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(PrimaryWithPersistenceFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="$(AuditWithPersistenceFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
-      <TfmSpecificPackageFile Include="$(MonitoringFolder)" Exclude="**\*.config;**\*.pdb" PackagePath="platform\servicecontrol\monitoring-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\ServiceControl\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
+
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\InMemory\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
     </ItemGroup>
   </Target>
 

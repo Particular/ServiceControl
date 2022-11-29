@@ -4,6 +4,10 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup Label="Needed for build ordering">
+    <ProjectReference Include="..\ServiceControl.Config\ServiceControl.Config.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="Prerequisites\**\*.*" />
   </ItemGroup>

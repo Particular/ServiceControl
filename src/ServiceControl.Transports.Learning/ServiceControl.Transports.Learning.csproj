@@ -7,4 +7,9 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\LearningTransport')" />
+  </ItemGroup>
+
 </Project>

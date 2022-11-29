@@ -5,6 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Needed for build ordering">
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Configuration" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Management" />
@@ -12,50 +20,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetZip" Version="1.16.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageReference Include="DotNetZip" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.IO.Compression" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
-    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <DeployFolder>..\..\deploy\</DeployFolder>
-    <ZipFolder>..\..\zip\</ZipFolder>
-  </PropertyGroup>
-
-  <Target Name="CleanZipFolder" AfterTargets="Build">
-    <RemoveDir Directories="$(ZipFolder)" />
+  <Target Name="CreateZipFiles" AfterTargets="Build">
+    <PropertyGroup>
+      <ZipFolder>..\..\zip\</ZipFolder>
+    </PropertyGroup>
     <MakeDir Directories="$(ZipFolder)" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ZipFolder)%(InstanceName.identity)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip" Overwrite="true" />
   </Target>
 
-  <Target Name="ZipServiceControl" AfterTargets="CleanZipFolder">
-    <PropertyGroup>
-      <InstanceName>Particular.ServiceControl</InstanceName>
-      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-    </PropertyGroup>
-    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
-  </Target>
-
-  <Target Name="ZipServiceControlAudit" AfterTargets="CleanZipFolder">
-    <PropertyGroup>
-      <InstanceName>Particular.ServiceControl.Audit</InstanceName>
-      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-    </PropertyGroup>
-    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
-  </Target>
-
-  <Target Name="ZipServiceControlMonitoring" AfterTargets="CleanZipFolder">
-    <PropertyGroup>
-      <InstanceName>Particular.ServiceControl.Monitoring</InstanceName>
-      <ZipToCreate>$(ZipFolder)$(InstanceName)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip</ZipToCreate>
-    </PropertyGroup>
-    <ZipDirectory SourceDirectory="$(DeployFolder)$(InstanceName)" DestinationFile="$(ZipToCreate)" />
-  </Target>
-  
 </Project>

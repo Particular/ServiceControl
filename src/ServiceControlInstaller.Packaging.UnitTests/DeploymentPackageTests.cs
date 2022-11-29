@@ -74,16 +74,10 @@ namespace Tests
                     continue;
                 }
 
-                var mismatch = $"{leftAssembly.Name} has a different version in {leftDeploymentUnit.FullName} compared to {rightDeploymentUnit.FullName}: {leftVersion} | {rightVersion}";
+                var mismatch = $"{leftAssembly.Name} has a different version in {leftDeploymentUnit.FullName} compared to {rightDeploymentUnit.FullName}. Add the package to Directory.Packages.props to ensure the same version is used everywhere: {leftVersion} | {rightVersion}";
 
                 var leftAssemblyFullname = $"{leftDeploymentUnit.FullName}/{leftAssembly.Name}";
                 var rightAssemblyFullname = $"{rightDeploymentUnit.FullName}/{rightAssembly.Name}";
-
-                if (IgnoreList.Contains(leftAssemblyFullname) || IgnoreList.Contains(rightAssemblyFullname))
-                {
-                    TestContext.Out.WriteLine($"IGNORED: {mismatch}");
-                    continue;
-                }
 
                 detectedMismatches.Add(mismatch);
             }
@@ -110,20 +104,6 @@ namespace Tests
                 .Select(u => u.Name);
 
             CollectionAssert.AreEquivalent(allTransports, transports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
-        }
-
-        static IEnumerable<string> IgnoreList
-        {
-            get
-            {
-                // NServiceBus.Transport.Msmq references V5.0.0 of this assembly,
-                // but only for the native delayed delivery codepath so is not used by ServiceControl.
-                // Updating the reference will in turn break NServiceBus.Transport.RabbitMQ
-                // as that package references V4.7.1.
-                // It should therefore be safe to explicitly exclude this assembly mismatch from
-                // the test.
-                yield return "Transports/MSMQ/System.Threading.Channels.dll";
-            }
         }
 
         readonly DeploymentPackage deploymentPackage;

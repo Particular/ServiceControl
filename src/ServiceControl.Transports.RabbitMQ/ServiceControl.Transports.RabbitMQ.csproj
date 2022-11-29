@@ -9,12 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.RabbitMQ" Version="7.0.3" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" TreatAsUsed="true" />
+    <PackageReference Include="NServiceBus.RabbitMQ" />
   </ItemGroup>
 
-  <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\RabbitMQ')" />
   </ItemGroup>
 
 </Project>

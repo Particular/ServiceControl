@@ -8,4 +8,10 @@
     <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
   </ItemGroup>
 
+  <!--Artifacts for the primary instance are currently defined here because we only ship this persister option right now.
+  This definition should be moved to ServiceControl.csproj once we have multiple persister options for the primary instance. -->
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+  </ItemGroup>
+
 </Project>

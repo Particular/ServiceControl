@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.123" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <PackageReference Include="Dapper" />
   </ItemGroup>
 
 </Project>

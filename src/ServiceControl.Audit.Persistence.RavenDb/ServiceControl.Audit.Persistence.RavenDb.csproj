@@ -5,23 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="persistence.manifest">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="RavenLicense.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35312" GeneratePathProperty="true" />
-    <PackageReference Include="NServiceBus.CustomChecks" Version="3.0.1" />
-    <PackageReference Include="Lucene.Net" Version="3.0.3" />
-  </ItemGroup>
-
-  <ItemGroup Label="ServiceControl compatibility transient dependencies">
-    <PackageReference Include="System.Memory" Version="4.5.5" TreatAsUsed="true" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,11 +13,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
+    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="NServiceBus.CustomChecks"  />
+    <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="RavenLicense.xml" />
+    <EmbeddedResource Include="RavenLicense.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(PkgRavenDB_Database)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB35" />
   </ItemGroup>
 
 </Project>

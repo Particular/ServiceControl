@@ -5,7 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RavenDB.Database" Version="3.5.10-patch-35312" />
+    <PackageReference Include="RavenDB.Database" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(PkgRavenDB_Database)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>
