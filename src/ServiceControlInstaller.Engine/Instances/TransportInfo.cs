@@ -21,7 +21,7 @@
 
         public override bool Equals(object obj)
         {
-            if (!(obj is TransportInfo that))
+            if (obj is not TransportInfo that)
             {
                 return false;
             }

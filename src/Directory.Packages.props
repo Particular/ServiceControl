@@ -69,8 +69,11 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="17.1.50" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="3.0.0" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
+    <PackageVersion Include="System.Management" Version="6.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
     <PackageVersion Include="System.Text.Json" Version="7.0.0" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
