@@ -16,7 +16,7 @@ Each zip has the following folder structure:
 The [Microsoft.Build.Artifacts](https://github.com/microsoft/MSBuildSdks/tree/main/src/Artifacts) package is used to define artifacts that are placed into the `deploy` folder when the solution is built. Each project that contributes artifacts has an `Artifact` definition in its project file.
 To ensure proper build ordering, the `ServiceControlInstaller.Packaging` project needs to have a `ProjectReference` to every project that has an artifact definition.
 
-Every project that uses the artifacts then has to have a build ordering `ProjectReference` the `ServiceControlInstaller.Packaging` project. The projects that use the artifacts are:
+Every project that uses the artifacts then has to have a build ordering `ProjectReference` to the `ServiceControlInstaller.Packaging` project. The projects that use the artifacts are:
 
 - The `ServiceControlInstaller.Engine` project to create the above-mentioned required zip files
 - The `Particular.PlatformSample.ServiceControl` project to create the Platform sample required NuGet package
