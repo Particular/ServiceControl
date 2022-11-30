@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <LangVersion>10.0</LangVersion>
+    <ModuleName>Particular.ServiceControl.Management</ModuleName>
+    <ModuleArtifactsPath>$(ArtifactsPath)PowerShellModule\$(ModuleName)\</ModuleArtifactsPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PowerShellStandard.Library" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ModuleArtifactsPath)" />
+    <Artifact Include="$(ModuleName).psd1" DestinationFolder="$(ModuleArtifactsPath)" />
+    <Artifact Include="$(ModuleName).psm1" DestinationFolder="$(ModuleArtifactsPath)" />
+    <Artifact Include="$(ModuleName).format.ps1xml" DestinationFolder="$(ModuleArtifactsPath)" />
+    <Artifact Include="ServiceControl.Management.PowerShell.dll-help.xml" DestinationFolder="$(ModuleArtifactsPath)" />
+  </ItemGroup>
+
+  <UsingTask TaskName="FileUpdate" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Pattern ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+             RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
+             if (Files.Length > 0)
+             {
+                  for (int i = 0; i < Files.Length; i++)
+                  {
+                      string path = Files[i].GetMetadata("FullPath");
+                      File.WriteAllText(path, Regex.Replace(File.ReadAllText(path), Pattern, ReplacementText, options));
+                  }
+              }
+          ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="UpdateModuleManifestVersion" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
+    <ItemGroup>
+      <ModuleFile Include="$(ModuleArtifactsPath)$(ModuleName).psd1" />
+    </ItemGroup>
+    <FileUpdate Files="@(ModuleFile)" Pattern="{{Version}}" ReplacementText="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
+    <FileUpdate Files="@(ModuleFile)" Pattern="{{Date}}" ReplacementText="$([System.DateTime]::UtcNow.ToString(yyyy))" />
+  </Target>
+
+  <Target Name="CreateZipFilesForModule" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ModuleArtifactsPath)%(InstanceName.identity)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip" Overwrite="true" />
+  </Target>
+
+</Project>

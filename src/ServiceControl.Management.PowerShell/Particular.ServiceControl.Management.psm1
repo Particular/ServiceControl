@@ -1,21 +1,14 @@
 <#
     .Synopsis
-    Lists the commands and aliases provided by the ServiceControlMgmt Module.
+    Lists the commands and aliases provided by the Particular.ServiceControl.Management module.
 
     .Description
-    Lists the commands and aliases provided by the ServiceControlMgmt Module.  This command is ment
-    as a starting point as it list what is available in the module.
+    Lists the commands and aliases provided by the Particular.ServiceControl.Management module. This command is meant as a starting point as it lists what is available in the module.
 #>
-Function Get-ServiceControlMgmtCommands {
+Function Get-ServiceControlManagementCommands {
     PROCESS {
-        Get-Alias -Scope Global | ? ModuleName -EQ "ServiceControlMgmt" | Select-Object -Property @{Name = 'Alias'; Expression = {$_.Name}}, @{Name = 'Command'; Expression = {$_.Definition}}
+        Get-Alias -Scope Global | Where-Object ModuleName -EQ "Particular.ServiceControl.Management" | Select-Object -Property @{Name = 'Alias'; Expression = {$_.Name}}, @{Name = 'Command'; Expression = {$_.Definition}}
     }
-}
-
-<# Init Code #>
-$requiredDLL = [AppDomain]::CurrentDomain.GetAssemblies() | Select -ExpandProperty Modules | ? Name -eq ServiceControlInstaller.Engine.dll
-if (!$requiredDLL) {
-    throw "This module was imported incorrectly - use 'Import-Module .\ServiceControlMgmt.psd1' to load this module"
 }
 
 New-Alias -Value Get-ServiceControlInstances -Name sc-instances
@@ -38,11 +31,11 @@ New-Alias -Value Get-UrlAcls -Name  urlacl-list
 New-Alias -Value Add-UrlAcl -Name  urlacl-add
 New-Alias -Value Remove-UrlAcl -Name  urlacl-delete
 New-Alias -Value Get-ServiceControlTransportTypes -Name  sc-transportsinfo
-New-Alias -Value Get-ServiceControlMgmtCommands -Name  sc-help
+New-Alias -Value Get-ServiceControlManagementCommands -Name  sc-help
 New-Alias -Value Get-ServiceControlRemotes -Name sc-remotes
 New-Alias -Value Add-ServiceControlRemote -Name sc-addremote
 New-Alias -Value Remove-ServiceControlRemote -Name sc-deleteremote
 
 Export-ModuleMember * -Alias *
 
-Write-Verbose "Use SC-help to list ServiceControl Management commands" -Verbose
+Write-Verbose "Use sc-help to list ServiceControl management commands" -Verbose
