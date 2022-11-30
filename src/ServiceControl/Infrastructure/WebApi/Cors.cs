@@ -42,8 +42,7 @@
 
             policy.ExposedHeaders.AddRange(new[] { "ETag", "Last-Modified", "Link", "Total-Count", "X-Particular-Version" });
             policy.Headers.AddRange(new[] { "Origin", "X-Requested-With", "Content-Type", "Accept" });
-            policy.Methods.AddRange(new[] { "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH" });
-
+            policy.Methods.AddRange(new[] { "POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD" });
             return policy;
         }
 
