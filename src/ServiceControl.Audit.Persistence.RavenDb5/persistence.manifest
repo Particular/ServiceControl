@@ -10,11 +10,6 @@
       "Mandatory": true
     },
     {
-      "Name": "ServiceControl.Audit/HostName",
-      "Mandatory": true
-
-    },
-    {
       "Name": "ServiceControl.Audit/DatabaseMaintenancePort",
       "Mandatory": true
     }
