@@ -104,7 +104,7 @@ namespace ServiceControl.Persistence.InMemory
 
         public Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
         {
-            if (endpoints != null)
+            if (endpoints is not null)
             {
                 endpoints.ForEach(e =>
                 {
