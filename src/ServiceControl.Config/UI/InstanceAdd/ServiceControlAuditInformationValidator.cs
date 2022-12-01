@@ -11,7 +11,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
                 .Unless(x => !x.ViewModelParent.InstallAuditInstance);
-            ;
 
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
