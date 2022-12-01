@@ -1,12 +1,12 @@
 nugets
 deploy
-dockerfiles
 build32
 binaries
 *.vshost.*
 .nu
 _UpgradeReport.*
 *.cache
+Thumbs.db
 *~
 *.swp
 results
