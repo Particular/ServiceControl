@@ -34,14 +34,22 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
 
             var serviceControlLogicalQueue = settings.ServiceControlQueueAddress;
-            if (serviceControlLogicalQueue.IndexOf("@") >= 0)
+            if (!string.IsNullOrWhiteSpace(serviceControlLogicalQueue))
             {
-                serviceControlLogicalQueue = serviceControlLogicalQueue.Substring(0, serviceControlLogicalQueue.IndexOf("@"));
-            }
+                if (serviceControlLogicalQueue.IndexOf("@") >= 0)
+                {
+                    serviceControlLogicalQueue = serviceControlLogicalQueue.Substring(0, serviceControlLogicalQueue.IndexOf("@"));
+                }
 
-            var routing = new RoutingSettings(configuration.GetSettings());
-            routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
-            routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
+                var routing = new RoutingSettings(configuration.GetSettings());
+                routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
+                routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
+
+                if (!isRunningAcceptanceTests)
+                {
+                    configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
+                }
+            }
 
             configuration.GetSettings().Set(loggingSettings);
             configuration.SetDiagnosticsPath(loggingSettings.LogPath);
@@ -52,11 +60,6 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
-
-            if (!isRunningAcceptanceTests)
-            {
-                configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
-            }
 
             configuration.DefineCriticalErrorAction(criticalErrorContext =>
             {

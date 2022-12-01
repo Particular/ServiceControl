@@ -11,7 +11,7 @@
     {
         public AddNewAuditInstanceViewModel(string serviceControlName)
         {
-            ServiceControlAudit = new ServiceControlAuditInformation();
+            ServiceControlAudit = new ServiceControlAuditInformation(null);
             ServiceControlAudit.ApplyConventionalServiceName(serviceControlName);
         }
 

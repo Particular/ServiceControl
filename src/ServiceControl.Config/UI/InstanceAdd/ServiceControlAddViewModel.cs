@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices.WindowsRuntime;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
@@ -18,8 +19,8 @@
         public ServiceControlEditorViewModel()
         {
             Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
-            ServiceControl = new ServiceControlInformation();
-            ServiceControlAudit = new ServiceControlAuditInformation();
+            ServiceControl = new ServiceControlInformation(this);
+            ServiceControlAudit = new ServiceControlAuditInformation(this);
         }
 
         [DoNotNotify]
@@ -46,6 +47,10 @@
                 selectedTransport = value;
             }
         }
+
+        public bool InstallErrorInstance { get; set; } = true;
+        public bool InstallAuditInstance { get; set; } = true;
+        public bool OneInstanceTypeSelected => InstallErrorInstance || InstallAuditInstance;
 
         public string TransportWarning => SelectedTransport?.Help;
 
@@ -91,9 +96,10 @@
         public bool IsServiceControlAuditExpanded { get; set; }
     }
 
+    [InjectValidation]
     public class ServiceControlInformation : SharedServiceControlEditorViewModel
     {
-        public ServiceControlInformation()
+        public ServiceControlInformation(ServiceControlEditorViewModel viewModelParent)
         {
             ErrorForwardingOptions = new[]
             {
@@ -131,6 +137,7 @@
             PortNumber = "33333";
             DatabaseMaintenancePortNumber = "33334";
             EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+            ViewModelParent = viewModelParent;
         }
 
         public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
@@ -138,6 +145,8 @@
         public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
 
         public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
+
+        public ServiceControlEditorViewModel ViewModelParent { get; }
 
         public double ErrorRetention { get; set; }
 
@@ -193,9 +202,10 @@
         }
     }
 
+    [InjectValidation]
     public class ServiceControlAuditInformation : SharedServiceControlEditorViewModel
     {
-        public ServiceControlAuditInformation()
+        public ServiceControlAuditInformation(ServiceControlEditorViewModel viewModelParent)
         {
             AuditForwardingOptions = new[]
             {
@@ -233,7 +243,10 @@
             PortNumber = "44444";
             DatabaseMaintenancePortNumber = "44445";
             EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
+            ViewModelParent = viewModelParent;
         }
+
+        public ServiceControlEditorViewModel ViewModelParent { get; }
 
         public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInDays;
 

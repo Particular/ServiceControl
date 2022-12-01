@@ -54,7 +54,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             viewModel.InProgress = true;
 
-            var serviceControlNewInstance = new ServiceControlNewInstance
+            var serviceControlNewInstance = viewModel.InstallErrorInstance ? new ServiceControlNewInstance
             {
                 DisplayName = viewModel.ServiceControl.InstanceName,
                 Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.'),
@@ -75,31 +75,34 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 ServiceAccount = viewModel.ServiceControl.ServiceAccount,
                 ServiceAccountPwd = viewModel.ServiceControl.Password,
                 EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value
-            };
+            } : null;
 
-            var auditNewInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
+            var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithDefaultPersistence() : null;
+            if (viewModel.InstallAuditInstance)
+            {
+                auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
+                auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
+                auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
+                auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
+                auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
+                auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
+                auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
+                auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
+                auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
+                auditNewInstance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null;
+                auditNewInstance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
+                auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
+                auditNewInstance.TransportPackage = viewModel.SelectedTransport;
+                auditNewInstance.ConnectionString = viewModel.ConnectionString;
+                auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
+                auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
+                auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
+                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? String.Empty : serviceControlNewInstance.Name;
+                auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
+            }
 
-            auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
-            auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
-            auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
-            auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
-            auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
-            auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
-            auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
-            auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
-            auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
-            auditNewInstance.AuditLogQueue = viewModel.ServiceControlAudit.AuditForwarding.Value ? viewModel.ServiceControlAudit.AuditForwardingQueueName : null;
-            auditNewInstance.AuditQueue = viewModel.ServiceControlAudit.AuditQueueName;
-            auditNewInstance.ForwardAuditMessages = viewModel.ServiceControlAudit.AuditForwarding.Value;
-            auditNewInstance.TransportPackage = viewModel.SelectedTransport;
-            auditNewInstance.ConnectionString = viewModel.ConnectionString;
-            auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
-            auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
-            auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
-            auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance.Name;
-            auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
-
-            if (serviceControlNewInstance.TransportPackage.IsLatestRabbitMQTransport() &&
+            var transportPackage = serviceControlNewInstance != null ? serviceControlNewInstance.TransportPackage : auditNewInstance.TransportPackage;
+            if (transportPackage.IsLatestRabbitMQTransport() &&
                 !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
                                                      "Do you want to proceed?",
                                                      "Yes, my RabbitMQ broker meets the minimum requirements",
@@ -109,23 +112,32 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 return;
             }
 
-            serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
-
-            using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
+            if (viewModel.InstallAuditInstance && viewModel.InstallErrorInstance)
             {
-                var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
-                if (installationCancelled)
+                serviceControlNewInstance.AddRemoteInstance(auditNewInstance.Url);
+            }
+
+            if (viewModel.InstallErrorInstance)
+            {
+                using (var progress = viewModel.GetProgressObject("ADDING INSTANCE"))
                 {
-                    return;
+                    var installationCancelled = await InstallInstance(serviceControlNewInstance, progress);
+                    if (installationCancelled)
+                    {
+                        return;
+                    }
                 }
             }
 
-            using (var progress = viewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
+            if (viewModel.InstallAuditInstance)
             {
-                var installationCancelled = await InstallInstance(auditNewInstance, progress);
-                if (installationCancelled)
+                using (var progress = viewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
                 {
-                    return;
+                    var installationCancelled = await InstallInstance(auditNewInstance, progress);
+                    if (installationCancelled)
+                    {
+                        return;
+                    }
                 }
             }
 

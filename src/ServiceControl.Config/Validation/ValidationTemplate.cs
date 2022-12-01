@@ -8,6 +8,8 @@
     using System.Linq;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
+    using System.Windows.Controls;
+    using DynamicData.Kernel;
     using FluentValidation;
     using FluentValidation.Internal;
     using FluentValidation.Results;
@@ -71,10 +73,31 @@
         public bool Validate()
         {
             validationResults.Clear();
-            var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
-            validationResults.AddRange(validationResult.Errors);
+
+            var errors = Validate(target).Distinct(ValidationFailureEqualityComparer.Instance);
+
+            validationResults.AddRange(errors);
+
             RaiseErrorsChanged();
             return validationResults.Count == 0;
+        }
+
+        IEnumerable<ValidationFailure> Validate(RxPropertyChanged target)
+        {
+            var validationResult = GetValidator(target.GetType()).Validate(new ValidationContext<RxPropertyChanged>(target));
+            IEnumerable<ValidationFailure> errors = validationResult.Errors;
+
+            var childPropertiesWithValidators = target.GetType().GetProperties()
+                .Where(prop => validators.ContainsKey(prop.PropertyType.TypeHandle))
+                .Select(prop => (RxPropertyChanged)prop.GetValue(target));
+
+            foreach (var childTarget in childPropertiesWithValidators)
+            {
+                var childErrors = Validate(childTarget);
+                errors = errors.Union(childErrors);
+            }
+
+            return errors;
         }
 
         static IValidator GetValidator(Type modelType)
@@ -105,13 +128,12 @@
                     ValidatorOptions.Global.ValidatorSelectors.MemberNameValidatorSelectorFactory(new[] { e.PropertyName })
                 );
                 var validationResult = validator.Validate(validationContext);
-                validationResults.AddRange(validationResult.Errors);
+                validationResults.AddRange(validationResult.Errors.Distinct(ValidationFailureEqualityComparer.Instance));
             }
             else
             {
                 validationResults.Clear();
-                var validationResult = validator.Validate(new ValidationContext<RxPropertyChanged>(target));
-                validationResults.AddRange(validationResult.Errors);
+                Validate();
             }
 
             RaiseErrorsChanged();
