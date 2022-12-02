@@ -42,7 +42,6 @@
             var dpPath = "c://some-path";
 
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.HostNameKey] = "localhost";
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
 
             var configuration = RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings);
@@ -53,25 +52,12 @@
         }
 
         [Test]
-        public void Should_throw_if_hostname_is_missing()
-        {
-            var settings = BuildSettings();
-            var dpPath = "c://some-path";
-
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
-
-            Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
-        }
-
-        [Test]
         public void Should_throw_if_port_is_missing()
         {
             var settings = BuildSettings();
             var dpPath = "c://some-path";
 
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.HostNameKey] = "localhost";
 
             Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
@@ -83,7 +69,6 @@
             var dpPath = "c://some-path";
 
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.HostNameKey] = "localhost";
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "not an int";
 
             Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));

@@ -9,13 +9,11 @@
         public const string DatabaseNameKey = "RavenDB5/DatabaseName";
         public const string DatabasePathKey = "DbPath";
         public const string ConnectionStringKey = "RavenDB5/ConnectionString";
-        public const string HostNameKey = "HostName";
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
-            HostNameKey,
             DatabasePathKey,
             ConnectionStringKey,
             DatabaseMaintenancePortKey,
@@ -48,11 +46,6 @@
                     throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time.");
                 }
 
-                if (!settings.PersisterSpecificSettings.TryGetValue(HostNameKey, out var hostName))
-                {
-                    throw new InvalidOperationException($"{HostNameKey} must be specified when using embedded server.");
-                }
-
                 if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePortString))
                 {
                     throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be specified when using embedded server.");
@@ -63,7 +56,7 @@
                     throw new InvalidOperationException($"{DatabaseMaintenancePortKey} must be an integer.");
                 }
 
-                var serverUrl = $"http://{hostName}:{databaseMaintenancePort}";
+                var serverUrl = $"http://localhost:{databaseMaintenancePort}";
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
             }

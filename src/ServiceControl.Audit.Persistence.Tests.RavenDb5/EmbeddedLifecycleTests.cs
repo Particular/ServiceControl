@@ -18,7 +18,6 @@
                 var databaseMaintenancePort = FindAvailablePort(33335);
 
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dbPath;
-                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.HostNameKey] = "localhost";
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
             };
 
