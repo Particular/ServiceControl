@@ -22,10 +22,7 @@
 
         public void Add(EndpointDetails endpointDetails)
         {
-            if (newEndpoints == null)
-            {
-                newEndpoints = new List<EndpointDetails>();
-            }
+            newEndpoints ??= new List<EndpointDetails>();
 
             newEndpoints.Add(endpointDetails);
         }

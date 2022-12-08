@@ -8,7 +8,7 @@
     {
         public void BeforeConversionToDocument(string key, object entity, RavenJObject metadata)
         {
-            if (!(entity is Subscription subscription))
+            if (entity is not Subscription subscription)
             {
                 return;
             }
@@ -28,7 +28,7 @@
 
         public void AfterConversionToEntity(string key, RavenJObject document, RavenJObject metadata, object entity)
         {
-            if (!(entity is Subscription subscription))
+            if (entity is not Subscription subscription)
             {
                 return;
             }

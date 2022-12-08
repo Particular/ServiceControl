@@ -226,7 +226,7 @@
 
         async Task<FailedMessage> CreateFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
         {
-            failedMessageId = failedMessageId ?? Guid.NewGuid().ToString();
+            failedMessageId ??= Guid.NewGuid().ToString();
             using (var session = Store.OpenAsyncSession())
             {
                 var failedMessage = new FailedMessage

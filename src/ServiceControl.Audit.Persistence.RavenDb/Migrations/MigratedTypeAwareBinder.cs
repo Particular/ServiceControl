@@ -21,15 +21,12 @@
             }
 
             var className = GetClassName(typeName);
-            switch (className)
+            return className switch
             {
-                case nameof(EndpointDetails):
-                    return typeof(EndpointDetails);
-                case nameof(SagaInfo):
-                    return typeof(SagaInfo);
-                default:
-                    return base.BindToType(assemblyName, typeName);
-            }
+                nameof(EndpointDetails) => typeof(EndpointDetails),
+                nameof(SagaInfo) => typeof(SagaInfo),
+                _ => base.BindToType(assemblyName, typeName),
+            };
         }
 
         string GetClassName(string typeName)

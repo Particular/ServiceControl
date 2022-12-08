@@ -271,7 +271,7 @@
                                 continue;
                             }
 
-                            if (!(serviceKey.GetValue("ImagePath", null) is string imagePath))
+                            if (serviceKey.GetValue("ImagePath", null) is not string imagePath)
                             {
                                 continue;
                             }

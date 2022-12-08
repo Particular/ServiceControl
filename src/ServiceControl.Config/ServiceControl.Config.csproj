@@ -7,7 +7,6 @@
     <ApplicationIcon>App.ico</ApplicationIcon>
     <UseWpf>true</UseWpf>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

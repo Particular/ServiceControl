@@ -20,7 +20,7 @@
         public static SortInfo GetSortInfo(this HttpRequestMessage request, string defaultSortDirection = "desc")
         {
             var direction = request.GetQueryStringValue("direction", defaultSortDirection);
-            if (direction != "asc" && direction != "desc")
+            if (direction is not "asc" and not "desc")
             {
                 direction = defaultSortDirection;
             }

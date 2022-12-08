@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
-    using System;
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
     using ServiceControl.Audit.Persistence.RavenDb;

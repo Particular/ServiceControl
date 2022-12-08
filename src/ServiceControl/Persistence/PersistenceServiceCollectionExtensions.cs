@@ -23,17 +23,13 @@ namespace ServiceControl.Persistence
 
         static Type GetPersistenceCreationInfo(DataStoreType dataStoreType)
         {
-            switch (dataStoreType)
+            return dataStoreType switch
             {
-                case DataStoreType.InMemory:
-                    return Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.RavenDB35:
-                    return Type.GetType(DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.SqlDb:
-                    return Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
-                default:
-                    return default;
-            }
+                DataStoreType.InMemory => Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true),
+                DataStoreType.RavenDB35 => Type.GetType(DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName, true),
+                DataStoreType.SqlDb => Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true),
+                _ => default,
+            };
         }
 
     }

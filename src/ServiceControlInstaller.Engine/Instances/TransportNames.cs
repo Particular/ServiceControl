@@ -40,13 +40,13 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public static bool IsDeprecated(string transportName)
         {
-            return transportName == AzureServiceBusEndpointOrientedTopologyDeprecated ||
-                   transportName == AzureServiceBusEndpointOrientedTopologyLegacy ||
-                   transportName == AzureServiceBusEndpointOrientedTopologyOld ||
-                   transportName == AzureServiceBusForwardingTopologyDeprecated ||
-                   transportName == AzureServiceBusForwardingTopologyLegacy ||
-                   transportName == AzureServiceBusForwardingTopologyOld ||
-                   transportName == RabbitMQConventionalRoutingTopologyDeprecated;
+            return transportName is AzureServiceBusEndpointOrientedTopologyDeprecated or
+                   AzureServiceBusEndpointOrientedTopologyLegacy or
+                   AzureServiceBusEndpointOrientedTopologyOld or
+                   AzureServiceBusForwardingTopologyDeprecated or
+                   AzureServiceBusForwardingTopologyLegacy or
+                   AzureServiceBusForwardingTopologyOld or
+                   RabbitMQConventionalRoutingTopologyDeprecated;
         }
     }
 }

@@ -46,7 +46,7 @@
 
             UnacknowledgedOperations = UnacknowledgedOperations
                 // All other retry types already have an explicit way to dismiss them on the UI
-                .Where(operation => operation.RetryType != RetryType.MultipleMessages && operation.RetryType != RetryType.SingleMessage)
+                .Where(operation => operation.RetryType is not RetryType.MultipleMessages and not RetryType.SingleMessage)
                 .ToList();
         }
 

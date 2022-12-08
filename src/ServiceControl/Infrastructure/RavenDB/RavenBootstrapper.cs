@@ -70,7 +70,7 @@
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
             documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
-            documentStore.Configuration.HostName = settings.Hostname == "*" || settings.Hostname == "+"
+            documentStore.Configuration.HostName = settings.Hostname is "*" or "+"
                 ? "localhost"
                 : settings.Hostname;
             documentStore.Conventions.SaveEnumsAsIntegers = true;

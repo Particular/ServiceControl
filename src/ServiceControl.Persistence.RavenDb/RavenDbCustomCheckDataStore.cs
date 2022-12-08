@@ -34,13 +34,10 @@
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||
                     (customCheck.Status == Status.Pass && detail.HasFailed))
                 {
-                    if (customCheck == null)
+                    customCheck ??= new CustomCheck
                     {
-                        customCheck = new CustomCheck
-                        {
-                            Id = id
-                        };
-                    }
+                        Id = id
+                    };
 
                     status = CheckStateChange.Changed;
                 }

@@ -22,7 +22,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             instanceA.SetupGet(p => p.ForwardErrorMessages).Returns(true);
 
             var instanceB = new Mock<IServiceControlInstance>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology));
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name is TransportNames.RabbitMQClassicConventionalRoutingTopology or TransportNames.RabbitMQQuorumConventionalRoutingTopology));
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ForwardErrorMessages).Returns(true);

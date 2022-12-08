@@ -44,42 +44,21 @@ namespace ServiceControl.Infrastructure.Extensions
                 descending = false;
             }
 
-            string keySelector;
-
             var sort = request.GetQueryStringValue("sort", "time_sent");
             if (!AsyncDocumentQuerySortOptions.Contains(sort))
             {
                 sort = "time_sent";
             }
 
-            switch (sort)
+            string keySelector = sort switch
             {
-                case "id":
-                case "message_id":
-                    keySelector = "MessageId";
-                    break;
-
-                case "message_type":
-                    keySelector = "MessageType";
-                    break;
-
-                case "status":
-                    keySelector = "Status";
-                    break;
-
-                case "modified":
-                    keySelector = "LastModified";
-                    break;
-
-                case "time_of_failure":
-                    keySelector = "TimeOfFailure";
-                    break;
-
-                default:
-                    keySelector = "TimeSent";
-                    break;
-            }
-
+                "id" or "message_id" => "MessageId",
+                "message_type" => "MessageType",
+                "status" => "Status",
+                "modified" => "LastModified",
+                "time_of_failure" => "TimeOfFailure",
+                _ => "TimeSent",
+            };
             return source.AddOrder(keySelector, descending);
         }
 
@@ -251,7 +230,7 @@ namespace ServiceControl.Infrastructure.Extensions
             where TSource : MessagesViewIndex.SortAndFilterOptions
         {
             var direction = request.GetQueryStringValue("direction", defaultSortDirection);
-            if (direction != "asc" && direction != "desc")
+            if (direction is not "asc" and not "desc")
             {
                 direction = defaultSortDirection;
             }

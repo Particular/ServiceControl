@@ -1,6 +1,5 @@
 ﻿namespace ServiceControlInstaller.Engine.Api
 {
-    using System;
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]

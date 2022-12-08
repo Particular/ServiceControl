@@ -16,7 +16,7 @@ namespace ServiceControl.MessageRedirects.Api
                 direction = defaultSortDirection;
             }
 
-            if (direction != "asc" && direction != "desc")
+            if (direction is not "asc" and not "desc")
             {
                 direction = defaultSortDirection;
             }

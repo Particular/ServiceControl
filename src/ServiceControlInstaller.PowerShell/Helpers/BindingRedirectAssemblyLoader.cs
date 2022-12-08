@@ -8,14 +8,11 @@
         public static Assembly CurrentDomain_BindingRedirect(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);
-            switch (name.Name)
+            return name.Name switch
             {
-                case "System.Runtime.CompilerServices.Unsafe":
-                    return Assembly.LoadFrom("System.Runtime.CompilerServices.Unsafe.dll");
-
-                default:
-                    return null;
-            }
+                "System.Runtime.CompilerServices.Unsafe" => Assembly.LoadFrom("System.Runtime.CompilerServices.Unsafe.dll"),
+                _ => null,
+            };
         }
     }
 }

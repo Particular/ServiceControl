@@ -35,10 +35,7 @@
         {
             get
             {
-                if (transformerName == null)
-                {
-                    transformerName = new FailedMessageViewTransformer().TransformerName;
-                }
+                transformerName ??= new FailedMessageViewTransformer().TransformerName;
 
                 return transformerName;
             }

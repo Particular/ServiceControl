@@ -36,18 +36,11 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                string host;
-                switch (HostName)
+                string host = HostName switch
                 {
-                    case "*":
-                    case "+":
-                        host = "localhost";
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-
+                    "*" or "+" => "localhost",
+                    _ => HostName,
+                };
                 return $"http://{host}:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
             }
         }
@@ -117,21 +110,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             get
             {
-                string host;
-
-                switch (HostName)
+                string host = HostName switch
                 {
-                    case "*":
-                        host = "localhost";
-                        break;
-                    case "+":
-                        host = Environment.MachineName.ToLower();
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-
+                    "*" => "localhost",
+                    "+" => Environment.MachineName.ToLower(),
+                    _ => HostName,
+                };
                 if (string.IsNullOrWhiteSpace(VirtualDirectory))
                 {
                     return $"http://{host}:{Port}/api/";

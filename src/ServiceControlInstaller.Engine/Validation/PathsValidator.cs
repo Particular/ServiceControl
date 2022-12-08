@@ -146,7 +146,7 @@ namespace ServiceControlInstaller.Engine.Validation
 
         internal void CheckPathsAreValid()
         {
-            var driveletters = DriveInfo.GetDrives().Where(p => p.DriveType != DriveType.Network && p.DriveType != DriveType.CDRom)
+            var driveletters = DriveInfo.GetDrives().Where(p => p.DriveType is not DriveType.Network and not DriveType.CDRom)
                 .Select(p => p.Name[0].ToString())
                 .ToArray();
 

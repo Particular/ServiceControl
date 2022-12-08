@@ -1154,8 +1154,8 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                 Write(o, ref written, names[i]);
             }
 
-            if (p.OptionValueType == OptionValueType.Optional ||
-                p.OptionValueType == OptionValueType.Required)
+            if (p.OptionValueType is OptionValueType.Optional or
+                OptionValueType.Required)
             {
                 if (p.OptionValueType == OptionValueType.Optional)
                 {

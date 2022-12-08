@@ -73,10 +73,7 @@
 
                 logger.Info($"Reclassification of failures ended. Reclassified {failedMessagesReclassified} messages");
 
-                if (settings == null)
-                {
-                    settings = new ReclassifyErrorSettings();
-                }
+                settings ??= new ReclassifyErrorSettings();
 
                 settings.ReclassificationDone = true;
                 await session.StoreAsync(settings).ConfigureAwait(false);

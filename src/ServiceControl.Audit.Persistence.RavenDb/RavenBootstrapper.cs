@@ -103,7 +103,7 @@
                 throw new Exception($"{HostNameKey} is mandatory.");
             }
 
-            documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
+            documentStore.Configuration.HostName = hostName is "*" or "+"
                 ? "localhost"
                 : hostName;
             documentStore.Conventions.SaveEnumsAsIntegers = true;

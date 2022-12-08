@@ -30,10 +30,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             get
             {
-                if (transformerName == null)
-                {
-                    transformerName = new MessagesBodyTransformer().TransformerName;
-                }
+                transformerName ??= new MessagesBodyTransformer().TransformerName;
 
                 return transformerName;
             }

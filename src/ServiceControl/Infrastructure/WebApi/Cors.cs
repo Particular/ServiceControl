@@ -11,10 +11,7 @@
         {
             get
             {
-                if (defaultPolicy == null)
-                {
-                    defaultPolicy = Task.FromResult(GetDefaultPolicy());
-                }
+                defaultPolicy ??= Task.FromResult(GetDefaultPolicy());
 
                 return defaultPolicy;
             }

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.Expiration
 {
     using System.Collections.Generic;
-    using System.Threading;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.RavenDB;
 

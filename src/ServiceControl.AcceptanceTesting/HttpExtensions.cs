@@ -17,10 +17,7 @@ namespace ServiceControl.AcceptanceTesting
                 url = $"http://localhost:{provider.Port}{url}";
             }
 
-            if (requestHasFailed == null)
-            {
-                requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted;
-            }
+            requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
@@ -59,10 +56,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<List<T>>(url).ConfigureAwait(false);
 
@@ -98,10 +92,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<T>(url).ConfigureAwait(false);
 
@@ -127,10 +118,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<List<T>>(url);
             T item = null;
@@ -241,7 +229,7 @@ namespace ServiceControl.AcceptanceTesting
             var response = await provider.GetRaw(url).ConfigureAwait(false);
 
             //for now
-            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.ServiceUnavailable)
             {
                 LogRequest();
                 return null;

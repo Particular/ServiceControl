@@ -75,17 +75,13 @@
         Result ValidateUpgradeAction(ServiceControlInstance instance)
         {
             var recommendedUpgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
-            switch (recommendedUpgradeAction)
+            return recommendedUpgradeAction switch
             {
-                case RequiredUpgradeAction.Upgrade:
-                    return Result.Failed("This instance cannot have an Audit instance split from it. Upgrade the instance instead", RequiredUpgradeAction.Upgrade);
-                case RequiredUpgradeAction.ConvertToAudit:
-                    return Result.Failed("This instance cannot have an Audit instance split from it as it has error ingestion disabled. Please contact support", RequiredUpgradeAction.ConvertToAudit);
-                case RequiredUpgradeAction.SplitOutAudit:
-                    return Result.Success;
-                default:
-                    return Result.Failed("This instance cannot have an Audit instance split from it. This instance has no recommended upgrade action");
-            }
+                RequiredUpgradeAction.Upgrade => Result.Failed("This instance cannot have an Audit instance split from it. Upgrade the instance instead", RequiredUpgradeAction.Upgrade),
+                RequiredUpgradeAction.ConvertToAudit => Result.Failed("This instance cannot have an Audit instance split from it as it has error ingestion disabled. Please contact support", RequiredUpgradeAction.ConvertToAudit),
+                RequiredUpgradeAction.SplitOutAudit => Result.Success,
+                _ => Result.Failed("This instance cannot have an Audit instance split from it. This instance has no recommended upgrade action"),
+            };
         }
 
         Result ValidateUpgradeVersion(ServiceControlInstance instance)

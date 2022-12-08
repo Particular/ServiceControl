@@ -196,7 +196,7 @@
 
         public bool IsInProgress()
         {
-            return RetryState != RetryState.Completed && RetryState != RetryState.Waiting;
+            return RetryState is not RetryState.Completed and not RetryState.Waiting;
         }
 
         readonly RetryType retryType;

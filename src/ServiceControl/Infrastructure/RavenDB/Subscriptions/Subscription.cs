@@ -15,10 +15,7 @@
         {
             get
             {
-                if (subscribers == null)
-                {
-                    subscribers = new List<SubscriptionClient>();
-                }
+                subscribers ??= new List<SubscriptionClient>();
 
                 return subscribers;
             }
@@ -30,10 +27,7 @@
         {
             get
             {
-                if (legacySubscriptions == null)
-                {
-                    legacySubscriptions = new List<LegacyAddress>();
-                }
+                legacySubscriptions ??= new List<LegacyAddress>();
 
                 return legacySubscriptions;
             }
