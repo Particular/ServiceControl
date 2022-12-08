@@ -42,21 +42,12 @@
         {
             get
             {
-                string host;
-
-                switch (HostName)
+                string host = HostName switch
                 {
-                    case "*":
-                        host = "localhost";
-                        break;
-                    case "+":
-                        host = Environment.MachineName.ToLower();
-                        break;
-                    default:
-                        host = HostName;
-                        break;
-                }
-
+                    "*" => "localhost",
+                    "+" => Environment.MachineName.ToLower(),
+                    _ => HostName,
+                };
                 return $"http://{host}:{Port}/";
             }
         }

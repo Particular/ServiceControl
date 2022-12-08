@@ -29,7 +29,6 @@
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
-    <PackageVersion Include="Microsoft.PowerShell.5.ReferenceAssemblies" Version="1.1.0" />
     <PackageVersion Include="Mindscape.Raygun4Net" Version="5.13.0" />
     <PackageVersion Include="Moq" Version="4.18.3" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
@@ -60,6 +59,7 @@
     <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
     <PackageVersion Include="Particular.Approvals" Version="0.3.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.0.1" />
+    <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="10.3.0" />
@@ -69,8 +69,11 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="17.1.50" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="3.0.0" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
+    <PackageVersion Include="System.Management" Version="6.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
     <PackageVersion Include="System.Text.Json" Version="7.0.0" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />

@@ -6,7 +6,7 @@
     {
         public static void Validate(IHttpInstance instance)
         {
-            if (instance.Port < 1 || instance.Port > 49151)
+            if (instance.Port is < 1 or > 49151)
             {
                 throw new EngineValidationException("Port number is not between 1 and 49151");
             }

@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net6.0-windows</TargetFrameworks>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,25 +10,25 @@
   </ItemGroup>
 
   <ItemGroup Label="Needed for build ordering">
-    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" SkipGetTargetFrameworkProperties="true" UndefineProperties="TargetFramework" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Configuration" />
-    <Reference Include="System.DirectoryServices.AccountManagement" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DotNetZip" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" />
     <PackageReference Include="System.IO.Compression" />
+    <PackageReference Include="System.Management" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
-  <Target Name="CreateZipFiles" AfterTargets="Build">
+  <Target Name="CreateZipFiles" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
     <PropertyGroup>
       <ZipFolder>..\..\zip\</ZipFolder>
     </PropertyGroup>

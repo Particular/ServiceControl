@@ -2,18 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.5.ReferenceAssemblies" />
+    <PackageReference Include="PowerShellStandard.Library" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Management.PowerShell\**\*.cs" Exclude="..\ServiceControl.Management.PowerShell\obj\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,9 +50,9 @@
     </Task>
   </UsingTask>
 
-  <Target Name="UpdateModuleManifestVersion" AfterTargets="Build">
+  <Target Name="UpdateModuleManifestVersion" AfterTargets="CopyFilesToOutputDirectory">
     <ItemGroup>
-      <PSModuleFile Include="$(OutputPath)\ServiceControlMgmt.psd1" />
+      <PSModuleFile Include="$(OutputPath)ServiceControlMgmt.psd1" />
     </ItemGroup>
     <FileUpdate Files="@(PSModuleFile)" Pattern="{{Version}}" ReplacementText="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
   </Target>
