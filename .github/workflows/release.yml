@@ -41,9 +41,10 @@ jobs:
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - id: save-version
         name: Save version
+        shell: pwsh
         run: |
-          echo "::set-output name=semver::${{env.MinVerVersion}}"
-          echo "::set-output name=majorminorpatch::${{env.MinVerMajor}}.${{env.MinVerMinor}}.${{env.MinVerPatch}}"
+          echo "semver=${{env.MinVerVersion}}" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
+          echo "majorminorpatch=${{env.MinVerMajor}}.${{env.MinVerMinor}}.${{env.MinVerPatch}}" | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf-8 -Append
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:
