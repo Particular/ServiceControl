@@ -10,10 +10,7 @@ env:
   RELEASE_WORKFLOW: true
 jobs:
   release:
-    runs-on: windows-2022 # Code signing requirement https://github.com/NuGet/Home/issues/7939
-    outputs:
-      semver: ${{ steps.save-version.outputs.semver }}
-      majorminorpatch: ${{ steps.save-version.outputs.majorminorpatch }}
+    runs-on: windows-2022
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
@@ -39,11 +36,6 @@ jobs:
         env:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
-      - id: save-version
-        name: Save version
-        run: |
-          echo "::set-output name=semver::${{env.MinVerVersion}}"
-          echo "::set-output name=majorminorpatch::${{env.MinVerMajor}}.${{env.MinVerMinor}}.${{env.MinVerPatch}}"
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:
@@ -51,6 +43,8 @@ jobs:
           tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
           client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
           certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+      - name: Build Docker images
+        run: dotnet build src/ServiceControl.DockerImages --configuration Release
       - name: Publish installer
         uses: actions/upload-artifact@v3.1.1
         with:
@@ -69,21 +63,6 @@ jobs:
           name: zips
           path: zip/*
           retention-days: 1
-  docker:
-    needs: release
-    name: Build Docker images
-    runs-on: windows-2022
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3.1.0
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3.0.3
-        with:
-          dotnet-version: 6.0.x
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-      - name: Build dockerfiles
-        run: msbuild src/ServiceControl.DockerImages/ServiceControl.DockerImages.csproj -p:Configuration=Release -restore -verbosity:minimal
       - name: Prepare ServiceControl metadata
         shell: pwsh
         run: |
@@ -97,6 +76,11 @@ jobs:
           }
 
           $serviceControlMetadata | ConvertTo-Json | Out-File -Path ServiceControlMetadata.json
+      - name: Deploy
+        uses: Particular/push-octopus-package-action@v1.0.0
+        with:
+          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
+          additional-metadata-paths: ServiceControlMetadata.json
       - name: Login to Docker Hub
         uses: docker/login-action@v2.1.0
         with:
@@ -107,34 +91,13 @@ jobs:
         run: |
           # List out the docker images on the system
           docker images
-      - name: Download installer
-        uses: actions/download-artifact@v3.0.1
-        with:
-          name: installer
-          path: assets/*
-      - name: Download NuGet packages
-        uses: actions/download-artifact@v3.0.1
-        with:
-          name: nugets
-          path: nugets/*
-      - name: Download zips
-        uses: actions/download-artifact@v3.0.1
-        with:
-          name: zips
-          path: zip/*
-      - name: Deploy
-        uses: Particular/push-octopus-package-action@v1.0.0
-        with:
-          octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
-          additional-metadata-paths: ServiceControlMetadata.json
       - name: Push Docker images
         shell: pwsh
         run: |
           Get-ChildItem -Path .\src\docker\ -Filter "${{ matrix.filter }}" | ForEach-Object {
               $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
               
-              $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ needs.release.outputs.semver }}"
+              $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ env.MinVerVersion }}"
               echo "Docker Push Command: $dockerpushcmd"
               Invoke-Expression $dockerpushcmd.ToLower()
           }
-
