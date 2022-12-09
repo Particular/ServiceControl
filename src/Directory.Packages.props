@@ -71,7 +71,7 @@
     <PackageVersion Include="ServiceControl.Contracts" Version="3.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
-    <PackageVersion Include="System.Management" Version="6.0.0" />
+    <PackageVersion Include="System.Management" Version="7.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
     <PackageVersion Include="System.Text.Json" Version="7.0.0" />
