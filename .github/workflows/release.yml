@@ -94,7 +94,7 @@ jobs:
       - name: Push Docker images
         shell: pwsh
         run: |
-          Get-ChildItem -Path .\src\docker\ -Filter "${{ matrix.filter }}" | ForEach-Object {
+          Get-ChildItem -Path dockerfiles -Filter *.dockerfile | ForEach-Object {
               $dockerImageName = $_.Name.SubString(0, $_.Name.Length - ".dockerfile".Length);
               
               $dockerpushcmd = "docker push particular/" + $dockerImageName +":${{ env.MinVerVersion }}"
