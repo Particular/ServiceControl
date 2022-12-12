@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Transports.UnitTests.ASB
+﻿#if NETFRAMEWORK
+
+namespace ServiceControl.Transports.UnitTests.ASB
 {
     using NUnit.Framework;
     using ServiceControl.Transports.ASB;
@@ -29,3 +31,5 @@
         }
     }
 }
+
+#endif

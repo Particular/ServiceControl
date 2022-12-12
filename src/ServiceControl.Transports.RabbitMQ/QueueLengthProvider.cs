@@ -157,13 +157,10 @@
             {
                 try
                 {
-                    if (connection == null)
-                    {
-                        connection = connectionFactory.CreateConnection("queue length monitor");
-                    }
+                    connection ??= connectionFactory.CreateConnection("queue length monitor");
 
                     //Connection implements reconnection logic
-                    while (connection.IsOpen == false)
+                    while (!connection.IsOpen)
                     {
                         await Task.Delay(ReconnectionDelay, cancellationToken).ConfigureAwait(false);
                     }

@@ -85,8 +85,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.SagaAudit", "ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj", "{25FD3DDB-B847-490C-8834-C48F828B8B6F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.RavenDB", "ServiceControl.Infrastructure.RavenDB\ServiceControl.Infrastructure.RavenDB.csproj", "{6064822C-4A17-4557-A856-55DD94B96B9A}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Config.Tests", "ServiceControl.Config.Tests\ServiceControl.Config.Tests.csproj", "{9CA13A10-1F6F-495A-9623-AC62201FC0BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.LicenseManagement", "ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj", "{FD1B9998-4B0C-4109-A3BC-0748F829F852}"
@@ -147,7 +145,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.DockerImages", "ServiceControl.DockerImages\ServiceControl.DockerImages.csproj", "{1C648E04-F9E3-433F-86D9-E99344275613}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Management.PowerShell", "ServiceControl.Management.PowerShell\ServiceControl.Management.PowerShell.csproj", "{31CF8050-9A87-4569-A750-3171B2A892C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Management.PowerShell", "ServiceControl.Management.PowerShell\ServiceControl.Management.PowerShell.csproj", "{31CF8050-9A87-4569-A750-3171B2A892C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -295,10 +293,6 @@ Global
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6064822C-4A17-4557-A856-55DD94B96B9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6064822C-4A17-4557-A856-55DD94B96B9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6064822C-4A17-4557-A856-55DD94B96B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6064822C-4A17-4557-A856-55DD94B96B9A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CA13A10-1F6F-495A-9623-AC62201FC0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -416,7 +410,6 @@ Global
 		{45AC011D-6837-47E2-A428-E156A421E4C2} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 		{134DD03F-F7EA-47D3-B7A9-D5514C5D75EE} = {76C0AC5A-E7CD-4E6B-88DC-B473C4C25295}
 		{25FD3DDB-B847-490C-8834-C48F828B8B6F} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
-		{6064822C-4A17-4557-A856-55DD94B96B9A} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{9CA13A10-1F6F-495A-9623-AC62201FC0BD} = {927A078A-E271-4878-A153-86D71AE510E2}
 		{FD1B9998-4B0C-4109-A3BC-0748F829F852} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{56422C80-6A26-46B4-AF5C-84AF08BAB1D1} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}

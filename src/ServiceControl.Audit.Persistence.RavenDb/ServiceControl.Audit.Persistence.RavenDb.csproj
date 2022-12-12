@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="Lucene.Net.Analysis.Common" />
     <PackageReference Include="NServiceBus.CustomChecks"  />
     <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
   </ItemGroup>

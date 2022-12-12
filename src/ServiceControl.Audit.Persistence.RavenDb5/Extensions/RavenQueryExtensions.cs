@@ -25,43 +25,17 @@
         public static IQueryable<TSource> Sort<TSource>(this IQueryable<TSource> source, SortInfo sortInfo)
             where TSource : MessagesViewIndex.SortAndFilterOptions
         {
-            Expression<Func<TSource, object>> keySelector;
-            switch (sortInfo.Sort)
+            Expression<Func<TSource, object>> keySelector = sortInfo.Sort switch
             {
-                case "id":
-                case "message_id":
-                    keySelector = m => m.MessageId;
-                    break;
-
-                case "message_type":
-                    keySelector = m => m.MessageType;
-                    break;
-
-                case "critical_time":
-                    keySelector = m => m.CriticalTime;
-                    break;
-
-                case "delivery_time":
-                    keySelector = m => m.DeliveryTime;
-                    break;
-
-                case "processing_time":
-                    keySelector = m => m.ProcessingTime;
-                    break;
-
-                case "processed_at":
-                    keySelector = m => m.ProcessedAt;
-                    break;
-
-                case "status":
-                    keySelector = m => m.Status;
-                    break;
-
-                default:
-                    keySelector = m => m.TimeSent;
-                    break;
-            }
-
+                "id" or "message_id" => m => m.MessageId,
+                "message_type" => m => m.MessageType,
+                "critical_time" => m => m.CriticalTime,
+                "delivery_time" => m => m.DeliveryTime,
+                "processing_time" => m => m.ProcessingTime,
+                "processed_at" => m => m.ProcessedAt,
+                "status" => m => m.Status,
+                _ => m => m.TimeSent,
+            };
             if (sortInfo.Direction == "asc")
             {
                 return source.OrderBy(keySelector);

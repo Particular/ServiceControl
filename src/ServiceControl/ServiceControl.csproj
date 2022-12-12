@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
-    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="Lucene.Net.Analysis.Common" />
     <PackageReference Include="Microsoft.AspNet.SignalR" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices"/>

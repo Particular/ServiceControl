@@ -82,9 +82,9 @@
             string processingEndpoint = null
         )
         {
-            messageId = messageId ?? Guid.NewGuid().ToString();
-            conversationId = conversationId ?? Guid.NewGuid().ToString();
-            processingEndpoint = processingEndpoint ?? "SomeEndpoint";
+            messageId ??= Guid.NewGuid().ToString();
+            conversationId ??= Guid.NewGuid().ToString();
+            processingEndpoint ??= "SomeEndpoint";
 
             var metadata = new Dictionary<string, object>
             {
