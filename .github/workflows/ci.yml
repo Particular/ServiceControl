@@ -131,7 +131,7 @@ jobs:
           catalog: servicecontrol
 
       - name: Run tests
-        uses: Particular/run-tests-action@v1.3.0
+        uses: Particular/run-tests-action@v1.4.0
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
