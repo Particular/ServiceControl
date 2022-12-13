@@ -94,20 +94,20 @@ jobs:
           catalog: nservicebus
       - name: Setup RabbitMQ
         if: matrix.transport == 'RabbitMQ'
-        uses: Particular/setup-rabbitmq-action@v1.2.0
+        uses: Particular/setup-rabbitmq-action@v1.3.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
         if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
-        uses: Particular/setup-azureservicebus-action@v1.1.0
+        uses: Particular/setup-azureservicebus-action@v1.2.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
 
       - name: Setup Azure Storage Queues
         if: matrix.transport == 'AzureStorageQueues'
-        uses: Particular/setup-azurestorage-action@v1.0.0
+        uses: Particular/setup-azurestorage-action@v1.1.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
@@ -131,7 +131,7 @@ jobs:
           catalog: servicecontrol
 
       - name: Run tests
-        uses: Particular/run-tests-action@v1.3.0
+        uses: Particular/run-tests-action@v1.4.0
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
