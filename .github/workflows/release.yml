@@ -6,8 +6,6 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+-*'
 env:
   DOTNET_NOLOGO: true
-  # Signals build to create the installer
-  RELEASE_WORKFLOW: true
 jobs:
   release:
     runs-on: windows-2022
@@ -22,6 +20,15 @@ jobs:
           dotnet-version: 6.0.x
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
+      - name: Build
+        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+      - name: Sign NuGet packages
+        uses: Particular/sign-nuget-packages-action@v1.0.0
+        with:
+          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
+          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Setup Advanced Installer
         run: |
           $version = "20.0"
@@ -32,17 +39,10 @@ jobs:
           $content = Get-Content -Raw -Path src/Setup/ServiceControl.aip
           $content = $content -replace "replace-tenant-id", "${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}" -replace "replace-app-id", "${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}" -replace "replace-cert-name", "${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}"
           Set-Content src/Setup/ServiceControl.aip $content
-      - name: Build
+      - name: Build Windows installer
         env:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
-      - name: Sign NuGet packages
-        uses: Particular/sign-nuget-packages-action@v1.0.0
-        with:
-          client-id: ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-          certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+        run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
       - name: Publish installer
