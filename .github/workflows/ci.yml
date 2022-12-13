@@ -107,7 +107,7 @@ jobs:
 
       - name: Setup Azure Storage Queues
         if: matrix.transport == 'AzureStorageQueues'
-        uses: Particular/setup-azurestorage-action@v1.0.0
+        uses: Particular/setup-azurestorage-action@v1.1.0
         with:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
