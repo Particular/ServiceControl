@@ -273,7 +273,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" Subject="CN=VeriSign Class 3 Public Primary Certification Authority - G5, OU=&quot;(c) 2006 VeriSign, Inc. - For authorized use only&quot;, OU=VeriSign Trust Network, O=&quot;VeriSign, Inc.&quot;, C=US" KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com/?alg=sha256" SignerDescription="[|ProductName]" SignOptions="7" SignTool="5" UseSha256="1" KVTenantId="replace-tenant-id" KVAppId="replace-app-id" KVName="particularcodesigning" KVCertName="replace-cert-name"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
