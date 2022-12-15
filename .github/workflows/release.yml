@@ -24,7 +24,7 @@ jobs:
         with:
           dotnet-version: 6.0.x
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3.1
+        uses: microsoft/setup-msbuild@v1.3
       - name: Setup Advanced Installer
         run: |
           $version = "20.0"
