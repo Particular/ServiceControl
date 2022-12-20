@@ -86,7 +86,7 @@ namespace ServiceControl.Management.PowerShell
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the timespan to keep Error Data")]
         [ValidateNotNull]
-        [ValidateTimeSpanRange(MinimumHours = 240, MaximumHours = 1080)] //10 to 45 days
+        [ValidateTimeSpanRange(MinimumHours = 120, MaximumHours = 1080)] //5 to 45 days
         public TimeSpan ErrorRetentionPeriod { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create queues")]
