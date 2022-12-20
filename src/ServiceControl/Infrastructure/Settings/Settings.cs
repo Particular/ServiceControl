@@ -382,9 +382,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             if (TimeSpan.TryParse(valueRead, out var result))
             {
-                if (ValidateConfiguration && result < TimeSpan.FromDays(10))
+                if (ValidateConfiguration && result < TimeSpan.FromDays(5))
                 {
-                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 10 days.";
+                    message = "ErrorRetentionPeriod settings is invalid, value should be minimum 5 days.";
                     logger.Fatal(message);
                     throw new Exception(message);
                 }
