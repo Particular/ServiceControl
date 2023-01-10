@@ -27,5 +27,7 @@
                 });
             return new RavenDbAuditIngestionUnitOfWork(bulkInsert, bodyStorageEnricher);
         }
+
+        public bool CanIngestMore() => throw new System.NotImplementedException();
     }
 }
