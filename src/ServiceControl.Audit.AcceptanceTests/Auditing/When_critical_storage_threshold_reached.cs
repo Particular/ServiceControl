@@ -15,7 +15,7 @@
         [Test]
         public async Task Should_stop_ingestion()
         {
-            SetStorageConfiguration = d => { d.Add("MinimumStorageLeftRequiredForIngestionKey", "100"); };
+            SetStorageConfiguration = d => { d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100"); };
 
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When(context =>
