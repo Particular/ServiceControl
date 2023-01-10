@@ -1,6 +1,8 @@
 namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
@@ -72,7 +74,7 @@ namespace ServiceControl.Audit.AcceptanceTests
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d));
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
 
@@ -117,6 +119,7 @@ namespace ServiceControl.Audit.AcceptanceTests
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
+        protected Action<IDictionary<string, string>> SetStorageConfiguration = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 

@@ -13,7 +13,7 @@
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
         public const string LogPathKey = "LogPath";
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
-        public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestionKey";  // CriticalStorageAmountAfterWhichIngestionIsStopped | 
+        public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestionKey";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
