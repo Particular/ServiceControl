@@ -1,6 +1,8 @@
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -11,11 +13,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IDictionary<string, string>> setStorageConfiguration)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
             this.setSettings = setSettings;
+            this.setStorageConfiguration = setStorageConfiguration;
             transportIntegration = transportToUse;
         }
 
@@ -25,7 +28,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration);
+            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, setStorageConfiguration);
             await runner.Initialize(run).ConfigureAwait(false);
             return runner;
         }
@@ -35,5 +38,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
+        Action<IDictionary<string, string>> setStorageConfiguration;
     }
 }

@@ -2,6 +2,7 @@
 {
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
+    using RavenDb5.CustomChecks;
     using UnitOfWork;
 
     class RavenDb5Persistence : IPersistence
@@ -19,6 +20,7 @@
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
+            serviceCollection.AddSingleton<AuditStorageCustomCheck.State>();
 
             var lifecycle = CreateLifecycle();
 

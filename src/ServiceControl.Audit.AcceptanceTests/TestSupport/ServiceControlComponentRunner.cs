@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -26,11 +27,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse,
+            AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings,
+            Action<EndpointConfiguration> customConfiguration,
+            Action<IDictionary<string, string>> setStorageConfiguration)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
+            this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
         }
 
@@ -116,6 +121,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
 
             var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
+
+            setStorageConfiguration(persisterSpecificSettings);
 
             foreach (var persisterSpecificSetting in persisterSpecificSettings)
             {
@@ -220,6 +227,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
+        Action<IDictionary<string, string>> setStorageConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         IHost host;
         Settings settings;
