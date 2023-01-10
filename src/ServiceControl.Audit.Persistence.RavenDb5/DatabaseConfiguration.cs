@@ -5,12 +5,12 @@
 
     public class DatabaseConfiguration
     {
-        public DatabaseConfiguration(
-            string name,
+        public DatabaseConfiguration(string name,
             int expirationProcessTimerInSeconds,
             bool enableFullTextSearch,
             TimeSpan auditRetentionPeriod,
             int maxBodySizeToStore,
+            int criticalDataSpaceRemainingThreshold,
             ServerConfiguration serverConfiguration)
         {
             Name = name;
@@ -19,6 +19,7 @@
             AuditRetentionPeriod = auditRetentionPeriod;
             MaxBodySizeToStore = maxBodySizeToStore;
             ServerConfiguration = serverConfiguration;
+            CriticalDataSpaceRemainingThreshold = criticalDataSpaceRemainingThreshold;
         }
 
         public string Name { get; }
@@ -34,5 +35,7 @@
         public TimeSpan AuditRetentionPeriod { get; }
 
         public int MaxBodySizeToStore { get; }
+
+        public int CriticalDataSpaceRemainingThreshold { get; }
     }
 }
