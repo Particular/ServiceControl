@@ -10,7 +10,7 @@
             bool enableFullTextSearch,
             TimeSpan auditRetentionPeriod,
             int maxBodySizeToStore,
-            int criticalDataSpaceRemainingThreshold,
+            int minimumStorageLeftRequiredForIngestion,
             ServerConfiguration serverConfiguration)
         {
             Name = name;
@@ -19,7 +19,7 @@
             AuditRetentionPeriod = auditRetentionPeriod;
             MaxBodySizeToStore = maxBodySizeToStore;
             ServerConfiguration = serverConfiguration;
-            CriticalDataSpaceRemainingThreshold = criticalDataSpaceRemainingThreshold;
+            MinimumStorageLeftRequiredForIngestion = minimumStorageLeftRequiredForIngestion;
         }
 
         public string Name { get; }
@@ -36,6 +36,6 @@
 
         public int MaxBodySizeToStore { get; }
 
-        public int CriticalDataSpaceRemainingThreshold { get; }
+        public int MinimumStorageLeftRequiredForIngestion { get; }
     }
 }

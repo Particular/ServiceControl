@@ -227,7 +227,7 @@
         readonly RawEndpointFactory rawEndpointFactory;
         readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly AuditIngestor auditIngestor;
-        private readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
+        readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
         readonly Meter batchSizeMeter;
