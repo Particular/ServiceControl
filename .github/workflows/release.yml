@@ -29,6 +29,21 @@ jobs:
           tenant-id: ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}
           client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
           certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
+      - name: Create PowerShell module catalog
+        run: New-FileCatalog -Path assets\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath assets\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
+      - name: Install AzureSignTool
+        run: dotnet tool install --global azuresigntool
+      - name: Sign PowerShell module
+        run: |
+          AzureSignTool sign `
+          --file-digest sha256 `
+          --timestamp-rfc3161 http://timestamp.digicert.com `
+          --azure-key-vault-url https://particularcodesigning.vault.azure.net `
+          --azure-key-vault-client-id ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }} `
+          --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
+          --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
+          --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
+          assets\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat
       - name: Setup Advanced Installer
         run: |
           $version = "20.0"
