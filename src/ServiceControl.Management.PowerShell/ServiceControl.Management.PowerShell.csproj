@@ -5,7 +5,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <LangVersion>10.0</LangVersion>
     <ModuleName>Particular.ServiceControl.Management</ModuleName>
-    <ModuleArtifactsPath>$(ArtifactsPath)PowerShellModule\$(ModuleName)\</ModuleArtifactsPath>
+    <ModuleArtifactsPath>$(MSBuildThisFileDirectory)..\..\assets\PowerShellModules\$(ModuleName)\</ModuleArtifactsPath>
   </PropertyGroup>
 
   <ItemGroup>
