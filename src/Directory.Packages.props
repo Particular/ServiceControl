@@ -64,14 +64,15 @@
     <PackageVersion Include="RavenDB.Database" Version="3.5.10-patch-35312" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.5" />
     <PackageVersion Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35312" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="17.1.50" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="18.4.1" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="7.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
-    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
+	<PackageVersion Include="System.Security.AccessControl.dll" Version="6.0.21.52210" />	  
+	<PackageVersion Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
     <PackageVersion Include="System.Text.Json" Version="7.0.1" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
