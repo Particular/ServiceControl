@@ -4,8 +4,6 @@ namespace ServiceControl.Monitoring
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using Infrastructure.Settings;
     using NServiceBus.Logging;
 
     static class Program

@@ -10,7 +10,6 @@
     using NLog.Extensions.Logging;
     using NLog.Layouts;
     using NLog.Targets;
-    using NServiceBus;
     using NServiceBus.Extensions.Logging;
     using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
