@@ -23,6 +23,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
+        public IServiceProvider ServiceProvider => runner.ServiceProvider;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public string Port => runner.Port;
 
