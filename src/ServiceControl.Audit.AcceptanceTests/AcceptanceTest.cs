@@ -32,6 +32,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
+        public IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public string Port => serviceControlRunnerBehavior.Port;
 

@@ -23,4 +23,8 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ServiceControl.Audit.AcceptanceTests.RavenDB5" />
+  </ItemGroup>
+
 </Project>

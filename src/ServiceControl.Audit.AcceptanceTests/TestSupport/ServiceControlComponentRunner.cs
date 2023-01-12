@@ -41,6 +41,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => settings.Port.ToString();
 
@@ -188,6 +189,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     .ConfigureServices(s => s.AddTransient<FailedAuditsController>());
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
+
+                ServiceProvider = host.Services;
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))

@@ -1,13 +1,15 @@
-﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
+﻿namespace ServiceControl.Audit.AcceptanceTests.RavenDB5.Auditing
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using AcceptanceTesting;
-    using Audit.Auditing.MessagesView;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
+    using Persistence.RavenDb5.CustomChecks;
+    using ServiceControl.AcceptanceTesting;
+    using ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates;
+    using ServiceControl.Audit.Auditing.MessagesView;
 
     [RunOnAllTransports]
     class When_critical_storage_threshold_reached : AcceptanceTest
@@ -20,6 +22,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When(context =>
                 {
+                    var checkState = ServiceProvider.GetRequiredService<AuditStorageCustomCheck.State>();
+
                     return context.Logs.ToArray().Count(x => x.Message.Equals(
                                "Shutting down due to failed persistence health check. Infrastructure shut down completed")) >
                            0;
