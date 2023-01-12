@@ -53,6 +53,7 @@ namespace ServiceControl.SagaAudit
                                         .ToList()
                                 };
 
+            Index(x => x.SagaId, FieldIndexing.Exact);
             Index(x => x.SagaType, FieldIndexing.No);
             Index(x => x.Changes, FieldIndexing.No);
         }
