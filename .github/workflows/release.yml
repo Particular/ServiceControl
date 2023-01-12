@@ -30,7 +30,7 @@ jobs:
           client-secret: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
           certificate-name: ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}
       - name: Create PowerShell module catalog
-        run: New-FileCatalog -Path assets\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath assets\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
+        run: New-FileCatalog -Path deploy\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
       - name: Install AzureSignTool
         run: dotnet tool install --global azuresigntool
       - name: Sign PowerShell module
@@ -43,7 +43,11 @@ jobs:
           --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
           --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
           --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
-          assets\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat
+          deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat
+      - name: Zip PowerShell module
+        run: |
+          New-Item assets\PowerShellModules -ItemType Directory
+          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Setup Advanced Installer
         run: |
           $version = "20.0"
@@ -60,10 +64,10 @@ jobs:
         run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
-      - name: Publish installer
+      - name: Publish assets
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: installer
+          name: assets
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages

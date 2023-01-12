@@ -72,7 +72,12 @@ jobs:
         uses: microsoft/setup-msbuild@v1.3
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
-      - name: Upload packages
+      - name: Zip PowerShell module
+        if: matrix.transport == 'Msmq' && matrix.storage == 'RavenDB35'
+        run: |
+          New-Item assets\PowerShellModules -ItemType Directory
+          Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
+      - name: Upload assets
         if: matrix.transport == 'Msmq' && matrix.storage == 'RavenDB35'
         uses: actions/upload-artifact@v3.1.1
         with:
