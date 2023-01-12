@@ -15,17 +15,17 @@ namespace ServiceControl.SagaAudit
                                              doc.SagaType,
                                              Changes = new[]
                                              {
-                        new SagaStateChange
-                        {
-                            Endpoint = doc.Endpoint,
-                            FinishTime = doc.FinishTime,
-                            InitiatingMessage = doc.InitiatingMessage,
-                            OutgoingMessages = doc.OutgoingMessages,
-                            StartTime = doc.StartTime,
-                            StateAfterChange = doc.StateAfterChange,
-                            Status = doc.Status
-                        }
-                    }
+                                                new SagaStateChange
+                                                {
+                                                    Endpoint = doc.Endpoint,
+                                                    FinishTime = doc.FinishTime,
+                                                    InitiatingMessage = doc.InitiatingMessage,
+                                                    OutgoingMessages = doc.OutgoingMessages,
+                                                    StartTime = doc.StartTime,
+                                                    StateAfterChange = doc.StateAfterChange,
+                                                    Status = doc.Status
+                                                }
+                                             }
                                          });
 
             //Legacy so we still scan old sagahistories
@@ -52,6 +52,9 @@ namespace ServiceControl.SagaAudit
                                         .OrderByDescending(x => x.FinishTime)
                                         .ToList()
                                 };
+
+            Index(x => x.SagaType, FieldIndexing.No);
+            Index(x => x.Changes, FieldIndexing.No);
         }
     }
 }
