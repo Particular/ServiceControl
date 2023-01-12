@@ -17,7 +17,7 @@
 
         public string ConnectionString { get; }
         public bool UseEmbeddedServer { get; }
-        public string DbPath { get; }
+        public string DbPath { get; internal set; } //Setter for ATT only
         public string ServerUrl { get; }
     }
 }

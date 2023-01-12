@@ -1,12 +1,13 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.RavenDB5.Auditing
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Persistence.RavenDb5.CustomChecks;
+    using Persistence.RavenDb;
     using ServiceControl.AcceptanceTesting;
     using ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates;
     using ServiceControl.Audit.Auditing.MessagesView;
@@ -17,22 +18,33 @@
         [Test]
         public async Task Should_stop_ingestion()
         {
-            SetStorageConfiguration = d => { d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100"); };
+            SetSettings = s =>
+            {
+                s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
+            };
+
+            SetStorageConfiguration = d =>
+            {
+                d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100");
+            };
 
             await Define<MyContext>()
-                .WithEndpoint<Sender>(b => b.When(context =>
-                {
-                    var checkState = ServiceProvider.GetRequiredService<AuditStorageCustomCheck.State>();
-
-                    return context.Logs.ToArray().Count(x => x.Message.Equals(
-                               "Shutting down due to failed persistence health check. Infrastructure shut down completed")) >
-                           0;
-                }, (bus, c) => bus.SendLocal(new MyMessage())))
-                .Done(async c =>
-                {
-                    return await this.TryGetSingle<MessagesView>(
-                        "/api/messages?include_system_messages=false&sort=id") == false;
-                })
+                .WithEndpoint<Sender>(b => b
+                    .When((session, context) =>
+                    {
+                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
+                        databaseConfiguration.ServerConfiguration.DbPath = "c:\\";
+                        return Task.CompletedTask;
+                    })
+                    .When(context =>
+                    {
+                        return context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                    }, (bus, c) => bus.SendLocal(new MyMessage()))
+                )
+                .Done(async c => await this.TryGetSingle<MessagesView>(
+                    "/api/messages?include_system_messages=false&sort=id") == false)
                 .Run();
         }
 
