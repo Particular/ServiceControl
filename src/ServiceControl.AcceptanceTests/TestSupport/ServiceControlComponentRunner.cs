@@ -19,7 +19,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure.OWIN;
@@ -97,7 +96,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 {
                     var headers = messageContext.Headers;
                     var id = messageContext.MessageId;
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
 
@@ -169,7 +168,9 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
-                bootstrapper.HostBuilder.ConfigureServices(serviceCollection =>
+                bootstrapper.HostBuilder
+                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
+                    .ConfigureServices(serviceCollection =>
                 {
                     serviceCollection.AddScoped<CriticalErrorTriggerController>();
                     serviceCollection.AddScoped<KnownEndpointPersistenceQueryController>();
