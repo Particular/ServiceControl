@@ -64,7 +64,7 @@
         }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
-            => bulkInsert.StoreAsync(sagaSnapshot);
+            => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
             => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
