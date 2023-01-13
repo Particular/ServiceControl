@@ -7,9 +7,9 @@
     using NServiceBus.Logging;
     using ServiceControl.Audit.Persistence.RavenDb;
 
-    class AuditStorageCustomCheck : CustomCheck
+    class CheckMinimumStorageRequiredForAuditIngestion : CustomCheck
     {
-        public AuditStorageCustomCheck(State stateHolder, DatabaseConfiguration databaseConfiguration)
+        public CheckMinimumStorageRequiredForAuditIngestion(State stateHolder, DatabaseConfiguration databaseConfiguration)
             : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
@@ -54,7 +54,7 @@
         readonly State stateHolder;
         readonly DatabaseConfiguration databaseConfiguration;
         static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
-        static readonly ILog Logger = LogManager.GetLogger(typeof(AuditStorageCustomCheck));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForAuditIngestion));
 
         public class State
         {

@@ -8,7 +8,7 @@
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
         public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider,
-            DatabaseConfiguration databaseConfiguration, AuditStorageCustomCheck.State customCheckState)
+            DatabaseConfiguration databaseConfiguration, CheckMinimumStorageRequiredForAuditIngestion.State customCheckState)
         {
             this.documentStoreProvider = documentStoreProvider;
             this.sessionProvider = sessionProvider;
@@ -35,6 +35,6 @@
         readonly IRavenDbDocumentStoreProvider documentStoreProvider;
         readonly IRavenDbSessionProvider sessionProvider;
         readonly DatabaseConfiguration databaseConfiguration;
-        readonly AuditStorageCustomCheck.State customCheckState;
+        readonly CheckMinimumStorageRequiredForAuditIngestion.State customCheckState;
     }
 }

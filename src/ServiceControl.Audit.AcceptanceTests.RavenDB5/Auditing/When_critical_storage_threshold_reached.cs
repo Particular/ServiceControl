@@ -16,13 +16,11 @@
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
         [SetUp]
-        public void Setup()
-        {
+        public void SetIngestionRestartInterval() =>
             SetSettings = s =>
             {
                 s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
             };
-        }
 
         [Test]
         public async Task Should_stop_ingestion()
