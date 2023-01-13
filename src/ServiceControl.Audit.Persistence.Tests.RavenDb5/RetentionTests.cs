@@ -7,6 +7,7 @@
     using Monitoring;
     using NServiceBus;
     using NUnit.Framework;
+    using SagaAudit;
     using ServiceControl.Audit.Infrastructure;
 
     [TestFixture]
@@ -75,6 +76,29 @@
             Assert.That(queryResultAfterExpiration.Results.Count, Is.EqualTo(0));
         }
 
+        [Test]
+        public async Task SagaSnapshotRetention()
+        {
+            var sagaId = Guid.NewGuid();
+            var otherSagaId = Guid.NewGuid();
+
+            await IngestSagaAudits(
+                new SagaSnapshot { SagaId = sagaId },
+                new SagaSnapshot { SagaId = otherSagaId },
+                new SagaSnapshot { SagaId = sagaId }
+            );
+
+            var queryResultBeforeExpiration = await DataStore.QuerySagaHistoryById(sagaId);
+
+            await Task.Delay(4000).ConfigureAwait(false);
+
+            var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId);
+
+            Assert.That(queryResultBeforeExpiration.Results, Is.Not.Null);
+            Assert.That(queryResultBeforeExpiration.Results.Changes.Count, Is.EqualTo(2));
+            Assert.That(queryResultAfterExpiration.Results, Is.Null);
+        }
+
         ProcessedMessage MakeMessage(
             string messageId = null,
             MessageIntentEnum intent = MessageIntentEnum.Send,
@@ -133,6 +157,17 @@
             }
             await unitOfWork.DisposeAsync().ConfigureAwait(false);
             await configuration.CompleteDBOperation().ConfigureAwait(false);
+        }
+
+        async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
+        {
+            var unitOfWork = StartAuditUnitOfWork(snapshots.Length);
+            foreach (var snapshot in snapshots)
+            {
+                await unitOfWork.RecordSagaSnapshot(snapshot).ConfigureAwait(false);
+            }
+            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await configuration.CompleteDBOperation();
         }
     }
 }
