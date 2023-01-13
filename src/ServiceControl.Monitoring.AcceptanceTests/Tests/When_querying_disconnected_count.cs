@@ -6,6 +6,7 @@
     using NLog.Fluent;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceControl.AcceptanceTesting;
     using ServiceControl.Monitoring.AcceptanceTests.TestSupport.EndpointTemplates;
@@ -48,7 +49,7 @@
 
                     if (!result.IsSuccessStatusCode)
                     {
-                        Log.Info(result.ReasonPhrase);
+                        logger.Info(result.ReasonPhrase);
                         await Task.Delay(1000);
                         return false;
                     }
@@ -103,5 +104,7 @@
             public int AfterFirstStoppedCount { get; set; } = int.MinValue;
             public int AfterSecondStoppedCount { get; set; } = int.MinValue;
         }
+
+        static readonly ILog logger = LogManager.GetLogger<When_querying_disconnected_count>();
     }
 }
