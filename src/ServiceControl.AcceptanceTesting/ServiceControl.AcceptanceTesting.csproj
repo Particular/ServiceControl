@@ -19,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.NLog" />
+    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 

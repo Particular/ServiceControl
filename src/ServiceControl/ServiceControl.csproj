@@ -19,13 +19,13 @@
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Microsoft.AspNet.SignalR" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
-    <PackageReference Include="Microsoft.Owin.Cors"/>
-    <PackageReference Include="NLog.Extensions.Logging"/>
+    <PackageReference Include="Microsoft.Owin.Cors" />
+    <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
-    <PackageReference Include="NServiceBus.NLog" />
+    <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="Particular.Licensing.Sources" />
     <PackageReference Include="Rx-Linq" />
     <PackageReference Include="ServiceControl.Contracts" />
