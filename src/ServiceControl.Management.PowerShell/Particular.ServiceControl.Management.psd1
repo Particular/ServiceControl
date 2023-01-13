@@ -103,7 +103,7 @@ PrivateData = @{
         ProjectUri = 'https://github.com/Particular/ServiceControl'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://particular.net/images/common/sc.svg'
+        IconUri = 'https://s3.amazonaws.com/particular.downloads/icons/servicecontrol.svg'
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
