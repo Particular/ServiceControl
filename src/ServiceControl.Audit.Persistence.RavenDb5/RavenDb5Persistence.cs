@@ -20,7 +20,7 @@
             serviceCollection.AddSingleton<IAuditDataStore, RavenDbAuditDataStore>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
-            serviceCollection.AddSingleton<AuditStorageCustomCheck.State>();
+            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
 
             var lifecycle = CreateLifecycle();
 
