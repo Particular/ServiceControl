@@ -28,7 +28,7 @@
                 d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100");
             };
 
-            await Define<MyContext>()
+            await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
                     .When((session, context) =>
                     {
@@ -62,10 +62,6 @@
         }
 
         public class MyMessage : ICommand
-        {
-        }
-
-        public class MyContext : ScenarioContext
         {
         }
     }
