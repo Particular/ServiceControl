@@ -17,6 +17,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -24,6 +25,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
+    using LogLevel = NServiceBus.Logging.LogLevel;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -186,7 +189,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 loggingSettings);
 
                 bootstrapper.HostBuilder
-                    .ConfigureServices(s => s.AddTransient<FailedAuditsController>());
+                    .ConfigureLogging((c, b) =>
+                    {
+                        AddAcceptanceTestsLoggingProvider(b, context);
+                    })
+                    .ConfigureServices(s =>
+                    {
+                        s.AddTransient<FailedAuditsController>();
+                    });
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
 
@@ -209,6 +219,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpClient = httpClient;
             }
+        }
+
+        void AddAcceptanceTestsLoggingProvider(ILoggingBuilder loggingBuilder, ScenarioContext scenarioContext)
+        {
+            loggingBuilder.Services.AddSingleton<ILoggerFactory>(new AcceptanceTestingLoggerFactory(scenarioContext));
         }
 
         public override async Task Stop()
@@ -235,5 +250,50 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         IHost host;
         Settings settings;
         OwinHttpMessageHandler handler;
+    }
+
+    class AcceptanceTestingLoggerFactory : ILoggerFactory
+    {
+        readonly ScenarioContext scenarioContext;
+
+        public AcceptanceTestingLoggerFactory(ScenarioContext scenarioContext)
+        {
+            this.scenarioContext = scenarioContext;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public ILogger CreateLogger(string categoryName) => new AcceptanceTestLogging(categoryName, scenarioContext);
+
+        public void AddProvider(ILoggerProvider provider)
+        {
+        }
+    }
+
+    class AcceptanceTestLogging : ILogger
+    {
+        readonly string categoryName;
+        readonly ScenarioContext scenarioContext;
+
+        public AcceptanceTestLogging(string categoryName, ScenarioContext scenarioContext)
+        {
+            this.categoryName = categoryName;
+            this.scenarioContext = scenarioContext;
+        }
+
+        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state,
+            Exception exception, Func<TState, Exception, string> formatter) =>
+            scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
+            {
+                Level = LogLevel.Debug,
+                LoggerName = categoryName,
+                Message = formatter(state, exception)
+            });
+
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
     }
 }

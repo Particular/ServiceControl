@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
