@@ -15,14 +15,18 @@
     [RunOnAllTransports]
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
-        [Test]
-        public async Task Should_stop_ingestion()
+        [SetUp]
+        public void Setup()
         {
             SetSettings = s =>
             {
                 s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
             };
+        }
 
+        [Test]
+        public async Task Should_stop_ingestion()
+        {
             SetStorageConfiguration = d =>
             {
                 d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100");
@@ -33,7 +37,7 @@
                     .When((session, context) =>
                     {
                         var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
-                        databaseConfiguration.ServerConfiguration.DbPath = "c:\\";
+                        databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -48,6 +52,43 @@
                 .Run();
         }
 
+        [Test]
+        public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
+        {
+            SetStorageConfiguration = d =>
+            {
+                d.Add("RavenDB5/MinimumStorageLeftRequiredForIngestionKey", "100");
+            };
+
+            var ingestionShutdown = false;
+
+            await Define<ScenarioContext>()
+                .WithEndpoint<Sender>(b => b
+                    .When((session, context) =>
+                    {
+                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
+                        databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
+                        return Task.CompletedTask;
+                    })
+                    .When(context =>
+                    {
+                        ingestionShutdown = context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+
+                        return ingestionShutdown;
+                    },
+                    (bus, c) => bus.SendLocal(new MyMessage()))
+                    .When(c => ingestionShutdown, (session, context) =>
+                    {
+                        var databaseConfiguration = ServiceProvider.GetService<DatabaseConfiguration>();
+                        databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 0;
+                        return Task.CompletedTask;
+                    })
+                )
+                .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
+                .Run();
+        }
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
