@@ -36,6 +36,6 @@
 
         public int MaxBodySizeToStore { get; }
 
-        public int MinimumStorageLeftRequiredForIngestion { get; }
+        public int MinimumStorageLeftRequiredForIngestion { get; internal set; } //Setting for ATT only
     }
 }
