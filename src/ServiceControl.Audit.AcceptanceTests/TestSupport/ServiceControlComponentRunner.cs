@@ -189,12 +189,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 loggingSettings);
 
                 bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) =>
-                    {
-                        AddAcceptanceTestsLoggingProvider(b, context);
-                    })
                     .ConfigureServices(s =>
                     {
+                        s.AddSingleton<ILoggerFactory>(new AcceptanceTestingLoggerFactory(context));
                         s.AddTransient<FailedAuditsController>();
                     });
 
@@ -221,11 +218,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
         }
 
-        void AddAcceptanceTestsLoggingProvider(ILoggingBuilder loggingBuilder, ScenarioContext scenarioContext)
-        {
-            loggingBuilder.Services.AddSingleton<ILoggerFactory>(new AcceptanceTestingLoggerFactory(scenarioContext));
-        }
-
         public override async Task Stop()
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
@@ -250,50 +242,47 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         IHost host;
         Settings settings;
         OwinHttpMessageHandler handler;
-    }
 
-    class AcceptanceTestingLoggerFactory : ILoggerFactory
-    {
-        readonly ScenarioContext scenarioContext;
-
-        public AcceptanceTestingLoggerFactory(ScenarioContext scenarioContext)
+        class AcceptanceTestingLoggerFactory : ILoggerFactory
         {
-            this.scenarioContext = scenarioContext;
-        }
+            readonly ScenarioContext scenarioContext;
 
-        public void Dispose()
-        {
-        }
+            public AcceptanceTestingLoggerFactory(ScenarioContext scenarioContext) => this.scenarioContext = scenarioContext;
 
-        public ILogger CreateLogger(string categoryName) => new AcceptanceTestLogging(categoryName, scenarioContext);
-
-        public void AddProvider(ILoggerProvider provider)
-        {
-        }
-    }
-
-    class AcceptanceTestLogging : ILogger
-    {
-        readonly string categoryName;
-        readonly ScenarioContext scenarioContext;
-
-        public AcceptanceTestLogging(string categoryName, ScenarioContext scenarioContext)
-        {
-            this.categoryName = categoryName;
-            this.scenarioContext = scenarioContext;
-        }
-
-        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state,
-            Exception exception, Func<TState, Exception, string> formatter) =>
-            scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
+            public void Dispose()
             {
-                Level = LogLevel.Debug,
-                LoggerName = categoryName,
-                Message = formatter(state, exception)
-            });
+            }
 
-        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+            public ILogger CreateLogger(string categoryName) => new AcceptanceTestLogging(categoryName, scenarioContext);
 
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
+            public void AddProvider(ILoggerProvider provider)
+            {
+            }
+        }
+
+        class AcceptanceTestLogging : ILogger
+        {
+            readonly string categoryName;
+            readonly ScenarioContext scenarioContext;
+
+            public AcceptanceTestLogging(string categoryName, ScenarioContext scenarioContext)
+            {
+                this.categoryName = categoryName;
+                this.scenarioContext = scenarioContext;
+            }
+
+            public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state,
+                Exception exception, Func<TState, Exception, string> formatter) =>
+                scenarioContext.Logs.Enqueue(new ScenarioContext.LogItem
+                {
+                    Level = LogLevel.Debug,
+                    LoggerName = categoryName,
+                    Message = formatter(state, exception)
+                });
+
+            public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel) => true;
+
+            public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
+        }
     }
 }
