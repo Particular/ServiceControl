@@ -16,7 +16,8 @@
             RavenBootstrapper.ExpirationProcessTimerInSecondsKey,
             RavenBootstrapper.ExpirationProcessBatchSizeKey,
             RavenBootstrapper.RunCleanupBundleKey,
-            RavenBootstrapper.RunInMemoryKey
+            RavenBootstrapper.RunInMemoryKey,
+            RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey
         };
 
         public IPersistence Create(PersistenceSettings settings)

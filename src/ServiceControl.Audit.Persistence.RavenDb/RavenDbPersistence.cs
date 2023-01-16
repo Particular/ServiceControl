@@ -6,6 +6,7 @@
     using Raven.Client;
     using Raven.Client.Embedded;
     using RavenDB;
+    using ServiceControl.Audit.Persistence.RavenDb.CustomChecks;
     using UnitOfWork;
 
     class RavenDbPersistence : IPersistence
@@ -26,6 +27,7 @@
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
             serviceCollection.AddSingleton<IAuditIngestionUnitOfWorkFactory, RavenDbAuditIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<IFailedAuditStorage, RavenDbFailedAuditStorage>();
+            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
 
             return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
