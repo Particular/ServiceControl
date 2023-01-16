@@ -11,5 +11,7 @@
 
         public ValueTask<IIngestionUnitOfWork> StartNew()
             => new ValueTask<IIngestionUnitOfWork>(new InMemoryIngestionUnitOfWork(dataStore));
+
+        public bool CanIngestMore() => true;
     }
 }

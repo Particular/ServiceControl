@@ -5,5 +5,6 @@
     interface IIngestionUnitOfWorkFactory
     {
         ValueTask<IIngestionUnitOfWork> StartNew();
+        bool CanIngestMore();
     }
 }

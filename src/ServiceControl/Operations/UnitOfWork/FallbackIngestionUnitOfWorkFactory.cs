@@ -23,5 +23,10 @@
                 secondaryUnitOfWork
             );
         }
+
+        public bool CanIngestMore()
+        {
+            return primary.CanIngestMore() && secondary.CanIngestMore();
+        }
     }
 }

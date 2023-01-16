@@ -28,12 +28,14 @@
             IDocumentStore documentStore,
             LoggingSettings loggingSettings,
             ErrorIngestionCustomCheck.State ingestionState,
-            ErrorIngestor ingestor)
+            ErrorIngestor ingestor,
+            IIngestionUnitOfWorkFactory unitOfWorkFactory)
         {
             this.settings = settings;
             errorQueue = settings.ErrorQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.ingestor = ingestor;
+            this.unitOfWorkFactory = unitOfWorkFactory;
 
             receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
@@ -115,6 +117,18 @@
             try
             {
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                if (!unitOfWorkFactory.CanIngestMore())
+                {
+                    if (ingestionEndpoint != null)
+                    {
+                        var stoppable = ingestionEndpoint;
+                        ingestionEndpoint = null;
+                        await stoppable.Stop().ConfigureAwait(false);
+                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
+                    }
+                    return;
+                }
 
                 if (ingestionEndpoint != null)
                 {
@@ -200,6 +214,8 @@
         readonly Meter batchSizeMeter;
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
+        readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         IDispatchMessages dispatcher;
+        static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

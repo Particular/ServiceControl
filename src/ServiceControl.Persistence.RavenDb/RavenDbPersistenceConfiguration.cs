@@ -10,6 +10,7 @@
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
+            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForIngestion.State>();
         }
     }
 }
