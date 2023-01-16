@@ -52,7 +52,7 @@
                     }
                     catch (Exception e)
                     {
-                        log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                        log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}. \n{e}", e);
                         reportFailure(e.Message);
                     }
                     try
