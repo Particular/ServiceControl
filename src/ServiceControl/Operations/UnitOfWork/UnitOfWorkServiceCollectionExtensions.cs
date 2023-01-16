@@ -23,6 +23,8 @@
             var ravenImplementation = Type.GetType("ServiceControl.Persistence.RavenDb.RavenDbIngestionUnitOfWorkFactory, ServiceControl.Persistence.RavenDb", true);
             serviceCollection.AddSingleton(ravenImplementation);
             serviceCollection.AddSingleton<T>();
+            //HINT: Custom check state dependency is needed by the RavenDB unit of work 
+            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForIngestion.State>();
             serviceCollection.AddSingleton<IIngestionUnitOfWorkFactory>(sp =>
                 new FallbackIngestionUnitOfWorkFactory(
                     sp.GetRequiredService<T>(),
