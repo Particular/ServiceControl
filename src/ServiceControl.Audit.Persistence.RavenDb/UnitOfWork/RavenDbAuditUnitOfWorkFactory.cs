@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
+    using System.Runtime.Remoting.Messaging;
     using Auditing.BodyStorage;
     using Persistence.UnitOfWork;
     using Raven.Abstractions.Data;
@@ -28,6 +29,6 @@
             return new RavenDbAuditIngestionUnitOfWork(bulkInsert, bodyStorageEnricher);
         }
 
-        public bool CanIngestMore() => throw new System.NotImplementedException();
+        public bool CanIngestMore() => true;
     }
 }
