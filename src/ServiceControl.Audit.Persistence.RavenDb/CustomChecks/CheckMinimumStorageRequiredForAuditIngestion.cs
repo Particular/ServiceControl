@@ -25,6 +25,10 @@
             }
 
             var dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenBootstrapper.DatabasePathKey]);
+
+            Logger.Warn($"####### Threshold: {settings.PersisterSpecificSettings[RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey]}");
+            Logger.Warn($"####### DataPathRoot: {dataPathRoot}");
+
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
