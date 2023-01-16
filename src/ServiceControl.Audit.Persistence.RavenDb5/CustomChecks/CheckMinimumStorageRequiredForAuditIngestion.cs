@@ -21,6 +21,10 @@
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
 
             var dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
+
+            Logger.Warn($"####### Threshold: {percentageThreshold}");
+            Logger.Warn($"####### DataPathRoot: {dataPathRoot}");
+
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
