@@ -18,6 +18,8 @@
 
         public override Task<CheckResult> PerformCheck()
         {
+            Logger.Warn($"####### HERE");
+
             if (int.TryParse(settings.PersisterSpecificSettings[RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey], out var storageThreshold) == false)
             {
                 stateHolder.CanIngestMore = true;
