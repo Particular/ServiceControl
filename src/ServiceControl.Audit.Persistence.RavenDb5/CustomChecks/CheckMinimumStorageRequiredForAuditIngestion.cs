@@ -18,6 +18,8 @@
 
         public override Task<CheckResult> PerformCheck()
         {
+            Logger.Warn($"####### HERE");
+
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
 
             var dataPathRoot = Path.GetPathRoot(databaseConfiguration.ServerConfiguration.DbPath);
