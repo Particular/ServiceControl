@@ -28,7 +28,7 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add("RavenDB35/MinimumStorageLeftRequiredForIngestionKey", "100");
+                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "100");
             };
 
             await Define<ScenarioContext>()
@@ -56,7 +56,7 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add("RavenDB35/MinimumStorageLeftRequiredForIngestionKey", "100");
+                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "100");
             };
 
             var ingestionShutdown = false;

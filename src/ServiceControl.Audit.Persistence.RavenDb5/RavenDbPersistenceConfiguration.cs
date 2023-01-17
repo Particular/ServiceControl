@@ -11,7 +11,7 @@
         public const string ConnectionStringKey = "RavenDB5/ConnectionString";
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
-        public const string MinimumStorageLeftRequiredForIngestionKey = "RavenDB5/MinimumStorageLeftRequiredForIngestionKey";
+        public const string MinimumStorageLeftRequiredForIngestionKey = "RavenDB5/MinimumStorageLeftRequiredForIngestion";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
