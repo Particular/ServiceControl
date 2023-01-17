@@ -24,6 +24,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
     using LogLevel = NServiceBus.Logging.LogLevel;
@@ -198,6 +199,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
 
                 ServiceProvider = host.Services;
+
+                var customChecks = ServiceProvider.GetServices<ICustomCheck>();
+                var logger = ServiceProvider.GetService<ILogger<ServiceControlComponentRunner>>();
+
+                foreach (ICustomCheck customCheck in customChecks)
+                {
+                    logger.LogWarning($"##### CustomCheck: {customCheck.Category}, {customCheck.Id}");
+                }
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
