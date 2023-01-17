@@ -25,6 +25,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.CustomChecks;
+    using NServiceBus.Features;
     using NServiceBus.Logging;
     using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
     using LogLevel = NServiceBus.Logging.LogLevel;
@@ -207,6 +208,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 {
                     logger.LogWarning($"##### CustomCheck: {customCheck.Category}, {customCheck.Id}");
                 }
+
+                logger.LogWarning($"##### Feature state:{configuration.GetSettings().GetOrDefault<FeatureState>("NServiceBus.CustomChecks.CustomChecksFeature")}");
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
