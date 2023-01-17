@@ -37,7 +37,7 @@ namespace Tests
 
         public static IEnumerable<DeploymentPackage> All => GetDeployDirectory()
                 .EnumerateDirectories()
-                .Where(d => d.Name != "PowerShellModule")
+                .Where(d => d.Name != "PowerShellModules")
                 .Select(d => new DeploymentPackage(d));
 
         public static DirectoryInfo GetDeployDirectory()
