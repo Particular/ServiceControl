@@ -8,6 +8,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using NServiceBus.Logging;
     using Settings;
     using Transports;
 
@@ -47,6 +48,9 @@ namespace ServiceControl.Audit.Infrastructure
 
                 if (!isRunningAcceptanceTests)
                 {
+                    var logger = LogManager.GetLogger(typeof(NServiceBusFactory));
+                    logger.Warn($"####### enabling custom checks: {settings.ServiceControlQueueAddress}");
+
                     configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
                 }
             }
