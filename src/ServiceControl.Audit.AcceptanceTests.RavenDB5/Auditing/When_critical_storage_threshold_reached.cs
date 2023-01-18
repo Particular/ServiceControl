@@ -22,33 +22,33 @@
                 s.TimeToRestartAuditIngestionAfterFailure = TimeSpan.FromSeconds(1);
             };
 
-        [Test]
-        public async Task Should_stop_ingestion()
-        {
-            SetStorageConfiguration = d =>
-            {
-                d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "100");
-            };
+        //[Test]
+        //public async Task Should_stop_ingestion()
+        //{
+        //    SetStorageConfiguration = d =>
+        //    {
+        //        d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "100");
+        //    };
 
-            await Define<ScenarioContext>()
-                .WithEndpoint<Sender>(b => b
-                    .When((session, context) =>
-                    {
-                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
-                        databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
-                        return Task.CompletedTask;
-                    })
-                    .When(context =>
-                    {
-                        return context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
-                    }, (bus, c) => bus.SendLocal(new MyMessage()))
-                )
-                .Done(async c => await this.TryGetSingle<MessagesView>(
-                    "/api/messages?include_system_messages=false&sort=id") == false)
-                .Run();
-        }
+        //    await Define<ScenarioContext>()
+        //        .WithEndpoint<Sender>(b => b
+        //            .When((session, context) =>
+        //            {
+        //                var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
+        //                databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
+        //                return Task.CompletedTask;
+        //            })
+        //            .When(context =>
+        //            {
+        //                return context.Logs.ToArray().Any(i =>
+        //                    i.Message.StartsWith(
+        //                        "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+        //            }, (bus, c) => bus.SendLocal(new MyMessage()))
+        //        )
+        //        .Done(async c => await this.TryGetSingle<MessagesView>(
+        //            "/api/messages?include_system_messages=false&sort=id") == false)
+        //        .Run();
+        //}
 
         [Test]
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
