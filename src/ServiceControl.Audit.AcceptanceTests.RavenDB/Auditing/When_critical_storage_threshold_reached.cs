@@ -28,15 +28,21 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "100");
+                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "0");
             };
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
-                    .When((session, context) =>
+                    .When(context =>
+                    {
+                        return context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Ensure started. Infrastructure started"));
+                    }, (_, __) =>
                     {
                         var persistenceSettings = ServiceProvider.GetRequiredService<PersistenceSettings>();
                         persistenceSettings.PersisterSpecificSettings[RavenBootstrapper.DatabasePathKey] = TestContext.CurrentContext.TestDirectory;
+                        persistenceSettings.PersisterSpecificSettings[RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey] = "100";
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -56,28 +62,39 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "100");
+                d.Add(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, "0");
             };
 
             var ingestionShutdown = false;
+            ScenarioContext result = null;
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
-                    .When((session, context) =>
+                    .When(context =>
+                    {
+                        result = context;
+                        return context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Ensure started. Infrastructure started"));
+                    }, (session, context) =>
                     {
                         var persistenceSettings = ServiceProvider.GetRequiredService<PersistenceSettings>();
                         persistenceSettings.PersisterSpecificSettings[RavenBootstrapper.DatabasePathKey] = TestContext.CurrentContext.TestDirectory;
+                        persistenceSettings.PersisterSpecificSettings[RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey] = "100";
                         return Task.CompletedTask;
                     })
                     .When(context =>
-                    {
-                        ingestionShutdown = context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+                        {
+                            ingestionShutdown = context.Logs.ToArray().Any(i =>
+                                i.Message.StartsWith(
+                                    "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
 
-                        return ingestionShutdown;
-                    },
-                    (bus, c) => bus.SendLocal(new MyMessage()))
+                            return ingestionShutdown;
+                        },
+                        (bus, c) =>
+                        {
+                            return bus.SendLocal(new MyMessage());
+                        })
                     .When(c => ingestionShutdown, (session, context) =>
                     {
                         var persistenceSettings = ServiceProvider.GetService<PersistenceSettings>();
@@ -88,6 +105,7 @@
                 .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
                 .Run();
         }
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()

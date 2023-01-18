@@ -48,9 +48,6 @@ namespace ServiceControl.Audit.Infrastructure
 
                 if (!isRunningAcceptanceTests)
                 {
-                    var logger = LogManager.GetLogger(typeof(NServiceBusFactory));
-                    logger.Warn($"####### enabling custom checks: {settings.ServiceControlQueueAddress}");
-
                     configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
                 }
             }
