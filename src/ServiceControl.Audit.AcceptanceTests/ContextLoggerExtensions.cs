@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Reflection;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
     using NServiceBus.AcceptanceTesting;
 
@@ -11,40 +11,42 @@
     {
         public static ILoggingBuilder AddScenarioContextLogging(this ILoggingBuilder builder)
         {
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ContextLoggerProvider>());
+            builder.Services.AddSingleton<ILoggerProvider>(sp => new ContextLoggerProvider());
+
             return builder;
         }
 
         class ContextLoggerProvider : ILoggerProvider
         {
             ConcurrentDictionary<string, ILogger> loggers = new ConcurrentDictionary<string, ILogger>();
-            ScenarioContext context;
-
-            public ContextLoggerProvider(ScenarioContext context)
-            {
-                this.context = context;
-            }
 
             public void Dispose() => loggers.Clear();
 
-            public ILogger CreateLogger(string categoryName) =>
-                loggers.GetOrAdd(categoryName, name => new ContextLogger(name, context));
+            public ILogger CreateLogger(string categoryName)
+            {
+                return loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+            }
         }
 
         class ContextLogger : ILogger
         {
             string categoryName;
-            ScenarioContext context;
 
-            public ContextLogger(string categoryName, ScenarioContext context)
+            public ContextLogger(string categoryName)
             {
                 this.categoryName = categoryName;
-                this.context = context;
+            }
+
+            public ScenarioContext GetContext()
+            {
+                var propertyInfo = typeof(ScenarioContext).GetProperty("Current", BindingFlags.NonPublic | BindingFlags.Static);
+
+                return (ScenarioContext)propertyInfo.GetValue(null);
             }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
                 Exception exception, Func<TState, Exception, string> formatter) =>
-                context.Logs.Enqueue(new ScenarioContext.LogItem
+                GetContext().Logs.Enqueue(new ScenarioContext.LogItem
                 {
                     LoggerName = categoryName,
                     Message = formatter(state, exception),
@@ -65,7 +67,7 @@
                 };
 
             public bool IsEnabled(LogLevel logLevel) =>
-                ConvertLogLevel(logLevel) <= context.LogLevel;
+                ConvertLogLevel(logLevel) <= GetContext().LogLevel;
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 

@@ -200,16 +200,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
 
                 ServiceProvider = host.Services;
-
-                var customChecks = ServiceProvider.GetServices<ICustomCheck>();
-                var logger = ServiceProvider.GetService<ILogger<ServiceControlComponentRunner>>();
-
-                foreach (ICustomCheck customCheck in customChecks)
-                {
-                    logger.LogWarning($"##### CustomCheck: {customCheck.Category}, {customCheck.Id}");
-                }
-
-                logger.LogWarning($"##### Feature state:{configuration.GetSettings().GetOrDefault<FeatureState>("NServiceBus.CustomChecks.CustomChecksFeature")}");
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))

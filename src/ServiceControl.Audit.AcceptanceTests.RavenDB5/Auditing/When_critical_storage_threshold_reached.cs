@@ -27,15 +27,21 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "100");
+                d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
             };
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
-                    .When((session, context) =>
+                    .When(context =>
+                    {
+                        return context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Ensure started. Infrastructure started"));
+                    }, (_, __) =>
                     {
                         var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
                         databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
+                        databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 100;
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -55,38 +61,45 @@
         {
             SetStorageConfiguration = d =>
             {
-                d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "100");
+                d.Add(RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey, "0");
             };
 
             var ingestionShutdown = false;
 
             await Define<ScenarioContext>()
-                .WithEndpoint<Sender>(b => b
-                    .When((session, context) =>
-                    {
-                        var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
-                        databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
-                        return Task.CompletedTask;
-                    })
-                    .When(context =>
-                    {
-                        ingestionShutdown = context.Logs.ToArray().Any(i =>
-                            i.Message.StartsWith(
-                                "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
+               .WithEndpoint<Sender>(b => b
+                   .When(context =>
+                   {
+                       return context.Logs.ToArray().Any(i =>
+                           i.Message.StartsWith(
+                               "Ensure started. Infrastructure started"));
+                   }, (session, context) =>
+                   {
+                       var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
+                       databaseConfiguration.ServerConfiguration.DbPath = TestContext.CurrentContext.TestDirectory;
+                       databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 100;
+                       return Task.CompletedTask;
+                   })
+                   .When(context =>
+                   {
+                       ingestionShutdown = context.Logs.ToArray().Any(i =>
+                           i.Message.StartsWith(
+                               "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
 
-                        return ingestionShutdown;
-                    },
-                    (bus, c) => bus.SendLocal(new MyMessage()))
-                    .When(c => ingestionShutdown, (session, context) =>
-                    {
-                        var databaseConfiguration = ServiceProvider.GetService<DatabaseConfiguration>();
-                        databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 0;
-                        return Task.CompletedTask;
-                    })
-                )
-                .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
-                .Run();
+                       return ingestionShutdown;
+                   },
+                       (bus, c) => bus.SendLocal(new MyMessage()))
+                   .When(c => ingestionShutdown, (session, context) =>
+                   {
+                       var databaseConfiguration = ServiceProvider.GetRequiredService<DatabaseConfiguration>();
+                       databaseConfiguration.MinimumStorageLeftRequiredForIngestion = 0;
+                       return Task.CompletedTask;
+                   })
+               )
+               .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
+               .Run();
         }
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender()
