@@ -1,29 +1,34 @@
 namespace ServiceControl.Audit.Infrastructure
 {
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
-    using NServiceBus;
-    using NServiceBus.Logging;
+    using NServiceBus.Extensions.Logging;
+    using LogManager = NServiceBus.Logging.LogManager;
     using Settings;
     using LogLevel = NLog.LogLevel;
+    using NLog.Extensions.Logging;
+    using NLog;
+    using System;
 
     static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            LogManager.Use<NLogFactory>();
-
-            const long megaByte = 1024 * 1024;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
+            var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            var header = $@"-------------------------------------------------------------
+ServiceControl Audit Version:				{version}
+-------------------------------------------------------------";
 
             var fileTarget = new FileTarget
             {
@@ -33,7 +38,7 @@ namespace ServiceControl.Audit.Infrastructure
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * megaByte
+                ArchiveAboveSize = 30 * MegaByte
             };
 
             var ravenFileTarget = new FileTarget
@@ -44,7 +49,7 @@ namespace ServiceControl.Audit.Infrastructure
                 ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
                 Layout = simpleLayout,
                 MaxArchiveFiles = 14,
-                ArchiveAboveSize = 30 * megaByte
+                ArchiveAboveSize = 30 * MegaByte
             };
 
             var consoleTarget = new ColoredConsoleTarget
@@ -55,11 +60,10 @@ namespace ServiceControl.Audit.Infrastructure
 
             var nullTarget = new NullTarget();
 
-            // There lines don't appear to be necessary.  The rules seem to work without implicitly adding the targets?!?
             nlogConfig.AddTarget("console", consoleTarget);
             nlogConfig.AddTarget("debugger", fileTarget);
             nlogConfig.AddTarget("raven", ravenFileTarget);
-            nlogConfig.AddTarget("bitbucket", nullTarget);
+            nlogConfig.AddTarget("null", nullTarget);
 
             // Only want to see raven errors
             nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
@@ -76,11 +80,12 @@ namespace ServiceControl.Audit.Infrastructure
                 Final = true
             });
 
+
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
 
-            // Remove Console Logging when running as a service
+
             if (!loggingSettings.LogToConsole)
             {
                 foreach (var rule in nlogConfig.LoggingRules.Where(p => p.Targets.Contains(consoleTarget)).ToList())
@@ -90,6 +95,17 @@ namespace ServiceControl.Audit.Infrastructure
             }
 
             NLog.LogManager.Configuration = nlogConfig;
+
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
+
+            var logger = LogManager.GetLogger("LoggingConfiguration");
+            var logEventInfo = new LogEventInfo
+            {
+                TimeStamp = DateTime.Now
+            };
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
         }
+
+        const long MegaByte = 1024 * 1024;
     }
 }

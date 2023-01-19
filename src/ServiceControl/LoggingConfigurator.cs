@@ -1,30 +1,35 @@
 namespace Particular.ServiceControl
 {
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using NLog.Config;
     using NLog.Layouts;
     using NLog.Targets;
-    using NLog.Targets.Wrappers;
-    using NServiceBus;
-    using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using NServiceBus.Extensions.Logging;
+    using LogManager = NServiceBus.Logging.LogManager;
     using LogLevel = NLog.LogLevel;
+    using NLog.Extensions.Logging;
+    using NLog;
+    using System;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     static class LoggingConfigurator
     {
         public static void ConfigureLogging(LoggingSettings loggingSettings)
         {
-            LogManager.Use<NLogFactory>();
-
             const long megaByte = 1024 * 1024;
             if (NLog.LogManager.Configuration != null)
             {
                 return;
             }
 
+            var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}");
+            var header = $@"-------------------------------------------------------------
+ServiceControl Version:				{version}
+-------------------------------------------------------------";
 
             Target fileTarget = new FileTarget
             {
@@ -53,10 +58,6 @@ namespace Particular.ServiceControl
                 Layout = simpleLayout,
                 UseDefaultRowHighlightingRules = true
             };
-
-            fileTarget = new AsyncTargetWrapper(fileTarget);
-            ravenFileTarget = new AsyncTargetWrapper(ravenFileTarget);
-            consoleTarget = new AsyncTargetWrapper(consoleTarget);
 
             var nullTarget = new NullTarget();
 
@@ -94,6 +95,15 @@ namespace Particular.ServiceControl
             }
 
             NLog.LogManager.Configuration = nlogConfig;
+
+            LogManager.UseFactory(new ExtensionsLoggerFactory(new NLogLoggerFactory()));
+
+            var logger = LogManager.GetLogger("LoggingConfiguration");
+            var logEventInfo = new LogEventInfo
+            {
+                TimeStamp = DateTime.Now
+            };
+            //logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
         }
     }
 }
