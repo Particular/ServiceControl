@@ -56,13 +56,11 @@
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
         {
             var ingestionShutdown = false;
-            ScenarioContext result = null;
 
             await Define<ScenarioContext>()
                .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        result = context;
                         return context.Logs.ToArray().Any(i =>
                             i.Message.StartsWith(
                                 "Ensure started. Infrastructure started"));
