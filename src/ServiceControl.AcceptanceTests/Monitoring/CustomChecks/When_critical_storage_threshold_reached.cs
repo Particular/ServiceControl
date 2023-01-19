@@ -12,6 +12,7 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
+    [RunOnAllTransports]
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
 
@@ -20,9 +21,8 @@
             SetSettings = s =>
             {
                 s.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
-                s.DbPath = TestContext.CurrentContext.TestDirectory;
                 s.DisableHealthChecks = false;
-                s.MinimumStorageLeftRequiredForIngestion = 100;
+                s.MinimumStorageLeftRequiredForIngestion = 0;
             };
 
 
@@ -31,7 +31,16 @@
         {
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
-                .When(context =>
+                    .When(context =>
+                    {
+                        return context.Logs.ToArray().Any(i => i.Message.StartsWith("Ensure started. Infrastructure started"));
+                    }, (_, __) =>
+                    {
+                        Settings.DbPath = TestContext.CurrentContext.TestDirectory;
+                        Settings.MinimumStorageLeftRequiredForIngestion = 100;
+                        return Task.CompletedTask;
+                    })
+                    .When(context =>
                     {
                         return context.Logs.ToArray().Any(i =>
                             i.Message.StartsWith(
@@ -47,9 +56,22 @@
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
         {
             var ingestionShutdown = false;
+            ScenarioContext result = null;
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
+                    .When(context =>
+                    {
+                        result = context;
+                        return context.Logs.ToArray().Any(i =>
+                            i.Message.StartsWith(
+                                "Ensure started. Infrastructure started"));
+                    }, (session, context) =>
+                    {
+                        Settings.DbPath = TestContext.CurrentContext.TestDirectory;
+                        Settings.MinimumStorageLeftRequiredForIngestion = 100;
+                        return Task.CompletedTask;
+                    })
                     .When(context =>
                     {
                         ingestionShutdown = context.Logs.ToArray().Any(i =>
@@ -58,7 +80,10 @@
 
                         return ingestionShutdown;
                     },
-                    (bus, c) => bus.SendLocal(new MyMessage()))
+                        (bus, c) =>
+                        {
+                            return bus.SendLocal(new MyMessage());
+                        })
                     .When(c => ingestionShutdown, (session, context) =>
                     {
                         Settings.MinimumStorageLeftRequiredForIngestion = 0;
@@ -67,6 +92,8 @@
                 )
                 .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
                 .Run();
+
+
         }
         public class Sender : EndpointConfigurationBuilder
         {

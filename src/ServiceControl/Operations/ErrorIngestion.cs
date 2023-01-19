@@ -152,6 +152,8 @@
 
                 ingestionEndpoint = await startableRaw.Start()
                     .ConfigureAwait(false);
+
+                logger.Info("Ensure started. Infrastructure started");
             }
             finally
             {
