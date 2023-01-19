@@ -8,7 +8,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.MessageFailures.Api;
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
@@ -45,10 +45,10 @@
                         return context.Logs.ToArray().Any(i =>
                             i.Message.StartsWith(
                                 "Shutting down due to failed persistence health check. Infrastructure shut down completed"));
-                    }, (bus, c) => bus.SendLocal(new MyMessage()))
-                )
-                .Done(async c => await this.TryGetSingle<MessagesView>(
-                    "/api/messages?include_system_messages=false&sort=id") == false)
+                    }, (bus, c) => bus.SendLocal(new MyMessage())
+                    )
+                    .DoNotFailOnErrorMessages())
+                .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors") == false)
                 .Run();
         }
 
@@ -59,7 +59,7 @@
             ScenarioContext result = null;
 
             await Define<ScenarioContext>()
-                .WithEndpoint<Sender>(b => b
+               .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
                         result = context;
@@ -89,8 +89,8 @@
                         Settings.MinimumStorageLeftRequiredForIngestion = 0;
                         return Task.CompletedTask;
                     })
-                )
-                .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
+                    .DoNotFailOnErrorMessages())
+                .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors"))
                 .Run();
 
 
@@ -99,12 +99,20 @@
         {
             public Sender()
             {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
+                    c.Recoverability().Immediate(i => i.NumberOfRetries(0));
+                    c.Recoverability().Delayed(d => d.NumberOfRetries(0));
+                });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
+                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                {
+                    throw new ApplicationException("Big Error!");
+                }
             }
         }
 
