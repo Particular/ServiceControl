@@ -11,6 +11,7 @@
         public const string ConnectionStringKey = "RavenDB5/ConnectionString";
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
+        public const string LogPathKey = "LogPath";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
@@ -58,7 +59,12 @@
 
                 var serverUrl = $"http://localhost:{databaseMaintenancePort}";
 
-                serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
+                if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
+                {
+                    throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
+                }
+
+                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath);
             }
             else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
             {

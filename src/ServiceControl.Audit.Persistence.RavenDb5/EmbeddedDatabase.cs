@@ -38,7 +38,8 @@
                 },
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
-                ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl
+                ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,
+                LogsPath = databaseConfiguration.ServerConfiguration.LogPath
             };
 
             EmbeddedServer.Instance.StartServer(serverOptions);
