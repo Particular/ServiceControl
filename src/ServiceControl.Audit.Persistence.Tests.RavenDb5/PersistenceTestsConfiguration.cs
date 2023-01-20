@@ -28,13 +28,16 @@
 
             setSettings(settings);
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
-
             if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
             {
                 var instance = await SharedEmbeddedServer.GetInstance();
 
                 settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+            }
+
+            if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.LogPathKey))
+            {
+                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
             }
 
             if (settings.PersisterSpecificSettings.TryGetValue(RavenDbPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
