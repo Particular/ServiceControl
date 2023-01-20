@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using NUnit.Framework;
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
@@ -25,6 +27,8 @@
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(settings);
+
+            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
 
             if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
             {
