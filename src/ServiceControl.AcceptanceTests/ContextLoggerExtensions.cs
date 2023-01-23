@@ -44,7 +44,7 @@
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
                 Exception exception, Func<TState, Exception, string> formatter) =>
-                GetContext().Logs.Enqueue(new ScenarioContext.LogItem
+                GetContext()?.Logs.Enqueue(new ScenarioContext.LogItem
                 {
                     LoggerName = categoryName,
                     Message = formatter(state, exception),
@@ -65,7 +65,7 @@
                 };
 
             public bool IsEnabled(LogLevel logLevel) =>
-                ConvertLogLevel(logLevel) <= GetContext().LogLevel;
+                ConvertLogLevel(logLevel) <= GetContext()?.LogLevel;
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 
