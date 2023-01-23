@@ -7,8 +7,6 @@
 
     class AuditIngestionCustomCheck : CustomCheck
     {
-        static ILog log = LogManager.GetLogger<AuditIngestionCustomCheck>();
-
         public AuditIngestionCustomCheck(State criticalErrorHolder)
             : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
@@ -17,7 +15,6 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            log.Warn("#### About to execute a custom check!");
             var failure = criticalErrorHolder.GetLastFailure();
             return failure == null
                 ? successResult

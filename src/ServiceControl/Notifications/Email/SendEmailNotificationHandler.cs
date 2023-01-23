@@ -23,8 +23,6 @@
 
         public async Task Handle(SendEmailNotification message, IMessageHandlerContext context)
         {
-            log.Warn($"SendEmailNotificationBody: {message.Body}");
-
             NotificationsSettings notifications;
 
             using (var session = store.OpenAsyncSession())
