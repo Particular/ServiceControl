@@ -74,8 +74,19 @@
                     _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
                 };
 
-            public bool IsEnabled(LogLevel logLevel) =>
-                ConvertLogLevel(logLevel) <= GetContext()?.LogLevel;
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                try
+                {
+                    return ConvertLogLevel(logLevel) <= GetContext()?.LogLevel;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+
+                return false;
+            }
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 
