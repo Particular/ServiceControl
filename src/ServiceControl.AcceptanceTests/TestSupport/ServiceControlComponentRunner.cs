@@ -169,7 +169,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 };
 
                 bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
+                    //.ConfigureLogging((c, b) => b.AddScenarioContextLogging())
                     .ConfigureServices(serviceCollection =>
                 {
                     serviceCollection.AddScoped<CriticalErrorTriggerController>();
