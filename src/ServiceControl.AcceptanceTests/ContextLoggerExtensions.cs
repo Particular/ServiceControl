@@ -43,13 +43,23 @@
             }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
-                Exception exception, Func<TState, Exception, string> formatter) =>
-                GetContext()?.Logs.Enqueue(new ScenarioContext.LogItem
+                Exception exception, Func<TState, Exception, string> formatter)
+
+            {
+                try
                 {
-                    LoggerName = categoryName,
-                    Message = formatter(state, exception),
-                    Level = ConvertLogLevel(logLevel)
-                });
+                    GetContext()?.Logs.Enqueue(new ScenarioContext.LogItem
+                    {
+                        LoggerName = categoryName,
+                        Message = formatter(state, exception),
+                        Level = ConvertLogLevel(logLevel)
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+            }
 
             NServiceBus.Logging.LogLevel ConvertLogLevel(LogLevel level)
                 => level switch
