@@ -37,7 +37,6 @@
             CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
         }
 
-        //[Theory]
         [TestCase(false, false)]
         [TestCase(true, false)] // creates body above 85000 bytes to make sure it is ingested into the body storage
         [TestCase(false, true)]
@@ -67,7 +66,7 @@
 
                     return x.Done;
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
         }

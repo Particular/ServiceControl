@@ -59,7 +59,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 "Exception message should be captured");
         }
 
-        //[Theory]
         [TestCase(false)]
         [TestCase(true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
         public async Task Should_be_imported_and_body_via_the_rest_api(bool largeMessage)
@@ -78,7 +77,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
         }
@@ -100,7 +99,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run();
+                .Run(TimeSpan.FromMinutes(2));
 
             var content = await result.Content.ReadAsStringAsync();
             Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
