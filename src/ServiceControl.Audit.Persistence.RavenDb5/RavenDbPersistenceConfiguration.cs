@@ -18,7 +18,8 @@
             DatabasePathKey,
             ConnectionStringKey,
             DatabaseMaintenancePortKey,
-            ExpirationProcessTimerInSecondsKey
+            ExpirationProcessTimerInSecondsKey,
+            LogPathKey
         };
 
         public string Name => "RavenDB5";
