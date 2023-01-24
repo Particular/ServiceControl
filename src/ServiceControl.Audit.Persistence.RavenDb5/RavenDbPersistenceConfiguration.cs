@@ -12,6 +12,7 @@
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
         public const string LogPathKey = "LogPath";
+        public const string RavenDbLogLevelKey = "RavenDBLogLevel";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
@@ -19,7 +20,8 @@
             ConnectionStringKey,
             DatabaseMaintenancePortKey,
             ExpirationProcessTimerInSecondsKey,
-            LogPathKey
+            LogPathKey,
+            RavenDbLogLevelKey
         };
 
         public string Name => "RavenDB5";
@@ -65,7 +67,14 @@
                     throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
                 }
 
-                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath);
+                var logsMode = "Operations";
+
+                if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
+                {
+                    logsMode = MapRavenDbLogLevelToLogsMode(ravenDbLogLevel);
+                }
+
+                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
             }
             else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
             {
@@ -85,6 +94,21 @@
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
                 serverConfiguration);
+        }
+
+        static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
+        {
+            if (ravenDbLogLevel == "Off")
+            {
+                return "None";
+            }
+
+            if (ravenDbLogLevel == "Trace" || ravenDbLogLevel == "Debug" || ravenDbLogLevel == "Info")
+            {
+                return "Information";
+            }
+
+            return "Operations";
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

@@ -34,7 +34,7 @@
             {
                 CommandLineArgs = new List<string>
                 {
-                    $"--License.Path=\"{localRavenLicense}\""
+                    $"--License.Path=\"{localRavenLicense}\" --Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}"
                 },
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
