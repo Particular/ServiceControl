@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
@@ -14,13 +15,27 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    class When_a_message_is_retried : AcceptanceTest
+    class When_a_message_is_retried_with_body : AcceptanceTest
     {
-        [Test]
-        public async Task Should_clean_headers()
+        [TestCase(false, false)]
+        [TestCase(true, false)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        [TestCase(false, true)]
+        [TestCase(true, true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        public async Task Should_work_with_various_body_size(bool largeMessageBodies, bool enableFullTextSearch)
         {
-            var context = await Define<TestContext>()
-                .WithEndpoint<VerifyHeader>()
+            SetSettings = settings =>
+            {
+                settings.EnableFullTextSearchOnBodies = enableFullTextSearch;
+            };
+
+            string content = $"{{\"Content\":\"{(largeMessageBodies ? new string('a', 86 * 1024) : "Small")}\"}}";
+            byte[] buffer = Encoding.UTF8.GetBytes(content);
+
+            var context = await Define<TestContext>(c =>
+                {
+                    c.BodyToSend = buffer;
+                })
+                .WithEndpoint<MessageWithBody>()
                 .Done(async x =>
                 {
                     if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
@@ -33,42 +48,20 @@
                 })
                 .Run();
 
-            CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
+            CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
         }
-
-        static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
-        {
-            "NServiceBus.Retries",
-            "NServiceBus.Retries.Timestamp",
-            "NServiceBus.FailedQ",
-            "ServiceContro.EditOf",
-            "NServiceBus.TimeOfFailure",
-            "NServiceBus.ExceptionInfo.ExceptionType",
-            "NServiceBus.ExceptionInfo.AuditMessage",
-            "NServiceBus.ExceptionInfo.Source",
-            "NServiceBus.ExceptionInfo.StackTrace",
-            "NServiceBus.ExceptionInfo.HelpLink",
-            "NServiceBus.ExceptionInfo.Message",
-            "NServiceBus.ExceptionInfo.InnerExceptionType",
-            "NServiceBus.ExceptionInfo.Data.Custom",
-            "NServiceBus.ProcessingMachine",
-            "NServiceBus.ProcessingEndpoint",
-            "$.diagnostics.hostid",
-            "$.diagnostics.hostdisplayname"
-        };
 
         class TestContext : ScenarioContext
         {
             public bool RetryIssued { get; set; }
             public bool Done { get; set; }
-            public Dictionary<string, string> Headers { get; set; }
             public byte[] BodyReceived { get; set; }
             public byte[] BodyToSend { get; set; } = new byte[0];
         }
 
-        class VerifyHeader : EndpointConfigurationBuilder
+        class MessageWithBody : EndpointConfigurationBuilder
         {
-            public VerifyHeader()
+            public MessageWithBody()
             {
                 EndpointSetup<DefaultServer>(
                     (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
@@ -85,12 +78,7 @@
                         [Headers.EnclosedMessageTypes] = typeof(MyMessage).FullName
                     };
 
-                    foreach (var headerKey in HeadersThatShouldBeRemoved)
-                    {
-                        headers[headerKey] = "test";
-                    }
-
-                    headers["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader));
+                    headers["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(MessageWithBody));
                     headers["$.diagnostics.hostid"] = Guid.NewGuid().ToString();
                     headers["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
 
@@ -109,7 +97,6 @@
 
                 public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {
-                    testContext.Headers = context.Message.Headers;
                     testContext.BodyReceived = context.Message.Body;
                     testContext.Done = true;
                     return Task.CompletedTask;

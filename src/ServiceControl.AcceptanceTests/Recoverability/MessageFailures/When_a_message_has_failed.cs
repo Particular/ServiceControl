@@ -77,7 +77,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run();
 
             Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
         }
@@ -99,7 +99,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
-                .Run(TimeSpan.FromMinutes(2));
+                .Run();
 
             var content = await result.Content.ReadAsStringAsync();
             Assert.IsTrue(content.Contains($"<Content>{myMessage.Content}</Content>"));
