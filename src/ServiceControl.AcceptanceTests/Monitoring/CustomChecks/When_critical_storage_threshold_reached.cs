@@ -101,8 +101,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1));
-                    c.Recoverability().Immediate(i => i.NumberOfRetries(0));
-                    c.Recoverability().Delayed(d => d.NumberOfRetries(0));
+                    c.NoRetries();
                 });
             }
 
