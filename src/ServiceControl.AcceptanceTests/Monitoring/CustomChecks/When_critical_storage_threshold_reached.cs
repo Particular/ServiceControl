@@ -36,7 +36,6 @@
                         return context.Logs.ToArray().Any(i => i.Message.StartsWith("Ensure started. Infrastructure started"));
                     }, (_, __) =>
                     {
-                        Settings.DbPath = TestContext.CurrentContext.TestDirectory;
                         Settings.MinimumStorageLeftRequiredForIngestion = 100;
                         return Task.CompletedTask;
                     })
@@ -66,7 +65,6 @@
                                 "Ensure started. Infrastructure started"));
                     }, (session, context) =>
                     {
-                        Settings.DbPath = TestContext.CurrentContext.TestDirectory;
                         Settings.MinimumStorageLeftRequiredForIngestion = 100;
                         return Task.CompletedTask;
                     })
