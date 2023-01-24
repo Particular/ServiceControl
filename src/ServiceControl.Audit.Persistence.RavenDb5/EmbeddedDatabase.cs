@@ -34,7 +34,7 @@
             {
                 CommandLineArgs = new List<string>
                 {
-                    $"--License.Path=\"{localRavenLicense}\" --Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}"
+                    $"--License.Path=\"{localRavenLicense}\" --Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode} --Indexing.NuGetPackagesPath=\"c:\\bleble\""
                 },
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
