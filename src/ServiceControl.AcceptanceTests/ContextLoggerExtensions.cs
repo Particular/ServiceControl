@@ -22,8 +22,18 @@
 
             public void Dispose() => loggers.Clear();
 
-            public ILogger CreateLogger(string categoryName) =>
-                loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+            public ILogger CreateLogger(string categoryName)
+            {
+                try
+                {
+                    return loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to get logger. Exception: {e}");
+                    throw;
+                }
+            }
         }
 
         class ContextLogger : ILogger
