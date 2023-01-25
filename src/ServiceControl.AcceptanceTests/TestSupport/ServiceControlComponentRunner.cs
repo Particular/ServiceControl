@@ -15,6 +15,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
+    using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -162,7 +163,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
                 {
                     HttpClientFactory = HttpClientFactory
