@@ -29,12 +29,18 @@
                 throw new Exception($"RavenDB license not found. Make sure the RavenDB license file, '{licenseFileName}', is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder.");
             }
 
+            var nugetPackagesPath = Path.Combine(databaseConfiguration.ServerConfiguration.DbPath, "Packages", "NuGet");
+
             logger.InfoFormat("Loading RavenDB license from {0}", localRavenLicense);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs = new List<string>
                 {
-                    $"--License.Path=\"{localRavenLicense}\" --Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode} --Indexing.NuGetPackagesPath=\"c:\\bleble\""
+                    $"--License.Path=\"{localRavenLicense}\"",
+                    $"--Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}",
+                    // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
+                    // See https://github.com/ravendb/ravendb/issues/15694
+                    $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
                 },
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
