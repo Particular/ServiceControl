@@ -142,9 +142,9 @@
             }
             catch (Exception e)
             {
-                if (Logger.IsDebugEnabled)
+                if (Logger.IsWarnEnabled)
                 {
-                    Logger.Debug($"Processing of message '{context.MessageId}' failed.", e);
+                    Logger.Warn($"Processing of message '{context.MessageId}' failed.", e);
                 }
 
                 context.GetTaskCompletionSource().TrySetException(e);

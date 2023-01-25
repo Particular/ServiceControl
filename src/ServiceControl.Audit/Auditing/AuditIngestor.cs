@@ -83,9 +83,9 @@
             }
             catch (Exception e)
             {
-                if (log.IsDebugEnabled)
+                if (log.IsWarnEnabled)
                 {
-                    log.Debug("Forwarding messages failed", e);
+                    log.Warn("Forwarding messages failed", e);
                 }
 
                 // making sure to rethrow so that all messages get marked as failed
