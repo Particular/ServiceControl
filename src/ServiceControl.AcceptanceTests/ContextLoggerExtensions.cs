@@ -61,7 +61,7 @@
                     GetContext()?.Logs.Enqueue(new ScenarioContext.LogItem
                     {
                         LoggerName = categoryName,
-                        Message = formatter(state, exception),
+                        Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
                         Level = ConvertLogLevel(logLevel)
                     });
                 }
@@ -88,7 +88,7 @@
             {
                 try
                 {
-                    return ConvertLogLevel(logLevel) <= GetContext()?.LogLevel;
+                    return ConvertLogLevel(logLevel) >= GetContext()?.LogLevel;
                 }
                 catch (Exception e)
                 {

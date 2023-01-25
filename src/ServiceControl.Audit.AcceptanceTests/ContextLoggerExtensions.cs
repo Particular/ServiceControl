@@ -49,7 +49,7 @@
                 GetContext().Logs.Enqueue(new ScenarioContext.LogItem
                 {
                     LoggerName = categoryName,
-                    Message = formatter(state, exception),
+                    Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
                     Level = ConvertLogLevel(logLevel)
                 });
 
@@ -67,7 +67,7 @@
                 };
 
             public bool IsEnabled(LogLevel logLevel) =>
-                ConvertLogLevel(logLevel) <= GetContext().LogLevel;
+                ConvertLogLevel(logLevel) >= GetContext().LogLevel;
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 
