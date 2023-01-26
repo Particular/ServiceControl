@@ -57,6 +57,10 @@
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
 
+            var maxAttempts = 10;
+
+            //HINT: RavenDB5 is using Lodash v4.13.1 to provide javascript utility functions
+            //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new ScriptedPatchCommandData
             {
                 Key = documentId,
@@ -64,14 +68,20 @@
                 {
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
-
-                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
-                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
+                                
+                                var newAttempts = _.union(this.{nameof(FailedMessage.ProcessingAttempts)}, [attempt]);
+                                
+                                newAttempts = _.sortBy(newAttempts, function(a) {{
+                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
+                                
+                                if(newAttempts.length > {maxAttempts})
+                                {{
+                                    newAttempts = _.slice(newAttempts, 1, {maxAttempts} + 1); 
+                                }}
 
-                                if(duplicateIndex === -1){{
-                                    this.{nameof(FailedMessage.ProcessingAttempts)} = _.union(this.{nameof(FailedMessage.ProcessingAttempts)}, [attempt]);
-                                }}",
+                                this.{nameof(FailedMessage.ProcessingAttempts)} = newAttempts;
+                                ",
                     Values = new Dictionary<string, object>
                     {
                         {"status", (int)FailedMessageStatus.Unresolved},

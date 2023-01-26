@@ -21,7 +21,7 @@
         const string AttemptIdHeaderKey = "testing.failed_attempt_no";
 
         [Test]
-        public async Task Should_clean_headers()
+        public async Task Should_store_only_the_latest_processing_attempts()
         {
             FailedMessage result = null;
 
@@ -36,26 +36,29 @@
 
                     result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageId}");
 
-                    return result != null && result.ProcessingAttempts.Count == maximalNumberOfStoredFailedAttempts && result.ProcessingAttempts.Any(pa =>
+                    var failureTimes = result?.ProcessingAttempts.Select(pa => pa.Headers["n_service_bus.time_of_failure"]).ToArray();
+
+                    return result != null && AreSame(failureTimes, c.LatestFailureTimes.ToArray());
+
+                    bool AreSame(string[] a, string[] b)
                     {
-                        try
+                        if (a.Length != b.Length)
                         {
-                            return pa.Headers[AttemptIdHeaderKey] == numberOfFailedAttempts.ToString();
+                            return false;
                         }
-                        catch (Exception e)
+
+                        for (var i = 0; i < a.Length; i++)
                         {
-                            Console.WriteLine(e);
-                            throw;
+                            if (a[i] != b[i])
+                            {
+                                return false;
+                            }
                         }
-                    });
+
+                        return true;
+                    }
                 })
                 .Run();
-
-            Assert.IsTrue(result.ProcessingAttempts.Count == maximalNumberOfStoredFailedAttempts, $"Only last {maximalNumberOfStoredFailedAttempts} processing attempts should be stored for any failing message");
-
-            var failureTimes = result.ProcessingAttempts.Select(pa => pa.Headers["NServiceBus.TimeOfFailure"]).ToArray();
-
-            CollectionAssert.AreEquivalent(failureTimes, context.LatestFailureTimes, "Processing attempts should be stored from latest to oldest");
         }
 
         class TestContext : ScenarioContext
@@ -77,14 +80,14 @@
                 {
                     var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(AnEndpoint));
                     var messageId = Guid.NewGuid().ToString();
-                    var latestTimeOfFailure = DateTime.UtcNow;
+                    var earliestTimeOfFailure = DateTime.UtcNow;
 
                     context.UniqueMessageId = DeterministicGuid.MakeId(messageId, endpointName).ToString();
 
                     var transportOperations = Enumerable.Range(0, numberOfFailedAttempts)
                         .Select(i =>
                         {
-                            var timeOfFailure = DateTimeExtensions.ToWireFormattedString(latestTimeOfFailure.Subtract(TimeSpan.FromMinutes(i + 1)));
+                            var timeOfFailure = DateTimeExtensions.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
 
                             var headers = new Dictionary<string, string>
                             {
@@ -103,7 +106,10 @@
                         })
                         .ToArray();
 
-                    context.LatestFailureTimes = context.LatestFailureTimes.Take(maximalNumberOfStoredFailedAttempts).ToList();
+                    context.LatestFailureTimes = context.LatestFailureTimes
+                        .Skip(context.LatestFailureTimes.Count - maximalNumberOfStoredFailedAttempts)
+                        .Take(maximalNumberOfStoredFailedAttempts)
+                        .ToList();
 
                     return new TransportOperations(transportOperations);
                 }
