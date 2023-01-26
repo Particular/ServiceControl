@@ -66,13 +66,11 @@
             };
 
             var ingestionShutdown = false;
-            ScenarioContext result = null;
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
                     .When(context =>
                     {
-                        result = context;
                         return context.Logs.ToArray().Any(i =>
                             i.Message.StartsWith(
                                 "Ensure started. Infrastructure started"));
@@ -91,10 +89,7 @@
 
                             return ingestionShutdown;
                         },
-                        (bus, c) =>
-                        {
-                            return bus.SendLocal(new MyMessage());
-                        })
+                        (bus, c) => bus.SendLocal(new MyMessage()))
                     .When(c => ingestionShutdown, (session, context) =>
                     {
                         var persistenceSettings = ServiceProvider.GetService<PersistenceSettings>();
