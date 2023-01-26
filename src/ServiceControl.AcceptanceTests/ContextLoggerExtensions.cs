@@ -53,13 +53,23 @@
             }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
-                Exception exception, Func<TState, Exception, string> formatter) =>
-                GetContext().Logs.Enqueue(new ScenarioContext.LogItem
+                Exception exception, Func<TState, Exception, string> formatter)
+
+            {
+                try
                 {
-                    LoggerName = categoryName,
-                    Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
-                    Level = ConvertLogLevel(logLevel)
-                });
+                    GetContext().Logs.Enqueue(new ScenarioContext.LogItem
+                    {
+                        LoggerName = categoryName,
+                        Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
+                        Level = ConvertLogLevel(logLevel)
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+            }
 
             NServiceBus.Logging.LogLevel ConvertLogLevel(LogLevel level)
                 => level switch
@@ -74,7 +84,19 @@
                     _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
                 };
 
-            public bool IsEnabled(LogLevel logLevel) => ConvertLogLevel(logLevel) >= GetContext()?.LogLevel;
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                try
+                {
+                    return ConvertLogLevel(logLevel) >= GetContext()?.LogLevel;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+
+                return false;
+            }
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 

@@ -97,7 +97,7 @@
                    })
                )
                .Done(async c => await this.TryGetSingle<MessagesView>("/api/messages?include_system_messages=false&sort=id"))
-               .Run();
+               .Run(TimeSpan.FromSeconds(120));
         }
 
         public class Sender : EndpointConfigurationBuilder
