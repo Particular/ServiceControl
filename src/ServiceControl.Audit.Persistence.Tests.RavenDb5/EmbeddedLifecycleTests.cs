@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
@@ -10,14 +11,19 @@
     [TestFixture]
     class EmbeddedLifecycleTests : PersistenceTestFixture
     {
+        string logPath;
+        string dbPath;
+
         public override async Task Setup()
         {
             SetSettings = s =>
             {
-                var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded");
+                dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded");
+                logPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                 var databaseMaintenancePort = FindAvailablePort(33335);
 
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dbPath;
+                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = logPath;
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
             };
 
@@ -28,9 +34,12 @@
         }
 
         [Test]
-        public async Task CheckDataStoreAvailable()
+        public async Task Verify_embedded_database()
         {
             await DataStore.QueryKnownEndpoints();
+
+            DirectoryAssert.Exists(dbPath);
+            DirectoryAssert.Exists(logPath);
         }
 
         static int FindAvailablePort(int startPort)
