@@ -10,7 +10,7 @@
     class CheckMinimumStorageRequiredForAuditIngestion : CustomCheck
     {
         public CheckMinimumStorageRequiredForAuditIngestion(State stateHolder, DatabaseConfiguration databaseConfiguration)
-            : base("Audit Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
+            : base("Audit Message Ingestion Process", "ServiceControl.Audit Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
             this.databaseConfiguration = databaseConfiguration;
