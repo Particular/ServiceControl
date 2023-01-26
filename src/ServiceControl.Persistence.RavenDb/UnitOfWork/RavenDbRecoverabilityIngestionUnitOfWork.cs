@@ -57,8 +57,6 @@
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
 
-            var maxAttempts = 10;
-
             //HINT: RavenDB5 is using Lodash v4.13.1 to provide javascript utility functions
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new ScriptedPatchCommandData
@@ -75,9 +73,9 @@
                                     return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
                                 
-                                if(newAttempts.length > {maxAttempts})
+                                if(newAttempts.length > {MaxProcessingAttempts})
                                 {{
-                                    newAttempts = _.slice(newAttempts, 1, {maxAttempts} + 1); 
+                                    newAttempts = _.slice(newAttempts, 1, {MaxProcessingAttempts} + 1); 
                                 }}
 
                                 this.{nameof(FailedMessage.ProcessingAttempts)} = newAttempts;
@@ -120,6 +118,7 @@
                                     }}");
         }
 
+        static int MaxProcessingAttempts = 10;
         static readonly RavenJObject FailedMessageMetadata;
         static readonly JsonSerializer Serializer;
     }
