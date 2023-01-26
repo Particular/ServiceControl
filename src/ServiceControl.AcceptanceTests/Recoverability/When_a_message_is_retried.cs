@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
@@ -34,6 +35,41 @@
                 .Run();
 
             CollectionAssert.DoesNotContain(HeadersThatShouldBeRemoved, context.Headers.Keys);
+        }
+
+        [Theory]
+        [TestCase(false, false)]
+        [TestCase(true, false)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        [TestCase(false, true)]
+        [TestCase(true, true)] // creates body above 85000 bytes to make sure it is ingested into the body storage
+        public async Task Should_work_with_various_body_size(bool largeMessageBodies, bool enableFullTextSearch)
+        {
+            SetSettings = settings =>
+            {
+                settings.EnableFullTextSearchOnBodies = enableFullTextSearch;
+            };
+
+            string content = $"{{\"Content\":\"{(largeMessageBodies ? new string('a', 86 * 1024) : "Small")}\"}}";
+            byte[] buffer = Encoding.UTF8.GetBytes(content);
+
+            var context = await Define<TestContext>(c =>
+            {
+                c.BodyToSend = buffer;
+            })
+                .WithEndpoint<VerifyHeader>()
+                .Done(async x =>
+                {
+                    if (!x.RetryIssued && await this.TryGetMany<FailedMessageView>("/api/errors"))
+                    {
+                        x.RetryIssued = true;
+                        await this.Post<object>("/api/errors/retry/all");
+                    }
+
+                    return x.Done;
+                })
+                .Run();
+
+            CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
         }
 
         static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
