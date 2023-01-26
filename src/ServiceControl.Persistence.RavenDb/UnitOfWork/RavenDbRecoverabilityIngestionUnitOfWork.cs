@@ -67,7 +67,19 @@
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
                                 
-                                var newAttempts = _.union(this.{nameof(FailedMessage.ProcessingAttempts)}, [attempt]);
+                                var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
+
+                                //De-duplicate attempts by AttemptedAt value
+
+                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
+                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
+                                }});
+
+                                if(duplicateIndex === -1){{
+                                    newAttempts = _.union(newAttempts, [attempt]);
+                                }}
+
+                                //Trim to the latest MaxProcessingAttempts 
                                 
                                 newAttempts = _.sortBy(newAttempts, function(a) {{
                                     return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};

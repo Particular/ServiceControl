@@ -16,8 +16,8 @@
 
     class When_a_messages_fails_multiple_times : AcceptanceTest
     {
-        const int numberOfFailedAttempts = 20;
-        const int maximalNumberOfStoredFailedAttempts = 10;
+        const int NumberOfFailedAttempts = 20;
+        const int MaximalNumberOfStoredFailedAttempts = 10;
         const string AttemptIdHeaderKey = "testing.failed_attempt_no";
 
         [Test]
@@ -84,7 +84,7 @@
 
                     context.UniqueMessageId = DeterministicGuid.MakeId(messageId, endpointName).ToString();
 
-                    var transportOperations = Enumerable.Range(0, numberOfFailedAttempts)
+                    var transportOperations = Enumerable.Range(0, NumberOfFailedAttempts)
                         .Select(i =>
                         {
                             var timeOfFailure = DateTimeExtensions.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
@@ -107,8 +107,8 @@
                         .ToArray();
 
                     context.LatestFailureTimes = context.LatestFailureTimes
-                        .Skip(context.LatestFailureTimes.Count - maximalNumberOfStoredFailedAttempts)
-                        .Take(maximalNumberOfStoredFailedAttempts)
+                        .Skip(context.LatestFailureTimes.Count - MaximalNumberOfStoredFailedAttempts)
+                        .Take(MaximalNumberOfStoredFailedAttempts)
                         .ToList();
 
                     return new TransportOperations(transportOperations);
