@@ -39,15 +39,17 @@
         public void Should_support_embedded_server()
         {
             var settings = BuildSettings();
-            var dpPath = "c://some-path";
+            var dpPath = "c://db-path";
+            var logPath = "c://log-path";
 
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
             settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
-
+            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = logPath;
             var configuration = RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
             Assert.True(configuration.ServerConfiguration.UseEmbeddedServer);
             Assert.AreEqual(dpPath, configuration.ServerConfiguration.DbPath);
+            Assert.AreEqual(logPath, configuration.ServerConfiguration.LogPath);
             Assert.AreEqual("http://localhost:11111", configuration.ServerConfiguration.ServerUrl);
         }
 

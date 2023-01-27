@@ -11,13 +11,17 @@
         public const string ConnectionStringKey = "RavenDB5/ConnectionString";
         public const string DatabaseMaintenancePortKey = "DatabaseMaintenancePort";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
+        public const string LogPathKey = "LogPath";
+        public const string RavenDbLogLevelKey = "RavenDBLogLevel";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
             DatabasePathKey,
             ConnectionStringKey,
             DatabaseMaintenancePortKey,
-            ExpirationProcessTimerInSecondsKey
+            ExpirationProcessTimerInSecondsKey,
+            LogPathKey,
+            RavenDbLogLevelKey
         };
 
         public string Name => "RavenDB5";
@@ -58,7 +62,19 @@
 
                 var serverUrl = $"http://localhost:{databaseMaintenancePort}";
 
-                serverConfiguration = new ServerConfiguration(dbPath, serverUrl);
+                if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
+                {
+                    throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
+                }
+
+                var logsMode = "Operations";
+
+                if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
+                {
+                    logsMode = MapRavenDbLogLevelToLogsMode(ravenDbLogLevel);
+                }
+
+                serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
             }
             else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
             {
@@ -78,6 +94,21 @@
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
                 serverConfiguration);
+        }
+
+        static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
+        {
+            if (ravenDbLogLevel == "Off")
+            {
+                return "None";
+            }
+
+            if (ravenDbLogLevel == "Trace" || ravenDbLogLevel == "Debug" || ravenDbLogLevel == "Info")
+            {
+                return "Information";
+            }
+
+            return "Operations";
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
