@@ -87,7 +87,7 @@
                                 
                                 if(newAttempts.length > {MaxProcessingAttempts})
                                 {{
-                                    newAttempts = _.slice(newAttempts, 1, {MaxProcessingAttempts} + 1); 
+                                    newAttempts = _.slice(newAttempts, newAttempts.length - {MaxProcessingAttempts}, newAttempts.length); 
                                 }}
 
                                 this.{nameof(FailedMessage.ProcessingAttempts)} = newAttempts;
