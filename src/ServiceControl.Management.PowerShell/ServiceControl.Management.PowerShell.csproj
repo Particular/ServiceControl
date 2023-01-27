@@ -28,7 +28,7 @@
     <ParameterGroup>
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
       <Pattern ParameterType="System.String" Required="true" />
-      <ReplacementText ParameterType="System.String" Required="true" />
+      <ReplacementText ParameterType="System.String" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.Text.RegularExpressions" />
@@ -38,9 +38,16 @@
              RegexOptions options = RegexOptions.Multiline | RegexOptions.IgnoreCase;
              if (Files.Length > 0)
              {
+                  ReplacementText ??= string.Empty;
+                  if (Pattern == "{{Prerelease}}" && !string.IsNullOrEmpty(ReplacementText))
+                  {
+                      var parts = ReplacementText.Split('.');
+                      var result = int.Parse(parts[1]);
+                      ReplacementText = $"{parts[0]}{result:D4}";
+                  }
                   for (int i = 0; i < Files.Length; i++)
                   {
-                      string path = Files[i].GetMetadata("FullPath");
+                      var path = Files[i].GetMetadata("FullPath");
                       File.WriteAllText(path, Regex.Replace(File.ReadAllText(path), Pattern, ReplacementText, options));
                   }
               }
@@ -54,6 +61,7 @@
       <ModuleFile Include="$(ModuleArtifactsPath)$(ModuleName).psd1" />
     </ItemGroup>
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Version}}" ReplacementText="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
+    <FileUpdate Files="@(ModuleFile)" Pattern="{{Prerelease}}" ReplacementText="$(MinVerPrerelease)" />
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Date}}" ReplacementText="$([System.DateTime]::UtcNow.ToString(yyyy))" />
   </Target>
 
