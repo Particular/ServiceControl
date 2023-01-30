@@ -87,6 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="4.2.0" />
-    <GlobalPackageReference Include="Particular.Packaging" Version="2.2.0" />
+    <GlobalPackageReference Include="Particular.Packaging" Version="2.3.0" />
   </ItemGroup>
 </Project>
