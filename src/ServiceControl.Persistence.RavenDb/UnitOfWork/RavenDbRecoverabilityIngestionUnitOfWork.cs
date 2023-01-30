@@ -57,7 +57,7 @@
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
 
-            //HINT: RavenDB5 is using Lodash v4.13.1 to provide javascript utility functions
+            //HINT: RavenDB 3.5 is using Lodash v4.13.1 to provide javascript utility functions
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new ScriptedPatchCommandData
             {
