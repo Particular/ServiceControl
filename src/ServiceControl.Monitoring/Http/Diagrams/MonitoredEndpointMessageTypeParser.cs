@@ -40,7 +40,7 @@ namespace ServiceControl.Monitoring.Http.Diagrams
                 }
                 catch (Exception e)
                 {
-                    Logger.Debug($"Error parsing message type: {typeName}.", e);
+                    Logger.Warn($"Error parsing message type: {typeName}.", e);
                 }
             }
 

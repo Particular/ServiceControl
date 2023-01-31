@@ -15,11 +15,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
+    using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using Particular.ServiceControl;
     using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure.OWIN;
@@ -97,7 +97,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 {
                     var headers = messageContext.Headers;
                     var id = messageContext.MessageId;
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
 
@@ -163,13 +163,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
+                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
                 bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
                 {
                     HttpClientFactory = HttpClientFactory
                 };
 
-                bootstrapper.HostBuilder.ConfigureServices(serviceCollection =>
+                bootstrapper.HostBuilder
+                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
+                    .ConfigureServices(serviceCollection =>
                 {
                     serviceCollection.AddScoped<CriticalErrorTriggerController>();
                     serviceCollection.AddScoped<KnownEndpointPersistenceQueryController>();

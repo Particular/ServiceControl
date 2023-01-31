@@ -1,10 +1,9 @@
-namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
+﻿namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Collections.Concurrent;
     using System.Reflection;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
     using NServiceBus.AcceptanceTesting;
 
@@ -12,7 +11,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     {
         public static ILoggingBuilder AddScenarioContextLogging(this ILoggingBuilder builder)
         {
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ContextLoggerProvider>());
+            builder.Services.AddSingleton<ILoggerProvider>(sp => new ContextLoggerProvider());
+
             return builder;
         }
 
@@ -22,8 +22,10 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             public void Dispose() => loggers.Clear();
 
-            public ILogger CreateLogger(string categoryName) =>
-                loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+            public ILogger CreateLogger(string categoryName)
+            {
+                return loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+            }
         }
 
         class ContextLogger : ILogger

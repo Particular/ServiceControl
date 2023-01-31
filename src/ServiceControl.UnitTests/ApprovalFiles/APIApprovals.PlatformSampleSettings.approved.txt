@@ -44,6 +44,7 @@
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
+  "MinimumStorageLeftRequiredForIngestion": 5,
   "EnableFullTextSearchOnBodies": true,
   "DisableHealthChecks": false,
   "ExposeApi": true,

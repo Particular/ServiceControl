@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -16,26 +17,36 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using Infrastructure.WebApi;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.CustomChecks;
+    using NServiceBus.Features;
     using NServiceBus.Logging;
+    using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
+    using LogLevel = NServiceBus.Logging.LogLevel;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse,
+            AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings,
+            Action<EndpointConfiguration> customConfiguration,
+            Action<IDictionary<string, string>> setStorageConfiguration)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
+            this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
+        public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => settings.Port.ToString();
 
@@ -117,6 +128,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
 
+            setStorageConfiguration(persisterSpecificSettings);
+
             foreach (var persisterSpecificSetting in persisterSpecificSettings)
             {
                 ConfigurationManager.AppSettings.Set($"ServiceControl.Audit/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
@@ -178,9 +191,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 loggingSettings);
 
                 bootstrapper.HostBuilder
-                    .ConfigureServices(s => s.AddTransient<FailedAuditsController>());
+                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
+                    .ConfigureServices(s =>
+                    {
+                        s.AddTransient<FailedAuditsController>();
+                    });
 
                 host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
+
+                ServiceProvider = host.Services;
             }
 
             using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
@@ -220,6 +239,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
+        Action<IDictionary<string, string>> setStorageConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         IHost host;
         Settings settings;

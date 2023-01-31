@@ -92,6 +92,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string LicenseFileText { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
+        public int MinimumStorageLeftRequiredForIngestion { get; set; }
         public string NotificationsFilter { get; set; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }

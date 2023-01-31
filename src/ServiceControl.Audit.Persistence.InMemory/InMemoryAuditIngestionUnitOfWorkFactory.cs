@@ -17,6 +17,8 @@
             return new InMemoryAuditIngestionUnitOfWork(dataStore, bodyStorageEnricher);
         }
 
+        public bool CanIngestMore() => true;
+
         InMemoryAuditDataStore dataStore;
         BodyStorageEnricher bodyStorageEnricher;
     }

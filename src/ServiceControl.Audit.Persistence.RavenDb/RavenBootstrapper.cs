@@ -20,6 +20,7 @@
         public const string ExpirationProcessBatchSizeKey = "ExpirationProcessBatchSize";
         public const string RunCleanupBundleKey = "RavenDB35/RunCleanupBundle";
         public const string RunInMemoryKey = "RavenDB35/RunInMemory";
+        public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
         public static PersistenceSettings Settings { get; private set; }
 

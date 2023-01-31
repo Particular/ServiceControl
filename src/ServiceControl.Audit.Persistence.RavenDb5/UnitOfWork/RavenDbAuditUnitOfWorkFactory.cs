@@ -1,17 +1,19 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
 {
-    using System;
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using RavenDb;
+    using ServiceControl.Audit.Persistence.RavenDb5.CustomChecks;
 
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
-        public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
+        public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider,
+            DatabaseConfiguration databaseConfiguration, CheckMinimumStorageRequiredForAuditIngestion.State customCheckState)
         {
             this.documentStoreProvider = documentStoreProvider;
             this.sessionProvider = sessionProvider;
             this.databaseConfiguration = databaseConfiguration;
+            this.customCheckState = customCheckState;
         }
 
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
@@ -25,8 +27,14 @@
             );
         }
 
+        public bool CanIngestMore()
+        {
+            return customCheckState.CanIngestMore;
+        }
+
         readonly IRavenDbDocumentStoreProvider documentStoreProvider;
         readonly IRavenDbSessionProvider sessionProvider;
         readonly DatabaseConfiguration databaseConfiguration;
+        readonly CheckMinimumStorageRequiredForAuditIngestion.State customCheckState;
     }
 }

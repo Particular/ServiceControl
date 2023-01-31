@@ -14,6 +14,7 @@
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Persistence;
+    using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure.Metrics;
 
     class AuditIngestion : IHostedService
@@ -27,11 +28,13 @@
             IFailedAuditStorage failedImportsStorage,
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
-            AuditIngestor auditIngestor)
+            AuditIngestor auditIngestor,
+            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory)
         {
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.auditIngestor = auditIngestor;
+            this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
@@ -86,6 +89,20 @@
                 logger.Debug("Ensure started. Start/stop semaphore acquiring");
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 logger.Debug("Ensure started. Start/stop semaphore acquired");
+
+                if (!unitOfWorkFactory.CanIngestMore())
+                {
+                    if (ingestionEndpoint != null)
+                    {
+                        var stoppable = ingestionEndpoint;
+                        ingestionEndpoint = null;
+                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
+                        await stoppable.Stop().ConfigureAwait(false);
+                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
+                    }
+                    return;
+                }
+
 
                 if (ingestionEndpoint != null)
                 {
@@ -210,6 +227,7 @@
         readonly RawEndpointFactory rawEndpointFactory;
         readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly AuditIngestor auditIngestor;
+        readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
         readonly Meter batchSizeMeter;

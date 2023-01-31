@@ -53,9 +53,9 @@
             byte[] buffer = Encoding.UTF8.GetBytes(content);
 
             var context = await Define<TestContext>(c =>
-                {
-                    c.BodyToSend = buffer;
-                })
+            {
+                c.BodyToSend = buffer;
+            })
                 .WithEndpoint<VerifyHeader>()
                 .Done(async x =>
                 {

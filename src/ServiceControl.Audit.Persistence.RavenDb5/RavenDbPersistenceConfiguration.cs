@@ -13,6 +13,7 @@
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
         public const string LogPathKey = "LogPath";
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
+        public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
         public IEnumerable<string> ConfigurationKeys => new string[]{
             DatabaseNameKey,
@@ -21,7 +22,8 @@
             DatabaseMaintenancePortKey,
             ExpirationProcessTimerInSecondsKey,
             LogPathKey,
-            RavenDbLogLevelKey
+            RavenDbLogLevelKey,
+            MinimumStorageLeftRequiredForIngestionKey
         };
 
         public string Name => "RavenDB5";
@@ -85,6 +87,16 @@
                 throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified.");
             }
 
+            if (!settings.PersisterSpecificSettings.TryGetValue(MinimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestionKey))
+            {
+                minimumStorageLeftRequiredForIngestionKey = "5";
+            }
+
+            if (!int.TryParse(minimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestion))
+            {
+                throw new InvalidOperationException($"{MinimumStorageLeftRequiredForIngestionKey} must be an integer.");
+            }
+
             var expirationProcessTimerInSeconds = GetExpirationProcessTimerInSeconds(settings);
 
             return new DatabaseConfiguration(
@@ -93,6 +105,7 @@
                 settings.EnableFullTextSearchOnBodies,
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
+                minimumStorageLeftRequiredForIngestion,
                 serverConfiguration);
         }
 

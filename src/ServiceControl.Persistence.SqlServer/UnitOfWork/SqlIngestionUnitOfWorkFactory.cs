@@ -21,5 +21,7 @@
 
             return new SqlIngestionUnitOfWork(connection, transaction);
         }
+
+        public bool CanIngestMore() => true;
     }
 }
