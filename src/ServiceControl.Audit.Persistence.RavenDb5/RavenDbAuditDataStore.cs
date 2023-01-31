@@ -4,16 +4,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client.Documents;
     using Auditing.MessagesView;
-    using ServiceControl.SagaAudit;
-    using Monitoring;
     using Extensions;
     using Indexes;
-    using Transformers;
+    using Monitoring;
+    using Raven.Client.Documents;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
     using ServiceControl.Audit.Persistence.Infrastructure;
+    using ServiceControl.SagaAudit;
+    using Transformers;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
@@ -171,6 +171,20 @@
                     .ToList();
 
                 return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
+            }
+        }
+
+        public async Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts()
+        {
+            using (var session = sessionProvider.OpenSession())
+            {
+                var data = await session.Query<DailyAuditCount, AuditCountIndex>()
+                    .Statistics(out var stats)
+                    .OrderBy(r => r.UtcDate)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<DailyAuditCount>>(data, stats.ToQueryStatsInfo());
             }
         }
 

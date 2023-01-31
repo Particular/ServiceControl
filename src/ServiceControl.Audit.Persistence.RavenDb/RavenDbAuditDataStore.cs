@@ -3,21 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Raven.Client;
-    using ServiceControl.Audit.Auditing.MessagesView;
-    using ServiceControl.SagaAudit;
     using Raven.Client.Linq;
-    using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
+    using ServiceControl.Audit.Monitoring;
+    using ServiceControl.Audit.Persistence.Infrastructure;
+    using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.Audit.Persistence.RavenDb.Extensions;
     using ServiceControl.Audit.Persistence.RavenDb.Indexes;
     using ServiceControl.Audit.Persistence.RavenDb.Transformers;
-    using ServiceControl.Audit.Persistence.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
+    using ServiceControl.SagaAudit;
 
     class RavenDbAuditDataStore : IAuditDataStore
     {
@@ -220,6 +217,16 @@
 
                 return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
             }
+        }
+
+        /// <summary>
+        /// Purposely not implemented for RavenDB 3.5, returns an empty data set
+        /// </summary>
+        public Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts()
+        {
+            var data = new List<DailyAuditCount>();
+            var result = new QueryResult<IList<DailyAuditCount>>(data, new QueryStatsInfo(string.Empty, 0));
+            return Task.FromResult(result);
         }
 
         public Task Setup() => Task.CompletedTask;
