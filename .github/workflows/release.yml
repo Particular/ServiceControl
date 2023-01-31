@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3.3.0
         with:
           fetch-depth: 0
       - name: Setup .NET SDK
@@ -65,19 +65,19 @@ jobs:
       - name: Build Docker images
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
       - name: Publish assets
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: assets
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: nugets
           path: nugets/*
           retention-days: 1
       - name: Publish zips
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: zips
           path: zip/*

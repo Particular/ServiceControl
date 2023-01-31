@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="6.5.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.8.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.8.1" />
     <PackageVersion Include="ByteSize" Version="2.1.1" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
     <PackageVersion Include="Dapper" Version="2.0.123" />
@@ -32,7 +32,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.2.1" />
     <PackageVersion Include="NServiceBus" Version="7.8.2" />
-    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="7.8.1" />
+    <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="7.8.2" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="5.6.1" />
     <PackageVersion Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" Version="10.1.0" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="3.0.1" />
@@ -43,7 +43,7 @@
     <PackageVersion Include="NServiceBus.Metrics" Version="3.1.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="3.0.6" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="3.0.1" />
-    <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.3" />
+    <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.4" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Testing" Version="7.4.2" />
     <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.4" />
@@ -61,16 +61,16 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="10.3.0" />
     <PackageVersion Include="RavenDB.Database" Version="3.5.10-patch-35312" />
-    <PackageVersion Include="RavenDB.Embedded" Version="5.4.5" />
+    <PackageVersion Include="RavenDB.Embedded" Version="5.4.100" />
     <PackageVersion Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35312" />
     <PackageVersion Include="ReactiveUI.WPF" Version="18.4.1" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="6.0.0" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
-    <PackageVersion Include="System.Management" Version="6.0.0" />
+    <PackageVersion Include="System.Management" Version="7.0.0" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
-    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
     <PackageVersion Include="System.Text.Json" Version="7.0.1" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
@@ -87,6 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="4.2.0" />
-    <GlobalPackageReference Include="Particular.Packaging" Version="2.2.0" />
+    <GlobalPackageReference Include="Particular.Packaging" Version="2.3.0" />
   </ItemGroup>
 </Project>
