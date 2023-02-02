@@ -26,7 +26,7 @@
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
 
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB35\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\InMemory\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-audit-instance" />
 
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring\**\*" PackagePath="platform\servicecontrol\monitoring-instance" />
