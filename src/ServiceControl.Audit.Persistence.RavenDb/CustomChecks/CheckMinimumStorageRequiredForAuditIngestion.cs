@@ -18,7 +18,7 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            if (int.TryParse(settings.PersisterSpecificSettings[RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey], out var storageThreshold) == false)
+            if (TryGetMinimumStorageLeftRequiredForIngestion(out int storageThreshold) == false)
             {
                 stateHolder.CanIngestMore = true;
                 return successResult;
@@ -57,10 +57,22 @@
             return CheckResult.Failed(message);
         }
 
+        bool TryGetMinimumStorageLeftRequiredForIngestion(out int storageThreshold)
+        {
+            if (settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, out var storageThresholdText))
+            {
+                return int.TryParse(storageThresholdText, out storageThreshold);
+            }
+
+            storageThreshold = DefaultMinimumStorageRequiredForIngestion;
+            return true;
+        }
+
         readonly State stateHolder;
         readonly PersistenceSettings settings;
         static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForAuditIngestion));
+        static int DefaultMinimumStorageRequiredForIngestion = 5;
 
         public class State
         {
