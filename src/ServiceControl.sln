@@ -151,6 +151,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Management.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.Tests", "ServiceControl.Transports.Tests\ServiceControl.Transports.Tests.csproj", "{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq.Tests", "ServiceControl.Transports.Msmq.Tests\ServiceControl.Transports.Msmq.Tests.csproj", "{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -381,6 +383,10 @@ Global
 		{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -451,6 +457,7 @@ Global
 		{CD8495ED-3C98-41FC-8643-61B35B50C413} = {BD162BC6-705F-45B4-A6B5-C138DC966C1D}
 		{31CF8050-9A87-4569-A750-3171B2A892C0} = {55C388DD-2B39-4C2F-AEBD-AFD3444815F1}
 		{03074EEB-1851-4C55-BDB9-E5F527DF2FF6} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

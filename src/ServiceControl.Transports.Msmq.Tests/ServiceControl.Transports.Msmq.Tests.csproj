@@ -13,7 +13,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
   </ItemGroup>
-
+  
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Transports.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
+  </ItemGroup>
 </Project>
