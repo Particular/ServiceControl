@@ -8,8 +8,6 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
     using NUnit.Framework.Internal;
-    using System.Linq;
-    using System.IO;
 
     [TestFixture]
     class TransportTestFixture
