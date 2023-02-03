@@ -1,15 +1,47 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
+    using System.IO;
     using System;
     using System.Threading.Tasks;
+    using ServiceControl.Transports;
+    using ServiceControl.Transports.Learning;
+    using System.Linq;
 
-    public class TransportTestsConfiguration
+    partial class TransportTestsConfiguration
     {
-        public TransportTestsConfiguration()
+        public Task Configure()
         {
+            customizations = new LearningTransportCustomization();
+
+            basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
+
+            if (!Directory.Exists(basePath))
+            {
+                Directory.CreateDirectory(basePath);
+            }
+
+            return Task.CompletedTask;
         }
 
-        public Task Cleanup() => throw new NotImplementedException();
-        public Task Configure() => throw new NotImplementedException();
+        public IProvideQueueLength InitializeQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        {
+            var queueLengthProvider = customizations.CreateQueueLengthProvider();
+
+            queueLengthProvider.Initialize(basePath, (qle, _) => onQueueLengthReported(qle.First()));
+
+            var queuePath = Path.Combine(basePath, queueName);
+
+            if (!Directory.Exists(queuePath))
+            {
+                Directory.CreateDirectory(queuePath);
+            }
+
+            return queueLengthProvider;
+        }
+
+        public Task Cleanup() => Task.CompletedTask;
+
+        LearningTransportCustomization customizations;
+        string basePath;
     }
 }
