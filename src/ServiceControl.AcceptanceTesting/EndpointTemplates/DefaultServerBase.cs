@@ -16,49 +16,60 @@
 
     public class DefaultServerBase<TBootstrapper> : IEndpointSetupTemplate
     {
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public DefaultServerBase() : this(TestSuiteConstraints.Current.CreateTransportConfiguration())
+        {
+        }
+
+        public DefaultServerBase(IConfigureEndpointTestExecution endpointTestExecutionConfiguration)
+        {
+            this.endpointTestExecutionConfiguration = endpointTestExecutionConfiguration;
+        }
+
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
             var typesToInclude = new List<Type>();
 
-            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
-            typesToInclude.AddRange(endpointConfiguration.GetTypesScopedByTestClass<TBootstrapper>().Concat(new[]
+            var endpointConfiguration = new EndpointConfiguration(endpointCustomizations.EndpointName);
+            typesToInclude.AddRange(endpointCustomizations.GetTypesScopedByTestClass<TBootstrapper>().Concat(new[]
             {
                 typeof(TraceIncomingBehavior),
                 typeof(TraceOutgoingBehavior)
             }));
 
-            builder.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
-            builder.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
+            endpointConfiguration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
+            endpointConfiguration.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
 
-            builder.SendFailedMessagesTo("error");
+            endpointConfiguration.SendFailedMessagesTo("error");
 
-            builder.TypesToIncludeInScan(typesToInclude);
-            builder.EnableInstallers();
+            endpointConfiguration.TypesToIncludeInScan(typesToInclude);
+            endpointConfiguration.EnableInstallers();
 
-            await builder.DefineTransport(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-            await builder.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
+            await endpointTestExecutionConfiguration.Configure(endpointCustomizations.EndpointName, endpointConfiguration, runDescriptor.Settings, endpointCustomizations.PublisherMetadata);
+            runDescriptor.OnTestCompleted(_ => endpointTestExecutionConfiguration.Cleanup());
 
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointConfiguration.EndpointName);
+            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
+            await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations).ConfigureAwait(false);
 
-            builder.UseSerialization<NewtonsoftJsonSerializer>();
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointCustomizations.EndpointName);
 
-            builder.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            builder.Pipeline.Register<TraceOutgoingBehavior.Registration>();
+            endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
 
-            builder.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
+            endpointConfiguration.Pipeline.Register<TraceIncomingBehavior.Registration>();
+            endpointConfiguration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
 
-            builder.RegisterComponents(r => { builder.GetSettings().Set("SC.ConfigureComponent", r); });
+            endpointConfiguration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            builder.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
+            endpointConfiguration.RegisterComponents(r => { endpointConfiguration.GetSettings().Set("SC.ConfigureComponent", r); });
 
-            builder.DisableFeature<AutoSubscribe>();
+            endpointConfiguration.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
 
-            configurationBuilderCustomization(builder);
+            endpointConfiguration.DisableFeature<AutoSubscribe>();
 
-            return builder;
+            configurationBuilderCustomization(endpointConfiguration);
+
+            return endpointConfiguration;
         }
 
         static bool IsExternalContract(Type t)
@@ -66,5 +77,7 @@
             return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts")
                                        && t.Assembly.GetName().Name == "ServiceControl.Contracts";
         }
+
+        IConfigureEndpointTestExecution endpointTestExecutionConfiguration;
     }
 }

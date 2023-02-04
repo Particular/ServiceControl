@@ -7,12 +7,13 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Features;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
         public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            return new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, b =>
+            return new DefaultServerBase<Bootstrapper>(new ConfigureEndpointLearningTransport()).GetConfiguration(runDescriptor, endpointConfiguration, b =>
             {
                 b.DisableFeature<Audit>();
 
