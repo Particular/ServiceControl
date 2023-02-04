@@ -67,7 +67,7 @@
         }
 
 #if DEBUG
-        [Ignore("This test is slow and only runs in release mode")]
+        [Ignore("This test is long running and only runs in release mode")]
 #endif
         [TestCase(10, 10, 100, 1000, 100, 1000)]
         public async Task GetMonitoredEndpointsQueryTest(int numberOfEndpoints, int numberOfInstances, int sendReportEvery, int numberOfEntriesInReport, int queryEveryInMilliseconds, int numberOfQueries)
@@ -110,7 +110,7 @@
         }
 
 #if DEBUG
-        [Ignore("This test is slow and only runs in release mode")]
+        [Ignore("This test is long running and only runs in release mode")]
 #endif
         [TestCase(10, 100, 100, 1000, 100, 1000)]
         public async Task GetMonitoredSingleEndpointQueryTest(int numberOfInstances, int numberOfMessageTypes, int sendReportEvery, int numberOfEntriesInReport, int queryEveryInMilliseconds, int numberOfQueries)
