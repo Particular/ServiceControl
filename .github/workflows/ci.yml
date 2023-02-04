@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
-        storage: [RavenDB]
+        storage: [RavenDB35]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -73,12 +73,12 @@ jobs:
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Zip PowerShell module
-        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB'
+        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB35'
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
-        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB'
+        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB35'
         uses: actions/upload-artifact@v3.1.2
         with:
           name: assets
