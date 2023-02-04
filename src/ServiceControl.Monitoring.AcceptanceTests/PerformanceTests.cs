@@ -66,6 +66,9 @@
             };
         }
 
+#if DEBUG
+        [Ignore("This test is slow and only runs in release mode")]
+#endif
         [TestCase(10, 10, 100, 1000, 100, 1000)]
         public async Task GetMonitoredEndpointsQueryTest(int numberOfEndpoints, int numberOfInstances, int sendReportEvery, int numberOfEntriesInReport, int queryEveryInMilliseconds, int numberOfQueries)
         {
@@ -106,6 +109,9 @@
             Report("Reporters", reportFinalHistogram, TimeSpan.FromMilliseconds(20));
         }
 
+#if DEBUG
+        [Ignore("This test is slow and only runs in release mode")]
+#endif
         [TestCase(10, 100, 100, 1000, 100, 1000)]
         public async Task GetMonitoredSingleEndpointQueryTest(int numberOfInstances, int numberOfMessageTypes, int sendReportEvery, int numberOfEntriesInReport, int queryEveryInMilliseconds, int numberOfQueries)
         {
@@ -269,5 +275,20 @@
 
             return (ExpandoObject)expando;
         }
+    }
+
+    class FakeQueueLengthProvider : IProvideQueueLength
+    {
+        public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        {
+        }
+
+        public void TrackEndpointInputQueue(EndpointToQueueMapping queueToTrack)
+        {
+        }
+
+        public Task Start() => Task.CompletedTask;
+
+        public Task Stop() => Task.CompletedTask;
     }
 }

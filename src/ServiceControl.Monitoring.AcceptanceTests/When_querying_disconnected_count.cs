@@ -3,7 +3,6 @@
     using System;
     using System.Configuration;
     using System.Threading.Tasks;
-    using NLog.Fluent;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Logging;
