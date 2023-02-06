@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
 {
-    using System;
-    using System.Threading.Tasks;
     using NServiceBus.Raw;
-    using NServiceBus.Transport;
     using Transports;
 
     class RawEndpointFactory
@@ -15,13 +12,17 @@
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateAuditIngestor(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
+#pragma warning disable CA1822 // Mark members as static
+        public IQueueIngestorFactory CreateQueueIngestorFactory()
+#pragma warning restore CA1822 // Mark members as static
         {
-            var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
-            config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+            //var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
+            //config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
-            transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
-            return config;
+            //transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
+            //return config;
+
+            return null;
         }
 
         public RawEndpointConfiguration CreateFailedAuditsSender(string name)
@@ -32,7 +33,9 @@
             return config;
         }
 
+#pragma warning disable IDE0052 // Remove unread private members
         Settings.Settings settings;
+#pragma warning restore IDE0052 // Remove unread private members
         TransportCustomization transportCustomization;
         TransportSettings transportSettings;
     }

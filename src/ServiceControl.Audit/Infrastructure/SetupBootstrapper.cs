@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using ServiceControl.Audit.Persistence;
     using Settings;
     using Transports;
@@ -34,7 +33,7 @@ namespace ServiceControl.Audit.Infrastructure
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-                var config = factory.CreateAuditIngestor(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
+                var queueIngestorFactory = factory.CreateQueueIngestorFactory();
 
                 if (settings.SkipQueueCreation)
                 {
@@ -50,12 +49,13 @@ namespace ServiceControl.Audit.Infrastructure
                     {
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
-                    config.AutoCreateQueues(additionalQueues.ToArray(), username);
 
+                    // TODO: Use a fresh raw endpoint to create all the extra queues
+                    //config.AutoCreateQueues(additionalQueues.ToArray(), username);
+
+                    //TODO Should we perhaps not have the ingestor create any queues?
+                    await queueIngestorFactory.Setup(settings.AuditQueue, username).ConfigureAwait(false);
                 }
-
-                //No need to start the raw endpoint to create queues
-                await RawEndpoint.Create(config).ConfigureAwait(false);
             }
 
             var configuration = new EndpointConfiguration(settings.ServiceName);

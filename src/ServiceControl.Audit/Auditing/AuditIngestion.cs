@@ -9,7 +9,6 @@
     using Infrastructure;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -80,8 +79,6 @@
             return watchdog.OnFailure(failure);
         }
 
-        Task OnCriticalErrorAction(ICriticalErrorContext ctx) => OnCriticalError(ctx.Error, ctx.Exception);
-
         async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
             try
@@ -92,38 +89,38 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (ingestionEndpoint != null)
+                    if (queueIngestor != null)
                     {
-                        var stoppable = ingestionEndpoint;
-                        ingestionEndpoint = null;
+                        var stoppable = queueIngestor;
+                        queueIngestor = null;
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
-                        await stoppable.Stop().ConfigureAwait(false);
+                        await queueIngestor.Stop().ConfigureAwait(false);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
                 }
 
 
-                if (ingestionEndpoint != null)
+                if (queueIngestor != null)
                 {
                     logger.Debug("Ensure started. Already started, skipping start up");
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateAuditIngestor(inputEndpoint, OnMessage);
-
-                rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
-
-                rawConfiguration.CustomErrorHandlingPolicy(errorHandlingPolicy);
+                // TODO rename to something more generic since we're sending all kinds of messages
+                var rawConfiguration = rawEndpointFactory.CreateFailedAuditsSender(inputEndpoint);
+                var queueIngestorFactory = rawEndpointFactory.CreateQueueIngestorFactory();
 
                 logger.Info("Ensure started. Infrastructure starting");
-                var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+                queueIngestor = await queueIngestorFactory.InitializeIngestor(inputEndpoint, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
 
-                await auditIngestor.VerifyCanReachForwardingAddress(startableRaw).ConfigureAwait(false);
+                dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
-                dispatcher = startableRaw;
-                ingestionEndpoint = await startableRaw.Start()
+                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+
+                await queueIngestor.Start()
                     .ConfigureAwait(false);
+
                 logger.Info("Ensure started. Infrastructure started");
             }
             finally
@@ -142,13 +139,13 @@
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 logger.Info("Shutting down. Start/stop semaphore acquired");
 
-                if (ingestionEndpoint == null)
+                if (queueIngestor == null)
                 {
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
-                var stoppable = ingestionEndpoint;
-                ingestionEndpoint = null;
+                var stoppable = queueIngestor;
+                queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
                 await stoppable.Stop().ConfigureAwait(false);
                 logger.Info("Shutting down. Infrastructure shut down completed");
@@ -219,14 +216,14 @@
             // will fall out here when writer is completed
         }
 
-        IReceivingRawEndpoint ingestionEndpoint;
+        IQueueIngestor queueIngestor;
         IDispatchMessages dispatcher;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
         readonly RawEndpointFactory rawEndpointFactory;
-        readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly AuditIngestor auditIngestor;
+        readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
