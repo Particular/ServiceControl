@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
+    using System.Linq;
+    using System.Reflection;
     using System.Web.Http;
     using System.Web.Http.Results;
     using Settings;
@@ -43,6 +45,7 @@
         {
             object content = new
             {
+                Version = productVersion,
                 Host = new
                 {
                     settings.ServiceName,
@@ -79,6 +82,10 @@
 
         readonly LoggingSettings loggingSettings;
         readonly Settings settings;
+
+        static readonly string productVersion = typeof(RootController).Assembly
+            .GetCustomAttributes<AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion ?? "Unknown";
 
         public class RootUrls
         {

@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
+    using System.Linq;
+    using System.Reflection;
     using System.Web.Http;
     using System.Web.Http.Results;
     using Particular.ServiceControl.Licensing;
@@ -54,6 +56,7 @@
         {
             object content = new
             {
+                Version = productVersion,
                 Host = new
                 {
                     settings.ServiceName,
@@ -97,6 +100,10 @@
 
         readonly ActiveLicense license;
         readonly Settings settings;
+
+        static readonly string productVersion = typeof(RootController).Assembly
+            .GetCustomAttributes<AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion ?? "Unknown";
 
         public class RootUrls
         {
