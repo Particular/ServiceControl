@@ -149,11 +149,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.DockerImages
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Management.PowerShell", "ServiceControl.Management.PowerShell\ServiceControl.Management.PowerShell.csproj", "{31CF8050-9A87-4569-A750-3171B2A892C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.Tests", "ServiceControl.Transports.Tests\ServiceControl.Transports.Tests.csproj", "{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Tests", "ServiceControl.Transports.Tests\ServiceControl.Transports.Tests.csproj", "{03074EEB-1851-4C55-BDB9-E5F527DF2FF6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq.Tests", "ServiceControl.Transports.Msmq.Tests\ServiceControl.Transports.Msmq.Tests.csproj", "{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.SqlServer.Tests", "ServiceControl.Transports.SqlServer.Tests\ServiceControl.Transports.SqlServer.Tests.csproj", "{9911DDA3-35DE-4059-B790-D42F568F13C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -389,6 +391,10 @@ Global
 		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9911DDA3-35DE-4059-B790-D42F568F13C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9911DDA3-35DE-4059-B790-D42F568F13C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9911DDA3-35DE-4059-B790-D42F568F13C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9911DDA3-35DE-4059-B790-D42F568F13C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -461,6 +467,7 @@ Global
 		{03074EEB-1851-4C55-BDB9-E5F527DF2FF6} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{BBF5F832-2D4A-4363-985A-8A9E4695EEC3} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE} = {A21A1A89-0B07-4E87-8E3C-41D9C280DCB8}
+		{9911DDA3-35DE-4059-B790-D42F568F13C5} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
