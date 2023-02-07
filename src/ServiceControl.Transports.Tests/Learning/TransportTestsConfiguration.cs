@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -27,11 +26,11 @@
             return Task.CompletedTask;
         }
 
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
+        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
-            queueLengthProvider.Initialize(basePath, (qle, _) => onQueueLengthReported(qle.First()));
+            queueLengthProvider.Initialize(basePath, store);
 
             return queueLengthProvider;
         }

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Raw;
@@ -62,7 +63,7 @@
 
             var rawEndpointForQueueLengthTesting = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
 
-            queueLengthProvider = configuration.InitializeQueueLengthProvider(onQueueLengthReported);
+            queueLengthProvider = configuration.InitializeQueueLengthProvider((qlt, _) => onQueueLengthReported(qlt.First()));
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 

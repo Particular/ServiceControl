@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -12,11 +11,11 @@
 
     partial class TransportTestsConfiguration
     {
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
+        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
-            queueLengthProvider.Initialize(dbInstanceForSqlT.ConnectionString, (qle, _) => onQueueLengthReported(qle.First()));
+            queueLengthProvider.Initialize(dbInstanceForSqlT.ConnectionString, store);
 
             return queueLengthProvider;
         }

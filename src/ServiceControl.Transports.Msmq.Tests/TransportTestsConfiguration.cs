@@ -12,7 +12,7 @@
         {
         }
 
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
+        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
             throw new NotImplementedException();
         }
