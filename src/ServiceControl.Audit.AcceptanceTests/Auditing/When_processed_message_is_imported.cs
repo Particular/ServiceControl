@@ -87,6 +87,12 @@
         [Test]
         public async Task Should_be_counted()
         {
+            // Ignore for RavenDB 3.5
+            if (StorageConfiguration.PersistenceType.StartsWith("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb, Version="))
+            {
+                Assert.Ignore();
+            }
+
             const string Payload = "PAYLOAD";
             DailyAuditCountResult counts = null;
 
