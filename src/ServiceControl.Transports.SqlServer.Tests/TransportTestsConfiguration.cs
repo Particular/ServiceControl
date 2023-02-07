@@ -12,13 +12,13 @@
 
     partial class TransportTestsConfiguration
     {
-        public IProvideQueueLength InitializeQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
         {
             var tempRandomDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(tempRandomDirectory);
 
             var dbInstanceForSqlT = SqlLocalDb.CreateNewIn(tempRandomDirectory);
-
+            var queueName = "todo";
             var transportSettings = new TransportSettings
             {
                 EndpointName = queueName,
@@ -52,6 +52,11 @@
             customizations = new SqlServerTransportCustomization();
 
             return Task.CompletedTask;
+        }
+
+        public void ApplyTransportConfig(RawEndpointConfiguration c)
+        {
+            c.UseTransport<SqlServerTransport>();
         }
 
         SqlServerTransportCustomization customizations;

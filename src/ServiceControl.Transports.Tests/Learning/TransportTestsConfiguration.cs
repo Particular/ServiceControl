@@ -1,11 +1,13 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
-    using System.IO;
     using System;
+    using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
+    using NServiceBus;
+    using NServiceBus.Raw;
     using ServiceControl.Transports;
     using ServiceControl.Transports.Learning;
-    using System.Linq;
 
     partial class TransportTestsConfiguration
     {
@@ -15,28 +17,29 @@
 
             basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
 
-            if (!Directory.Exists(basePath))
+            if (Directory.Exists(basePath))
             {
-                Directory.CreateDirectory(basePath);
+                Directory.Delete(basePath, true);
             }
+
+            Directory.CreateDirectory(basePath);
 
             return Task.CompletedTask;
         }
 
-        public IProvideQueueLength InitializeQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
             queueLengthProvider.Initialize(basePath, (qle, _) => onQueueLengthReported(qle.First()));
 
-            var queuePath = Path.Combine(basePath, queueName);
-
-            if (!Directory.Exists(queuePath))
-            {
-                Directory.CreateDirectory(queuePath);
-            }
-
             return queueLengthProvider;
+        }
+
+        public void ApplyTransportConfig(RawEndpointConfiguration c)
+        {
+            c.UseTransport<LearningTransport>()
+                .StorageDirectory(basePath);
         }
 
         public Task Cleanup() => Task.CompletedTask;

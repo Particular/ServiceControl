@@ -1,13 +1,15 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
-    using System.Collections.Generic;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Transports;
     using NUnit.Framework.Internal;
+    using ServiceControl.Transports;
 
     [TestFixture]
     class TransportTestFixture
@@ -51,13 +53,22 @@
         }
         protected TransportTestsConfiguration configuration;
 
-        protected async Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        protected async Task<IDispatchMessages> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            queueLengthProvider = configuration.InitializeQueueLengthProvider(queueName, onQueueLengthReported);
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), "error");
+
+            endpointForTesting.AutoCreateQueues(new string[0]);
+            configuration.ApplyTransportConfig(endpointForTesting);
+
+            var rawEndpointForQueueLengthTesting = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
+
+            queueLengthProvider = configuration.InitializeQueueLengthProvider(onQueueLengthReported);
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
             await queueLengthProvider.Start().ConfigureAwait(false);
+
+            return rawEndpointForQueueLengthTesting;
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(10);
