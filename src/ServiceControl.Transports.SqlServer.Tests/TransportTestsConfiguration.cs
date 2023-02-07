@@ -14,30 +14,6 @@
     {
         public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry> onQueueLengthReported)
         {
-            var tempRandomDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(tempRandomDirectory);
-
-            var dbInstanceForSqlT = SqlLocalDb.CreateNewIn(tempRandomDirectory);
-            var queueName = "todo";
-            var transportSettings = new TransportSettings
-            {
-                EndpointName = queueName,
-                ConnectionString = dbInstanceForSqlT.ConnectionString,
-                MaxConcurrency = 1
-            };
-
-            var factory = new RawEndpointFactory(transportSettings, customizations);
-
-            var config = factory.CreateAuditIngestor(queueName, (context, dispatcher) => Task.CompletedTask);
-
-            config.AutoCreateQueues(new string[] { $"{queueName}.Errors" });
-            //No need to start the raw endpoint to create queues
-            RawEndpoint.Create(config).ConfigureAwait(false).GetAwaiter().GetResult();
-
-            var endpointConfiguration = new EndpointConfiguration(queueName);
-
-            endpointConfiguration.EnableInstallers();
-            customizations.CustomizeForMonitoringIngestion(endpointConfiguration, transportSettings);
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
             queueLengthProvider.Initialize(dbInstanceForSqlT.ConnectionString, (qle, _) => onQueueLengthReported(qle.First()));
@@ -49,6 +25,11 @@
 
         public Task Configure()
         {
+            var tempRandomDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempRandomDirectory);
+
+            dbInstanceForSqlT = SqlLocalDb.CreateNewIn(tempRandomDirectory);
+
             customizations = new SqlServerTransportCustomization();
 
             return Task.CompletedTask;
@@ -56,9 +37,11 @@
 
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
-            c.UseTransport<SqlServerTransport>();
+            c.UseTransport<SqlServerTransport>()
+                .ConnectionString(dbInstanceForSqlT.ConnectionString);
         }
 
+        SqlLocalDb dbInstanceForSqlT;
         SqlServerTransportCustomization customizations;
     }
 }
