@@ -1,19 +1,26 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
+    using System;
+    using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
             this.license = license;
             this.loggingSettings = loggingSettings;
+            this.httpClientFactory = httpClientFactory;
         }
 
         [Route("")]
@@ -41,6 +48,7 @@
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",
+                RemoteConfiguration = baseUrl + "configuration/remotes",
                 EventLogItems = baseUrl + "eventlogitems",
                 ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}",
                 GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
@@ -96,11 +104,55 @@
             return Ok(content);
         }
 
-        readonly LoggingSettings loggingSettings;
+        [Route("configuration/remotes")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> RemoteConfig()
+        {
+            var remotes = settings.RemoteInstances;
+            var tasks = remotes
+                .Select(async remote =>
+                {
+                    var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
+                    var uri = remote.ApiUri.TrimEnd('/') + "/configuration";
+                    var httpClient = httpClientFactory();
+                    JObject config = null;
 
+                    try
+                    {
+                        var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+
+                        using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        using (var reader = new StreamReader(stream))
+                        using (var jsonReader = new JsonTextReader(reader))
+                        {
+                            config = jsonSerializer.Deserialize<JObject>(jsonReader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        status = "error";
+                    }
+
+                    return new
+                    {
+                        remote.ApiUri,
+                        Status = status,
+                        Configuration = config
+                    };
+                })
+                .ToArray();
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            return Negotiator.FromModel(Request, results);
+        }
+
+        readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
+        readonly Func<HttpClient> httpClientFactory;
 
+        static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
         static readonly string productVersion = typeof(RootController).Assembly
             .GetCustomAttributes<AssemblyInformationalVersionAttribute>()
             .FirstOrDefault()?.InformationalVersion ?? "Unknown";
@@ -115,6 +167,7 @@
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string Configuration { get; set; }
+            public string RemoteConfiguration { get; set; }
             public string MessageSearchUrl { get; set; }
             public string LicenseStatus { get; set; }
             public string LicenseDetails { get; set; }

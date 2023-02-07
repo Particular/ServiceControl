@@ -7,6 +7,7 @@
   "EndpointsUrl": "http://localhost/endpoints",
   "ErrorsUrl": "http://localhost/errors/{?page,per_page,direction,sort}",
   "Configuration": "http://localhost/configuration",
+  "RemoteConfiguration": "http://localhost/configuration/remotes",
   "MessageSearchUrl": "http://localhost/messages/search/{keyword}/{?page,per_page,direction,sort}",
   "LicenseStatus": "valid",
   "LicenseDetails": "http://localhost/license",
