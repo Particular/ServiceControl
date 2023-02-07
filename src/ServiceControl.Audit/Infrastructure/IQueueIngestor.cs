@@ -11,8 +11,6 @@
             Func<MessageContext, IDispatchMessages, Task> onMessage,
             IErrorHandlingPolicy onError,
             Func<string, Exception, Task> onCriticalError);
-
-        Task Setup(string queueName, string username);
     }
 
     public interface IQueueIngestor

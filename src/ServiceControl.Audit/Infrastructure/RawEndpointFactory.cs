@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
 {
+    using System;
     using NServiceBus.Raw;
     using Transports;
 
@@ -23,6 +24,14 @@
             //return config;
 
             return null;
+        }
+
+        public RawEndpointConfiguration CreateRawEndpointToProvisionAuditQueues(string auditQueue)
+        {
+            var config = RawEndpointConfiguration.Create(auditQueue, (_, __) => throw new NotImplementedException(), $"{transportSettings.EndpointName}.Errors");
+
+            transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
+            return config;
         }
 
         public RawEndpointConfiguration CreateFailedAuditsSender(string name)
