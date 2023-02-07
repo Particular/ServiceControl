@@ -4,7 +4,6 @@
     using System.IO;
     using System.Linq;
     using System.Net.Http;
-    using System.Reflection;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
@@ -64,7 +63,6 @@
         {
             object content = new
             {
-                Version = productVersion,
                 Host = new
                 {
                     settings.ServiceName,
@@ -113,6 +111,7 @@
                 .Select(async remote =>
                 {
                     var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
+                    var version = "Unknown";
                     var uri = remote.ApiUri.TrimEnd('/') + "/configuration";
                     var httpClient = httpClientFactory();
                     JObject config = null;
@@ -120,6 +119,11 @@
                     try
                     {
                         var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+
+                        if (response.Headers.TryGetValues("X-Particular-Version", out var values))
+                        {
+                            version = values.FirstOrDefault() ?? "Missing";
+                        }
 
                         using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                         using (var reader = new StreamReader(stream))
@@ -136,6 +140,7 @@
                     return new
                     {
                         remote.ApiUri,
+                        Version = version,
                         Status = status,
                         Configuration = config
                     };
@@ -153,9 +158,6 @@
         readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
-        static readonly string productVersion = typeof(RootController).Assembly
-            .GetCustomAttributes<AssemblyInformationalVersionAttribute>()
-            .FirstOrDefault()?.InformationalVersion ?? "Unknown";
 
         public class RootUrls
         {

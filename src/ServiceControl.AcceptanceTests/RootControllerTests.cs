@@ -58,6 +58,7 @@
 
             Assert.That(config1["api_uri"].Value<string>(), Is.EqualTo(localApiUrl));
             Assert.That(config1["status"].Value<string>(), Is.EqualTo("online"));
+            Assert.That(config1["version"].Value<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
             Assert.That(config1Str, Contains.Substring(serviceName));
         }
     }
