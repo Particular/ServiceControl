@@ -14,8 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
-        storage: [RavenDB35]
+        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]        
         include:
           - name: LearningTransport
             transport: LearningTransport
