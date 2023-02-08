@@ -38,7 +38,7 @@
         string ConnectionString()
         {
             var connectionString =
-                Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+                Environment.GetEnvironmentVariable("ServiceControl.TransportTests.SQL.ConnectionString");
             //TODO: make localDb work in the CI or think about a convenient way for the developer workflow, 
             //perhaps something similar to the connection.txt file used by acceptance tests
             // or the developer can set the environment variable via launchSettings.json

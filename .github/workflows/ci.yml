@@ -14,7 +14,8 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        name: [LearningTransport, Msmq, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        storage: [RavenDB35]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -22,9 +23,6 @@ jobs:
           - name: Msmq
             transport: Msmq
             customization: ConfigureEndpointMsmqTransport
-          - name: SqlServer
-            transport: SqlServer
-            customization: ConfigureEndpointSqlServerTransport
           - name: RabbitMQ-Conventional-Classic
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQClassicConventionalRoutingTransport
@@ -93,7 +91,7 @@ jobs:
       - name: Setup SQL Server
         uses: Particular/install-sql-server-action@v1.0.2
         with:
-          connection-string-env-var: ServiceControl.AcceptanceTests.ConnectionString
+          connection-string-env-var: ServiceControl.TransportTests.SQL.ConnectionString
           catalog: nservicebus
       - name: Setup RabbitMQ
         if: matrix.transport == 'RabbitMQ'
