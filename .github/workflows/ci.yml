@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        name: [LearningTransport, Msmq, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
         storage: [RavenDB35]
         include:
           - name: LearningTransport
@@ -35,15 +35,6 @@ jobs:
           - name: RabbitMQ-Direct-Quorum
             transport: RabbitMQ
             customization: ConfigureEndpointRabbitMQQuorumDirectRoutingTransport
-          - name: AzureServiceBusNetStandard
-            transport: AzureServiceBusNetStandard
-            customization: ConfigureEndpointAzureServiceBusNetStandardTransport
-          - name: AzureServiceBus-ForwardingTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusForwardingTopologyTransport
-          - name: AzureServiceBus-EndpointTopology
-            transport: AzureServiceBus
-            customization: ConfigureEndpointAzureServiceBusEndpointTopologyTransport
           - name: AzureStorageQueues
             transport: AzureStorageQueues
             customization: ConfigureEndpointAzureStorageQueueTransport
@@ -100,10 +91,9 @@ jobs:
           connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
-        if: matrix.transport == 'AzureServiceBus' || matrix.transport == 'AzureServiceBusNetStandard'
         uses: Particular/setup-azureservicebus-action@v1.2.0
         with:
-          connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
+          connection-string-name: ServiceControl.TransportTests.ASBS.ConnectionString
           tag: ServiceControl
 
       - name: Setup Azure Storage Queues
