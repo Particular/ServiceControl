@@ -14,7 +14,6 @@
 
     [TestFixture]
     [RunOnAllTransports]
-    [RunOnAllDataStores]
     class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]

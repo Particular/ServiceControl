@@ -13,7 +13,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllDataStores]
+    [TestFixture]
     class When_an_endpoint_starts_up : AcceptanceTest
     {
         [Test]

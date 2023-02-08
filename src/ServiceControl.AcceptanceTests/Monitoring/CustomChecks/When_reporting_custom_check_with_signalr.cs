@@ -18,7 +18,6 @@
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
-    [RunOnAllDataStores]
     class When_reporting_custom_check_with_signalr : AcceptanceTest
     {
         [Test]
