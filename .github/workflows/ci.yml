@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
+        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
         storage: [RavenDB35]
         include:
           - name: LearningTransport
@@ -23,18 +23,6 @@ jobs:
           - name: Msmq
             transport: Msmq
             customization: ConfigureEndpointMsmqTransport
-          - name: RabbitMQ-Conventional-Classic
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQClassicConventionalRoutingTransport
-          - name: RabbitMQ-Conventional-Quorum
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQQuorumConventionalRoutingTransport
-          - name: RabbitMQ-Direct-Classic
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQClassicDirectRoutingTransport
-          - name: RabbitMQ-Direct-Quorum
-            transport: RabbitMQ
-            customization: ConfigureEndpointRabbitMQQuorumDirectRoutingTransport
           - name: AzureStorageQueues
             transport: AzureStorageQueues
             customization: ConfigureEndpointAzureStorageQueueTransport
@@ -87,7 +75,7 @@ jobs:
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.3.0
         with:
-          connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
+          connection-string-name: ServiceControl.TransportTests.RabbitMQ.ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
         uses: Particular/setup-azureservicebus-action@v1.2.0

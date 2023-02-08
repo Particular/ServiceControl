@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using NServiceBus;
     using NServiceBus.Raw;
     using ServiceControl.Transports.RabbitMQ;
@@ -24,7 +23,7 @@
         public Task Configure()
         {
             customizations = new RabbitMQQuorumConventionalRoutingTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.RabbitMQ.ConnectionString");
 
             return Task.CompletedTask;
         }
