@@ -13,11 +13,9 @@
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.AcceptanceTesting;
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
-    [RunOnAllDataStores]
     class When_email_notifications_are_enabled : AcceptanceTest
     {
         [Test]

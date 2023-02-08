@@ -11,7 +11,6 @@
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     [TestFixture]
-    [RunOnAllDataStores]
     class When_a_custom_check_fails : AcceptanceTest
     {
         public class FailingCustomCheck : CustomCheck

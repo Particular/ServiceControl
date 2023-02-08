@@ -14,7 +14,6 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
-    [RunOnAllDataStores]
     class When_custom_check_events_are_triggered : AcceptanceTest
     {
         [Test]

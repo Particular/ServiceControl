@@ -10,12 +10,11 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   build:
-    name: ${{ matrix.name }} - ${{ matrix.storage }}
+    name: ${{ matrix.name }}
     runs-on: windows-2022
     strategy:
       matrix:
         name: [LearningTransport, Msmq, SqlServer, RabbitMQ-Conventional-Classic, RabbitMQ-Conventional-Quorum, RabbitMQ-Direct-Classic, RabbitMQ-Direct-Quorum, AzureServiceBusNetStandard, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]
-        storage: [RavenDB35]
         include:
           - name: LearningTransport
             transport: LearningTransport
@@ -73,12 +72,12 @@ jobs:
       - name: Build
         run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
       - name: Zip PowerShell module
-        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB35'
+        if: matrix.transport == 'LearningTransport'
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
-        if: matrix.transport == 'LearningTransport' && matrix.storage == 'RavenDB35'
+        if: matrix.transport == 'LearningTransport'
         uses: actions/upload-artifact@v3.1.2
         with:
           name: assets
@@ -125,7 +124,7 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
-          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ matrix.storage }}-${{ github.run_id }}"
+          $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl.AcceptanceTests.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Run tests
@@ -133,7 +132,6 @@ jobs:
         env:
           ServiceControl.AcceptanceTests.Transport: ${{ matrix.transport }}
           ServiceControl.AcceptanceTests.TransportCustomization: ${{ matrix.customization }}
-          ServiceControl/DataStoreType: ${{ matrix.storage }}
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}

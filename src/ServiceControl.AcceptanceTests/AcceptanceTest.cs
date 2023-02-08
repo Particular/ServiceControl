@@ -48,7 +48,7 @@ namespace ServiceControl.AcceptanceTests
         }
 
         [SetUp]
-        public async Task Setup()
+        public Task Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -72,28 +72,18 @@ namespace ServiceControl.AcceptanceTests
 
             DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
 
-            if (DataStoreConfiguration.DataStoreTypeName == nameof(DataStoreType.SqlDb))
-            {
-                await ResetSqlDb(DataStoreConfiguration.ConnectionString).ConfigureAwait(false);
-            }
-
             var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
             if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
             {
                 Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
             }
 
-            var shouldBeRunOnAllDataStores = GetType().GetCustomAttributes(typeof(RunOnAllDataStoresAttribute), true).Any();
-            if (!shouldBeRunOnAllDataStores && DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDB35))
-            {
-                Assert.Inconclusive($"Not flagged with [RunOnAllDataStores] therefore skipping this test with '{DataStoreConfiguration.DataStoreTypeName}'");
-            }
-
             TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-            TestContext.WriteLine($"Using data store {DataStoreConfiguration.DataStoreTypeName}");
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
 
             RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
+
+            return Task.CompletedTask;
         }
 
         [TearDown]
@@ -103,19 +93,6 @@ namespace ServiceControl.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
-        }
-
-        async Task ResetSqlDb(string connectionString)
-        {
-            using (var connection = new SqlConnection(connectionString))
-            {
-                var dropConstraints = "EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT all'";
-                var dropTables = "EXEC sp_msforeachtable 'DROP TABLE ?'";
-
-                await connection.OpenAsync().ConfigureAwait(false);
-                await connection.ExecuteAsync(dropConstraints).ConfigureAwait(false);
-                await connection.ExecuteAsync(dropTables).ConfigureAwait(false);
-            }
         }
 
         static void RemoveOtherTransportAssemblies(string name)
