@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System;
-    using System.IO;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
-    using ServiceControl.Transports.SqlServer.Tests;
+    using NUnit.Framework;
     using Transports;
     using Transports.SqlServer;
 
@@ -15,7 +15,7 @@
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
-            queueLengthProvider.Initialize(dbInstanceForSqlT.ConnectionString, store);
+            queueLengthProvider.Initialize(ConnectionString(), store);
 
             return queueLengthProvider;
         }
@@ -24,11 +24,6 @@
 
         public Task Configure()
         {
-            var tempRandomDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(tempRandomDirectory);
-
-            dbInstanceForSqlT = SqlLocalDb.CreateNewIn(tempRandomDirectory);
-
             customizations = new SqlServerTransportCustomization();
 
             return Task.CompletedTask;
@@ -37,10 +32,22 @@
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
             c.UseTransport<SqlServerTransport>()
-                .ConnectionString(dbInstanceForSqlT.ConnectionString);
+                .ConnectionString(ConnectionString());
         }
 
-        SqlLocalDb dbInstanceForSqlT;
+        string ConnectionString()
+        {
+            var connectionString =
+                Environment.GetEnvironmentVariable("ServiceControl.AcceptanceTests.ConnectionString");
+            //TODO: make localDb work in the CI or think about a convenient way for the developer workflow, 
+            //perhaps something similar to the connection.txt file used by acceptance tests
+            // or the developer can set the environment variable via launchSettings.json
+#if DEBUG
+            connectionString = "Data Source=.; Initial Catalog=nservicebus; Integrated Security=true";
+#endif      
+            return connectionString;
+        }
+
         SqlServerTransportCustomization customizations;
     }
 }
