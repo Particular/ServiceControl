@@ -16,8 +16,7 @@
         [Test]
         public async Task Should_report_queue_length()
         {
-            //TODO: Use the unique test contextId
-            var queueName = $"testqueue-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+            var queueName = $"testqueue-{TestContext.CurrentContext.Test.ID}";
 
             var onQueueLengthEntryReceived = CreateTaskCompletionSource<QueueLengthEntry>();
 
