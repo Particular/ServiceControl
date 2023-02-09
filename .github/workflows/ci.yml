@@ -14,14 +14,16 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology]        
+        name: [LearningTransport, Msmq]        
         include:
           - name: LearningTransport
             transport: LearningTransport
             customization: ConfigureEndpointLearningTransport
+            run_transports_tests: false
           - name: Msmq
             transport: Msmq
             customization: ConfigureEndpointMsmqTransport          
+            run_transports_tests: true
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -61,27 +63,32 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
+        if: matrix.run_transports_tests == true
         uses: Particular/install-sql-server-action@v1.0.2
         with:
           connection-string-env-var: ServiceControl.TransportTests.SQL.ConnectionString
           catalog: nservicebus
       - name: Setup RabbitMQ
+        if: matrix.run_transports_tests == true
         uses: Particular/setup-rabbitmq-action@v1.3.0
         with:
           connection-string-name: ServiceControl.TransportTests.RabbitMQ.ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
+        if: matrix.run_transports_tests == true
         uses: Particular/setup-azureservicebus-action@v1.2.0
         with:
           connection-string-name: ServiceControl.TransportTests.ASBS.ConnectionString
           tag: ServiceControl
 
       - name: Setup Azure Storage Queues
+        if: matrix.run_transports_tests == true
         uses: Particular/setup-azurestorage-action@v1.1.0
         with:
           connection-string-name: ServiceControl.TransportTests.ASQ.ConnectionString
           tag: ServiceControl
       - name: Setup SQS environment variables
+        if: matrix.run_transports_tests == true
         shell: pwsh
         run: |
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
@@ -100,3 +107,4 @@ jobs:
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}
+          ServiceControl.RunTransportTests: ${{ matrix.run_transports_tests }}
