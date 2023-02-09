@@ -56,7 +56,7 @@
 
         protected async Task<IDispatchMessages> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), "error");
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}.error");
 
             endpointForTesting.AutoCreateQueues(new string[0]);
             configuration.ApplyTransportConfig(endpointForTesting);
