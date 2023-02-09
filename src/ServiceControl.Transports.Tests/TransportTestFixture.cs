@@ -18,11 +18,6 @@
         [SetUp]
         public virtual Task Setup()
         {
-            if (bool.Parse(Environment.GetEnvironmentVariable("ServiceControl.RunTransportTests") ?? "false") == false)
-            {
-                Assert.Inconclusive($"CI matrix element not flagged to run transports seam tests'");
-            }
-
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = new List<CancellationTokenRegistration>();
