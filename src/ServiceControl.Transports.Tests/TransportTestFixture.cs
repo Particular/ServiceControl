@@ -41,8 +41,7 @@
 
         protected string GetTestQueueName(string name)
         {
-            var suffix = TestContext.CurrentContext.Test.ID.Replace("-", "");
-            return $"{name}{suffix}";
+            return $"{name}";
         }
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
