@@ -41,7 +41,7 @@
 
         protected string GetTestQueueName(string name)
         {
-            return $"{name}";
+            return $"{name}-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
         }
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
