@@ -159,7 +159,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.ASBS.Tests", "ServiceControl.Transports.ASBS.Tests\ServiceControl.Transports.ASBS.Tests.csproj", "{32B4384E-0669-44BA-A862-BEABB6102A3B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.RabbitMQ.Tests", "ServiceControl.Transports.RabbitMQ.Tests\ServiceControl.Transports.RabbitMQ.Tests.csproj", "{85A9C9D8-0B72-42EC-AD93-6EE12316956B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.RabbitMQConventionalQuorum.Tests", "ServiceControl.Transports.RabbitMQ.Tests\ServiceControl.Transports.RabbitMQConventionalQuorum.Tests.csproj", "{85A9C9D8-0B72-42EC-AD93-6EE12316956B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.RabbitMQConventionalClassic.Tests", "ServiceControl.Transports.RabbitMQConventionalClassic.Tests\ServiceControl.Transports.RabbitMQConventionalClassic.Tests.csproj", "{BA86830A-A26A-4E15-9812-1A745A0C020E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -407,6 +409,10 @@ Global
 		{85A9C9D8-0B72-42EC-AD93-6EE12316956B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85A9C9D8-0B72-42EC-AD93-6EE12316956B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85A9C9D8-0B72-42EC-AD93-6EE12316956B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA86830A-A26A-4E15-9812-1A745A0C020E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA86830A-A26A-4E15-9812-1A745A0C020E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA86830A-A26A-4E15-9812-1A745A0C020E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA86830A-A26A-4E15-9812-1A745A0C020E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -482,6 +488,7 @@ Global
 		{9911DDA3-35DE-4059-B790-D42F568F13C5} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{32B4384E-0669-44BA-A862-BEABB6102A3B} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{85A9C9D8-0B72-42EC-AD93-6EE12316956B} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
+		{BA86830A-A26A-4E15-9812-1A745A0C020E} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
