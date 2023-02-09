@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ServiceControl.Transports.UnitTests")]
+[assembly: InternalsVisibleTo("ServiceControl.Transports.ASBEndpointTopology.Tests")]
