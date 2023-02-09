@@ -39,6 +39,12 @@
             }
         }
 
+        protected string GetTestQueueName(string name)
+        {
+            var suffix = TestContext.CurrentContext.Test.ID.Replace("-", "");
+            return $"{name}{suffix}";
+        }
+
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
         {
             var source = new TaskCompletionSource<TResult>();
@@ -56,7 +62,7 @@
 
         protected async Task<IDispatchMessages> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}_error");
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}error");
 
             endpointForTesting.AutoCreateQueues(new string[0]);
             configuration.ApplyTransportConfig(endpointForTesting);
