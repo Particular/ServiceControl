@@ -49,7 +49,7 @@
             Assert.That(aip.AspNetCoreToInstall == aip.AspNetCoreMin, "The AspNet version to install needs to be the same as the check for which version to install.");
 
             // Check convention that the maximum version is patch 100
-            Assert.That(aip.NetRuntimeMax.Revision == 100, "For the maximum .NET runtime version, use 100 as the patch value. (i.e. 7.0.100)");
+            Assert.That(aip.NetRuntimeMax.Build == 100, "For the maximum .NET runtime version, use 100 as the patch value. (i.e. 7.0.100)");
 
             // Check that the ASPNET registry key in the AIP file is also correct
             var desiredRegistryKeyEnding = "v" + aip.AspNetCoreMin.ToString(2);
