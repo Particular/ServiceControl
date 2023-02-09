@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System;
+    using System.Data.Common;
     using System.Threading.Tasks;
     using Amazon.Runtime;
     using Amazon.SimpleNotificationService;
@@ -36,6 +37,24 @@
             var transportConfig = c.UseTransport<SqsTransport>();
             transportConfig.ClientFactory(CreateSQSClient);
             transportConfig.ClientFactory(CreateSnsClient);
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return;
+            }
+
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            if (!builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
+            {
+                return;
+            }
+
+            var queueNamePrefixAsString = (string)queueNamePrefix;
+            if (!string.IsNullOrEmpty(queueNamePrefixAsString))
+            {
+                transportConfig.QueueNamePrefix(queueNamePrefixAsString);
+            }
         }
 
         static IAmazonSQS CreateSQSClient()
