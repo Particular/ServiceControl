@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
-    using NUnit.Framework;
     using Transports;
     using Transports.SqlServer;
 
@@ -15,7 +13,7 @@
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
-            queueLengthProvider.Initialize(ConnectionString(), store);
+            queueLengthProvider.Initialize(connectionString, store);
 
             return queueLengthProvider;
         }
@@ -25,6 +23,7 @@
         public Task Configure()
         {
             customizations = new SqlServerTransportCustomization();
+            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.SQL.ConnectionString");
 
             return Task.CompletedTask;
         }
@@ -32,22 +31,10 @@
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
             c.UseTransport<SqlServerTransport>()
-                .ConnectionString(ConnectionString());
-        }
-
-        string ConnectionString()
-        {
-            var connectionString =
-                Environment.GetEnvironmentVariable("ServiceControl.TransportTests.SQL.ConnectionString");
-            //TODO: make localDb work in the CI or think about a convenient way for the developer workflow, 
-            //perhaps something similar to the connection.txt file used by acceptance tests
-            // or the developer can set the environment variable via launchSettings.json
-#if DEBUG
-            connectionString = "Data Source=.; Initial Catalog=nservicebus; Integrated Security=true";
-#endif      
-            return connectionString;
+                .ConnectionString(connectionString);
         }
 
         SqlServerTransportCustomization customizations;
+        string connectionString;
     }
 }

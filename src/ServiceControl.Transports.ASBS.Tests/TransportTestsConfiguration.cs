@@ -13,7 +13,7 @@
         {
             var queueLengthProvider = customizations.CreateQueueLengthProvider();
 
-            queueLengthProvider.Initialize(ConnectionString(), store);
+            queueLengthProvider.Initialize(connectionString, store);
 
             return queueLengthProvider;
         }
@@ -23,6 +23,7 @@
         public Task Configure()
         {
             customizations = new ASBSTransportCustomization();
+            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.ASBS.ConnectionString");
 
             return Task.CompletedTask;
         }
@@ -30,22 +31,10 @@
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
             c.UseTransport<AzureServiceBusTransport>()
-                .ConnectionString(ConnectionString());
+                .ConnectionString(connectionString);
         }
 
-        string ConnectionString()
-        {
-            var connectionString =
-                Environment.GetEnvironmentVariable("ServiceControl.TransportTests.ASBS.ConnectionString");
-            //TODO: make localDb work in the CI or think about a convenient way for the developer workflow, 
-            //perhaps something similar to the connection.txt file used by acceptance tests
-            // or the developer can set the environment variable via launchSettings.json
-#if DEBUG
-            connectionString = "";
-#endif      
-            return connectionString;
-        }
-
+        string connectionString;
         ASBSTransportCustomization customizations;
     }
 }
