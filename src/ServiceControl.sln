@@ -167,6 +167,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.RabbitMQDirectClassic.Tests", "ServiceControl.Transports.RabbitMQDirectClassic.Tests\ServiceControl.Transports.RabbitMQDirectClassic.Tests.csproj", "{76156A3F-9F77-464D-872A-C0128DCFCA4C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Transports.ASQ.Tests", "ServiceControl.Transports.ASQ.Tests\ServiceControl.Transports.ASQ.Tests.csproj", "{114D6F8B-B105-4C22-86BA-D83732D05941}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -425,6 +427,10 @@ Global
 		{76156A3F-9F77-464D-872A-C0128DCFCA4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76156A3F-9F77-464D-872A-C0128DCFCA4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76156A3F-9F77-464D-872A-C0128DCFCA4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{114D6F8B-B105-4C22-86BA-D83732D05941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{114D6F8B-B105-4C22-86BA-D83732D05941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{114D6F8B-B105-4C22-86BA-D83732D05941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{114D6F8B-B105-4C22-86BA-D83732D05941}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -503,6 +509,7 @@ Global
 		{BA86830A-A26A-4E15-9812-1A745A0C020E} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{2929DE6F-121F-489C-8F10-1769665999F3} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 		{76156A3F-9F77-464D-872A-C0128DCFCA4C} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
+		{114D6F8B-B105-4C22-86BA-D83732D05941} = {E0E45F22-35E3-4AD8-B09E-EFEA5A2F18EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}

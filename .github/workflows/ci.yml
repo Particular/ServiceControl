@@ -14,17 +14,14 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, AzureStorageQueues, SQS]        
+        name: [LearningTransport, Msmq, AzureServiceBus-ForwardingTopology, AzureServiceBus-EndpointTopology, SQS]        
         include:
           - name: LearningTransport
             transport: LearningTransport
             customization: ConfigureEndpointLearningTransport
           - name: Msmq
             transport: Msmq
-            customization: ConfigureEndpointMsmqTransport
-          - name: AzureStorageQueues
-            transport: AzureStorageQueues
-            customization: ConfigureEndpointAzureStorageQueueTransport
+            customization: ConfigureEndpointMsmqTransport          
           - name: SQS
             transport: SQS
             customization: ConfigureEndpointSQSTransport
@@ -83,10 +80,9 @@ jobs:
           tag: ServiceControl
 
       - name: Setup Azure Storage Queues
-        if: matrix.transport == 'AzureStorageQueues'
         uses: Particular/setup-azurestorage-action@v1.1.0
         with:
-          connection-string-name: ServiceControl.AcceptanceTests.ConnectionString
+          connection-string-name: ServiceControl.TransportTests.ASQ.ConnectionString
           tag: ServiceControl
       - name: Setup SQS environment variables
         if: matrix.Transport == 'SQS'
