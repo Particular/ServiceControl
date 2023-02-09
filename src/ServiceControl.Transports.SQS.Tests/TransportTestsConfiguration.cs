@@ -2,6 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Amazon.Runtime;
+    using Amazon.SimpleNotificationService;
+    using Amazon.SQS;
     using NServiceBus;
     using NServiceBus.Raw;
     using Transports;
@@ -30,8 +33,21 @@
 
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
-            c.UseTransport<SqsTransport>()
-                .ConnectionString(connectionString);
+            var transportConfig = c.UseTransport<SqsTransport>();
+            transportConfig.ClientFactory(CreateSQSClient);
+            transportConfig.ClientFactory(CreateSnsClient);
+        }
+
+        static IAmazonSQS CreateSQSClient()
+        {
+            var credentials = new EnvironmentVariablesAWSCredentials();
+            return new AmazonSQSClient(credentials);
+        }
+
+        static IAmazonSimpleNotificationService CreateSnsClient()
+        {
+            var credentials = new EnvironmentVariablesAWSCredentials();
+            return new AmazonSimpleNotificationServiceClient(credentials);
         }
 
         string connectionString;
