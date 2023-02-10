@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using NServiceBus;
     using NServiceBus.Raw;
     using Transports;
@@ -39,7 +40,8 @@
             c.UseTransport<AzureServiceBusTransport>()
 #pragma warning restore CS0618
                 .ConnectionString(connectionString)
-                .UseEndpointOrientedTopology();
+                .UseEndpointOrientedTopology()
+                .ApplyHacksForNsbRaw();
         }
 
         string connectionString;
