@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
@@ -21,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- MSMQ can't be queried across machines and uses https://github.com/Particular/NServiceBus.Metrics.ServiceControl.Msmq installed into each ebdndpoint to collect metrics instead-->
+    <!-- MSMQ can't be queried across machines and uses https://github.com/Particular/NServiceBus.Metrics.ServiceControl.Msmq installed into each endpoint to collect metrics instead-->
     <Compile Remove="..\ServiceControl.Transports.Tests\QueueLengthMonitoringTests.cs" />
   </ItemGroup>
 </Project>

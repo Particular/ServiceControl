@@ -14,6 +14,7 @@
 
         public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
+            // MSMQ can't be queried across machines and uses https://github.com/Particular/NServiceBus.Metrics.ServiceControl.Msmq installed into each endpoint to collect metrics instead
             throw new NotImplementedException();
         }
 

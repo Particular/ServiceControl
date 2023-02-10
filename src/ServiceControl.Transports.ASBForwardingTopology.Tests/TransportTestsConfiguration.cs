@@ -31,11 +31,10 @@
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
 #pragma warning disable CS0618
-            var transport = c.UseTransport<AzureServiceBusTransport>()
+            c.UseTransport<AzureServiceBusTransport>()
 #pragma warning restore CS0618
-                .ConnectionString(connectionString);
-
-            transport.UseForwardingTopology();
+                .ConnectionString(connectionString)
+                .UseForwardingTopology();
         }
 
         string connectionString;

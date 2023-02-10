@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -20,12 +19,6 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="ASB\**" />
-    <EmbeddedResource Remove="ASB\**" />
-    <None Remove="ASB\**" />
   </ItemGroup>
 
 </Project>
