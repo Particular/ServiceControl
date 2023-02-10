@@ -14,6 +14,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using TestSupport;
 
     [TestFixture]
@@ -62,18 +63,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
-
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
-            {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
-            }
+            TransportIntegration = new ConfigureEndpointLearningTransport();
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, s => SetSettings(s), s => CustomConfiguration(s));
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
-
-            RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
 
         [TearDown]
@@ -83,20 +75,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
-        }
-
-        static void RemoveOtherTransportAssemblies(string name)
-        {
-            var assembly = Type.GetType(name, true).Assembly;
-
-            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
-            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
-                .Where(transportAssembly => transportAssembly != assembly.Location);
-
-            foreach (var transportAssembly in otherAssemblies)
-            {
-                File.Delete(transportAssembly);
-            }
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()

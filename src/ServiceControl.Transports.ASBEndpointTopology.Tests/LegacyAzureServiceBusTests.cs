@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Transports.UnitTests.ASB
+﻿namespace ServiceControl.Transports.ASBEndpointTopology.Tests
 {
     using NUnit.Framework;
     using ServiceControl.Transports.ASB;
