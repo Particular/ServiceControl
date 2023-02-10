@@ -24,7 +24,7 @@
             {
                 if (qle.Value > 0)
                 {
-                    onQueueLengthEntryReceived.SetResult(qle);
+                    onQueueLengthEntryReceived.TrySetResult(qle);
                 }
             });
 
