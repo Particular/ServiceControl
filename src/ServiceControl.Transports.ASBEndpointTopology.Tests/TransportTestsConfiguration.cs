@@ -23,7 +23,12 @@
         public Task Configure()
         {
             customizations = new ASBEndpointTopologyTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.ASBS.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for ASB endpoint oriented topology transport tests to run");
+            }
 
             return Task.CompletedTask;
         }
@@ -39,5 +44,7 @@
 
         string connectionString;
         ASBEndpointTopologyTransportCustomization customizations;
+
+        static string ConnectionStringKey = "ServiceControl.TransportTests.ASBS.ConnectionString";
     }
 }

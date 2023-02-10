@@ -23,7 +23,12 @@
         public Task Configure()
         {
             customizations = new RabbitMQQuorumConventionalRoutingTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.RabbitMQ.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for RabbitMQ direct routing with quorum queues transport tests to run");
+            }
 
             return Task.CompletedTask;
         }
@@ -37,5 +42,7 @@
 
         string connectionString;
         RabbitMQQuorumConventionalRoutingTransportCustomization customizations;
+
+        static string ConnectionStringKey = "ServiceControl.TransportTests.RabbitMQ.ConnectionString";
     }
 }

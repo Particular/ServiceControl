@@ -27,7 +27,12 @@
         public Task Configure()
         {
             customizations = new SQSTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.SQS.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for SQL transport tests to run");
+            }
 
             return Task.CompletedTask;
         }
@@ -71,5 +76,7 @@
 
         string connectionString;
         SQSTransportCustomization customizations;
+
+        static string ConnectionStringKey = "ServiceControl.TransportTests.SQS.ConnectionString";
     }
 }

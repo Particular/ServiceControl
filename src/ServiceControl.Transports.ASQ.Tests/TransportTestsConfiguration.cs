@@ -23,7 +23,12 @@
         public Task Configure()
         {
             customizations = new ASQTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.ASQ.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for ASQ transport tests to run");
+            }
 
             return Task.CompletedTask;
         }
@@ -36,5 +41,7 @@
 
         string connectionString;
         ASQTransportCustomization customizations;
+
+        static string ConnectionStringKey = "ServiceControl.TransportTests.ASQ.ConnectionString";
     }
 }

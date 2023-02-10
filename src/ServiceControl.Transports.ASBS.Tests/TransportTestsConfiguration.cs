@@ -23,7 +23,12 @@
         public Task Configure()
         {
             customizations = new ASBSTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable("ServiceControl.TransportTests.ASBS.ConnectionString");
+            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for ASBS transport tests to run");
+            }
 
             return Task.CompletedTask;
         }
@@ -36,5 +41,7 @@
 
         string connectionString;
         ASBSTransportCustomization customizations;
+
+        static string ConnectionStringKey = "ServiceControl.TransportTests.ASBS.ConnectionString";
     }
 }
