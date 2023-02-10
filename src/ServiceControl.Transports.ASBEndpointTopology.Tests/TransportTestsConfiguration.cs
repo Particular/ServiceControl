@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using NServiceBus;
     using NServiceBus.Raw;
     using Transports;

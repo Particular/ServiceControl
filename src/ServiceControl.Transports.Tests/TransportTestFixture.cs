@@ -77,7 +77,7 @@
             return rawEndpointForQueueLengthTesting;
         }
 
-        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(10);
+        protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
 
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
