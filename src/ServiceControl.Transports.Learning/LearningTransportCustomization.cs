@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.Transports.Learning
 {
     using System;
+    using System.Threading.Tasks;
     using LearningTransport;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class LearningTransportCustomization : TransportCustomization
     {
@@ -62,5 +64,7 @@
             transport.Transactions(transportTransactionMode);
             transport.NoPayloadSizeRestriction();
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
     }
 }

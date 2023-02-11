@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Transports
 {
+    using System.Threading.Tasks;
+    using System;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public abstract class TransportCustomization
     {
@@ -20,5 +23,11 @@
         public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
+
+        public abstract Task<IQueueIngestor> InitializeIngestor(
+            string queueName,
+            Func<MessageContext, Task> onMessage,
+            IErrorHandlingPolicy onError,
+            Func<string, Exception, Task> onCriticalError);
     }
 }

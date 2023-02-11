@@ -102,6 +102,8 @@ namespace Particular.ServiceControl
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
                     services.AddSingleton<IDomainEvents, DomainEvents>();
                     services.AddSingleton(transportSettings);
+                    services.AddSingleton(transportCustomization);
+
                     var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
                     services.AddSingleton(rawEndpointFactory);
                     services.AddSingleton<MessageStreamerConnection>();

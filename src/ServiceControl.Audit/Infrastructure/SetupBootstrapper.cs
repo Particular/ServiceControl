@@ -29,7 +29,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
-            var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+            var factory = new RawEndpointFactory(transportSettings, transportCustomization);
 
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)

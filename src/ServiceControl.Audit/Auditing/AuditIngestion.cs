@@ -24,6 +24,7 @@
         public AuditIngestion(
             Settings settings,
             RawEndpointFactory rawEndpointFactory,
+            TransportCustomization transportCustomization,
             Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
             LoggingSettings loggingSettings,
@@ -33,6 +34,7 @@
         {
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
+            this.transportCustomization = transportCustomization;
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
@@ -108,11 +110,11 @@
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
-                var queueIngestorFactory = rawEndpointFactory.CreateQueueIngestorFactory();
-
                 logger.Info("Ensure started. Infrastructure starting");
-                queueIngestor = await queueIngestorFactory.InitializeIngestor(inputEndpoint, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
+
+                var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
+
+                queueIngestor = await transportCustomization.InitializeIngestor(inputEndpoint, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
 
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
@@ -222,6 +224,7 @@
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
         readonly RawEndpointFactory rawEndpointFactory;
+        readonly TransportCustomization transportCustomization;
         readonly AuditIngestor auditIngestor;
         readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;

@@ -23,6 +23,7 @@
 
         public ErrorIngestion(
             Settings settings,
+            TransportCustomization transportCustomization,
             RawEndpointFactory rawEndpointFactory,
             Metrics metrics,
             IDocumentStore documentStore,
@@ -32,6 +33,7 @@
             IIngestionUnitOfWorkFactory unitOfWorkFactory)
         {
             this.settings = settings;
+            this.transportCustomization = transportCustomization;
             errorQueue = settings.ErrorQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.ingestor = ingestor;
@@ -136,9 +138,8 @@
                 }
 
                 var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
-                var queueIngestorFactory = rawEndpointFactory.CreateQueueIngestorFactory();
 
-                queueIngestor = await queueIngestorFactory.InitializeIngestor(errorQueue, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
+                queueIngestor = await transportCustomization.InitializeIngestor(errorQueue, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
 
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
@@ -208,6 +209,7 @@
         IDispatchMessages dispatcher;
 
         readonly Settings settings;
+        readonly TransportCustomization transportCustomization;
         readonly Watchdog watchdog;
         readonly Channel<MessageContext> channel;
         readonly Task ingestionWorker;

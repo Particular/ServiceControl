@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class MsmqTransportCustomization : TransportCustomization
     {
@@ -60,5 +63,7 @@
             transport.Transactions(transportTransactionMode);
             return transport;
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
     }
 }

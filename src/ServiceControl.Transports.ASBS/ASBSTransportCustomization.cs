@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class ASBSTransportCustomization : TransportCustomization
     {
@@ -81,5 +84,7 @@
 
             connectionSettings.AuthenticationMethod.ConfigureConnection(transport);
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
     }
 }

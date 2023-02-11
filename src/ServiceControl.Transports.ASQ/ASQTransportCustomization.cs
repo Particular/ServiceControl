@@ -2,7 +2,9 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using System;
+    using System.Threading.Tasks;
 
     public class ASQTransportCustomization : TransportCustomization
     {
@@ -79,5 +81,7 @@
         {
             return new QueueLengthProvider();
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
     }
 }

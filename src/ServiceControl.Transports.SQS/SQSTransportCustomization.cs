@@ -4,6 +4,7 @@
     using System.Data.Common;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
@@ -13,6 +14,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class SQSTransportCustomization : TransportCustomization
     {
@@ -175,6 +177,8 @@
 
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         static ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }

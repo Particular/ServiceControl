@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class SqlServerTransportCustomization : TransportCustomization
     {
@@ -113,6 +116,8 @@
             transport.ConnectionString(connectionString);
 
         }
+
+        public override Task<IQueueIngestor> InitializeIngestor(string queueName, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
 
