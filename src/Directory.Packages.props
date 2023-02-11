@@ -55,7 +55,7 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="4.3.1" />
     <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
     <PackageVersion Include="Particular.Approvals" Version="0.3.0" />
-    <PackageVersion Include="Particular.Licensing.Sources" Version="5.0.1" />
+    <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
     <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
