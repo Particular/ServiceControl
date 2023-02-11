@@ -34,7 +34,7 @@
             return config;
         }
 
-        public RawEndpointConfiguration CreateFailedAuditsSender(string name)
+        public RawEndpointConfiguration CreateRawSendOnlyEndpoint(string name)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);
 

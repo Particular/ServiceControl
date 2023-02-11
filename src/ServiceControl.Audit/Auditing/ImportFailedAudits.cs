@@ -22,7 +22,7 @@ namespace ServiceControl.Audit.Auditing
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            var config = rawEndpointFactory.CreateFailedAuditsSender("ImportFailedAudits");
+            var config = rawEndpointFactory.CreateRawSendOnlyEndpoint("ImportFailedAudits");
             var endpoint = await RawEndpoint.Start(config).ConfigureAwait(false);
 
             await auditIngestor.VerifyCanReachForwardingAddress(endpoint).ConfigureAwait(false);

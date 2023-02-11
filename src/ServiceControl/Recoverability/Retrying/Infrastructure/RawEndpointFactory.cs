@@ -34,6 +34,19 @@ namespace ServiceControl.Recoverability
             return config;
         }
 
+#pragma warning disable CA1822 // Mark members as static
+        public IQueueIngestorFactory CreateQueueIngestorFactory()
+#pragma warning restore CA1822 // Mark members as static
+        {
+            //var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
+            //config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+
+            //transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
+            //return config;
+
+            return null;
+        }
+
         public RawEndpointConfiguration CreateSendOnly(string name)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);

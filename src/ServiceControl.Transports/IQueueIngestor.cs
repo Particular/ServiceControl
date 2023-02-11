@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Transports
 {
     using System;
     using System.Threading.Tasks;

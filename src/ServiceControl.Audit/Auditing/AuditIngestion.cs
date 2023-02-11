@@ -15,6 +15,7 @@
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure.Metrics;
+    using ServiceControl.Transports;
 
     class AuditIngestion : IHostedService
     {
@@ -73,9 +74,9 @@
             };
         }
 
-        Task OnCriticalError(string failure, Exception arg2)
+        Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Warn($"OnCriticalError. '{failure}'", arg2);
+            logger.Warn($"OnCriticalError. '{failure}'", exception);
             return watchdog.OnFailure(failure);
         }
 
@@ -107,8 +108,7 @@
                     return; //Already started
                 }
 
-                // TODO rename to something more generic since we're sending all kinds of messages
-                var rawConfiguration = rawEndpointFactory.CreateFailedAuditsSender(inputEndpoint);
+                var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
                 var queueIngestorFactory = rawEndpointFactory.CreateQueueIngestorFactory();
 
                 logger.Info("Ensure started. Infrastructure starting");
