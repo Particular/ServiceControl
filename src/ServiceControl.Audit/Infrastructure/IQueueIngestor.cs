@@ -8,7 +8,7 @@
     public interface IQueueIngestorFactory
     {
         Task<IQueueIngestor> InitializeIngestor(string queueName,
-            Func<MessageContext, IDispatchMessages, Task> onMessage,
+            Func<MessageContext, Task> onMessage,
             IErrorHandlingPolicy onError,
             Func<string, Exception, Task> onCriticalError);
     }

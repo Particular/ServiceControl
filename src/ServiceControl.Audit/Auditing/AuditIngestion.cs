@@ -158,7 +158,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext, IDispatchMessages dispatcher)
+        async Task OnMessage(MessageContext messageContext)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
