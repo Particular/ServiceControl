@@ -114,10 +114,15 @@
 
                 logger.Info("Ensure started. Infrastructure starting");
 
+                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                    inputEndpoint,
+                    transportSettings,
+                    settings.MaximumConcurrencyLevel,
+                    OnMessage,
+                    errorHandlingPolicy,
+                    OnCriticalError).ConfigureAwait(false);
+
                 var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
-
-                queueIngestor = await transportCustomization.InitializeQueueIngestor(inputEndpoint, transportSettings, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
-
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
                 await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);

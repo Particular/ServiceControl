@@ -112,8 +112,6 @@
 
         }
 
-        public override Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
-
         const string defaultSubscriptionTableName = "SubscriptionRouting";
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(SqlServerTransportCustomization));

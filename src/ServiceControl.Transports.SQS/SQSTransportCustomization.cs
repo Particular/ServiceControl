@@ -173,8 +173,6 @@
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
 
-        public override Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings, Func<MessageContext, Task> onMessage, IErrorHandlingPolicy onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
-
         static ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }

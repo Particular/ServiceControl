@@ -139,9 +139,15 @@
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
+                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                    errorQueue,
+                    transportSettings,
+                    settings.MaximumConcurrencyLevel,
+                    OnMessage,
+                    errorHandlingPolicy,
+                    OnCriticalError).ConfigureAwait(false);
 
-                queueIngestor = await transportCustomization.InitializeQueueIngestor(errorQueue, transportSettings, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
+                var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
 
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
