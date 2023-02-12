@@ -16,15 +16,6 @@ namespace ServiceControl.Recoverability
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateErrorIngestor(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
-        {
-            var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
-            config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
-
-            transportCustomization.CustomizeForErrorIngestion(config, transportSettings);
-            return config;
-        }
-
         public RawEndpointConfiguration CreateReturnToSenderDequeuer(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
         {
             var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
