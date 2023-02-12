@@ -23,12 +23,6 @@
             CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
-            transport.IgnoreIncomingTimeToBeReceivedHeaders();
-        }
-
         public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);

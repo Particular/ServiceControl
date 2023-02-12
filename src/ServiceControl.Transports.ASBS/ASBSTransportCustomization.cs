@@ -50,13 +50,6 @@
             CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
-
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
-
         public override IProvideQueueLength CreateQueueLengthProvider()
         {
             return new QueueLengthProvider();
