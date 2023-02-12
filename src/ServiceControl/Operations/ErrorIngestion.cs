@@ -141,7 +141,7 @@
 
                 var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
 
-                queueIngestor = await transportCustomization.InitializeIngestor(errorQueue, transportSettings, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
+                queueIngestor = await transportCustomization.InitializeQueueIngestor(errorQueue, transportSettings, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
 
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 

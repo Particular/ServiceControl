@@ -24,7 +24,7 @@
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
 
-        public abstract Task<IQueueIngestor> InitializeIngestor(
+        public abstract Task<IQueueIngestor> InitializeQueueIngestor(
             string queueName,
             TransportSettings transportSettings,
             Func<MessageContext, Task> onMessage,
