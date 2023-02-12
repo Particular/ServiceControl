@@ -15,7 +15,7 @@
             CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 

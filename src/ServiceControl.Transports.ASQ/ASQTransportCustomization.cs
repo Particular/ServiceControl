@@ -14,7 +14,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
         }

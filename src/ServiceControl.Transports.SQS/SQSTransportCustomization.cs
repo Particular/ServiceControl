@@ -42,7 +42,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<SqsTransport>();
             ConfigureTransport(transport, transportSettings);
