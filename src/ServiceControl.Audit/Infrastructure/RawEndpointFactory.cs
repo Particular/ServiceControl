@@ -16,7 +16,7 @@
         {
             var config = RawEndpointConfiguration.Create(auditQueue, (_, __) => throw new NotImplementedException(), $"{transportSettings.EndpointName}.Errors");
 
-            transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
+            transportCustomization.CustomizeForQueueIngestion(config, transportSettings);
             return config;
         }
 

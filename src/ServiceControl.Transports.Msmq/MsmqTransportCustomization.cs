@@ -23,7 +23,7 @@
             CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
             transport.IgnoreIncomingTimeToBeReceivedHeaders();

@@ -8,7 +8,7 @@
 
     public class ASBSTransportCustomization : TransportCustomization
     {
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
