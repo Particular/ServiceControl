@@ -25,6 +25,7 @@
             Settings settings,
             RawEndpointFactory rawEndpointFactory,
             TransportCustomization transportCustomization,
+            TransportSettings transportSettings,
             Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
             LoggingSettings loggingSettings,
@@ -35,6 +36,7 @@
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.transportCustomization = transportCustomization;
+            this.transportSettings = transportSettings;
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
@@ -114,7 +116,7 @@
 
                 var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
 
-                queueIngestor = await transportCustomization.InitializeIngestor(inputEndpoint, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
+                queueIngestor = await transportCustomization.InitializeIngestor(inputEndpoint, transportSettings, OnMessage, errorHandlingPolicy, OnCriticalError).ConfigureAwait(false);
 
                 dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
@@ -225,6 +227,7 @@
         readonly string inputEndpoint;
         readonly RawEndpointFactory rawEndpointFactory;
         readonly TransportCustomization transportCustomization;
+        readonly TransportSettings transportSettings;
         readonly AuditIngestor auditIngestor;
         readonly IErrorHandlingPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
