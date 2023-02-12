@@ -40,6 +40,8 @@
 
             config.CustomErrorHandlingPolicy(onError);
 
+            CustomizeForQueueIngestion(config, transportSettings);
+
             var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
             return new QueueIngestor(startableRaw);
         }
