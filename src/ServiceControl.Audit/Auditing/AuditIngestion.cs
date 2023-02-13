@@ -99,7 +99,7 @@
                         var stoppable = queueIngestor;
                         queueIngestor = null;
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
-                        await queueIngestor.Stop().ConfigureAwait(false);
+                        await stoppable.Stop().ConfigureAwait(false);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
