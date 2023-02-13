@@ -119,7 +119,7 @@
                     transportSettings,
                     settings.MaximumConcurrencyLevel,
                     OnMessage,
-                    errorHandlingPolicy,
+                    errorHandlingPolicy.OnError,
                     OnCriticalError).ConfigureAwait(false);
 
                 var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
@@ -234,7 +234,7 @@
         readonly TransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly AuditIngestor auditIngestor;
-        readonly IErrorHandlingPolicy errorHandlingPolicy;
+        readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;

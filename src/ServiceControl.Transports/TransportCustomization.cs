@@ -27,7 +27,7 @@
             TransportSettings transportSettings,
             int maximumConcurrencyLevel,
             Func<MessageContext, Task> onMessage,
-            IErrorHandlingPolicy onError,
+            Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
             var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), $"{transportSettings.EndpointName}.Errors");
@@ -36,36 +36,48 @@
             Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
             config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);
 
-            config.CustomErrorHandlingPolicy(onError);
+            config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
 
             CustomizeForQueueIngestion(config, transportSettings);
 
             var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
             return new QueueIngestor(startableRaw);
         }
-    }
 
-    public class QueueIngestor : IQueueIngestor
-    {
-
-        public QueueIngestor(IStartableRawEndpoint startableRaw) => this.startableRaw = startableRaw;
-
-        public async Task Start()
+        class IngestionErrorPolicy : IErrorHandlingPolicy
         {
-            stoppableRaw = await startableRaw.Start().ConfigureAwait(false);
-        }
+            public IngestionErrorPolicy(Func<ErrorContext, Task<ErrorHandleResult>> onError) => this.onError = onError;
 
-        public Task Stop()
-        {
-            if (stoppableRaw != null)
+            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
-                return stoppableRaw.Stop();
+                return onError(handlingContext.Error);
             }
 
-            return Task.CompletedTask;
+            readonly Func<ErrorContext, Task<ErrorHandleResult>> onError;
         }
 
-        IStoppableRawEndpoint stoppableRaw;
-        readonly IStartableRawEndpoint startableRaw;
+        class QueueIngestor : IQueueIngestor
+        {
+
+            public QueueIngestor(IStartableRawEndpoint startableRaw) => this.startableRaw = startableRaw;
+
+            public async Task Start()
+            {
+                stoppableRaw = await startableRaw.Start().ConfigureAwait(false);
+            }
+
+            public Task Stop()
+            {
+                if (stoppableRaw != null)
+                {
+                    return stoppableRaw.Stop();
+                }
+
+                return Task.CompletedTask;
+            }
+
+            IStoppableRawEndpoint stoppableRaw;
+            readonly IStartableRawEndpoint startableRaw;
+        }
     }
 }

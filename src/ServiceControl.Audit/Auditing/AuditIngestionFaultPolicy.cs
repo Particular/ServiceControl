@@ -6,11 +6,10 @@
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence;
 
-    class AuditIngestionFaultPolicy : IErrorHandlingPolicy
+    class AuditIngestionFaultPolicy
     {
         IFailedAuditStorage failedAuditStorage;
         string logPath;
@@ -28,15 +27,15 @@
             Directory.CreateDirectory(logPath);
         }
 
-        public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext)
         {
             //Same as recoverability policy in NServiceBusFactory
-            if (handlingContext.Error.ImmediateProcessingFailures < 3)
+            if (errorContext.ImmediateProcessingFailures < 3)
             {
                 return ErrorHandleResult.RetryRequired;
             }
 
-            await StoreFailedMessageDocument(handlingContext.Error)
+            await StoreFailedMessageDocument(errorContext)
                 .ConfigureAwait(false);
             return ErrorHandleResult.Handled;
         }

@@ -4,13 +4,12 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class ErrorIngestionFaultPolicy : IErrorHandlingPolicy
+    class ErrorIngestionFaultPolicy
     {
         IDocumentStore store;
         string logPath;
@@ -27,15 +26,15 @@
             Directory.CreateDirectory(logPath);
         }
 
-        public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext)
         {
             //Same as recoverability policy in NServiceBusFactory
-            if (handlingContext.Error.ImmediateProcessingFailures < 3)
+            if (errorContext.ImmediateProcessingFailures < 3)
             {
                 return ErrorHandleResult.RetryRequired;
             }
 
-            await Handle(handlingContext.Error)
+            await Handle(errorContext)
                 .ConfigureAwait(false);
             return ErrorHandleResult.Handled;
         }

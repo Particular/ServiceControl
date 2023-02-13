@@ -144,7 +144,7 @@
                     transportSettings,
                     settings.MaximumConcurrencyLevel,
                     OnMessage,
-                    errorHandlingPolicy,
+                    errorHandlingPolicy.OnError,
                     OnCriticalError).ConfigureAwait(false);
 
                 var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
