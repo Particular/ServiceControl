@@ -1,9 +1,7 @@
 ﻿namespace ServiceControl.Transports
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
-    using System.Xml.Linq;
     using NServiceBus;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -59,7 +57,12 @@
 
         public Task Stop()
         {
-            return stoppableRaw.Stop();
+            if (stoppableRaw != null)
+            {
+                return stoppableRaw.Stop();
+            }
+
+            return Task.CompletedTask;
         }
 
         IStoppableRawEndpoint stoppableRaw;
