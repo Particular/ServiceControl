@@ -1,14 +1,10 @@
 namespace Particular.ServiceControl
 {
-    using System;
     using System.Threading.Tasks;
     using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Transports;
-    using NServiceBus;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Transport;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -16,10 +12,9 @@ namespace Particular.ServiceControl
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings settings, string[] excludedAssemblies = null)
+        public SetupBootstrapper(Settings settings)
         {
             this.settings = settings;
-            this.excludedAssemblies = excludedAssemblies ?? Array.Empty<string>();
         }
 
         public async Task Run(string username)
@@ -62,24 +57,12 @@ namespace Particular.ServiceControl
                 var transportSettings = MapSettings(settings);
                 var transportCustomization = settings.LoadTransportCustomization();
 
-                var endpointConfig = new EndpointConfiguration(settings.ServiceName);
-                endpointConfig.AssemblyScanner().ExcludeAssemblies(excludedAssemblies);
-
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings,
-                    new LoggingSettings(settings.ServiceName), endpointConfig);
-
-                endpointConfig.EnableInstallers(username);
-                var queueBindings = endpointConfig.GetSettings().Get<QueueBindings>();
-                foreach (var componentBinding in componentSetupContext.Queues)
-                {
-                    queueBindings.BindSending(componentBinding);
-                }
-
-                // HACK: Do not need the raven persistence to create queues
-                endpointConfig.UsePersistence<InMemoryPersistence, StorageType.Subscriptions>();
-
-                await Endpoint.Create(endpointConfig)
-                    .ConfigureAwait(false);
+                await transportCustomization.ProvisionQueues(
+                    username,
+                    transportSettings,
+                    settings.ServiceName,
+                    NServiceBusFactory.ErrorQueue(settings.ServiceName),
+                    componentSetupContext.Queues).ConfigureAwait(false);
             }
         }
 
@@ -124,7 +107,6 @@ namespace Particular.ServiceControl
         }
 
         readonly Settings settings;
-        readonly string[] excludedAssemblies;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }

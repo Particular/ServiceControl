@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Transports
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -41,6 +43,18 @@
 
             var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
             return new QueueIngestor(startableRaw);
+        }
+
+        public Task ProvisionQueues(string username, TransportSettings transportSettings, string endpointQueue, string errorQueue, IEnumerable<string> additionalQueues)
+        {
+            var config = RawEndpointConfiguration.Create(endpointQueue, (_, __) => throw new NotImplementedException(), errorQueue);
+
+            CustomizeForQueueIngestion(config, transportSettings);
+
+            config.AutoCreateQueues(additionalQueues.ToArray(), username);
+
+            //No need to start the raw endpoint to create queues
+            return RawEndpoint.Create(config);
         }
 
         class IngestionErrorPolicy : IErrorHandlingPolicy

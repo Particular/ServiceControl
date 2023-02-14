@@ -45,7 +45,7 @@ namespace ServiceBus.Management.Infrastructure
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
-            configuration.SendFailedMessagesTo($"{endpointName}.Errors");
+            configuration.SendFailedMessagesTo(ErrorQueue(endpointName));
 
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
@@ -57,6 +57,11 @@ namespace ServiceBus.Management.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
+        }
+
+        public static string ErrorQueue(string endpointName)
+        {
+            return $"{endpointName}.Errors";
         }
 
         static bool IsExternalContract(Type t)

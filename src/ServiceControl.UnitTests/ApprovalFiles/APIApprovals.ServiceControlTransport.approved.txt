@@ -39,6 +39,7 @@ namespace ServiceControl.Transports
         public abstract void CustomizeSendOnlyEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeServiceControlEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public System.Threading.Tasks.Task<ServiceControl.Transports.IQueueIngestor> InitializeQueueIngestor(string queueName, ServiceControl.Transports.TransportSettings transportSettings, System.Func<NServiceBus.Transport.MessageContext, System.Threading.Tasks.Task> onMessage, System.Func<NServiceBus.Transport.ErrorContext, System.Threading.Tasks.Task<NServiceBus.Transport.ErrorHandleResult>> onError, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError) { }
+        public System.Threading.Tasks.Task ProvisionQueues(string username, ServiceControl.Transports.TransportSettings transportSettings, string endpointQueue, string errorQueue, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
     }
     public class TransportSettings : NServiceBus.Settings.SettingsHolder
     {

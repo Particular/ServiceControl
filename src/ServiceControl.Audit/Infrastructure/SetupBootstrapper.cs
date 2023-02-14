@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using ServiceControl.Audit.Persistence;
     using Settings;
     using Transports;
@@ -29,12 +28,10 @@ namespace ServiceControl.Audit.Infrastructure
 
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
-            var factory = new RawEndpointFactory(transportSettings, transportCustomization);
 
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-                var rawEndpointUsedToProvisionQueues = factory.CreateRawEndpointToProvisionAuditQueues(settings.AuditQueue);
 
                 if (settings.SkipQueueCreation)
                 {
@@ -42,19 +39,14 @@ namespace ServiceControl.Audit.Infrastructure
                 }
                 else
                 {
-                    var additionalQueues = new List<string>
-                    {
-                        $"{settings.ServiceName}.Errors"
-                    };
+                    var additionalQueues = new List<string>();
+
                     if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
                     {
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
 
-                    rawEndpointUsedToProvisionQueues.AutoCreateQueues(additionalQueues.ToArray(), username);
-
-                    //No need to start the raw endpoint to create queues
-                    await RawEndpoint.Create(rawEndpointUsedToProvisionQueues).ConfigureAwait(false);
+                    await transportCustomization.ProvisionQueues(username, transportSettings, settings.ServiceName, $"{settings.ServiceName}.Errors", additionalQueues).ConfigureAwait(false);
                 }
             }
 

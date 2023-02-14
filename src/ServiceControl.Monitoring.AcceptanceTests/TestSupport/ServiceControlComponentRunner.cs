@@ -9,8 +9,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Infrastructure.WebApi;
     using Infrastructure;
+    using Infrastructure.WebApi;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Monitoring;
@@ -108,11 +108,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludeAssemblies: new[]
-                {
-                    typeof(IComponentBehavior).Assembly.GetName().Name,
-                    typeof(ServiceControlComponentRunner).Assembly.GetName().Name,
-                });
+                var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run();
             }
 

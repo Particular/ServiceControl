@@ -1,52 +1,47 @@
 namespace ServiceControl.Monitoring.Infrastructure
 {
-    using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Logging;
     using LicenseManagement;
-    using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus.Logging;
+    using ServiceControl.Transports;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Monitoring.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Monitoring.Settings settings)
         {
-            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
         public Task Run()
         {
-            if (ValidateLicense(settings))
+            if (!ValidateLicense(settings))
             {
-                var endpointConfig = new EndpointConfiguration(settings.EndpointName);
-                var _ = endpointConfig.UseContainer(new DefaultServiceProviderFactory());
-
-                var bootstrapper = new Bootstrapper(
-                    c => Environment.FailFast("NServiceBus Critical Error", c.Exception),
-                    settings,
-                    endpointConfig);
-
-                var assemblyScanner = endpointConfig.AssemblyScanner();
-                if (excludeAssemblies != null)
-                {
-                    assemblyScanner.ExcludeAssemblies(excludeAssemblies);
-                }
-
-                bootstrapper.ConfigureEndpoint(endpointConfig);
-
-                endpointConfig.EnableInstallers(settings.Username);
-
-                if (settings.SkipQueueCreation)
-                {
-                    Logger.Info("Skipping queue creation");
-                    endpointConfig.DoNotCreateQueues();
-                }
-
-                return Endpoint.Create(endpointConfig);
+                return Task.CompletedTask;
             }
 
-            return Task.CompletedTask;
+            if (settings.SkipQueueCreation)
+            {
+                Logger.Info("Skipping queue creation");
+                return Task.CompletedTask;
+            }
+
+            var transportCustomization = settings.LoadTransportCustomization();
+
+            var transportSettings = new TransportSettings
+            {
+                RunCustomChecks = false,
+                ConnectionString = settings.ConnectionString,
+                EndpointName = settings.EndpointName,
+                MaxConcurrency = settings.MaximumConcurrencyLevel
+            };
+
+            return transportCustomization.ProvisionQueues(
+                settings.Username,
+                transportSettings,
+                settings.EndpointName,
+                settings.ErrorQueue,
+                new List<string>());
         }
 
         bool ValidateLicense(Monitoring.Settings settings)
@@ -81,6 +76,5 @@ namespace ServiceControl.Monitoring.Infrastructure
         readonly Monitoring.Settings settings;
 
         static ILog Logger = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
     }
 }

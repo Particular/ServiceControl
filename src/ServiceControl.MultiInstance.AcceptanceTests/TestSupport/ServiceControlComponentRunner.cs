@@ -172,7 +172,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings, excludedAssemblies);
+                var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run(null);
             }
 
