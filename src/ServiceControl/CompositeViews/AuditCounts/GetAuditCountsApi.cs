@@ -25,10 +25,12 @@
 
         protected override DailyAuditCountResult ProcessResults(HttpRequestMessage request, QueryResult<DailyAuditCountResult>[] results)
         {
-            var minimumAuditRetention = results.Select(r => r.Results.AuditRetention).Min();
+            // The "LocalQuery" result will always be null
+            var nonNullResults = results.Select(r => r.Results).Where(r => r != null).ToArray();
 
-            var combined = results.Select(result => result.Results)
-                .Where(set => set != null)
+            var minimumAuditRetention = nonNullResults.Select(r => r.AuditRetention).Min();
+
+            var combined = nonNullResults
                 .SelectMany(set => set.Days)
                 .GroupBy(e => e.UtcDate)
                 .Select(dayGroup => new DailyAuditCount
