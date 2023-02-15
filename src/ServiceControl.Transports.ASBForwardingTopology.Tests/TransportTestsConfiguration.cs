@@ -2,8 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using Transports;
     using Transports.ASB;
 
@@ -27,16 +25,6 @@
         }
 
         public Task Cleanup() => Task.CompletedTask;
-
-
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-#pragma warning disable CS0618
-            c.UseTransport<AzureServiceBusTransport>()
-#pragma warning restore CS0618
-                .ConnectionString(ConnectionString)
-                .UseForwardingTopology();
-        }
 
         static string ConnectionStringKey = "ServiceControl.TransportTests.ASBS.ConnectionString";
     }

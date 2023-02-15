@@ -66,12 +66,7 @@
 
         protected async Task<IDispatchMessages> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}.Errors");
-
-            endpointForTesting.AutoCreateQueues(new string[0]);
-            configuration.ApplyTransportConfig(endpointForTesting);
-
-            var rawEndpointForQueueLengthTesting = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
+            var rawEndpoint = await CreateTestDispatcher(queueName);
 
             queueLengthProvider = configuration.TransportCustomization.CreateQueueLengthProvider();
 
@@ -79,9 +74,9 @@
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
-            await queueLengthProvider.Start().ConfigureAwait(false);
+            await queueLengthProvider.Start();
 
-            return rawEndpointForQueueLengthTesting;
+            return rawEndpoint;
         }
 
         protected async Task<IDispatchMessages> StartQueueIngestor(
@@ -89,12 +84,7 @@
             Func<MessageContext, Task> onMessage,
             Func<ErrorContext, Task<ErrorHandleResult>> onError)
         {
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}.Errors");
-
-            endpointForTesting.AutoCreateQueues(new string[0]);
-            configuration.ApplyTransportConfig(endpointForTesting);
-
-            var rawEndpoint = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
+            var rawEndpoint = await CreateTestDispatcher(queueName);
 
             var transportSettings = new TransportSettings
             {
@@ -117,6 +107,23 @@
             await queueIngestor.Start().ConfigureAwait(false);
 
             return rawEndpoint;
+        }
+
+        async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = queueName,
+                ConnectionString = configuration.ConnectionString,
+                MaxConcurrency = 1
+            };
+
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}.Errors");
+
+            endpointForTesting.AutoCreateQueues(new string[0]);
+            configuration.TransportCustomization.CustomizeForQueueIngestion(endpointForTesting, transportSettings);
+
+            return await RawEndpoint.Create(endpointForTesting);
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);

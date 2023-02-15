@@ -2,8 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using Transports;
     using Transports.SqlServer;
 
@@ -27,12 +25,6 @@
         }
 
         public Task Cleanup() => Task.CompletedTask;
-
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-            c.UseTransport<SqlServerTransport>()
-                .ConnectionString(ConnectionString);
-        }
 
         static string ConnectionStringKey = "ServiceControl.TransportTests.SQL.ConnectionString";
     }

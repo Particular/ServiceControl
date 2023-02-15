@@ -2,8 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using ServiceControl.Transports.RabbitMQ;
     using Transports;
 
@@ -27,13 +25,6 @@
         }
 
         public Task Cleanup() => Task.CompletedTask;
-
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-            c.UseTransport<RabbitMQTransport>()
-                .UseConventionalRoutingTopology(QueueType.Classic)
-                .ConnectionString(ConnectionString);
-        }
 
         static string ConnectionStringKey = "ServiceControl.TransportTests.RabbitMQ.ConnectionString";
     }

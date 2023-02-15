@@ -3,8 +3,6 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using ServiceControl.Transports;
     using ServiceControl.Transports.Learning;
 
@@ -30,12 +28,6 @@
         public string ConnectionString { get; private set; }
 
         public TransportCustomization TransportCustomization { get; private set; }
-
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-            c.UseTransport<LearningTransport>()
-                .StorageDirectory(basePath);
-        }
 
         public Task Cleanup()
         {

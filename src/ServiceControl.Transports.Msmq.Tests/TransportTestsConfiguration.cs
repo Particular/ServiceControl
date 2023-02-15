@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using ServiceControl.Transports;
     using ServiceControl.Transports.Msmq;
 
@@ -18,11 +16,6 @@
             ConnectionString = null;
 
             return Task.CompletedTask;
-        }
-
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-            c.UseTransport<MsmqTransport>();
         }
 
         public Task Cleanup() => Task.CompletedTask;
