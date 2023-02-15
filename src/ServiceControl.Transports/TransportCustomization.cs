@@ -44,6 +44,28 @@
             return new QueueIngestor(startableRaw);
         }
 
+        public async Task<IQueueIngestor> CreateReturnToSenderDequeuer(
+            string queueName,
+            TransportSettings transportSettings,
+            int maximumConcurrencyLevel,
+            Func<MessageContext, IDispatchMessages, Task> onMessage,
+            Func<ErrorContext, Task<ErrorHandleResult>> onError,
+            Func<string, Exception, Task> onCriticalError)
+        {
+            var config = RawEndpointConfiguration.Create(queueName, onMessage, $"{transportSettings.EndpointName}.Errors");
+            config.LimitMessageProcessingConcurrencyTo(maximumConcurrencyLevel);
+
+            Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
+            config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);
+
+            config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
+
+            CustomizeForQueueIngestion(config, transportSettings);
+
+            var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
+            return new QueueIngestor(startableRaw);
+        }
+
         class IngestionErrorPolicy : IErrorHandlingPolicy
         {
             public IngestionErrorPolicy(Func<ErrorContext, Task<ErrorHandleResult>> onError) => this.onError = onError;

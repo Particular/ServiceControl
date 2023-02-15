@@ -104,7 +104,7 @@ namespace Particular.ServiceControl
                     services.AddSingleton(transportSettings);
                     services.AddSingleton(transportCustomization);
 
-                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    var rawEndpointFactory = new RawEndpointFactory(transportSettings, transportCustomization);
                     services.AddSingleton(rawEndpointFactory);
                     services.AddSingleton<MessageStreamerConnection>();
                     services.AddSingleton(loggingSettings);

@@ -6,30 +6,25 @@ namespace ServiceControl.Recoverability
     using Infrastructure.DomainEvents;
     using MessageFailures;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Transports;
 
     class ReturnToSenderDequeuer : IHostedService
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
+        public ReturnToSenderDequeuer(TransportCustomization transportCustomization,
+            TransportSettings transportSettings, ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
         {
+            this.rawEndpointFactory = rawEndpointFactory;
+            this.settings = settings;
+            this.transportCustomization = transportCustomization;
+            this.transportSettings = transportSettings;
             InputAddress = settings.StagingQueue;
             this.returnToSender = returnToSender;
             errorQueue = settings.ErrorQueue;
-
-            createEndpointConfiguration = () =>
-            {
-                var config = rawEndpointFactory.CreateReturnToSenderDequeuer(InputAddress, Handle);
-
-                config.CustomErrorHandlingPolicy(faultManager);
-
-                return config;
-            };
 
             faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
@@ -102,7 +97,6 @@ namespace ServiceControl.Recoverability
 
         public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
         {
-            IReceivingRawEndpoint processor = null;
             CancellationTokenRegistration? registration = null;
             try
             {
@@ -115,18 +109,30 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat("Starting receiver");
                 }
 
-                var config = createEndpointConfiguration();
+                queueIngestor = await transportCustomization.CreateReturnToSenderDequeuer(
+                    errorQueue,
+                    transportSettings,
+                    settings.MaximumConcurrencyLevel,
+                    Handle,
+                    faultManager.OnError,
+                    OnCriticalError).ConfigureAwait(false); //TODO: What about critical errors?
+
                 syncEvent = new TaskCompletionSource<bool>();
                 stopCompletionSource = new TaskCompletionSource<bool>();
                 registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
-                var startable = await RawEndpoint.Create(config).ConfigureAwait(false);
+                var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
 
-                errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
+                await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
-                processor = await startable.Start().ConfigureAwait(false);
+                //TODO: GetErrorQueueTransportAddress
+                //errorQueueTransportAddress = GetErrorQueueTransportAddress(dispatcher);
 
-                Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
+                await queueIngestor.Start()
+                    .ConfigureAwait(false);
+
+                //TODO: processor.TransportAddress
+                //Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
                 if (!expectedMessageCount.HasValue)
                 {
@@ -147,9 +153,9 @@ namespace ServiceControl.Recoverability
 
                 await syncEvent.Task.ConfigureAwait(false);
                 registration?.Dispose();
-                if (processor != null)
+                if (queueIngestor != null)
                 {
-                    await processor.Stop().ConfigureAwait(false);
+                    await queueIngestor.Stop().ConfigureAwait(false);
                 }
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
@@ -163,12 +169,14 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable)
-        {
-            var transportInfra = startable.Settings.Get<TransportInfrastructure>();
-            var localInstance = transportInfra.BindToLocalEndpoint(new EndpointInstance(errorQueue));
-            return transportInfra.ToTransportAddress(LogicalAddress.CreateRemoteAddress(localInstance));
-        }
+        Task OnCriticalError(string arg1, Exception arg2) => throw new NotImplementedException();
+
+        //string GetErrorQueueTransportAddress(TransportInfrastructure transportInfra)
+        //{
+        //    var transportInfra = startable.Settings.Get<TransportInfrastructure>();
+        //    var localInstance = transportInfra.BindToLocalEndpoint(new EndpointInstance(errorQueue));
+        //    return transportInfra.ToTransportAddress(LogicalAddress.CreateRemoteAddress(localInstance));
+        //}
 
         public Task Stop()
         {
@@ -192,6 +200,11 @@ namespace ServiceControl.Recoverability
             }
         }
 
+        RawEndpointFactory rawEndpointFactory;
+        IQueueIngestor queueIngestor;
+        readonly Settings settings;
+        readonly TransportCustomization transportCustomization;
+        readonly TransportSettings transportSettings;
         Timer timer;
         TaskCompletionSource<bool> syncEvent;
         TaskCompletionSource<bool> stopCompletionSource;
@@ -200,14 +213,13 @@ namespace ServiceControl.Recoverability
         int actualMessageCount;
         Predicate<MessageContext> shouldProcess;
         CaptureIfMessageSendingFails faultManager;
-        Func<RawEndpointConfiguration> createEndpointConfiguration;
         ReturnToSender returnToSender;
         readonly string errorQueue;
-        string errorQueueTransportAddress;
+        string errorQueueTransportAddress = string.Empty;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 
-        class CaptureIfMessageSendingFails : IErrorHandlingPolicy
+        class CaptureIfMessageSendingFails
         {
             public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Action executeOnFailure)
             {
@@ -216,14 +228,14 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            public async Task<ErrorHandleResult> OnError(ErrorContext handlingContext)
             {
                 try
                 {
-                    var message = handlingContext.Error.Message;
+                    var message = handlingContext.Message;
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Error.Exception);
+                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Exception);
 
                     using (var session = store.OpenAsyncSession())
                     {
@@ -248,7 +260,7 @@ namespace ServiceControl.Recoverability
                     string reason;
                     try
                     {
-                        reason = handlingContext.Error.Exception.GetBaseException().Message;
+                        reason = handlingContext.Exception.GetBaseException().Message;
                     }
                     catch (Exception)
                     {
