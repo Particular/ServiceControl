@@ -4,7 +4,6 @@
     using System.Data.Common;
     using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
@@ -14,8 +13,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Transport;
-
+    
     public class SQSTransportCustomization : TransportCustomization
     {
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)

@@ -43,7 +43,7 @@
         [Test]
         public async Task Should_trigger_on_error()
         {
-            var queueName = GetTestQueueName("ingestionfailure");
+            var queueName = GetTestQueueName("failure");
             var onErrorCalled = CreateTaskCompletionSource<bool>();
 
             var dispatcher = await StartQueueIngestor(
