@@ -13,7 +13,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    
+
     public class SQSTransportCustomization : TransportCustomization
     {
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
