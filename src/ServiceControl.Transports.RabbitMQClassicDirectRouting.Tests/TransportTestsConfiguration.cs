@@ -13,7 +13,7 @@
 
         public Task Configure()
         {
-            TransportCustomization = new RabbitMQQuorumConventionalRoutingTransportCustomization();
+            TransportCustomization = new RabbitMQClassicDirectRoutingTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))

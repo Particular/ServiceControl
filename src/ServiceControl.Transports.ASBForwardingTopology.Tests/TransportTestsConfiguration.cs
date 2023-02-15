@@ -13,7 +13,7 @@
 
         public Task Configure()
         {
-            TransportCustomization = new ASBEndpointTopologyTransportCustomization();
+            TransportCustomization = new ASBForwardingTopologyTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))

@@ -13,12 +13,12 @@
 
         public Task Configure()
         {
-            TransportCustomization = new RabbitMQQuorumConventionalRoutingTransportCustomization();
+            TransportCustomization = new RabbitMQQuorumDirectRoutingTransportCustomization();
             ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
             if (string.IsNullOrEmpty(ConnectionString))
             {
-                throw new Exception($"Environment variable {ConnectionStringKey} is required for RabbitMQ conventional routing with classic queues transport tests to run");
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for RabbitMQ direct routing with quorum queues transport tests to run");
             }
 
             return Task.CompletedTask;
