@@ -33,6 +33,11 @@
                 await queueLengthProvider.Stop().ConfigureAwait(false);
             }
 
+            if (queueIngestor != null)
+            {
+                await queueIngestor.Stop().ConfigureAwait(false);
+            }
+
             if (configuration != null)
             {
                 await configuration.Cleanup().ConfigureAwait(false);
@@ -68,7 +73,9 @@
 
             var rawEndpointForQueueLengthTesting = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
 
-            queueLengthProvider = configuration.InitializeQueueLengthProvider((qlt, _) => onQueueLengthReported(qlt.First()));
+            queueLengthProvider = configuration.TransportCustomization.CreateQueueLengthProvider();
+
+            queueLengthProvider.Initialize(configuration.ConnectionString, (qlt, _) => onQueueLengthReported(qlt.First()));
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
@@ -77,10 +84,46 @@
             return rawEndpointForQueueLengthTesting;
         }
 
+        protected async Task<IDispatchMessages> StartQueueIngestor(
+            string queueName,
+            Func<MessageContext, Task> onMessage,
+            Func<ErrorContext, Task<ErrorHandleResult>> onError)
+        {
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}error");
+
+            endpointForTesting.AutoCreateQueues(new string[0]);
+            configuration.ApplyTransportConfig(endpointForTesting);
+
+            var rawEndpoint = await RawEndpoint.Create(endpointForTesting).ConfigureAwait(false);
+
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+                EndpointName = queueName,
+                MaxConcurrency = 1
+            };
+
+            queueIngestor = await configuration.TransportCustomization.InitializeQueueIngestor(
+                queueName,
+                transportSettings,
+                onMessage,
+                onError,
+                (_, __) =>
+                {
+                    Assert.Fail("There should be no critical errors");
+                    return Task.CompletedTask;
+                });
+
+            await queueIngestor.Start().ConfigureAwait(false);
+
+            return rawEndpoint;
+        }
+
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
 
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
+        IQueueIngestor queueIngestor;
     }
 }

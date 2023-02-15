@@ -25,13 +25,12 @@
         public async Task<IQueueIngestor> InitializeQueueIngestor(
             string queueName,
             TransportSettings transportSettings,
-            int maximumConcurrencyLevel,
             Func<MessageContext, Task> onMessage,
             Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
             var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), $"{transportSettings.EndpointName}.Errors");
-            config.LimitMessageProcessingConcurrencyTo(maximumConcurrencyLevel);
+            config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
             Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
             config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);

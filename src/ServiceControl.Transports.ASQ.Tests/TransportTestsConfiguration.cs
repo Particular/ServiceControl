@@ -9,23 +9,16 @@
 
     partial class TransportTestsConfiguration
     {
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-        {
-            var queueLengthProvider = customizations.CreateQueueLengthProvider();
+        public string ConnectionString { get; private set; }
 
-            queueLengthProvider.Initialize(connectionString, store);
-
-            return queueLengthProvider;
-        }
-
-        public Task Cleanup() => Task.CompletedTask;
+        public TransportCustomization TransportCustomization { get; private set; }
 
         public Task Configure()
         {
-            customizations = new ASQTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+            TransportCustomization = new ASQTransportCustomization();
+            ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
-            if (string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"Environment variable {ConnectionStringKey} is required for ASQ transport tests to run");
             }
@@ -33,14 +26,13 @@
             return Task.CompletedTask;
         }
 
+        public Task Cleanup() => Task.CompletedTask;
+
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
             c.UseTransport<AzureStorageQueueTransport>()
-                .ConnectionString(connectionString);
+                .ConnectionString(ConnectionString);
         }
-
-        string connectionString;
-        ASQTransportCustomization customizations;
 
         static string ConnectionStringKey = "ServiceControl.TransportTests.ASQ.ConnectionString";
     }

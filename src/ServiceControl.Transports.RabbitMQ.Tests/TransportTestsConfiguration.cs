@@ -9,23 +9,16 @@
 
     partial class TransportTestsConfiguration
     {
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-        {
-            var queueLengthProvider = customizations.CreateQueueLengthProvider();
+        public string ConnectionString { get; private set; }
 
-            queueLengthProvider.Initialize(connectionString, store);
-
-            return queueLengthProvider;
-        }
-
-        public Task Cleanup() => Task.CompletedTask;
+        public TransportCustomization TransportCustomization { get; private set; }
 
         public Task Configure()
         {
-            customizations = new RabbitMQQuorumConventionalRoutingTransportCustomization();
-            connectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
+            TransportCustomization = new RabbitMQQuorumConventionalRoutingTransportCustomization();
+            ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringKey);
 
-            if (string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"Environment variable {ConnectionStringKey} is required for RabbitMQ conventional routing with quorum queues transport tests to run");
             }
@@ -33,15 +26,14 @@
             return Task.CompletedTask;
         }
 
+        public Task Cleanup() => Task.CompletedTask;
+
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
             c.UseTransport<RabbitMQTransport>()
                 .UseConventionalRoutingTopology(QueueType.Quorum)
-                .ConnectionString(connectionString);
+                .ConnectionString(ConnectionString);
         }
-
-        string connectionString;
-        RabbitMQQuorumConventionalRoutingTransportCustomization customizations;
 
         static string ConnectionStringKey = "ServiceControl.TransportTests.RabbitMQ.ConnectionString";
     }

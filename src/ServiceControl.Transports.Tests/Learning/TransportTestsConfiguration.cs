@@ -12,8 +12,6 @@
     {
         public Task Configure()
         {
-            customizations = new LearningTransportCustomization();
-
             basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
 
             if (Directory.Exists(basePath))
@@ -23,17 +21,15 @@
 
             Directory.CreateDirectory(basePath);
 
+            TransportCustomization = new LearningTransportCustomization();
+            ConnectionString = basePath;
+
             return Task.CompletedTask;
         }
 
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
-        {
-            var queueLengthProvider = customizations.CreateQueueLengthProvider();
+        public string ConnectionString { get; private set; }
 
-            queueLengthProvider.Initialize(basePath, store);
-
-            return queueLengthProvider;
-        }
+        public TransportCustomization TransportCustomization { get; private set; }
 
         public void ApplyTransportConfig(RawEndpointConfiguration c)
         {
@@ -41,9 +37,16 @@
                 .StorageDirectory(basePath);
         }
 
-        public Task Cleanup() => Task.CompletedTask;
+        public Task Cleanup()
+        {
+            if (Directory.Exists(basePath))
+            {
+                Directory.Delete(basePath, true);
+            }
 
-        LearningTransportCustomization customizations;
+            return Task.CompletedTask;
+        }
+
         string basePath;
     }
 }

@@ -117,7 +117,6 @@
                 queueIngestor = await transportCustomization.InitializeQueueIngestor(
                     inputEndpoint,
                     transportSettings,
-                    settings.MaximumConcurrencyLevel,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError).ConfigureAwait(false);
