@@ -39,5 +39,28 @@
 
             Assert.True(allMessagesProcessed);
         }
+
+        [Test]
+        public async Task Should_trigger_on_error()
+        {
+            var queueName = GetTestQueueName("ingestion-failure");
+            var onErrorCalled = CreateTaskCompletionSource<bool>();
+
+            var dispatcher = await StartQueueIngestor(
+                queueName,
+                (_) => throw new System.Exception("Some failure"),
+                (_) =>
+                {
+                    onErrorCalled.SetResult(true);
+                    return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);
+                });
+
+
+            await dispatcher.SendTestMessage(queueName, $"some failing message");
+
+            var onErrorWasCalled = await onErrorCalled.Task;
+
+            Assert.True(onErrorWasCalled);
+        }
     }
 }
