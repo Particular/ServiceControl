@@ -2,6 +2,12 @@
 {
     using System;
 
+    public class AuditCount
+    {
+        public DateTime UtcDate { get; set; }
+        public long Count { get; set; }
+    }
+
     public class DailyAuditCount
     {
         public DateTime UtcDate { get; set; }

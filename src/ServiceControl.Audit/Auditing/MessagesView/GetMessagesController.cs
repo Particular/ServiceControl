@@ -10,12 +10,14 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     {
         public GetMessagesController(GetAllMessagesApi getAllMessagesApi,
             GetAllMessagesForEndpointApi getAllMessagesForEndpointApi,
+            GetAuditCountsForEndpointApi getAuditCountsForEndpointApi,
             GetBodyByIdApi getBodyByIdApi,
             SearchApi searchApi,
             SearchEndpointApi searchEndpointApi)
         {
             this.getAllMessagesApi = getAllMessagesApi;
             this.getAllMessagesForEndpointApi = getAllMessagesForEndpointApi;
+            this.getAuditCountsForEndpointApi = getAuditCountsForEndpointApi;
             this.getBodyByIdApi = getBodyByIdApi;
             this.searchEndpointApi = searchEndpointApi;
             this.searchApi = searchApi;
@@ -28,6 +30,10 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
         public Task<HttpResponseMessage> GetEndpointMessages(string endpoint) => getAllMessagesForEndpointApi.Execute(this, endpoint);
+
+        [Route("endpoints/{endpoint}/audit-count")]
+        [HttpGet]
+        public Task<HttpResponseMessage> GetEndpointAuditCounts(string endpoint) => getAuditCountsForEndpointApi.Execute(this, endpoint);
 
         [Route("messages/{id}/body")]
         [HttpGet]
@@ -74,6 +80,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         readonly GetAllMessagesApi getAllMessagesApi;
         readonly GetAllMessagesForEndpointApi getAllMessagesForEndpointApi;
+        readonly GetAuditCountsForEndpointApi getAuditCountsForEndpointApi;
         readonly GetBodyByIdApi getBodyByIdApi;
         readonly SearchApi searchApi;
         readonly SearchEndpointApi searchEndpointApi;

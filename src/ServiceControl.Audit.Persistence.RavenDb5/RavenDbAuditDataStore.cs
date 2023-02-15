@@ -188,6 +188,53 @@
             }
         }
 
+        public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
+        {
+            var indexName = GetIndexName(isFullTextSearchEnabled);
+
+            using (var session = sessionProvider.OpenSession())
+            {
+                // Maximum should really be 31 queries if there are 30 days of audit data, but default limit is 30
+                session.Advanced.MaxNumberOfRequestsPerSession = 40;
+
+                var results = new List<AuditCount>();
+
+                var oldestMsg = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .OrderBy(m => m.ProcessedAt)
+                    .FirstOrDefaultAsync()
+                    .ConfigureAwait(false);
+
+                if (oldestMsg != null)
+                {
+                    var endDate = DateTime.UtcNow.Date.AddDays(1);
+                    var oldestMsgDate = oldestMsg.ProcessedAt.ToUniversalTime().Date;
+                    var thirtyDays = endDate.AddDays(-30);
+
+                    var startDate = oldestMsgDate > thirtyDays ? oldestMsgDate : thirtyDays;
+
+                    for (var date = startDate; date < endDate; date = date.AddDays(1))
+                    {
+                        var nextDate = date.AddDays(1);
+
+                        _ = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
+                            .Statistics(out var stats)
+                            .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
+                            .Take(0)
+                            .ToArrayAsync()
+                            .ConfigureAwait(false);
+
+                        if (stats.LongTotalResults > 0)
+                        {
+                            results.Add(new AuditCount { UtcDate = date, Count = stats.LongTotalResults });
+                        }
+                    }
+                }
+
+                return new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero);
+            }
+        }
+
         string GetIndexName(bool isFullTextSearchEnabled)
         {
             return isFullTextSearchEnabled ? "MessagesViewIndexWithFullTextSearch" : "MessagesViewIndex";

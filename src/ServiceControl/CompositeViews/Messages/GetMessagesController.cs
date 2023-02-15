@@ -1,9 +1,10 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using Operations.BodyStorage.Api;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Operations.BodyStorage.Api;
+    using ServiceControl.CompositeViews.MessageCounting;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
@@ -12,11 +13,13 @@ namespace ServiceControl.CompositeViews.Messages
         public GetMessagesController(
             GetAllMessagesApi getAllMessagesApi,
             GetAllMessagesForEndpointApi getAllMessagesForEndpointApi,
+            GetAuditCountsForEndpointApi getAuditCountsForEndpointApi,
             GetBodyByIdApi getBodyByIdApi,
             SearchApi searchApi,
             SearchEndpointApi searchEndpointApi)
         {
             this.getAllMessagesForEndpointApi = getAllMessagesForEndpointApi;
+            this.getAuditCountsForEndpointApi = getAuditCountsForEndpointApi;
             this.getAllMessagesApi = getAllMessagesApi;
             this.getBodyByIdApi = getBodyByIdApi;
             this.searchEndpointApi = searchEndpointApi;
@@ -30,6 +33,10 @@ namespace ServiceControl.CompositeViews.Messages
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
         public Task<HttpResponseMessage> MessagesForEndpoint(string endpoint) => getAllMessagesForEndpointApi.Execute(this, endpoint);
+
+        [Route("endpoints/{endpoint}/audit-count")]
+        [HttpGet]
+        public Task<HttpResponseMessage> GetEndpointAuditCounts(string endpoint) => getAuditCountsForEndpointApi.Execute(this, endpoint);
 
         [Route("messages/{id}/body")]
         [HttpGet]
@@ -76,6 +83,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         readonly GetAllMessagesApi getAllMessagesApi;
         readonly GetAllMessagesForEndpointApi getAllMessagesForEndpointApi;
+        readonly GetAuditCountsForEndpointApi getAuditCountsForEndpointApi;
         readonly GetBodyByIdApi getBodyByIdApi;
         readonly SearchApi searchApi;
         readonly SearchEndpointApi searchEndpointApi;

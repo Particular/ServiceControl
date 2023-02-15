@@ -19,5 +19,6 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<MessageBodyView> GetMessageBody(string messageId);
         Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts();
+        Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName);
     }
 }
