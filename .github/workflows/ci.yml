@@ -17,7 +17,6 @@ jobs:
         os: [ windows-2022 ]
         test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS ]
         include:
-          # Add os-name alias for job name
           - os: windows-2022
             os-name: Windows     
       fail-fast: false
