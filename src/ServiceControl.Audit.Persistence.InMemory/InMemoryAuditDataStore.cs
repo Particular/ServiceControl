@@ -184,33 +184,6 @@
             return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count))).ConfigureAwait(false);
         }
 
-        public Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts()
-        {
-            var data = messageViews
-                .Select(m => new
-                {
-                    EndpointName = m.ReceivingEndpoint.Name,
-                    UtcDate = m.ProcessedAt.ToUniversalTime().Date,
-                    Count = m.IsSystemMessage ? 0L : 1L
-                })
-                .GroupBy(m => m.UtcDate)
-                .Select(dateGroup => new DailyAuditCount
-                {
-                    UtcDate = dateGroup.Key,
-                    Data = dateGroup.GroupBy(d => d.EndpointName)
-                        .Select(g => new EndpointAuditCount
-                        {
-                            Name = g.Key,
-                            Count = g.Sum(m => m.Count)
-                        })
-                        .ToArray()
-                })
-                .OrderBy(dmc => dmc.UtcDate)
-                .ToList();
-
-            return Task.FromResult(new QueryResult<IList<DailyAuditCount>>(data, new QueryStatsInfo(string.Empty, data.Count)));
-        }
-
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
         {
             var results = messageViews

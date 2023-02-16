@@ -13,55 +13,6 @@
     class AuditCountingTests : PersistenceTestFixture
     {
         [Test]
-        public async Task ShouldCountMessages()
-        {
-            var currentTime = new DateTime(2022, 02, 02, 1, 2, 3, DateTimeKind.Utc);
-            var yesterday = new DateTime(2022, 02, 01, 4, 5, 6, DateTimeKind.Utc);
-            var weekBefore = yesterday.AddDays(-7);
-            var thirtyDaysAgo = yesterday.AddDays(-30);
-            var fortyDaysAgo = yesterday.AddDays(-40);
-
-            var messages = new[]
-            {
-                // 1 EndpointA day1 + 1 system message
-                MakeMessage("EndpointA", currentTime, false),
-                MakeMessage("EndpointA", currentTime, true),
-
-                // 1 only system message
-                MakeMessage("SystemMessage", currentTime, true),
-
-                // 2 EndpointA day2
-                MakeMessage("EndpointA", yesterday, false),
-                MakeMessage("EndpointA", yesterday, false),
-
-                // 3 EndpointB day1
-                MakeMessage("EndpointB", currentTime, false),
-                MakeMessage("EndpointB", currentTime, false),
-                MakeMessage("EndpointB", currentTime, false),
-
-                // 4 EndpointB a week before
-                MakeMessage("EndpointB", weekBefore, false),
-                MakeMessage("EndpointB", weekBefore, false),
-                MakeMessage("EndpointB", weekBefore, false),
-                MakeMessage("EndpointB", weekBefore, false),
-            };
-
-            await IngestProcessedMessagesAudits(messages);
-
-            var resultContainer = await DataStore.QueryAuditCounts();
-            var result = resultContainer.Results;
-
-            // Not implemented in RavenDB 3.5
-            if (DataStore.GetType().Assembly.GetName().Name == "ServiceControl.Audit.Persistence.RavenDb")
-            {
-                Assert.That(result.Count, Is.EqualTo(0));
-                return;
-            }
-
-            Approver.Verify(result);
-        }
-
-        [Test]
         public async Task ShouldCountAuditedMessages()
         {
             var today = DateTime.UtcNow.Date;

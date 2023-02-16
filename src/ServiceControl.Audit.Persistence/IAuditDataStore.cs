@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
@@ -18,7 +19,6 @@
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<MessageBodyView> GetMessageBody(string messageId);
-        Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts();
         Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName);
     }
 }

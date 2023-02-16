@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -13,7 +14,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Audit.Auditing.MessageCounting;
+    using ServiceControl.Audit.Auditing;
     using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
@@ -87,14 +88,8 @@
         [Test]
         public async Task Should_be_counted()
         {
-            // Ignore for RavenDB 3.5
-            if (StorageConfiguration.PersistenceType.StartsWith("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb, Version="))
-            {
-                Assert.Ignore();
-            }
-
             const string Payload = "PAYLOAD";
-            DailyAuditCountResult counts = null;
+            List<AuditCount> counts = null;
 
             var context = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
@@ -104,12 +99,12 @@
                 .WithEndpoint<Receiver>()
                 .Done(async c =>
                 {
-                    if (c.MessageId == null)
+                    if (c.MessageId == null || c.EndpointNameOfReceivingEndpoint == null)
                     {
                         return false;
                     }
 
-                    var result = await this.TryGet<DailyAuditCountResult>("/api/audit-counts", c => c.Days.Count > 0);
+                    var result = await this.TryGet<List<AuditCount>>($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/audit-count", c => c.Count > 0);
                     counts = result.Item;
                     if (!result)
                     {
@@ -120,12 +115,9 @@
                 })
                 .Run();
 
-            Assert.That(counts.AuditRetention, Is.GreaterThan(TimeSpan.Zero));
-            Assert.That(counts.Days.Count, Is.EqualTo(1));
-            Assert.That(counts.Days[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
-            Assert.That(counts.Days[0].Data.Count, Is.EqualTo(1));
-            Assert.That(counts.Days[0].Data[0].Name, Is.EqualTo(context.EndpointNameOfReceivingEndpoint));
-            Assert.That(counts.Days[0].Data[0].Count, Is.EqualTo(1));
+            Assert.That(counts.Count, Is.EqualTo(1));
+            Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
+            Assert.That(counts[0].Count, Is.EqualTo(1));
         }
 
         public class Sender : EndpointConfigurationBuilder

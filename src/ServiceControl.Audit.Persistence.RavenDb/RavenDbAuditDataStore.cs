@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Monitoring;
@@ -217,16 +218,6 @@
 
                 return new QueryResult<IList<KnownEndpointsView>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
             }
-        }
-
-        /// <summary>
-        /// Purposely not implemented for RavenDB 3.5, returns an empty data set
-        /// </summary>
-        public Task<QueryResult<IList<DailyAuditCount>>> QueryAuditCounts()
-        {
-            var data = new List<DailyAuditCount>();
-            var result = new QueryResult<IList<DailyAuditCount>>(data, new QueryStatsInfo(string.Empty, 0));
-            return Task.FromResult(result);
         }
 
         public async Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)

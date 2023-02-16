@@ -45,8 +45,7 @@
 
             var indexList = new List<AbstractIndexCreationTask> {
                 new FailedAuditImportIndex(),
-                new SagaDetailsIndex(),
-                new AuditCountIndex()
+                new SagaDetailsIndex()
             };
 
             if (configuration.EnableFullTextSearch)

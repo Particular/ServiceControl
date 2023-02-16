@@ -154,6 +154,15 @@ namespace ServiceControl.CompositeViews.Endpoints
         public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
     }
 }
+namespace ServiceControl.CompositeViews.MessageCounting
+{
+    public class AuditCount
+    {
+        public AuditCount() { }
+        public long Count { get; set; }
+        public System.DateTime UtcDate { get; set; }
+    }
+}
 namespace ServiceControl.CompositeViews.Messages
 {
     public class MessagesBodyTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesBodyTransformer.Input>
