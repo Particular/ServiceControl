@@ -102,7 +102,7 @@ jobs:
             echo "TEST_FILTER=TestCategory=Transports.${{ matrix.test-category }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           }
       - name: Run tests
-        uses: Particular/run-tests-action@1.5.0
+        uses: Particular/run-tests-action@v1.5.0
         with:
           filter: ${{ env.TEST_FILTER }}
         env:
