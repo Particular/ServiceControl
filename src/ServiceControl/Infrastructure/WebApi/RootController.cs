@@ -42,6 +42,7 @@
                     "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
                 Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                 Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
@@ -166,6 +167,7 @@
             public string KnownEndpointsUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
+            public string AuditCountUrl { get; set; }
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string Configuration { get; set; }
