@@ -45,7 +45,7 @@ jobs:
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
         uses: actions/upload-artifact@v3.1.2
-        if: matrix.test-category == 'MSMQ'
+        if: matrix.test-category == 'MSMQ' && matrix.os-name == 'Windows'
         with:
           name: assets
           path: |
@@ -55,6 +55,7 @@ jobs:
           retention-days: 1
       - name: Azure login
         uses: azure/login@v1.4.6
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'        
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
