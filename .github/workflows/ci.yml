@@ -54,7 +54,7 @@ jobs:
           retention-days: 1
       - name: Azure login
         uses: azure/login@v1.4.6
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues'        
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'        
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
