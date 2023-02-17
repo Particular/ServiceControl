@@ -1,18 +1,21 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class ASBSTransportCustomization : TransportCustomization
     {
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
             CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
@@ -41,13 +44,6 @@
         }
 
         public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
-
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
-
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 

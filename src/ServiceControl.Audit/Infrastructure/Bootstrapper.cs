@@ -70,7 +70,9 @@ namespace ServiceControl.Audit.Infrastructure
                 {
                     services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
                     services.AddSingleton(transportSettings);
-                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+                    services.AddSingleton(transportCustomization);
+
+                    var rawEndpointFactory = new RawEndpointFactory(transportSettings, transportCustomization);
                     services.AddSingleton(rawEndpointFactory);
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);

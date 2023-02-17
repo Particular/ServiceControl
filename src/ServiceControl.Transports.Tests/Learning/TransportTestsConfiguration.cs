@@ -3,8 +3,6 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
-    using NServiceBus;
-    using NServiceBus.Raw;
     using ServiceControl.Transports;
     using ServiceControl.Transports.Learning;
 
@@ -12,8 +10,6 @@
     {
         public Task Configure()
         {
-            customizations = new LearningTransportCustomization();
-
             basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".transporttests");
 
             if (Directory.Exists(basePath))
@@ -23,27 +19,26 @@
 
             Directory.CreateDirectory(basePath);
 
+            TransportCustomization = new LearningTransportCustomization();
+            ConnectionString = basePath;
+
             return Task.CompletedTask;
         }
 
-        public IProvideQueueLength InitializeQueueLengthProvider(Action<QueueLengthEntry[], EndpointToQueueMapping> store)
+        public string ConnectionString { get; private set; }
+
+        public TransportCustomization TransportCustomization { get; private set; }
+
+        public Task Cleanup()
         {
-            var queueLengthProvider = customizations.CreateQueueLengthProvider();
+            if (Directory.Exists(basePath))
+            {
+                Directory.Delete(basePath, true);
+            }
 
-            queueLengthProvider.Initialize(basePath, store);
-
-            return queueLengthProvider;
+            return Task.CompletedTask;
         }
 
-        public void ApplyTransportConfig(RawEndpointConfiguration c)
-        {
-            c.UseTransport<LearningTransport>()
-                .StorageDirectory(basePath);
-        }
-
-        public Task Cleanup() => Task.CompletedTask;
-
-        LearningTransportCustomization customizations;
         string basePath;
     }
 }

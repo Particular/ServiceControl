@@ -1,30 +1,26 @@
 ﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System;
-    using System.Threading.Tasks;
     using NServiceBus.Raw;
-    using NServiceBus.Transport;
     using Transports;
 
     class RawEndpointFactory
     {
-        public RawEndpointFactory(Settings.Settings settings, TransportSettings transportSettings, TransportCustomization transportCustomization)
+        public RawEndpointFactory(TransportSettings transportSettings, TransportCustomization transportCustomization)
         {
             this.transportSettings = transportSettings;
-            this.settings = settings;
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateAuditIngestor(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
+        public RawEndpointConfiguration CreateRawEndpointToProvisionAuditQueues(string auditQueue)
         {
-            var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
-            config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
+            var config = RawEndpointConfiguration.Create(auditQueue, (_, __) => throw new NotImplementedException(), $"{transportSettings.EndpointName}.Errors");
 
-            transportCustomization.CustomizeForAuditIngestion(config, transportSettings);
+            transportCustomization.CustomizeForQueueIngestion(config, transportSettings);
             return config;
         }
 
-        public RawEndpointConfiguration CreateFailedAuditsSender(string name)
+        public RawEndpointConfiguration CreateRawSendOnlyEndpoint(string name)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);
 
@@ -32,7 +28,6 @@
             return config;
         }
 
-        Settings.Settings settings;
         TransportCustomization transportCustomization;
         TransportSettings transportSettings;
     }

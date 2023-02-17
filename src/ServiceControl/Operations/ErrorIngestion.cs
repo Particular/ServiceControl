@@ -8,13 +8,13 @@
     using System.Threading.Tasks;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Transports;
 
     class ErrorIngestion : IHostedService
     {
@@ -23,6 +23,8 @@
 
         public ErrorIngestion(
             Settings settings,
+            TransportCustomization transportCustomization,
+            TransportSettings transportSettings,
             RawEndpointFactory rawEndpointFactory,
             Metrics metrics,
             IDocumentStore documentStore,
@@ -32,6 +34,8 @@
             IIngestionUnitOfWorkFactory unitOfWorkFactory)
         {
             this.settings = settings;
+            this.transportCustomization = transportCustomization;
+            this.transportSettings = transportSettings;
             errorQueue = settings.ErrorQueue;
             this.rawEndpointFactory = rawEndpointFactory;
             this.ingestor = ingestor;
@@ -120,38 +124,39 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (ingestionEndpoint != null)
+                    if (queueIngestor != null)
                     {
-                        var stoppable = ingestionEndpoint;
-                        ingestionEndpoint = null;
+                        var stoppable = queueIngestor;
+                        queueIngestor = null;
                         await stoppable.Stop().ConfigureAwait(false);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
                 }
 
-                if (ingestionEndpoint != null)
+                if (queueIngestor != null)
                 {
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateErrorIngestor(errorQueue, OnMessage);
+                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                    errorQueue,
+                    transportSettings,
+                    OnMessage,
+                    errorHandlingPolicy.OnError,
+                    OnCriticalError).ConfigureAwait(false);
 
-                rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
+                var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
 
-                rawConfiguration.CustomErrorHandlingPolicy(errorHandlingPolicy);
-
-                var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
-
-                dispatcher = startableRaw;
+                dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
                 if (settings.ForwardErrorMessages)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
                 }
 
-                ingestionEndpoint = await startableRaw.Start()
-                    .ConfigureAwait(false);
+                await queueIngestor.Start()
+                  .ConfigureAwait(false);
 
                 logger.Info("Ensure started. Infrastructure started");
             }
@@ -161,7 +166,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext, IDispatchMessages dispatcher)
+        async Task OnMessage(MessageContext messageContext)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
@@ -177,10 +182,10 @@
             await taskCompletionSource.Task.ConfigureAwait(false);
         }
 
-        Task OnCriticalErrorAction(ICriticalErrorContext ctx)
+        Task OnCriticalError(string failure, Exception exception)
         {
-            log.Warn($"OnCriticalError. '{ctx.Error}'", ctx.Exception);
-            return watchdog.OnFailure(ctx.Error);
+            logger.Warn($"OnCriticalError. '{failure}'", exception);
+            return watchdog.OnFailure(failure);
         }
 
         async Task EnsureStopped(CancellationToken cancellationToken = default)
@@ -189,12 +194,12 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                if (ingestionEndpoint == null)
+                if (queueIngestor == null)
                 {
                     return; //Already stopped
                 }
-                var stoppable = ingestionEndpoint;
-                ingestionEndpoint = null;
+                var stoppable = queueIngestor;
+                queueIngestor = null;
                 await stoppable.Stop().ConfigureAwait(false);
             }
             finally
@@ -204,11 +209,15 @@
         }
 
         SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
-        readonly Settings settings;
         string errorQueue;
         RawEndpointFactory rawEndpointFactory;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
-        IReceivingRawEndpoint ingestionEndpoint;
+        IQueueIngestor queueIngestor;
+        IDispatchMessages dispatcher;
+
+        readonly Settings settings;
+        readonly TransportCustomization transportCustomization;
+        readonly TransportSettings transportSettings;
         readonly Watchdog watchdog;
         readonly Channel<MessageContext> channel;
         readonly Task ingestionWorker;
@@ -217,7 +226,6 @@
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
-        IDispatchMessages dispatcher;
         static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

@@ -35,17 +35,12 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
-        }
-
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<SqsTransport>();
             ConfigureTransport(transport, transportSettings);

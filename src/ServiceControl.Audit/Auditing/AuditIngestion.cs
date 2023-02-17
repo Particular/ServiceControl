@@ -9,13 +9,13 @@
     using Infrastructure;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure.Metrics;
+    using ServiceControl.Transports;
 
     class AuditIngestion : IHostedService
     {
@@ -24,6 +24,8 @@
         public AuditIngestion(
             Settings settings,
             RawEndpointFactory rawEndpointFactory,
+            TransportCustomization transportCustomization,
+            TransportSettings transportSettings,
             Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
             LoggingSettings loggingSettings,
@@ -33,6 +35,8 @@
         {
             inputEndpoint = settings.AuditQueue;
             this.rawEndpointFactory = rawEndpointFactory;
+            this.transportCustomization = transportCustomization;
+            this.transportSettings = transportSettings;
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
@@ -74,13 +78,11 @@
             };
         }
 
-        Task OnCriticalError(string failure, Exception arg2)
+        Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Warn($"OnCriticalError. '{failure}'", arg2);
+            logger.Warn($"OnCriticalError. '{failure}'", exception);
             return watchdog.OnFailure(failure);
         }
-
-        Task OnCriticalErrorAction(ICriticalErrorContext ctx) => OnCriticalError(ctx.Error, ctx.Exception);
 
         async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
@@ -92,10 +94,10 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (ingestionEndpoint != null)
+                    if (queueIngestor != null)
                     {
-                        var stoppable = ingestionEndpoint;
-                        ingestionEndpoint = null;
+                        var stoppable = queueIngestor;
+                        queueIngestor = null;
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
                         await stoppable.Stop().ConfigureAwait(false);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
@@ -104,26 +106,29 @@
                 }
 
 
-                if (ingestionEndpoint != null)
+                if (queueIngestor != null)
                 {
                     logger.Debug("Ensure started. Already started, skipping start up");
                     return; //Already started
                 }
 
-                var rawConfiguration = rawEndpointFactory.CreateAuditIngestor(inputEndpoint, OnMessage);
-
-                rawConfiguration.Settings.Set("onCriticalErrorAction", (Func<ICriticalErrorContext, Task>)OnCriticalErrorAction);
-
-                rawConfiguration.CustomErrorHandlingPolicy(errorHandlingPolicy);
-
                 logger.Info("Ensure started. Infrastructure starting");
-                var startableRaw = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
 
-                await auditIngestor.VerifyCanReachForwardingAddress(startableRaw).ConfigureAwait(false);
+                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                    inputEndpoint,
+                    transportSettings,
+                    OnMessage,
+                    errorHandlingPolicy.OnError,
+                    OnCriticalError).ConfigureAwait(false);
 
-                dispatcher = startableRaw;
-                ingestionEndpoint = await startableRaw.Start()
+                var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
+                dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+
+                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+
+                await queueIngestor.Start()
                     .ConfigureAwait(false);
+
                 logger.Info("Ensure started. Infrastructure started");
             }
             finally
@@ -142,13 +147,13 @@
                 await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 logger.Info("Shutting down. Start/stop semaphore acquired");
 
-                if (ingestionEndpoint == null)
+                if (queueIngestor == null)
                 {
                     logger.Info("Shutting down. Already stopped, skipping shut down");
                     return; //Already stopped
                 }
-                var stoppable = ingestionEndpoint;
-                ingestionEndpoint = null;
+                var stoppable = queueIngestor;
+                queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
                 await stoppable.Stop().ConfigureAwait(false);
                 logger.Info("Shutting down. Infrastructure shut down completed");
@@ -161,7 +166,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext, IDispatchMessages dispatcher)
+        async Task OnMessage(MessageContext messageContext)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
@@ -219,14 +224,16 @@
             // will fall out here when writer is completed
         }
 
-        IReceivingRawEndpoint ingestionEndpoint;
+        IQueueIngestor queueIngestor;
         IDispatchMessages dispatcher;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
         readonly RawEndpointFactory rawEndpointFactory;
-        readonly IErrorHandlingPolicy errorHandlingPolicy;
+        readonly TransportCustomization transportCustomization;
+        readonly TransportSettings transportSettings;
         readonly AuditIngestor auditIngestor;
+        readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;

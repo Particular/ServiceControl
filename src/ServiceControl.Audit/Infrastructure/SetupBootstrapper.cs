@@ -29,12 +29,12 @@ namespace ServiceControl.Audit.Infrastructure
 
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
-            var factory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
+            var factory = new RawEndpointFactory(transportSettings, transportCustomization);
 
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-                var config = factory.CreateAuditIngestor(settings.AuditQueue, (context, dispatcher) => Task.CompletedTask);
+                var rawEndpointUsedToProvisionQueues = factory.CreateRawEndpointToProvisionAuditQueues(settings.AuditQueue);
 
                 if (settings.SkipQueueCreation)
                 {
@@ -50,12 +50,12 @@ namespace ServiceControl.Audit.Infrastructure
                     {
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
-                    config.AutoCreateQueues(additionalQueues.ToArray(), username);
 
+                    rawEndpointUsedToProvisionQueues.AutoCreateQueues(additionalQueues.ToArray(), username);
+
+                    //No need to start the raw endpoint to create queues
+                    await RawEndpoint.Create(rawEndpointUsedToProvisionQueues).ConfigureAwait(false);
                 }
-
-                //No need to start the raw endpoint to create queues
-                await RawEndpoint.Create(config).ConfigureAwait(false);
             }
 
             var configuration = new EndpointConfiguration(settings.ServiceName);

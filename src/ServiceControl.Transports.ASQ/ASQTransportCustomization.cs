@@ -2,17 +2,19 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using System;
+    using System.Threading.Tasks;
 
     public class ASQTransportCustomization : TransportCustomization
     {
 
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
         }
@@ -37,11 +39,6 @@
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
             //Do not ConfigurePubSub for send-only endpoint
-        }
-
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
         static TransportExtensions<AzureStorageQueueTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)

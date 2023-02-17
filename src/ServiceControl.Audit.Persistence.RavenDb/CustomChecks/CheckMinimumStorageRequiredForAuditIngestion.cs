@@ -24,7 +24,13 @@
                 return successResult;
             }
 
-            var dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenBootstrapper.DatabasePathKey]);
+            if (!settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.DatabasePathKey, out var databasePath))
+            {
+                stateHolder.CanIngestMore = true;
+                return successResult;
+            }
+
+            var dataPathRoot = Path.GetPathRoot(databasePath);
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;

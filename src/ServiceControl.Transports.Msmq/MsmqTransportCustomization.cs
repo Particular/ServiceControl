@@ -1,7 +1,10 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
+    using System;
+    using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class MsmqTransportCustomization : TransportCustomization
     {
@@ -20,19 +23,13 @@
             CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
         }
 
-        public override void CustomizeForErrorIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
             transport.IgnoreIncomingTimeToBeReceivedHeaders();
         }
 
-        public override void CustomizeForAuditIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
-            transport.IgnoreIncomingTimeToBeReceivedHeaders();
-        }
-
-        public override void CustomizeForMonitoringIngestion(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
         }
