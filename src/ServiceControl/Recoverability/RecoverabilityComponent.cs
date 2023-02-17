@@ -17,6 +17,7 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using Operations;
     using Operations.BodyStorage;
     using Operations.BodyStorage.RavenAttachments;
@@ -24,6 +25,7 @@
     using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Transports;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
@@ -268,34 +270,39 @@
 
         class ProcessRetryBatchesHostedService : IHostedService
         {
-            public ProcessRetryBatchesHostedService(IDocumentStore store, RetryProcessor processor, Settings settings, IAsyncTimer scheduler, RawEndpointFactory rawEndpointFactory)
+            public ProcessRetryBatchesHostedService(
+                IDocumentStore store,
+                RetryProcessor processor,
+                Settings settings,
+                IAsyncTimer scheduler,
+                TransportCustomization transportCustomization,
+                TransportSettings transportSettings)
             {
                 this.processor = processor;
                 this.store = store;
                 this.settings = settings;
                 this.scheduler = scheduler;
-                this.rawEndpointFactory = rawEndpointFactory;
+                this.transportCustomization = transportCustomization;
+                this.transportSettings = transportSettings;
             }
 
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                var senderConfig = rawEndpointFactory.CreateSendOnly("RetryProcessor");
-                sender = await RawEndpoint.Start(senderConfig).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings).ConfigureAwait(false);
 
                 timer = scheduler.Schedule(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
             }
 
-            public async Task StopAsync(CancellationToken cancellationToken)
+            public Task StopAsync(CancellationToken cancellationToken)
             {
-                await timer.Stop().ConfigureAwait(false);
-                await sender.Stop().ConfigureAwait(false);
+                return timer.Stop();
             }
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
                 using (var session = store.OpenAsyncSession())
                 {
-                    var batchesProcessed = await processor.ProcessBatches(session, sender, cancellationToken).ConfigureAwait(false);
+                    var batchesProcessed = await processor.ProcessBatches(session, dispatcher, cancellationToken).ConfigureAwait(false);
                     await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
                     return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
                 }
@@ -303,13 +310,14 @@
 
             readonly Settings settings;
             readonly IAsyncTimer scheduler;
-            readonly RawEndpointFactory rawEndpointFactory;
+            readonly TransportCustomization transportCustomization;
+            readonly TransportSettings transportSettings;
             TimerJob timer;
 
             IDocumentStore store;
             RetryProcessor processor;
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
-            IReceivingRawEndpoint sender;
+            IDispatchMessages dispatcher;
         }
     }
 }
