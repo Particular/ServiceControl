@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Raw;
@@ -117,8 +118,8 @@
                 ErrorQueue = errorQueue,
                 MaxConcurrency = 1
             };
-
-            return configuration.TransportCustomization.ProvisionQueues("LocalSystem", transportSettings, additionalQueues);
+            var userName = WindowsIdentity.GetCurrent().Name;
+            return configuration.TransportCustomization.ProvisionQueues(userName, transportSettings, additionalQueues);
         }
 
         protected async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
