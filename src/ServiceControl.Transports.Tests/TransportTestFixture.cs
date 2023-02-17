@@ -118,7 +118,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues("some-user", transportSettings, additionalQueues);
+            return configuration.TransportCustomization.ProvisionQueues("LocalSystem", transportSettings, additionalQueues);
         }
 
         protected async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
