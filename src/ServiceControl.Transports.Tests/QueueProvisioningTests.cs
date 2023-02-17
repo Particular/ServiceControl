@@ -17,7 +17,7 @@
 
             await ProvisionQueues(queueName, errorQueue, new List<string> { additionalQueue1, additionalQueue2 });
 
-            var dispatcher = await CreateTestDispatcher("tests");
+            var dispatcher = await CreateTestDispatcher(GetTestQueueName("sender"));
 
             Assert.DoesNotThrowAsync(async () => await dispatcher.SendTestMessage(queueName, "some content"));
             Assert.DoesNotThrowAsync(async () => await dispatcher.SendTestMessage(errorQueue, "some content"));
