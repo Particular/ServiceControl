@@ -1,17 +1,25 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
             this.license = license;
             this.loggingSettings = loggingSettings;
+            this.httpClientFactory = httpClientFactory;
         }
 
         [Route("")]
@@ -34,11 +42,13 @@
                     "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
                 Name = SettingsReader<string>.Read("Name", "ServiceControl"),
                 Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",
+                RemoteConfiguration = baseUrl + "configuration/remotes",
                 EventLogItems = baseUrl + "eventlogitems",
                 ArchivedGroupsUrl = baseUrl + "errors/groups/{classifier?}",
                 GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
@@ -93,10 +103,62 @@
             return Ok(content);
         }
 
-        readonly LoggingSettings loggingSettings;
+        [Route("configuration/remotes")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> RemoteConfig()
+        {
+            var remotes = settings.RemoteInstances;
+            var tasks = remotes
+                .Select(async remote =>
+                {
+                    var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
+                    var version = "Unknown";
+                    var uri = remote.ApiUri.TrimEnd('/') + "/configuration";
+                    var httpClient = httpClientFactory();
+                    JObject config = null;
 
+                    try
+                    {
+                        var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+
+                        if (response.Headers.TryGetValues("X-Particular-Version", out var values))
+                        {
+                            version = values.FirstOrDefault() ?? "Missing";
+                        }
+
+                        using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        using (var reader = new StreamReader(stream))
+                        using (var jsonReader = new JsonTextReader(reader))
+                        {
+                            config = jsonSerializer.Deserialize<JObject>(jsonReader);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        status = "error";
+                    }
+
+                    return new
+                    {
+                        remote.ApiUri,
+                        Version = version,
+                        Status = status,
+                        Configuration = config
+                    };
+                })
+                .ToArray();
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            return Negotiator.FromModel(Request, results);
+        }
+
+        readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
+        readonly Func<HttpClient> httpClientFactory;
+
+        static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
 
         public class RootUrls
         {
@@ -105,9 +167,11 @@
             public string KnownEndpointsUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
+            public string AuditCountUrl { get; set; }
             public string EndpointsUrl { get; set; }
             public string ErrorsUrl { get; set; }
             public string Configuration { get; set; }
+            public string RemoteConfiguration { get; set; }
             public string MessageSearchUrl { get; set; }
             public string LicenseStatus { get; set; }
             public string LicenseDetails { get; set; }

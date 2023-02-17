@@ -3,6 +3,7 @@
   "KnownEndpointsUrl": "/endpoints/known",
   "EndpointsMessageSearchUrl": "http://localhost/endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
   "EndpointsMessagesUrl": "http://localhost/endpoints/{name}/messages/{?page,per_page,direction,sort}",
+  "AuditCountUrl": "http://localhost/endpoints/{name}/audit-count",
   "Configuration": "http://localhost/configuration",
   "MessageSearchUrl": "http://localhost/messages/search/{keyword}/{?page,per_page,direction,sort}",
   "Name": "testName"

@@ -184,6 +184,22 @@
             return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count))).ConfigureAwait(false);
         }
 
+        public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)
+        {
+            var results = messageViews
+                .Where(m => m.ReceivingEndpoint.Name == endpointName && !m.IsSystemMessage)
+                .GroupBy(m => m.ProcessedAt.ToUniversalTime().Date)
+                .Select(g => new AuditCount
+                {
+                    UtcDate = g.Key,
+                    Count = g.LongCount()
+                })
+                .OrderBy(r => r.UtcDate)
+                .ToList();
+
+            return Task.FromResult(new QueryResult<IList<AuditCount>>(results, QueryStatsInfo.Zero));
+        }
+
         public Task SaveProcessedMessage(ProcessedMessage processedMessage)
         {
             if (processedMessages.Any(pm => pm.Id == processedMessage.Id))

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -13,6 +14,7 @@
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.Audit.Auditing;
     using TestSupport.EndpointTemplates;
 
     [RunOnAllTransports]
@@ -81,6 +83,41 @@
             Assert.AreEqual(body.Length, auditedMessage.BodySize);
 
             Assert.True(auditedMessage.Headers.Any(h => h.Key == Headers.MessageId));
+        }
+
+        [Test]
+        public async Task Should_be_counted()
+        {
+            const string Payload = "PAYLOAD";
+            List<AuditCount> counts = null;
+
+            var context = await Define<MyContext>()
+                .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage
+                {
+                    Payload = Payload
+                })))
+                .WithEndpoint<Receiver>()
+                .Done(async c =>
+                {
+                    if (c.MessageId == null || c.EndpointNameOfReceivingEndpoint == null)
+                    {
+                        return false;
+                    }
+
+                    var result = await this.TryGet<List<AuditCount>>($"/api/endpoints/{c.EndpointNameOfReceivingEndpoint}/audit-count", c => c.Count > 0);
+                    counts = result.Item;
+                    if (!result)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .Run();
+
+            Assert.That(counts.Count, Is.EqualTo(1));
+            Assert.That(counts[0].UtcDate, Is.EqualTo(DateTime.UtcNow.Date));
+            Assert.That(counts[0].Count, Is.EqualTo(1));
         }
 
         public class Sender : EndpointConfigurationBuilder

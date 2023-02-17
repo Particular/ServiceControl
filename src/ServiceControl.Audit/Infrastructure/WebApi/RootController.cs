@@ -28,6 +28,7 @@
                     "endpoints/{name}/messages/search/{keyword}/{?page,per_page,direction,sort}",
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
+                AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
                 Name = SettingsReader<string>.Read("Name", "ServiceControl.Audit"),
                 Description = SettingsReader<string>.Read("Description", "The audit backend for the Particular Service Platform"),
                 Configuration = baseUrl + "configuration"
@@ -86,6 +87,7 @@
             public string KnownEndpointsUrl { get; set; }
             public string EndpointsMessageSearchUrl { get; set; }
             public string EndpointsMessagesUrl { get; set; }
+            public string AuditCountUrl { get; set; }
             public string Configuration { get; set; }
             public string MessageSearchUrl { get; set; }
             public string Name { get; set; }
