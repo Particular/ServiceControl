@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Transports
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -29,7 +31,7 @@
             Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
-            var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), $"{transportSettings.EndpointName}.Errors");
+            var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
             Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
@@ -41,6 +43,18 @@
 
             var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
             return new QueueIngestor(startableRaw);
+        }
+
+        public Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        {
+            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
+
+            CustomizeForQueueIngestion(config, transportSettings);
+
+            config.AutoCreateQueues(additionalQueues.ToArray(), username);
+
+            //No need to start the raw endpoint to create queues
+            return RawEndpoint.Create(config);
         }
 
         class IngestionErrorPolicy : IErrorHandlingPolicy

@@ -11,5 +11,24 @@
         public int MaxConcurrency { get; set; }
 
         public bool RunCustomChecks { get; set; }
+
+        public string ErrorQueue
+        {
+            set
+            {
+                customErrorQueue = value;
+            }
+            get
+            {
+                if (string.IsNullOrEmpty(customErrorQueue))
+                {
+                    return $"{EndpointName}.Errors";
+                }
+                return customErrorQueue;
+            }
+
+        }
+
+        string customErrorQueue;
     }
 }

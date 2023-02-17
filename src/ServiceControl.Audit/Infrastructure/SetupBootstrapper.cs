@@ -3,19 +3,14 @@ namespace ServiceControl.Audit.Infrastructure
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using LicenseManagement;
-    using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using ServiceControl.Audit.Persistence;
-    using Settings;
     using Transports;
 
     class SetupBootstrapper
     {
-        public SetupBootstrapper(Settings.Settings settings, string[] excludeAssemblies = null)
+        public SetupBootstrapper(Settings.Settings settings)
         {
-            this.excludeAssemblies = excludeAssemblies;
             this.settings = settings;
         }
 
@@ -29,12 +24,10 @@ namespace ServiceControl.Audit.Infrastructure
 
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
-            var factory = new RawEndpointFactory(transportSettings, transportCustomization);
 
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-                var rawEndpointUsedToProvisionQueues = factory.CreateRawEndpointToProvisionAuditQueues(settings.AuditQueue);
 
                 if (settings.SkipQueueCreation)
                 {
@@ -42,61 +35,25 @@ namespace ServiceControl.Audit.Infrastructure
                 }
                 else
                 {
-                    var additionalQueues = new List<string>
-                    {
-                        $"{settings.ServiceName}.Errors"
-                    };
+                    var additionalQueues = new List<string>();
+
                     if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
                     {
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
 
-                    rawEndpointUsedToProvisionQueues.AutoCreateQueues(additionalQueues.ToArray(), username);
-
-                    //No need to start the raw endpoint to create queues
-                    await RawEndpoint.Create(rawEndpointUsedToProvisionQueues).ConfigureAwait(false);
+                    await transportCustomization.ProvisionQueues(username, transportSettings, additionalQueues).ConfigureAwait(false);
                 }
             }
 
-            var configuration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = configuration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            if (excludeAssemblies != null)
-            {
-                assemblyScanner.ExcludeAssemblies(excludeAssemblies);
-            }
-
-            configuration.EnableInstallers(username);
-
             EventSource.Create();
-
-            if (settings.SkipQueueCreation)
-            {
-                log.Info("Skipping queue creation");
-                configuration.DoNotCreateQueues();
-            }
-
-            var loggingSettings = new LoggingSettings(settings.ServiceName);
-
-            // externally managed container mode doesn't run the installers!
-            var providerFactory = new DefaultServiceProviderFactory();
-            var containerSettings = configuration.UseContainer(providerFactory);
-            var containerBuilder = containerSettings.ServiceCollection;
-            containerBuilder.AddSingleton(transportSettings);
-            containerBuilder.AddSingleton(loggingSettings);
-            containerBuilder.AddSingleton(settings);
 
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();
+
             await installer.Install()
-                .ConfigureAwait(false);
-
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                ctx => { }, configuration, false);
-
-            await Endpoint.Create(configuration)
                 .ConfigureAwait(false);
         }
 
@@ -142,6 +99,5 @@ namespace ServiceControl.Audit.Infrastructure
 
         readonly Settings.Settings settings;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
-        string[] excludeAssemblies;
     }
 }
