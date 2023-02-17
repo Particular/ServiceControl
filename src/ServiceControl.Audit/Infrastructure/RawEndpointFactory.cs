@@ -11,11 +11,11 @@
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateRawSendOnlyEndpoint(string name)
+        public RawEndpointConfiguration CreateRawEndpointToProvisionAuditQueues(string auditQueue)
         {
-            var config = RawEndpointConfiguration.CreateSendOnly(name);
+            var config = RawEndpointConfiguration.Create(auditQueue, (_, __) => throw new NotImplementedException(), $"{transportSettings.EndpointName}.Errors");
 
-            transportCustomization.CustomizeRawSendOnlyEndpoint(config, transportSettings);
+            transportCustomization.CustomizeForQueueIngestion(config, transportSettings);
             return config;
         }
 

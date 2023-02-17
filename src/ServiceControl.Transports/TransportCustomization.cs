@@ -10,6 +10,15 @@
 
     public abstract class TransportCustomization
     {
+        public async Task<IDispatchMessages> InitializeDispatcher(string name, TransportSettings transportSettings)
+        {
+            var config = RawEndpointConfiguration.CreateSendOnly(name);
+
+            CustomizeRawSendOnlyEndpoint(config, transportSettings);
+
+            return await RawEndpoint.Create(config).ConfigureAwait(false);
+        }
+
         public abstract void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         public abstract void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
