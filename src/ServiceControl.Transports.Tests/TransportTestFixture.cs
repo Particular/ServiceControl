@@ -30,17 +30,17 @@
         {
             if (queueLengthProvider != null)
             {
-                await queueLengthProvider.Stop().ConfigureAwait(false);
+                await queueLengthProvider.Stop();
             }
 
             if (queueIngestor != null)
             {
-                await queueIngestor.Stop().ConfigureAwait(false);
+                await queueIngestor.Stop();
             }
 
             if (configuration != null)
             {
-                await configuration.Cleanup().ConfigureAwait(false);
+                await configuration.Cleanup();
             }
         }
 
@@ -104,7 +104,7 @@
                     return Task.CompletedTask;
                 });
 
-            await queueIngestor.Start().ConfigureAwait(false);
+            await queueIngestor.Start();
 
             return rawEndpoint;
         }
