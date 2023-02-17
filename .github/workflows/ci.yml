@@ -86,7 +86,7 @@ jobs:
           echo "ServiceControl.TransportTests.SQS.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Run tests
-        uses: Particular/run-tests-action@v1.4.0
+        uses: Particular/run-tests-action@v1.5.0
         env:
           ServiceControl.AcceptanceTests.Transport: LearningTransport
           ServiceControl.AcceptanceTests.TransportCustomization: ConfigureEndpointLearningTransport
