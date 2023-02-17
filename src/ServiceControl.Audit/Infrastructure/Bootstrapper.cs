@@ -72,8 +72,6 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton(transportSettings);
                     services.AddSingleton(transportCustomization);
 
-                    var rawEndpointFactory = new RawEndpointFactory(transportSettings, transportCustomization);
-                    services.AddSingleton(rawEndpointFactory);
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton<EndpointInstanceMonitoring>();
