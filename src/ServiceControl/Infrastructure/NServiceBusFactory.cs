@@ -15,10 +15,9 @@ namespace ServiceBus.Management.Infrastructure
     {
         public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
         {
-            var endpointName = settings.ServiceName;
             if (configuration == null)
             {
-                configuration = new EndpointConfiguration(endpointName);
+                configuration = new EndpointConfiguration(transportSettings.EndpointName);
                 var assemblyScanner = configuration.AssemblyScanner();
                 assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
             }
@@ -45,7 +44,7 @@ namespace ServiceBus.Management.Infrastructure
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
-            configuration.SendFailedMessagesTo(ErrorQueue(endpointName));
+            configuration.SendFailedMessagesTo(transportSettings.ErrorQueue);
 
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
@@ -57,11 +56,6 @@ namespace ServiceBus.Management.Infrastructure
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
             configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
-        }
-
-        public static string ErrorQueue(string endpointName)
-        {
-            return $"{endpointName}.Errors";
         }
 
         static bool IsExternalContract(Type t)

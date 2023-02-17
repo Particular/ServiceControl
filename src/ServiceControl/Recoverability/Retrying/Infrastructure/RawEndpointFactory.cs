@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
 
         public RawEndpointConfiguration CreateReturnToSenderDequeuer(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
         {
-            var config = RawEndpointConfiguration.Create(name, onMessage, $"{transportSettings.EndpointName}.Errors");
+            var config = RawEndpointConfiguration.Create(name, onMessage, transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             transportCustomization.CustomizeForReturnToSenderIngestion(config, transportSettings);

@@ -8,7 +8,6 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Logging;
     using Settings;
     using Transports;
 

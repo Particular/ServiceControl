@@ -60,8 +60,6 @@ namespace Particular.ServiceControl
                 await transportCustomization.ProvisionQueues(
                     username,
                     transportSettings,
-                    settings.ServiceName,
-                    NServiceBusFactory.ErrorQueue(settings.ServiceName),
                     componentSetupContext.Queues).ConfigureAwait(false);
             }
         }

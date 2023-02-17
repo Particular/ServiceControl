@@ -277,8 +277,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings, excludeAssemblies: excludedAssemblies
-                    .Concat(new[] { typeof(IComponentBehavior).Assembly.GetName().Name }).ToArray());
+                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings);
                 await setupBootstrapper.Run(null);
             }
 

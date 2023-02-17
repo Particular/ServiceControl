@@ -118,7 +118,7 @@
                 MaxConcurrency = 1
             };
 
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), $"{queueName}.Errors");
+            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
             endpointForTesting.AutoCreateQueues(new string[0]);
             configuration.TransportCustomization.CustomizeForQueueIngestion(endpointForTesting, transportSettings);

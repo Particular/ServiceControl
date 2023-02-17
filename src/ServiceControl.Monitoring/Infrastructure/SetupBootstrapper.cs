@@ -33,14 +33,13 @@ namespace ServiceControl.Monitoring.Infrastructure
                 RunCustomChecks = false,
                 ConnectionString = settings.ConnectionString,
                 EndpointName = settings.EndpointName,
+                ErrorQueue = settings.ErrorQueue,
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
 
             return transportCustomization.ProvisionQueues(
                 settings.Username,
                 transportSettings,
-                settings.EndpointName,
-                settings.ErrorQueue,
                 new List<string>());
         }
 

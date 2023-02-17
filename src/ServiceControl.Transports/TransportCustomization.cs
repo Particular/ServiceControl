@@ -31,7 +31,7 @@
             Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
-            var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), $"{transportSettings.EndpointName}.Errors");
+            var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
             Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
@@ -45,9 +45,9 @@
             return new QueueIngestor(startableRaw);
         }
 
-        public Task ProvisionQueues(string username, TransportSettings transportSettings, string endpointQueue, string errorQueue, IEnumerable<string> additionalQueues)
+        public Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
-            var config = RawEndpointConfiguration.Create(endpointQueue, (_, __) => throw new NotImplementedException(), errorQueue);
+            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
             CustomizeForQueueIngestion(config, transportSettings);
 
