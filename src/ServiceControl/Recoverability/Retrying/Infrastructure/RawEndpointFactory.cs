@@ -25,22 +25,6 @@ namespace ServiceControl.Recoverability
             return config;
         }
 
-        public RawEndpointConfiguration CreateSendOnly(string name)
-        {
-            var config = RawEndpointConfiguration.CreateSendOnly(name);
-            transportCustomization.CustomizeRawSendOnlyEndpoint(config, transportSettings);
-
-            return config;
-        }
-
-        public RawEndpointConfiguration CreateFailedErrorsImporter(string name)
-        {
-            var config = RawEndpointConfiguration.CreateSendOnly(name);
-
-            transportCustomization.CustomizeRawSendOnlyEndpoint(config, transportSettings);
-            return config;
-        }
-
         Settings settings;
         TransportCustomization transportCustomization;
         TransportSettings transportSettings;

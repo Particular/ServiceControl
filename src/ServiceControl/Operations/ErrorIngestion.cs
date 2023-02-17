@@ -9,7 +9,6 @@
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Raven.Client;
     using Recoverability;
@@ -25,7 +24,6 @@
             Settings settings,
             TransportCustomization transportCustomization,
             TransportSettings transportSettings,
-            RawEndpointFactory rawEndpointFactory,
             Metrics metrics,
             IDocumentStore documentStore,
             LoggingSettings loggingSettings,
@@ -37,7 +35,6 @@
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
             errorQueue = settings.ErrorQueue;
-            this.rawEndpointFactory = rawEndpointFactory;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
 
@@ -146,9 +143,7 @@
                     errorHandlingPolicy.OnError,
                     OnCriticalError).ConfigureAwait(false);
 
-                var rawConfiguration = rawEndpointFactory.CreateSendOnly(errorQueue);
-
-                dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher(errorQueue, transportSettings).ConfigureAwait(false);
 
                 if (settings.ForwardErrorMessages)
                 {
@@ -210,7 +205,6 @@
 
         SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         string errorQueue;
-        RawEndpointFactory rawEndpointFactory;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         IQueueIngestor queueIngestor;
         IDispatchMessages dispatcher;

@@ -10,7 +10,6 @@
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
@@ -23,7 +22,6 @@
 
         public AuditIngestion(
             Settings settings,
-            RawEndpointFactory rawEndpointFactory,
             TransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
@@ -34,7 +32,6 @@
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory)
         {
             inputEndpoint = settings.AuditQueue;
-            this.rawEndpointFactory = rawEndpointFactory;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
             this.auditIngestor = auditIngestor;
@@ -121,8 +118,7 @@
                     errorHandlingPolicy.OnError,
                     OnCriticalError).ConfigureAwait(false);
 
-                var rawConfiguration = rawEndpointFactory.CreateRawSendOnlyEndpoint(inputEndpoint);
-                dispatcher = await RawEndpoint.Create(rawConfiguration).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher(inputEndpoint, transportSettings).ConfigureAwait(false);
 
                 await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
 
@@ -229,7 +225,6 @@
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
-        readonly RawEndpointFactory rawEndpointFactory;
         readonly TransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly AuditIngestor auditIngestor;
