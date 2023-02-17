@@ -109,7 +109,7 @@
 
             return rawEndpoint;
         }
-        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues)
+        protected Task ProvisionQueues(string username, string queueName, string errorQueue, IEnumerable<string> additionalQueues)
         {
             var transportSettings = new TransportSettings
             {
@@ -118,8 +118,8 @@
                 ErrorQueue = errorQueue,
                 MaxConcurrency = 1
             };
-            var userName = WindowsIdentity.GetCurrent().Name;
-            return configuration.TransportCustomization.ProvisionQueues(userName, transportSettings, additionalQueues);
+
+            return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
         }
 
         protected async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
