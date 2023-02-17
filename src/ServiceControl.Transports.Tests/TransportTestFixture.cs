@@ -121,8 +121,19 @@
 
             return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
         }
+        protected Task<IDispatchMessages> CreateDispatcher(string enpointName)
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = enpointName,
+                ConnectionString = configuration.ConnectionString,
+                MaxConcurrency = 1
+            };
 
-        protected async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
+            return configuration.TransportCustomization.InitializeDispatcher(enpointName, transportSettings);
+        }
+
+        async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
         {
             var transportSettings = new TransportSettings
             {
