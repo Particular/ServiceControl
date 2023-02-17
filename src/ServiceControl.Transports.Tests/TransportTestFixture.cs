@@ -108,8 +108,20 @@
 
             return rawEndpoint;
         }
+        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues)
+        {
+            var transportSettings = new TransportSettings
+            {
+                ConnectionString = configuration.ConnectionString,
+                EndpointName = queueName,
+                ErrorQueue = errorQueue,
+                MaxConcurrency = 1
+            };
 
-        async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
+            return configuration.TransportCustomization.ProvisionQueues("some-user", transportSettings, additionalQueues);
+        }
+
+        protected async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
         {
             var transportSettings = new TransportSettings
             {
