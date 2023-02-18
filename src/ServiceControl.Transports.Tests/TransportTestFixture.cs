@@ -65,28 +65,22 @@
         }
         protected TransportTestsConfiguration configuration;
 
-        protected async Task<IDispatchMessages> StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
+        protected Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
         {
-            var rawEndpoint = await CreateTestDispatcher(queueName);
-
             queueLengthProvider = configuration.TransportCustomization.CreateQueueLengthProvider();
 
             queueLengthProvider.Initialize(configuration.ConnectionString, (qlt, _) => onQueueLengthReported(qlt.First()));
 
             queueLengthProvider.TrackEndpointInputQueue(new EndpointToQueueMapping(queueName, queueName));
 
-            await queueLengthProvider.Start();
-
-            return rawEndpoint;
+            return queueLengthProvider.Start();
         }
 
-        protected async Task<IDispatchMessages> StartQueueIngestor(
+        protected async Task StartQueueIngestor(
             string queueName,
             Func<MessageContext, Task> onMessage,
             Func<ErrorContext, Task<ErrorHandleResult>> onError)
         {
-            var rawEndpoint = await CreateTestDispatcher(queueName);
-
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -106,9 +100,8 @@
                 });
 
             await queueIngestor.Start();
-
-            return rawEndpoint;
         }
+
         protected Task ProvisionQueues(string username, string queueName, string errorQueue, IEnumerable<string> additionalQueues)
         {
             var transportSettings = new TransportSettings
@@ -121,19 +114,19 @@
 
             return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
         }
-        protected Task<IDispatchMessages> CreateDispatcher(string enpointName)
+        protected Task<IDispatchMessages> CreateDispatcher(string endpointName)
         {
             var transportSettings = new TransportSettings
             {
-                EndpointName = enpointName,
+                EndpointName = endpointName,
                 ConnectionString = configuration.ConnectionString,
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.InitializeDispatcher(enpointName, transportSettings);
+            return configuration.TransportCustomization.InitializeDispatcher(endpointName, transportSettings);
         }
 
-        async Task<IDispatchMessages> CreateTestDispatcher(string queueName)
+        protected Task CreateTestQueue(string queueName)
         {
             var transportSettings = new TransportSettings
             {
@@ -142,12 +135,7 @@
                 MaxConcurrency = 1
             };
 
-            var endpointForTesting = RawEndpointConfiguration.Create(queueName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
-
-            endpointForTesting.AutoCreateQueues(new string[0]);
-            configuration.TransportCustomization.CustomizeForQueueIngestion(endpointForTesting, transportSettings);
-
-            return await RawEndpoint.Create(endpointForTesting);
+            return configuration.TransportCustomization.ProvisionQueues(WindowsIdentity.GetCurrent().Name, transportSettings, new List<string>());
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);

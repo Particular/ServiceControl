@@ -10,6 +10,16 @@
 
     public abstract class TransportCustomization
     {
+        public abstract void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        public abstract void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        public abstract void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        public abstract IProvideQueueLength CreateQueueLengthProvider();
+
         public async Task<IDispatchMessages> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);
@@ -18,20 +28,6 @@
 
             return await RawEndpoint.Create(config).ConfigureAwait(false);
         }
-
-        public abstract void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        public abstract void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        public abstract void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        protected abstract void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        public abstract void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
-
-        public abstract IProvideQueueLength CreateQueueLengthProvider();
 
         public async Task<IQueueIngestor> InitializeQueueIngestor(
             string queueName,
@@ -65,6 +61,10 @@
             //No need to start the raw endpoint to create queues
             return RawEndpoint.Create(config);
         }
+
+        protected abstract void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        protected abstract void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         class IngestionErrorPolicy : IErrorHandlingPolicy
         {

@@ -35,7 +35,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }

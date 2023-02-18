@@ -12,15 +12,19 @@
         {
             var queueName = GetTestQueueName("queuelenght");
 
+            await CreateTestQueue(queueName);
+
             var onQueueLengthEntryReceived = CreateTaskCompletionSource<QueueLengthEntry>();
 
-            var dispatcher = await StartQueueLengthProvider(queueName, (qle) =>
+            await StartQueueLengthProvider(queueName, (qle) =>
             {
                 if (qle.Value > 0)
                 {
                     onQueueLengthEntryReceived.TrySetResult(qle);
                 }
             });
+
+            var dispatcher = await CreateDispatcher(queueName);
 
             await dispatcher.SendTestMessage(queueName, "some content");
 
