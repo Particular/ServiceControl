@@ -32,10 +32,10 @@ namespace ServiceControl.Transports
     {
         protected TransportCustomization() { }
         public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
-        public abstract void CustomizeForQueueIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeForQueueIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeForReturnToSenderIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        public abstract void CustomizeRawSendOnlyEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeRawSendOnlyEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeSendOnlyEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public abstract void CustomizeServiceControlEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         public System.Threading.Tasks.Task<NServiceBus.Transport.IDispatchMessages> InitializeDispatcher(string name, ServiceControl.Transports.TransportSettings transportSettings) { }

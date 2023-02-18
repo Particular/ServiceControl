@@ -16,7 +16,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControlInstaller.Engine.Instances;
-    using Transports;
 
     [TestFixture]
     class APIApprovals
@@ -29,16 +28,6 @@
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });
             Approver.Verify(publicApi);
-        }
-
-        [Test]
-        public void ServiceControlTransport()
-        {
-            var serviceControlTransportApi = typeof(TransportSettings).Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
-            Approver.Verify(serviceControlTransportApi);
         }
 
         [Test]
