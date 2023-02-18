@@ -36,7 +36,7 @@
             CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
         }
 
-        public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
