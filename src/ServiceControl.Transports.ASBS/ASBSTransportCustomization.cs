@@ -8,7 +8,7 @@
 
     public class ASBSTransportCustomization : TransportCustomization
     {
-        public override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 
@@ -36,7 +36,7 @@
             CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
         }
 
-        public override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
 

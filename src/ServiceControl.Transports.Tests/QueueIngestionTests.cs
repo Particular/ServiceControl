@@ -10,25 +10,30 @@
         public async Task Should_ingest_all_messages()
         {
             var queueName = GetTestQueueName("ingestion");
+
+            await CreateTestQueue(queueName);
+
             var numMessagesToIngest = 10;
             var onMessagesProcessed = CreateTaskCompletionSource<bool>();
 
             var numMessagesIngested = 0;
 
-            var dispatcher = await StartQueueIngestor(
-                queueName,
-                (_) =>
-                {
-                    numMessagesIngested++;
+            await StartQueueIngestor(
+                 queueName,
+                 (_) =>
+                 {
+                     numMessagesIngested++;
 
-                    if (numMessagesIngested == numMessagesToIngest)
-                    {
-                        onMessagesProcessed.SetResult(true);
-                    }
+                     if (numMessagesIngested == numMessagesToIngest)
+                     {
+                         onMessagesProcessed.SetResult(true);
+                     }
 
-                    return Task.CompletedTask;
-                },
-                (_) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
+                     return Task.CompletedTask;
+                 },
+                 (_) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
+
+            var dispatcher = await CreateDispatcher(queueName);
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
@@ -44,9 +49,12 @@
         public async Task Should_trigger_on_error()
         {
             var queueName = GetTestQueueName("failure");
+
+            await CreateTestQueue(queueName);
+
             var onErrorCalled = CreateTaskCompletionSource<bool>();
 
-            var dispatcher = await StartQueueIngestor(
+            await StartQueueIngestor(
                 queueName,
                 (_) => throw new System.Exception("Some failure"),
                 (_) =>
@@ -55,6 +63,7 @@
                     return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);
                 });
 
+            var dispatcher = await CreateDispatcher(queueName);
 
             await dispatcher.SendTestMessage(queueName, $"some failing message");
 
