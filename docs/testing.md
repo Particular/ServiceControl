@@ -26,12 +26,12 @@ Persistence tests check assumption at the persistence seam level by exercising e
 
 ## Transport tests
 
-Transport tests are currently performed by executing the entire test suite in CI for each supported transport.
+Transport tests are done by executing the transport test suite for each transport.
 
 ## Acceptance tests
 
-Run ServiceControl full version and use the HTTP API to validate results.
+Run ServiceControl full version and use the HTTP API to validate results. LearningTransport is used for all tests.
 
 ## Multi-instance tests
 
-Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process.
+Multi-instance tests validate the interaction between different ServiceControl instances. ServiceControl instances are run in-memory in the same process. LearningTransport is used for all tests.
