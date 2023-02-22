@@ -7,6 +7,7 @@
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using NUnit.Framework.Internal;
@@ -21,6 +22,16 @@
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = new List<CancellationTokenRegistration>();
+            QueueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+
+            Conventions.EndpointNamingConvention = t =>
+            {
+                var classAndEndpoint = t.FullName.Split('.').Last();
+
+                var endpointBuilder = classAndEndpoint.Split('+').Last();
+
+                return endpointBuilder + QueueSuffix;
+            };
 
             return configuration.Configure();
         }
@@ -44,9 +55,11 @@
             }
         }
 
+        protected string QueueSuffix { get; private set; }
+
         protected string GetTestQueueName(string name)
         {
-            return $"{name}-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+            return $"{name}-{QueueSuffix}";
         }
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()

@@ -14,13 +14,15 @@
         {
             var transportSettings = new TransportSettings
             {
-                EndpointName = GetTestQueueName("send"),
                 ConnectionString = configuration.ConnectionString,
                 MaxConcurrency = 1
             };
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<SendOnlyEndpoint>(c => c.CustomConfig(ec => configuration.TransportCustomization.CustomizeSendOnlyEndpoint(ec, transportSettings)))
+                .WithEndpoint<SendOnlyEndpoint>(c => c.CustomConfig(ec =>
+                {
+                    configuration.TransportCustomization.CustomizeSendOnlyEndpoint(ec, transportSettings);
+                }))
                 .Done(c => c.EndpointsStarted)
                 .Run();
 
@@ -38,7 +40,7 @@
         {
             public SendOnlyEndpoint()
             {
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<BasicEndpointSetup>(c =>
                 {
                     c.SendOnly();
 
