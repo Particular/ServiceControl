@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
@@ -19,7 +20,7 @@
             };
 
             var ctx = await Scenario.Define<Context>()
-                .WithEndpoint<SendingEndpoint>(c => c.CustomConfig(ec => configuration.TransportCustomization.CustomizeSendOnlyEndpoint(ec, transportSettings)))
+                .WithEndpoint<SendOnlyEndpoint>(c => c.CustomConfig(ec => configuration.TransportCustomization.CustomizeSendOnlyEndpoint(ec, transportSettings)))
                 .Done(c => c.EndpointsStarted)
                 .Run();
 
@@ -33,11 +34,17 @@
             public string ReplyToAddress { get; set; }
         }
 
-        public class SendingEndpoint : EndpointConfigurationBuilder
+        public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
-            public SendingEndpoint()
+            public SendOnlyEndpoint()
             {
-                EndpointSetup<DefaultServer>();
+                EndpointSetup<DefaultServer>(c =>
+                {
+                    c.SendOnly();
+
+                    //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
+                    c.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
+                });
             }
         }
 
