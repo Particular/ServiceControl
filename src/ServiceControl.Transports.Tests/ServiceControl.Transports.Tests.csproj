@@ -11,6 +11,7 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" />
   </ItemGroup>
 
   <ItemGroup>

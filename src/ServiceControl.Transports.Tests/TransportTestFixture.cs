@@ -7,7 +7,6 @@
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using NUnit.Framework.Internal;
