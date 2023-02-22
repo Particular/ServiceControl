@@ -9,20 +9,20 @@
 
     public class BasicEndpointSetup : IEndpointSetupTemplate
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomization, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
-            var typesToInclude = endpointConfiguration.GetTypesScopedByTestClass().ToList();
+            var typesToInclude = endpointCustomization.GetTypesScopedByTestClass().ToList();
 
-            var builder = new EndpointConfiguration(endpointConfiguration.EndpointName);
-            builder.TypesToIncludeInScan(typesToInclude);
-            builder.EnableInstallers();
+            var endpointConfiguration = new EndpointConfiguration(endpointCustomization.EndpointName);
+            endpointConfiguration.TypesToIncludeInScan(typesToInclude);
+            endpointConfiguration.EnableInstallers();
+            endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
+            endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
-            builder.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-
-            configurationBuilderCustomization(builder);
+            configurationBuilderCustomization(endpointConfiguration);
 
 
-            return Task.FromResult(builder);
+            return Task.FromResult(endpointConfiguration);
         }
 
 
