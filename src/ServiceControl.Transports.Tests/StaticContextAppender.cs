@@ -37,7 +37,6 @@ namespace ServiceControl.Transport.Tests
             Log(message, LogLevel.Info);
         }
 
-
         public void Info(string message, Exception exception)
         {
             var fullMessage = $"{message} {exception}";

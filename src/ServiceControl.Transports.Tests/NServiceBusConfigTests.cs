@@ -29,7 +29,6 @@
             Assert.IsTrue(ctx.EndpointsStarted);
         }
 
-
         public class Context : ScenarioContext
         {
             public bool SendingEndpointGotResponse { get; set; }
