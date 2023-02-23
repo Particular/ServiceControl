@@ -11,7 +11,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_a_message_has_failed_detected : AcceptanceTest
     {
         [Test]

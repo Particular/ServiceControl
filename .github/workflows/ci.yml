@@ -18,7 +18,7 @@ jobs:
         test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS ]
         include:
           - os: windows-2022
-            os-name: Windows     
+            os-name: Windows
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -54,7 +54,7 @@ jobs:
           retention-days: 1
       - name: Azure login
         uses: azure/login@v1.4.6
-        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'        
+        if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
       - name: Setup SQL Server
@@ -106,8 +106,6 @@ jobs:
         with:
           filter: ${{ env.TEST_FILTER }}
         env:
-          ServiceControl.AcceptanceTests.Transport: LearningTransport
-          ServiceControl.AcceptanceTests.TransportCustomization: ConfigureEndpointLearningTransport
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
           Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}

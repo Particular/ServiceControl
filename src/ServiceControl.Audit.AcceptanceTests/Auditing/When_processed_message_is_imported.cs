@@ -17,7 +17,7 @@
     using ServiceControl.Audit.Auditing;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_processed_message_is_imported : AcceptanceTest
     {
         [Test]

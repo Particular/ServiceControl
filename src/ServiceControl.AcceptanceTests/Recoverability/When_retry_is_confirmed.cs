@@ -12,7 +12,7 @@
     using ServiceControl.MessageFailures.Api;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_retry_is_confirmed : AcceptanceTest
     {
         [Test]

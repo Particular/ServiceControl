@@ -5,7 +5,6 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -15,6 +14,7 @@ namespace ServiceControl.Audit.AcceptanceTests
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using ServiceControl.Audit.Infrastructure.Settings;
     using TestSupport;
 
@@ -62,23 +62,14 @@ namespace ServiceControl.Audit.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            TransportIntegration = new ConfigureEndpointLearningTransport();
 
             StorageConfiguration = new AcceptanceTestStorageConfiguration();
 
             await StorageConfiguration.Configure();
 
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
-            {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
-            }
-
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d));
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
-
-            RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
 
         [TearDown]
@@ -90,20 +81,6 @@ namespace ServiceControl.Audit.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
 
             return StorageConfiguration.Cleanup();
-        }
-
-        static void RemoveOtherTransportAssemblies(string name)
-        {
-            var assembly = Type.GetType(name, true).Assembly;
-
-            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
-            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
-                .Where(transportAssembly => transportAssembly != assembly.Location);
-
-            foreach (var transportAssembly in otherAssemblies)
-            {
-                File.Delete(transportAssembly);
-            }
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()

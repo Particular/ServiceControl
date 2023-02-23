@@ -15,7 +15,7 @@
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_failed_message_is_imported : AcceptanceTest
     {
         [Test]

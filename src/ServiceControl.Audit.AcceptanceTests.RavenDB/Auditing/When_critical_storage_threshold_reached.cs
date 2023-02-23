@@ -13,7 +13,7 @@
     using ServiceControl.Audit.Auditing.MessagesView;
     using ServiceControl.Audit.Persistence;
 
-    [RunOnAllTransports]
+
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
         [SetUp]

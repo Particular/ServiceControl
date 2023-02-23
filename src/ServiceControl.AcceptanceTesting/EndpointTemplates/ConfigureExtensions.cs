@@ -4,12 +4,13 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.ObjectBuilder;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
     public static class ConfigureExtensions
     {
         public static async Task DefinePersistence(this EndpointConfiguration config, RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration)
         {
-            var persistenceConfiguration = TestSuiteConstraints.Current.CreatePersistenceConfiguration();
+            var persistenceConfiguration = new ConfigureEndpointInMemoryPersistence();
             await persistenceConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, config, runDescriptor.Settings, endpointCustomizationConfiguration.PublisherMetadata);
             runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
         }

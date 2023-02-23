@@ -14,7 +14,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_message_searched_by_messages : AcceptanceTest
     {
         [Test]

@@ -13,7 +13,6 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
-    [RunOnAllTransports]
     class When_a_custom_check_fails : AcceptanceTest
     {
         [Test]

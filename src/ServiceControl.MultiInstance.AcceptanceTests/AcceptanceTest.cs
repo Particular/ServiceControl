@@ -5,7 +5,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
@@ -65,23 +64,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            TransportIntegration = new ConfigureEndpointLearningTransport();
 
-            if (TransportIntegration.GetType() != typeof(ConfigureEndpointLearningTransport))
+            DataStoreConfiguration = new DataStoreConfiguration
             {
-                Assert.Inconclusive($"Multi instance tests are only run for the learning transport");
-            }
-
-            DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
-
-            if (DataStoreConfiguration.DataStoreTypeName != nameof(DataStoreType.RavenDB35))
-            {
-                Assert.Inconclusive($"Multi-instance tests are only with RavenDB 3.5 for the main instance and InMemory for the audit instance");
-            }
+                DataStoreTypeName = "RavenDB35"
+            };
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
-
-            RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
         }
 
         [TearDown]
@@ -91,20 +81,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
-        }
-
-        static void RemoveOtherTransportAssemblies(string name)
-        {
-            var assembly = Type.GetType(name, true).Assembly;
-
-            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
-            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
-                .Where(transportAssembly => transportAssembly != assembly.Location);
-
-            foreach (var transportAssembly in otherAssemblies)
-            {
-                File.Delete(transportAssembly);
-            }
         }
 
         protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()

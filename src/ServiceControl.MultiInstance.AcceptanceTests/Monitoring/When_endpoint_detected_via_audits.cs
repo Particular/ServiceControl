@@ -13,7 +13,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_endpoint_detected_via_audits : AcceptanceTest
     {
         [Test]

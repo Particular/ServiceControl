@@ -12,7 +12,6 @@
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
-    [RunOnAllTransports]
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
 

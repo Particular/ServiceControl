@@ -15,7 +15,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_sending_saga_audit_to_main_instance : AcceptanceTest
     {
         string _auditRetentionPeriodOriginalValue = string.Empty;
