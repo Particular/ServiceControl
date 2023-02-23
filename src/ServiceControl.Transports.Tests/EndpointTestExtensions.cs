@@ -1,5 +1,4 @@
-﻿
-namespace ServiceControl.Transport.Tests
+﻿namespace ServiceControl.Transport.Tests
 {
     using System;
     using System.Collections.Generic;

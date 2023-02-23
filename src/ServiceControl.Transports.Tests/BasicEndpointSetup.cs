@@ -21,10 +21,7 @@
 
             configurationBuilderCustomization(endpointConfiguration);
 
-
             return Task.FromResult(endpointConfiguration);
         }
-
-
     }
 }
