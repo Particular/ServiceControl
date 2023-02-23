@@ -2,12 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
     using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Raw;
+    using NServiceBus.AcceptanceTesting;
+    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using NUnit.Framework.Internal;
@@ -16,12 +18,32 @@
     [TestFixture]
     class TransportTestFixture
     {
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
+        }
+
         [SetUp]
         public virtual Task Setup()
         {
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
             registrations = new List<CancellationTokenRegistration>();
+            QueueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+
+            Conventions.EndpointNamingConvention = t =>
+            {
+                var classAndEndpoint = t.FullName.Split('.').Last();
+
+                var endpointBuilder = classAndEndpoint.Split('+').Last();
+
+                return endpointBuilder + QueueSuffix;
+            };
+
+#if !NETCOREAPP2_0 // To make the SQS tests work
+            ConfigurationManager.GetSection("X");
+#endif
 
             return configuration.Configure();
         }
@@ -45,9 +67,11 @@
             }
         }
 
+        protected string QueueSuffix { get; private set; }
+
         protected string GetTestQueueName(string name)
         {
-            return $"{name}-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
+            return $"{name}-{QueueSuffix}";
         }
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
