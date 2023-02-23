@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
     using System.Security.Principal;
@@ -32,6 +33,10 @@
 
                 return endpointBuilder + QueueSuffix;
             };
+
+#if !NETCOREAPP2_0 // To make the SQS tests work
+            ConfigurationManager.GetSection("X");
+#endif
 
             return configuration.Configure();
         }
