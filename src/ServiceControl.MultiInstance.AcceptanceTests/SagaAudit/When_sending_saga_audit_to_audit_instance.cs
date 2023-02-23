@@ -12,7 +12,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_sending_saga_audit_to_audit_instance : AcceptanceTest
     {
         [SetUp]

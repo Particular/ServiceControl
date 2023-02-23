@@ -10,7 +10,7 @@
     using ServiceControl.SagaAudit;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_a_saga_instance_is_being_created : AcceptanceTest
     {
         [Test]

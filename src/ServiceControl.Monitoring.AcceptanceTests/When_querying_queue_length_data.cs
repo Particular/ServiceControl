@@ -10,7 +10,7 @@
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_querying_queue_length_data : AcceptanceTest
     {
         [Test]

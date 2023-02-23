@@ -10,7 +10,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_a_successful_retry_from_old_SC_is_detected : AcceptanceTest
     {
         [Test]

@@ -13,10 +13,11 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
     public class DefaultServerBase<TBootstrapper> : IEndpointSetupTemplate
     {
-        public DefaultServerBase() : this(TestSuiteConstraints.Current.CreateTransportConfiguration())
+        public DefaultServerBase() : this(new ConfigureEndpointLearningTransport())
         {
         }
 

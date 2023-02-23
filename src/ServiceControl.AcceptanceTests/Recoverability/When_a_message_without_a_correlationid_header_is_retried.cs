@@ -11,7 +11,7 @@
     using NUnit.Framework;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_a_message_without_a_correlationid_header_is_retried : AcceptanceTest
     {
         [Test]

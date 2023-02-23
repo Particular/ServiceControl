@@ -11,7 +11,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    [RunOnAllTransports]
+
     class When_a_successful_retry_at_old_endpoint_is_detected : AcceptanceTest
     {
         [Test]

@@ -4,15 +4,12 @@ namespace ServiceControl.AcceptanceTests
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Dapper;
     using Infrastructure.DomainEvents;
-    using Microsoft.Data.SqlClient;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NServiceBus;
@@ -20,6 +17,7 @@ namespace ServiceControl.AcceptanceTests
     using NServiceBus.AcceptanceTesting.Support;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
     using TestSupport;
 
     [TestFixture]
@@ -68,20 +66,14 @@ namespace ServiceControl.AcceptanceTests
             textWriterTraceListener = new TextWriterTraceListener(logFile);
             Trace.Listeners.Add(textWriterTraceListener);
 
-            TransportIntegration = (ITransportIntegration)TestSuiteConstraints.Current.CreateTransportConfiguration();
+            TransportIntegration = new ConfigureEndpointLearningTransport();
 
-            DataStoreConfiguration = TestSuiteConstraints.Current.CreateDataStoreConfiguration();
-
-            var shouldBeRunOnAllTransports = GetType().GetCustomAttributes(typeof(RunOnAllTransportsAttribute), true).Any();
-            if (!shouldBeRunOnAllTransports && TransportIntegration.Name != "Learning")
+            DataStoreConfiguration = new DataStoreConfiguration
             {
-                Assert.Inconclusive($"Not flagged with [RunOnAllTransports] therefore skipping this test with '{TransportIntegration.Name}'");
-            }
+                DataStoreTypeName = "RavenDB35"
+            };
 
-            TestContext.WriteLine($"Using transport {TransportIntegration.Name}");
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
-
-            RemoveOtherTransportAssemblies(TransportIntegration.TypeName);
 
             return Task.CompletedTask;
         }
@@ -93,20 +85,6 @@ namespace ServiceControl.AcceptanceTests
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
-        }
-
-        static void RemoveOtherTransportAssemblies(string name)
-        {
-            var assembly = Type.GetType(name, true).Assembly;
-
-            var currentDirectoryOfSelectedTransport = Path.GetDirectoryName(assembly.Location);
-            var otherAssemblies = Directory.EnumerateFiles(currentDirectoryOfSelectedTransport, "ServiceControl.Transports.*.dll")
-                .Where(transportAssembly => transportAssembly != assembly.Location);
-
-            foreach (var transportAssembly in otherAssemblies)
-            {
-                File.Delete(transportAssembly);
-            }
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter

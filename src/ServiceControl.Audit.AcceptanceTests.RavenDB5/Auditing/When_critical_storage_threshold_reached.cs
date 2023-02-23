@@ -12,7 +12,7 @@
     using ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates;
     using ServiceControl.Audit.Auditing.MessagesView;
 
-    [RunOnAllTransports]
+
     class When_critical_storage_threshold_reached : AcceptanceTest
     {
         [SetUp]

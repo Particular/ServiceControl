@@ -14,7 +14,7 @@
     using ServiceControl.CustomChecks;
 
     [TestFixture]
-    [RunOnAllTransports]
+
     class When_a_critical_error_is_triggered : AcceptanceTest
     {
         static Type[] allServiceControlTypes = typeof(InternalCustomChecks).Assembly.GetTypes();

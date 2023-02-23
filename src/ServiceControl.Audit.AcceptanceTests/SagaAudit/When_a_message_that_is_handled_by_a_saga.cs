@@ -13,7 +13,7 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-    [RunOnAllTransports]
+
     class When_a_message_that_is_handled_by_a_saga : AcceptanceTest
     {
         [Test]

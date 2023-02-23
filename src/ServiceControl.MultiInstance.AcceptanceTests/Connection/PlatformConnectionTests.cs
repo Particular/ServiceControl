@@ -9,7 +9,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class PlatformConnectionTests : AcceptanceTest
     {
         [Test]

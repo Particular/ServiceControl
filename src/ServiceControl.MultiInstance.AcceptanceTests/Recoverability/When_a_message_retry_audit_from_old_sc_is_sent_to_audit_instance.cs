@@ -13,7 +13,7 @@
     using TestSupport;
     using TestSupport.EndpointTemplates;
 
-    [RunOnAllTransports]
+
     class When_a_message_retry_audit_from_old_sc_is_sent_to_audit_instance : AcceptanceTest
     {
         [Test]
