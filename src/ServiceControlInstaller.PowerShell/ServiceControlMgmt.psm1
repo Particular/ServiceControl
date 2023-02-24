@@ -45,4 +45,6 @@ New-Alias -Value Remove-ServiceControlRemote -Name sc-deleteremote
 
 Export-ModuleMember * -Alias *
 
+Write-Warning "The 'Particular.ServiceControl.Management' module is now distributed on the PowerShell Gallery and should be used instead. This legacy 'ServiceControlMgmt' module will no longer be included in the ServiceControl installer in a future release."
+
 Write-Verbose "Use SC-help to list ServiceControl Management commands" -Verbose
