@@ -36,8 +36,9 @@
                     {
                         using (await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
                         {
-                            // no-op
+                            //no-op
                         }
+
                         return embeddedDatabase;
                     }
                     catch (Exception)
