@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
     using NUnit.Framework;
 
@@ -11,20 +12,31 @@
         [Test]
         public async Task EnsureLicenseIsValid()
         {
+            var ravenUrl = configuration.DocumentStore.Urls.First();
+
             using (var http = new HttpClient())
-            using (var response = await http.GetAsync(configuration.DocumentStore.Urls.First() + "/license/status"))
             {
-                response.EnsureSuccessStatusCode();
+                // Ensure the license is activated before checking its details, otherwise it might say unlicensed
+                using (var response = await http.PostAsync(ravenUrl + "/admin/cluster/bootstrap", new StringContent(string.Empty, Encoding.UTF8, "application/json")))
+                {
+                    response.EnsureSuccessStatusCode();
+                }
 
-                var jsonText = await response.Content.ReadAsStringAsync();
-                var details = System.Text.Json.JsonSerializer.Deserialize<LicenseDetails>(jsonText);
+                // Get the license details from the server
+                using (var response = await http.GetAsync(ravenUrl + "/license/status"))
+                {
+                    response.EnsureSuccessStatusCode();
 
-                Assert.That(details.Id, Is.EqualTo("64c6a174-3f3a-4e7d-ac5d-b3eedd801460"));
-                Assert.That(details.LicensedTo, Is.EqualTo("ParticularNservicebus (Israel)"));
-                Assert.That(details.Status, Is.EqualTo("Commercial"));
-                Assert.That(details.Expired, Is.False);
-                Assert.That(details.Type, Is.EqualTo("Professional"));
-                Assert.That(DateTime.UtcNow.AddDays(14) < details.Expiration, "The RavenDB license expires in less than 2 weeks. Contact RavenDB for the new license.");
+                    var jsonText = await response.Content.ReadAsStringAsync();
+                    var details = System.Text.Json.JsonSerializer.Deserialize<LicenseDetails>(jsonText);
+
+                    Assert.That(details.Id, Is.EqualTo("64c6a174-3f3a-4e7d-ac5d-b3eedd801460"));
+                    Assert.That(details.LicensedTo, Is.EqualTo("ParticularNservicebus (Israel)"));
+                    Assert.That(details.Status, Is.EqualTo("Commercial"));
+                    Assert.That(details.Expired, Is.False);
+                    Assert.That(details.Type, Is.EqualTo("Professional"));
+                    Assert.That(DateTime.UtcNow.AddDays(14) < details.Expiration, "The RavenDB license expires in less than 2 weeks. Contact RavenDB for the new license.");
+                }
             }
         }
 
