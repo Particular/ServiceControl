@@ -3,7 +3,10 @@
     using System;
     using System.IO;
     using System.Linq;
+    using System.Net.Http;
     using System.Net.NetworkInformation;
+    using System.Text;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
@@ -27,6 +30,12 @@
                 var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
 
+                var licenseFileName = "RavenLicense.json";
+                var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, licenseFileName);
+                var licenseText = File.ReadAllText(localRavenLicense);
+                var licenseJsonNode = JsonNode.Parse(licenseText);
+                var licenseContent = new StringContent(licenseJsonNode.ToJsonString(), Encoding.UTF8, "application/json");
+
                 embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));
 
                 //make sure that the database is up
@@ -36,15 +45,24 @@
                     {
                         using (await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
                         {
-                            //no-op
+                            // no-op - just to wait until server is available for requests
                         }
-
-                        return embeddedDatabase;
                     }
                     catch (Exception)
                     {
                         await Task.Delay(500, cancellationToken).ConfigureAwait(false);
                     }
+
+                    using (var store = await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
+                    {
+                        var executor = store.GetRequestExecutor();
+                        var activateUrl = embeddedDatabase.ServerUrl + "/admin/license/activate";
+                        var res = await executor.HttpClient.PostAsync(activateUrl, licenseContent, cancellationToken).ConfigureAwait(false);
+                        var resContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        res.EnsureSuccessStatusCode();
+                    }
+
+                    return embeddedDatabase;
                 }
             }
             finally
