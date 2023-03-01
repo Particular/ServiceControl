@@ -147,6 +147,17 @@
                 }
             }
 
+            if (builder.TryGetValue("DoNotWrapOutgoingMessages", out var doNotWrapOutgoingMessages))
+            {
+                if (bool.TryParse(doNotWrapOutgoingMessages.ToString(), out var doNotWrapOutgoingMessagesAsBool))
+                {
+                    if (doNotWrapOutgoingMessagesAsBool)
+                    {
+                        transport.DoNotWrapOutgoingMessages();
+                    }
+                }
+            }
+
             //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
             //      This prevents SQS from throwing on startup.
             var connectionString = transport.GetSettings().Get("NServiceBus.TransportConnectionString");

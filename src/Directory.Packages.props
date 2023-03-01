@@ -33,7 +33,7 @@
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.2.2" />
     <PackageVersion Include="NServiceBus" Version="7.8.2" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="7.8.2" />
-    <PackageVersion Include="NServiceBus.AmazonSQS" Version="5.6.3" />
+    <PackageVersion Include="NServiceBus.AmazonSQS" Version="5.7.1" />
     <PackageVersion Include="NServiceBus.Azure.Transports.WindowsAzureServiceBus" Version="10.1.0" />
     <PackageVersion Include="NServiceBus.CustomChecks" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Extensions.DependencyInjection" Version="1.1.0" />
