@@ -149,10 +149,12 @@
 
             if (builder.TryGetValue("DoNotWrapOutgoingMessages", out var doNotWrapOutgoingMessages))
             {
-                var doNotWrapOutgoingMessagesAsBool = (bool)doNotWrapOutgoingMessages;
-                if (doNotWrapOutgoingMessagesAsBool)
+                if (bool.TryParse(doNotWrapOutgoingMessages.ToString(), out var doNotWrapOutgoingMessagesAsBool))
                 {
-                    transport.DoNotWrapOutgoingMessages();
+                    if (doNotWrapOutgoingMessagesAsBool)
+                    {
+                        transport.DoNotWrapOutgoingMessages();
+                    }
                 }
             }
 
