@@ -15,6 +15,8 @@
 
         public DateTime LastSeen { get; set; }
 
+        public string NServiceBusVersion { get; set; }
+
         public static string MakeDocumentId(string endpointName, Guid endpointHostId)
         {
             return $"{CollectionName}/{DeterministicGuid.MakeId(endpointName, endpointHostId.ToString())}";

@@ -17,7 +17,8 @@
                 Host = "HostName",
                 HostId = Guid.NewGuid(),
                 LastSeen = DateTime.UtcNow,
-                Name = "Endpoint"
+                Name = "Endpoint",
+                NServiceBusVersion = "1.2.3"
             };
 
             await IngestKnownEndpoints(ingestedEndpoint);
@@ -30,6 +31,7 @@
             Assert.That(endpoint.EndpointDetails.Host, Is.EqualTo(ingestedEndpoint.Host));
             Assert.That(endpoint.EndpointDetails.HostId, Is.EqualTo(ingestedEndpoint.HostId));
             Assert.That(endpoint.EndpointDetails.Name, Is.EqualTo(ingestedEndpoint.Name));
+            Assert.That(endpoint.EndpointDetails.NServiceBusVersion, Is.EqualTo(ingestedEndpoint.NServiceBusVersion));
         }
 
         [Test]

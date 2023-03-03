@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Auditing
 {
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -39,7 +40,9 @@
             var knownEndpoint = knownEndpoints.FirstOrDefault(x => x.EndpointDetails.Name == Conventions.EndpointNamingConvention(typeof(Sender)));
 
             Assert.IsNotNull(knownEndpoint);
-            Assert.AreEqual("1.0.0", knownEndpoint.EndpointDetails.NServiceBusVersion);
+
+            var nsbFileVersion = FileVersionInfo.GetVersionInfo(typeof(IMessageHandlerContext).Assembly.Location);
+            Assert.AreEqual($"{nsbFileVersion.FileMajorPart}.{nsbFileVersion.FileMinorPart}.{nsbFileVersion.FileBuildPart}", knownEndpoint.EndpointDetails.NServiceBusVersion);
         }
 
         class SomeMessage : IMessage

@@ -9,5 +9,7 @@ namespace ServiceControl.Audit.Monitoring
         public Guid HostId { get; set; }
 
         public string Host { get; set; }
+
+        public string NServiceBusVersion { get; set; }
     }
 }

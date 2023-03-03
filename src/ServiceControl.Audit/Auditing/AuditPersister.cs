@@ -182,6 +182,7 @@
                     HostId = observedEndpoint.HostId,
                     LastSeen = processedMessage.ProcessedAt,
                     Name = observedEndpoint.Name,
+                    NServiceBusVersion = observedEndpoint.NServiceBusVersion,
                     Id = KnownEndpoint.MakeDocumentId(observedEndpoint.Name, observedEndpoint.HostId),
                 };
                 observedEndpoints.Add(uniqueEndpointId, knownEndpoint);

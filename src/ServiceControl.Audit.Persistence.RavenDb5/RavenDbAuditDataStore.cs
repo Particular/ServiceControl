@@ -165,7 +165,8 @@
                         {
                             Host = x.Host,
                             HostId = x.HostId,
-                            Name = x.Name
+                            Name = x.Name,
+                            NServiceBusVersion = x.NServiceBusVersion
                         },
                         HostDisplayName = x.Host
                     })

@@ -14,6 +14,7 @@ namespace ServiceControl.Audit.Monitoring
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingEndpoint, headers, s => endpointDetails.Name = s);
             DictionaryExtensions.CheckIfKeyExists("NServiceBus.OriginatingMachine", headers, s => endpointDetails.Host = s);
             DictionaryExtensions.CheckIfKeyExists(Headers.OriginatingHostId, headers, s => endpointDetails.HostId = Guid.Parse(s));
+            DictionaryExtensions.CheckIfKeyExists(Headers.NServiceBusVersion, headers, s => endpointDetails.NServiceBusVersion = s);
 
             if (!string.IsNullOrEmpty(endpointDetails.Name) && !string.IsNullOrEmpty(endpointDetails.Host))
             {
@@ -53,6 +54,7 @@ namespace ServiceControl.Audit.Monitoring
             }
 
             DictionaryExtensions.CheckIfKeyExists(Headers.ProcessingEndpoint, headers, s => endpoint.Name = s);
+            DictionaryExtensions.CheckIfKeyExists(Headers.NServiceBusVersion, headers, s => endpoint.NServiceBusVersion = s);
 
             if (!string.IsNullOrEmpty(endpoint.Name) && !string.IsNullOrEmpty(endpoint.Host))
             {
