@@ -11,6 +11,8 @@ namespace ServiceControl.Contracts.Operations
 
         public string Host { get; set; }
 
+        public string NServiceBusVersion { get; set; }
+
         public Guid GetDeterministicId() => DeterministicGuid.MakeId(Name, HostId.ToString());
     }
 }

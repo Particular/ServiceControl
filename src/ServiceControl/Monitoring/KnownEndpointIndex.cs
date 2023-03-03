@@ -9,14 +9,14 @@ namespace ServiceControl.Audit.Monitoring
         public KnownEndpointIndex()
         {
             Map = knownEndpoints => from knownEndpoint in knownEndpoints
-                              select new
-                              {
-                                  EndpointDetails_Name = knownEndpoint.EndpointDetails.Name,
-                                  EndpointDetails_Host = knownEndpoint.EndpointDetails.Host,
-                                  knownEndpoint.HostDisplayName,
-                                  knownEndpoint.Monitored,
-                                  knownEndpoint.HasTemporaryId
-                              };
+                                    select new
+                                    {
+                                        EndpointDetails_Name = knownEndpoint.EndpointDetails.Name,
+                                        EndpointDetails_Host = knownEndpoint.EndpointDetails.Host,
+                                        knownEndpoint.HostDisplayName,
+                                        knownEndpoint.Monitored,
+                                        knownEndpoint.HasTemporaryId
+                                    };
 
             DisableInMemoryIndexing = true;
         }

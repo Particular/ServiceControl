@@ -33,9 +33,13 @@
                     return result.HasResult;
                 })
                 .Run();
+
             Assert.AreEqual(1, knownEndpoints.Count);
+
             var knownEndpoint = knownEndpoints.FirstOrDefault(x => x.EndpointDetails.Name == Conventions.EndpointNamingConvention(typeof(Sender)));
+
             Assert.IsNotNull(knownEndpoint);
+            Assert.AreEqual("1.0.0", knownEndpoint.EndpointDetails.NServiceBusVersion);
         }
 
         class SomeMessage : IMessage
