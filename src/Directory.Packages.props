@@ -59,7 +59,7 @@
     <PackageVersion Include="PowerShellStandard.Library" Version="5.1.1" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
-    <PackageVersion Include="PublicApiGenerator" Version="10.3.0" />
+    <PackageVersion Include="PublicApiGenerator" Version="11.0.0" />
     <PackageVersion Include="RavenDB.Database" Version="3.5.10-patch-35319" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.101" />
     <PackageVersion Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35319" />
