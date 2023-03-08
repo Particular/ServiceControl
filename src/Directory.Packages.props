@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Versions for direct package references">
-    <PackageVersion Include="Autofac" Version="6.5.0" />
+    <PackageVersion Include="Autofac" Version="7.0.0" />
     <PackageVersion Include="Azure.Identity" Version="1.8.2" />
     <PackageVersion Include="ByteSize" Version="2.1.1" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
