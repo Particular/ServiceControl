@@ -13,6 +13,11 @@
 
     class LicenseViewModel : RxScreen
     {
+        public LicenseViewModel(IEventAggregator eventAggregator)
+        {
+            EventAggregator = eventAggregator;
+        }
+
         public string ApplyLicenseError { get; set; }
 
         public string ApplyLicenseSuccess { get; set; }
@@ -51,7 +56,9 @@
                 ApplyLicenseError = null;
                 RefreshLicenseInfo();
                 ApplyLicenseSuccess = "License imported successfully";
+
                 await EventAggregator.PublishOnUIThreadAsync(new LicenseUpdated());
+
             }
             else
             {
