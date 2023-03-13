@@ -63,7 +63,7 @@
     <PackageVersion Include="RavenDB.Database" Version="3.5.10-patch-35319" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.101" />
     <PackageVersion Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35319" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="18.4.22" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="18.4.26" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
