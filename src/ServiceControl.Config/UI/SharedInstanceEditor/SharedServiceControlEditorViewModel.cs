@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     using System;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Windows.Input;
     using Commands;
     using Framework.Rx;
@@ -145,7 +145,7 @@
         {
             var instanceName = string.Empty;
             var instanceCount = GetInstalledInstancesCount();
-            var titleCaseName = CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(suggestedName);
+            var validServiceName = ToValidServiceName(suggestedName);
             var serviceBaseName = instanceCount == 0 ? "ServiceControl" : "ServiceControl-" + instanceCount;
 
             if (!suggestedName.StartsWith("Particular.", StringComparison.InvariantCultureIgnoreCase))
@@ -153,9 +153,15 @@
                 instanceName += "Particular.";
             }
 
-            instanceName += !string.IsNullOrEmpty(suggestedName) ? titleCaseName : serviceBaseName;
+            instanceName += !string.IsNullOrEmpty(suggestedName) ? validServiceName : serviceBaseName;
 
-            return RemoveIllegalCharacters(instanceName);
+            instanceName = instanceName.Trim();
+
+            instanceName = RemoveIllegalCharacters(instanceName);
+
+            instanceName = RemoveInvalidFileNameCharacters(instanceName);
+
+            return instanceName;
         }
 
         protected string RemoveIllegalCharacters(string name)
@@ -180,6 +186,56 @@
                     return i;
                 }
             }
+        }
+
+        //Valid service names use only ascii characters between 32-127 and not / or \ 
+        //The code will remove invalid characters and replace spaces with . 
+        //https://learn.microsoft.com/en-us/dotnet/api/system.serviceprocess.serviceinstaller.servicename?redirectedfrom=MSDN&view=netframework-4.8#remarks
+        static string ToValidServiceName(string serviceName)
+        {
+            serviceName = serviceName.Length > 256 ? serviceName.Substring(0, 256) : serviceName;
+
+            var serviceNameBuilder = new StringBuilder();
+
+            foreach (char character in Encoding.UTF8.GetBytes(serviceName.ToCharArray()))
+            {
+                var asciiNumber = (int)character;
+
+                if (asciiNumber is < 32 or > 122 or 47 or 92)
+                {
+                    continue;
+                }
+                else
+                {
+                    serviceNameBuilder.Append(character);
+                }
+            }
+
+            return serviceNameBuilder.ToString();
+        }
+
+        //Removes trailing spaces and periods as well as invalid file name characters 
+        //The following document lists all the conventions around file/path naming
+        //https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
+        static string RemoveInvalidFileNameCharacters(string name)
+        {
+            var nameBuilder = new StringBuilder();
+
+            foreach (char character in name)
+            {
+                if (Path.GetInvalidFileNameChars().Contains(character))
+                {
+                    continue;
+                }
+
+                nameBuilder.Append(character);
+            }
+
+            name = nameBuilder.ToString();
+
+            name = name.TrimEnd('.');
+
+            return name;
         }
 
         string hostName;
