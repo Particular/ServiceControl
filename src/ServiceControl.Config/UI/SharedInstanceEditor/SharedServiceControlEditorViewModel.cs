@@ -155,18 +155,9 @@
 
             instanceName += !string.IsNullOrEmpty(suggestedName) ? validServiceName : serviceBaseName;
 
-            instanceName = instanceName.Trim();
-
-            instanceName = RemoveIllegalCharacters(instanceName);
-
-            instanceName = RemoveInvalidFileNameCharacters(instanceName);
+            instanceName = SanitizeServiceName(instanceName);
 
             return instanceName;
-        }
-
-        protected string RemoveIllegalCharacters(string name)
-        {
-            return name?.Replace(' ', '.');
         }
 
         protected int GetInstalledInstancesCount()
@@ -186,6 +177,11 @@
                     return i;
                 }
             }
+        }
+
+        static string RemoveIllegalCharacters(string name)
+        {
+            return name?.Replace(' ', '.');
         }
 
         //Valid service names use only ascii characters between 32-127 and not / or \ 
@@ -236,6 +232,17 @@
             name = name.TrimEnd('.');
 
             return name;
+        }
+
+        static string SanitizeServiceName(string serviceName)
+        {
+            serviceName = serviceName.Trim();
+
+            serviceName = RemoveIllegalCharacters(serviceName);
+
+            serviceName = RemoveInvalidFileNameCharacters(serviceName);
+
+            return serviceName;
         }
 
         string hostName;
