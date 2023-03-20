@@ -53,7 +53,7 @@ namespace ServiceControl.Audit.AcceptanceTests
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
-            var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}-{TestContext.CurrentContext.Test.Name}.txt");
+            var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}.txt");
             if (File.Exists(logFile))
             {
                 File.Delete(logFile);
