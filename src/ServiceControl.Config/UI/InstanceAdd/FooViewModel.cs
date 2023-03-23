@@ -7,13 +7,13 @@
     using FluentValidation.Results;
     using System.Linq;
     using ServiceControl.Config.Framework.Rx;
+    using PropertyChanged;
 
     public class FooViewModel : RxScreen, INotifyDataErrorInfo, IDataErrorInfo
     {
-
         public FooViewModel()
         {
-            PropertyChanged += Validate;
+            //PropertyChanged += Validate;
         }
 
         ValidationResult _validationResult = new ValidationResult();
@@ -36,6 +36,7 @@
 
         public bool Saving { get; set; }
 
+        [DoNotNotify]
         public bool HasErrors => !_validationResult.IsValid;
 
         public string Error
@@ -86,10 +87,6 @@
                 ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(error.PropertyName));
             }
 
-            if (!_validationResult.Errors.Any())
-            {
-                NotifyOfPropertyChange("HasErrors");
-            }
         }
     }
 
