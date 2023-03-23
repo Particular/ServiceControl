@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.ServiceProcess;
     using FluentValidation;
     using ServiceControlInstaller.Engine.Ports;
 
@@ -28,7 +29,9 @@
                 {
                     if (int.TryParse(port, out var result))
                     {
-                        return PortUtils.CheckAvailable(result);
+                        var portNotInUse = !PortUtils.IsPortInUse(result);
+
+                        return portNotInUse;
                     }
 
                     return false;
@@ -36,6 +39,148 @@
                 .WithMessage(MSG_PORT_IN_USE);
         }
 
+        public static IRuleBuilderOptions<T, string> ErrorInstanceDatabaseMaintenancePortAvailable<T>(
+            this IRuleBuilder<T, string> ruleBuilder,
+            Func<T, string> getInstanceName)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    var instanceName = getInstanceName(t);
+
+                    var errorInstancePort = Extensions.Validations.GetErrorInstanceDatabaseMaintenancePort(instanceName);
+
+                    if (int.TryParse(port, out int newPort))
+                    {
+                        if (errorInstancePort == newPort)
+                        {
+                            return true;
+                        }
+
+                        var portNotInUse = !PortUtils.IsPortInUse(newPort);
+
+                        return portNotInUse;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+        public static IRuleBuilderOptions<T, string> ErrorInstancePortAvailable<T>(
+            this IRuleBuilder<T, string> ruleBuilder,
+            Func<T, string> getInstanceName)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    var instanceName = getInstanceName(t);
+
+                    var errorInstancePort = Extensions.Validations.GetErrorInstancePort(instanceName);
+
+                    if (int.TryParse(port, out int newPort))
+                    {
+                        if (errorInstancePort == newPort)
+                        {
+                            return true;
+                        }
+
+                        var portNotInUse = !PortUtils.IsPortInUse(newPort);
+
+                        return portNotInUse;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+        public static IRuleBuilderOptions<T, string> AuditInstanceDatabaseMaintenancePortAvailable<T>(
+            this IRuleBuilder<T, string> ruleBuilder,
+            Func<T, string> getInstanceName)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    var instanceName = getInstanceName(t);
+
+                    var errorInstancePort = Extensions.Validations.GetAuditInstanceDatabaseMaintenancePort(instanceName);
+
+                    if (int.TryParse(port, out int newPort))
+                    {
+                        if (errorInstancePort == newPort)
+                        {
+                            return true;
+                        }
+
+                        var portNotInUse = !PortUtils.IsPortInUse(newPort);
+
+                        return portNotInUse;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+        public static IRuleBuilderOptions<T, string> AuditInstancePortAvailable<T>(
+            this IRuleBuilder<T, string> ruleBuilder,
+            Func<T, string> getInstanceName)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    var instanceName = getInstanceName(t);
+
+                    var errorInstancePort = Extensions.Validations.GetAuditInstancePort(instanceName);
+
+                    if (int.TryParse(port, out int newPort))
+                    {
+                        if (errorInstancePort == newPort)
+                        {
+                            return true;
+                        }
+
+                        var portNotInUse = !PortUtils.IsPortInUse(newPort);
+
+                        return portNotInUse;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+        public static IRuleBuilderOptions<T, string> MonitoringInstancePortAvailable<T>(
+            this IRuleBuilder<T, string> ruleBuilder,
+            Func<T, string> getInstanceName)
+        {
+            return ruleBuilder.Must((t, port) =>
+                {
+                    var instanceName = getInstanceName(t);
+
+                    var errorInstancePort = Extensions.Validations.GetMonitoringInstancePort(instanceName);
+
+                    if (int.TryParse(port, out int newPort))
+                    {
+                        if (errorInstancePort == newPort)
+                        {
+                            return true;
+                        }
+
+                        var portNotInUse = !PortUtils.IsPortInUse(newPort);
+
+                        return portNotInUse;
+                    }
+
+                    return false;
+                })
+                .WithMessage(MSG_PORT_IN_USE);
+        }
+
+        public static IRuleBuilderOptions<T, string> ValidHostName<T>(this IRuleBuilder<T, string> rulebuilder)
+        {
+            var hostnameRegEx =
+                @"^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])|(\*)$";
+
+            return rulebuilder.Matches(hostnameRegEx);
+        }
 
         public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
         {
@@ -53,10 +198,23 @@
             return ruleBuilder.Must(s => !string.IsNullOrEmpty(s) && !s.Any(c => char.IsWhiteSpace(c))).WithMessage(MSG_CANTCONTAINWHITESPACE);
         }
 
+        public static IRuleBuilderOptions<T, string> MustBeUniqueWindowsServiceName<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            var windowsServices = ServiceController.GetServices();
+
+            return ruleBuilder.Must(instanceName =>
+            {
+                var serviceDoesNotExist = !windowsServices.Any(service => service.ServiceName.Equals(instanceName, StringComparison.InvariantCultureIgnoreCase));
+
+                return serviceDoesNotExist;
+            });
+        }
+
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
 
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
-        public const string MSG_CANTCONTAINWHITESPACE = "Cannot contain white space.";
+
+        public const string MSG_CANTCONTAINWHITESPACE = "{0} cannot contain white space.";
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
 
@@ -64,13 +222,21 @@
 
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
-        public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
+        public const string MSG_QUEUENAMES_NOT_EQUAL = "{0} queue name must not equal {1} queue name.";
 
-        public const string MSG_PORT_IN_USE = "The port specified is already in use by another process.";
+        public const string MSG_PORTS_NOT_EQUAL = "{0} port number must not equal {1} port number.";
+
+        public const string MSG_FORWARDINGQUEUENAME = "{0} queue name cannot be empty if forwarding is enabled.";
+
+        public const string MSG_QUEUENAME = "{0} queue name cannot be empty.";
+
+        public const string MSG_USE_PORTS_IN_RANGE = "{0} should be between 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
+
+        public const string MSG_PORT_IN_USE = "{0} specified is already in use by another process.";
 
         public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances";
 
-        public const string MSG_QUEUE_ALREADY_ASSIGNED = "This queue is already assigned to another instance";
+        public const string MSG_QUEUE_ALREADY_ASSIGNED = "{0} queue is already assigned to another instance";
 
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 

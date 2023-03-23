@@ -38,7 +38,10 @@
             ConnectionString = instance.ConnectionString;
             MonitoringInstance = instance;
         }
-
+        //Used for unit testing only
+        internal MonitoringEditViewModel()
+        {
+        }
         public MonitoringInstance MonitoringInstance { get; set; }
 
         public string ErrorQueueName { get; set; }

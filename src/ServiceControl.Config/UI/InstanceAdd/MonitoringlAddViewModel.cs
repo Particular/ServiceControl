@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Windows.Input;
     using Commands;
+    using Extensions;
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Instances;
     using SharedInstanceEditor;
@@ -44,8 +45,12 @@
             ErrorQueueName = "error";
             UseSystemAccount = true;
         }
+        public string DestinationPath
+        {
+            get => destinationPath;
+            set => destinationPath = value.SanitizeFilePath();
+        }
 
-        public string DestinationPath { get; set; }
         public ICommand SelectDestinationPath { get; private set; }
 
         public string ErrorQueueName { get; set; }
@@ -75,6 +80,7 @@
             LogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", InstanceName, "Logs");
         }
 
+        string destinationPath;
         TransportInfo selectedTransport;
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Config.UI.SharedInstanceEditor
+﻿
+
+namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     using System;
     using System.Collections.Generic;
@@ -8,6 +10,8 @@
     using PropertyChanged;
     using ServiceControlInstaller.Engine.Instances;
     using Validation;
+    using ServiceControl.Config.Extensions;
+    using Validations = Validation.Validations;
 
     public class SharedMonitoringEditorViewModel : RxProgressScreen
     {
@@ -19,7 +23,11 @@
         [DoNotNotify]
         public ValidationTemplate ValidationTemplate { get; set; }
 
-        public string InstanceName { get; set; }
+        public string InstanceName
+        {
+            get => instanceName;
+            set => instanceName = value.SanitizeInstanceName();
+        }
 
         public string HostName
         {
@@ -69,12 +77,59 @@
             get { return UseProvidedAccount ? password : string.Empty; }
             set { password = value; }
         }
+        [AlsoNotifyFor(nameof(PasswordEnabled),
+          nameof(ServiceAccount),
+          nameof(Password))]
+        public bool UseSystemAccount
+        {
+            get => useSystemAccount;
+            set
+            {
+                useSystemAccount = value;
 
-        public bool UseSystemAccount { get; set; }
+                if (value)
+                {
+                    UseServiceAccount = false;
+                    UseProvidedAccount = false;
+                    ServiceAccount = "LocalSystem";
+                    Password = null;
+                }
+            }
+        }
 
-        public bool UseServiceAccount { get; set; }
+        public bool UseServiceAccount
+        {
+            get => useServiceAccount;
+            set
+            {
+                useServiceAccount = value;
 
-        public bool UseProvidedAccount { get; set; }
+                if (value)
+                {
+                    UseSystemAccount = false;
+                    UseProvidedAccount = false;
+                    ServiceAccount = "LocalService";
+                    Password = null;
+                }
+            }
+        }
+
+        public bool UseProvidedAccount
+        {
+            get => useProvidedAccount;
+            set
+            {
+                useProvidedAccount = value;
+
+                if (value)
+                {
+                    UseServiceAccount = false;
+                    UseSystemAccount = false;
+                    ServiceAccount = null;
+                    Password = null;
+                }
+            }
+        }
 
         public bool PasswordEnabled
         {
@@ -111,7 +166,11 @@
 
         public IEnumerable<TransportInfo> Transports { get; private set; }
 
-        public string LogPath { get; set; }
+        public string LogPath
+        {
+            get => logPath;
+            set => logPath = value.SanitizeFilePath();
+        }
         public ICommand SelectLogPath { get; set; }
 
         public ICommand Save { get; set; }
@@ -123,8 +182,20 @@
         {
         }
 
+        string instanceName;
+
         string hostName;
+
         string serviceAccount;
+
         string password;
+
+        bool useSystemAccount;
+
+        bool useServiceAccount;
+
+        bool useProvidedAccount;
+
+        string logPath;
     }
 }
