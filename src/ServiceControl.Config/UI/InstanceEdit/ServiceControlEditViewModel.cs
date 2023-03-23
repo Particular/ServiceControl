@@ -15,6 +15,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             ServiceControl.UpdateFromInstance(instance);
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
+            InstallAuditInstance = false;
         }
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
