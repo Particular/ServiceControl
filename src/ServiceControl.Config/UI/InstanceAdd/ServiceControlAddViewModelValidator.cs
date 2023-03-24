@@ -4,20 +4,17 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
     public class ServiceControlAddViewModelValidator : AbstractValidator<ServiceControlAddViewModel>
     {
-        public bool Test(ServiceControlAddViewModel x) 
-        {
-            var result =  x.SubmitAttempted &&
-                               !x.IsServiceControlAuditExpanded &&
-                               !x.IsServiceControlExpanded;
-
-            return result;
-        }
-       
         public ServiceControlAddViewModelValidator()
         {
             RuleFor(x => x.ConventionName)
                 .NotEmpty()
-                .When(Test);
+                .When(x =>
+                        x.SubmitAttempted &&
+                       ((x.InstallAuditInstance
+                         && string.IsNullOrWhiteSpace(x.ServiceControlAudit.InstanceName)
+                        ||
+                        (x.InstallErrorInstance
+                         && string.IsNullOrWhiteSpace(x.ServiceControl.InstanceName)))));
 
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
@@ -35,11 +32,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validation.Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
                 .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
-
-            RuleFor(vm => vm.ErrorInstanceName)
-                .NotEmpty()
-                .When(vm => vm.InstallErrorInstance)
-                .WithMessage("Error instance required");
+     
         }
     }
 }

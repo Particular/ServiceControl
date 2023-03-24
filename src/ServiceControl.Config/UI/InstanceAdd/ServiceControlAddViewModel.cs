@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.InteropServices.WindowsRuntime;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
@@ -92,15 +91,6 @@
             ServiceControlAudit.ApplyConventionalServiceName(ConventionName);
         }
 
-        public string ErrorInstanceName 
-        {
-            get => ServiceControl.InstanceName;
-            set 
-            {
-                ServiceControl.InstanceName = value;
-            }
-        } 
-        
         public bool IsServiceControlExpanded { get; set; }
         public bool IsServiceControlAuditExpanded { get; set; }
     }

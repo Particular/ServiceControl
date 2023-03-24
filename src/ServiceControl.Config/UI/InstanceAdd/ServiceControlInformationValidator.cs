@@ -8,6 +8,10 @@ namespace ServiceControl.Config.UI.InstanceAdd
     {
         public ServiceControlInformationValidator()
         {
+            RuleFor(viewModel => viewModel.InstanceName)
+                .NotEmpty()
+                .When(viewModel => viewModel.ViewModelParent.InstallErrorInstance);                
+
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
                 .Unless(x => !x.ViewModelParent.InstallErrorInstance);

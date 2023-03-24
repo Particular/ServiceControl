@@ -9,7 +9,7 @@
 
     class AddServiceControlInstanceCommand : AwaitableAbstractCommand<object>
     {
-        public AddServiceControlInstanceCommand(IServiceControlWindowManager windowManager, Func<FooViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
+        public AddServiceControlInstanceCommand(IServiceControlWindowManager windowManager, Func<ServiceControlAddViewModel> addInstance, ServiceControlInstanceInstaller installer) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
@@ -35,7 +35,7 @@
             await windowManager.ShowInnerDialog(instanceViewModel);
         }
 
-        readonly Func<FooViewModel> addInstance;
+        readonly Func<ServiceControlAddViewModel> addInstance;
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller installer;
     }

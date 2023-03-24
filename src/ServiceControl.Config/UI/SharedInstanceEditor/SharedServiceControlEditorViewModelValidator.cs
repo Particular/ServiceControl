@@ -12,8 +12,8 @@ namespace ServiceControl.Config.Validation
         protected SharedServiceControlEditorViewModelValidator()
         {
             RuleFor(x => x.InstanceName)
-                .NotEmpty()
-                .MustNotContainWhitespace()
+                .NotEmpty().WithMessage("Instance name cannot be empty.")
+                .MustNotContainWhitespace().WithMessage("Instance name can not contain whitespace.")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.HostName)
