@@ -35,7 +35,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .Unless(x => !x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DestinationPath)
-                .NotEmpty()
+                .NotEmpty().WithMessage("not empty")
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
@@ -71,7 +71,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .Unless(x => !x.ViewModelParent.InstallErrorInstance)
-                .When(x => x.ErrorForwarding.Value);
-        }
+                .When(x => x.ErrorForwarding.Value);           
+        }       
     }
 }

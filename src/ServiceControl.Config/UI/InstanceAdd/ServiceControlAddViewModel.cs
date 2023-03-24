@@ -92,6 +92,15 @@
             ServiceControlAudit.ApplyConventionalServiceName(ConventionName);
         }
 
+        public string ErrorInstanceName 
+        {
+            get => ServiceControl.InstanceName;
+            set 
+            {
+                ServiceControl.InstanceName = value;
+            }
+        } 
+        
         public bool IsServiceControlExpanded { get; set; }
         public bool IsServiceControlAuditExpanded { get; set; }
     }
