@@ -2,13 +2,15 @@
 {
     using NUnit.Framework;
     using ServiceControl.Config.UI.InstanceAdd;
+    using ServiceControl.Config.UI.SharedInstanceEditor;
     using System;
     using System.ComponentModel;
     using System.Diagnostics;
 
-    public class ValidtionTests
+    public class AddErrorInstanceValidationTests
     {
 
+        #region ValidateConventionName
         //  Example: convention name cannot be empty when instance name(s) are not provided
         //  Given the convention name field was left empty
         //    and installing an error instance with empty name
@@ -97,6 +99,38 @@
             Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.ServiceControlAudit.InstanceName);
         }
 
+
+        #endregion
+
+        #region transportname
+        // Example: when adding an error instance the transport cannot be empty
+        //  Given an error instance is being created
+        //        and the transport not selected
+        //  When the user tries to save the form
+        //  Then a validation error occurs
+
+        [Test]
+        public void transport_cannot_be_empty_when_adding_error_instance()
+        {
+            //TODOD - this is failing- Need to revisit
+            var viewModel = new ServiceControlAddViewModel();
+
+           
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SelectedTransport =null;
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel );
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+        #endregion
+
+        #region errorinstancename
         // Example: when adding an error instance the error instance name cannot be empty
         //  Given am error instance is being crated
         //        and the error instance name is empty
@@ -107,12 +141,12 @@
         public void error_instance_name_cannot_be_empty_when_adding_error_instance()
         {
             var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
+                       
             viewModel.InstallErrorInstance = true;
 
             viewModel.ServiceControl.InstanceName = string.Empty;
+
+            viewModel.SubmitAttempted = true;
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             
@@ -146,6 +180,35 @@
             Assert.IsEmpty(errors);
         }
 
+        #endregion
+
+        #region useraccountinfo
+        // Example: when not adding an error instance the user account  cannot be empty
+        //  Given am error instance is being crated
+        //        and the user account is empty or not selected
+        //  When the user tries to save the form
+        //  Then a validation error occurs
+        [Test]
+        public void user_account_info_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.ServiceControl.ServiceAccount = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+        #endregion
+
+        #region Errorinstancedestinatiopath
         // Example: when not adding an error instance the destination path cannot be empty
         //  Given am error instance is being crated
         //        and the destination path is empty
@@ -191,6 +254,10 @@
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
 
         }
+        #endregion
+
+
+
 
         public IDataErrorInfo GetErrorInfo(object vm)
         {

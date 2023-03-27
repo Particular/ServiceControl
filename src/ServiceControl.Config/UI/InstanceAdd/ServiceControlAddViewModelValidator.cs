@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.UI.InstanceAdd
 {
     using FluentValidation;
+    using ServiceControlInstaller.Engine.Instances;
 
     public class ServiceControlAddViewModelValidator : AbstractValidator<ServiceControlAddViewModel>
     {
@@ -14,7 +15,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                          && string.IsNullOrWhiteSpace(x.ServiceControlAudit.InstanceName)
                         ||
                         (x.InstallErrorInstance
-                         && string.IsNullOrWhiteSpace(x.ServiceControl.InstanceName)))));
+                         && string.IsNullOrWhiteSpace(x.ServiceControl.InstanceName)))));                      
 
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
@@ -29,10 +30,15 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .When(x => !x.InstallAuditInstance)
                 .WithMessage("Must select either an audit or an error instance.");
 
+            RuleFor(x => x.ServiceControl)
+               .SetValidator(new ServiceControlInformationValidator())
+              .When(x => x.InstallErrorInstance);
+
             RuleFor(x => x.ConnectionString)
                 .NotEmpty().WithMessage(Validation.Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
                 .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
      
         }
+
     }
 }
