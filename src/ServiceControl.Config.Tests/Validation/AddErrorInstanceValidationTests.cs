@@ -112,18 +112,17 @@
         [Test]
         public void transport_cannot_be_empty_when_adding_error_instance()
         {
-            //TODOD - this is failing- Need to revisit
+            //TODO - this is failing- Need to revisit
             var viewModel = new ServiceControlAddViewModel();
-
            
             viewModel.InstallErrorInstance = true;
-
-            viewModel.SelectedTransport =null;
+            viewModel.SelectedTransport = null;
+            
             viewModel.SubmitAttempted = true;
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel );
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
+            
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));           
 
             Assert.IsNotEmpty(errors);
 
@@ -132,7 +131,7 @@
 
         #region errorinstancename
         // Example: when adding an error instance the error instance name cannot be empty
-        //  Given am error instance is being crated
+        //  Given an error instance is being created
         //        and the error instance name is empty
         //  When the user tries to save the form
         //  Then a validation error occurs
@@ -157,7 +156,7 @@
         }
 
         // Example: when not adding an error instance the error instance name can be empty
-        //  Given am error instance is being crated
+        //  Given an error instance is being created
         //        and the error instance name is empty
         //  When the user tries to save the form
         //  Then no error instance name validation errors occur
@@ -183,34 +182,59 @@
         #endregion
 
         #region useraccountinfo
-        // Example: when not adding an error instance the user account  cannot be empty
-        //  Given am error instance is being crated
+       
+
+        // Example: when  adding an error instance the user account  cannot be empty
+        //   Given an error instance is being created
         //        and the user account is empty or not selected
         //  When the user tries to save the form
         //  Then a validation error occurs
         [Test]
         public void user_account_info_cannot_be_empty_when_adding_error_instance()
+        {            
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+           
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            var selectedAccount = viewModel.ServiceControl.ServiceAccount;
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
+            //by default the add instance will always have a value of "LocalSystem"(even if you manually set verything to false or empty)
+           
+            ///ServiceControl.Config\UI\InstanceAdd\ServiceControlAddViewModel.cs line 135
+            /// \ServiceControl.Config\UI\SharedInstanceEditor\SharedServiceControlEditorViewModel.cs line #73
+            Assert.AreEqual("LocalSystem", selectedAccount);
+            Assert.IsEmpty(errors);
+
+        }
+
+        //if custom user account is selected, then account name and password are required fields
+        [Test]
+        public void accountname_cannot_be_empty_if_custom_user_account_is_selected_when_adding_error_instance()
         {
             var viewModel = new ServiceControlAddViewModel();
 
             viewModel.InstallErrorInstance = true;
-
+            viewModel.ServiceControl.UseProvidedAccount = true;
             viewModel.ServiceControl.ServiceAccount = string.Empty;
+            viewModel.ServiceControl.Password = string.Empty;
 
             viewModel.SubmitAttempted = true;
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
+            var selectedAccount = viewModel.ServiceControl.ServiceAccount;
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
-
+            
             Assert.IsNotEmpty(errors);
 
         }
         #endregion
 
-        #region Errorinstancedestinatiopath
-        // Example: when not adding an error instance the destination path cannot be empty
-        //  Given am error instance is being crated
+        #region errorinstancedestinatiopath
+        // Example: when  adding an error instance the destination path cannot be empty
+        //   Given an error instance is being created
         //        and the destination path is empty
         //  When the user tries to save the form
         //  Then a validation error occurs
@@ -233,7 +257,7 @@
         }
 
         // Example: when not adding an error instance the destination path can be empty
-        //  Given am error instance is being crated
+        //   Given an error instance is being created
         //        and the destination path is empty
         //  When the user tries to save the form
         //  Then no destination path validation errors occur
