@@ -40,11 +40,23 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .Unless(x => !x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DestinationPath)
-                .NotEmpty().WithMessage("not empty")
+                .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
+
+            RuleFor(x => x.DestinationPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
+                .When(x => x.ViewModelParent.InstallErrorInstance);
+
+            RuleFor(x => x.LogPath)
+                .NotEmpty()
+                .ValidPath()
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DatabasePath)
                 .NotEmpty()
