@@ -331,14 +331,12 @@
         {
             var viewModel = new ServiceControlAddViewModel();
 
-            viewModel.SubmitAttempted = true;
-
             viewModel.InstallErrorInstance = true;
-
             viewModel.ServiceControl.DestinationPath = string.Empty;
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            viewModel.SubmitAttempted = true;
 
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
 
         }
@@ -352,24 +350,199 @@
         [Test]
         public void error_destination_path_can_be_empty_when_not_adding_error_instance()
         {
+            var viewModel = new ServiceControlAddViewModel();           
+
+            viewModel.InstallErrorInstance = false;
+            viewModel.ServiceControl.DestinationPath = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
+
+        }
+        //check path is valid
+        [Test]
+        public void error_destination_path_should_be_valid_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();           
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DestinationPath = "/hjd@@?.<>**&&&&";
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
+
+        }
+        //check path is unique
+        [Test]
+        public void error_destination_path_should_be_unique_when_adding_error_instance()
+        {
             var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
 
             viewModel.SubmitAttempted = true;
 
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.ServiceControl.DestinationPath = string.Empty;
-
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
 
         }
         #endregion
 
+        #region errorinstancelogpath
+        // Example: when  adding an error instance the log path cannot be empty
+        //   Given an error instance is being created
+        //        and the log path is empty
+        //  When the user tries to save the form
+        //  Then a validation error occurs
 
+        [Test]
+        public void error_log_path_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();                     
 
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.LogPath = string.Empty;
 
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
+
+        }
+
+        // Example: when not adding an error instance the log path can be empty
+        //   Given an error instance is being created
+        //        and the log path is empty
+        //  When the user tries to save the form
+        //  Then no log path validation errors occur
+
+        [Test]
+        public void error_log_path_can_be_empty_when_not_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = false;
+            viewModel.ServiceControl.LogPath = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
+
+        }
+        //check path is valid
+        [Test]
+        public void error_log_path_should_be_valid_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.LogPath = "/hjd@@?.<>**&&&&";
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
+
+        }
+        //check path is unique
+        [Test]
+        public void error_log_path_should_be_unique_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);           
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
+
+        }
+        #endregion
+
+        #region errorinstancedatabasepath
+        // Example: when  adding an error instance the database path cannot be empty
+        //   Given an error instance is being created
+        //        and the database path is empty
+        //  When the user tries to save the form
+        //  Then a validation error occurs
+
+        [Test]
+        public void error_database_path_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DatabasePath = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
+
+        }
+
+        // Example: when not adding an error instance the database path can be empty
+        //   Given an error instance is being created
+        //        and the database path is empty
+        //  When the user tries to save the form
+        //  Then no database path validation errors occur
+
+        [Test]
+        public void error_database_path_can_be_empty_when_not_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = false;
+            viewModel.ServiceControl.DatabasePath = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
+
+        }
+        //check path is valid
+        [Test]
+        public void error_database_path_should_be_valid_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DatabasePath = "/hjd@@?.<>**&&&&";
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
+
+        }
+        //check path is unique
+        [Test]
+        public void error_database_path_should_be_unique_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+
+            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
+
+        }
+        #endregion
         public IDataErrorInfo GetErrorInfo(object vm)
         {
 
