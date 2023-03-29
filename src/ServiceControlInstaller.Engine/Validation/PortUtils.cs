@@ -13,6 +13,10 @@
                 throw new ArgumentOutOfRangeException(nameof(portNumber), "Port number is not between 1 and 49151");
             }
 
+            return PortNotInUse(portNumber);
+        }
+        public static bool PortNotInUse(int portNumber)
+        {
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
             return ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber) &&
                    ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber);

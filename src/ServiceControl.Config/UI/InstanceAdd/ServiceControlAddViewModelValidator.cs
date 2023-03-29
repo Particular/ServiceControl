@@ -18,7 +18,8 @@ namespace ServiceControl.Config.UI.InstanceAdd
                          && string.IsNullOrWhiteSpace(x.ServiceControl.InstanceName)))));                      
 
             RuleFor(x => x.SelectedTransport)
-                .NotEmpty();
+                .NotEmpty()
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.InstallAuditInstance)
                 .Must(install => install)

@@ -28,7 +28,7 @@
                 {
                     if (int.TryParse(port, out var result))
                     {
-                        return PortUtils.CheckAvailable(result);
+                        return PortUtils.PortNotInUse(result);
                     }
 
                     return false;

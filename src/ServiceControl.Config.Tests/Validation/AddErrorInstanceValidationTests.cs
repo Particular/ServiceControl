@@ -3,6 +3,7 @@
     using NUnit.Framework;
     using ServiceControl.Config.UI.InstanceAdd;
     using ServiceControl.Config.UI.SharedInstanceEditor;
+    using ServiceControlInstaller.Engine.Instances;
     using System;
     using System.ComponentModel;
     using System.Diagnostics;
@@ -116,13 +117,38 @@
             var viewModel = new ServiceControlAddViewModel();
            
             viewModel.InstallErrorInstance = true;
-            viewModel.SelectedTransport = null;
+            viewModel.SelectedTransport = default;
             
             viewModel.SubmitAttempted = true;
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel );
             
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));           
+
+            Assert.IsNotEmpty(errors);
+
+        }
+       
+
+        [TestCase(TransportNames.AmazonSQS)]
+        [TestCase(TransportNames.AzureServiceBus)]
+        //[TestCase(TransportNames.MSMQ)]
+        [TestCase(TransportNames.SQLServer)]
+        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_error_instance(string transportInfoName)
+        {
+            //TODO: test failing need to revisit
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName); 
+           
+            viewModel.ConnectionString = string.Empty;
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
             Assert.IsNotEmpty(errors);
 
@@ -210,7 +236,7 @@
 
         }
 
-        //if custom user account is selected, then account name and password are required fields
+        //if custom user account is selected, then account name  are required fields
         [Test]
         public void accountname_cannot_be_empty_if_custom_user_account_is_selected_when_adding_error_instance()
         {
@@ -225,14 +251,75 @@
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             var selectedAccount = viewModel.ServiceControl.ServiceAccount;
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
+            var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
+           
+            Assert.IsNotEmpty(errorServiceAccount);
+
+        }
+        //todo valid if acct/pass is valid
+        #endregion
+
+
+        #region Port
+        [Test]
+        public void port_cannot_be_empty_when_adding_error_instance()
+        {
             
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.PortNumber = string.Empty;
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+        [Test]
+        //validate that port is numeric and within valid range >= 1 and <= 49151
+        public void port_is_not_in_valid_range_when_adding_error_instance()
+        {
+
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.PortNumber = "500056550";
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+        [Test]
+        //validate that port is unique
+        public void port_is_unique_when_adding_error_instance()
+        {
+            //port is unique and should not be used in any other instance (audit or error) and any other windows service
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+            viewModel.ServiceControl.PortNumber = "33333";
+
+            viewModel.SubmitAttempted = true;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+
             Assert.IsNotEmpty(errors);
 
         }
         #endregion
 
-        #region errorinstancedestinatiopath
+        #region errorinstancedestinationpath
         // Example: when  adding an error instance the destination path cannot be empty
         //   Given an error instance is being created
         //        and the destination path is empty

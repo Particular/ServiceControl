@@ -19,13 +19,14 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()
+                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Ports"))
                 .PortAvailable()
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
                 .NotEqual(x => x.DatabaseMaintenancePortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports"))
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()
