@@ -14,14 +14,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()
                 .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Ports"))
-                .PortAvailable()
-                .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
+                .PortAvailable() //across windows
+                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Ports"))
+                .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName)) //across all instances
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports"))
                 .NotEqual(x => x.DatabaseMaintenancePortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.DatabaseMaintenancePortNumber)
@@ -31,13 +33,16 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
-                .PortAvailable()
-                .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
+                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Database Maintenance Ports"))
+                .PortAvailable() //across windows
+                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Database Maintenance Ports"))
+                .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName)) //across all instances
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports"))
                 .NotEqual(x => x.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports"))
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
@@ -63,11 +68,11 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Database Paths"))
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.ErrorForwarding)
                 .NotNull().WithMessage(Validation.Validations.MSG_SELECTERRORFORWARDING)
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance);
+                .When(x => x.ViewModelParent.InstallErrorInstance);
 
 
             RuleFor(x => x.ErrorQueueName)
@@ -77,7 +82,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance)
+                .When(x => x.ViewModelParent.InstallErrorInstance)
                 .When(x => x.ErrorQueueName != "!disable");
 
             RuleFor(x => x.ErrorForwardingQueueName)
@@ -87,7 +92,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
-                .Unless(x => !x.ViewModelParent.InstallErrorInstance)
+                .When(x => x.ViewModelParent.InstallErrorInstance)
                 .When(x => x.ErrorForwarding.Value);           
         }       
     }

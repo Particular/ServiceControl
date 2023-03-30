@@ -295,8 +295,43 @@ namespace ServiceControl.Config.Tests.Validation
         //TODO: valid if acct/pass is valid
         #endregion
 
+        #region hostname
+        [Test]
+        public void erorr_hostname_can_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
 
-        #region Port
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.HostName = string.Empty;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
+
+        }
+        [Test]
+        public void erorr_hostname_can_be_null_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.HostName = null;
+
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.HostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
+
+        }
+        #endregion
+
+        #region Portnumber
         [Test]
         public void port_cannot_be_empty_when_adding_error_instance()
         {
@@ -362,6 +397,32 @@ namespace ServiceControl.Config.Tests.Validation
             throw new Exception("This test is not correct yet.");
 
         }
+        [Test]
+        //validate that port is not equal to db port number
+        public void error_port_is_not_equal_to_database_port_number_when_adding_error_instance()
+        {
+            //port is unique and should not be used in any other instance (audit or error) and any other windows service
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+            
+            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+
+            viewModel.ServiceControl.PortNumber = "33333";
+
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+
+        }
+       
         #endregion
 
         #region errorinstancedestinationpath
@@ -384,6 +445,7 @@ namespace ServiceControl.Config.Tests.Validation
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath));
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
         }
 
@@ -659,7 +721,7 @@ namespace ServiceControl.Config.Tests.Validation
         }
         #endregion
 
-        //TODO: Add Tests for Error Queue Name
+        #region errorqueuename
         [Test]
         public void error_queue_name_should_not_be_empty_when_adding_error_instance()
         {
@@ -691,9 +753,9 @@ namespace ServiceControl.Config.Tests.Validation
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorQueueName)));
         }
+        #endregion
 
-        //TODO: Add test for unique queue name (maybe)
-
+        #region errorforwardingqueuename
         [Test]
         public void error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_adding_error_instance()
         {
@@ -777,6 +839,8 @@ namespace ServiceControl.Config.Tests.Validation
 
             Assert.IsEmpty(errors);
         }
+        #endregion
+
 
         public IDataErrorInfo GetErrorInfo(object vm)
         {
