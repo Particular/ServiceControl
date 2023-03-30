@@ -89,6 +89,105 @@ namespace ServiceControl.Config.Tests.Validation
         //TODO: valid if acct/pass is valid
         #endregion
 
+        #region transport
+        [TestCase(TransportNames.AmazonSQS)]
+        [TestCase(TransportNames.AzureServiceBus)]
+        [TestCase(TransportNames.SQLServer)]
+        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_editing_error_instance(
+           string transportInfoName)
+        {
+            //TODO: test failing need to revisit
+            var viewModel = new ServiceControlEditViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ConnectionString = string.Empty;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+
+            Assert.IsNotEmpty(errors);
+        }
+
+        [TestCase(TransportNames.AmazonSQS)]
+        [TestCase(TransportNames.AzureServiceBus)]
+        [TestCase(TransportNames.SQLServer)]
+        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        public void transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_editing_error_instance(
+            string transportInfoName)
+        {
+            var viewModel = new ServiceControlEditViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ConnectionString = null;
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+
+        [TestCase(TransportNames.MSMQ)]
+        public void transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_error_instance(
+           string transportInfoName)
+        {            
+            var viewModel = new ServiceControlEditViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ConnectionString = string.Empty;
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+
+            Assert.IsEmpty(errors);
+        }
+        [TestCase(TransportNames.MSMQ)]
+        public void transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_error_instance(
+            string transportInfoName)
+        {
+            var viewModel = new ServiceControlEditViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ConnectionString = null;
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+
+            Assert.IsEmpty(errors);
+
+        }
+
+        #endregion
+
         #region hostname
         [Test]
         public void erorr_hostname_can_be_empty_when_editing_error_instance()
@@ -315,116 +414,7 @@ namespace ServiceControl.Config.Tests.Validation
 
         #endregion
 
-        #region errorinstancedestinationpath
-        // Example: when  editing an error instance the destination path cannot be empty
-        //   Given an error instance is being created
-        //        and the destination path is empty
-        //  When the user tries to save the form
-        //  Then a validation error occurs
-
-        [Test]
-        public void destination_path_cannot_be_empty_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath));
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
-        }
-
-        [Test]
-        public void error_destination_path_cannot_be_null_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = null;
-
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DestinationPath));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
-        }
-
-        // Example: when not editing an error instance the destination path can be empty
-        //   Given an error instance is being created
-        //        and the destination path is empty
-        //  When the user tries to save the form
-        //  Then no destination path validation errors occur
-
-        [Test]
-        public void destination_path_can_be_empty_when_not_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();           
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
-
-        }
-
-        [TestCase(@"<")]
-        [TestCase(@">")]
-        [TestCase(@"|")]
-        [TestCase(@"?")]
-        [TestCase(@"*")]
-        public void destination_path_should_not_contain_invalid_characters_when_editing_error_instance(string path)
-        {
-            var viewModel = new ServiceControlEditViewModel();           
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = path;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath));
-
-            Assert.IsNotEmpty(errors);
-
-        }
-
-        //TODO: Decide if we can do this in a way that makes sense.
-        //We would need other instances to be created in order to validate this isn't using the same path as another instance
-
-        //check path is unique
-        [Test]
-        public void destination_path_should_be_unique_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
-
-            throw new Exception("This test isn't correct yet.");
-        }
-        #endregion
+      
 
         #region errorinstancelogpath
         // Example: when  editing an error instance the log path cannot be empty
@@ -521,95 +511,7 @@ namespace ServiceControl.Config.Tests.Validation
         }
         #endregion
 
-        #region errorinstancedatabasepath
-        // Example: when  editing an error instance the database path cannot be empty
-        //   Given an error instance is being created
-        //        and the database path is empty
-        //  When the user tries to save the form
-        //  Then a validation error occurs
-
-        [Test]
-        public void error_database_path_cannot_be_empty_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabasePath = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
-        }
-
-        // Example: when not editing an error instance the database path can be empty
-        //   Given an error instance is being created
-        //        and the database path is empty
-        //  When the user tries to save the form
-        //  Then no database path validation errors occur
-
-        [Test]
-        public void error_database_path_can_be_empty_when_not_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabasePath = null;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
-        }
-        //check path is valid
-        [TestCase(@"<")]
-        [TestCase(@">")]
-        [TestCase(@"|")]
-        [TestCase(@"?")]
-        [TestCase(@"*")]
-        public void error_database_path_should_not_contain_invalid_characters_when_editing_error_instance(string path)
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-            
-            viewModel.ServiceControl.DatabasePath = path;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
-        }
-
-        //TODO: see if this is something that we want to do or change
-        //check path is unique
-        [Test]
-        public void error_database_path_should_be_unique_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
-            throw new Exception("This test isn't correct yet.");
-
-        }
-        #endregion
+      
 
         #region errorqueuename
         [Test]

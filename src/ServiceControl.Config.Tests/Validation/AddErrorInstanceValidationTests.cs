@@ -138,7 +138,7 @@ namespace ServiceControl.Config.Tests.Validation
         public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_error_instance(
             string transportInfoName)
         {
-            //TODO: test failing need to revisit
+            
             var viewModel = new ServiceControlAddViewModel();
 
             viewModel.InstallErrorInstance = true;

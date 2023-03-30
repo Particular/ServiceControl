@@ -77,7 +77,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding"))
+                .NotEqual(x => x.ErrorForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_DISTINCT_QUEUENAME, "Error","Error Forwarding"))
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit"))
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)
@@ -87,7 +87,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(x => x.ErrorForwardingQueueName)
                 .NotEmpty()
-                .NotEqual(x => x.ErrorQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error"))
+                .NotEqual(x => x.ErrorQueueName).WithMessage(string.Format(Validation.Validations.MSG_DISTINCT_QUEUENAME, "Error Forwarding","Error"))
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit"))
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Audit Forwarding"))
                 .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED)

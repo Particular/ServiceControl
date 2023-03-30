@@ -64,6 +64,10 @@
 
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
+        public const string MSG_DISTINCT_QUEUENAME = "{0} queue name must not equal {1} queue name.";
+
+        public const string MSG_FORWARDINGQUEUENAME = "{0} queue name cannot be empty if forwarding is enabled.";
+
         public const string MSG_USE_PORTS_IN_RANGE = "{0} should be between 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
 
         public const string MSG_PORT_IN_USE = "The {0} specified is already in use by another process.";
