@@ -385,16 +385,18 @@ namespace ServiceControl.Config.Tests.Validation
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.PortNumber = "33333";
-
+            //viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33334";
+            //viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
+            
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
-
+           // var errorsDB = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
             Assert.IsNotEmpty(errors);
-
-            throw new Exception("This test is not correct yet.");
+          //  Assert.IsNotEmpty(errorsDB);
+           throw new Exception("This test is not correct yet.");
 
         }
         [Test]
@@ -422,7 +424,101 @@ namespace ServiceControl.Config.Tests.Validation
 
 
         }
-       
+
+        #endregion
+
+        #region DatabaseManintenancePortnumber
+        [Test]
+        public void database_maintenance_port_cannot_be_empty_when_adding_error_instance()
+        {
+
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.DatabaseMaintenancePortNumber = null;
+
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+        [Test]
+        //validate that port is numeric and within valid range >= 1 and <= 49151
+        public void database_maintenance_port_is_not_in_valid_range_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "50000";
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+        }
+
+        //TODO: figure out how to write this test
+        [Test]
+        //validate that port is unique
+        public void database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_error_instance()
+        {
+            //port is unique and should not be used in any other instance (audit or error) and any other windows service
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+          
+            Assert.IsNotEmpty(errors);
+           
+            throw new Exception("This test is not correct yet.");
+
+        }
+        [Test]
+        //validate that port is not equal to db port number
+        public void error_database_maintenance_port_is_not_equal_to_port_number_when_adding_error_instance()
+        {
+            //port is unique and should not be used in any other instance (audit or error) and any other windows service
+            var viewModel = new ServiceControlAddViewModel();
+
+            viewModel.InstallErrorInstance = true;
+
+            viewModel.SubmitAttempted = true;
+
+            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+
+            viewModel.ServiceControl.PortNumber = "33333";
+
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+
+            Assert.IsNotEmpty(errors);
+
+
+        }
+
         #endregion
 
         #region errorinstancedestinationpath

@@ -19,29 +19,29 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()
-                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Port"))
                 .PortAvailable() //across windows
-                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName)) //across all instances
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Port"))
                 .NotEqual(x => x.DatabaseMaintenancePortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.DatabaseMaintenancePortNumber)
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Port"))
                 .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DatabaseMaintenancePortNumber)
                 .NotEmpty()
                 .ValidPort()
-                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Database Maintenance Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "ServiceControl Database Maintenance Port"))
                 .PortAvailable() //across windows
-                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Database Maintenance Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "ServiceControl Database Maintenance Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName)) //across all instances
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Port"))
                 .NotEqual(x => x.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.PortNumber)
                 .NotEqual(x => x.ViewModelParent.ServiceControlAudit.DatabaseMaintenancePortNumber)
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Ports"))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "ServiceControl Database Maintenance Port"))
                 .When(x => x.ViewModelParent.InstallErrorInstance);
 
             RuleFor(x => x.DestinationPath)

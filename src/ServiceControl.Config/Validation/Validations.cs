@@ -64,9 +64,9 @@
 
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
-        public const string MSG_USE_PORTS_IN_RANGE = "Use Ports in range 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
+        public const string MSG_USE_PORTS_IN_RANGE = "{0} should be between 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
 
-        public const string MSG_PORT_IN_USE = "The port specified is already in use by another process.";
+        public const string MSG_PORT_IN_USE = "The {0} specified is already in use by another process.";
 
         public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances";
 
