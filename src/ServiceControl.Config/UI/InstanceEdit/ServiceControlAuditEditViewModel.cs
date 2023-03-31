@@ -16,6 +16,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
             InstallErrorInstance = false;
+            InstallAuditInstance = false;
         }
 
         public ServiceControlAuditInstance ServiceControlInstance { get; set; }
