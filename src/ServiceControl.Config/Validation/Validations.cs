@@ -64,7 +64,9 @@
 
         public const string MSG_UNIQUEQUEUENAME = "Must not equal {0} queue name.";
 
-        public const string MSG_DISTINCT_QUEUENAME = "{0} queue name must not equal {1} queue name.";
+        public const string MSG_QUEUENAMES_NOT_EQUAL = "{0} queue name must not equal {1} queue name.";
+
+        public const string MSG_PORTS_NOT_EQUAL = "{0} port number must not equal {1} port number.";
 
         public const string MSG_FORWARDINGQUEUENAME = "{0} queue name cannot be empty if forwarding is enabled.";
 
