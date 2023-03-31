@@ -6,88 +6,10 @@ namespace ServiceControl.Config.Tests.Validation
     using UI.InstanceAdd;
     using ServiceControlInstaller.Engine.Instances;
     using System.ComponentModel;
-    using ServiceControl.Config.UI.InstanceEdit;
-    using Moq;
-    using ServiceControlInstaller.Engine;
-    using ServiceControlInstaller.Engine.Services;
+    using UI.InstanceEdit;
 
     public class EditErrorInstanceValidationTests
     {
-
-        #region useraccountinfo
-       
-
-        // Example: when  editing an error instance the user account  cannot be empty
-        //   Given an error instance is being created
-        //        and the user account is empty or not selected
-        //  When the user tries to save the form
-        //  Then a validation error occurs
-        [Test]
-        public void user_account_info_cannot_be_empty_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = true;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var selectedAccount = viewModel.ServiceControl.ServiceAccount;
-            
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
-
-            Assert.AreEqual("LocalSystem", selectedAccount);
-            Assert.IsEmpty(errors);
-
-        }
-
-        //if custom user account is selected, then account name are required fields
-        [Test]
-        public void account_name_cannot_be_empty_if_custom_user_account_is_selected_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.ServiceControl.UseProvidedAccount = true;
-            
-            viewModel.ServiceControl.ServiceAccount = string.Empty;
-            
-            viewModel.ServiceControl.Password = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
-           
-            Assert.IsNotEmpty(errors);
-
-        }
-
-        [Test]
-        public void account_name_cannot_be_null_if_custom_user_account_is_selected_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.ServiceControl.UseProvidedAccount = true;
-
-            viewModel.ServiceControl.ServiceAccount = null;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
-
-            Assert.IsNotEmpty(errors);
-
-        }
-        //TODO: valid if acct/pass is valid
-        #endregion
 
         #region transport
         [TestCase(TransportNames.AmazonSQS)]
@@ -99,8 +21,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             //TODO: test failing need to revisit
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
 
@@ -124,8 +44,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
 
             viewModel.SubmitAttempted = true;
@@ -148,8 +66,6 @@ namespace ServiceControl.Config.Tests.Validation
         {            
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
 
             viewModel.SubmitAttempted = true;
@@ -167,8 +83,6 @@ namespace ServiceControl.Config.Tests.Validation
             string transportInfoName)
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
 
@@ -194,8 +108,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.HostName = string.Empty;
@@ -208,8 +120,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void erorr_hostname_can_be_null_when_editing_error_instance()
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -231,8 +141,6 @@ namespace ServiceControl.Config.Tests.Validation
             
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-            
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.PortNumber = null;
@@ -250,8 +158,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void port_is_not_in_valid_range_when_editing_error_instance()
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -272,8 +178,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -298,8 +202,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
             
@@ -327,7 +229,6 @@ namespace ServiceControl.Config.Tests.Validation
 
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -347,11 +248,11 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.DatabaseMaintenancePortNumber = "50000";
+
+            viewModel.NotifyOfPropertyChange(null);
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -369,13 +270,11 @@ namespace ServiceControl.Config.Tests.Validation
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
 
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+            viewModel.ServiceControl.NotifyOfPropertyChange(null);
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -392,8 +291,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -426,9 +323,7 @@ namespace ServiceControl.Config.Tests.Validation
         [Test]
         public void error_log_path_cannot_be_empty_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();                     
-
-            viewModel.InstallErrorInstance = true;
+            var viewModel = new ServiceControlEditViewModel();
 
             viewModel.SubmitAttempted = true;
 
@@ -442,30 +337,6 @@ namespace ServiceControl.Config.Tests.Validation
 
         }
 
-        // Example: when not editing an error instance the log path can be empty
-        //   Given an error instance is being created
-        //        and the log path is empty
-        //  When the user tries to save the form
-        //  Then no log path validation errors occur
-
-        [Test]
-        public void error_log_path_can_be_empty_when_not_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.LogPath = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath));
-
-            Assert.IsEmpty(errors);
-
-        }
         //check path is valid
         [TestCase(@"<")]
         [TestCase(@">")]
@@ -475,8 +346,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void error_log_path_should_not_contain_invalid_characters_when_editing_error_instance(string path)
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -494,8 +363,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-            
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
@@ -519,8 +386,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.ErrorQueueName = string.Empty;
@@ -533,8 +398,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void error_queue_name_should_not_be_null_when_editing_error_instance()
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -552,8 +415,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_editing_error_instance()
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
@@ -575,8 +436,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "On", Value = true };
@@ -595,8 +454,6 @@ namespace ServiceControl.Config.Tests.Validation
         {
             var viewModel = new ServiceControlEditViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
             viewModel.SubmitAttempted = true;
 
             viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false };
@@ -614,8 +471,6 @@ namespace ServiceControl.Config.Tests.Validation
         public void error_forwarding_queue_name_can_be_null_if_error_forwarding_not_enabled_when_editing_error_instance()
         {
             var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.InstallErrorInstance = true;
 
             viewModel.SubmitAttempted = true;
 
