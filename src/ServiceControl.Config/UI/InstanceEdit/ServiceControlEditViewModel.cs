@@ -16,11 +16,13 @@ namespace ServiceControl.Config.UI.InstanceEdit
             SelectedTransport = instance.TransportPackage;
             ConnectionString = instance.ConnectionString;
             InstallAuditInstance = false;
+            InstallErrorInstance = false;
         }
 
         public ServiceControlEditViewModel()
         {
-            
+            InstallAuditInstance = false;
+            InstallErrorInstance = false;
         }
 
         public ServiceControlInstance ServiceControlInstance { get; set; }
