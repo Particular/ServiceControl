@@ -86,7 +86,7 @@
                                       Text="{Binding ServiceControlAudit.HostName}"
                                       Warning="{Binding ServiceControlAudit.HostNameWarning}" />
                 <controls:FormTextBox Header="PORT NUMBER (1 - 49151)" Text="{Binding ServiceControlAudit.PortNumber}" />
-                <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)"
+                <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
                                       Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}"/>
 
                 <Border Margin="0,40,0,20"

@@ -102,7 +102,7 @@
                     <controls:FormTextBox Header="PORT NUMBER (1 - 49151)"
                                           Foreground="{StaticResource Gray70Brush}"
                                           Text="{Binding ServiceControlAudit.PortNumber}" />
-                    <controls:FormTextBox Header="MAINTENANCE PORT NUMBER (1 - 49151)"
+                    <controls:FormTextBox Header="DATABASE MAINTENANCE PORT NUMBER (1 - 49151)"
                                           Foreground="{StaticResource Gray70Brush}"
                                           Text="{Binding ServiceControlAudit.DatabaseMaintenancePortNumber}" />
 

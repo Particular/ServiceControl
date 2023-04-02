@@ -56,6 +56,7 @@
         public const string MSG_EMAIL_NOT_VALID = "Not Valid.";
 
         public const string MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING = "This transport requires a connection string.";
+
         public const string MSG_CANTCONTAINWHITESPACE = "Cannot contain white space.";
 
         public const string MSG_SELECTAUDITFORWARDING = "Must select audit forwarding.";
@@ -70,13 +71,15 @@
 
         public const string MSG_FORWARDINGQUEUENAME = "{0} queue name cannot be empty if forwarding is enabled.";
 
+        public const string MSG_QUEUENAME = "{0} queue name cannot be empty.";
+
         public const string MSG_USE_PORTS_IN_RANGE = "{0} should be between 1 - 49151. Ephemeral port range should not be used (49152 to 65535).";
 
-        public const string MSG_PORT_IN_USE = "The {0} specified is already in use by another process.";
+        public const string MSG_PORT_IN_USE = "{0} specified is already in use by another process.";
 
         public const string MSG_MUST_BE_UNIQUE = "{0} must be unique across all instances";
 
-        public const string MSG_QUEUE_ALREADY_ASSIGNED = "This queue is already assigned to another instance";
+        public const string MSG_QUEUE_ALREADY_ASSIGNED = "{0} queue is already assigned to another instance";
 
         public const string WRN_HOSTNAME_SHOULD_BE_LOCALHOST = "Not using localhost can expose ServiceControl to anonymous access.";
 
