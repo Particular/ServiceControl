@@ -18,7 +18,9 @@ namespace ServiceControl.Config.UI.InstanceAdd
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()
+                .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "Monitoring Port"))
                 .PortAvailable()
+                .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "Monitoring Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Monitoring Port"))
                 .When(x => x.SubmitAttempted);
@@ -29,6 +31,13 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Path"))
                 .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.LogPath)
+              .NotEmpty()
+              .ValidPath()
+              .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
+              .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Log Path"))
+              .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty();

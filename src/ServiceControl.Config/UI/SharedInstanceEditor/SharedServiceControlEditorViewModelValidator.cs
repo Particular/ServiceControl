@@ -13,7 +13,7 @@ namespace ServiceControl.Config.Validation
         {
             RuleFor(x => x.InstanceName)
                 .NotEmpty().WithMessage("Instance name cannot be empty.")
-                .MustNotContainWhitespace().WithMessage("Instance name can not contain whitespace.")
+                .MustNotContainWhitespace().WithMessage(string.Format(Validations.MSG_CANTCONTAINWHITESPACE, "Instance name"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.HostName)
@@ -27,28 +27,28 @@ namespace ServiceControl.Config.Validation
                 .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Ports"))
                 .When(x => x.SubmitAttempted);
 
-            RuleFor(x => x.LogPath)
-                .NotEmpty()
-                .ValidPath()
-                .MustNotBeIn(x => UsedPaths(x.InstanceName))
-                .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
-                .When(x => x.SubmitAttempted);
+            //RuleFor(x => x.LogPath)
+            //    .NotEmpty()
+            //    .ValidPath()
+            //    .MustNotBeIn(x => UsedPaths(x.InstanceName))
+            //    .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
+            //    .When(x => x.SubmitAttempted);
         }
 
         // We need this to ignore the instance that represents the edit screen
-        protected List<string> UsedPaths(string instanceName = null)
-        {
-            return InstanceFinder.ServiceControlInstances()
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .SelectMany(p => new[]
-                {
-                    p.DBPath,
-                    p.LogPath,
-                    p.InstallPath
-                })
-                .Distinct()
-                .ToList();
-        }
+        //protected List<string> UsedPaths(string instanceName = null)
+        //{
+        //    return InstanceFinder.ServiceControlInstances()
+        //        .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+        //        .SelectMany(p => new[]
+        //        {
+        //            p.DBPath,
+        //            p.LogPath,
+        //            p.InstallPath
+        //        })
+        //        .Distinct()
+        //        .ToList();
+        //}
 
         // We need this to ignore the instance that represents the edit screen
         protected List<string> UsedQueueNames(TransportInfo transportInfo = null, string instanceName = null, string connectionString = null)

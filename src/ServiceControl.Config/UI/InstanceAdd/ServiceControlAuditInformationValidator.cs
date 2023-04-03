@@ -8,9 +8,13 @@ namespace ServiceControl.Config.UI.InstanceAdd
     {
         public ServiceControlAuditInformationValidator()
         {
+            RuleFor(viewModel => viewModel.InstanceName)
+               .NotEmpty()
+               .When(viewModel => viewModel.ViewModelParent.InstallAuditInstance);
+
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
-                .Unless(x => !x.ViewModelParent.InstallAuditInstance);
+                .When(x => x.ViewModelParent.InstallAuditInstance);
 
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
@@ -49,6 +53,13 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Paths"))
+                .When(x => x.ViewModelParent.InstallAuditInstance);
+
+            RuleFor(x => x.LogPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
+                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Log Paths"))
                 .When(x => x.ViewModelParent.InstallAuditInstance);
 
             RuleFor(x => x.DatabasePath)

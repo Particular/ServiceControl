@@ -38,7 +38,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.ServiceControl.PortNumber)
                 .NotEmpty()
-                .ValidPort()
+                .ValidPort().WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "Audit Port"))
+                .PortAvailable().WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "Audit Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Audit Port"))
                 .NotEqual(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
@@ -48,7 +49,8 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.ServiceControlAudit.DatabaseMaintenancePortNumber)
                 .NotEmpty()
-                .ValidPort()
+                .ValidPort().WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "Audit Database Maintenance Port"))
+                .PortAvailable().WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "Audit Database Maintenance Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.ServiceControlAudit.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Audit Database Maintenance Port"))
                 .NotEqual(x => x.ServiceControlAudit.PortNumber)

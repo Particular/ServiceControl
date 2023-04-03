@@ -38,7 +38,9 @@
             ConnectionString = instance.ConnectionString;
             MonitoringInstance = instance;
         }
-
+        public MonitoringEditViewModel( )
+        {
+        }
         public MonitoringInstance MonitoringInstance { get; set; }
 
         public string ErrorQueueName { get; set; }

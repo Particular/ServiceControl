@@ -9,7 +9,7 @@ namespace ServiceControl.Config.Validation
         {
             RuleFor(x => x.InstanceName)
                 .NotEmpty()
-                .MustNotContainWhitespace()
+                .MustNotContainWhitespace().WithMessage(string.Format(Validations.MSG_CANTCONTAINWHITESPACE, "Instance name"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.HostName)

@@ -1,3 +1,5 @@
+using System.Windows.Controls;
+
 namespace ServiceControl.Config.UI.InstanceEdit
 {
     using FluentValidation;
@@ -10,6 +12,18 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()
                 .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.HostName)
+             .NotEmpty().When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.PortNumber)
+             .NotEmpty()
+             .ValidPort().WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "Monitoring Port"))
+             .PortAvailable().WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "Monitoring Port"))
+             .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.ErrorQueueName)
+               .NotEmpty();
 
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();

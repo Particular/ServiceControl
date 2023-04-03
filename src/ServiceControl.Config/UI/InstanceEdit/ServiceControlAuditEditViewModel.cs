@@ -18,7 +18,11 @@ namespace ServiceControl.Config.UI.InstanceEdit
             InstallErrorInstance = false;
             InstallAuditInstance = false;
         }
-
+        public ServiceControlAuditEditViewModel()
+        {
+            InstallAuditInstance = false;
+            InstallErrorInstance = false;
+        }
         public ServiceControlAuditInstance ServiceControlInstance { get; set; }
 
         public void UpdateInstanceFromViewModel(ServiceControlAuditInstance instance)
