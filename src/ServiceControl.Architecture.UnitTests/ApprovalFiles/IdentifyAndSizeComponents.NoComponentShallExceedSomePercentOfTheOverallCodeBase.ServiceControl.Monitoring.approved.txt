@@ -1,0 +1,8 @@
+{
+  "Description": "Components which are more than 10% of the codebase",
+  "outliers": [
+    "ServiceControl.Monitoring",
+    "ServiceControl.Monitoring.Http.Diagrams",
+    "ServiceControl.Monitoring.Infrastructure"
+  ]
+}

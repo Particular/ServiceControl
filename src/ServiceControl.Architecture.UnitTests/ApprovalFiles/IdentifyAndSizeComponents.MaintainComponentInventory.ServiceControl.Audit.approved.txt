@@ -1,0 +1,23 @@
+[
+  "ServiceControl.Audit",
+  "ServiceControl.Audit.Auditing",
+  "ServiceControl.Audit.Auditing.MessagesView",
+  "ServiceControl.Audit.Connection",
+  "ServiceControl.Audit.Infrastructure",
+  "ServiceControl.Audit.Infrastructure.Extensions",
+  "ServiceControl.Audit.Infrastructure.Hosting",
+  "ServiceControl.Audit.Infrastructure.Hosting.Commands",
+  "ServiceControl.Audit.Infrastructure.Metrics",
+  "ServiceControl.Audit.Infrastructure.OWIN",
+  "ServiceControl.Audit.Infrastructure.Plugins",
+  "ServiceControl.Audit.Infrastructure.Settings",
+  "ServiceControl.Audit.Infrastructure.WebApi",
+  "ServiceControl.Audit.Monitoring",
+  "ServiceControl.Audit.Persistence",
+  "ServiceControl.Audit.Recoverability",
+  "ServiceControl.Audit.SagaAudit",
+  "ServiceControl.Contracts.EndpointControl",
+  "ServiceControl.Contracts.MessageFailures",
+  "ServiceControl.EndpointPlugin.Messages.SagaState",
+  "ServiceControl.SagaAudit"
+]

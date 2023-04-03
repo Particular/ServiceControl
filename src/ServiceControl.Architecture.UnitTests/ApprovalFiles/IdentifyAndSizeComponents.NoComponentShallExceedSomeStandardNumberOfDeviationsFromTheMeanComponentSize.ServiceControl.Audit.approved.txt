@@ -1,0 +1,4 @@
+{
+  "Description": "Components which are more than 3 standard deviations from the mean in size",
+  "outliers": []
+}

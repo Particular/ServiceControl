@@ -1,0 +1,18 @@
+[
+  "NServiceBus.Metrics",
+  "ServiceBus.Management.Infrastructure.OWIN",
+  "ServiceControl.Audit.Infrastructure.WebApi",
+  "ServiceControl.Monitoring",
+  "ServiceControl.Monitoring.Connection",
+  "ServiceControl.Monitoring.Http",
+  "ServiceControl.Monitoring.Http.Diagrams",
+  "ServiceControl.Monitoring.Infrastructure",
+  "ServiceControl.Monitoring.Infrastructure.Extensions",
+  "ServiceControl.Monitoring.Infrastructure.OWIN",
+  "ServiceControl.Monitoring.Infrastructure.Settings",
+  "ServiceControl.Monitoring.Infrastructure.WebApi",
+  "ServiceControl.Monitoring.Licensing",
+  "ServiceControl.Monitoring.Messaging",
+  "ServiceControl.Monitoring.QueueLength",
+  "ServiceControl.Monitoring.Timings"
+]
