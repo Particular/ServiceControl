@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ServiceControl.Config.Tests.Validation
+﻿namespace ServiceControl.Config.Tests.Validation
 {
     using NUnit.Framework;
     using UI.InstanceAdd;
@@ -19,7 +17,7 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a convention name validation error should be present
 
         [Test]
-        public void convention_name_cannot_be_empty_when_instance_names_are_not_provided()
+        public void Convention_name_cannot_be_empty_when_instance_names_are_not_provided()
         {
             var viewModel = new ServiceControlAddViewModel();
 
@@ -49,14 +47,17 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a convention name validation error should be present
 
         [Test]
-        public void convention_name_can_be_empty_when_instance_names_are_provided()
+        public void Convention_name_can_be_empty_when_instance_names_are_provided()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            //Adding Service Control instance named Foo
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.ServiceControl.InstanceName = "Foo";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                //Adding Service Control instance named Foo
+                InstallErrorInstance = true,
+                ServiceControl =
+                {
+                    InstanceName = "Foo"
+                }
+            };
 
             var instanceNamesProvided =
                     (viewModel.InstallErrorInstance
@@ -82,8 +83,8 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then the audit instance name should be Particular.<ConventionName>.Audit
 
         [Test]
-        public void when_convention_name_not_empty_instance_names_should_include_convention_name_overwriting_previous_names()
-        {         
+        public void When_convention_name_not_empty_instance_names_should_include_convention_name_overwriting_previous_names()
+        {
             var viewModel = new ServiceControlAddViewModel();
 
             viewModel.ServiceControl.InstanceName = "Error";
@@ -91,8 +92,6 @@ namespace ServiceControl.Config.Tests.Validation
             viewModel.ServiceControlAudit.InstanceName = "Audit";
 
             viewModel.ConventionName = "Something";
-
-            var expectedErrorInstanceName = $"Particular.{viewModel.ConventionName}";
 
             Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ServiceControl.InstanceName);
 
@@ -110,24 +109,21 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void transport_cannot_be_empty_when_adding_error_instance()
+        public void Transport_cannot_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-           
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.SelectedTransport = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                SelectedTransport = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.SelectedTransport));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-            
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));           
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
 
             Assert.IsNotEmpty(errors);
-
         }
 
 
@@ -135,19 +131,17 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_error_instance(
+        public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_error_instance(
             string transportInfoName)
         {
-            
-            var viewModel = new ServiceControlAddViewModel();
 
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -160,18 +154,16 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_error_instance(
+        public void Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_error_instance(
             string transportInfoName)
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
 
@@ -192,22 +184,20 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void error_instance_name_cannot_be_empty_when_adding_error_instance()
+        public void Error_instance_name_cannot_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-                       
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.InstanceName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { InstanceName = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            
+
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.InstanceName));
 
             Assert.IsNotEmpty(errors);
-
         }
 
         // Example: when not adding an error instance the error instance name can be empty
@@ -217,15 +207,14 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then no error instance name validation errors occur
 
         [Test]
-        public void error_instance_name_can_be_empty_when_not_adding_error_instance()
+        public void Error_instance_name_can_be_empty_when_not_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = false;
-             
-            viewModel.ServiceControl.InstanceName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                SubmitAttempted = true,
+                InstallErrorInstance = false,
+                ServiceControl = { InstanceName = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -237,7 +226,6 @@ namespace ServiceControl.Config.Tests.Validation
         #endregion
 
         #region useraccountinfo
-       
 
         // Example: when  adding an error instance the user account  cannot be empty
         //   Given an error instance is being created
@@ -245,50 +233,45 @@ namespace ServiceControl.Config.Tests.Validation
         //  When the user tries to save the form
         //  Then a validation error occurs
         [Test]
-        public void user_account_info_cannot_be_empty_when_adding_error_instance()
-        {            
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = true;
+        public void User_account_info_cannot_be_empty_when_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                SubmitAttempted = true,
+                InstallErrorInstance = true
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var selectedAccount = viewModel.ServiceControl.ServiceAccount;
-            
+
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
             //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
-           
-            ///ServiceControl.Config\UI\InstanceAdd\ServiceControlAddViewModel.cs line 135
-            /// \ServiceControl.Config\UI\SharedInstanceEditor\SharedServiceControlEditorViewModel.cs line #73
-            Assert.AreEqual("LocalSystem", selectedAccount);
-            Assert.IsEmpty(errors);
 
+            Assert.AreEqual("LocalSystem", selectedAccount);
+
+            Assert.IsEmpty(errors);
         }
 
         //if custom user account is selected, then account name  are required fields
         [Test]
-        public void account_name_cannot_be_empty_if_custom_user_account_is_selected_when_adding_error_instance()
+        public void Account_name_cannot_be_empty_if_custom_user_account_is_selected_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.ServiceControl.UseProvidedAccount = true;
-            
-            viewModel.ServiceControl.ServiceAccount = string.Empty;
-            
-            viewModel.ServiceControl.Password = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                SubmitAttempted = true,
+                InstallErrorInstance = true,
+                ServiceControl =
+                    {
+                        UseProvidedAccount = true, ServiceAccount = string.Empty,
+                        Password = string.Empty
+                    }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
-            var selectedAccount = viewModel.ServiceControl.ServiceAccount;
-
             var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ServiceAccount));
-           
+
             Assert.IsNotEmpty(errorServiceAccount);
 
         }
@@ -297,122 +280,110 @@ namespace ServiceControl.Config.Tests.Validation
 
         #region hostname
         [Test]
-        public void erorr_hostname_can_be_empty_when_adding_error_instance()
+        public void Error_hostname_can_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.HostName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { HostName = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
-
         }
+
         [Test]
-        public void erorr_hostname_can_be_null_when_adding_error_instance()
+        public void Erorr_hostname_can_be_null_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.HostName = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { HostName = null }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.HostName));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
-
         }
         #endregion
 
         #region Portnumber
         [Test]
-        public void port_cannot_be_empty_when_adding_error_instance()
+        public void Port_cannot_be_empty_when_adding_error_instance()
         {
-            
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.PortNumber = null;
-
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { PortNumber = null }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
         }
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
-        public void port_is_not_in_valid_range_when_adding_error_instance()
+        public void Port_is_not_in_valid_range_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.PortNumber = "50000";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { PortNumber = "50000" }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
         }
 
         //TODO: figure out how to write this test
         [Test]
+        [Explicit]
         //validate that port is unique
-        public void port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_error_instance()
+        public void Port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlAddViewModel();
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { PortNumber = "33333" }
+            };
 
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.PortNumber = "33333";
-            //viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33334";
-            //viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
-            
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
-           // var errorsDB = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
-            Assert.IsNotEmpty(errors);
-          //  Assert.IsNotEmpty(errorsDB);
-         // throw new Exception("This test is not correct yet.");
 
+            Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is not equal to db port number
-        public void error_port_is_not_equal_to_database_port_number_when_adding_error_instance()
+        public void Error_port_is_not_equal_to_database_port_number_when_adding_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-            
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
-
-            viewModel.ServiceControl.PortNumber = "33333";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DatabaseMaintenancePortNumber = "33333",
+                    PortNumber = "33333"
+                }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
 
@@ -421,44 +392,45 @@ namespace ServiceControl.Config.Tests.Validation
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
-
         }
 
         #endregion
 
         #region DatabaseManintenancePortnumber
         [Test]
-        public void database_maintenance_port_cannot_be_empty_when_adding_error_instance()
+        public void Database_maintenance_port_cannot_be_empty_when_adding_error_instance()
         {
 
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = null;
-
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DatabaseMaintenancePortNumber = null
+                }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
-
         }
+
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
-        public void database_maintenance_port_is_not_in_valid_range_when_adding_error_instance()
+        public void Database_maintenance_port_is_not_in_valid_range_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "50000";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DatabaseMaintenancePortNumber = "50000"
+                }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -470,44 +442,45 @@ namespace ServiceControl.Config.Tests.Validation
 
         //TODO: figure out how to write this test
         [Test]
-       
+        [Explicit]
         //validate that port is unique
-        public void database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_error_instance()
+        public void Database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DatabaseMaintenancePortNumber = "33333"
+                }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
-          
-            Assert.IsNotEmpty(errors);
-           
-          //  throw new Exception("This test is not correct yet.");
 
+            Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is not equal to db port number
-        public void error_database_maintenance_port_is_not_equal_to_port_number_when_adding_error_instance()
+        public void Error_database_maintenance_port_is_not_equal_to_port_number_when_adding_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
-
-            viewModel.ServiceControl.PortNumber = "33333";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DatabaseMaintenancePortNumber = "33333",
+                    PortNumber = "33333"
+                }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
 
@@ -516,8 +489,6 @@ namespace ServiceControl.Config.Tests.Validation
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
-
-
         }
 
         #endregion
@@ -530,32 +501,32 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void destination_path_cannot_be_empty_when_adding_error_instance()
+        public void Destination_path_cannot_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { DestinationPath = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath));
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
         }
 
         [Test]
-        public void error_destination_path_cannot_be_null_when_adding_error_instance()
+        public void Error_destination_path_cannot_be_null_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DestinationPath = null
+                }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DestinationPath));
 
@@ -571,15 +542,17 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then no destination path validation errors occur
 
         [Test]
-        public void destination_path_can_be_empty_when_not_adding_error_instance()
+        public void Destination_path_can_be_empty_when_not_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();           
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DestinationPath = string.Empty
+                }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
@@ -591,15 +564,14 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void destination_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
+        public void Destination_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
         {
-            var viewModel = new ServiceControlAddViewModel();           
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = path;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { DestinationPath = path }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -614,22 +586,24 @@ namespace ServiceControl.Config.Tests.Validation
 
         //check path is unique
         [Test]
-        public void destination_path_should_be_unique_when_adding_error_instance()
+        [Explicit]
+        public void Destination_path_should_be_unique_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                    {
+                        DestinationPath =
+                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
+                    }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DestinationPath)));
-
-         //   throw new Exception("This test isn't correct yet.");
         }
         #endregion
 
@@ -641,22 +615,20 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void error_log_path_cannot_be_empty_when_adding_error_instance()
+        public void Error_log_path_cannot_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();                     
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.LogPath = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { LogPath = null }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.LogPath));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
-
         }
 
         // Example: when not adding an error instance the log path can be empty
@@ -666,22 +638,20 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then no log path validation errors occur
 
         [Test]
-        public void error_log_path_can_be_empty_when_not_adding_error_instance()
+        public void Error_log_path_can_be_empty_when_not_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.LogPath = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                ServiceControl = { LogPath = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath));
 
             Assert.IsEmpty(errors);
-
         }
         //check path is valid
         [TestCase(@"<")]
@@ -689,44 +659,44 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void error_log_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
+        public void Error_log_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.LogPath = path;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { LogPath = path }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
 
         }
-        
+
         //check path is unique
         [Test]
-        public void error_log_path_should_be_unique_when_adding_error_instance()
+        [Explicit]
+        public void Error_log_path_should_be_unique_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                    {
+                        DestinationPath =
+                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
+                    }
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.LogPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);    
-            
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
-
-            //  throw new Exception("This test isn't correct yet.");
-
         }
         #endregion
 
@@ -738,20 +708,18 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void error_database_path_cannot_be_empty_when_adding_error_instance()
+        public void Error_database_path_cannot_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabasePath = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { DatabasePath = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
         }
 
         // Example: when not adding an error instance the database path can be empty
@@ -761,112 +729,113 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then no database path validation errors occur
 
         [Test]
-        public void error_database_path_can_be_empty_when_not_adding_error_instance()
+        public void Error_database_path_can_be_empty_when_not_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = false;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabasePath = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                ServiceControl = { DatabasePath = null }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
 
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
         }
+
         //check path is valid
         [TestCase(@"<")]
         [TestCase(@">")]
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void error_database_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
+        public void Error_database_path_should_not_contain_invalid_characters_when_adding_error_instance(string path)
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-            
-            viewModel.ServiceControl.DatabasePath = path;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { DatabasePath = path }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
         }
 
         //TODO: see if this is something that we want to do or change
         //check path is unique
         [Test]
-        public void error_database_path_should_be_unique_when_adding_error_instance()
+        [Explicit]
+        public void Error_database_path_should_be_unique_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                    {
+                        DestinationPath =
+                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
+                    }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabasePath)));
-
-           // throw new Exception("This test isn't correct yet.");
-
         }
         #endregion
 
         #region errorqueuename
         [Test]
-        public void error_queue_name_should_not_be_empty_when_adding_error_instance()
+        public void Error_queue_name_should_not_be_empty_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorQueueName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { ErrorQueueName = string.Empty }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorQueueName)));
         }
 
         [Test]
-        public void error_queue_name_should_not_be_null_when_adding_error_instance()
+        public void Error_queue_name_should_not_be_null_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorQueueName = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl = { ErrorQueueName = null }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.ErrorQueueName));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorQueueName)));
         }
         #endregion
 
         #region errorforwardingqueuename
         [Test]
-        public void error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_adding_error_instance()
+        public void Error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "On", Value = true };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                    {
+                        ErrorForwarding = new ForwardingOption() { Name = "On", Value = true },
+                        ErrorForwardingQueueName = null
+                    }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.ErrorForwardingQueueName));
 
@@ -878,17 +847,18 @@ namespace ServiceControl.Config.Tests.Validation
         }
 
         [Test]
-        public void error_forwarding_queue_name_can_not_be_empty_if_error_forwarding_enabled_when_adding_error_instance()
+        public void Error_forwarding_queue_name_can_not_be_empty_if_error_forwarding_enabled_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "On", Value = true };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                    {
+                        ErrorForwarding = new ForwardingOption() { Name = "On", Value = true },
+                        ErrorForwardingQueueName = string.Empty
+                    }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -898,17 +868,18 @@ namespace ServiceControl.Config.Tests.Validation
         }
 
         [Test]
-        public void error_forwarding_queue_name_can_be_empty_if_error_forwarding_not_enabled_when_adding_error_instance()
+        public void Error_forwarding_queue_name_can_be_empty_if_error_forwarding_not_enabled_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = string.Empty;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                    ErrorForwardingQueueName = string.Empty
+                }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -918,17 +889,18 @@ namespace ServiceControl.Config.Tests.Validation
         }
 
         [Test]
-        public void error_forwarding_queue_name_can_be_null_if_error_forwarding_not_enabled_when_adding_error_instance()
+        public void Error_forwarding_queue_name_can_be_null_if_error_forwarding_not_enabled_when_adding_error_instance()
         {
-            var viewModel = new ServiceControlAddViewModel();
-
-            viewModel.InstallErrorInstance = true;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = null;
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                    ErrorForwardingQueueName = null
+                }
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(viewModel.ServiceControl.ErrorForwardingQueueName);
 
@@ -941,14 +913,8 @@ namespace ServiceControl.Config.Tests.Validation
         #endregion
 
 
-        public IDataErrorInfo GetErrorInfo(object vm)
-        {
-            return vm as IDataErrorInfo;
-        }
-        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm)
-        {
+        public IDataErrorInfo GetErrorInfo(object vm) => vm as IDataErrorInfo;
 
-            return vm as INotifyDataErrorInfo;
-        }
+        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;
     }
 }

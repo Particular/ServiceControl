@@ -18,8 +18,12 @@
         public static bool PortNotInUse(int portNumber)
         {
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-            return ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber) &&
-                   ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber);
+
+            var portHasNoActiveListener = ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber);
+
+            var portHasNoActiveTcpConnection = ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber);
+
+            return portHasNoActiveListener && portHasNoActiveTcpConnection;
         }
     }
 }

@@ -56,7 +56,7 @@
                 {
                     p.ErrorLogQueue,
                     p.ErrorQueue
-                }).Where(queuename => !string.IsNullOrEmpty(queuename) && 
+                }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
                                       string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
                                       string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
                 .Distinct()
@@ -69,18 +69,18 @@
             var instancesByTransport = serviceControlInstances.Where(p => p.TransportPackage.Equals(transportInfo) &&
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
-           return instancesByTransport
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .SelectMany(p => new[]
-                {
+            return instancesByTransport
+                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                 .SelectMany(p => new[]
+                 {
                     p.AuditQueue,
                     p.AuditLogQueue
-                }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
-                                      string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
-                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0
-                                      )
-                .Distinct()
-                .ToList();
+                 }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
+                                       string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                                       string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0
+                                       )
+                 .Distinct()
+                 .ToList();
         }
 
         public static List<string> UsedPorts(string instanceName = null)

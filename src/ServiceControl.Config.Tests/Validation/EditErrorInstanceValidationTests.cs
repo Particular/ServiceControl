@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace ServiceControl.Config.Tests.Validation
+﻿namespace ServiceControl.Config.Tests.Validation
 {
-    using NUnit.Framework;
-    using UI.InstanceAdd;
-    using ServiceControlInstaller.Engine.Instances;
     using System.ComponentModel;
+    using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceAdd;
     using UI.InstanceEdit;
 
     public class EditErrorInstanceValidationTests
@@ -16,17 +14,15 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_editing_error_instance(
+        public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_editing_error_instance(
            string transportInfoName)
         {
-            
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = string.Empty;
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -39,16 +35,15 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_editing_error_instance(
+        public void Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_editing_error_instance(
             string transportInfoName)
         {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = null;
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
 
@@ -61,16 +56,15 @@ namespace ServiceControl.Config.Tests.Validation
         }
 
         [TestCase(TransportNames.MSMQ)]
-        public void transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_error_instance(
+        public void Transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_error_instance(
            string transportInfoName)
-        {            
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = string.Empty;
+        {
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -78,17 +72,17 @@ namespace ServiceControl.Config.Tests.Validation
 
             Assert.IsEmpty(errors);
         }
+
         [TestCase(TransportNames.MSMQ)]
-        public void transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_error_instance(
+        public void Transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_error_instance(
             string transportInfoName)
         {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = null;
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
 
@@ -97,163 +91,158 @@ namespace ServiceControl.Config.Tests.Validation
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
             Assert.IsEmpty(errors);
-
         }
 
         #endregion
 
         #region hostname
         [Test]
-        public void error_hostname_can_be_empty_when_editing_error_instance()
+        public void Error_hostname_can_not_be_empty_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                HostName = string.Empty
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.HostName = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
 
         }
         [Test]
-        public void error_hostname_can_be_null_when_editing_error_instance()
+        public void Error_hostname_can_not_be_null_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                HostName = null
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.HostName = null;
-
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.HostName));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.HostName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
 
         }
         #endregion
 
         #region Portnumber
         [Test]
-        public void port_cannot_be_empty_when_editing_error_instance()
+        public void Port_cannot_be_empty_when_editing_error_instance()
         {
-            
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = string.Empty
+            };
 
-            viewModel.ServiceControl.PortNumber = null;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
         }
+
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
-        public void port_is_not_in_valid_range_when_editing_error_instance()
+        public void Port_is_not_in_valid_range_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = "50000"
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.PortNumber = "50000";
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
         }
 
         //TODO: figure out how to write this test
         [Test]
+        [Explicit]
         //validate that port is unique
-        public void port_can_not_be_a_port_in_use_by_the_operating_system_when_editing_error_instance()
+        public void Port_can_not_be_a_port_in_use_by_the_operating_system_when_editing_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = "33333"
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
 
-            viewModel.ServiceControl.PortNumber = "33333";
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
-          
             Assert.IsNotEmpty(errors);
-         
-          // throw new Exception("This test is not correct yet.");
-
         }
+
         [Test]
         //validate that port is not equal to db port number
-        public void error_port_is_not_equal_to_database_port_number_when_editing_error_instance()
+        public void Error_port_is_not_equal_to_database_port_number_when_editing_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = "33333",
+                PortNumber = "33333"
+            };
 
-            viewModel.SubmitAttempted = true;
-            
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
 
-            viewModel.ServiceControl.PortNumber = "33333";
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.PortNumber));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
             Assert.IsNotEmpty(errors);
-
-
         }
 
         #endregion
 
         #region DatabaseManintenancePortnumber
         [Test]
-        public void database_maintenance_port_cannot_be_empty_when_editing_error_instance()
+        public void Database_maintenance_port_cannot_be_empty_when_editing_error_instance()
         {
 
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = null
+            };
 
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.DatabaseMaintenancePortNumber));
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = null;
-
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
 
         }
+
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
-        public void database_maintenance_port_is_not_in_valid_range_when_editing_error_instance()
+        public void Database_maintenance_port_is_not_in_valid_range_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "50000";
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = "50000"
+            };
 
             viewModel.NotifyOfPropertyChange(null);
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
 
@@ -261,54 +250,46 @@ namespace ServiceControl.Config.Tests.Validation
 
         //TODO: figure out how to write this test
         [Test]
+        [Explicit]
         //validate that port is unique
-        public void database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_editing_error_instance()
+        public void Database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_editing_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = "33333"
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(null);
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
-          
-            Assert.IsNotEmpty(errors);
-           
-           // throw new Exception("This test is not correct yet.");
 
+            Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is not equal to db port number
-        public void error_database_maintenance_port_is_not_equal_to_port_number_when_editing_error_instance()
+        public void Error_database_maintenance_port_is_not_equal_to_port_number_when_editing_error_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                DatabaseMaintenancePortNumber = "33333",
+                PortNumber = "33333"
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.DatabaseMaintenancePortNumber = "33333";
-
-            viewModel.ServiceControl.PortNumber = "33333";
-
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
-
-
         }
 
         #endregion
-
-      
 
         #region errorinstancelogpath
         // Example: when  editing an error instance the log path cannot be empty
@@ -318,162 +299,159 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void error_log_path_cannot_be_empty_when_editing_error_instance()
+        public void Error_log_path_cannot_be_empty_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                LogPath = string.Empty
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.LogPath = string.Empty;         
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
-
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
         }
+
         [Test]
-        public void error_log_path_cannot_be_null_when_editing_error_instance()
+        public void Error_log_path_cannot_be_null_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                LogPath = null
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.LogPath));
 
-            viewModel.ServiceControl.LogPath = null;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.LogPath));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
 
         }
+
         //check path is valid
         [TestCase(@"<")]
         [TestCase(@">")]
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void error_log_path_should_not_contain_invalid_characters_when_editing_error_instance(string path)
+        public void Error_log_path_should_not_contain_invalid_characters_when_editing_error_instance(string path)
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                LogPath = path
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.LogPath));
 
-            viewModel.ServiceControl.LogPath = path;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
+        }
+
+        //check path is unique
+        [Test]
+        [Explicit]
+        public void Error_log_path_should_be_unique_when_editing_error_instance()
+        {
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ServiceControl =
+                {
+                    DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                    LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                    DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
+                }
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
-
-        }
-        
-        //check path is unique
-        [Test]
-        public void error_log_path_should_be_unique_when_editing_error_instance()
-        {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-            viewModel.ServiceControl.DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs";
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);    
-            
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.LogPath)));
-
-           // throw new Exception("This test isn't correct yet.");
-
         }
         #endregion
 
-      
-
         #region errorqueuename
         [Test]
-        public void error_queue_name_should_not_be_empty_when_editing_error_instance()
+        public void Error_queue_name_should_not_be_empty_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorQueueName = string.Empty
+            };
 
-            viewModel.SubmitAttempted = true;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.ErrorQueueName = string.Empty;
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorQueueName)));
-
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)));
         }
 
         [Test]
-        public void error_queue_name_should_not_be_null_when_editing_error_instance()
+        public void Error_queue_name_should_not_be_null_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorQueueName = null
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorQueueName));
 
-            viewModel.ServiceControl.ErrorQueueName = null;
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.ErrorQueueName));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorQueueName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)));
         }
         #endregion
 
         #region errorforwardingqueuename
         [Test]
-        public void error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_editing_error_instance()
+        public void Error_forwarding_queue_name_should_not_be_null_if_error_forwarding_enabled_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorForwarding = new ForwardingOption() { Name = "On", Value = true },
+                ErrorForwardingQueueName = null
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorForwardingQueueName));
 
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "On", Value = true };
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.ErrorForwardingQueueName = null;
-
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.ErrorForwardingQueueName));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorForwardingQueueName));
 
             Assert.IsNotEmpty(errors);
         }
 
         [Test]
-        public void error_forwarding_queue_name_cannot_be_empty_if_error_forwarding_enabled_when_editing_error_instance()
+        public void Error_forwarding_queue_name_cannot_be_empty_if_error_forwarding_enabled_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorForwarding = new ForwardingOption() { Name = "On", Value = true },
+                ErrorForwardingQueueName = string.Empty
+            };
 
-            viewModel.SubmitAttempted = true;
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorForwardingQueueName));
 
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "On", Value = true };
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            viewModel.ServiceControl.ErrorForwardingQueueName = string.Empty;
-
-            viewModel.ServiceControl.NotifyOfPropertyChange(nameof(viewModel.ServiceControl.ErrorForwardingQueueName));
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControl.ErrorForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ErrorForwardingQueueName));
 
             Assert.IsNotEmpty(errors);
         }
 
         [Test]
-        public void error_forwarding_queue_name_can_be_empty_if_error_forwarding_not_enabled_when_editing_error_instance()
+        public void Error_forwarding_queue_name_can_be_empty_if_error_forwarding_not_enabled_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = string.Empty;
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                ErrorForwardingQueueName = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControl);
 
@@ -483,15 +461,14 @@ namespace ServiceControl.Config.Tests.Validation
         }
 
         [Test]
-        public void error_forwarding_queue_name_can_be_null_if_error_forwarding_not_enabled_when_editing_error_instance()
+        public void Error_forwarding_queue_name_can_be_null_if_error_forwarding_not_enabled_when_editing_error_instance()
         {
-            var viewModel = new ServiceControlEditViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ServiceControl.ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false };
-
-            viewModel.ServiceControl.ErrorForwardingQueueName = null;
+            var viewModel = new ServiceControlEditViewModel
+            {
+                SubmitAttempted = true,
+                ErrorForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                ErrorForwardingQueueName = null
+            };
 
             viewModel.ServiceControl.NotifyOfPropertyChange(viewModel.ServiceControl.ErrorForwardingQueueName);
 
@@ -504,14 +481,8 @@ namespace ServiceControl.Config.Tests.Validation
         #endregion
 
 
-        public IDataErrorInfo GetErrorInfo(object vm)
-        {
-            return vm as IDataErrorInfo;
-        }
-        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm)
-        {
+        public IDataErrorInfo GetErrorInfo(object vm) => vm as IDataErrorInfo;
 
-            return vm as INotifyDataErrorInfo;
-        }
+        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;
     }
 }

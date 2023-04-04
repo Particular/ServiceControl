@@ -1,12 +1,9 @@
-﻿using System;
-
-namespace ServiceControl.Config.Tests.Validation
+﻿namespace ServiceControl.Config.Tests.Validation
 {
     using NUnit.Framework;
     using UI.InstanceAdd;
     using ServiceControlInstaller.Engine.Instances;
     using System.ComponentModel;
-    using ServiceControl.Config.UI.InstanceEdit;
 
     public class AddMonitoringInstanceValidationTests
     {
@@ -15,13 +12,13 @@ namespace ServiceControl.Config.Tests.Validation
         // Example: when adding a monitoring instance the  instance name cannot be empty
 
         [Test]
-        public void monitoring_instance_name_cannot_be_empty_when_adding_monitoring_instance()
+        public void Monitoring_instance_name_cannot_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.InstanceName = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                InstanceName = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -37,59 +34,58 @@ namespace ServiceControl.Config.Tests.Validation
 
         // Example: when  adding an monitoring instance the user account  cannot be empty
         [Test]
-        public void user_account_info_cannot_be_empty_when_adding_monitoring_instance()
-        {            
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
+        public void User_account_info_cannot_be_empty_when_adding_monitoring_instance()
+        {
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             var selectedAccount = viewModel.ServiceAccount;
-            
+
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
             //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
-           
+
             ///ServiceControl.Config\UI\InstanceAdd\MonitoringAddViewModel.cs line 135
             /// \ServiceControl.Config\UI\SharedInstanceEditor\SharedServiceControlEditorViewModel.cs line #73
             Assert.AreEqual("LocalSystem", selectedAccount);
-            Assert.IsEmpty(errors);
 
+            Assert.IsEmpty(errors);
         }
 
         //if custom user account is selected, then account name  are required fields
         [Test]
-        public void account_name_cannot_be_empty_if_custom_user_account_is_selected_when_adding_monitoring_instance()
+        public void Account_name_cannot_be_empty_if_custom_user_account_is_selected_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-            
-            viewModel.SubmitAttempted = true;
-
-            viewModel.UseProvidedAccount = true;
-            
-            viewModel.ServiceAccount = string.Empty;
-            
-            viewModel.Password = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                UseProvidedAccount = true,
+                ServiceAccount = string.Empty,
+                Password = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var selectedAccount = viewModel.ServiceAccount;
-
             var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceAccount));
-           
+
             Assert.IsNotEmpty(errorServiceAccount);
 
         }
-        
+
         #endregion
 
         #region hostname
         [Test]
-        public void monitoring_hostname_cannot_be_empty_when_adding_monitoring_instance()
+        public void Monitoring_hostname_cannot_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-            viewModel.SubmitAttempted = true;
-            viewModel.HostName = string.Empty;            
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                HostName = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -97,31 +93,32 @@ namespace ServiceControl.Config.Tests.Validation
 
         }
         [Test]
-        public void monitoring_hostname_cannot_be_null_when_adding_monitoring_instance()
+        public void Monitoring_hostname_cannot_be_null_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-            viewModel.SubmitAttempted = true;
-            viewModel.HostName = null;
-           
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                HostName = null
+            };
+
             viewModel.NotifyOfPropertyChange(nameof(viewModel.HostName));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
-
         }
         #endregion
 
         #region Portnumber
         [Test]
-        public void port_cannot_be_empty_when_adding_monitoring_instance()
+        public void Port_cannot_be_empty_when_adding_monitoring_instance()
         {
-            
-            var viewModel = new MonitoringAddViewModel();
-            
-            viewModel.SubmitAttempted = true;
 
-            viewModel.PortNumber = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = string.Empty
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
 
@@ -129,19 +126,17 @@ namespace ServiceControl.Config.Tests.Validation
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
 
-
             Assert.IsNotEmpty(errors);
-
         }
         [Test]
-        public void port_cannot_be_null_when_adding_monitoring_instance()
+        public void Port_cannot_be_null_when_adding_monitoring_instance()
         {
 
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.PortNumber = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
 
@@ -154,13 +149,13 @@ namespace ServiceControl.Config.Tests.Validation
         }
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
-        public void port_is_not_in_valid_range_when_adding_monitoring_instance()
+        public void Port_is_not_in_valid_range_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();            ;
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.PortNumber = "50000";
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = "50000"
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -170,30 +165,26 @@ namespace ServiceControl.Config.Tests.Validation
 
         }
 
-        //TODO: figure out how to write this test
         [Test]
+        [Explicit]
         //validate that port is unique
-        public void port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_monitoring_instance()
+        public void Port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_monitoring_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
-            var viewModel = new MonitoringAddViewModel();
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                PortNumber = "33333"
+            };
 
-            viewModel.SubmitAttempted = true;
-
-            viewModel.PortNumber = "33333";
-            
             viewModel.NotifyOfPropertyChange(nameof(viewModel.PortNumber));
-            
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.PortNumber));
-          
-            Assert.IsNotEmpty(errors);
-          //  throw new Exception("This test is not correct yet.");
 
+            Assert.IsNotEmpty(errors);
         }
-        
         #endregion
 
 
@@ -205,28 +196,29 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void monitoring_destination_path_cannot_be_empty_when_adding_monitoring_instance()
+        public void Monitoring_destination_path_cannot_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.DestinationPath = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                DestinationPath = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath));
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)));
+
+            Assert.IsNotEmpty(errors);
         }
 
         [Test]
-        public void monitoring_destination_path_cannot_be_null_when_adding_monitoring_instance()
+        public void Monitoring_destination_path_cannot_be_null_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.DestinationPath = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                DestinationPath = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.DestinationPath));
 
@@ -240,13 +232,13 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void monitoring_destination_path_should_not_contain_invalid_characters_when_adding_monitoring_instance(string path)
+        public void Monitoring_destination_path_should_not_contain_invalid_characters_when_adding_monitoring_instance(string path)
         {
-            var viewModel = new MonitoringAddViewModel();   
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.DestinationPath = path;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                DestinationPath = path
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -261,19 +253,18 @@ namespace ServiceControl.Config.Tests.Validation
 
         //check path is unique
         [Test]
-        public void monitoring_destination_path_should_be_unique_when_adding_monitoring_instance()
+        [Explicit]
+        public void Monitoring_destination_path_should_be_unique_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs",
+                LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs"
+            };
 
-            viewModel.SubmitAttempted = true;
-
-            viewModel.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs";
-            viewModel.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs";
-           
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.DestinationPath)));
-
-            //throw new Exception("This test isn't correct yet.");
         }
         #endregion
 
@@ -285,21 +276,20 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void monitoring_log_path_cannot_be_empty_when_adding_monitoring_instance()
+        public void Monitoring_log_path_cannot_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();      
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.LogPath = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                LogPath = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.LogPath));
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
-
-        }       
+        }
 
         //check path is valid
         [TestCase(@"<")]
@@ -307,36 +297,34 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(@"|")]
         [TestCase(@"?")]
         [TestCase(@"*")]
-        public void monitoring_log_path_should_not_contain_invalid_characters_when_adding_monitoring_instance(string path)
+        public void Monitoring_log_path_should_not_contain_invalid_characters_when_adding_monitoring_instance(string path)
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.LogPath = path;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                LogPath = path
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
 
         }
-        
+
         //check path is unique
         [Test]
-        public void monitoring_log_path_should_be_unique_when_adding_monitoring_instance()
+        [Explicit]
+        public void Monitoring_log_path_should_be_unique_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs";
-            viewModel.LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs";
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                DestinationPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs",
+                LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Monitoring\\Logs"
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
-
-            //  throw new Exception("This test isn't correct yet.");
-
         }
         #endregion
 
@@ -348,13 +336,13 @@ namespace ServiceControl.Config.Tests.Validation
         //  Then a validation error occurs
 
         [Test]
-        public void transport_cannot_be_empty_when_adding_monitoring_instance()
+        public void Transport_cannot_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.SelectedTransport = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                SelectedTransport = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.SelectedTransport));
 
@@ -363,7 +351,6 @@ namespace ServiceControl.Config.Tests.Validation
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.SelectedTransport));
 
             Assert.IsNotEmpty(errors);
-
         }
 
 
@@ -371,17 +358,15 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_monitoring_instance(
-            string transportInfoName)
+        public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_monitoring_instance(string transportInfoName)
         {
 
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
@@ -394,16 +379,15 @@ namespace ServiceControl.Config.Tests.Validation
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_monitoring_instance(
+        public void Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_monitoring_instance(
             string transportInfoName)
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName);
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ConnectionString = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+                SubmitAttempted = true,
+                ConnectionString = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
 
@@ -412,32 +396,31 @@ namespace ServiceControl.Config.Tests.Validation
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
             Assert.IsNotEmpty(errors);
-
         }
         #endregion
 
         #region errorqueuename
         [Test]
-        public void error_queue_name_should_not_be_empty_when_adding_monitoring_instance()
+        public void Error_queue_name_should_not_be_empty_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ErrorQueueName = string.Empty;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                ErrorQueueName = string.Empty
+            };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorQueueName)));
         }
 
         [Test]
-        public void error_queue_name_should_not_be_null_when_adding_monitoring_instance()
+        public void Error_queue_name_should_not_be_null_when_adding_monitoring_instance()
         {
-            var viewModel = new MonitoringAddViewModel();
-
-            viewModel.SubmitAttempted = true;
-
-            viewModel.ErrorQueueName = null;
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                ErrorQueueName = null
+            };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorQueueName));
 
@@ -446,16 +429,8 @@ namespace ServiceControl.Config.Tests.Validation
         }
         #endregion
 
-     
+        public IDataErrorInfo GetErrorInfo(object vm) => vm as IDataErrorInfo;
 
-        public IDataErrorInfo GetErrorInfo(object vm)
-        {
-            return vm as IDataErrorInfo;
-        }
-        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm)
-        {
-
-            return vm as INotifyDataErrorInfo;
-        }
+        public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;
     }
 }

@@ -28,14 +28,15 @@
                 {
                     if (int.TryParse(port, out var result))
                     {
-                        return PortUtils.PortNotInUse(result);
+                        var portNotInUse = PortUtils.PortNotInUse(result);
+
+                        return portNotInUse;
                     }
 
                     return false;
                 })
                 .WithMessage(MSG_PORT_IN_USE);
         }
-
 
         public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
         {

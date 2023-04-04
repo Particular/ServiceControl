@@ -78,11 +78,10 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEqual(x => x.AuditForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_QUEUENAMES_NOT_EQUAL, "Audit", "Audit Forwarding"))
                 .NotEqual(x => x.ViewModelParent.ServiceControl.ErrorQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error"))
                 .NotEqual(x => x.ViewModelParent.ServiceControl.ErrorForwardingQueueName).WithMessage(string.Format(Validation.Validations.MSG_UNIQUEQUEUENAME, "Error Forwarding"))
-                .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.ViewModelParent.ServiceControlAudit.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED,"Audit"))
+                .MustNotBeIn(x => Validations.UsedErrorQueueNames(x.ViewModelParent.SelectedTransport, x.ViewModelParent.ServiceControlAudit.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.ViewModelParent.SelectedTransport, x.InstanceName, x.ViewModelParent.ConnectionString)).WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
                 .When(x => x.ViewModelParent.InstallAuditInstance)
                 .When(x => x.AuditQueueName != "!disable");
-                        
 
             RuleFor(x => x.AuditForwardingQueueName)
                 .NotEmpty()

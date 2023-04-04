@@ -24,7 +24,7 @@
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterAssemblyModules(typeof(AppBootstrapper).Assembly);
-            container = containerBuilder.Build();
+            _container = containerBuilder.Build();
         }
 
         void ApplyBindingCulture()
@@ -56,14 +56,14 @@
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                if (container.TryResolve(service, out var result))
+                if (_container.TryResolve(service, out var result))
                 {
                     return result;
                 }
             }
             else
             {
-                if (container.TryResolveNamed(key, service, out var result))
+                if (_container.TryResolveNamed(key, service, out var result))
                 {
                     return result;
                 }
@@ -74,21 +74,21 @@
 
         protected override IEnumerable<object> GetAllInstances(Type service)
         {
-            return container.Resolve(typeof(IEnumerable<>).MakeGenericType(service)) as IEnumerable<object>;
+            return _container.Resolve(typeof(IEnumerable<>).MakeGenericType(service)) as IEnumerable<object>;
         }
 
         protected override void BuildUp(object instance)
         {
-            container.InjectProperties(instance);
+            _container.InjectProperties(instance);
         }
 
         protected override async void OnStartup(object sender, StartupEventArgs e)
         {
             ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
-                
+
             await DisplayRootViewForAsync<ShellViewModel>();
         }
 
-        IContainer container;
+        IContainer _container;
     }
 }
