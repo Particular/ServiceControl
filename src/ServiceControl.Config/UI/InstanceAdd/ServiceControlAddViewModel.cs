@@ -31,10 +31,6 @@
 
         public bool SubmitAttempted { get; set; }
 
-        public ServiceControlInformation ServiceControl { get; set; }
-
-        public ServiceControlAuditInformation ServiceControlAudit { get; set; }
-
         public IEnumerable<TransportInfo> Transports { get; }
 
         public TransportInfo SelectedTransport
@@ -47,8 +43,6 @@
             }
         }
 
-        public bool InstallErrorInstance { get; set; } = true;
-        public bool InstallAuditInstance { get; set; } = true;
         public bool OneInstanceTypeSelected => InstallErrorInstance || InstallAuditInstance;
 
         public string TransportWarning => SelectedTransport?.Help;
@@ -58,6 +52,16 @@
         public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
 
         public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
+
+        public ServiceControlInformation ServiceControl { get; set; }
+
+
+        public ServiceControlAuditInformation ServiceControlAudit { get; set; }
+
+
+        public bool InstallErrorInstance { get; set; } = true;
+        public bool InstallAuditInstance { get; set; } = true;
+
 
         public void OnSubmitAttempted()
         {
@@ -85,14 +89,283 @@
 
         public string ConventionName { get; set; }
 
+        public string ErrorInstanceName
+        {
+            get => ServiceControl.InstanceName;
+            set => ServiceControl.InstanceName = value;
+        }
+
+        public bool ErrorUseSystemAccount
+        {
+            get => ServiceControl.UseSystemAccount;
+            set => ServiceControl.UseSystemAccount = value;
+        }
+
+        public bool ErrorUseServiceAccount
+        {
+            get => ServiceControl.UseServiceAccount;
+            set => ServiceControl.UseServiceAccount = value;
+        }
+
+        public bool ErrorUseProvidedAccount
+        {
+            get => ServiceControl.UseProvidedAccount;
+            set => ServiceControl.UseProvidedAccount = value;
+        }
+
+        public string ErrorServiceAccount
+        {
+            get => ServiceControl.ServiceAccount;
+            set => ServiceControl.ServiceAccount = value;
+        }
+
+        public string ErrorPassword
+        {
+            get => ServiceControl.Password;
+            set => ServiceControl.Password = value;
+        }
+
+        public bool ErrorPasswordEnabled => ServiceControl.PasswordEnabled;
+
+        public bool ErrorManagedAccount => ServiceControl.ManagedAccount;
+
+
+        public string ErrorHostName
+        {
+            get => ServiceControl.HostName;
+            set => ServiceControl.HostName = value;
+        }
+
+        public string ErrorHostNameWarning
+        {
+            get => ServiceControl.HostNameWarning;
+            set => ServiceControl.HostNameWarning = value;
+        }
+
+        public string ErrorPortNumber
+        {
+            get => ServiceControl.PortNumber;
+            set => ServiceControl.PortNumber = value;
+        }
+
+        public string ErrorDatabaseMaintenancePortNumber
+        {
+            get => ServiceControl.DatabaseMaintenancePortNumber;
+            set => ServiceControl.DatabaseMaintenancePortNumber = value;
+        }
+
+        public ICommand ErrorSelectDestinationPath => ServiceControl.SelectDestinationPath;
+
+
+        public string ErrorDestinationPath
+        {
+            get => ServiceControl.DestinationPath;
+            set => ServiceControl.DestinationPath = value;
+        }
+
+        public ICommand ErrorSelectLogPath => ServiceControl.SelectLogPath;
+
+
+        public string ErrorLogPath
+        {
+            get => ServiceControl.LogPath;
+            set => ServiceControl.LogPath = value;
+        }
+
+        public ICommand ErrorSelectDatabasePath => ServiceControl.SelectDatabasePath;
+
+        public string ErrorDatabasePath
+        {
+            get => ServiceControl.DatabasePath;
+            set => ServiceControl.DatabasePath = value;
+        }
+
+        public int MinimumErrorRetentionPeriod => ServiceControl.MinimumErrorRetentionPeriod;
+
+        public int MaximumErrorRetentionPeriod => ServiceControl.MaximumErrorRetentionPeriod;
+
+        public TimeSpanUnits ErrorRetentionUnits => ServiceControl.ErrorRetentionUnits;
+
+        public double ErrorRetention
+        {
+            get => ServiceControl.ErrorRetention;
+            set => ServiceControl.ErrorRetention = value;
+        }
+
+        public string ErrorQueueName
+        {
+            get => ServiceControl.ErrorQueueName;
+            set => ServiceControl.ErrorQueueName = value;
+        }
+
+        public IEnumerable<ForwardingOption> ErrorQuErrorForwardingOptions => ServiceControl.ErrorForwardingOptions;
+
+
+        public ForwardingOption ErrorForwarding
+        {
+            get => ServiceControl.ErrorForwarding;
+            set => ServiceControl.ErrorForwarding = value;
+        }
+
+        public string ErrorForwardingQueueName
+        {
+            get => ServiceControl.ErrorForwardingQueueName;
+            set => ServiceControl.ErrorForwardingQueueName = value;
+        }
+
+        public bool ShowErrorForwardingQueue => ServiceControl.ShowErrorForwardingQueue;
+
+        public string ErrorForwardingWarning => ServiceControl.ErrorForwardingWarning;
+
+
+        public IEnumerable<EnableFullTextSearchOnBodiesOption> ErrorEnableFullTextSearchOnBodiesOptions =>
+            ServiceControl.EnableFullTextSearchOnBodiesOptions;
+
+        public EnableFullTextSearchOnBodiesOption ErrorEnableFullTextSearchOnBodies
+        {
+            get => ServiceControl.EnableFullTextSearchOnBodies;
+            set => ServiceControl.EnableFullTextSearchOnBodies = value;
+        }
+
+        /* Add Audit Instance */
+
+        public string AuditInstanceName
+        {
+            get => ServiceControlAudit.InstanceName;
+            set => ServiceControlAudit.InstanceName = value;
+        }
+
+        public bool AuditUseSystemAccount
+        {
+            get => ServiceControlAudit.UseSystemAccount;
+            set => ServiceControlAudit.UseSystemAccount = value;
+        }
+
+        public bool AuditUseServiceAccount
+        {
+            get => ServiceControlAudit.UseServiceAccount;
+            set => ServiceControlAudit.UseServiceAccount = value;
+        }
+
+        public bool AuditUseProvidedAccount
+        {
+            get => ServiceControlAudit.UseProvidedAccount;
+            set => ServiceControlAudit.UseProvidedAccount = value;
+        }
+
+        public string AuditServiceAccount
+        {
+            get => ServiceControlAudit.ServiceAccount;
+            set => ServiceControlAudit.ServiceAccount = value;
+        }
+
+        public string AuditPassword
+        {
+            get => ServiceControlAudit.Password;
+            set => ServiceControlAudit.Password = value;
+        }
+
+        public bool AuditPasswordEnabled => ServiceControlAudit.PasswordEnabled;
+
+        public bool AuditManaged => ServiceControlAudit.ManagedAccount;
+
+        public string AuditHostName
+        {
+            get => ServiceControlAudit.HostName;
+            set => ServiceControlAudit.HostName = value;
+        }
+
+        public string AuditHostNameWarning
+        {
+            get => ServiceControlAudit.HostNameWarning;
+            set => ServiceControlAudit.HostNameWarning = value;
+        }
+
+        public string AuditPortNumber
+        {
+            get => ServiceControlAudit.PortNumber;
+            set => ServiceControlAudit.PortNumber = value;
+        }
+
+        public string AuditDatabaseMaintenancePortNumber
+        {
+            get => ServiceControlAudit.DatabaseMaintenancePortNumber;
+            set => ServiceControlAudit.DatabaseMaintenancePortNumber = value;
+        }
+
+        public ICommand AuditSelectDestinationPath => ServiceControlAudit.SelectDestinationPath;
+
+        public string AuditDestinationPath
+        {
+            get => ServiceControlAudit.DestinationPath;
+            set => ServiceControlAudit.DestinationPath = value;
+        }
+
+        public ICommand AuditSelectLogPath => ServiceControlAudit.SelectLogPath;
+
+        public string AuditLogPath
+        {
+            get => ServiceControlAudit.LogPath;
+            set => ServiceControlAudit.LogPath = value;
+        }
+
+        public ICommand AuditSelectDatabasePath => ServiceControlAudit.SelectDatabasePath;
+
+        public string AuditDatabasePath
+        {
+            get => ServiceControlAudit.DatabasePath;
+            set => ServiceControlAudit.DatabasePath = value;
+        }
+
+        public int MaximumAuditRetentionPeriod => ServiceControlAudit.MaximumAuditRetentionPeriod;
+        public int MinimumAuditRetentionPeriod => ServiceControlAudit.MinimumAuditRetentionPeriod;
+
+        public TimeSpanUnits AuditRetentionUnits => ServiceControlAudit.AuditRetentionUnits;
+
+        public bool IsServiceControlExpanded { get; set; }
+
+        public bool IsServiceControlAuditExpanded { get; set; }
+
+        public double AuditRetention
+        {
+            get => ServiceControlAudit.AuditRetention;
+            set => ServiceControlAudit.AuditRetention = value;
+        }
+
+        public string AuditQueueName
+        {
+            get => ServiceControlAudit.AuditQueueName;
+            set => ServiceControlAudit.AuditQueueName = value;
+        }
+
+        public IEnumerable<ForwardingOption> AuditForwardingOptions => ServiceControlAudit.AuditForwardingOptions;
+
+        public ForwardingOption AuditForwarding => ServiceControlAudit.AuditForwarding;
+
+        public string AuditForwardingQueueName
+        {
+            get => ServiceControlAudit.AuditForwardingQueueName;
+            set => ServiceControlAudit.AuditForwardingQueueName = value;
+        }
+
+        public bool ShowAuditForwardingQueue => ServiceControlAudit.ShowAuditForwardingQueue;
+
+        public string AuditForwardingWarning => ServiceControlAudit.AuditForwardingWarning;
+
+        public IEnumerable<EnableFullTextSearchOnBodiesOption> AudiEnableFullTextSearchOnBodiesOptions => ServiceControlAudit.EnableFullTextSearchOnBodiesOptions;
+
+        public EnableFullTextSearchOnBodiesOption AuditEnableFullTextSearchOnBodies
+        {
+            get => ServiceControlAudit.EnableFullTextSearchOnBodies;
+            set => ServiceControlAudit.EnableFullTextSearchOnBodies = value;
+        }
+
         public void OnConventionNameChanged()
         {
             ServiceControl.ApplyConventionalServiceName(ConventionName);
             ServiceControlAudit.ApplyConventionalServiceName(ConventionName);
         }
 
-        public bool IsServiceControlExpanded { get; set; }
-        public bool IsServiceControlAuditExpanded { get; set; }
     }
 
     [InjectValidation]
