@@ -868,7 +868,6 @@
         }
         #endregion
 
-
         public IDataErrorInfo GetErrorInfo(object vm) => vm as IDataErrorInfo;
 
         public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;

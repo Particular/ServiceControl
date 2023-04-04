@@ -17,7 +17,6 @@
         public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_editing_audit_instance(
            string transportInfoName)
         {
-            //TODO: test failing need to revisit
             var viewModel = new ServiceControlAuditEditViewModel
             {
                 SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),

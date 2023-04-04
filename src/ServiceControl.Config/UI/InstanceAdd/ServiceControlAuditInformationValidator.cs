@@ -8,9 +8,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
     {
         public ServiceControlAuditInformationValidator()
         {
-            RuleFor(viewModel => viewModel.InstanceName)
-               .NotEmpty()
-               .When(viewModel => viewModel.ViewModelParent.InstallAuditInstance);
 
             RuleFor(x => x.ServiceAccount)
                 .NotEmpty()

@@ -44,7 +44,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
-                .MustNotBeIn(x => Validations.UsedPaths(x.ServiceControl.InstanceName))
+                .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
                 .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Log Paths"))
                 .When(x => x.SubmitAttempted);
 

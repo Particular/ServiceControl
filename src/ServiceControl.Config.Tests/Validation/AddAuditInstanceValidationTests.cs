@@ -1,14 +1,15 @@
 ﻿namespace ServiceControl.Config.Tests.Validation
 {
+    using System.ComponentModel;
     using NUnit.Framework;
     using UI.InstanceAdd;
     using ServiceControlInstaller.Engine.Instances;
-    using System.ComponentModel;
 
     public class AddAuditInstanceValidationTests
     {
 
         #region ValidateConventionName
+
         //  Example: convention name cannot be empty when instance name(s) are not provided
         //  Given the convention name field was left empty
         //    and installing an audit instance with empty name
@@ -22,10 +23,10 @@
             var viewModel = new ServiceControlAddViewModel();
 
             var instanceNamesProvided =
-                  (viewModel.InstallAuditInstance
-                   && !string.IsNullOrWhiteSpace(viewModel.ServiceControl.InstanceName))
-               || (viewModel.InstallAuditInstance
-                   && !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.InstanceName));
+                (viewModel.InstallErrorInstance
+                 && !string.IsNullOrWhiteSpace(viewModel.ErrorInstanceName))
+                || (viewModel.InstallAuditInstance
+                    && !string.IsNullOrWhiteSpace(viewModel.AuditInstanceName));
 
             viewModel.SubmitAttempted = true;
 
@@ -53,17 +54,14 @@
             {
                 //Adding Service Control instance named Foo
                 InstallAuditInstance = true,
-                ServiceControlAudit =
-                {
-                    InstanceName = "Foo"
-                }
+                AuditInstanceName = "Foo"
             };
 
             var instanceNamesProvided =
-                    (viewModel.InstallAuditInstance
-                     && !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.InstanceName))
-                 || (viewModel.InstallAuditInstance
-                     && !string.IsNullOrWhiteSpace(viewModel.ServiceControlAudit.InstanceName));
+                (viewModel.InstallErrorInstance
+                 && !string.IsNullOrWhiteSpace(viewModel.ErrorInstanceName))
+                || (viewModel.InstallAuditInstance
+                    && !string.IsNullOrWhiteSpace(viewModel.AuditInstanceName));
 
             viewModel.SubmitAttempted = true;
 
@@ -83,25 +81,26 @@
         //  Then the audit instance name should be Particular.<ConventionName>.Audit
 
         [Test]
-        public void When_convention_name_not_empty_instance_names_should_include_convention_name_overwriting_previous_names()
+        public void
+            When_convention_name_not_empty_instance_names_should_include_convention_name_overwriting_previous_names()
         {
-            var viewModel = new ServiceControlAddViewModel();
+            var viewModel = new ServiceControlAddViewModel
+            {
+                ErrorInstanceName = "Error",
+                AuditInstanceName = "Audit",
+                ConventionName = "Something"
+            };
 
-            viewModel.ServiceControl.InstanceName = "Error";
+            Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ErrorInstanceName);
 
-            viewModel.ServiceControlAudit.InstanceName = "Audit";
-
-            viewModel.ConventionName = "Something";
-
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}", viewModel.ServiceControl.InstanceName);
-
-            Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.ServiceControlAudit.InstanceName);
+            Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
         }
 
 
         #endregion
 
         #region transportname
+
         // Example: when adding an audit instance the transport cannot be empty
         //  Given an audit instance is being created
         //        and the transport not selected
@@ -133,8 +132,9 @@
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_audit_instance(
-            string transportInfoName)
+        public void
+            Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_audit_instance(
+                string transportInfoName)
         {
             var viewModel = new ServiceControlAddViewModel
             {
@@ -155,8 +155,9 @@
         [TestCase(TransportNames.AzureServiceBus)]
         [TestCase(TransportNames.SQLServer)]
         [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_audit_instance(
-            string transportInfoName)
+        public void
+            Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_audit_instance(
+                string transportInfoName)
         {
             var viewModel = new ServiceControlAddViewModel
             {
@@ -175,9 +176,11 @@
             Assert.IsNotEmpty(errors);
 
         }
+
         #endregion
 
         #region auditinstancename
+
         // Example: when adding an audit instance the audit instance name cannot be empty
         //  Given an audit instance is being created
         //        and the audit instance name is empty
@@ -191,12 +194,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { InstanceName = string.Empty }
+                AuditInstanceName = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.InstanceName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName));
 
             Assert.IsNotEmpty(errors);
 
@@ -215,15 +218,14 @@
             {
                 SubmitAttempted = true,
                 InstallAuditInstance = false,
-                ServiceControlAudit = { InstanceName = string.Empty }
+                AuditInstanceName = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.InstanceName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditInstanceName));
 
             Assert.IsEmpty(errors);
-
         }
 
         #endregion
@@ -239,17 +241,13 @@
         [Test]
         public void User_account_info_cannot_be_empty_when_adding_audit_instance()
         {
-            var viewModel = new ServiceControlAddViewModel
-            {
-                SubmitAttempted = true,
-                InstallAuditInstance = true
-            };
+            var viewModel = new ServiceControlAddViewModel { SubmitAttempted = true, InstallAuditInstance = true };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var selectedAccount = viewModel.ServiceControlAudit.ServiceAccount;
+            var selectedAccount = viewModel.AuditServiceAccount;
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.ServiceAccount));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
             //by default the add instance will always have a value of "LocalSystem"(even if you manually set everything to false or empty)
 
             ///ServiceControl.Config\UI\InstanceAdd\ServiceControlAddViewModel.cs line 135
@@ -269,25 +267,25 @@
             {
                 SubmitAttempted = true,
                 InstallAuditInstance = true,
-                ServiceControlAudit =
-                {
-                    UseProvidedAccount = true,
-                    ServiceAccount = string.Empty,
-                    Password = string.Empty
-                }
+                AuditUseProvidedAccount = true,
+                AuditServiceAccount = string.Empty,
+                AuditPassword = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.ServiceAccount));
+            var errorServiceAccount = notifyErrorInfo.GetErrors(nameof(viewModel.AuditServiceAccount));
 
             Assert.IsNotEmpty(errorServiceAccount);
 
         }
+
         //TODO: valid if acct/pass is valid
+
         #endregion
 
         #region hostname
+
         [Test]
         public void Erorr_hostname_can_be_empty_when_adding_audit_instance()
         {
@@ -295,11 +293,11 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { HostName = string.Empty }
+                AuditHostName = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.HostName)));
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
 
         [Test]
@@ -309,18 +307,20 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { HostName = null }
+                AuditHostName = null
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.HostName));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditHostName));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.HostName)));
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
+
         #endregion
 
         #region Portnumber
+
         [Test]
         public void Port_cannot_be_empty_when_adding_audit_instance()
         {
@@ -328,16 +328,16 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { PortNumber = string.Empty }
+                AuditPortNumber = string.Empty
             };
 
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
-
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
             Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
         public void Port_is_not_in_valid_range_when_adding_audit_instance()
@@ -346,12 +346,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { PortNumber = "50000" }
+                AuditPortNumber = "50000"
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
             Assert.IsNotEmpty(errors);
         }
@@ -367,17 +367,18 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { PortNumber = "33333" }
+                AuditPortNumber = "33333"
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.PortNumber));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditPortNumber));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
             Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is not equal to db port number
         public void Audit_port_is_not_equal_to_database_port_number_when_adding_audit_instance()
@@ -387,18 +388,14 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabaseMaintenancePortNumber = "33333",
-                    PortNumber = "33333"
-                }
+                ServiceControlAudit = { DatabaseMaintenancePortNumber = "33333", PortNumber = "33333" }
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.PortNumber));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditPortNumber));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.PortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditPortNumber));
 
             Assert.IsNotEmpty(errors);
         }
@@ -406,6 +403,7 @@
         #endregion
 
         #region DatabaseManintenancePortnumber
+
         [Test]
         public void Database_maintenance_port_cannot_be_empty_when_adding_audit_instance()
         {
@@ -414,18 +412,16 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabaseMaintenancePortNumber = null
-                }
+                AuditDatabaseMaintenancePortNumber = null
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is numeric and within valid range >= 1 and <= 49151
         public void Database_maintenance_port_is_not_in_valid_range_when_adding_audit_instance()
@@ -434,15 +430,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabaseMaintenancePortNumber = "50000"
-                }
+                AuditDatabaseMaintenancePortNumber = "50000"
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
 
@@ -452,27 +445,26 @@
         [Test]
         [Explicit]
         //validate that port is unique
-        public void Database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_audit_instance()
+        public void
+            Database_maintenance_port_can_not_be_a_port_in_use_by_the_operating_system_when_adding_audit_instance()
         {
             //port is unique and should not be used in any other instance (audit or error) and any other windows service
             var viewModel = new ServiceControlAddViewModel
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabaseMaintenancePortNumber = "33333"
-                }
+                AuditDatabaseMaintenancePortNumber = "33333"
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
         }
+
         [Test]
         //validate that port is not equal to db port number
         public void Audit_database_maintenance_port_is_not_equal_to_port_number_when_adding_audit_instance()
@@ -482,18 +474,15 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabaseMaintenancePortNumber = "33333",
-                    PortNumber = "33333"
-                }
+                AuditDatabaseMaintenancePortNumber = "33333",
+                AuditPortNumber = "33333"
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabaseMaintenancePortNumber));
 
             Assert.IsNotEmpty(errors);
         }
@@ -501,6 +490,7 @@
         #endregion
 
         #region auditinstancedestinationpath
+
         // Example: when  adding an audit instance the destination path cannot be empty
         //   Given an audit instance is being created
         //        and the destination path is empty
@@ -514,12 +504,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { DestinationPath = string.Empty }
+                AuditDestinationPath = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DestinationPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
         }
 
         [Test]
@@ -529,14 +519,14 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { DestinationPath = null }
+                AuditDestinationPath = null
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.DestinationPath));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditDestinationPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DestinationPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
         }
 
         // Example: when not adding an audit instance the destination path can be empty
@@ -552,16 +542,13 @@
             {
                 InstallAuditInstance = false,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DestinationPath = string.Empty
-                }
+                AuditDestinationPath = string.Empty
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.DestinationPath));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditDestinationPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DestinationPath)));
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
 
         }
 
@@ -576,12 +563,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { DestinationPath = path }
+                AuditDestinationPath = path
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DestinationPath));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath));
 
             Assert.IsNotEmpty(errors);
 
@@ -599,23 +586,22 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                    {
-                        DestinationPath =
-                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
-                    }
+                AuditDestinationPath =
+                    "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditLogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditDatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DestinationPath)));
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDestinationPath)));
 
             //  throw new Exception("This test isn't correct yet.");
         }
+
         #endregion
 
         #region auditinstancelogpath
+
         // Example: when  adding an audit instance the log path can be empty
         //   Given an audit instance is being created
         //        and the log path is empty
@@ -629,14 +615,14 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { LogPath = null }
+                AuditLogPath = null
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.LogPath));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditLogPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.LogPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
         }
 
         // Example: when not adding an audit instance the log path can be empty
@@ -652,12 +638,12 @@
             {
                 InstallAuditInstance = false,
                 SubmitAttempted = true,
-                ServiceControlAudit = { LogPath = string.Empty }
+                AuditLogPath = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.LogPath));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath));
 
             Assert.IsEmpty(errors);
         }
@@ -674,14 +660,14 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { LogPath = path }
+                AuditLogPath = path
             };
 
-            viewModel.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.LogPath));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditLogPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.LogPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
         }
 
         //check path is unique
@@ -693,24 +679,23 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                    {
-                        DestinationPath =
-                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
-                    }
+                AuditDestinationPath =
+                    "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditLogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditDatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
             };
 
-            viewModel.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.LogPath));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditLogPath));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.LogPath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditLogPath)));
         }
+
         #endregion
 
         #region auditinstancedatabasepath
+
         // Example: when  adding an audit instance the database path cannot be empty
         //   Given an audit instance is being created
         //        and the database path is empty
@@ -724,15 +709,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    DatabasePath = string.Empty
-                }
+                AuditDatabasePath = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabasePath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
         }
 
         // Example: when not adding an audit instance the database path can be empty
@@ -748,12 +730,12 @@
             {
                 InstallAuditInstance = false,
                 SubmitAttempted = true,
-                ServiceControlAudit = { DatabasePath = null }
+                AuditDatabasePath = null
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabasePath)));
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
         }
 
         //check path is valid
@@ -768,12 +750,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { DatabasePath = path }
+                AuditDatabasePath = path
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabasePath)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
         }
 
         //TODO: see if this is something that we want to do or change
@@ -786,21 +768,20 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                    {
-                        DestinationPath =
-                            "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        LogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
-                        DatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
-                    }
+                AuditDestinationPath =
+                    "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditLogPath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs",
+                AuditDatabasePath = "C:\\ProgramData\\Particular\\ServiceControl\\Particular.Servicecontrol\\Logs"
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.DatabasePath)));
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditDatabasePath)));
         }
+
         #endregion
 
         #region errorqueuename
+
         [Test]
         public void Audit_queue_name_should_not_be_empty_when_adding_audit_instance()
         {
@@ -808,12 +789,12 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { AuditQueueName = string.Empty }
+                AuditQueueName = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditQueueName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)));
         }
 
         [Test]
@@ -823,18 +804,20 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit = { AuditQueueName = null }
+                AuditQueueName = null
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.AuditQueueName));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditQueueName));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditQueueName)));
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditQueueName)));
         }
+
         #endregion
 
         #region errorforwardingqueuename
+
         [Test]
         public void Audit_forwarding_queue_name_should_not_be_null_if_audit_forwarding_enabled_when_adding_audit_instance()
         {
@@ -843,17 +826,17 @@
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
                 ServiceControlAudit =
-                {
-                    AuditForwarding = new ForwardingOption() { Name = "On", Value = true },
-                    AuditForwardingQueueName = null
-                }
+            {
+                AuditForwarding = new ForwardingOption() { Name = "On", Value = true },
+                AuditForwardingQueueName = null
+            }
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(nameof(viewModel.ServiceControlAudit.AuditForwardingQueueName));
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditForwardingQueueName));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
             Assert.IsNotEmpty(errors);
         }
@@ -865,16 +848,13 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    AuditForwarding = new ForwardingOption() { Name = "On", Value = true },
-                    AuditForwardingQueueName = string.Empty
-                }
+                AuditForwarding = new ForwardingOption() { Name = "On", Value = true },
+                AuditForwardingQueueName = string.Empty
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
             Assert.IsNotEmpty(errors);
         }
@@ -887,15 +867,15 @@
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
                 ServiceControlAudit =
-                {
-                    AuditForwarding = new ForwardingOption() { Name = "Off", Value = false },
-                    AuditForwardingQueueName = string.Empty
-                }
+            {
+                AuditForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                AuditForwardingQueueName = string.Empty
+            }
             };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
             Assert.IsEmpty(errors);
         }
@@ -907,26 +887,24 @@
             {
                 InstallAuditInstance = true,
                 SubmitAttempted = true,
-                ServiceControlAudit =
-                {
-                    AuditForwarding = new ForwardingOption() { Name = "Off", Value = false },
-                    AuditForwardingQueueName = null
-                }
+                AuditForwarding = new ForwardingOption() { Name = "Off", Value = false },
+                AuditForwardingQueueName = null
+
             };
 
-            viewModel.ServiceControlAudit.NotifyOfPropertyChange(viewModel.ServiceControlAudit.AuditForwardingQueueName);
+            viewModel.NotifyOfPropertyChange(viewModel.AuditForwardingQueueName);
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel.ServiceControlAudit);
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ServiceControlAudit.AuditForwardingQueueName));
+            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.AuditForwardingQueueName));
 
             Assert.IsEmpty(errors);
         }
-        #endregion
-
 
         public IDataErrorInfo GetErrorInfo(object vm) => vm as IDataErrorInfo;
 
         public INotifyDataErrorInfo GetNotifyErrorInfo(object vm) => vm as INotifyDataErrorInfo;
+        #endregion
     }
 }
+

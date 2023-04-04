@@ -2,6 +2,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
     using System.Collections.Generic;
+    using System.Windows.Input;
     using InstanceAdd;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
@@ -105,7 +106,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             set => ServiceControlAudit.DatabaseMaintenancePortNumber = value;
         }
 
-        public System.Windows.Input.ICommand SelectLogPath
+        public ICommand SelectLogPath
         {
             get => ServiceControlAudit.SelectLogPath;
             set => ServiceControlAudit.SelectLogPath = value;
@@ -160,5 +161,11 @@ namespace ServiceControl.Config.UI.InstanceEdit
             get => ServiceControlAudit.EnableFullTextSearchOnBodies;
             set => ServiceControlAudit.EnableFullTextSearchOnBodies = value;
         }
+
+        public bool SubmitAttempted { get; set; }
+
+        // public ICommand Cancel { get; set; }
+        //
+        // public ICommand Save { get; set; }
     }
 }

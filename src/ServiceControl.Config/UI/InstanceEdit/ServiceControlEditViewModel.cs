@@ -2,6 +2,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
 {
     using System;
     using System.Collections.Generic;
+    using System.Windows.Input;
     using InstanceAdd;
     using ServiceControlInstaller.Engine.Instances;
     using Validar;
@@ -109,7 +110,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             set => ServiceControl.LogPath = value;
         }
 
-        public System.Windows.Input.ICommand SelectLogPath
+        public ICommand SelectLogPath
         {
             get => ServiceControl.SelectLogPath;
             set => ServiceControl.SelectLogPath = value;
@@ -127,7 +128,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             set => ServiceControl.ErrorRetention = value;
         }
 
-        public bool ShowErrorForwardingQueue => ServiceControl.ShowErrorForwardingQueue;
+        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
 
         public string ErrorQueueName
         {
@@ -159,5 +160,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
             get => ServiceControl.EnableFullTextSearchOnBodies;
             set => ServiceControl.EnableFullTextSearchOnBodies = value;
         }
-    }
+
+        public bool SubmitAttempted { get; set; }
 }

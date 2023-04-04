@@ -2,82 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Windows.Input;
-    using Framework.Rx;
     using PropertyChanged;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
-    using SharedInstanceEditor;
     using Validar;
-    using Validation;
     using Xaml.Controls;
-
-    public class ServiceControlEditorViewModel : RxProgressScreen
-    {
-        public ServiceControlEditorViewModel()
-        {
-            Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
-            ServiceControl = new ServiceControlInformation(this);
-            ServiceControlAudit = new ServiceControlAuditInformation(this);
-        }
-
-        [DoNotNotify]
-        public ValidationTemplate ValidationTemplate { get; set; }
-
-        public ICommand Save { get; set; }
-
-        public ICommand Cancel { get; set; }
-
-        public bool SubmitAttempted { get; set; }
-
-        public IEnumerable<TransportInfo> Transports { get; }
-
-        public TransportInfo SelectedTransport
-        {
-            get => selectedTransport;
-            set
-            {
-                ConnectionString = null;
-                selectedTransport = value;
-            }
-        }
-
-        public bool OneInstanceTypeSelected => InstallErrorInstance || InstallAuditInstance;
-
-        public string TransportWarning => SelectedTransport?.Help;
-
-        public string ConnectionString { get; set; }
-
-        public string SampleConnectionString => SelectedTransport?.SampleConnectionString;
-
-        public bool ShowConnectionString => !string.IsNullOrEmpty(SelectedTransport?.SampleConnectionString);
-
-        public ServiceControlInformation ServiceControl { get; set; }
-
-
-        public ServiceControlAuditInformation ServiceControlAudit { get; set; }
-
-
-        public bool InstallErrorInstance { get; set; } = true;
-        public bool InstallAuditInstance { get; set; } = true;
-
-
-        public void OnSubmitAttempted()
-        {
-            ServiceControl.SubmitAttempted = SubmitAttempted;
-            ServiceControlAudit.SubmitAttempted = SubmitAttempted;
-        }
-
-        public virtual void OnSelectedTransportChanged()
-        {
-            ServiceControl?.SelectedTransportChanged();
-            ServiceControlAudit?.SelectedTransportChanged();
-            NotifyOfPropertyChange(nameof(ConnectionString));
-        }
-
-        TransportInfo selectedTransport;
-    }
 
     [InjectValidation]
     public class ServiceControlAddViewModel : ServiceControlEditorViewModel
@@ -89,10 +21,31 @@
 
         public string ConventionName { get; set; }
 
+        public void OnConventionNameChanged()
+        {
+            ApplyConventionalServiceNameToErrorInstance(ConventionName);
+
+            ApplyConventionalServiceNameToAuditInstance(ConventionName);
+        }
+
+        public virtual void OnSelectedTransportChanged()
+        {
+            ServiceControl?.SelectedTransportChanged();
+            ServiceControlAudit?.SelectedTransportChanged();
+            NotifyOfPropertyChange(nameof(ConnectionString));
+        }
+
         public string ErrorInstanceName
         {
             get => ServiceControl.InstanceName;
             set => ServiceControl.InstanceName = value;
+        }
+
+        protected void OnErrorInstanceNameChanged()
+        {
+            ErrorDestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", ErrorInstanceName);
+            ErrorDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", ErrorInstanceName, "DB");
+            ErrorLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", ErrorInstanceName, "Logs");
         }
 
         public bool ErrorUseSystemAccount
@@ -129,7 +82,6 @@
 
         public bool ErrorManagedAccount => ServiceControl.ManagedAccount;
 
-
         public string ErrorHostName
         {
             get => ServiceControl.HostName;
@@ -165,7 +117,6 @@
 
         public ICommand ErrorSelectLogPath => ServiceControl.SelectLogPath;
 
-
         public string ErrorLogPath
         {
             get => ServiceControl.LogPath;
@@ -198,8 +149,7 @@
             set => ServiceControl.ErrorQueueName = value;
         }
 
-        public IEnumerable<ForwardingOption> ErrorQuErrorForwardingOptions => ServiceControl.ErrorForwardingOptions;
-
+        public IEnumerable<ForwardingOption> ErrorForwardingOptions => ServiceControl.ErrorForwardingOptions;
 
         public ForwardingOption ErrorForwarding
         {
@@ -213,8 +163,9 @@
             set => ServiceControl.ErrorForwardingQueueName = value;
         }
 
-        public bool ShowErrorForwardingQueue => ServiceControl.ShowErrorForwardingQueue;
+        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
 
+        [AlsoNotifyFor("ErrorForwarding")]
         public string ErrorForwardingWarning => ServiceControl.ErrorForwardingWarning;
 
 
@@ -233,6 +184,13 @@
         {
             get => ServiceControlAudit.InstanceName;
             set => ServiceControlAudit.InstanceName = value;
+        }
+
+        protected void OnAuditInstanceNameChanged()
+        {
+            AuditDestinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Particular Software", AuditInstanceName);
+            AuditDatabasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", AuditInstanceName, "DB");
+            AuditLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", AuditInstanceName, "Logs");
         }
 
         public bool AuditUseSystemAccount
@@ -340,7 +298,11 @@
 
         public IEnumerable<ForwardingOption> AuditForwardingOptions => ServiceControlAudit.AuditForwardingOptions;
 
-        public ForwardingOption AuditForwarding => ServiceControlAudit.AuditForwarding;
+        public ForwardingOption AuditForwarding
+        {
+            get => ServiceControlAudit.AuditForwarding;
+            set => ServiceControlAudit.AuditForwarding = value;
+        }
 
         public string AuditForwardingQueueName
         {
@@ -348,8 +310,9 @@
             set => ServiceControlAudit.AuditForwardingQueueName = value;
         }
 
-        public bool ShowAuditForwardingQueue => ServiceControlAudit.ShowAuditForwardingQueue;
+        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
 
+        [AlsoNotifyFor("AuditForwarding")]
         public string AuditForwardingWarning => ServiceControlAudit.AuditForwardingWarning;
 
         public IEnumerable<EnableFullTextSearchOnBodiesOption> AudiEnableFullTextSearchOnBodiesOptions => ServiceControlAudit.EnableFullTextSearchOnBodiesOptions;
@@ -360,210 +323,51 @@
             set => ServiceControlAudit.EnableFullTextSearchOnBodies = value;
         }
 
-        public void OnConventionNameChanged()
-        {
-            ServiceControl.ApplyConventionalServiceName(ConventionName);
-            ServiceControlAudit.ApplyConventionalServiceName(ConventionName);
-        }
+        public bool SubmitAttempted { get; set; }
 
-    }
-
-    [InjectValidation]
-    public class ServiceControlInformation : SharedServiceControlEditorViewModel
-    {
-        public ServiceControlInformation(ServiceControlEditorViewModel viewModelParent)
+        int GetInstalledInstancesCount()
         {
-            ErrorForwardingOptions = new[]
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            if (!serviceControlInstances.Any())
             {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
-            EnableFullTextSearchOnBodiesOptions = new[]
+                return 0;
+            }
+
+            var i = 0;
+            while (true)
             {
-                new EnableFullTextSearchOnBodiesOption
+                i++;
+                if (!serviceControlInstances.Any(p => p.Name.Equals(ErrorInstanceName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Name = "On",
-                    Value = true
-                },
-                new EnableFullTextSearchOnBodiesOption
-                {
-                    Name = "Off",
-                    Value = false
+                    return i;
                 }
-            };
-            ErrorRetention = SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI;
-            Description = "ServiceControl Service";
-            HostName = "localhost";
-            ErrorQueueName = "error";
-            ErrorForwardingQueueName = "error.log";
-            ErrorForwarding = ErrorForwardingOptions.First(p => !p.Value); //Default to Off.
-            UseSystemAccount = true;
-            PortNumber = "33333";
-            DatabaseMaintenancePortNumber = "33334";
-            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
-            ViewModelParent = viewModelParent;
+            }
         }
 
-        public int MaximumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMaxInDays;
-
-        public int MinimumErrorRetentionPeriod => SettingConstants.ErrorRetentionPeriodMinInDays;
-
-        public TimeSpanUnits ErrorRetentionUnits => TimeSpanUnits.Days;
-
-        public ServiceControlEditorViewModel ViewModelParent { get; }
-
-        public double ErrorRetention { get; set; }
-
-        public TimeSpan ErrorRetentionPeriod => ErrorRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(ErrorRetention) : TimeSpan.FromHours(ErrorRetention);
-
-        public string ErrorQueueName { get; set; }
-
-        public string ErrorForwardingQueueName { get; set; }
-
-        public ForwardingOption ErrorForwarding { get; set; }
-
-        [AlsoNotifyFor("ErrorForwarding")]
-        public string ErrorForwardingWarning => ErrorForwarding != null && ErrorForwarding.Value ? "Only enable if another application is processing messages from the Error Forwarding Queue" : null;
-
-        public bool ShowErrorForwardingQueue => ErrorForwarding?.Value ?? false;
-
-        public IEnumerable<ForwardingOption> ErrorForwardingOptions { get; }
-
-        public IEnumerable<EnableFullTextSearchOnBodiesOption> EnableFullTextSearchOnBodiesOptions { get; }
-
-        public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
-
-        protected void UpdateErrorRetention(TimeSpan value)
+        string RemoveIllegalCharacters(string name)
         {
-            ErrorRetention = ErrorRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
+            return name?.Replace(' ', '.');
         }
 
-        // Deliberately not using the OnMethod syntax. The owning viewmodel forwards selected transport changed events manually
-        public void SelectedTransportChanged()
+        string GetConventionalServiceName(string suggestedName)
         {
-            NotifyOfPropertyChange(nameof(ErrorQueueName));
-            NotifyOfPropertyChange(nameof(ErrorForwardingQueueName));
-        }
+            var instanceName = string.Empty;
+            var instanceCount = GetInstalledInstancesCount();
+            var titleCaseName = CultureInfo.CurrentUICulture.TextInfo.ToTitleCase(suggestedName);
+            var serviceBaseName = instanceCount == 0 ? "ServiceControl" : "ServiceControl-" + instanceCount;
 
-        public void ApplyConventionalServiceName(string conventionName)
-        {
-            InstanceName = GetConventionalServiceName(conventionName);
-        }
-
-        public void UpdateFromInstance(ServiceControlInstance instance)
-        {
-            SetupServiceAccount(instance);
-            InstanceName = instance.Name;
-            HostName = instance.HostName;
-            PortNumber = instance.Port.ToString();
-            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
-            LogPath = instance.LogPath;
-            ErrorQueueName = instance.ErrorQueue;
-            ErrorForwarding = ErrorForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardErrorMessages);
-            ErrorForwardingQueueName = instance.ErrorLogQueue;
-            UpdateErrorRetention(instance.ErrorRetentionPeriod);
-            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
-        }
-    }
-
-    [InjectValidation]
-    public class ServiceControlAuditInformation : SharedServiceControlEditorViewModel
-    {
-        public ServiceControlAuditInformation(ServiceControlEditorViewModel viewModelParent)
-        {
-            AuditForwardingOptions = new[]
+            if (!suggestedName.StartsWith("Particular.", StringComparison.InvariantCultureIgnoreCase))
             {
-                new ForwardingOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new ForwardingOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
-            EnableFullTextSearchOnBodiesOptions = new[]
-            {
-                new EnableFullTextSearchOnBodiesOption
-                {
-                    Name = "On",
-                    Value = true
-                },
-                new EnableFullTextSearchOnBodiesOption
-                {
-                    Name = "Off",
-                    Value = false
-                }
-            };
-            AuditRetention = SettingConstants.AuditRetentionPeriodDefaultInDaysForUI;
-            Description = "ServiceControl Audit";
-            HostName = "localhost";
-            AuditQueueName = "audit";
-            AuditForwardingQueueName = "audit.log";
-            AuditForwarding = AuditForwardingOptions.First(p => !p.Value); //Default to Off.
-            UseSystemAccount = true;
-            PortNumber = "44444";
-            DatabaseMaintenancePortNumber = "44445";
-            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.First(p => p.Value); //Default to On.
-            ViewModelParent = viewModelParent;
+                instanceName += "Particular.";
+            }
+
+            instanceName += !string.IsNullOrEmpty(suggestedName) ? titleCaseName : serviceBaseName;
+
+            return RemoveIllegalCharacters(instanceName);
         }
+        public void ApplyConventionalServiceNameToErrorInstance(string conventionName) => ErrorInstanceName = GetConventionalServiceName(conventionName);
 
-        public ServiceControlEditorViewModel ViewModelParent { get; }
-
-        public int MinimumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMinInDays;
-
-        public int MaximumAuditRetentionPeriod => SettingConstants.AuditRetentionPeriodMaxInDays;
-
-        public TimeSpanUnits AuditRetentionUnits => TimeSpanUnits.Days;
-
-        public double AuditRetention { get; set; }
-
-        public TimeSpan AuditRetentionPeriod => AuditRetentionUnits == TimeSpanUnits.Days ? TimeSpan.FromDays(AuditRetention) : TimeSpan.FromHours(AuditRetention);
-
-        public IEnumerable<ForwardingOption> AuditForwardingOptions { get; }
-
-        public string AuditQueueName { get; set; }
-
-        public string AuditForwardingQueueName { get; set; }
-
-        public ForwardingOption AuditForwarding { get; set; }
-
-        [AlsoNotifyFor("AuditForwarding")]
-        public string AuditForwardingWarning => AuditForwarding != null && AuditForwarding.Value ? "Only enable if another application is processing messages from the Audit Forwarding Queue" : null;
-
-        public bool ShowAuditForwardingQueue => AuditForwarding?.Value ?? false;
-
-        public IEnumerable<EnableFullTextSearchOnBodiesOption> EnableFullTextSearchOnBodiesOptions { get; }
-
-        public EnableFullTextSearchOnBodiesOption EnableFullTextSearchOnBodies { get; set; }
-
-        public void SetFullTextSearchOnBodies(bool? enabled) =>
-            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions
-                .FirstOrDefault(p => p.Value == enabled);
-
-        protected void UpdateAuditRetention(TimeSpan value)
-        {
-            AuditRetention = AuditRetentionUnits == TimeSpanUnits.Days ? value.TotalDays : value.TotalHours;
-        }
-
-        // Deliberately not using the OnMethod syntax. The owning viewmodel forwards selected transport changed events manually
-        public void SelectedTransportChanged()
-        {
-            NotifyOfPropertyChange(nameof(AuditQueueName));
-            NotifyOfPropertyChange(nameof(AuditForwardingQueueName));
-        }
-
-        public void ApplyConventionalServiceName(string conventionName)
+        public void ApplyConventionalServiceNameToAuditInstance(string conventionName)
         {
             var serviceName = GetConventionalServiceName(conventionName);
 
@@ -572,23 +376,7 @@
                 serviceName += ".Audit";
             }
 
-            InstanceName = serviceName;
-        }
-
-        public void UpdateFromInstance(ServiceControlAuditInstance instance)
-        {
-            SetupServiceAccount(instance);
-            InstanceName = instance.Name;
-            Description = instance.Description;
-            HostName = instance.HostName;
-            PortNumber = instance.Port.ToString();
-            DatabaseMaintenancePortNumber = instance.DatabaseMaintenancePort.ToString();
-            LogPath = instance.LogPath;
-            AuditForwardingQueueName = instance.AuditLogQueue;
-            AuditQueueName = instance.AuditQueue;
-            AuditForwarding = AuditForwardingOptions.FirstOrDefault(p => p.Value == instance.ForwardAuditMessages);
-            UpdateAuditRetention(instance.AuditRetentionPeriod);
-            EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodiesOptions.FirstOrDefault(p => p.Value == instance.EnableFullTextSearchOnBodies);
+            AuditInstanceName = serviceName;
         }
     }
 }
