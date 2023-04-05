@@ -1,7 +1,7 @@
 ﻿namespace ServiceControlInstaller.CustomActions
 {
     using Engine;
-    using Microsoft.Deployment.WindowsInstaller;
+    using WixToolset.Dtf.WindowsInstaller;
 
     public class MSILogger : ILogging
     {

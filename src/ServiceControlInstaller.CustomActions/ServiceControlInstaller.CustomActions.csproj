@@ -9,30 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Deployment.WindowsInstaller" HintPath="$(WixSdkPath)Microsoft.Deployment.WindowsInstaller.dll" />
+    <PackageReference Include="WixToolset.Dtf.CustomAction" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WiX" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove=".editorconfig" />
     <None Remove="CustomAction.config" />
     <Content Include="CustomAction.config" />
   </ItemGroup>
-
-  <!-- Workaround needed because importing WiX targets file below is too early for $(TargetName) and $(TargetExt) to be defined -->
-  <PropertyGroup>
-    <TargetCAFileName>ServiceControlInstaller.CustomActions.CA.dll</TargetCAFileName>
-  </PropertyGroup>
-  <!-- End workaround -->
-
-  <Import Project="$(WixCATargetsPath)" Condition="Exists('$(WixCATargetsPath)')" />
-
-  <!-- Workaround needed because WiX targets don't currently work with SDK projects -->
-  <Target Name="CleanCAFile" DependsOnTargets="CleanCustomAction" BeforeTargets="CoreClean" Condition="'$(DesignTimeBuild)' != 'true'" />
-  <Target Name="CreateCAFile" DependsOnTargets="PackCustomAction" AfterTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'" />
-  <!-- End workaround -->
 
 </Project>
