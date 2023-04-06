@@ -3,7 +3,7 @@
     using System;
     using Engine.Instances;
     using Engine.Unattended;
-    using Microsoft.Deployment.WindowsInstaller;
+    using WixToolset.Dtf.WindowsInstaller;
 
     public class CustomActionsUninstall
     {

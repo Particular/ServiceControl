@@ -3,7 +3,7 @@ namespace ServiceControlInstaller.CustomActions
     using System;
     using System.Linq;
     using System.Runtime.InteropServices;
-    using Microsoft.Deployment.WindowsInstaller;
+    using WixToolset.Dtf.WindowsInstaller;
 
     public class CustomActionsPowerShell
     {

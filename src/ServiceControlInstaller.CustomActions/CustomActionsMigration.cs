@@ -5,8 +5,8 @@
     using System.Linq;
     using Engine;
     using Extensions;
-    using Microsoft.Deployment.WindowsInstaller;
     using Microsoft.Win32;
+    using WixToolset.Dtf.WindowsInstaller;
 
     public class CustomActionsMigrations
     {
@@ -141,9 +141,9 @@
 
         // This list does not need to be updated beyond version 1.6.3
         // After 1.6.3 a new MSI product code was used. This was done at the introduction of the management app.
-        // The older versions of the MSI handled install and uninstall of a single service, if we'd used the same MSI product code then the 
+        // The older versions of the MSI handled install and uninstall of a single service, if we'd used the same MSI product code then the
         // installation of the management app would have also uninstalled existing ServiceControl instances.
-        // Instead this custom action removes the registry entries that indicate the old MSI was installed.  
+        // Instead this custom action removes the registry entries that indicate the old MSI was installed.
         // Add/Remove/Upgrade of the services is all done by the app now.
         static readonly Dictionary<string, string> oldProducts = new Dictionary<string, string>
         {

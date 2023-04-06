@@ -8,9 +8,9 @@
     using Engine.Configuration.ServiceControl;
     using Engine.FileSystem;
     using Engine.Instances;
-    using ServiceControl.LicenseManagement;
     using Engine.Unattended;
-    using Microsoft.Deployment.WindowsInstaller;
+    using ServiceControl.LicenseManagement;
+    using WixToolset.Dtf.WindowsInstaller;
 
     public class CustomActionsInstall
     {

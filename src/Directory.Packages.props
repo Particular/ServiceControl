@@ -1,8 +1,10 @@
 <Project>
+
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="6.5.0" />
     <PackageVersion Include="Azure.Identity" Version="1.8.2" />
@@ -39,7 +41,7 @@
     <PackageVersion Include="NServiceBus.Extensions.DependencyInjection" Version="1.1.0" />
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="1.1.0" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="1.0.0" />
-    <PackageVersion Include="NServiceBus.Heartbeat" Version="3.0.1" />    
+    <PackageVersion Include="NServiceBus.Heartbeat" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Metrics" Version="3.1.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="3.0.6" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="3.0.1" />
@@ -75,8 +77,9 @@
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
     <PackageVersion Include="Windows7APICodePack-Shell" Version="1.1.0" />
-    <PackageVersion Include="WiX" Version="3.11.2" />
+    <PackageVersion Include="WixToolset.Dtf.CustomAction" Version="4.0.0" />
   </ItemGroup>
+
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Owin.Hosting" Version="4.2.2" />
     <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
@@ -85,8 +88,10 @@
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
+
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="4.2.0" />
     <GlobalPackageReference Include="Particular.Packaging" Version="2.3.0" />
   </ItemGroup>
+
 </Project>
