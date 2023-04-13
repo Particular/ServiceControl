@@ -9,6 +9,7 @@
     using System.Windows.Markup;
     using Autofac;
     using Caliburn.Micro;
+    using FluentValidation;
     using ReactiveUI;
     using UI.Shell;
 
@@ -83,6 +84,8 @@
 
         protected override async void OnStartup(object sender, StartupEventArgs e)
         {
+            ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+
             await DisplayRootViewForAsync<ShellViewModel>();
         }
 

@@ -13,9 +13,18 @@
                 throw new ArgumentOutOfRangeException(nameof(portNumber), "Port number is not between 1 and 49151");
             }
 
+            return !IsPortInUse(portNumber);
+        }
+
+        public static bool IsPortInUse(int portNumber)
+        {
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-            return ipGlobalProperties.GetActiveTcpListeners().All(p => p.Port != portNumber) &&
-                   ipGlobalProperties.GetActiveTcpConnections().All(p => p.LocalEndPoint.Port != portNumber);
+
+            var portHasActiveListener = ipGlobalProperties.GetActiveTcpListeners().Any(p => p.Port == portNumber);
+
+            var portHasActiveTcpConnection = ipGlobalProperties.GetActiveTcpConnections().Any(p => p.LocalEndPoint.Port == portNumber);
+
+            return portHasActiveListener || portHasActiveTcpConnection;
         }
     }
 }

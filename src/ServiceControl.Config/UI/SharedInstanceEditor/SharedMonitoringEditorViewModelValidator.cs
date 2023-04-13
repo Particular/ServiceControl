@@ -1,26 +1,23 @@
-namespace ServiceControl.Config.Validation
+namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     using FluentValidation;
-    using UI.SharedInstanceEditor;
+    using Validation;
 
     public class SharedMonitoringEditorViewModelValidator<T> : AbstractValidator<T> where T : SharedMonitoringEditorViewModel
     {
         protected SharedMonitoringEditorViewModelValidator()
         {
-            RuleFor(x => x.InstanceName)
-                .NotEmpty()
-                .MustNotContainWhitespace()
-                .When(x => x.SubmitAttempted);
-
             RuleFor(x => x.HostName)
-                .NotEmpty().When(x => x.SubmitAttempted);
-
+                .NotEmpty()
+                .ValidHostName()
+                    .WithMessage("Monitoring Hostname can only contain letters, numbers, dashes, or periods.")
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.LogPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Extensions.Validations.UsedPaths(x.InstanceName))
-                .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
+                    .WithMessage(string.Format(Validations.MSG_MUST_BE_UNIQUE, "Paths"))
                 .When(x => x.SubmitAttempted);
         }
     }

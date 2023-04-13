@@ -1,6 +1,7 @@
 namespace ServiceControl.Config.UI.InstanceAdd
 {
     using FluentValidation;
+    using SharedInstanceEditor;
     using Validation;
     using Validations = Extensions.Validations;
 
@@ -12,29 +13,47 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 .NotEmpty()
                 .When(x => x.SubmitAttempted);
 
+            RuleFor(x => x.InstanceName)
+                .NotEmpty()
+                .MustNotContainWhitespace()
+                    .WithMessage(string.Format(Validation.Validations.MSG_CANTCONTAINWHITESPACE, "Monitoring instance name"))
+                .MustBeUniqueWindowsServiceName()
+                    .WithMessage("Monitoring instance name is already in use")
+                .When(x => x.SubmitAttempted);
+
             RuleFor(x => x.SelectedTransport)
                 .NotEmpty();
 
             RuleFor(x => x.PortNumber)
                 .NotEmpty()
                 .ValidPort()
+                    .WithMessage(string.Format(Validation.Validations.MSG_USE_PORTS_IN_RANGE, "Monitoring Port"))
                 .PortAvailable()
+                    .WithMessage(string.Format(Validation.Validations.MSG_PORT_IN_USE, "Monitoring Port"))
                 .MustNotBeIn(x => Validations.UsedPorts(x.InstanceName))
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Monitoring Port"))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Monitoring Port"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.DestinationPath)
                 .NotEmpty()
                 .ValidPath()
                 .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
-                .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Path"))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Destination Path"))
+                .When(x => x.SubmitAttempted);
+
+            RuleFor(x => x.LogPath)
+                .NotEmpty()
+                .ValidPath()
+                .MustNotBeIn(x => Validations.UsedPaths(x.InstanceName))
+                    .WithMessage(string.Format(Validation.Validations.MSG_MUST_BE_UNIQUE, "Log Path"))
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty();
 
             RuleFor(x => x.ConnectionString)
-                .NotEmpty().WithMessage(Validation.Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
+                .NotEmpty()
+                    .WithMessage(Validation.Validations.MSG_THIS_TRANSPORT_REQUIRES_A_CONNECTION_STRING)
                 .When(x => !string.IsNullOrWhiteSpace(x.SelectedTransport?.SampleConnectionString) && x.SubmitAttempted);
         }
     }

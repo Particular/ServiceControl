@@ -35,10 +35,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
             }, IsInProgress);
         }
 
-        bool IsInProgress()
-        {
-            return viewModel != null && !viewModel.InProgress;
-        }
+        bool IsInProgress() => viewModel != null && !viewModel.InProgress;
 
         async Task Add()
         {
@@ -97,7 +94,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.AuditRetentionPeriod = viewModel.ServiceControlAudit.AuditRetentionPeriod;
                 auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
                 auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
-                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? String.Empty : serviceControlNewInstance.Name;
+                auditNewInstance.ServiceControlQueueAddress = serviceControlNewInstance == null ? string.Empty : serviceControlNewInstance.Name;
                 auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             }
 

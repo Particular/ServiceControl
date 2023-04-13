@@ -56,7 +56,8 @@
                 {
                     p.ErrorLogQueue,
                     p.ErrorQueue
-                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
+                                      string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
                                       string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
                 .Distinct()
                 .ToList();
@@ -69,15 +70,72 @@
                                                                           string.Equals(p.ConnectionString, connectionString, StringComparison.OrdinalIgnoreCase)).ToList();
 
             return instancesByTransport
-                .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
-                .SelectMany(p => new[]
-                {
+                 .Where(p => string.IsNullOrWhiteSpace(instanceName) || p.Name != instanceName)
+                 .SelectMany(p => new[]
+                 {
                     p.AuditQueue,
                     p.AuditLogQueue
-                }).Where(queuename => string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
-                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
-                .Distinct()
-                .ToList();
+                 }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
+                                       string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
+                                       string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0
+                                       )
+                 .Distinct()
+                 .ToList();
+        }
+
+        public static int? GetErrorInstancePort(string instanceName)
+        {
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var port = serviceControlInstances
+                    .Where(x => x.Name == instanceName)
+                    .Select(x => x.Port)
+                    .FirstOrDefault();
+
+            return port;
+        }
+
+        public static int? GetErrorInstanceDatabaseMaintenancePort(string instanceName)
+        {
+            var serviceControlInstances = InstanceFinder.ServiceControlInstances();
+            var port = serviceControlInstances
+                .Where(x => x.Name == instanceName)
+                .Select(x => x.DatabaseMaintenancePort)
+                .FirstOrDefault();
+
+            return port;
+        }
+
+        public static int? GetAuditInstancePort(string instanceName)
+        {
+            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
+            var port = serviceControlInstances
+                .Where(x => x.Name == instanceName)
+                .Select(x => x.Port)
+                .FirstOrDefault();
+
+            return port;
+        }
+
+        public static int? GetAuditInstanceDatabaseMaintenancePort(string instanceName)
+        {
+            var serviceControlInstances = InstanceFinder.ServiceControlAuditInstances();
+            var port = serviceControlInstances
+                .Where(x => x.Name == instanceName)
+                .Select(x => x.DatabaseMaintenancePort)
+                .FirstOrDefault();
+
+            return port;
+        }
+
+        public static int? GetMonitoringInstancePort(string instanceName)
+        {
+            var serviceControlInstances = InstanceFinder.MonitoringInstances();
+            var port = serviceControlInstances
+                .Where(x => x.Name == instanceName)
+                .Select(x => x.Port)
+                .FirstOrDefault();
+
+            return port;
         }
 
         public static List<string> UsedPorts(string instanceName = null)
