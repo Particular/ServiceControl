@@ -68,7 +68,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
             RuleFor(x => x.ErrorQueueName)
                 .NotEmpty()
                 .NotEqual(x => x.ErrorForwardingQueueName)
-                    .WithMessage(string.Format(Validation.Validations.MSG_QUEUENAMES_NOT_EQUAL, "Error", "Error "))
+                    .WithMessage(string.Format(Validation.Validations.MSG_QUEUENAMES_NOT_EQUAL, "Error", "Error Forwarding "))
                 .MustNotBeIn(x =>
                     Validations.UsedAuditQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error"))
