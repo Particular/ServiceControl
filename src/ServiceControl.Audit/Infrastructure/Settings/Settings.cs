@@ -12,7 +12,8 @@
     public class Settings
     {
         public Settings(string serviceName = null,
-            string transportType = null)
+            string transportCustomizationType = null,
+            string persistenceCustomizationType = null)
         {
             ServiceName = serviceName;
 
@@ -29,18 +30,26 @@
 
             TryLoadLicenseFromConfig();
 
-            if (string.IsNullOrEmpty(transportType))
+            if (string.IsNullOrEmpty(transportCustomizationType))
             {
                 TransportCustomizationType = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
             }
             else
             {
-                TransportCustomizationType = transportType;
+                TransportCustomizationType = transportCustomizationType;
             }
 
             ValidateTransportType(TransportCustomizationType);
             TransportConnectionString = GetConnectionString();
 
+            if (string.IsNullOrEmpty(persistenceCustomizationType))
+            {
+                PersistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
+            }
+            else
+            {
+                PersistenceCustomizationType = persistenceCustomizationType;
+            }
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
@@ -50,6 +59,7 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+            PersistenceCustomizationType = persistenceCustomizationType;
         }
 
         //HINT: acceptance tests only
@@ -83,6 +93,8 @@
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
         public string TransportCustomizationType { get; private set; }
+
+        public string PersistenceCustomizationType { get; private set; }
 
         public string AuditQueue { get; set; }
 

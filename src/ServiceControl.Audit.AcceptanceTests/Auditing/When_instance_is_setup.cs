@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
 {
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Raw;
@@ -15,12 +14,10 @@
         [Test]
         public async Task Should_provision_queues()
         {
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", StorageConfiguration.PersistenceType);
-
             var instanceInputQueueName = "SomeInstanceQueue";
             var userName = "SomeUser";
 
-            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName)
+            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, StorageConfiguration.PersistenceType)
             {
                 ForwardAuditMessages = true,
             };

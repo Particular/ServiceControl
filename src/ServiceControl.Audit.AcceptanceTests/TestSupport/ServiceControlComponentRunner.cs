@@ -117,8 +117,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", persistenceToUse.PersistenceType);
-
             var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
 
             setStorageConfiguration(persisterSpecificSettings);

@@ -5,10 +5,8 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceConfigurationFactory
     {
-        public static IPersistenceConfiguration LoadPersistenceConfiguration()
+        public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceCustomizationType)
         {
-            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
-
             try
             {
                 var customizationType = Type.GetType(persistenceCustomizationType, true);

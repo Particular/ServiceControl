@@ -267,8 +267,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
 
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName);
-
             customServiceControlAuditSettings(settings);
             SettingsPerInstance[instanceName] = settings;
 
