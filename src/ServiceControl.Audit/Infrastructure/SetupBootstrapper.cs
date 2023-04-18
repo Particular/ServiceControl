@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.Infrastructure
                 }
                 else
                 {
-                    var additionalQueues = new List<string>();
+                    var additionalQueues = new List<string> { settings.AuditQueue };
 
                     if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
                     {
