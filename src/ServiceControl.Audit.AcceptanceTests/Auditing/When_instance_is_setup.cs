@@ -15,13 +15,12 @@
         [Test]
         public async Task Should_provision_queues()
         {
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", typeof(FakeTransport).AssemblyQualifiedName);
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", StorageConfiguration.PersistenceType);
 
             var instanceInputQueueName = "SomeInstanceQueue";
             var userName = "SomeUser";
 
-            var settings = new Settings(instanceInputQueueName)
+            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName)
             {
                 ForwardAuditMessages = true,
             };

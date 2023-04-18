@@ -73,12 +73,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         {
             var instancePort = FindAvailablePort(33333);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
-
-            settings = new Settings(instanceName)
+            settings = new Settings(instanceName, transportToUse.TypeName)
             {
                 Port = instancePort,
-                TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,

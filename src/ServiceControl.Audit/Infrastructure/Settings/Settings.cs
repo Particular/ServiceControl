@@ -11,7 +11,8 @@
 
     public class Settings
     {
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null,
+            string transportType = null)
         {
             ServiceName = serviceName;
 
@@ -28,8 +29,18 @@
 
             TryLoadLicenseFromConfig();
 
+            if (string.IsNullOrEmpty(transportType))
+            {
+                TransportCustomizationType = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
+            }
+            else
+            {
+                TransportCustomizationType = transportType;
+            }
+
+            ValidateTransportType(TransportCustomizationType);
             TransportConnectionString = GetConnectionString();
-            TransportCustomizationType = GetTransportType();
+
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
@@ -71,7 +82,7 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
-        public string TransportCustomizationType { get; set; }
+        public string TransportCustomizationType { get; private set; }
 
         public string AuditQueue { get; set; }
 
@@ -224,9 +235,8 @@
             return connectionStringSettings?.ConnectionString;
         }
 
-        static string GetTransportType()
+        static void ValidateTransportType(string typeName)
         {
-            var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
             var typeNameAndAssembly = typeName.Split(',');
             if (typeNameAndAssembly.Length < 2)
             {
@@ -245,12 +255,10 @@
             }
 
             var transportType = Type.GetType(typeName, false, true);
-            if (transportType != null)
+            if (transportType == null)
             {
-                return typeName;
+                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
             }
-
-            throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
         TimeSpan GetAuditRetentionPeriod()
