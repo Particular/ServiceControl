@@ -1,15 +1,18 @@
-﻿namespace ServiceControl.Audit.AcceptanceTests.Auditing
+﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
 {
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Raw;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
     using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Audit.Persistence;
     using ServiceControl.Transports;
 
-    class When_instance_is_setup : AcceptanceTest
+    class When_instance_is_setup
     {
         [Test]
         public async Task Should_provision_queues()
@@ -17,12 +20,10 @@
             var instanceInputQueueName = "SomeInstanceQueue";
             var userName = "SomeUser";
 
-            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, StorageConfiguration.PersistenceType)
+            var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, typeof(FakePersistenceConfiguration).AssemblyQualifiedName)
             {
                 ForwardAuditMessages = true,
             };
-
-            settings.AuditLogQueue = $"{settings.AuditQueue}.log";
 
             var setupBootstrapper = new SetupBootstrapper(settings);
 
@@ -62,5 +63,28 @@
         public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
         protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
         protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
+    }
+
+    class FakePersistenceConfiguration : IPersistenceConfiguration
+    {
+        public string Name => "FakePersister";
+
+        public IEnumerable<string> ConfigurationKeys => new List<string>();
+
+        public IPersistence Create(PersistenceSettings settings) => new FakePersistence();
+
+        class FakePersistence : IPersistence
+        {
+            public IPersistenceLifecycle Configure(IServiceCollection serviceCollection) => throw new System.NotImplementedException();
+            public IPersistenceInstaller CreateInstaller() => new FakePersistenceInstaller();
+
+            class FakePersistenceInstaller : IPersistenceInstaller
+            {
+                public Task Install(CancellationToken cancellationToken = default)
+                {
+                    return Task.CompletedTask;
+                }
+            }
+        }
     }
 }
