@@ -73,7 +73,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         {
             var instancePort = FindAvailablePort(33333);
 
-            settings = new Settings(instanceName, transportToUse.TypeName)
+            settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
             {
                 Port = instancePort,
                 TransportConnectionString = transportToUse.ConnectionString,

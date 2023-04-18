@@ -219,7 +219,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
-            var settings = new Audit.Infrastructure.Settings.Settings(instanceName, transportToUse.TypeName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName, transportToUse.TypeName, typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName)
             {
                 Port = instancePort,
                 TransportConnectionString = transportToUse.ConnectionString,
