@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
-        public Settings(string serviceName = null) { }
+        public Settings(string serviceName = null, string transportCustomizationType = null, string persistenceCustomizationType = null) { }
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -35,6 +35,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
+        public string PersistenceCustomizationType { get; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
         public string RootUrl { get; }
@@ -43,7 +44,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public bool SkipQueueCreation { get; set; }
         public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
-        public string TransportCustomizationType { get; set; }
+        public string TransportCustomizationType { get; }
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }

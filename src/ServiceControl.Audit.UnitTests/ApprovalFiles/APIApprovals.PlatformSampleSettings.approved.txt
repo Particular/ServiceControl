@@ -9,6 +9,7 @@
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "TransportCustomizationType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+  "PersistenceCustomizationType": null,
   "AuditQueue": "audit",
   "ForwardAuditMessages": false,
   "IngestAuditMessages": true,
