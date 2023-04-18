@@ -13,7 +13,7 @@
     class When_instance_is_setup : AcceptanceTest
     {
         [Test]
-        public async Task Should_provision_audit_queues()
+        public async Task Should_provision_queues()
         {
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", typeof(FakeTransport).AssemblyQualifiedName);
             ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", StorageConfiguration.PersistenceType);
