@@ -28,7 +28,6 @@ namespace ServiceControl.Audit.Infrastructure
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-
                 if (settings.SkipQueueCreation)
                 {
                     log.Info("Skipping queue creation");
