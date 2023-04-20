@@ -15,8 +15,8 @@
         {
             serviceName = SettingsReader<string>.Read("InternalQueueName", serviceName);
 
-            var transportCustomizationType = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
-            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
+            var transportCustomizationType = SettingsReader<string>.Read("TransportType", null);
+            var persistenceCustomizationType = SettingsReader<string>.Read("PersistenceType", null);
 
             return new Settings(serviceName, transportCustomizationType, persistenceCustomizationType);
         }
@@ -27,10 +27,18 @@
             string persistenceCustomizationType)
         {
             ServiceName = serviceName;
+
+            ValidateTransportType(transportCustomizationType);
+
             TransportCustomizationType = transportCustomizationType;
+
             PersistenceCustomizationType = persistenceCustomizationType;
 
-            ValidateTransportType(TransportCustomizationType);
+            if (string.IsNullOrEmpty(persistenceCustomizationType))
+            {
+                throw new ConfigurationErrorsException("No persistence have been configured");
+            }
+
             TransportConnectionString = GetConnectionString();
 
             AuditQueue = GetAuditQueue();
@@ -229,6 +237,11 @@
 
         static void ValidateTransportType(string typeName)
         {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ConfigurationErrorsException("No transport has been configured");
+            }
+
             var typeNameAndAssembly = typeName.Split(',');
             if (typeNameAndAssembly.Length < 2)
             {
