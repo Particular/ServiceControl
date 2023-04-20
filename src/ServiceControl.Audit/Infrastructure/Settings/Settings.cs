@@ -11,14 +11,14 @@
 
     public class Settings
     {
+        // Service name is what the user chose when installing the instance or is passing on the command line.
+        // We use this as the default endpoint name.
         public static Settings FromConfiguration(string serviceName)
         {
-            serviceName = SettingsReader<string>.Read("InternalQueueName", serviceName);
-
-            var transportCustomizationType = SettingsReader<string>.Read("TransportType", null);
-            var persistenceCustomizationType = SettingsReader<string>.Read("PersistenceType", null);
-
-            return new Settings(serviceName, transportCustomizationType, persistenceCustomizationType);
+            return new Settings(
+                 SettingsReader<string>.Read("InternalQueueName", serviceName), // endpoint name can also be overriden via config
+                 SettingsReader<string>.Read("TransportType", null),
+                 SettingsReader<string>.Read("PersistenceType", null));
         }
 
         public Settings(
