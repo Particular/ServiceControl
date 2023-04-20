@@ -11,45 +11,33 @@
 
     public class Settings
     {
-        public Settings(string serviceName = null,
-            string transportCustomizationType = null,
-            string persistenceCustomizationType = null)
+        public static Settings FromConfiguration(string serviceName)
+        {
+            serviceName = SettingsReader<string>.Read("InternalQueueName", serviceName);
+
+            var transportCustomizationType = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
+            var persistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
+
+            return new Settings(serviceName, transportCustomizationType, persistenceCustomizationType);
+        }
+
+        public Settings(
+            string serviceName,
+            string transportCustomizationType,
+            string persistenceCustomizationType)
         {
             ServiceName = serviceName;
+            TransportCustomizationType = transportCustomizationType;
+            PersistenceCustomizationType = persistenceCustomizationType;
 
-            if (string.IsNullOrEmpty(serviceName))
-            {
-                ServiceName = DEFAULT_SERVICE_NAME;
-            }
-
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
+            ValidateTransportType(TransportCustomizationType);
+            TransportConnectionString = GetConnectionString();
 
             AuditQueue = GetAuditQueue();
             AuditLogQueue = GetAuditLogQueue(AuditQueue);
 
             TryLoadLicenseFromConfig();
 
-            if (string.IsNullOrEmpty(transportCustomizationType))
-            {
-                TransportCustomizationType = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
-            }
-            else
-            {
-                TransportCustomizationType = transportCustomizationType;
-            }
-
-            ValidateTransportType(TransportCustomizationType);
-            TransportConnectionString = GetConnectionString();
-
-            if (string.IsNullOrEmpty(persistenceCustomizationType))
-            {
-                PersistenceCustomizationType = SettingsReader<string>.Read("ServiceControl.Audit", "PersistenceType", null);
-            }
-            else
-            {
-                PersistenceCustomizationType = persistenceCustomizationType;
-            }
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
@@ -59,7 +47,6 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            PersistenceCustomizationType = persistenceCustomizationType;
         }
 
         //HINT: acceptance tests only

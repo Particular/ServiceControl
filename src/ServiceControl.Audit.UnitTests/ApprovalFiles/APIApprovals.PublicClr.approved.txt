@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
         public const string Disabled = "!disable";
-        public Settings(string serviceName = null, string transportCustomizationType = null, string persistenceCustomizationType = null) { }
+        public Settings(string serviceName, string transportCustomizationType, string persistenceCustomizationType) { }
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }
         public string AuditQueue { get; set; }
@@ -48,6 +48,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
+        public static ServiceControl.Audit.Infrastructure.Settings.Settings FromConfiguration(string serviceName) { }
     }
 }
 namespace ServiceControl.Audit.Recoverability

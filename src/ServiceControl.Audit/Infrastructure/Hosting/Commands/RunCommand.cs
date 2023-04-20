@@ -9,14 +9,15 @@
     {
         public override Task Execute(HostArguments args)
         {
+            var settings = Settings.FromConfiguration(args.ServiceName);
+
             var runAsWindowsService = args.RunAsWindowsService;
-            var busConfiguration = new EndpointConfiguration(args.ServiceName);
+            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = busConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var loggingSettings = new LoggingSettings(args.ServiceName);
+            var loggingSettings = new LoggingSettings(settings.ServiceName);
 
-            var settings = new Settings(args.ServiceName);
             var host = new Bootstrapper(
                 ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 settings,
