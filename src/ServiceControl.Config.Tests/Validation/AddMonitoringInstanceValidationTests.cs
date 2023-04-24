@@ -92,31 +92,6 @@
 
         #region hostname
 
-        [TestCase("!")]
-        [TestCase("@")]
-        [TestCase("#")]
-        [TestCase("$")]
-        [TestCase("%")]
-        [TestCase("&")]
-        [TestCase("(")]
-        [TestCase(")")]
-        [TestCase("[")]
-        [TestCase("]")]
-        [TestCase("{")]
-        [TestCase("}")]
-        public void Monitoring_hostname_can_only_contain_letters_numbers_dash_or_period_when_adding_error_instance(string invalidHostName)
-        {
-            var viewModel = new MonitoringAddViewModel
-            {
-                SubmitAttempted = true,
-                HostName = string.Empty
-            };
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
-        }
-
         [Test]
         public void Monitoring_hostname_cannot_be_empty_when_adding_monitoring_instance()
         {
@@ -146,6 +121,24 @@
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
         }
+
+        [TestCase("192.168.1.1")]
+        [TestCase("256.0.0.0")]
+        public void Monitoring_hostname_can_be_an_ip_address_when_adding_monitoring_instance(string ipAddress)
+        {
+            var viewModel = new MonitoringAddViewModel
+            {
+                SubmitAttempted = true,
+                HostName = ipAddress
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.HostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+        }
+
         #endregion
 
         #region Portnumber

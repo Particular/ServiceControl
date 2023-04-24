@@ -98,31 +98,6 @@
 
         #region hostname
 
-        [TestCase("!")]
-        [TestCase("@")]
-        [TestCase("#")]
-        [TestCase("$")]
-        [TestCase("%")]
-        [TestCase("&")]
-        [TestCase("(")]
-        [TestCase(")")]
-        [TestCase("[")]
-        [TestCase("]")]
-        [TestCase("{")]
-        [TestCase("}")]
-        public void Audit_hostname_can_only_contain_letters_numbers_dash_or_period_when_editing_audit_instance(string invalidHostName)
-        {
-            var viewModel = new ServiceControlAuditEditViewModel()
-            {
-                SubmitAttempted = true,
-                HostName = invalidHostName
-            };
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
-        }
-
         [Test]
         public void Audit_hostname_can_not_be_empty_when_editing_audit_instance()
         {
@@ -155,6 +130,24 @@
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
         }
+
+        [TestCase("192.168.1.1")]
+        [TestCase("256.0.0.0")]
+        public void Audi_hostname_can_be_an_ip_address_when_editing_an_audit_instance(string ipAddress)
+        {
+            var viewModel = new ServiceControlAuditEditViewModel
+            {
+                SubmitAttempted = true,
+                HostName = ipAddress
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.HostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
+        }
+
         #endregion
 
         #region Portnumber
