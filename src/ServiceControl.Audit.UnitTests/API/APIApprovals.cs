@@ -10,6 +10,8 @@
     using NUnit.Framework;
     using Particular.Approvals;
     using PublicApiGenerator;
+    using ServiceControl.Audit.Persistence.InMemory;
+    using ServiceControl.Transports.Learning;
 
     [TestFixture]
     class APIApprovals
@@ -30,7 +32,9 @@
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
             request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
 
-            var controller = new RootController(new LoggingSettings("testEndpoint"), new Settings())
+            var settings = CreateTestSettings();
+
+            var controller = new RootController(new LoggingSettings("testEndpoint"), settings)
             {
                 Url = new UrlHelper(request)
             };
@@ -45,12 +49,19 @@
         {
             //HINT: Particular.PlatformSample includes a parameterized version of the ServiceControl.exe.config file.
             //If any changes have been made to settings, this may break the embedded config in that project, which may need to be updated.
-            var settings = new Settings
-            {
-                LicenseFileText = null
-            };
+            var settings = CreateTestSettings();
+
+            settings.LicenseFileText = null;
 
             Approver.Verify(settings);
+        }
+
+        static Settings CreateTestSettings()
+        {
+            return new Settings(
+                Settings.DEFAULT_SERVICE_NAME,
+                typeof(LearningTransportCustomization).AssemblyQualifiedName,
+                typeof(InMemoryPersistence).AssemblyQualifiedName);
         }
     }
 }

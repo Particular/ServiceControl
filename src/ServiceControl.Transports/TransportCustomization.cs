@@ -50,7 +50,7 @@
             return new QueueIngestor(startableRaw);
         }
 
-        public Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 

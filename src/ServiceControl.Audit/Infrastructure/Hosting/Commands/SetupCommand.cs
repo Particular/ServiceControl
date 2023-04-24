@@ -7,10 +7,9 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            var settings = new Settings(args.ServiceName)
-            {
-                SkipQueueCreation = args.SkipQueueCreation
-            };
+            var settings = Settings.FromConfiguration(args.ServiceName);
+
+            settings.SkipQueueCreation = args.SkipQueueCreation;
 
             await new SetupBootstrapper(settings).Run(args.Username)
                 .ConfigureAwait(false);

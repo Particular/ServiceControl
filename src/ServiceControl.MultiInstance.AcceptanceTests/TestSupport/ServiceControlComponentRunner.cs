@@ -219,12 +219,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/TransportType", transportToUse.TypeName);
-
-            var settings = new Audit.Infrastructure.Settings.Settings(instanceName)
+            var settings = new Audit.Infrastructure.Settings.Settings(instanceName, transportToUse.TypeName, typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName)
             {
                 Port = instancePort,
-                TransportCustomizationType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
@@ -269,8 +266,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Path.GetFileName(typeof(Settings).Assembly.CodeBase),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
-
-            ConfigurationManager.AppSettings.Set("ServiceControl.Audit/PersistenceType", typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName);
 
             customServiceControlAuditSettings(settings);
             SettingsPerInstance[instanceName] = settings;
