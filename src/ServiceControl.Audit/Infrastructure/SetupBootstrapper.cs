@@ -28,14 +28,13 @@ namespace ServiceControl.Audit.Infrastructure
             // if audit queue is ("!disable") IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
-
                 if (settings.SkipQueueCreation)
                 {
                     log.Info("Skipping queue creation");
                 }
                 else
                 {
-                    var additionalQueues = new List<string>();
+                    var additionalQueues = new List<string> { settings.AuditQueue };
 
                     if (settings.ForwardAuditMessages && settings.AuditLogQueue != null)
                     {
@@ -48,7 +47,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             EventSource.Create();
 
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceCustomizationType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();

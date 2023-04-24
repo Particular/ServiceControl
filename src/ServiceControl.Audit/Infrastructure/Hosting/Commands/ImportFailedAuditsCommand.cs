@@ -13,10 +13,9 @@
     {
         public override async Task Execute(HostArguments args)
         {
-            var settings = new Settings(args.ServiceName)
-            {
-                IngestAuditMessages = false
-            };
+            var settings = Settings.FromConfiguration(args.ServiceName);
+
+            settings.IngestAuditMessages = false;
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
 
