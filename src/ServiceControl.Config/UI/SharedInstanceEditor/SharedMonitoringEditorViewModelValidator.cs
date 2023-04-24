@@ -9,8 +9,6 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
         {
             RuleFor(x => x.HostName)
                 .NotEmpty()
-                .ValidHostName()
-                    .WithMessage("Monitoring Hostname can only contain letters, numbers, dashes, or periods.")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.LogPath)

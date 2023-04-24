@@ -14,8 +14,6 @@ namespace ServiceControl.Config.UI.InstanceEdit
 
             RuleFor(x => x.HostName)
                 .NotEmpty()
-                .ValidHostName()
-                    .WithMessage("ServiceControl Hostname may only contain letters, numbers, and periods.")
                 .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.PortNumber)
