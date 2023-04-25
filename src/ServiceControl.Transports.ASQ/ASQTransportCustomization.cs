@@ -42,6 +42,8 @@
         static TransportExtensions<AzureStorageQueueTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
+            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
+
             ConfigureTransport(transport, transportSettings);
             return transport;
         }
@@ -58,7 +60,6 @@
             var connectionString = transportSettings.ConnectionString
                 .RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
-            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
 
