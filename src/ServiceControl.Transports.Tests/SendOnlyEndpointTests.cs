@@ -1,13 +1,12 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class NServiceBusConfigTests : TransportTestFixture
+    class SendOnlyEndpointTests : TransportTestFixture
     {
         [Test]
         public async Task Should_be_able_to_create_send_only_endpoint()
@@ -31,8 +30,6 @@
 
         public class Context : ScenarioContext
         {
-            public bool SendingEndpointGotResponse { get; set; }
-            public string ReplyToAddress { get; set; }
         }
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
@@ -47,10 +44,6 @@
                     c.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
                 });
             }
-        }
-
-        public class MyMessage : IMessage
-        {
         }
     }
 }
