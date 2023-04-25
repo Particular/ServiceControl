@@ -44,17 +44,7 @@
         {
             public ServiceControlEndpoint()
             {
-                EndpointSetup<BasicEndpointSetup>(configuration =>
-                {
-                    configuration.DisableFeature<Audit>();
-                    configuration.DisableFeature<AutoSubscribe>();
-                    configuration.DisableFeature<TimeoutManager>();
-                    configuration.DisableFeature<Outbox>();
-                    configuration.DisableFeature<Sagas>();
-                    configuration.SendFailedMessagesTo("InstanceName.Errors");
-
-                    configuration.UsePersistence<InMemoryPersistence>();
-                });
+                EndpointSetup<BasicEndpointSetup>();
             }
         }
     }
