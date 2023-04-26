@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Security.Principal;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.Transports;
@@ -41,7 +42,10 @@
         {
             public ServiceControlEndpoint()
             {
-                EndpointSetup<BasicEndpointSetup>();
+                EndpointSetup<BasicEndpointSetup>(c =>
+                {
+                    c.UsePersistence<InMemoryPersistence>();
+                });
             }
         }
     }
