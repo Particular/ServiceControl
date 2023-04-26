@@ -7,7 +7,6 @@ namespace ServiceControl.Audit.Infrastructure
     using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
     using Settings;
     using Transports;
 
@@ -53,9 +52,6 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.GetSettings().Set(loggingSettings);
             configuration.SetDiagnosticsPath(loggingSettings.LogPath);
-
-            // sagas are not auto-disabled for send-only endpoints
-            configuration.DisableFeature<Sagas>();
 
             configuration.UseSerialization<NewtonsoftJsonSerializer>();
 

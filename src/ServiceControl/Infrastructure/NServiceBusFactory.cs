@@ -3,7 +3,6 @@ namespace ServiceBus.Management.Infrastructure
     using System;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Features;
     using ServiceControl.ExternalIntegrations;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.Notifications.Email;
@@ -28,13 +27,6 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.GetSettings().Set(loggingSettings);
             configuration.SetDiagnosticsPath(loggingSettings.LogPath);
-
-            // Disable Auditing for the service control endpoint
-            configuration.DisableFeature<Audit>();
-            configuration.DisableFeature<AutoSubscribe>();
-            configuration.DisableFeature<TimeoutManager>();
-            configuration.DisableFeature<Outbox>();
-            configuration.DisableFeature<Sagas>();
 
             if (settings.DisableExternalIntegrationsPublishing)
             {
