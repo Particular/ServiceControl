@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
-    using System.Collections.Generic;
-    using System.Security.Principal;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -19,9 +17,7 @@
             };
 
             var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
-            var username = WindowsIdentity.GetCurrent().Name;
-
-            await ProvisionQueues(username, endpointName, $"{endpointName}.Errors", new List<string>());
+            await CreateTestQueue(endpointName);
 
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
