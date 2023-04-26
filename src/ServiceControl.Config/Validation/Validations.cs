@@ -174,14 +174,6 @@
                 .WithMessage(MSG_PORT_IN_USE);
         }
 
-        public static IRuleBuilderOptions<T, string> ValidHostName<T>(this IRuleBuilder<T, string> rulebuilder)
-        {
-            var hostnameRegEx =
-                @"^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])|(\*)$";
-
-            return rulebuilder.Matches(hostnameRegEx);
-        }
-
         public static IRuleBuilderOptions<T, string> ValidPath<T>(this IRuleBuilder<T, string> rulebuilder)
         {
             return rulebuilder.Must((t, path) => { return path != null && !path.Intersect(ILLEGAL_PATH_CHARS).Any(); })
