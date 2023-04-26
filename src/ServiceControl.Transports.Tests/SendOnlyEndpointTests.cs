@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
@@ -36,13 +35,7 @@
         {
             public SendOnlyEndpoint()
             {
-                EndpointSetup<BasicEndpointSetup>(c =>
-                {
-                    c.SendOnly();
-
-                    //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
-                    c.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
-                });
+                EndpointSetup<BasicEndpointSetup>();
             }
         }
     }

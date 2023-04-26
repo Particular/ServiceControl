@@ -2,9 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -29,6 +31,11 @@
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             CustomizeTransportSpecificSendOnlyEndpointSettings(endpointConfiguration, transportSettings);
+
+            endpointConfiguration.SendOnly();
+
+            //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
+            endpointConfiguration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
         }
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)

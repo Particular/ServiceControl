@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
+    using System.Collections.Generic;
+    using System.Security.Principal;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -10,14 +12,15 @@
         [Test]
         public async Task Should_configure_monitoring_endpoint()
         {
+            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
-                MaxConcurrency = 1
+                MaxConcurrency = 1,
+                EndpointName = endpointName
             };
 
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
-            await CreateTestQueue(endpointName);
+            await configuration.TransportCustomization.ProvisionQueues(WindowsIdentity.GetCurrent().Name, transportSettings, new List<string>());
 
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
