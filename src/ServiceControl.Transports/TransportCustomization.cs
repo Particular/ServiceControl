@@ -52,8 +52,6 @@
             endpointConfiguration.DisableFeature<Sagas>();
             endpointConfiguration.DisableFeature<TimeoutManager>();
             endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
-
-            endpointConfiguration.UsePersistence<InMemoryPersistence>();
         }
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
