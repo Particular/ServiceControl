@@ -270,32 +270,6 @@
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
         }
 
-        [TestCase("!")]
-        [TestCase("@")]
-        [TestCase("#")]
-        [TestCase("$")]
-        [TestCase("%")]
-        [TestCase("&")]
-        [TestCase("(")]
-        [TestCase(")")]
-        [TestCase("[")]
-        [TestCase("]")]
-        [TestCase("{")]
-        [TestCase("}")]
-        public void Error_hostname_can_only_contain_letters_numbers_dash_or_period_when_adding_error_instance(string invalidHostName)
-        {
-            var viewModel = new ServiceControlAddViewModel
-            {
-                InstallErrorInstance = true,
-                SubmitAttempted = true,
-                ErrorHostName = invalidHostName
-            };
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
-        }
-
         [Test]
         public void Error_hostname_can_not_be_null_when_adding_error_instance()
         {
@@ -312,6 +286,25 @@
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
         }
+
+        [TestCase("192.168.1.1")]
+        [TestCase("256.0.0.0")]
+        public void Error_hostname_can_be_an_ip_address_when_adding_error_instance(string ipAddress)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = true,
+                SubmitAttempted = true,
+                ErrorHostName = ipAddress
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+        }
+
         #endregion
 
         #region Portnumber

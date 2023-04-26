@@ -257,32 +257,6 @@
 
         #region hostname
 
-        [TestCase("!")]
-        [TestCase("@")]
-        [TestCase("#")]
-        [TestCase("$")]
-        [TestCase("%")]
-        [TestCase("&")]
-        [TestCase("(")]
-        [TestCase(")")]
-        [TestCase("[")]
-        [TestCase("]")]
-        [TestCase("{")]
-        [TestCase("}")]
-        public void Audit_hostname_can_only_contain_letters_numbers_dash_or_period_when_adding_audit_instance(string invalidHostName)
-        {
-            var viewModel = new ServiceControlAddViewModel
-            {
-                InstallAuditInstance = true,
-                SubmitAttempted = true,
-                AuditHostName = invalidHostName
-            };
-
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
-
-            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
-        }
-
         [Test]
         public void Audit_hostname_can_be_empty_when_not_adding_audit_instance()
         {
@@ -305,6 +279,24 @@
                 InstallAuditInstance = false,
                 SubmitAttempted = true,
                 AuditHostName = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+        }
+
+        [TestCase("192.168.1.1")]
+        [TestCase("256.0.0.0")]
+        public void Audit_hostname_can_be_an_ip_address_when_adding_audit_instance(string ipAddress)
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                SubmitAttempted = true,
+                AuditHostName = ipAddress
             };
 
             viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditHostName));

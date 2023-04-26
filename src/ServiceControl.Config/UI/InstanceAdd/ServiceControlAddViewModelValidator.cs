@@ -52,8 +52,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(viewModel => viewModel.ErrorHostName)
                 .NotEmpty()
-                .ValidHostName()
-                    .WithMessage("Error Hostname may only contain letters, numbers, and periods.")
                 .When(viewModel => viewModel.InstallErrorInstance);
 
             RuleFor(x => x.ErrorPortNumber)
@@ -157,8 +155,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             RuleFor(viewModel => viewModel.AuditHostName)
                 .NotEmpty()
-                .ValidHostName()
-                    .WithMessage("Audit Hostname may only contain letters, numbers, and periods.")
                 .When(viewModel => viewModel.InstallAuditInstance);
 
             RuleFor(x => x.AuditPortNumber)
