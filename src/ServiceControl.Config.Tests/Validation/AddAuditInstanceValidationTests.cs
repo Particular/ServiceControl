@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Config.Tests.Validation
 {
     using System.ComponentModel;
-    using NUnit.Framework;
-    using UI.InstanceAdd;
-    using ServiceControlInstaller.Engine.Instances;
-    using System.ServiceProcess;
     using System.Linq;
+    using System.ServiceProcess;
+    using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceAdd;
 
     public class AddAuditInstanceValidationTests
     {
@@ -78,7 +78,6 @@
             Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
         }
 
-
         #endregion
 
         #region transportname
@@ -102,7 +101,6 @@
             Assert.IsNotEmpty(errors);
 
         }
-
 
         [TestCase(TransportNames.AmazonSQS)]
         [TestCase(TransportNames.AzureServiceBus)]
@@ -215,7 +213,6 @@
 
         #region useraccountinfo
 
-
         [Test]
         public void User_account_info_cannot_be_empty_when_adding_audit_instance()
         {
@@ -286,6 +283,38 @@
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+        }
+
+        [Test]
+        public void Audit_hostname_can_not_be_empty_when_adding_audit_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                SubmitAttempted = true,
+                AuditHostName = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
+        }
+
+        [Test]
+        public void Audit_hostname_can_not_be_null_when_adding_audit_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallAuditInstance = true,
+                SubmitAttempted = true,
+                AuditHostName = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.AuditHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
 
         [TestCase("192.168.1.1")]
@@ -819,4 +848,3 @@
         #endregion
     }
 }
-
