@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Config.Tests.Validation
 {
-    using NUnit.Framework;
-    using UI.InstanceAdd;
-    using ServiceControlInstaller.Engine.Instances;
     using System.ComponentModel;
-    using System.ServiceProcess;
     using System.Linq;
+    using System.ServiceProcess;
+    using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceAdd;
 
     public class AddErrorInstanceValidationTests
     {
@@ -79,7 +79,6 @@
             Assert.AreEqual($"Particular.{viewModel.ConventionName}.Audit", viewModel.AuditInstanceName);
         }
 
-
         #endregion
 
         #region transportname
@@ -101,7 +100,6 @@
 
             Assert.IsNotEmpty(errors);
         }
-
 
         [TestCase(TransportNames.AmazonSQS)]
         [TestCase(TransportNames.AzureServiceBus)]
@@ -285,6 +283,37 @@
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+        }
+
+        [Test]
+        public void Error_hostname_can_be_empty_when_not_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                AuditHostName = string.Empty
+            };
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
+        }
+
+        [Test]
+        public void Error_hostname_can_be_null_when_not_adding_error_instance()
+        {
+            var viewModel = new ServiceControlAddViewModel
+            {
+                InstallErrorInstance = false,
+                SubmitAttempted = true,
+                ErrorHostName = null
+            };
+
+            viewModel.NotifyOfPropertyChange(nameof(viewModel.ErrorHostName));
+
+            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
+            Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
         }
 
         [TestCase("192.168.1.1")]
@@ -497,7 +526,6 @@
 
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorDestinationPath)));
         }
-
 
         [Test]
         public void Destination_path_can_be_empty_when_not_adding_error_instance()
