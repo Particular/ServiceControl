@@ -2,9 +2,7 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
-    using NServiceBus.Transport;
     using System;
-    using System.Threading.Tasks;
 
     public class ASQTransportCustomization : TransportCustomization
     {
@@ -14,7 +12,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
         }
@@ -24,7 +22,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             var transport = CustomizeEndpoint(endpointConfiguration, transportSettings);
             transport.EnableMessageDrivenPubSubCompatibilityMode();
@@ -35,7 +33,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings);
             //Do not ConfigurePubSub for send-only endpoint
@@ -44,6 +42,7 @@
         static TransportExtensions<AzureStorageQueueTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
         {
             var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
+
             ConfigureTransport(transport, transportSettings);
             return transport;
         }
@@ -60,9 +59,9 @@
             var connectionString = transportSettings.ConnectionString
                 .RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
-            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ConnectionString(connectionString);
+            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
 
             if (!string.IsNullOrEmpty(subscriptionTableName))
             {

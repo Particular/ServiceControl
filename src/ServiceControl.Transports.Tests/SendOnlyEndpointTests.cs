@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class NServiceBusConfigTests : TransportTestFixture
+    class SendOnlyEndpointTests : TransportTestFixture
     {
         [Test]
         public async Task Should_be_able_to_create_send_only_endpoint()
@@ -31,26 +29,14 @@
 
         public class Context : ScenarioContext
         {
-            public bool SendingEndpointGotResponse { get; set; }
-            public string ReplyToAddress { get; set; }
         }
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
             public SendOnlyEndpoint()
             {
-                EndpointSetup<BasicEndpointSetup>(c =>
-                {
-                    c.SendOnly();
-
-                    //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
-                    c.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
-                });
+                EndpointSetup<BasicEndpointSetup>();
             }
-        }
-
-        public class MyMessage : IMessage
-        {
         }
     }
 }

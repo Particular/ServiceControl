@@ -15,7 +15,9 @@
 
             var endpointConfiguration = new EndpointConfiguration(endpointCustomization.EndpointName);
             endpointConfiguration.TypesToIncludeInScan(typesToInclude);
-            endpointConfiguration.EnableInstallers();
+
+            // we don't use installers
+            //endpointConfiguration.EnableInstallers();
             endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 

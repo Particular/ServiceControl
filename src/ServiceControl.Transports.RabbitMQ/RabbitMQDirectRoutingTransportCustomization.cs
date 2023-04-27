@@ -1,10 +1,7 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
-    using System.Threading.Tasks;
-    using System;
     using NServiceBus;
     using NServiceBus.Raw;
-    using NServiceBus.Transport;
 
     public abstract class RabbitMQDirectRoutingTransportCustomization : TransportCustomization
     {
@@ -15,12 +12,12 @@
             this.queueType = queueType;
         }
 
-        public override void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings, queueType);
         }
 
-        public override void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings, queueType);
         }
@@ -35,7 +32,7 @@
             CustomizeRawEndpoint(endpointConfiguration, transportSettings, queueType);
         }
 
-        public override void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             CustomizeEndpoint(endpointConfiguration, transportSettings, queueType);
         }
