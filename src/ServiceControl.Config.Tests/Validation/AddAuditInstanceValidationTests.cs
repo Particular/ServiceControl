@@ -265,6 +265,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
 

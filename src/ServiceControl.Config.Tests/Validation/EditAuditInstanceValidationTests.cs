@@ -112,6 +112,7 @@
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
 
         }
+
         [Test]
         public void Audit_hostname_can_not_be_null_when_editing_audit_instance()
         {

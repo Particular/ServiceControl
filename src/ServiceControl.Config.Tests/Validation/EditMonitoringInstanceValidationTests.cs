@@ -39,6 +39,7 @@
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
 
         }
+
         [TestCase("192.168.1.1")]
         [TestCase("256.0.0.0")]
         public void Monitoring_hostname_can_be_an_ip_address_when_editing_a_monitoring_instance(string ipAddress)
