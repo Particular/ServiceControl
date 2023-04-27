@@ -106,6 +106,7 @@
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.HostName)));
 
         }
+
         [Test]
         public void Monitoring_hostname_cannot_be_null_when_adding_monitoring_instance()
         {

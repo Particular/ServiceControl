@@ -265,6 +265,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
 
@@ -285,6 +286,7 @@
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.AuditHostName)));
         }
 
+        [Test]
         public void Audit_hostname_can_not_be_empty_when_adding_audit_instance()
         {
             var viewModel = new ServiceControlAddViewModel
