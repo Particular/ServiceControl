@@ -263,6 +263,7 @@
             };
 
             var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
         }
 
@@ -282,6 +283,7 @@
 
             Assert.IsEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.ErrorHostName)));
         }
+
         [Test]
         public void Error_hostname_can_not_be_empty_when_adding_error_instance()
         {
