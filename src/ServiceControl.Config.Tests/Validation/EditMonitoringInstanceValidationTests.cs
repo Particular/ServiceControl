@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Config.Tests.Validation
 {
-    using NUnit.Framework;
     using System.ComponentModel;
+    using NUnit.Framework;
     using UI.InstanceEdit;
 
     public class EditMonitoringInstanceValidationTests
@@ -9,7 +9,7 @@
         #region hostname
 
         [Test]
-        public void Monitoring_hostname_cannot_be_empty_when_adding_monitoring_instance()
+        public void Monitoring_hostname_cannot_be_empty_when_editing_monitoring_instance()
         {
             var viewModel = new MonitoringEditViewModel
             {
@@ -24,7 +24,7 @@
         }
 
         [Test]
-        public void Monitoring_hostname_cannot_be_null_when_adding_monitoring_instance()
+        public void Monitoring_hostname_cannot_be_null_when_editing_monitoring_instance()
         {
             var viewModel = new MonitoringEditViewModel
             {
