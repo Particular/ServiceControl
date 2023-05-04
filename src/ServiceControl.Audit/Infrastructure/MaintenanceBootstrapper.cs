@@ -10,8 +10,8 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public static async Task Run(HostArguments args)
         {
-            var settings = new Settings.Settings(args.ServiceName);
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration();
+            var settings = Settings.Settings.FromConfiguration(args.ServiceName);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceCustomizationType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;

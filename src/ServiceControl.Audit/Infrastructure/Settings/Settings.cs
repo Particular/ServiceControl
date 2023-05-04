@@ -11,25 +11,41 @@
 
     public class Settings
     {
-        public Settings(string serviceName = null)
+        // Service name is what the user chose when installing the instance or is passing on the command line.
+        // We use this as the default endpoint name.
+        public static Settings FromConfiguration(string serviceName)
+        {
+            return new Settings(
+                 SettingsReader<string>.Read("InternalQueueName", serviceName), // endpoint name can also be overriden via config
+                 SettingsReader<string>.Read("TransportType", null),
+                 SettingsReader<string>.Read("PersistenceType", null));
+        }
+
+        public Settings(
+            string serviceName,
+            string transportCustomizationType,
+            string persistenceCustomizationType)
         {
             ServiceName = serviceName;
 
-            if (string.IsNullOrEmpty(serviceName))
+            ValidateTransportType(transportCustomizationType);
+
+            TransportCustomizationType = transportCustomizationType;
+
+            PersistenceCustomizationType = persistenceCustomizationType;
+
+            if (string.IsNullOrEmpty(persistenceCustomizationType))
             {
-                ServiceName = DEFAULT_SERVICE_NAME;
+                throw new ConfigurationErrorsException("No persistence have been configured");
             }
 
-            // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
+            TransportConnectionString = GetConnectionString();
 
             AuditQueue = GetAuditQueue();
             AuditLogQueue = GetAuditLogQueue(AuditQueue);
 
             TryLoadLicenseFromConfig();
 
-            TransportConnectionString = GetConnectionString();
-            TransportCustomizationType = GetTransportType();
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 44444);
@@ -71,7 +87,9 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
-        public string TransportCustomizationType { get; set; }
+        public string TransportCustomizationType { get; private set; }
+
+        public string PersistenceCustomizationType { get; private set; }
 
         public string AuditQueue { get; set; }
 
@@ -184,13 +202,6 @@
         {
             var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
 
-            if (value == null)
-            {
-                logger.Warn("No settings found for audit queue to import, if this is not intentional please set add ServiceBus/AuditQueue to your appSettings");
-                IngestAuditMessages = false;
-                return null;
-            }
-
             if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Info("Audit ingestion disabled.");
@@ -224,9 +235,13 @@
             return connectionStringSettings?.ConnectionString;
         }
 
-        static string GetTransportType()
+        static void ValidateTransportType(string typeName)
         {
-            var typeName = SettingsReader<string>.Read("TransportType", "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq");
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ConfigurationErrorsException("No transport has been configured");
+            }
+
             var typeNameAndAssembly = typeName.Split(',');
             if (typeNameAndAssembly.Length < 2)
             {
@@ -245,12 +260,10 @@
             }
 
             var transportType = Type.GetType(typeName, false, true);
-            if (transportType != null)
+            if (transportType == null)
             {
-                return typeName;
+                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
             }
-
-            throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
         }
 
         TimeSpan GetAuditRetentionPeriod()
