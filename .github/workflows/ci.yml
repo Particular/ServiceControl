@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
+  AZURE_CORE_USE_COMMAND_INDEX: false
 jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
