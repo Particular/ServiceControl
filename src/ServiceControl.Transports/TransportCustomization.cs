@@ -2,21 +2,57 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
+    using NServiceBus.Features;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
 
     public abstract class TransportCustomization
     {
-        public abstract void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
-        public abstract void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
-        public abstract void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
+        public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
+            CustomizeTransportSpecificServiceControlEndpointSettings(endpointConfiguration, transportSettings);
+        }
+
+        public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
+            CustomizeTransportSpecificSendOnlyEndpointSettings(endpointConfiguration, transportSettings);
+
+            endpointConfiguration.SendOnly();
+
+            //DisablePublishing API is available only on TransportExtensions for transports that implement IMessageDrivenPubSub so we need to set settings directly
+            endpointConfiguration.GetSettings().Set("NServiceBus.PublishSubscribe.EnablePublishing", false);
+        }
+
+        public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
+            CustomizeTransportSpecificMonitoringEndpointSettings(endpointConfiguration, transportSettings);
+        }
+
+        protected void ConfigureDefaultEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        {
+            endpointConfiguration.DisableFeature<Audit>();
+            endpointConfiguration.DisableFeature<AutoSubscribe>();
+            endpointConfiguration.DisableFeature<Outbox>();
+            endpointConfiguration.DisableFeature<Sagas>();
+            endpointConfiguration.DisableFeature<TimeoutManager>();
+            endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
+        }
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
 
