@@ -2,6 +2,7 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
@@ -44,7 +45,19 @@ namespace ServiceControl.Monitoring
             var requestingName = new AssemblyName(name).Name;
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            return !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+            if (assembly == null)
+            {
+                //look into transport directory
+                var transportsPath = Path.Combine(appDirectory, "Transports");
+                var file = Directory.EnumerateFiles(transportsPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
+                if (file != null)
+                {
+                    assembly = Assembly.LoadFrom(file);
+                }
+            }
+
+            return assembly;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
