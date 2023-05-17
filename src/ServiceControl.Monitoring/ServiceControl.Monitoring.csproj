@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
   </ItemGroup>
 
   <ItemGroup Label="Transports">
