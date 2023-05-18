@@ -22,13 +22,13 @@
             );
         }
 
-        public Settings(string serviceName)
+        public Settings(string serviceName, string transportType = null, string persisterType = null)
         {
             ServiceName = serviceName;
 
-            var transportCustomizationType = SettingsReader<string>.Read("TransportType", null);
+            var transportCustomizationType = transportType ?? SettingsReader<string>.Read("TransportType", null);
             var transportName = SettingsReader<string>.Read("TransportName", null);
-            var persistenceCustomizationType = SettingsReader<string>.Read("PersistenceType", null);
+            var persistenceCustomizationType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
             var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
 
             if (transportCustomizationType == null && transportName == null)
@@ -36,8 +36,8 @@
                 throw new Exception("No transport have been configured. Either provide a TransportType setting or a TransportName setting.");
             }
 
-            //transport name takes precedence
-            if (transportName != null)
+            //transportCustomizationType takes precedence
+            if (transportCustomizationType == null && transportName != null)
             {
                 TransportName = transportName;
 
@@ -74,8 +74,8 @@
                 throw new Exception("No persistence have been configured. Either provide a PeristenceType setting or a PersistenceName setting.");
             }
 
-            //persister name takes precedence
-            if (persistenceName != null)
+            //persistenceCustomizationType takes precedence
+            if (persistenceCustomizationType == null && persistenceName != null)
             {
                 PersistenceName = persistenceName;
                 //load the manifest
