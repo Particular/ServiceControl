@@ -1,0 +1,6 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "LearningTransport",
+  "DisplayName": "LearningTransport",
+  "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning"
+}
