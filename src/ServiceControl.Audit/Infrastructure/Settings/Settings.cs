@@ -3,7 +3,9 @@
     using System;
     using System.Configuration;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using Newtonsoft.Json.Linq;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -16,21 +18,77 @@
         public static Settings FromConfiguration(string serviceName)
         {
             return new Settings(
-                 SettingsReader<string>.Read("InternalQueueName", serviceName), // endpoint name can also be overriden via config
-                 SettingsReader<string>.Read("TransportType", null),
-                 SettingsReader<string>.Read("PersistenceType", null));
+                 SettingsReader<string>.Read("InternalQueueName", serviceName) // endpoint name can also be overriden via config
+            );
         }
 
-        public Settings(
-            string serviceName,
-            string transportCustomizationType,
-            string persistenceCustomizationType)
+        public Settings(string serviceName)
         {
             ServiceName = serviceName;
 
-            ValidateTransportType(transportCustomizationType);
+            var transportCustomizationType = SettingsReader<string>.Read("TransportType", null);
+            var transportName = SettingsReader<string>.Read("TransportName", null);
+            var persistenceCustomizationType = SettingsReader<string>.Read("PersistenceType", null);
+            var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
+
+            if (transportCustomizationType == null && transportName == null)
+            {
+                throw new Exception("No transport have been configured. Either provide a TransportType setting or a TransportName setting.");
+            }
+
+            //transport name takes precedence
+            if (transportName != null)
+            {
+                TransportName = transportName;
+
+                //manifest contains multiple customizations if ransport name is like ASB.Forwarding
+                var multipleCustomizationsPerManifest = transportName.IndexOf('.') != -1;
+                var transportFolder = multipleCustomizationsPerManifest ? transportName.Split('.').First() : transportName;
+
+                //load the manifest
+                var manifestPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Transports", transportFolder, "transport.manifest");
+                if (!File.Exists(manifestPath))
+                {
+                    throw new Exception($"Cannot load the manifest file for the configured transport name ({manifestPath})");
+                }
+
+                //TODO make this better
+                var manifest = JObject.Parse(File.ReadAllText(manifestPath));
+
+                if (multipleCustomizationsPerManifest)
+                {
+                    var transportCustomizationName = transportName.Split('.').Last();
+                    var customization = manifest["Customizations"].Values().Single(jt => jt["Name"].Value<string>() == transportCustomizationName);
+                    transportCustomizationType = customization["TypeName"].Value<string>();
+                }
+                else
+                {
+                    transportCustomizationType = manifest["TypeName"].Value<string>();
+                }
+            }
 
             TransportCustomizationType = transportCustomizationType;
+
+            if (persistenceCustomizationType == null && persistenceName == null)
+            {
+                throw new Exception("No persistence have been configured. Either provide a PeristenceType setting or a PersistenceName setting.");
+            }
+
+            //persister name takes precedence
+            if (persistenceName != null)
+            {
+                PersistenceName = persistenceName;
+                //load the manifest
+                var manifestPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Persisters", persistenceName, "persistence.manifest");
+                if (!File.Exists(manifestPath))
+                {
+                    throw new Exception($"Cannot load the manifest file for the configured persister name ({manifestPath})");
+                }
+
+                //TODO make this better
+                var manifest = JObject.Parse(File.ReadAllText(manifestPath));
+                persistenceCustomizationType = manifest["TypeName"].Value<string>();
+            }
 
             PersistenceCustomizationType = persistenceCustomizationType;
 
@@ -55,6 +113,11 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+        }
+
+        public void Validate()
+        {
+            ValidateTransportType(TransportCustomizationType, TransportName);
         }
 
         //HINT: acceptance tests only
@@ -87,7 +150,11 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
+        public string TransportName { get; private set; }
+
         public string TransportCustomizationType { get; private set; }
+
+        public string PersistenceName { get; private set; }
 
         public string PersistenceCustomizationType { get; private set; }
 
@@ -235,7 +302,7 @@
             return connectionStringSettings?.ConnectionString;
         }
 
-        static void ValidateTransportType(string typeName)
+        static void ValidateTransportType(string typeName, string transportName)
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -251,7 +318,18 @@
             string transportAssemblyPath = null;
             try
             {
-                transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{typeNameAndAssembly[1].Trim()}.dll");
+                var assemblyName = $"{typeNameAndAssembly[1].Trim()}.dll";
+
+                if (transportName != null)
+                {
+                    var transportFolder = transportName.Split('.').First();
+                    transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Transports", transportFolder, assemblyName);
+                }
+                else
+                {
+                    transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), assemblyName);
+                }
+
                 Assembly.LoadFile(transportAssemblyPath); // load into AppDomain
             }
             catch (Exception e)
