@@ -6,6 +6,8 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Import Project="..\Transports.Includes.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
@@ -26,32 +28,4 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
   </ItemGroup>
 
-  <ItemGroup Label="Transports">
-    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" ReferenceOutputAssembly="false" Private="false" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <TranportsFolder>Transports</TranportsFolder>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <AllTransportAssets Include="..\..\deploy\Particular.ServiceControl.Monitoring\$(TranportsFolder)\**\*.*" />
-  </ItemGroup>
-
-  <Target Name="CleanTransportBinaries" AfterTargets="Build">
-    <RemoveDir Directories="$(OutputPath)\$(TranportsFolder)" />
-    <MakeDir Directories="$(OutputPath)\$(TranportsFolder)" />
-  </Target>
-
-  <Target Name="CopyMonitoringTransports" AfterTargets="CleanTransportBinaries">
-    <Copy SourceFiles="@(AllTransportAssets)" DestinationFolder="$(OutputPath)$(TranportsFolder)\%(RecursiveDir)" />
-  </Target>
-
-  </Project>
+</Project>

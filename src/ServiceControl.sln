@@ -49,6 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.github\workflows\ci.yml = ..\.github\workflows\ci.yml
 		Custom.Build.props = Custom.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		Transports.Includes.props = Transports.Includes.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports", "ServiceControl.Transports\ServiceControl.Transports.csproj", "{3D9E3A53-164F-4430-A6A4-D35551F5DC88}"
