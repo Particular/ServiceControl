@@ -1,7 +1,8 @@
-﻿namespace ServiceControl.Audit
+namespace ServiceControl.Audit
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -12,6 +13,8 @@
 
     class Program
     {
+        static Settings settings;
+
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
@@ -28,7 +31,9 @@
             var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments)
+            settings = Settings.FromConfiguration(arguments.ServiceName);
+
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);
         }
 

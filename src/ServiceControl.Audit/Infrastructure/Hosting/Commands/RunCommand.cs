@@ -7,10 +7,8 @@
 
     class RunCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args)
+        public override Task Execute(HostArguments args, Settings settings)
         {
-            var settings = Settings.FromConfiguration(args.ServiceName);
-
             var runAsWindowsService = args.RunAsWindowsService;
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = busConfiguration.AssemblyScanner();
