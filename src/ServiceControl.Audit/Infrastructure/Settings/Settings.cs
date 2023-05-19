@@ -81,11 +81,6 @@
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
         }
 
-        public void Validate()
-        {
-            ValidateTransportType(TransportType, TransportName);
-        }
-
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
@@ -271,48 +266,6 @@
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
-        }
-
-        static void ValidateTransportType(string typeName, string transportName)
-        {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ConfigurationErrorsException("No transport has been configured");
-            }
-
-            var typeNameAndAssembly = typeName.Split(',');
-            if (typeNameAndAssembly.Length < 2)
-            {
-                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is a fully qualified assembly name");
-            }
-
-            string transportAssemblyPath = null;
-            try
-            {
-                var assemblyName = $"{typeNameAndAssembly[1].Trim()}.dll";
-
-                if (transportName != null)
-                {
-                    var transportFolder = transportName.Split('.').First();
-                    transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Transports", transportFolder, assemblyName);
-                }
-                else
-                {
-                    transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), assemblyName);
-                }
-
-                Assembly.LoadFile(transportAssemblyPath); // load into AppDomain
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Configuration of transport Failed. Ensure the assembly '{transportAssemblyPath}' is present and that type is correctly defined in settings", e);
-            }
-
-            var transportType = Type.GetType(typeName, false, true);
-            if (transportType == null)
-            {
-                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
-            }
         }
 
         TimeSpan GetAuditRetentionPeriod()
