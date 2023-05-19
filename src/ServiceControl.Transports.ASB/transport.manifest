@@ -1,0 +1,16 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "AzureServiceBus",
+  "Customizations": [
+    {
+      "Name": "EndpointOriented",
+      "DisplayName": "Azure Service Bus EndpointOriented topology",
+      "TypeName": "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB"
+    },
+    {
+      "Name": "Forwarding",
+      "DisplayName": "Azure Service Bus Forwarding topology",
+      "TypeName": "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB"
+    }
+  ]
+}

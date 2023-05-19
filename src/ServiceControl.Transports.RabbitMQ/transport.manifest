@@ -1,0 +1,36 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "RabbitMQ",
+  "Customizations": [
+    {
+      "Name": "ClassicConventionalRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    },
+    {
+      "Name": "ClassicDirectRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassimDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    },
+    {
+      "Name": "ConventionalRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    },
+    {
+      "Name": "DirectRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    },
+    {
+      "Name": "QuorumConventionalRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumComventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    },
+    {
+      "Name": "QuorumDirectRouting",
+      "DisplayName": "",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+    }
+  ]
+}

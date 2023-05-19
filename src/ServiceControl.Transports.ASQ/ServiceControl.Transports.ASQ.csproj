@@ -16,4 +16,8 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\AzureStorageQueue')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

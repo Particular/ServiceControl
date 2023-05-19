@@ -1,0 +1,6 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "NetStandardAzureServiceBus",
+  "DisplayName": "Azure Service Bus Standard",
+  "TypeName": "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS"
+}

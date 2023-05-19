@@ -1,0 +1,6 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "AzureStorageQueue",
+  "DisplayName": "Azure Storage Queue",
+  "TypeName": "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ"
+}
