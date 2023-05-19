@@ -181,7 +181,7 @@ Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
-Transport Customization:            {settings.TransportCustomizationType},
+Transport Customization:            {settings.TransportType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
@@ -203,7 +203,7 @@ Persistence:                        {persistenceConfiguration.Name}
                     settings.Port,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
-                    settings.TransportCustomizationType
+                    settings.TransportType
                 },
                 LoggingSettings = loggingSettings
             });

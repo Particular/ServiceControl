@@ -32,7 +32,7 @@
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             settings = Settings.FromConfiguration(arguments.ServiceName);
-            settings.Validate();
+            //settings.Validate(); //TODO - is this required here? Feels like we're loading the assembly twice as it's being done in the bootstrapper and validated there?
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);

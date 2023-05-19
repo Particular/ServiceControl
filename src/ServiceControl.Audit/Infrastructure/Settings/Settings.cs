@@ -26,48 +26,14 @@
         {
             ServiceName = serviceName;
 
-            var transportCustomizationType = transportType ?? SettingsReader<string>.Read("TransportType", null);
-            var transportName = SettingsReader<string>.Read("TransportName", null);
+            TransportType = SettingsReader<string>.Read("TransportType");
+            if (TransportType == null)
+            {
+                TransportName = SettingsReader<string>.Read("TransportName");
+            }
+
             var persistenceCustomizationType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
             var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
-
-            if (transportCustomizationType == null && transportName == null)
-            {
-                throw new Exception("No transport have been configured. Either provide a TransportType setting or a TransportName setting.");
-            }
-
-            //transportCustomizationType takes precedence
-            if (transportCustomizationType == null && transportName != null)
-            {
-                TransportName = transportName;
-
-                //manifest contains multiple customizations if ransport name is like ASB.Forwarding
-                var multipleCustomizationsPerManifest = transportName.IndexOf('.') != -1;
-                var transportFolder = multipleCustomizationsPerManifest ? transportName.Split('.').First() : transportName;
-
-                //load the manifest
-                var manifestPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Transports", transportFolder, "transport.manifest");
-                if (!File.Exists(manifestPath))
-                {
-                    throw new Exception($"Cannot load the manifest file for the configured transport name ({manifestPath})");
-                }
-
-                //TODO make this better
-                var manifest = JObject.Parse(File.ReadAllText(manifestPath));
-
-                if (multipleCustomizationsPerManifest)
-                {
-                    var transportCustomizationName = transportName.Split('.').Last();
-                    var customization = manifest["Customizations"].Values().Single(jt => jt["Name"].Value<string>() == transportCustomizationName);
-                    transportCustomizationType = customization["TypeName"].Value<string>();
-                }
-                else
-                {
-                    transportCustomizationType = manifest["TypeName"].Value<string>();
-                }
-            }
-
-            TransportCustomizationType = transportCustomizationType;
 
             if (persistenceCustomizationType == null && persistenceName == null)
             {
@@ -117,7 +83,7 @@
 
         public void Validate()
         {
-            ValidateTransportType(TransportCustomizationType, TransportName);
+            ValidateTransportType(TransportType, TransportName);
         }
 
         //HINT: acceptance tests only
@@ -152,7 +118,7 @@
 
         public string TransportName { get; private set; }
 
-        public string TransportCustomizationType { get; private set; }
+        public string TransportType { get; private set; }
 
         public string PersistenceName { get; private set; }
 
@@ -203,12 +169,17 @@
         {
             try
             {
-                var customizationType = Type.GetType(TransportCustomizationType, true);
+                TransportManifestLibrary.Initialize();
+
+                TransportType = TransportManifestLibrary.Find(TransportType, TransportName);
+
+                var customizationType = Type.GetType(TransportType, true);
+
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
             }
         }
 
