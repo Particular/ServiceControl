@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using Commands;
@@ -11,6 +12,8 @@
 
     class Program
     {
+        static Settings settings;
+
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
@@ -27,7 +30,9 @@
             var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments)
+            settings = new Settings(arguments.ServiceName);
+
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);
         }
         static void LogException(Exception ex)
@@ -42,14 +47,29 @@
             var requestingName = new AssemblyName(name).Name;
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            if (!File.Exists(combine))
+            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+            if (assembly == null && !string.IsNullOrWhiteSpace(settings.TransportName))
             {
-                return null;
+                //We are only interested in the directory that is the first segment
+                var transportNameFolder = settings.TransportName.Split('.').First();
+                var subFolderPath = Path.Combine(appDirectory, "Transports", transportNameFolder);
+                assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 
-            return Assembly.LoadFrom(combine);
+            return assembly;
         }
 
+        static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        {
+            //look into any subdirectory
+            var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
+            if (file != null)
+            {
+                return Assembly.LoadFrom(file);
+            }
+
+            return null;
+        }
         static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
     }
 }

@@ -55,7 +55,6 @@
                 //We are only interested in the directory that is the first segment
                 var transportNameFolder = settings.TransportName.Split('.').First();
                 var subFolderPath = Path.Combine(appDirectory, "Transports", transportNameFolder);
-                //TODO this assumes that versions are all the same even if the same assembly is located in different directories
                 assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 
@@ -64,7 +63,6 @@
                 //We are only interested in the directory
                 var persisterNameFolder = settings.PersistenceName.Split('.').First();
                 var subFolderPath = Path.Combine(appDirectory, "Persisters", persisterNameFolder);
-                //TODO this assumes that versions are all the same even if the same assembly is located in different directories
                 assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 
