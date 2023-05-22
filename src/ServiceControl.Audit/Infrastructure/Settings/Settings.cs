@@ -26,7 +26,7 @@
         {
             ServiceName = serviceName;
 
-            TransportType = SettingsReader<string>.Read("TransportType");
+            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
 
             var persistenceCustomizationType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
             var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
