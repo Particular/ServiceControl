@@ -33,7 +33,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-            TransportCustomizationType = SettingsReader<string>.Read("TransportType");
+            TransportType = SettingsReader<string>.Read("TransportType");
             TransportName = SettingsReader<string>.Read("TransportName");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = GetForwardErrorMessages();
@@ -132,7 +132,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public string TransportCustomizationType { get; set; }
+        public string TransportType { get; set; }
         public string TransportName { get; set; }
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
@@ -220,14 +220,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 TransportManifestLibrary.Initialize();
 
-                var transportType = TransportManifestLibrary.Find(TransportCustomizationType, TransportName);
+                TransportType = TransportManifestLibrary.Find(TransportType, TransportName);
 
-                var customizationType = Type.GetType(transportType, true);
+                var customizationType = Type.GetType(TransportType, true);
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
             }
         }
 
