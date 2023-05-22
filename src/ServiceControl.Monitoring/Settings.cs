@@ -17,10 +17,6 @@ namespace ServiceControl.Monitoring
             TryLoadLicenseFromConfig();
 
             TransportType = SettingsReader<string>.Read("TransportType");
-            if (TransportType == null)
-            {
-                TransportName = SettingsReader<string>.Read("TransportName");
-            }
 
             ConnectionString = GetConnectionString();
             LogLevel = LoggingConfigurator.InitializeLevel();
@@ -42,7 +38,6 @@ namespace ServiceControl.Monitoring
         public bool Portable { get; set; } = false;
         public string ServiceName { get; set; } = DEFAULT_ENDPOINT_NAME;
         public string TransportType { get; set; }
-        public string TransportName { get; set; }
         public string ConnectionString { get; set; }
         public string ErrorQueue { get; set; }
         public string LogPath { get; set; }
@@ -77,7 +72,7 @@ namespace ServiceControl.Monitoring
             {
                 TransportManifestLibrary.Initialize();
 
-                TransportType = TransportManifestLibrary.Find(TransportType, TransportName);
+                TransportType = TransportManifestLibrary.Find(TransportType);
 
                 var customizationType = Type.GetType(TransportType, true);
 

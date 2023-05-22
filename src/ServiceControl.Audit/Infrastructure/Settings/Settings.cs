@@ -27,10 +27,6 @@
             ServiceName = serviceName;
 
             TransportType = SettingsReader<string>.Read("TransportType");
-            if (TransportType == null)
-            {
-                TransportName = SettingsReader<string>.Read("TransportName");
-            }
 
             var persistenceCustomizationType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
             var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
@@ -111,8 +107,6 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
-        public string TransportName { get; private set; }
-
         public string TransportType { get; private set; }
 
         public string PersistenceName { get; private set; }
@@ -166,7 +160,7 @@
             {
                 TransportManifestLibrary.Initialize();
 
-                TransportType = TransportManifestLibrary.Find(TransportType, TransportName);
+                TransportType = TransportManifestLibrary.Find(TransportType);
 
                 var customizationType = Type.GetType(TransportType, true);
 
