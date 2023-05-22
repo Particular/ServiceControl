@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Commands;
+    using global::ServiceControl.Transports;
     using Hosting;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -48,11 +49,10 @@
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-            if (assembly == null && !string.IsNullOrWhiteSpace(settings.TransportName))
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            if (assembly == null && transportFolder != null)
             {
-                //We are only interested in the directory that is the first segment
-                var transportNameFolder = settings.TransportName.Split('.').First();
-                var subFolderPath = Path.Combine(appDirectory, "Transports", transportNameFolder);
+                var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
                 assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 

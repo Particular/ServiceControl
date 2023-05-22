@@ -2,10 +2,6 @@
 {
     using System;
     using System.Configuration;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using Newtonsoft.Json.Linq;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -28,36 +24,7 @@
 
             TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
 
-            var persistenceCustomizationType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
-            var persistenceName = SettingsReader<string>.Read("PersistenceName", null);
-
-            if (persistenceCustomizationType == null && persistenceName == null)
-            {
-                throw new Exception("No persistence have been configured. Either provide a PeristenceType setting or a PersistenceName setting.");
-            }
-
-            //persistenceCustomizationType takes precedence
-            if (persistenceCustomizationType == null && persistenceName != null)
-            {
-                PersistenceName = persistenceName;
-                //load the manifest
-                var manifestPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Persisters", persistenceName, "persistence.manifest");
-                if (!File.Exists(manifestPath))
-                {
-                    throw new Exception($"Cannot load the manifest file for the configured persister name ({manifestPath})");
-                }
-
-                //TODO make this better
-                var manifest = JObject.Parse(File.ReadAllText(manifestPath));
-                persistenceCustomizationType = manifest["TypeName"].Value<string>();
-            }
-
-            PersistenceCustomizationType = persistenceCustomizationType;
-
-            if (string.IsNullOrEmpty(persistenceCustomizationType))
-            {
-                throw new ConfigurationErrorsException("No persistence have been configured");
-            }
+            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
 
             TransportConnectionString = GetConnectionString();
 
@@ -109,9 +76,7 @@
 
         public string TransportType { get; private set; }
 
-        public string PersistenceName { get; private set; }
-
-        public string PersistenceCustomizationType { get; private set; }
+        public string PersistenceType { get; private set; }
 
         public string AuditQueue { get; set; }
 

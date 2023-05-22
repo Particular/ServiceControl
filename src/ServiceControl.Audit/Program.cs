@@ -10,6 +10,8 @@
     using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
     using NServiceBus.Logging;
+    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Transports;
 
     class Program
     {
@@ -50,19 +52,17 @@
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-            if (assembly == null && !string.IsNullOrWhiteSpace(settings.TransportName))
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            if (assembly == null && transportFolder != null)
             {
-                //We are only interested in the directory that is the first segment
-                var transportNameFolder = settings.TransportName.Split('.').First();
-                var subFolderPath = Path.Combine(appDirectory, "Transports", transportNameFolder);
+                var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
                 assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 
-            if (assembly == null && !string.IsNullOrWhiteSpace(settings.PersistenceName))
+            var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
+            if (assembly == null && persistenceFolder != null)
             {
-                //We are only interested in the directory
-                var persisterNameFolder = settings.PersistenceName.Split('.').First();
-                var subFolderPath = Path.Combine(appDirectory, "Persisters", persisterNameFolder);
+                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
                 assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 

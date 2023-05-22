@@ -41,7 +41,7 @@ namespace ServiceControl.Audit.Infrastructure
 
         void CreateHost()
         {
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceCustomizationType);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             RecordStartup(loggingSettings, configuration, persistenceConfiguration);

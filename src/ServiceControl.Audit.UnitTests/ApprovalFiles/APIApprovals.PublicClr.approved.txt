@@ -35,8 +35,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public int MaxBodySizeToStore { get; set; }
         public int MaximumConcurrencyLevel { get; set; }
         public System.Func<NServiceBus.Transport.MessageContext, bool> MessageFilter { get; set; }
-        public string PersistenceCustomizationType { get; }
-        public string PersistenceName { get; }
+        public string PersistenceType { get; }
         public int Port { get; set; }
         public bool PrintMetrics { get; }
         public string RootUrl { get; }
@@ -45,12 +44,10 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public bool SkipQueueCreation { get; set; }
         public System.TimeSpan TimeToRestartAuditIngestionAfterFailure { get; set; }
         public string TransportConnectionString { get; set; }
-        public string TransportCustomizationType { get; }
-        public string TransportName { get; }
+        public string TransportType { get; }
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
         public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
-        public void Validate() { }
         public static ServiceControl.Audit.Infrastructure.Settings.Settings FromConfiguration(string serviceName) { }
     }
 }

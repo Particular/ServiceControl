@@ -64,6 +64,25 @@
 
             return transportType;
         }
+
+        public static string GetTransportFolder(string transportType)
+        {
+            if (transportType == null)
+            {
+                throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
+            }
+
+            var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
+                    string.Compare(w.TypeName, transportType, true) == 0 || string.Compare(w.Name, transportType, true) == 0
+                    || w.Aliases.Contains(transportType)).FirstOrDefault();
+
+            if (transportManifestDefinition != null)
+            {
+                return transportManifestDefinition.Name.Split('.').FirstOrDefault();
+            }
+
+            return null;
+        }
     }
 }
 

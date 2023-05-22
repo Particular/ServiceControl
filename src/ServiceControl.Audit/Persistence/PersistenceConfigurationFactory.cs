@@ -5,17 +5,22 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceConfigurationFactory
     {
-        public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceCustomizationType)
+        public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType)
         {
             try
             {
-                var customizationType = Type.GetType(persistenceCustomizationType, true);
+                PersistenceManifestLibrary.Initialize();
+
+                var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
+
+                var customizationType = Type.GetType(foundPersistenceType, true);
 
                 return (IPersistenceConfiguration)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load persistence customization type {persistenceCustomizationType}.", e);
+                throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
+
             }
         }
 
