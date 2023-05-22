@@ -9,8 +9,6 @@ namespace ServiceControl.Audit.Persistence
         {
             try
             {
-                PersistenceManifestLibrary.Initialize();
-
                 var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
 
                 var customizationType = Type.GetType(foundPersistenceType, true);

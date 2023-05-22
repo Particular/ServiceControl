@@ -70,8 +70,6 @@ namespace ServiceControl.Monitoring
         {
             try
             {
-                TransportManifestLibrary.Initialize();
-
                 TransportType = TransportManifestLibrary.Find(TransportType);
 
                 var customizationType = Type.GetType(TransportType, true);

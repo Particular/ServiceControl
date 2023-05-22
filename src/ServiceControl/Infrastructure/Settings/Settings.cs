@@ -216,8 +216,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             try
             {
-                TransportManifestLibrary.Initialize();
-
                 TransportType = TransportManifestLibrary.Find(TransportType);
 
                 var customizationType = Type.GetType(TransportType, true);

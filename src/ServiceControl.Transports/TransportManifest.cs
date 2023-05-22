@@ -28,7 +28,7 @@
         public static List<TransportManifest> TransportManifests { get; set; }
 
         static bool initialized;
-        public static void Initialize()
+        static void Initialize()
         {
             if (TransportManifests == null)
             {
@@ -53,6 +53,8 @@
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
 
+            Initialize();
+
             var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
                     string.Compare(w.TypeName, transportType, true) == 0 || string.Compare(w.Name, transportType, true) == 0
                     || w.Aliases.Contains(transportType)).FirstOrDefault();
@@ -71,6 +73,8 @@
             {
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
+
+            Initialize();
 
             var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
                     string.Compare(w.TypeName, transportType, true) == 0 || string.Compare(w.Name, transportType, true) == 0

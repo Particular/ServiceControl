@@ -20,7 +20,7 @@
         public static List<PersistenceManifest> PersistenceManifests { get; set; }
 
         static bool initialized;
-        public static void Initialize()
+        static void Initialize()
         {
             if (PersistenceManifests == null)
             {
@@ -45,6 +45,8 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
+            Initialize();
+
             var persistenceManifestDefinition = PersistenceManifests.Where(w =>
                     string.Compare(w.TypeName, persistenceType, true) == 0 || string.Compare(w.Name, persistenceType, true) == 0).FirstOrDefault();
 
@@ -62,6 +64,8 @@
             {
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
+
+            Initialize();
 
             var persistenceManifestDefinition = PersistenceManifests.Where(w =>
                     string.Compare(w.TypeName, persistenceType, true) == 0 || string.Compare(w.Name, persistenceType, true) == 0).FirstOrDefault();
