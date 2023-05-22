@@ -20,23 +20,42 @@
 
         public string ServerUrl { get; private set; }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
+        static (string LicenseFileName, string ServerDirectory) GetRavenLicenseFileNameAndServerDirectory()
         {
             var licenseFileName = "RavenLicense.json";
             var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, licenseFileName);
+            if (File.Exists(localRavenLicense))
+            {
+                return (localRavenLicense, null);
+            }
+
+            //TODO: refactor this to extract the folder name to a constant
+            localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Persisters", "RavenDB5", licenseFileName);
             if (!File.Exists(localRavenLicense))
             {
-                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file, '{licenseFileName}', is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder.");
+                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file, '{licenseFileName}', " +
+                    $"is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder or in the 'Persisters/RavenDB5' subfolder.");
             }
+
+            // By default RavenDB 5 searches its binaries in the RavenDBServer right below the BaseDirectory.
+            // If we're loading from Persisters/RavenDB5 we also have to signal RavenDB where are binaries
+            var serverDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Persisters", "RavenDB5", "RavenDBServer");
+
+            return (localRavenLicense, serverDirectory);
+        }
+
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
+        {
+            var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.ServerConfiguration.DbPath, "Packages", "NuGet");
 
-            logger.InfoFormat("Loading RavenDB license from {0}", localRavenLicense);
+            logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs = new List<string>
                 {
-                    $"--License.Path=\"{localRavenLicense}\"",
+                    $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
                     $"--Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
@@ -47,6 +66,11 @@
                 ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,
                 LogsPath = databaseConfiguration.ServerConfiguration.LogPath
             };
+
+            if (!string.IsNullOrWhiteSpace(licenseFileNameAndServerDirectory.ServerDirectory))
+            {
+                serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
+            }
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
