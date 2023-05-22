@@ -22,17 +22,17 @@
         static bool initialized;
         public static void Initialize()
         {
-            if (!initialized)
+            if (PersistenceManifests == null)
+            {
+                PersistenceManifests = new List<PersistenceManifest>();
+            }
+
+            if (!initialized && Assembly.GetEntryAssembly() != null)
             {
                 initialized = true;
                 var assemblyLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
                 {
-                    if (PersistenceManifests == null)
-                    {
-                        PersistenceManifests = new List<PersistenceManifest>();
-                    }
-
                     PersistenceManifests.Add(System.Text.Json.JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
                 });
             }

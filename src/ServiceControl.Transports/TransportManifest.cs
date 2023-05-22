@@ -30,17 +30,17 @@
         static bool initialized;
         public static void Initialize()
         {
-            if (!initialized)
+            if (TransportManifests == null)
+            {
+                TransportManifests = new List<TransportManifest>();
+            }
+
+            if (!initialized && Assembly.GetEntryAssembly() != null)
             {
                 initialized = true;
                 var assemblyLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 Directory.EnumerateFiles(assemblyLocation, "transport.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
                 {
-                    if (TransportManifests == null)
-                    {
-                        TransportManifests = new List<TransportManifest>();
-                    }
-
                     TransportManifests.Add(System.Text.Json.JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)));
                 });
             }
