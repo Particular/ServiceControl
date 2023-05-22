@@ -4,7 +4,8 @@
     {
       "Name": "SQLServer",
       "DisplayName": "SqlServer",
-      "TypeName": "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
+      "TypeName": "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
+      "Aliases": [ "NServiceBus.SqlServerTransport, NServiceBus.Transport.SQLServer", "ServiceControl.Transports.SQLServer.ServiceControlSQLServerTransport, ServiceControl.Transports.SQLServer" ]
     }
   ]
 }

@@ -20,6 +20,7 @@
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string TypeName { get; set; }
+        public List<string> Aliases { get; set; }
     }
 
     public static class TransportManifestLibrary
@@ -52,7 +53,17 @@
                 throw new Exception("No transport have been configured. Either provide a TransportType setting or a TransportName setting.");
             }
 
-            if (transportType == null)
+            if (transportType != null)
+            {
+                var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
+                    string.Compare(w.TypeName, transportType, true) == 0
+                    || w.Aliases.Contains(transportType)).FirstOrDefault();
+                if (transportManifestDefinition != null)
+                {
+                    return transportManifestDefinition.TypeName;
+                }
+            }
+            else
             {
                 var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w => string.Compare(w.Name, transportName, true) == 0).FirstOrDefault();
                 if (transportManifestDefinition != null)
