@@ -1,6 +1,10 @@
 ﻿{
   "Version": "1.0.0",
-  "Name": "AmazonSQS",
-  "DisplayName": "Amazon SQS",
-  "TypeName": "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS"
+  "Definitions": [
+    {
+      "Name": "AmazonSQS",
+      "DisplayName": "Amazon SQS",
+      "TypeName": "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS"
+    }
+  ]
 }

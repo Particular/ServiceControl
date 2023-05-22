@@ -12,10 +12,10 @@
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string TypeName { get; set; }
-        public List<TransportManifestCustomization> Customizations { get; set; }
+        public List<TransportManifestDefinition> Definitions { get; set; }
     }
 
-    public class TransportManifestCustomization
+    public class TransportManifestDefinition
     {
         public string Name { get; set; }
         public string DisplayName { get; set; }
@@ -54,18 +54,10 @@
 
             if (transportType == null)
             {
-                var multipleCustomizationsPerManifest = transportName.IndexOf('.') != -1;
-                var transportNameMain = multipleCustomizationsPerManifest ? transportName.Split('.').First() : transportName;
-
-                var transportManifest = TransportManifests.Where(w => w.Name == transportNameMain).FirstOrDefault();
-                if (transportManifest != null)
+                var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w => string.Compare(w.Name, transportName, true) == 0).FirstOrDefault();
+                if (transportManifestDefinition != null)
                 {
-                    if (multipleCustomizationsPerManifest)
-                    {
-                        return transportManifest.Customizations.Where(w => w.Name == transportName.Split('.')[1]).FirstOrDefault().TypeName;
-                    }
-
-                    return transportManifest.TypeName;
+                    return transportManifestDefinition.TypeName;
                 }
             }
 

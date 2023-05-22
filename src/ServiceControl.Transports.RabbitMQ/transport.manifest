@@ -1,35 +1,34 @@
 ﻿{
-  "Version": "1.0.0",
-  "Name": "RabbitMQ",
-  "Customizations": [
+  "Version": "1.0.0",  
+  "Definitions": [
     {
-      "Name": "ClassicConventionalRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.ClassicConventionalRouting",
+      "DisplayName": "RabbitMQ Classic Conventional Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
-      "Name": "ClassicDirectRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.ClassicDirectRouting",
+      "DisplayName": "RabbitMQ Classic Direct Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassimDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
-      "Name": "ConventionalRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.ConventionalRouting",
+      "DisplayName": "RabbitMQ Conventional Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
-      "Name": "DirectRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.DirectRouting",
+      "DisplayName": "RabbitMQ Direct Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
-      "Name": "QuorumConventionalRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.QuorumConventionalRouting",
+      "DisplayName": "RabbitMQ Quorum Conventional Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumComventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
-      "Name": "QuorumDirectRouting",
-      "DisplayName": "",
+      "Name": "RabbitMQ.QuorumDirectRouting",
+      "DisplayName": "RabbitMQ Quorum Direct Routing",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     }
   ]

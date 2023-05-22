@@ -1,6 +1,10 @@
 ﻿{
   "Version": "1.0.0",
-  "Name": "SQLServer",
-  "DisplayName": "SqlServer",
-  "TypeName": "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
+  "Definitions": [
+    {
+      "Name": "SQLServer",
+      "DisplayName": "SqlServer",
+      "TypeName": "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer"
+    }
+  ]
 }
