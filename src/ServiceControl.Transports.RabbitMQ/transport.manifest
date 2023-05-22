@@ -9,7 +9,7 @@
     {
       "Name": "RabbitMQ.ClassicDirectRouting",
       "DisplayName": "RabbitMQ Classic Direct Routing",
-      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassimDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
       "Name": "RabbitMQ.ConventionalRouting",
@@ -26,7 +26,7 @@
     {
       "Name": "RabbitMQ.QuorumConventionalRouting",
       "DisplayName": "RabbitMQ Quorum Conventional Routing",
-      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumComventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
       "Name": "RabbitMQ.QuorumDirectRouting",
