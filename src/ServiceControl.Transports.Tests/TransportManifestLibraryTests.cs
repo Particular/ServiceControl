@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
+﻿namespace ServiceControl.Transport.Tests
 {
     using System.IO;
     using System.Linq;
