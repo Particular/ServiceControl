@@ -6,7 +6,8 @@
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence;
 
-    class PersistenceManifestLibraryTests
+    [TestFixture]
+    public class PersistenceManifestLibraryTests
     {
         const string persistenceName = "RavenDB5";
         const string persistenceType = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5";
