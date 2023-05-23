@@ -46,11 +46,6 @@
             }
         }
 
-        //static Assembly GetEntryOrExecutingAssembly()
-        //{
-        //    return Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-        //}
-
         static string GetEntryOrExecutingAssemblyDirectory()
         {
             var assemblyLocation = Assembly.GetEntryAssembly()?.Location ?? Assembly.GetExecutingAssembly().Location;
