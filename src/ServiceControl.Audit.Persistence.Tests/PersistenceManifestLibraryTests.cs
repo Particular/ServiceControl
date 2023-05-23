@@ -85,21 +85,6 @@
             });
         }
 
-        [Test]
-        public void DumpFolders()
-        {
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
-            PersistenceManifestLibrary.PersistenceManifests.ForEach(p =>
-            {
-                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
-                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
-
-                Console.WriteLine($"Persister folder '{subFolderPath}' '{(Directory.Exists(subFolderPath) ? "found" : "not found")}'");
-            });
-        }
-
         Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
         {
             //look into any subdirectory
