@@ -1,5 +1,8 @@
 ﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
 {
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
@@ -74,6 +77,37 @@
             var _transportTypeFolder = TransportManifestLibrary.GetTransportFolder(fakeTransportType);
 
             Assert.IsNull(_transportTypeFolder);
+        }
+
+        [Test]
+        public void All_types_defined_in_manifest_files_exist_in_specified_assembly()
+        {
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var appDirectory = Path.GetDirectoryName(assemblyLocation);
+            TransportManifestLibrary.GetTransportFolder("dummy"); //to initialise the collection
+            TransportManifestLibrary.TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(t =>
+            {
+                var transportFolder = TransportManifestLibrary.GetTransportFolder(t.Name);
+                var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                var assemblyName = t.TypeName.Split(',')[1].Trim();
+                var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
+
+                Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
+
+                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == t.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Transport type {t.TypeName} not found in assembly {assemblyName}");
+            });
+        }
+
+        Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        {
+            //look into any subdirectory
+            var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
+            if (file != null)
+            {
+                return Assembly.LoadFrom(file);
+            }
+
+            return null;
         }
     }
 }

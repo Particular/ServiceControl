@@ -9,9 +9,6 @@
     public class TransportManifest
     {
         public string Version { get; set; }
-        public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string TypeName { get; set; }
         public List<TransportManifestDefinition> Definitions { get; set; }
     }
 
