@@ -5,6 +5,7 @@
     <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
+  <Import Project="..\Transports.Includes.props" />
   <Import Project="..\Persisters.Audit.Includes.props" />
   
   <ItemGroup>

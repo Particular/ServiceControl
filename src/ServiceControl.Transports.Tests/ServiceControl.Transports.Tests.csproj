@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-
-  <Import Project="..\Transports.Includes.props" />
   
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />

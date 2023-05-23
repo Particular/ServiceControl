@@ -1,6 +1,5 @@
-﻿namespace ServiceControl.Transport.Tests
+﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
 {
-    using System.Linq;
     using NUnit.Framework;
     using ServiceControl.Transports;
 
