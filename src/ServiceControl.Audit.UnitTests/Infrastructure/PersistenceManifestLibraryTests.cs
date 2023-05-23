@@ -62,36 +62,37 @@
             Assert.IsNull(_persistenceTypeFolder);
         }
 
-        //TODO - assembly name does not equal namespace
-        //[Test]
-        //public void All_types_defined_in_manifest_files_exist_in_specified_assembly()
-        //{
-        //    var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-        //    var appDirectory = Path.GetDirectoryName(assemblyLocation);
-        //    PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
-        //    PersistenceManifestLibrary.PersistenceManifests.ForEach(p =>
-        //    {
-        //        var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
-        //        var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
-        //        var assemblyName = p.TypeName.Split(',')[1].Trim();
-        //        var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
+        [Test]
+        public void All_types_defined_in_manifest_files_exist_in_specified_assembly()
+        {
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var appDirectory = Path.GetDirectoryName(assemblyLocation);
+            PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
+            PersistenceManifestLibrary.PersistenceManifests.ForEach(p =>
+            {
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
+                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
+                var assemblyName = p.TypeName.Split(',')[1].Trim();
+                var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
 
-        //        Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
+                Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
 
-        //        Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
-        //    });
-        //}
+                //NOTE not checking namespace here as it doesn't match for RavenDb5
+                //Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
+                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault()), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
+            });
+        }
 
-        //Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
-        //{
-        //    //look into any subdirectory
-        //    var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
-        //    if (file != null)
-        //    {
-        //        return Assembly.LoadFrom(file);
-        //    }
+        Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        {
+            //look into any subdirectory
+            var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
+            if (file != null)
+            {
+                return Assembly.LoadFrom(file);
+            }
 
-        //    return null;
-        //}
+            return null;
+        }
     }
 }
