@@ -53,11 +53,14 @@ namespace ServiceControl.Monitoring
             {
                 //look into transport directory
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                var transportsPath = Path.Combine(appDirectory, "Transports", transportFolder);
-                var file = Directory.EnumerateFiles(transportsPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
-                if (file != null)
+                if (transportFolder != null)
                 {
-                    assembly = Assembly.LoadFrom(file);
+                    var transportsPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                    var file = Directory.EnumerateFiles(transportsPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
+                    if (file != null)
+                    {
+                        assembly = Assembly.LoadFrom(file);
+                    }
                 }
             }
 
