@@ -4,8 +4,6 @@
     <TargetFramework>net472</TargetFramework>
     <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
   </PropertyGroup>
-
-  <Import Project="..\Persisters.Audit.Includes.props" />
   
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />

@@ -1,5 +1,6 @@
-﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
+﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -81,6 +82,21 @@
                 //NOTE not checking namespace here as it doesn't match for RavenDb5
                 //Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
                 Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault()), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
+            });
+        }
+
+        [Test]
+        public void DumpFolders()
+        {
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var appDirectory = Path.GetDirectoryName(assemblyLocation);
+            PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
+            PersistenceManifestLibrary.PersistenceManifests.ForEach(p =>
+            {
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
+                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
+
+                Console.WriteLine($"Persister folder '{subFolderPath}' '{(Directory.Exists(subFolderPath) ? "found" : "not found")}'");
             });
         }
 
