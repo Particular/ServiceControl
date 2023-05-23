@@ -5,7 +5,6 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
 
     public class TransportManifest
     {
@@ -36,15 +35,26 @@
                 TransportManifests = new List<TransportManifest>();
             }
 
-            if (!initialized && Assembly.GetEntryAssembly() != null)
+            if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                var assemblyLocation = GetEntryOrExecutingAssemblyDirectory();
                 Directory.EnumerateFiles(assemblyLocation, "transport.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
                 {
                     TransportManifests.Add(System.Text.Json.JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)));
                 });
             }
+        }
+
+        //static Assembly GetEntryOrExecutingAssembly()
+        //{
+        //    return Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        //}
+
+        static string GetEntryOrExecutingAssemblyDirectory()
+        {
+            var assemblyLocation = Assembly.GetEntryAssembly()?.Location ?? Assembly.GetExecutingAssembly().Location;
+            return Path.GetDirectoryName(assemblyLocation);
         }
 
         public static string Find(string transportType)
