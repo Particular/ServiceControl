@@ -6,7 +6,8 @@
     using NUnit.Framework;
     using ServiceControl.Transports;
 
-    class TransportManifestLibraryTests
+    [TestFixture]
+    public class TransportManifestLibraryTests
     {
         const string transportName = "AzureServiceBus.EndpointOriented";
         const string transportType = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB";
