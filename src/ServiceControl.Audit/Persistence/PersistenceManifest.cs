@@ -27,15 +27,21 @@
                 PersistenceManifests = new List<PersistenceManifest>();
             }
 
-            if (!initialized && Assembly.GetEntryAssembly() != null)
+            if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                var assemblyLocation = GetEntryOrExecutingAssemblyDirectory();
                 Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
                 {
                     PersistenceManifests.Add(System.Text.Json.JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
                 });
             }
+        }
+
+        static string GetEntryOrExecutingAssemblyDirectory()
+        {
+            var assemblyLocation = Assembly.GetEntryAssembly()?.Location ?? Assembly.GetExecutingAssembly().Location;
+            return Path.GetDirectoryName(assemblyLocation);
         }
 
         public static string Find(string persistenceType)

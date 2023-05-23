@@ -5,6 +5,8 @@
     <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
+  <Import Project="..\Persisters.Audit.Includes.props" />
+  
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />

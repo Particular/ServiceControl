@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
-  <Import Project="..\Persisters.Includes.props" />
+  <Import Project="..\Persisters.Audit.Includes.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
