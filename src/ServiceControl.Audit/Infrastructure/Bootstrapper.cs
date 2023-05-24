@@ -182,6 +182,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Transport Customization:            {settings.TransportType},
+Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}
 -------------------------------------------------------------";
 
