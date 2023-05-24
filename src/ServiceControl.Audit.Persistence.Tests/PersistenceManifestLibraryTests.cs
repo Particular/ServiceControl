@@ -1,5 +1,6 @@
-﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
+﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;

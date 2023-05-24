@@ -5,8 +5,9 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
 
-    class PersistenceManifest
+    public class PersistenceManifest
     {
         public string Version { get; set; }
         public string Name { get; set; }
@@ -15,7 +16,7 @@
         public string TypeName { get; set; }
     }
 
-    static class PersistenceManifestLibrary
+    public static class PersistenceManifestLibrary
     {
         public static List<PersistenceManifest> PersistenceManifests { get; set; }
 
@@ -33,7 +34,7 @@
                 var assemblyLocation = GetEntryOrExecutingAssemblyDirectory();
                 Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
                 {
-                    PersistenceManifests.Add(System.Text.Json.JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
+                    PersistenceManifests.Add(JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
                 });
             }
         }
