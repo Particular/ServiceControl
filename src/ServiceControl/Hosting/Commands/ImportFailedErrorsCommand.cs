@@ -14,14 +14,11 @@
 
     class ImportFailedErrorsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
-            var settings = new Settings(args.ServiceName)
-            {
-                IngestErrorMessages = false,
-                RunRetryProcessor = false,
-                DisableHealthChecks = true
-            };
+            settings.IngestErrorMessages = false;
+            settings.RunRetryProcessor = false;
+            settings.DisableHealthChecks = true;
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = busConfiguration.AssemblyScanner();

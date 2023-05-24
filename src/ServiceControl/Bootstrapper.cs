@@ -203,7 +203,7 @@ Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
-Selected Transport Customization:   {settings.TransportCustomizationType}
+Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
             var logger = LogManager.GetLogger(typeof(Bootstrapper));
@@ -230,7 +230,7 @@ Selected Transport Customization:   {settings.TransportCustomizationType}
                     settings.RunInMemory,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
-                    settings.TransportCustomizationType,
+                    settings.TransportType,
                     settings.AllowMessageEditing
                 },
                 LoggingSettings = loggingSettings

@@ -8,10 +8,9 @@ namespace ServiceControl.Audit.Infrastructure
 
     static class MaintenanceBootstrapper
     {
-        public static async Task Run(HostArguments args)
+        public static async Task Run(HostArguments args, Settings.Settings settings)
         {
-            var settings = Settings.Settings.FromConfiguration(args.ServiceName);
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceCustomizationType);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;

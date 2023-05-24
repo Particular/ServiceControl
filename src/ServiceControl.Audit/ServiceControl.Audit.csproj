@@ -6,6 +6,9 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Import Project="..\Transports.Includes.props" />
+  <Import Project="..\Persisters.Audit.Includes.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
@@ -32,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Audit.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Audit.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\ServiceControl.Audit" />
   </ItemGroup>
 
 </Project>

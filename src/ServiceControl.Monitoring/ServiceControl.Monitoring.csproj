@@ -6,6 +6,8 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Import Project="..\Transports.Includes.props" />
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
@@ -23,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
   </ItemGroup>
 
 </Project>

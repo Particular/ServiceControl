@@ -23,7 +23,7 @@
   "Hostname": "localhost",
   "VirtualDirectory": "",
   "HeartbeatGracePeriod": "00:00:40",
-  "TransportCustomizationType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+  "TransportType": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
   "DbPath": "C:\\DB",
   "ErrorLogQueue": "error.log",
   "ErrorQueue": "error",

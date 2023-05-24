@@ -5,10 +5,8 @@
 
     class SetupCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
-            var settings = Settings.FromConfiguration(args.ServiceName);
-
             settings.SkipQueueCreation = args.SkipQueueCreation;
 
             await new SetupBootstrapper(settings).Run(args.Username)

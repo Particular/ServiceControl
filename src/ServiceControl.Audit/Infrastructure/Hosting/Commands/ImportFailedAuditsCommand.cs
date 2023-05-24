@@ -11,10 +11,8 @@
 
     class ImportFailedAuditsCommand : AbstractCommand
     {
-        public override async Task Execute(HostArguments args)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
-            var settings = Settings.FromConfiguration(args.ServiceName);
-
             settings.IngestAuditMessages = false;
 
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);

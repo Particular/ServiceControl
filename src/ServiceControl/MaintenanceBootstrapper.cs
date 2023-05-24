@@ -11,10 +11,8 @@ namespace Particular.ServiceControl
 
     static class MaintenanceBootstrapper
     {
-        public static async Task Run(HostArguments args)
+        public static async Task Run(HostArguments args, Settings settings)
         {
-            var settings = new Settings(args.ServiceName);
-
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {

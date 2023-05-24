@@ -47,7 +47,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             EventSource.Create();
 
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceCustomizationType);
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();
