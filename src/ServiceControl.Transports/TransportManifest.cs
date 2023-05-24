@@ -4,14 +4,13 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Text.Json;
     using NServiceBus.Logging;
 
     public class TransportManifest
     {
         public string Version { get; set; }
-        public List<TransportManifestDefinition> Definitions { get; set; }
+        public TransportManifestDefinition[] Definitions { get; set; }
     }
 
     public class TransportManifestDefinition
@@ -19,7 +18,22 @@
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string TypeName { get; set; }
-        public List<string> Aliases { get; set; }
+        public string[] Aliases { get; set; }
+
+        internal bool IsMatch(string transportType) =>
+            string.Compare(TypeName, transportType, true) == 0
+            || string.Compare(Name, transportType, true) == 0
+            || AliasesContain(transportType);
+
+        bool AliasesContain(string transportType)
+        {
+            if (Aliases == null)
+            {
+                return false;
+            }
+
+            return Aliases.Contains(transportType);
+        }
     }
 
     public static class TransportManifestLibrary
@@ -69,9 +83,9 @@
 
             Initialize();
 
-            var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
-                    string.Compare(w.TypeName, transportType, true) == 0 || string.Compare(w.Name, transportType, true) == 0
-                    || w.AliasesContain(transportType)).FirstOrDefault();
+            var transportManifestDefinition = TransportManifests
+                .SelectMany(t => t.Definitions)
+                .FirstOrDefault(w => w.IsMatch(transportType));
 
             if (transportManifestDefinition != null)
             {
@@ -90,9 +104,9 @@
 
             Initialize();
 
-            var transportManifestDefinition = TransportManifests.SelectMany(t => t.Definitions).Where(w =>
-                    string.Compare(w.TypeName, transportType, true) == 0 || string.Compare(w.Name, transportType, true) == 0
-                    || w.AliasesContain(transportType)).FirstOrDefault();
+            var transportManifestDefinition = TransportManifests
+                .SelectMany(t => t.Definitions)
+                .FirstOrDefault(w => w.IsMatch(transportType));
 
             if (transportManifestDefinition != null)
             {
@@ -100,16 +114,6 @@
             }
 
             return null;
-        }
-
-        static bool AliasesContain(this TransportManifestDefinition manifestDefinition, string transportType)
-        {
-            if (manifestDefinition.Aliases == null)
-            {
-                return false;
-            }
-
-            return manifestDefinition.Aliases.Contains(transportType);
         }
 
         static ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));

@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
     using Infrastructure;
@@ -71,11 +70,11 @@
 
         static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
         {
-            //look into any subdirectory
-            var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
-            if (file != null)
+            var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
+
+            if (File.Exists(path))
             {
-                return Assembly.LoadFrom(file);
+                return Assembly.LoadFrom(path);
             }
 
             return null;

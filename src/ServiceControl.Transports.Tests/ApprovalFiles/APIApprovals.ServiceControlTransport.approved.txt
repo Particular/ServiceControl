@@ -49,13 +49,13 @@ namespace ServiceControl.Transports
     public class TransportManifest
     {
         public TransportManifest() { }
-        public System.Collections.Generic.List<ServiceControl.Transports.TransportManifestDefinition> Definitions { get; set; }
+        public ServiceControl.Transports.TransportManifestDefinition[] Definitions { get; set; }
         public string Version { get; set; }
     }
     public class TransportManifestDefinition
     {
         public TransportManifestDefinition() { }
-        public System.Collections.Generic.List<string> Aliases { get; set; }
+        public string[] Aliases { get; set; }
         public string DisplayName { get; set; }
         public string Name { get; set; }
         public string TypeName { get; set; }

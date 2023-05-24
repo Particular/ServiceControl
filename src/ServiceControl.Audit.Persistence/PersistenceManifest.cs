@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Text.Json;
     using NServiceBus.Logging;
 
@@ -15,6 +14,10 @@
         public string DisplayName { get; set; }
         public string Description { get; set; }
         public string TypeName { get; set; }
+
+        internal bool IsMatch(string persistenceType) =>
+            string.Compare(TypeName, persistenceType, true) == 0
+            || string.Compare(Name, persistenceType, true) == 0;
     }
 
     public static class PersistenceManifestLibrary
@@ -64,8 +67,7 @@
 
             Initialize();
 
-            var persistenceManifestDefinition = PersistenceManifests.Where(w =>
-                    string.Compare(w.TypeName, persistenceType, true) == 0 || string.Compare(w.Name, persistenceType, true) == 0).FirstOrDefault();
+            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
             if (persistenceManifestDefinition != null)
             {
@@ -84,8 +86,7 @@
 
             Initialize();
 
-            var persistenceManifestDefinition = PersistenceManifests.Where(w =>
-                    string.Compare(w.TypeName, persistenceType, true) == 0 || string.Compare(w.Name, persistenceType, true) == 0).FirstOrDefault();
+            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
             if (persistenceManifestDefinition != null)
             {
