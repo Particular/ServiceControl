@@ -5,6 +5,8 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
+    using NServiceBus.Logging;
 
     public class TransportManifest
     {
@@ -35,17 +37,26 @@
             if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = GetEntryOrExecutingAssemblyDirectory();
-                Directory.EnumerateFiles(assemblyLocation, "transport.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
+                var assemblyLocation = GetAssemblyDirectory();
+                try
                 {
-                    TransportManifests.Add(System.Text.Json.JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)));
-                });
+                    TransportManifests.AddRange(
+                        Directory.EnumerateFiles(assemblyLocation, "transport.manifest", SearchOption.AllDirectories)
+                        .Select(manifest => JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)))
+                        );
+
+                    TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.Info($"Found transport manifest for {m.DisplayName}"));
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to load transport manifests from {assemblyLocation}", ex);
+                }
             }
         }
 
-        static string GetEntryOrExecutingAssemblyDirectory()
+        static string GetAssemblyDirectory()
         {
-            var assemblyLocation = Assembly.GetEntryAssembly()?.Location ?? Assembly.GetExecutingAssembly().Location;
+            var assemblyLocation = typeof(TransportManifestLibrary).Assembly.Location;
             return Path.GetDirectoryName(assemblyLocation);
         }
 
@@ -100,6 +111,8 @@
 
             return manifestDefinition.Aliases.Contains(transportType);
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
     }
 }
 

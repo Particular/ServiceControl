@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text.Json;
+    using NServiceBus.Logging;
 
     public class PersistenceManifest
     {
@@ -31,17 +32,26 @@
             if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = GetEntryOrExecutingAssemblyDirectory();
-                Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories).ToList().ForEach(manifest =>
+                var assemblyLocation = GetAssemblyDirectory();
+                try
                 {
-                    PersistenceManifests.Add(JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
-                });
+                    PersistenceManifests.AddRange(
+                        Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories)
+                        .Select(manifest => JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)))
+                        );
+
+                    PersistenceManifests.ForEach(m => logger.Info($"Found persistence manifest for {m.DisplayName}"));
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn($"Failed to load persistence manifests from {assemblyLocation}", ex);
+                }
             }
         }
 
-        static string GetEntryOrExecutingAssemblyDirectory()
+        static string GetAssemblyDirectory()
         {
-            var assemblyLocation = Assembly.GetEntryAssembly()?.Location ?? Assembly.GetExecutingAssembly().Location;
+            var assemblyLocation = typeof(PersistenceManifestLibrary).Assembly.Location;
             return Path.GetDirectoryName(assemblyLocation);
         }
 
@@ -84,6 +94,8 @@
 
             return null;
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
     }
 }
 
