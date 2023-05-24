@@ -70,6 +70,10 @@
                     settings.AuditQueue,
                     settings.ForwardAuditMessages
                 },
+                Peristence = new
+                {
+                    settings.PersistenceType
+                },
                 Plugins = new
                 {
                 }
