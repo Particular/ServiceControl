@@ -29,13 +29,16 @@
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
-            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory)
+            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
+            IHostApplicationLifetime applicationLifetime
+            )
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
+            this.applicationLifetime = applicationLifetime;
             this.settings = settings;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
@@ -52,8 +55,15 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, FailedMessageFactory, OnCriticalError);
 
-            watchdog = new Watchdog(EnsureStarted, EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger, "audit message ingestion");
+            watchdog = new Watchdog(
+                EnsureStarted,
+                EnsureStopped,
+                ingestionState.ReportError,
+                ingestionState.Clear,
+                settings.TimeToRestartAuditIngestionAfterFailure,
+                logger,
+                "audit message ingestion"
+                );
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
@@ -159,6 +169,7 @@
                 logger.Info("Shutting down. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
                 logger.Info("Shutting down. Start/stop semaphore released");
+                applicationLifetime.StopApplication();
             }
         }
 
@@ -230,6 +241,7 @@
         readonly AuditIngestor auditIngestor;
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;
         readonly IAuditIngestionUnitOfWorkFactory unitOfWorkFactory;
+        readonly IHostApplicationLifetime applicationLifetime;
         readonly Settings settings;
         readonly Channel<MessageContext> channel;
         readonly Meter batchSizeMeter;
