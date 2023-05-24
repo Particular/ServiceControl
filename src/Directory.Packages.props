@@ -13,7 +13,7 @@
     <PackageVersion Include="Dapper" Version="2.0.123" />
     <PackageVersion Include="DotNetZip" Version="1.16.0" />
     <PackageVersion Include="FluentValidation" Version="11.5.2" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.2.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Lucene.Net" Version="3.0.3" />
     <PackageVersion Include="Metrics.NET" Version="0.5.5" />
