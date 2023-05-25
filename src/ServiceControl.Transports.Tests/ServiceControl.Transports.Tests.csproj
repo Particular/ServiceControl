@@ -20,14 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="..\ServiceControl.Transports.ASBS\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\NetStandardAzureServiceBus\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.ASQ\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\AzureStorageQueue\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.Learning\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\LearningTransport\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.Msmq\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\MSMQ\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.RabbitMQ\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\RabbitMQ\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.SqlServer\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\SQLServer\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.SQS\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\AmazonSQS\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Transports.ASB\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\AzureServiceBus\%(RecursiveDir)" />
+    <!-- The following assumes transports are the same for every instance type. Coping the transports binaries from the primary instance artifacts folder -->
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
   </ItemGroup>
 
 
