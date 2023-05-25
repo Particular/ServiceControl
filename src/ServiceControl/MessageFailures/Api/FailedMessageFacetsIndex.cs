@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
-    using Contracts.Operations;
     using Raven.Abstractions.Indexing;
     using Raven.Client.Indexes;
+    using ServiceControl.Operations;
 
     public class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
     {

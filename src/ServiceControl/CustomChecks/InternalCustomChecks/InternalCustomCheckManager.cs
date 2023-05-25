@@ -3,11 +3,11 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contracts.CustomChecks;
-    using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using ServiceControl.Contracts.CustomChecks;
+    using ServiceControl.Operations;
 
     class InternalCustomCheckManager
     {

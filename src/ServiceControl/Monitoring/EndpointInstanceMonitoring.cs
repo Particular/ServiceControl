@@ -5,13 +5,13 @@ namespace ServiceControl.Monitoring
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
     using Contracts.EndpointControl;
     using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Operations;
+    using ServiceControl.Persistence;
 
-    class EndpointInstanceMonitoring
+    class EndpointInstanceMonitoring : IEndpointInstanceMonitoring
     {
         public EndpointInstanceMonitoring(IDomainEvents domainEvents)
         {

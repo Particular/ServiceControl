@@ -2,9 +2,9 @@
 {
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
-    using Operations;
     using Raven.Abstractions.Commands;
     using Raven.Client;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbIngestionUnitOfWork : IngestionUnitOfWorkBase
     {

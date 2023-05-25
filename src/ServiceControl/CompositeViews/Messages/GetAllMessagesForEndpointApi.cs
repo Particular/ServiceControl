@@ -8,6 +8,8 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<string>
     {

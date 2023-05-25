@@ -1,10 +1,9 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
-    using Monitoring;
-    using Operations;
     using Raven.Abstractions.Commands;
     using Raven.Json.Linq;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {

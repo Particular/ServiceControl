@@ -2,12 +2,11 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
     using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using EndpointControl.Contracts;
     using HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Persistence;
 
     class EndpointInstanceMonitor
     {

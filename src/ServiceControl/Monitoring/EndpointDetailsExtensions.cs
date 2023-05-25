@@ -1,8 +1,9 @@
 namespace ServiceControl.Monitoring
 {
-    using Contracts.Operations;
+    using ServiceControl.Operations;
+    using ServiceControl.Persistence;
 
-    static class EndpointDetailsExtensions
+    public static class EndpointDetailsExtensions
     {
         public static EndpointInstanceId ToInstanceId(this EndpointDetails endpointDetails)
         {

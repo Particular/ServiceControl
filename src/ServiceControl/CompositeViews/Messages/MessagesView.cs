@@ -2,9 +2,10 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
-    using Contracts.Operations;
     using NServiceBus;
     using SagaAudit;
+    using ServiceControl.Operations;
+    using ServiceControl.Persistence;
 
     public class MessagesView
     {

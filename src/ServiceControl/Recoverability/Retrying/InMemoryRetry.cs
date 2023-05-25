@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
+    using ServiceControl.Persistence;
 
     class InMemoryRetry
     {
