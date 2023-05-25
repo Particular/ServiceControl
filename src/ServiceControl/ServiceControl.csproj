@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
+  <Import Project="..\Transports.Learning.Includes.props" />
 
 
   <ItemGroup>

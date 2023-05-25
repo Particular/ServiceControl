@@ -90,6 +90,8 @@
             {
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(t.Name);
                 var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                Assert.IsTrue(Directory.Exists(subFolderPath), $"Folder {subFolderPath} does not exist.");
+
                 var assemblyName = t.TypeName.Split(',')[1].Trim();
                 var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
 

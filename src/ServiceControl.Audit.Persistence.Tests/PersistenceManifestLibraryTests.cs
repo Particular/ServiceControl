@@ -74,6 +74,8 @@
             {
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
                 var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
+                Assert.IsTrue(Directory.Exists(subFolderPath), $"Folder {subFolderPath} does not exist.");
+
                 var assemblyName = p.TypeName.Split(',')[1].Trim();
                 var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
 

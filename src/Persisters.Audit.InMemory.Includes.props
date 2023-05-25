@@ -1,0 +1,9 @@
+<Project>
+	<ItemGroup Label="Persisters">
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="..\ServiceControl.Audit.Persistence.InMemory\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Persisters\InMemory\%(RecursiveDir)" />
+  </ItemGroup>
+</Project>

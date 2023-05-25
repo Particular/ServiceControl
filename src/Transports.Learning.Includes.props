@@ -1,0 +1,11 @@
+<Project>
+	<!--NOTE: Changes to this file should be reflected in ServiceControl.Transports.Tests -->
+
+	<ItemGroup Label="Transports">
+		<ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="false" Private="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Artifact Include="..\ServiceControl.Transports.Learning\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Transports\LearningTransport\%(RecursiveDir)" />
+	</ItemGroup>
+</Project>
