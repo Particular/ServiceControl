@@ -9,11 +9,12 @@
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using Monitoring;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Recoverability;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class ErrorProcessor
     {

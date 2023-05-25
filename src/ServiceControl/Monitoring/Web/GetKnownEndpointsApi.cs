@@ -8,6 +8,8 @@
     using CompositeViews.Messages;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class GetKnownEndpointsApi : ScatterGatherApi<EndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {

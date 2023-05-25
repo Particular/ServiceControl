@@ -14,6 +14,7 @@ namespace ServiceControl.CompositeViews.Messages
     using NServiceBus.Logging;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.Infrastructure;
 
     interface IApi
     {

@@ -3,9 +3,9 @@ namespace ServiceControl.CompositeViews.Messages
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Contracts.Operations;
     using MessageFailures;
     using Raven.Client.Indexes;
+    using ServiceControl.Persistence;
 
     public class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Input>
     {

@@ -6,9 +6,9 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Contracts.Operations;
     using Infrastructure.WebApi;
     using Raven.Client;
+    using ServiceControl.Operations;
 
     class GetErrorByIdController : ApiController
     {

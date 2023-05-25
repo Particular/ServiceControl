@@ -1,15 +1,15 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
-    using Operations;
     using Raven.Client;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {
         readonly IDocumentStore store;
-        readonly CheckMinimumStorageRequiredForIngestion.State customCheckState;
+        readonly MinimumRequiredStorageState customCheckState;
 
-        public RavenDbIngestionUnitOfWorkFactory(IDocumentStore store, CheckMinimumStorageRequiredForIngestion.State customCheckState)
+        public RavenDbIngestionUnitOfWorkFactory(IDocumentStore store, MinimumRequiredStorageState customCheckState)
         {
             this.store = store;
             this.customCheckState = customCheckState;

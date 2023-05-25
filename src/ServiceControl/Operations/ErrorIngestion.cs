@@ -11,8 +11,8 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
-    using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 
     class ErrorIngestion : IHostedService

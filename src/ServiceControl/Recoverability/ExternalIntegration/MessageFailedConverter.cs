@@ -3,8 +3,8 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System.Collections.Generic;
     using System.Linq;
     using Contracts;
-    using Contracts.Operations;
     using MessageFailures;
+    using ServiceControl.Operations;
 
     static class MessageFailedConverter
     {

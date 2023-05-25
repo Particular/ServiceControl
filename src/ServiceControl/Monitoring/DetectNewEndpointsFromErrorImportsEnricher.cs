@@ -4,6 +4,7 @@
     using Monitoring;
     using Operations;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Persistence;
 
     class DetectNewEndpointsFromErrorImportsEnricher : IEnrichImportedErrorMessages
     {

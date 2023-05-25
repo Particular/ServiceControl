@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System;
+    using ServiceControl.Persistence;
 
     public class HistoricRetryOperation
     {

@@ -17,6 +17,7 @@ namespace ServiceControl.Recoverability
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class RetryProcessor
     {

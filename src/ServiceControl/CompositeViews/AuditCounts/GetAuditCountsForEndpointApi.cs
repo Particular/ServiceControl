@@ -8,6 +8,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence.Infrastructure;
 
     class GetAuditCountsForEndpointApi : ScatterGatherApi<string, IList<AuditCount>>
     {

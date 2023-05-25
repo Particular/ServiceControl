@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -10,7 +10,7 @@
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
-            serviceCollection.AddSingleton<CheckMinimumStorageRequiredForIngestion.State>();
+            serviceCollection.AddSingleton<MinimumRequiredStorageState>();
         }
     }
 }

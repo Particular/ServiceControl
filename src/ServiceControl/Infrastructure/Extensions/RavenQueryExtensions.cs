@@ -7,12 +7,13 @@ namespace ServiceControl.Infrastructure.Extensions
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
-    using CompositeViews.Messages;
-    using MessageFailures;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
-    static class RavenQueryExtensions
+    public static class RavenQueryExtensions
     {
         public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
         {

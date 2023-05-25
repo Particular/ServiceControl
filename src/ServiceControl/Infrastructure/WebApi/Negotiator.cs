@@ -10,7 +10,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Text;
     using Raven.Abstractions.Data;
     using Raven.Client;
-    using QueryResult = CompositeViews.Messages.QueryResult;
+    using QueryResult = Persistence.Infrastructure.QueryResult;
 
     static class Negotiator
     {

@@ -12,6 +12,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
+    using ServiceControl.Persistence;
 
     class RetryDocumentManager
     {

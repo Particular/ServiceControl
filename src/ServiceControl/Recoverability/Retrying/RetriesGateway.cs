@@ -14,6 +14,7 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
+    using ServiceControl.Persistence;
 
     class RetriesGateway
     {

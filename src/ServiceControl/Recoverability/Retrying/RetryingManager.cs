@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Persistence;
 
     class RetryingManager
     {

@@ -7,6 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.Extensions;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.Infrastructure;
 
     class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>
     {

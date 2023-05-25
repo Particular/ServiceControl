@@ -2,7 +2,7 @@
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Operations;
+    using ServiceControl.Operations;
 
     public class CustomCheckSucceeded : IDomainEvent
     {
