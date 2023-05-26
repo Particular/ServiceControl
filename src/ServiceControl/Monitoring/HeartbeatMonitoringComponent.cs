@@ -42,9 +42,11 @@
 
         public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            // TODO: Move this in the persister project
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterInstallationTask(() => SetupSqlPersistence.SetupMonitoring(settings.SqlStorageConnectionString));
+                var connectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
+                context.RegisterInstallationTask(() => SetupSqlPersistence.SetupMonitoring(connectionString));
             }
         }
     }
