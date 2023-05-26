@@ -17,6 +17,7 @@
   "MaximumConcurrencyLevel": 32,
   "LicenseFileText": null,
   "ExposeApi": true,
+  "StaleEndpointInstanceRemovalTimespan": null,
   "OnMessage": {
     "Method": {
       "Name": "<.ctor>b__0_0",

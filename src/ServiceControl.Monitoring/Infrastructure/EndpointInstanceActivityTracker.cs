@@ -23,9 +23,14 @@
 
         public bool IsStale(EndpointInstanceId endpointInstance)
         {
+            return IsStaleSince(endpointInstance, DateTime.UtcNow);
+        }
+
+        public bool IsStaleSince(EndpointInstanceId endpointInstance, DateTime since)
+        {
             if (endpointsInstances.TryGetValue(endpointInstance, out var lastActivityTime))
             {
-                var age = DateTime.UtcNow - lastActivityTime;
+                var age = since - lastActivityTime;
                 return age > StalenessThreshold;
             }
 

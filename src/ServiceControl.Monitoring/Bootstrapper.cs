@@ -57,6 +57,11 @@
                     services.AddSingleton(sp => buildQueueLengthProvider(sp.GetRequiredService<QueueLengthStore>()));
                     services.AddSingleton<LegacyQueueLengthReportHandler.LegacyQueueLengthEndpoints>();
 
+                    if (settings.StaleEndpointInstanceRemovalTimespan != null)
+                    {
+                        services.AddHostedService<StaleEndpointInstanceRemover>();
+                    }
+
                     services.RegisterAsSelfAndImplementedInterfaces<RetriesStore>();
                     services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
                     services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
