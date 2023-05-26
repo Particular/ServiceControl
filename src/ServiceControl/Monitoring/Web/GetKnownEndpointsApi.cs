@@ -11,13 +11,13 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetKnownEndpointsApi : ScatterGatherApi<EndpointInstanceMonitoring, IList<KnownEndpointsView>>
+    class GetKnownEndpointsApi : ScatterGatherApi<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {
         public GetKnownEndpointsApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
         {
         }
 
-        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request, EndpointInstanceMonitoring input)
+        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request, IEndpointInstanceMonitoring input)
         {
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
