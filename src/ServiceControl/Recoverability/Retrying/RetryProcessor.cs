@@ -77,7 +77,7 @@ namespace ServiceControl.Recoverability
                     return true;
                 }
 
-                Log.Info("No batch found to stage.");
+                Log.Debug("No batch found to stage.");
                 return false;
             }
             catch (RetryStagingException)
@@ -135,7 +135,7 @@ namespace ServiceControl.Recoverability
                 return true;
             }
 
-            Log.Info("No batch found to forward.");
+            Log.Debug("No batch found to forward.");
             return false;
         }
 
