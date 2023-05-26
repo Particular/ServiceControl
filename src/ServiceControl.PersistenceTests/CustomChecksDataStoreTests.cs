@@ -4,10 +4,9 @@ namespace ServiceControl.Persistence.Tests
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Contracts.Operations;
-    using CustomChecks;
     using Infrastructure;
     using NUnit.Framework;
+    using ServiceControl.Operations;
 
     [TestFixtureSource(typeof(PersistenceTestCollection))]
     class CustomChecksDataStoreTests

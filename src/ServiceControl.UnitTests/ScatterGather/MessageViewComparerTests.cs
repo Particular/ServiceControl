@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
-    using Contracts.Operations;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence;
 
     [TestFixture]
     class MessageViewComparerTests

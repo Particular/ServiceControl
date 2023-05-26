@@ -3,12 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Pipeline;
     using NUnit.Framework;
+    using ServiceControl.Persistence;
     using TestSupport;
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;

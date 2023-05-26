@@ -7,6 +7,7 @@
     using Contracts.Operations;
     using MessageFailures;
     using NUnit.Framework;
+    using ServiceControl.Operations;
     using ServiceControl.Recoverability.ExternalIntegration;
 
     [TestFixture]

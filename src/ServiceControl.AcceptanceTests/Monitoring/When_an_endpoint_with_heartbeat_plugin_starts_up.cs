@@ -2,12 +2,11 @@
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 

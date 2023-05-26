@@ -2,11 +2,11 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Operations;
     using Persistence;
     using Persistence.Tests;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDb : PersistenceDataStoreFixture
     {

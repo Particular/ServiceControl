@@ -8,7 +8,6 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
-    using Contracts.Operations;
     using Infrastructure.RavenDB;
     using MessageAuditing;
     using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +16,7 @@
     using NUnit.Framework;
     using Operations.BodyStorage;
     using Raven.Client;
+    using ServiceControl.Persistence;
     using TestSupport.EndpointTemplates;
 
     class When_processed_message_is_still_available : AcceptanceTest

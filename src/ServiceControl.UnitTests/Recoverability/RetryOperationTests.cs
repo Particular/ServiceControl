@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NUnit.Framework;
+    using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
     [TestFixture]

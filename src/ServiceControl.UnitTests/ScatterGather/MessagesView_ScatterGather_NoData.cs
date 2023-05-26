@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence.Infrastructure;
 
     [TestFixture]
     class MessagesView_ScatterGather_NoData : MessageView_ScatterGatherTest
