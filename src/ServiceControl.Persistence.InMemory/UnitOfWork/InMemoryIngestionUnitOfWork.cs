@@ -1,9 +1,8 @@
-﻿namespace ServiceControl.Persistence.SqlServer
+﻿namespace ServiceControl.Persistence.InMemory
 {
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
-    using Monitoring;
-    using Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class InMemoryIngestionUnitOfWork : IngestionUnitOfWorkBase
     {

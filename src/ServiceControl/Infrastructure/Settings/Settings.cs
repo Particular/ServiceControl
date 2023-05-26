@@ -5,7 +5,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.Configuration;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;

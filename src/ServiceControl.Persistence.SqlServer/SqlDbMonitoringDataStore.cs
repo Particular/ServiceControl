@@ -3,9 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Contracts.Operations;
     using Dapper;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class SqlDbMonitoringDataStore : IMonitoringDataStore
@@ -38,7 +37,7 @@
             }).ConfigureAwait(false);
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
 
@@ -75,7 +74,7 @@
             }).ConfigureAwait(false);
         }
 
-        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             await connectionManager.Perform(async connection =>
             {

@@ -1,7 +1,7 @@
-﻿namespace ServiceControl.Persistence.SqlServer
+﻿namespace ServiceControl.Persistence.InMemory
 {
     using System.Threading.Tasks;
-    using Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class InMemoryIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {

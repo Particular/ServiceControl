@@ -1,8 +1,7 @@
 ﻿namespace ServiceControl.Persistence.SqlServer
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Operations;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.UnitOfWork;
 
     public class SqlDbPersistenceConfiguration : IPersistenceConfiguration
     {

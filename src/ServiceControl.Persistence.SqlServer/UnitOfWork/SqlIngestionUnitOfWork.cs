@@ -2,7 +2,7 @@
 {
     using System.Data.SqlClient;
     using System.Threading.Tasks;
-    using Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class SqlIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
