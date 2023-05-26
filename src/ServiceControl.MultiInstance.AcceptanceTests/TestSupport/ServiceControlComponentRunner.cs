@@ -80,11 +80,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
+            ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", dataStoreConfiguration.ConnectionString);
 
             var settings = new Settings(instanceName)
             {
                 DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreConfiguration.DataStoreTypeName),
-                SqlStorageConnectionString = dataStoreConfiguration.ConnectionString,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
