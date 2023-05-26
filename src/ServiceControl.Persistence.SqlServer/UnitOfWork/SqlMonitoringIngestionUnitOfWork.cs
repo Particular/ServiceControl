@@ -3,8 +3,7 @@
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Dapper;
-    using Monitoring;
-    using Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class SqlMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {

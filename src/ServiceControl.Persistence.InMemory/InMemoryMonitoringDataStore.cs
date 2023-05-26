@@ -5,8 +5,7 @@ namespace ServiceControl.Persistence.InMemory
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Contracts.Operations;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class InMemoryMonitoringDataStore : IMonitoringDataStore
@@ -37,7 +36,7 @@ namespace ServiceControl.Persistence.InMemory
             return Task.CompletedTask;
         }
 
-        public Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
             var inMemoryEndpoint = endpoints.FirstOrDefault(a => a.Id == id);
@@ -102,7 +101,7 @@ namespace ServiceControl.Persistence.InMemory
             return Task.CompletedTask;
         }
 
-        public Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             endpoints?.ForEach(e =>
                 {

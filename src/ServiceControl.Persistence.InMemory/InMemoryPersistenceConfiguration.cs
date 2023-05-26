@@ -1,8 +1,7 @@
 ﻿namespace ServiceControl.Persistence.InMemory
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Operations;
-    using SqlServer;
+    using ServiceControl.Persistence.UnitOfWork;
 
     public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
     {

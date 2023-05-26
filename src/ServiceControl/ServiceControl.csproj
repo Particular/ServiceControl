@@ -49,6 +49,10 @@
     <Folder Include="Operations\UnitOfWork\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+  </ItemGroup>
+  
   <!-- Artifacts for the primary instance are not currently defined here because we don't yet have selectable persister options.
   They are defined on the ServiceControl.Persistence.RavenDb project instead. -->
 
