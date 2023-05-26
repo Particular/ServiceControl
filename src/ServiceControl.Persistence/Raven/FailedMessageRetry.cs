@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence
+namespace ServiceControl.Recoverability
 {
     public class FailedMessageRetry
     {
