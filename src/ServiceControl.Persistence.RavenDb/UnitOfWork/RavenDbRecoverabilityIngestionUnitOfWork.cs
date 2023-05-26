@@ -9,6 +9,7 @@
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Recoverability;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {

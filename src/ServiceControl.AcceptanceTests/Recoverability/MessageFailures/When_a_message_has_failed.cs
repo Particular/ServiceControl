@@ -10,7 +10,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
-    using Contracts.Operations;
     using EventLog;
     using Infrastructure;
     using Infrastructure.SignalR;
@@ -27,6 +26,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Persistence;
     using TestSupport;
     using TestSupport.EndpointTemplates;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;

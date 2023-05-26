@@ -6,13 +6,13 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
-    using Contracts.Operations;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Settings;
     using NUnit.Framework;
+    using ServiceControl.Persistence;
     using TestSupport.EndpointTemplates;
 
 

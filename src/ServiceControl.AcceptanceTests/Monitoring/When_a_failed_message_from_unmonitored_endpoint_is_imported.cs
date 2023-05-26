@@ -4,12 +4,11 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using CompositeViews.Endpoints;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
     using TestSupport;
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;

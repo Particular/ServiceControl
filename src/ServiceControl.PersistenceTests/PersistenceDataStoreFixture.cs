@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Persistence.Tests
 {
     using System.Threading.Tasks;
-    using Operations;
     using Persistence;
+    using ServiceControl.Persistence.UnitOfWork;
 
     abstract class PersistenceDataStoreFixture
     {

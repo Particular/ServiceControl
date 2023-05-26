@@ -7,7 +7,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using AcceptanceTesting;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
     using NServiceBus;
@@ -15,6 +14,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using NUnit.Framework;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Operations;
     using TestSupport.EndpointTemplates;
 
     /// <summary>

@@ -4,7 +4,7 @@
     using System.Linq;
     using MessageFailures.Api;
     using NUnit.Framework;
-    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence;
 
     [TestFixture]
     public class PreventReindexing
