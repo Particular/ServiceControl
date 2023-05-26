@@ -9,9 +9,13 @@
     using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
     using NServiceBus.Logging;
+    using ServiceControl.Audit.Persistence;
+    using ServiceControl.Transports;
 
     class Program
     {
+        static Settings settings;
+
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
@@ -28,7 +32,9 @@
             var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments)
+            settings = Settings.FromConfiguration(arguments.ServiceName);
+
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);
         }
 
@@ -44,12 +50,34 @@
             var requestingName = new AssemblyName(name).Name;
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            if (!File.Exists(combine))
+            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            if (assembly == null && transportFolder != null)
             {
-                return null;
+                var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
             }
 
-            return Assembly.LoadFrom(combine);
+            var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
+            if (assembly == null && persistenceFolder != null)
+            {
+                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
+                assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+            }
+
+            return assembly;
+        }
+
+        static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        {
+            var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
+
+            if (File.Exists(path))
+            {
+                return Assembly.LoadFrom(path);
+            }
+
+            return null;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(Program));

@@ -8,6 +8,8 @@ on:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
+  # The following env var is required as a workaround to
+  # https://github.com/Azure/azure-cli/issues/26272#issuecomment-1534158361
   AZURE_CORE_USE_COMMAND_INDEX: False
 jobs:
   build:
@@ -32,7 +34,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3.0.3
+        uses: actions/setup-dotnet@v3.1.0
         with:
           dotnet-version: 6.0.x
       - name: Add msbuild to PATH

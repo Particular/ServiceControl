@@ -89,7 +89,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 ForwardErrorMessages = false,
-                TransportCustomizationType = transportToUse.TypeName,
+                TransportType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),

@@ -8,16 +8,13 @@
 
     class RunCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args)
+        public override Task Execute(HostArguments args, Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(args.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            var settings = new Settings(args.ServiceName)
-            {
-                RunCleanupBundle = true
-            };
+            settings.RunCleanupBundle = true;
 
             var loggingSettings = new LoggingSettings(args.ServiceName);
 

@@ -7,13 +7,13 @@
 
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="6.5.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.8.2" />
+    <PackageVersion Include="Azure.Identity" Version="1.9.0" />
     <PackageVersion Include="ByteSize" Version="2.1.1" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
     <PackageVersion Include="Dapper" Version="2.0.123" />
     <PackageVersion Include="DotNetZip" Version="1.16.0" />
     <PackageVersion Include="FluentValidation" Version="11.5.2" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.0.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.2.1" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Lucene.Net" Version="3.0.3" />
     <PackageVersion Include="Metrics.NET" Version="0.5.5" />
@@ -27,12 +27,12 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageVersion Include="Mindscape.Raygun4Net" Version="5.13.0" />
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="NLog.Extensions.Logging" Version="5.2.3" />
+    <PackageVersion Include="NLog.Extensions.Logging" Version="5.2.5" />
     <PackageVersion Include="NServiceBus" Version="7.8.2" />
     <PackageVersion Include="NServiceBus.AcceptanceTesting" Version="7.8.2" />
     <PackageVersion Include="NServiceBus.AmazonSQS" Version="5.7.2" />

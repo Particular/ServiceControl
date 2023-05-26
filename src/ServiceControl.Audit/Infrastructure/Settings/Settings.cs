@@ -2,8 +2,6 @@
 {
     using System;
     using System.Configuration;
-    using System.IO;
-    using System.Reflection;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -16,28 +14,17 @@
         public static Settings FromConfiguration(string serviceName)
         {
             return new Settings(
-                 SettingsReader<string>.Read("InternalQueueName", serviceName), // endpoint name can also be overriden via config
-                 SettingsReader<string>.Read("TransportType", null),
-                 SettingsReader<string>.Read("PersistenceType", null));
+                 SettingsReader<string>.Read("InternalQueueName", serviceName) // endpoint name can also be overriden via config
+            );
         }
 
-        public Settings(
-            string serviceName,
-            string transportCustomizationType,
-            string persistenceCustomizationType)
+        public Settings(string serviceName, string transportType = null, string persisterType = null)
         {
             ServiceName = serviceName;
 
-            ValidateTransportType(transportCustomizationType);
+            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
 
-            TransportCustomizationType = transportCustomizationType;
-
-            PersistenceCustomizationType = persistenceCustomizationType;
-
-            if (string.IsNullOrEmpty(persistenceCustomizationType))
-            {
-                throw new ConfigurationErrorsException("No persistence have been configured");
-            }
+            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
 
             TransportConnectionString = GetConnectionString();
 
@@ -87,9 +74,9 @@
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
 
-        public string TransportCustomizationType { get; private set; }
+        public string TransportType { get; private set; }
 
-        public string PersistenceCustomizationType { get; private set; }
+        public string PersistenceType { get; private set; }
 
         public string AuditQueue { get; set; }
 
@@ -136,12 +123,15 @@
         {
             try
             {
-                var customizationType = Type.GetType(TransportCustomizationType, true);
+                TransportType = TransportManifestLibrary.Find(TransportType);
+
+                var customizationType = Type.GetType(TransportType, true);
+
                 return (TransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {
-                throw new Exception($"Could not load transport customization type {TransportCustomizationType}.", e);
+                throw new Exception($"Could not load transport customization type {TransportType}.", e);
             }
         }
 
@@ -233,37 +223,6 @@
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
-        }
-
-        static void ValidateTransportType(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ConfigurationErrorsException("No transport has been configured");
-            }
-
-            var typeNameAndAssembly = typeName.Split(',');
-            if (typeNameAndAssembly.Length < 2)
-            {
-                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is a fully qualified assembly name");
-            }
-
-            string transportAssemblyPath = null;
-            try
-            {
-                transportAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), $"{typeNameAndAssembly[1].Trim()}.dll");
-                Assembly.LoadFile(transportAssemblyPath); // load into AppDomain
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Configuration of transport Failed. Ensure the assembly '{transportAssemblyPath}' is present and that type is correctly defined in settings", e);
-            }
-
-            var transportType = Type.GetType(typeName, false, true);
-            if (transportType == null)
-            {
-                throw new Exception($"Configuration of transport Failed. Could not resolve type '{typeName}' from Setting 'TransportType'. Ensure the assembly is present and that type is correctly defined in settings");
-            }
         }
 
         TimeSpan GetAuditRetentionPeriod()

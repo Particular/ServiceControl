@@ -12,4 +12,8 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\LearningTransport')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

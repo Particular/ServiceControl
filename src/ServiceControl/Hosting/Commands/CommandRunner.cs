@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Hosting;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class CommandRunner
     {
@@ -12,12 +13,12 @@
             this.commands = commands;
         }
 
-        public async Task Execute(HostArguments args)
+        public async Task Execute(HostArguments args, Settings settings)
         {
             foreach (var commandType in commands)
             {
                 var command = (AbstractCommand)Activator.CreateInstance(commandType);
-                await command.Execute(args).ConfigureAwait(false);
+                await command.Execute(args, settings).ConfigureAwait(false);
             }
         }
 

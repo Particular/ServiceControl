@@ -89,7 +89,7 @@
                 },
                 Transport = new
                 {
-                    settings.TransportCustomizationType,
+                    settings.TransportType,
                     settings.ErrorLogQueue,
                     settings.ErrorQueue,
                     settings.ForwardErrorMessages

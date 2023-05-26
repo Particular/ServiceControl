@@ -46,6 +46,26 @@ namespace ServiceControl.Transports
         public System.Threading.Tasks.Task<ServiceControl.Transports.IQueueIngestor> InitializeQueueIngestor(string queueName, ServiceControl.Transports.TransportSettings transportSettings, System.Func<NServiceBus.Transport.MessageContext, System.Threading.Tasks.Task> onMessage, System.Func<NServiceBus.Transport.ErrorContext, System.Threading.Tasks.Task<NServiceBus.Transport.ErrorHandleResult>> onError, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError) { }
         public virtual System.Threading.Tasks.Task ProvisionQueues(string username, ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
     }
+    public class TransportManifest
+    {
+        public TransportManifest() { }
+        public ServiceControl.Transports.TransportManifestDefinition[] Definitions { get; set; }
+        public string Version { get; set; }
+    }
+    public class TransportManifestDefinition
+    {
+        public TransportManifestDefinition() { }
+        public string[] Aliases { get; set; }
+        public string DisplayName { get; set; }
+        public string Name { get; set; }
+        public string TypeName { get; set; }
+    }
+    public static class TransportManifestLibrary
+    {
+        public static System.Collections.Generic.List<ServiceControl.Transports.TransportManifest> TransportManifests { get; set; }
+        public static string Find(string transportType) { }
+        public static string GetTransportFolder(string transportType) { }
+    }
     public class TransportSettings : NServiceBus.Settings.SettingsHolder
     {
         public TransportSettings() { }

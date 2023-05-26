@@ -3,10 +3,22 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
+  <!-- NOTE: cannot rely on import because we need a direct reference to InMemory -->
+  <!--<Import Project="..\Persisters.Audit.Includes.props" />-->
+
+  <ItemGroup Label="Persisters">
+    <!--NOTE: We need a direct reference to InMemory for test configuration -->
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="true" Private="true" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
   </ItemGroup>
 

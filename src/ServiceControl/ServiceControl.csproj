@@ -7,6 +7,9 @@
     <WriteMinVerProperties>true</WriteMinVerProperties>
   </PropertyGroup>
 
+  <Import Project="..\Transports.Includes.props" />
+
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />

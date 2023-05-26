@@ -18,6 +18,33 @@ https://docs.particular.net/servicecontrol/
 - If not using Visual Studio, you may need to install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
 - Follow the [Coding and design guidelines](/docs/coding-and-design-guidelines.md)
 
+## How to run/debug locally
+
+ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/debugged locally by following the following steps:
+
+- Edit the `app.config` file of the instance type to run/debug to select which transport and persistence to use.
+  - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
+- Run or debug the project as usual
+
+### Infrastructure setup
+
+If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode by adding a `launchSettings.json` file to the project of the instance to set up. The file content for the `ServiceControl.Audit` instance looks like the following:
+
+```json
+{
+ "profiles": {
+  "ServiceControl.Audit": {
+   "commandName": "Project",
+   "commandLineArgs": "/setup"
+  }
+ }
+}
+```
+
+Replace `ServiceControl.Audit` with the project name of the instance to set up.
+
+The instance will start as usual, execute the setup process, and exit. Remove the `launchSettings.json` file and run/debug the instance normally.
+
 ## Secrets
 
 Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets, which must be defined for both Actions and Dependabot secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.

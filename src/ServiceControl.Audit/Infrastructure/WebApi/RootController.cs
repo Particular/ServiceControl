@@ -65,10 +65,14 @@
                 },
                 Transport = new
                 {
-                    settings.TransportCustomizationType,
+                    settings.TransportType,
                     settings.AuditLogQueue,
                     settings.AuditQueue,
                     settings.ForwardAuditMessages
+                },
+                Peristence = new
+                {
+                    settings.PersistenceType
                 },
                 Plugins = new
                 {

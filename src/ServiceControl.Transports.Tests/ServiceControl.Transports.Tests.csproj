@@ -4,6 +4,27 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
+  <!-- NOTE: cannot rely on import because we need a direct reference to Learning transport -->
+  <!--<Import Project="..\Transports.Includes.props" />-->
+
+  <ItemGroup Label="Transports">
+    <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.ASQ\ServiceControl.Transports.ASQ.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <!--NOTE: We need a direct reference to Learning transport for test configuration -->
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="true" Private="true" />
+    <ProjectReference Include="..\ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The following assumes transports are the same for every instance type. Coping the transports binaries from the primary instance artifacts folder -->
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
+  </ItemGroup>
+
+
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

@@ -1,0 +1,11 @@
+﻿{
+  "Version": "1.0.0",
+  "Definitions": [
+    {
+      "Name": "MSMQ",
+      "DisplayName": "MSMQ",
+      "TypeName": "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
+      "Aliases": [ "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq" ]
+    }
+  ]
+}
