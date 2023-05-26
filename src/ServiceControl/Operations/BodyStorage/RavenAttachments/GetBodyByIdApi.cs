@@ -8,6 +8,7 @@
     using CompositeViews.Messages;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class GetBodyByIdApi : RoutedApi<string>
     {

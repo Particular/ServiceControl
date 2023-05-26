@@ -6,10 +6,10 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
-    using Infrastructure;
     using Infrastructure.WebApi;
     using NServiceBus;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class CustomCheckController : ApiController
     {

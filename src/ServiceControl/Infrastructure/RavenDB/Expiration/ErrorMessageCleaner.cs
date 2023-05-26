@@ -12,7 +12,7 @@
     using Raven.Abstractions.Exceptions;
     using Raven.Database;
     using ServiceControl.MessageFailures;
-    using ServiceControl.Recoverability;
+    using ServiceControl.Persistence;
 
     static class ErrorMessageCleaner
     {

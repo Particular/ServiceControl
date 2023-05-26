@@ -9,9 +9,9 @@
     using InternalMessages;
     using NServiceBus;
     using Raven.Client;
-    using Infrastructure.Extensions;
     using Infrastructure.WebApi;
     using Recoverability;
+    using ServiceControl.Persistence;
 
     class ArchiveMessagesController : ApiController
     {

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class UnacknowledgedGroupsController : ApiController
     {

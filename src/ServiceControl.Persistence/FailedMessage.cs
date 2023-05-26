@@ -26,7 +26,7 @@
             return $"{CollectionName}/{messageUniqueId}";
         }
 
-        internal static string GetMessageIdFromDocumentId(string failedMessageDocumentId)
+        public static string GetMessageIdFromDocumentId(string failedMessageDocumentId)
         {
             return failedMessageDocumentId.Substring(CollectionName.Length + 1);
         }

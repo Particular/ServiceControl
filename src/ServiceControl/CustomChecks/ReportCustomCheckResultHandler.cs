@@ -3,9 +3,9 @@
     using System;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Contracts.Operations;
     using NServiceBus;
     using Plugin.CustomChecks.Messages;
+    using ServiceControl.Operations;
 
     class ReportCustomCheckResultHandler : IHandleMessages<ReportCustomCheckResult>
     {

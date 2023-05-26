@@ -6,6 +6,7 @@ namespace ServiceControl.Recoverability.API
     using System.Threading.Tasks;
     using System.Web.Http;
     using NServiceBus;
+    using ServiceControl.Persistence;
 
     class FailureGroupsRetryController : ApiController
     {

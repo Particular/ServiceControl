@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Raven.Client;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore

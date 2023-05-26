@@ -3,7 +3,7 @@
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
     using NServiceBus;
-    using ServiceControl.Persistence;
+    using ServiceControl.Contracts.Operations;
 
     public class MessageFailed : IDomainEvent, IMessage, IUserInterfaceEvent
     {
