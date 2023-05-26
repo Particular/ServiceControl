@@ -6,6 +6,7 @@
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class CustomChecksHostedService : IHostedService
     {

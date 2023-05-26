@@ -2,10 +2,9 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using Audit.Monitoring;
-    using Monitoring;
     using Raven.Abstractions.Extensions;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration : IDataMigration
     {

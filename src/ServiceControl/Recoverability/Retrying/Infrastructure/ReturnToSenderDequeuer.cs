@@ -13,6 +13,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class ReturnToSenderDequeuer : IHostedService
     {

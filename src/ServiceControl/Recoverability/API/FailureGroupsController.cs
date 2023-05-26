@@ -4,16 +4,15 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Infrastructure.Extensions;
     using Infrastructure.WebApi;
     using MessageFailures;
     using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class FailureGroupsController : ApiController
     {

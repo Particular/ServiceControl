@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
+    using ServiceControl.Persistence;
 
     class HeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {

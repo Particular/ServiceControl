@@ -6,6 +6,8 @@
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
+    using ServiceControl.Contracts.CustomChecks;
+    using ServiceControl.Persistence;
 
     class CustomCheckNotifications : IObserver<IndexChangeNotification>
     {

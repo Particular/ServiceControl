@@ -4,7 +4,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;

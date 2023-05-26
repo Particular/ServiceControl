@@ -7,6 +7,7 @@
     using Raven.Abstractions.Extensions;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
+    using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork

@@ -7,6 +7,7 @@ namespace ServiceControl.SagaAudit
     using CompositeViews.Messages;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.Infrastructure;
 
     class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
     {

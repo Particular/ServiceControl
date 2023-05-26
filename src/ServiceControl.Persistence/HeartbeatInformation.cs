@@ -5,6 +5,6 @@ namespace ServiceControl.Persistence
     public class HeartbeatInformation
     {
         public DateTime LastReportAt { get; set; }
-        public Status ReportedStatus { get; set; }
+        public HeartbeatMonitoringStatus ReportedStatus { get; set; }
     }
 }

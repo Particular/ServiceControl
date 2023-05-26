@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.HeartbeatMonitoring
 {
     using System.Threading.Tasks;
-    using Contracts.Operations;
     using Monitoring;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
+    using ServiceControl.Operations;
 
     class RegisterEndpointStartupHandler : IHandleMessages<RegisterEndpointStartup>
     {
