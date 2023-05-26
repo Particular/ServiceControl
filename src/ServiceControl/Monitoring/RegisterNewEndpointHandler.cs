@@ -3,12 +3,13 @@
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using NServiceBus;
+    using ServiceControl.Persistence;
 
     class RegisterNewEndpointHandler :
         IHandleMessages<NewEndpointDetected>,
         IHandleMessages<RegisterNewEndpoint>
     {
-        public RegisterNewEndpointHandler(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public RegisterNewEndpointHandler(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             this.endpointInstanceMonitoring = endpointInstanceMonitoring;
         }
@@ -24,6 +25,6 @@
             return endpointInstanceMonitoring.EndpointDetected(message.Endpoint);
         }
 
-        readonly EndpointInstanceMonitoring endpointInstanceMonitoring;
+        readonly IEndpointInstanceMonitoring endpointInstanceMonitoring;
     }
 }
