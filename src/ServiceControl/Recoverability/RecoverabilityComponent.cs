@@ -25,6 +25,7 @@
     using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
     class RecoverabilityComponent : ServiceControlComponent
@@ -136,7 +137,7 @@
                 context.CreateQueue(settings.ErrorLogQueue);
             }
 
-            context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
+            context.AddIndexAssembly(typeof(CustomChecksIndex).Assembly);
         }
 
         class FailedMessageNotificationsHostedService : IHostedService
