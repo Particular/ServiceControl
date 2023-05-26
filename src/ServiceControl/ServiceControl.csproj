@@ -45,11 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Auditing\" />
-    <Folder Include="Operations\UnitOfWork\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
   </ItemGroup>
   
