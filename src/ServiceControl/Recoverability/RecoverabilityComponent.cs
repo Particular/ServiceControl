@@ -137,6 +137,7 @@
                 context.CreateQueue(settings.ErrorLogQueue);
             }
 
+            context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
             context.AddIndexAssembly(typeof(CustomChecksIndex).Assembly);
         }
 
