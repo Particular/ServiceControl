@@ -5,13 +5,13 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
-    using Infrastructure.RavenDB;
     using NServiceBus.Logging;
     using Raven.Abstractions;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Database;
+    using ServiceControl.Infrastructure.RavenDB;
 
     public static class SagaHistoryCleaner
     {

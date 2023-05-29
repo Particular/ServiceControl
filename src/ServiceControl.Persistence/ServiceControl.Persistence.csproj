@@ -14,7 +14,6 @@
   </ItemGroup>  
   
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.SagaAudit.Persistence.RavenDb\ServiceControl.SagaAudit.Persistence.RavenDb.csproj" />
-  </ItemGroup>
-
+    <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
+  </ItemGroup>  
 </Project>
