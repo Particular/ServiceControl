@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  <!-- NOTE: cannot rely on import because we need a direct reference to InMemory -->
-  <!--<Import Project="..\Persisters.Audit.Includes.props" />-->
+  
+  <Import Project="..\Persisters.Audit.Includes.props" />
 
   <ItemGroup Label="Persisters">
     <!--NOTE: We need a direct reference to InMemory for test configuration -->
