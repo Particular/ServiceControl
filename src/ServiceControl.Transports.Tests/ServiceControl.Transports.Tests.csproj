@@ -1,11 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <!-- NOTE: cannot rely on import because we need a direct reference to Learning transport -->
-  <!--<Import Project="..\Transports.Includes.props" />-->
+  <Import Project="..\Transports.Includes.props" />
 
   <ItemGroup Label="Transports">
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" ReferenceOutputAssembly="false" Private="false" />
