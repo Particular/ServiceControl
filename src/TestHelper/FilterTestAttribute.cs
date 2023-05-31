@@ -10,6 +10,11 @@ public abstract class FilterTestAttribute : Attribute, IApplyToContext
     public void ApplyToContext(TestExecutionContext context)
     {
         var currentFilters = Environment.GetEnvironmentVariable("TEST_FILTER")?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        if (currentFilters.Contains("All"))
+        {
+            return;
+        }
+
         if (!currentFilters.Contains(Filter))
         {
             Assert.Ignore("Ignoring because environment variable TEST_FILTER doesn't contain '{0}'.", Filter);
