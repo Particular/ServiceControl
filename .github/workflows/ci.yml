@@ -106,8 +106,6 @@ jobs:
           }
       - name: Run tests
         uses: Particular/run-tests-action@v1.5.0
-        with:
-          filter: ${{ env.TEST_FILTER }}
         env:
           ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
           ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
