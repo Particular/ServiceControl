@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
-  <Import Project="..\Transports.Artifacts.Includes.props" />  
+
+  <ItemGroup Label="Copy artifacts for the F5 experience">
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl.Monitoring\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
