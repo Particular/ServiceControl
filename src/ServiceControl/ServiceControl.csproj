@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
-
+  <Import Project="..\Transports.Artifacts.Includes.props" />  
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />

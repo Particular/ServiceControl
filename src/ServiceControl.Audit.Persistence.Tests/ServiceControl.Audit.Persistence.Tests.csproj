@@ -3,16 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  <!-- NOTE: cannot rely on import because we need a direct reference to InMemory -->
-  <!--<Import Project="..\Persisters.Audit.Includes.props" />-->
+  
+  <Import Project="..\Persisters.Audit.Includes.props" />
 
   <ItemGroup Label="Persisters">
     <!--NOTE: We need a direct reference to InMemory for test configuration -->
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="true" Private="true" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <!-- NOTE: Not using Persisters.Audit.Artifacts.Includes.props to avoid race conditions-->
   <ItemGroup>
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />
   </ItemGroup>
