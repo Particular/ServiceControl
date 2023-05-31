@@ -95,14 +95,14 @@ jobs:
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl.TransportTests.SQS.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-      - name: Set test category filter
+      - name: Set test filter
         shell: pwsh
         run: |
           if('${{ matrix.test-category }}' -eq 'Default'){
-            echo "TEST_FILTER=TestCategory!~Transports." | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+            echo "TEST_FILTER=${{ matrix.test-category }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           }
           else{
-            echo "TEST_FILTER=TestCategory=Transports.${{ matrix.test-category }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+            echo "TEST_FILTER=Transports.${{ matrix.test-category }}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
           }
       - name: Run tests
         uses: Particular/run-tests-action@v1.5.0
