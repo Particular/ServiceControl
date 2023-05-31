@@ -11,6 +11,7 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="true" Private="true" />
   </ItemGroup>
 
+  <!-- NOTE: Not using Persisters.Audit.Artifacts.Includes.props to avoid race conditions-->
   <ItemGroup>
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />
   </ItemGroup>

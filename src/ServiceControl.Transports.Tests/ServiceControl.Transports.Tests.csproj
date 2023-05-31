@@ -11,6 +11,7 @@
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="true" Private="true" />
   </ItemGroup>
 
+  <!-- NOTE: Not using Transports.Artifacts.Includes.props to avoid race conditions-->
   <ItemGroup>
     <!-- The following assumes transports are the same for every instance type. Coping the transports binaries from the primary instance artifacts folder -->
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />

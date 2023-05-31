@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
+  <Import Project="..\Transports.Artifacts.Includes.props" />  
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
