@@ -1,1 +1,1 @@
-﻿[assembly: MsmqTest()]
+﻿[assembly: IncludeInMsmqTests()]

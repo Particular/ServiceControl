@@ -1,1 +1,1 @@
-﻿[assembly: AzureStorageQueuesTest()]
+﻿[assembly: IncludeInAzureStorageQueuesTests()]

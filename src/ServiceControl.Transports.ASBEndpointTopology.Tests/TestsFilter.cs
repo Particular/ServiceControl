@@ -1,1 +1,1 @@
-﻿[assembly: AzureServiceBusTest()]
+﻿[assembly: IncludeInAzureServiceBusTests()]

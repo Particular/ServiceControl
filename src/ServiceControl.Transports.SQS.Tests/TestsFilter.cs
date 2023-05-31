@@ -1,1 +1,1 @@
-﻿[assembly: AmazonSqsTest()]
+﻿[assembly: IncludeInAmazonSqsTests()]

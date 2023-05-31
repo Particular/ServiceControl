@@ -1,1 +1,1 @@
-﻿[assembly: SqlServerTest()]
+﻿[assembly: IncludeInSqlServerTests()]

@@ -5,13 +5,14 @@ using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
-public abstract class FilterTestAttribute : Attribute, IApplyToContext
+public abstract class IncludeInTestsAttribute : Attribute, IApplyToContext
 {
     public void ApplyToContext(TestExecutionContext context)
     {
         var currentFilters = Environment.GetEnvironmentVariable("TEST_FILTER")?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
         if (currentFilters.Contains("All"))
         {
+            Console.WriteLine("Executing because environment variable TEST_FILTER contains 'All'");
             return;
         }
 

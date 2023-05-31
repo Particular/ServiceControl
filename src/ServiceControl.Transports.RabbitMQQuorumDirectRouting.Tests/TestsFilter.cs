@@ -1,1 +1,1 @@
-﻿[assembly: RabbitMQTest()]
+﻿[assembly: IncludeInRabbitMQTests()]

@@ -1,1 +1,1 @@
-﻿[assembly: DefaultTest()]
+﻿[assembly: IncludeInDefaultTests()]
