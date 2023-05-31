@@ -5,8 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Instances">
-    <!-- Primary instance artifacts come from this project. See project files for details -->
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
   </ItemGroup>
