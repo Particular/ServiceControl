@@ -24,6 +24,7 @@
     <!-- MSMQ can't be queried across machines and uses https://github.com/Particular/NServiceBus.Metrics.ServiceControl.Msmq installed into each endpoint to collect metrics instead-->
     <Compile Remove="..\ServiceControl.Transports.Tests\QueueLengthMonitoringTests.cs" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 </Project>
