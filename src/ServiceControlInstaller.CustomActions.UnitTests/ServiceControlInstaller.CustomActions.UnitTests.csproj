@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.CustomActions\ServiceControlInstaller.CustomActions.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
   <ItemGroup>
