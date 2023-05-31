@@ -183,7 +183,39 @@
                                   || name.Equals("NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus", StringComparison.OrdinalIgnoreCase)
             },
+            new TransportInfo
+            {
+                Name = TransportNames.LearningTransport,
+                TypeName = "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+                ZipName = "LearningTransport",
+                SampleConnectionString = "C:\\tmp\\",
+                AvailableInSCMU = IncludeLearningTransport(),
+                Matches = name => name.Equals(TransportNames.LearningTransport, StringComparison.OrdinalIgnoreCase)
+            },
         };
+
+        static bool IncludeLearningTransport()
+        {
+            try
+            {
+                var environmentValue = Environment.GetEnvironmentVariable("ServiceControl_IncludeLearningTransport");
+
+                if (environmentValue != null)
+                {
+                    environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
+                    if (bool.TryParse(environmentValue, out var enabled))
+                    {
+                        return enabled;
+                    }
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
 
         public static TransportInfo Find(string name)
         {
