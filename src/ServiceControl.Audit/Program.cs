@@ -61,7 +61,7 @@
                 }
 
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
-                if (persistenceFolder != null)
+                if (assembly == null && persistenceFolder != null)
                 {
                     var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
                     assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
