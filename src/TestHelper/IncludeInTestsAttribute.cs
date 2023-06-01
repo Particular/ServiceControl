@@ -9,16 +9,16 @@ public abstract class IncludeInTestsAttribute : Attribute, IApplyToContext
 {
     public void ApplyToContext(TestExecutionContext context)
     {
-        var currentFilters = Environment.GetEnvironmentVariable("TEST_FILTER")?.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-        if (currentFilters.Contains("All"))
+        var currentFilter = Environment.GetEnvironmentVariable("TEST_FILTER");
+        context.OutWriter.WriteLine($"Environment variable TEST_FILTER is '{currentFilter ?? "null or not set"}'");
+        if (currentFilter == "All")
         {
-            Console.WriteLine("Executing because environment variable TEST_FILTER contains 'All'");
             return;
         }
 
-        if (!currentFilters.Contains(Filter))
+        if (currentFilter != Filter)
         {
-            Assert.Ignore("Ignoring because environment variable TEST_FILTER doesn't contain '{0}'.", Filter);
+            Assert.Ignore($"Ignoring because environment variable TEST_FILTER doesn't contain '{Filter}'.");
         }
     }
 

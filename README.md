@@ -60,7 +60,7 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 
 ## Running the Tests
 
-Running all tests all the times takes a lot of resources. Tests are filtered based on the `TEST_FILTER` environment variable. If no variable is defined no tests will be run. To run a transport tests, e.g., SQS, define the variable as `TEST_FILTER=Transports.SQS`. The `TEST_FILTER` variable supports multiple values, semi-colon separated. For example, to run SQS tests and all default tests not transport specific define the variable as `TEST_FILTER=Transports.SQS;Default`. Using the same approach to run SQS and ASB tests define the variable as `TEST_FILTER=Transports.SQS;Transports.AzureServiceBus`. The following list contains all the possible `TEST_FILTER` values:
+Running all tests all the times takes a lot of resources. Tests are filtered based on the `TEST_FILTER` environment variable. If no variable is defined no tests will be run. To run a transport tests, e.g., SQS, define the variable as `TEST_FILTER=SQS`. The following list contains all the possible `TEST_FILTER` values:
 
 - `All` - runs all tests
 - `Default` - runs only non-transport-specific tests
