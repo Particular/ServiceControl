@@ -9,8 +9,8 @@ public abstract class IncludeInTestsAttribute : Attribute, IApplyToContext
 {
     public void ApplyToContext(TestExecutionContext context)
     {
-        var currentFilter = Environment.GetEnvironmentVariable("TEST_FILTER");
-        context.OutWriter.WriteLine($"Environment variable TEST_FILTER is '{currentFilter ?? "null or not set"}'");
+        var currentFilter = Environment.GetEnvironmentVariable("ServiceControl_TESTS_FILTER");
+        context.OutWriter.WriteLine($"Environment variable ServiceControl_TESTS_FILTER is '{currentFilter ?? "null or not set"}'");
         if (currentFilter == "All")
         {
             return;
@@ -18,7 +18,7 @@ public abstract class IncludeInTestsAttribute : Attribute, IApplyToContext
 
         if (currentFilter != Filter)
         {
-            Assert.Ignore($"Ignoring because environment variable TEST_FILTER doesn't contain '{Filter}'.");
+            Assert.Ignore($"Ignoring because environment variable ServiceControl_TESTS_FILTER doesn't contain '{Filter}'.");
         }
     }
 
