@@ -1,4 +1,4 @@
 ﻿public class IncludeInRabbitMQTestsAttribute : IncludeInTestsAttribute
 {
-    protected override string Filter => "Transports.RabbitMQ";
+    protected override string Filter => "RabbitMQ";
 }

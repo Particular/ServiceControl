@@ -1,4 +1,4 @@
 ﻿public class IncludeInAmazonSqsTestsAttribute : IncludeInTestsAttribute
 {
-    protected override string Filter => "Transports.SQS";
+    protected override string Filter => "SQS";
 }

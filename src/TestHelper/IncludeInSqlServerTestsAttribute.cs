@@ -1,4 +1,4 @@
 ﻿public class IncludeInSqlServerTestsAttribute : IncludeInTestsAttribute
 {
-    protected override string Filter => "Transports.SqlServer";
+    protected override string Filter => "SqlServer";
 }

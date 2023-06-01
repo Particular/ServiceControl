@@ -1,4 +1,4 @@
 ﻿public class IncludeInMsmqTestsAttribute : IncludeInTestsAttribute
 {
-    protected override string Filter => "Transports.MSMQ";
+    protected override string Filter => "MSMQ";
 }
