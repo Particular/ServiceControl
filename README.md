@@ -60,9 +60,8 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 
 ## Running the Tests
 
-Running all tests all the times takes a lot of resources. Tests are filtered based on the `ServiceControl_TESTS_FILTER` environment variable. If no variable is defined no tests will be run. To run a transport tests, e.g., SQS, define the variable as `ServiceControl_TESTS_FILTER=SQS`. The following list contains all the possible `ServiceControl_TESTS_FILTER` values:
+Running all tests all the times takes a lot of resources. Tests are filtered based on the `ServiceControl_TESTS_FILTER` environment variable. To run only a subset, e.g., SQS transport tests, define the variable as `ServiceControl_TESTS_FILTER=SQS`. The following list contains all the possible `ServiceControl_TESTS_FILTER` values:
 
-- `All` - runs all tests
 - `Default` - runs only non-transport-specific tests
 - `AzureServiceBus`
 - `AzureStorageQueues`
@@ -70,6 +69,8 @@ Running all tests all the times takes a lot of resources. Tests are filtered bas
 - `RabbitMQ`
 - `SqlServer`
 - `SQS`
+
+NOTE: If no variable is defined all tests will be executed.
 
 ### Use the x64 test agent
 

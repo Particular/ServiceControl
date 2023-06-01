@@ -10,9 +10,10 @@ public abstract class IncludeInTestsAttribute : Attribute, IApplyToContext
     public void ApplyToContext(TestExecutionContext context)
     {
         var currentFilter = Environment.GetEnvironmentVariable("ServiceControl_TESTS_FILTER");
-        context.OutWriter.WriteLine($"Environment variable ServiceControl_TESTS_FILTER is '{currentFilter ?? "null or not set"}'");
-        if (currentFilter == "All")
+        context.OutWriter.WriteLine($"Environment variable ServiceControl_TESTS_FILTER is '{currentFilter ?? "not set"}'");
+        if (currentFilter == null)
         {
+            //allows running them all
             return;
         }
 
