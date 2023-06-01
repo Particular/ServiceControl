@@ -191,6 +191,7 @@
                 SampleConnectionString = "C:\\tmp\\",
                 AvailableInSCMU = IncludeLearningTransport(),
                 Matches = name => name.Equals(TransportNames.LearningTransport, StringComparison.OrdinalIgnoreCase)
+                || name.Equals("ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning", StringComparison.OrdinalIgnoreCase)
             },
         };
 
