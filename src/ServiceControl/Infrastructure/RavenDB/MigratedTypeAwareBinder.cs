@@ -45,6 +45,8 @@
                     return typeof(KnownEndpoint);
                 case nameof(ProcessedMessage):
                     return typeof(ProcessedMessage);
+                case nameof(ProcessingAttempt):
+                    return typeof(ProcessingAttempt);
                 case nameof(FailedMessageRetry):
                     return typeof(FailedMessageRetry);
                 case nameof(RetryBatch):
