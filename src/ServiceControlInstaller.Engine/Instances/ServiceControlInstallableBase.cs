@@ -160,7 +160,11 @@
 
         protected List<string> GetServiceDependencies()
         {
-            var dependencies = new List<string>();
+            var dependencies = new List<string>()
+            {
+                "HTTP"
+            };
+
             if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 dependencies.Add("MSMQ");

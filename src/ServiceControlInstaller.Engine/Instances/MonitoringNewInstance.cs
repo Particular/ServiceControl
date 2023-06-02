@@ -111,7 +111,11 @@
                 ImagePath = $"\"{Path.Combine(InstallPath, Constants.MonitoringExe)}\" --serviceName={Name}",
                 ServiceDescription = ServiceDescription
             };
-            var dependencies = new List<string>();
+            var dependencies = new List<string>
+            {
+                "HTTP"
+            };
+
             if (TransportPackage.ZipName.Equals("MSMQ", StringComparison.OrdinalIgnoreCase))
             {
                 dependencies.Add("MSMQ");
