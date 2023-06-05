@@ -16,7 +16,6 @@
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
             AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
@@ -31,6 +30,8 @@
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             settings = new Settings(arguments.ServiceName);
+
+            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);
