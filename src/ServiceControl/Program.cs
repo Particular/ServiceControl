@@ -27,10 +27,10 @@
                 return;
             }
 
+            settings = new Settings(arguments.ServiceName);
+
             var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
             LoggingConfigurator.ConfigureLogging(loggingSettings);
-
-            settings = new Settings(arguments.ServiceName);
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings)
                 .ConfigureAwait(false);
