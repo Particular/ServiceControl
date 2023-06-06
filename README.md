@@ -59,12 +59,28 @@ Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the follow
 * `AWS_REGION`: For testing SQS
 
 ## Running the Tests
+
+Running all tests all the times takes a lot of resources. Tests are filtered based on the `ServiceControl_TESTS_FILTER` environment variable. To run only a subset, e.g., SQS transport tests, define the variable as `ServiceControl_TESTS_FILTER=SQS`. The following list contains all the possible `ServiceControl_TESTS_FILTER` values:
+
+- `Default` - runs only non-transport-specific tests
+- `AzureServiceBus`
+- `AzureStorageQueues`
+- `MSMQ`
+- `RabbitMQ`
+- `SqlServer`
+- `SQS`
+
+NOTE: If no variable is defined all tests will be executed.
+
+### Use the x64 test agent
+
 The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown.
 The ServiceControl.runsettings file in each test project should automatically ensure that tests are run in 64 bit mode.  For reference, there is also a setting in Visual Studio that can be used to ensure test execution is using x64 only: 
 
 ![image](https://user-images.githubusercontent.com/4316196/177248330-c7357e85-b7a1-4cec-992f-535b1e9a0cb4.png)
 
 ### Integration Tests
+
 ًBy default integration tests use `MSMQ` transport to run. This can be overridden by renaming the `_connection.txt` file in the root of the solution to `connection.txt` and updating the transport type and connection string.
 Only the first 3 lines of this file are read with the following information:
 - First line is the Transport name

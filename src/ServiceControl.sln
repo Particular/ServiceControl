@@ -176,6 +176,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Configuration", "ServiceControl.Configuration\ServiceControl.Configuration.csproj", "{B75EEFBA-FAE9-4DEE-9227-7ECF3C7B5F6A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHelper", "TestHelper\TestHelper.csproj", "{AD692C6B-D99B-4EAF-B473-BA68AA151ED2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -446,6 +448,10 @@ Global
 		{B75EEFBA-FAE9-4DEE-9227-7ECF3C7B5F6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B75EEFBA-FAE9-4DEE-9227-7ECF3C7B5F6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B75EEFBA-FAE9-4DEE-9227-7ECF3C7B5F6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD692C6B-D99B-4EAF-B473-BA68AA151ED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD692C6B-D99B-4EAF-B473-BA68AA151ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD692C6B-D99B-4EAF-B473-BA68AA151ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD692C6B-D99B-4EAF-B473-BA68AA151ED2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

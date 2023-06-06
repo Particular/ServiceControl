@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
   <ItemGroup>
     <Compile Include="..\ServiceControl.Audit.Persistence.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
     <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
+    <Compile Remove="..\ServiceControl.Audit.Persistence.Tests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>
