@@ -2,7 +2,7 @@ namespace ServiceControl.EndpointControl.Contracts
 {
     using System;
     using Infrastructure.DomainEvents;
-    using ServiceControl.Contracts.Operations;
+    using ServiceControl.Operations;
 
     public class MonitoringDisabledForEndpoint : IDomainEvent
     {

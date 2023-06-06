@@ -9,17 +9,21 @@
 
   <Import Project="..\Transports.Includes.props" />
 
+  <ItemGroup Label="Copy artifacts for the F5 experience">
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
+  </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
-    <ProjectReference Include="..\ServiceControl.SagaAudit.Persistence.RavenDb\ServiceControl.SagaAudit.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
-    <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Microsoft.AspNet.SignalR" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
@@ -45,7 +49,8 @@
     <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
   </ItemGroup>
 
-  <!-- Artifacts for the primary instance are not currently defined here because we don't yet have selectable persister options.
-  They are defined on the ServiceControl.Persistence.RavenDb project instead. -->
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+  </ItemGroup>
 
 </Project>

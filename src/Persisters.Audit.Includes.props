@@ -1,15 +1,7 @@
 <Project>
-
-    <!--NOTE: Changes to this file should be reflected in ServiceControl.Audit.Persistence.Tests -->
-	<ItemGroup Label="Persisters">
+  <ItemGroup Label="Persisters">
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" ReferenceOutputAssembly="false" Private="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Artifact Include="..\ServiceControl.Audit.Persistence.InMemory\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Persisters\InMemory\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Audit.Persistence.RavenDb\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Persisters\RavenDB35\%(RecursiveDir)" />
-    <Artifact Include="..\ServiceControl.Audit.Persistence.RavenDb5\bin\$(Configuration)\$(TargetFramework)\**\*.*" DestinationFolder="$(OutputPath)\Persisters\RavenDB5\%(RecursiveDir)" />
   </ItemGroup>
 </Project>

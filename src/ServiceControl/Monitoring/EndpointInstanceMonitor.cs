@@ -2,12 +2,11 @@ namespace ServiceControl.Monitoring
 {
     using System;
     using System.Threading.Tasks;
-    using CompositeViews.Endpoints;
     using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using EndpointControl.Contracts;
-    using HeartbeatMonitoring;
     using Infrastructure.DomainEvents;
+    using ServiceControl.Operations;
+    using ServiceControl.Persistence;
 
     class EndpointInstanceMonitor
     {
@@ -120,7 +119,7 @@ namespace ServiceControl.Monitoring
 
                 HeartbeatInformation = new HeartbeatInformation
                 {
-                    ReportedStatus = status == HeartbeatStatus.Alive ? Status.Beating : Status.Dead,
+                    ReportedStatus = status == HeartbeatStatus.Alive ? HeartbeatMonitoringStatus.Beating : HeartbeatMonitoringStatus.Dead,
                     LastReportAt = lastSeen ?? DateTime.MinValue
                 }
             };

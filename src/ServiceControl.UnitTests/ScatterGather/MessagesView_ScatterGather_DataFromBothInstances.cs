@@ -5,6 +5,7 @@
     using System.Linq;
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence.Infrastructure;
 
     [TestFixture]
     class MessagesView_ScatterGather_DataFromBothInstances : MessageView_ScatterGatherTest

@@ -82,7 +82,7 @@
 
             var result = string.Empty;
 
-            var dataStoreSettings = new[] { nameof(Settings.DataStoreType), nameof(Settings.SqlStorageConnectionString) };
+            var dataStoreSettings = new[] { nameof(Settings.DataStoreType) };
 
             foreach (var settingLine in settingsLines)
             {

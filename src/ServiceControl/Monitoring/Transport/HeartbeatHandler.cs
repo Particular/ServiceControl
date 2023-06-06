@@ -3,10 +3,11 @@
     using System.Threading.Tasks;
     using NServiceBus;
     using Plugin.Heartbeat.Messages;
+    using ServiceControl.Persistence;
 
     class HeartbeatHandler : IHandleMessages<EndpointHeartbeat>
     {
-        public HeartbeatHandler(EndpointInstanceMonitoring monitor)
+        public HeartbeatHandler(IEndpointInstanceMonitoring monitor)
         {
             this.monitor = monitor;
         }
@@ -20,6 +21,6 @@
             return Task.FromResult(0);
         }
 
-        EndpointInstanceMonitoring monitor;
+        IEndpointInstanceMonitoring monitor;
     }
 }

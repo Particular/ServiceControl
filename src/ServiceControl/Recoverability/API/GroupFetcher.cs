@@ -7,6 +7,7 @@
     using MessageFailures;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.Persistence;
 
     class GroupFetcher
     {

@@ -9,6 +9,7 @@
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence.Infrastructure;
 
     abstract class MessageView_ScatterGatherTest
     {

@@ -10,6 +10,7 @@
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     static class RavenDbExtensions
     {
@@ -30,7 +31,7 @@
                     )
                 );
 
-            var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly> { typeof(RavenBootstrapper).Assembly });
+            var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly> { typeof(RavenBootstrapper).Assembly, typeof(CustomChecksIndex).Assembly });
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
                 .ConfigureAwait(false);
 

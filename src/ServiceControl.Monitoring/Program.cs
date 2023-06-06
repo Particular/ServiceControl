@@ -48,7 +48,7 @@ namespace ServiceControl.Monitoring
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-            if (assembly == null)
+            if (assembly == null && settings != null)
             {
                 //look into transport directory
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);

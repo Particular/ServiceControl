@@ -5,6 +5,7 @@
     using NUnit.Framework;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Monitoring;
+    using ServiceControl.Persistence;
 
     class EndpointInstanceMonitoringTests
     {

@@ -2,7 +2,7 @@ namespace ServiceControl.Contracts.EndpointControl
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Operations;
+    using ServiceControl.Operations;
 
     public class EndpointStarted : IDomainEvent
     {

@@ -4,10 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Audit.Monitoring;
-    using Contracts.Operations;
     using Raven.Client;
-    using ServiceControl.Monitoring;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore
@@ -46,7 +44,7 @@
             }
         }
 
-        public async Task CreateOrUpdate(EndpointDetails endpoint, EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
 
@@ -96,7 +94,7 @@
             }
         }
 
-        public async Task WarmupMonitoringFromPersistence(EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             using (var session = store.OpenAsyncSession())
             {

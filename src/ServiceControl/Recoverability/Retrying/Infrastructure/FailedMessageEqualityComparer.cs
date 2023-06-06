@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
+    using ServiceControl.Persistence;
 
     class FailedMessageEqualityComparer : IEqualityComparer<FailedMessageRetry>
     {

@@ -4,12 +4,11 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Contracts.Operations;
     using Infrastructure.BackgroundTasks;
-    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
     using NServiceBus.Hosting;
+    using ServiceControl.Operations;
 
     class InternalCustomChecksHostedService : IHostedService
     {

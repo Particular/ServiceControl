@@ -17,6 +17,7 @@
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
     [TestFixture]

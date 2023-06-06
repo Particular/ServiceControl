@@ -51,18 +51,21 @@
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-            if (assembly == null && transportFolder != null)
+            if (assembly == null && settings != null)
             {
-                var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
-                assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
-            }
+                var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+                if (transportFolder != null)
+                {
+                    var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                    assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                }
 
-            var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
-            if (assembly == null && persistenceFolder != null)
-            {
-                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
-                assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
+                if (assembly == null && persistenceFolder != null)
+                {
+                    var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
+                    assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                }
             }
 
             return assembly;

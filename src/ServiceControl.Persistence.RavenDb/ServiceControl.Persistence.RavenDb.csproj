@@ -5,17 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
   </ItemGroup>
 
-  <!--Artifacts for the primary instance are currently defined here because we only ship this persister option right now.
-  This definition should be moved to ServiceControl.csproj once we have multiple persister options for the primary instance. -->
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+    <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
   </ItemGroup>
 
-  <ItemGroup><!-- TODO: Remove this when the persistence has been fully extracted. It is only here to support the F5 experience. -->
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(SolutionDir)\ServiceControl\$(OutDir)" />
+  <ItemGroup>
+    <None Include="$(PkgRavenDB_Database)\tools\Raven.Studio.Html5.zip" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
-
+  
 </Project>

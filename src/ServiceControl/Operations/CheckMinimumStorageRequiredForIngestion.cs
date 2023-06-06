@@ -6,10 +6,11 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
-        public CheckMinimumStorageRequiredForIngestion(State stateHolder, Settings settings)
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, Settings settings)
             : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
@@ -51,14 +52,9 @@
             return CheckResult.Failed(message);
         }
 
-        readonly State stateHolder;
+        readonly MinimumRequiredStorageState stateHolder;
         readonly Settings settings;
         static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
-
-        public class State
-        {
-            public bool CanIngestMore { get; set; } = true;
-        }
     }
 }

@@ -2,6 +2,7 @@
 {
     using System;
     using Contracts.Operations;
+    using ServiceControl.Operations;
 
     public class FailedMessageView
     {

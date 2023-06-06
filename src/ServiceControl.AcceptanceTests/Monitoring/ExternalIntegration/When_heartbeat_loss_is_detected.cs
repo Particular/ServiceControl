@@ -5,11 +5,11 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     using AcceptanceTesting;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
-    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Operations;
     using TestSupport.EndpointTemplates;
 
     /// <summary>

@@ -3,6 +3,7 @@
     using System;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
+    using ServiceControl.Persistence;
 
     public class RetryOperationCompleted : IDomainEvent, IUserInterfaceEvent
     {

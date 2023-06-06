@@ -6,9 +6,10 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Contracts.Operations;
     using Infrastructure.WebApi;
+    using NServiceBus.Logging;
     using Raven.Client;
+    using ServiceControl.Operations;
 
     class GetErrorByIdController : ApiController
     {
@@ -61,13 +62,11 @@
             var failureDetails = processingAttempt.FailureDetails;
             var wasEdited = message.ProcessingAttempts.Last().Headers.ContainsKey("ServiceControl.EditOf");
 
-            return new FailedMessageView
+            var failedMsgView = new FailedMessageView
             {
                 Id = message.UniqueMessageId,
                 MessageType = metadata.GetAsStringOrNull("MessageType"),
                 IsSystemMessage = metadata.GetOrDefault<bool>("IsSystemMessage"),
-                SendingEndpoint = metadata.GetOrDefault<EndpointDetails>("SendingEndpoint"),
-                ReceivingEndpoint = metadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint"),
                 TimeSent = metadata.GetAsNullableDatetime("TimeSent"),
                 MessageId = metadata.GetAsStringOrNull("MessageId"),
                 Exception = failureDetails.Exception,
@@ -79,8 +78,31 @@
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };
+
+            try
+            {
+                failedMsgView.SendingEndpoint = metadata.GetOrDefault<EndpointDetails>("SendingEndpoint");
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Unable to parse SendingEndpoint from metadata for messageId {message.UniqueMessageId}", ex);
+                failedMsgView.SendingEndpoint = EndpointDetailsParser.SendingEndpoint(processingAttempt.Headers);
+            }
+
+            try
+            {
+                failedMsgView.ReceivingEndpoint = metadata.GetOrDefault<EndpointDetails>("ReceivingEndpoint");
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"Unable to parse ReceivingEndpoint from metadata for messageId {message.UniqueMessageId}", ex);
+                failedMsgView.ReceivingEndpoint = EndpointDetailsParser.ReceivingEndpoint(processingAttempt.Headers);
+            }
+
+            return failedMsgView;
         }
 
         readonly IDocumentStore documentStore;
+        static readonly ILog Logger = LogManager.GetLogger(typeof(GetErrorByIdController));
     }
 }

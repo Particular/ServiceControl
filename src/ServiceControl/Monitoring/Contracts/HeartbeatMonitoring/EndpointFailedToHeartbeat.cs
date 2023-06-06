@@ -2,7 +2,7 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
 {
     using System;
     using Infrastructure.DomainEvents;
-    using Operations;
+    using ServiceControl.Operations;
 
     public class EndpointFailedToHeartbeat : IDomainEvent
     {

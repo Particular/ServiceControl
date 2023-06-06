@@ -5,6 +5,7 @@
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using NServiceBus.Transport;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RetryConfirmationProcessor
     {

@@ -11,6 +11,7 @@
     using Particular.ServiceControl;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
     {
@@ -20,7 +21,7 @@
             {
                 collection.AddSingleton<IDataMigration, PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration>();
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
-                collection.AddSingleton<EndpointInstanceMonitoring>();
+                collection.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
 
                 collection.AddDomainEventHandler<MonitoringDataPersister>();
 
@@ -41,9 +42,11 @@
 
         public override void Setup(Settings settings, IComponentInstallationContext context)
         {
+            // TODO: Move this in the persister project
             if (settings.DataStoreType == DataStoreType.SqlDb)
             {
-                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupMonitoring(settings.SqlStorageConnectionString));
+                var connectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
+                context.RegisterInstallationTask(() => SetupSqlPersistence.SetupMonitoring(connectionString));
             }
         }
     }

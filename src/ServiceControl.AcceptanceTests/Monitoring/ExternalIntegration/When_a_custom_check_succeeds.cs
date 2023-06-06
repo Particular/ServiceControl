@@ -4,11 +4,11 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
-    using Contracts.Operations;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Operations;
     using TestSupport.EndpointTemplates;
 
     [TestFixture]

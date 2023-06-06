@@ -11,7 +11,7 @@
 
     class HeartbeatMonitoringHostedService : IHostedService
     {
-        public HeartbeatMonitoringHostedService(EndpointInstanceMonitoring monitor, IMonitoringDataStore persistence, IAsyncTimer scheduler, Settings settings)
+        public HeartbeatMonitoringHostedService(IEndpointInstanceMonitoring monitor, IMonitoringDataStore persistence, IAsyncTimer scheduler, Settings settings)
         {
             this.monitor = monitor;
             this.persistence = persistence;
@@ -48,7 +48,7 @@
             return TimerJobExecutionResult.ScheduleNextExecution;
         }
 
-        EndpointInstanceMonitoring monitor;
+        IEndpointInstanceMonitoring monitor;
         IMonitoringDataStore persistence;
         IAsyncTimer scheduler;
         TimerJob timer;

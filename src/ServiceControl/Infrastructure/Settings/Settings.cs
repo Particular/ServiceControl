@@ -5,7 +5,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.Configuration;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
@@ -54,7 +53,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
             DataStoreType = GetDataStoreType();
-            SqlStorageConnectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
         }
 
         public string NotificationsFilter { get; set; }
@@ -209,8 +207,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool ExposeApi { get; set; } = true;
 
         public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDB35;
-
-        public string SqlStorageConnectionString { get; set; }
 
         public TransportCustomization LoadTransportCustomization()
         {

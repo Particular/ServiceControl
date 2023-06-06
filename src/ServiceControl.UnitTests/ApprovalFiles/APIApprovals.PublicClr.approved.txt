@@ -105,7 +105,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool RunRetryProcessor { get; set; }
         public string ServiceName { get; }
         public bool SkipQueueCreation { get; set; }
-        public string SqlStorageConnectionString { get; set; }
         public string StagingQueue { get; }
         public string StorageUrl { get; }
         public System.TimeSpan TimeToRestartErrorIngestionAfterFailure { get; set; }
@@ -128,30 +127,6 @@ namespace ServiceControl.Audit.Monitoring
     {
         public EnableEndpointMonitoring() { }
         public System.Guid EndpointId { get; set; }
-    }
-    public class KnownEndpointIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Monitoring.KnownEndpoint>
-    {
-        public KnownEndpointIndex() { }
-    }
-}
-namespace ServiceControl.CompositeViews.Endpoints
-{
-    public class EndpointsView
-    {
-        public EndpointsView() { }
-        public ServiceControl.CompositeViews.Endpoints.HeartbeatInformation HeartbeatInformation { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool IsSendingHeartbeats { get; set; }
-        public bool MonitorHeartbeat { get; set; }
-        public bool Monitored { get; set; }
-        public string Name { get; set; }
-    }
-    public class HeartbeatInformation
-    {
-        public HeartbeatInformation() { }
-        public System.DateTime LastReportAt { get; set; }
-        public ServiceControl.HeartbeatMonitoring.Status ReportedStatus { get; set; }
     }
 }
 namespace ServiceControl.CompositeViews.MessageCounting
@@ -204,30 +179,10 @@ namespace ServiceControl.CompositeViews.Messages
         public ServiceControl.SagaAudit.SagaInfo OriginatesFromSaga { get; set; }
         public System.DateTime ProcessedAt { get; set; }
         public System.TimeSpan ProcessingTime { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint { get; set; }
-        public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
+        public ServiceControl.Operations.EndpointDetails ReceivingEndpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails SendingEndpoint { get; set; }
+        public ServiceControl.Persistence.MessageStatus Status { get; set; }
         public System.DateTime? TimeSent { get; set; }
-    }
-    public class MessagesViewIndex : Raven.Client.Indexes.AbstractMultiMapIndexCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewIndex.SortAndFilterOptions>
-    {
-        public MessagesViewIndex() { }
-        public class SortAndFilterOptions
-        {
-            public SortAndFilterOptions() { }
-            public string ConversationId { get; set; }
-            public System.TimeSpan? CriticalTime { get; set; }
-            public System.TimeSpan? DeliveryTime { get; set; }
-            public bool IsSystemMessage { get; set; }
-            public string MessageId { get; set; }
-            public string MessageType { get; set; }
-            public System.DateTime ProcessedAt { get; set; }
-            public System.TimeSpan? ProcessingTime { get; set; }
-            public string[] Query { get; set; }
-            public string ReceivingEndpointName { get; set; }
-            public ServiceControl.Contracts.Operations.MessageStatus Status { get; set; }
-            public System.DateTime TimeSent { get; set; }
-        }
     }
     public class MessagesViewTransformer : Raven.Client.Indexes.AbstractTransformerCreationTask<ServiceControl.CompositeViews.Messages.MessagesViewTransformer.Input>
     {
@@ -269,7 +224,7 @@ namespace ServiceControl.Contracts.CustomChecks
         public System.DateTime FailedAt { get; set; }
         public string FailureReason { get; set; }
         public System.Guid Id { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails OriginatingEndpoint { get; set; }
     }
     public class CustomCheckSucceeded
     {
@@ -277,7 +232,7 @@ namespace ServiceControl.Contracts.CustomChecks
         public string Category { get; set; }
         public string CustomCheckId { get; set; }
         public System.Guid Id { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails OriginatingEndpoint { get; set; }
         public System.DateTime SucceededAt { get; set; }
     }
 }
@@ -287,25 +242,25 @@ namespace ServiceControl.Contracts.EndpointControl
     {
         public EndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
     }
     public class EndpointStarted
     {
         public EndpointStarted() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
+        public ServiceControl.Operations.EndpointDetails EndpointDetails { get; set; }
         public System.DateTime StartedAt { get; set; }
     }
     public class NewEndpointDetected : NServiceBus.IEvent, NServiceBus.IMessage
     {
         public NewEndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
     }
     public class RegisterNewEndpoint : NServiceBus.ICommand, NServiceBus.IMessage
     {
         public RegisterNewEndpoint() { }
         public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
     }
 }
 namespace ServiceControl.Contracts.EventLog
@@ -327,13 +282,13 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     {
         public EndpointFailedToHeartbeat() { }
         public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
         public System.DateTime LastReceivedAt { get; set; }
     }
     public class EndpointHeartbeatRestored
     {
         public EndpointHeartbeatRestored() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
         public System.DateTime RestoredAt { get; set; }
     }
     public class HeartbeatMonitoringDisabled
@@ -350,7 +305,7 @@ namespace ServiceControl.Contracts.HeartbeatMonitoring
     {
         public HeartbeatingEndpointDetected() { }
         public System.DateTime DetectedAt { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
     }
 }
 namespace ServiceControl.Contracts.MessageFailures
@@ -432,14 +387,6 @@ namespace ServiceControl.Contracts.MessageRedirects
 }
 namespace ServiceControl.Contracts.Operations
 {
-    public class EndpointDetails
-    {
-        public EndpointDetails() { }
-        public string Host { get; set; }
-        public System.Guid HostId { get; set; }
-        public string Name { get; set; }
-        public System.Guid GetDeterministicId() { }
-    }
     public class EndpointHeartbeatReceived
     {
         public EndpointHeartbeatReceived() { }
@@ -447,52 +394,13 @@ namespace ServiceControl.Contracts.Operations
         public string Machine { get; set; }
         public System.DateTime SentAt { get; set; }
     }
-    public class ExceptionDetails
-    {
-        public ExceptionDetails() { }
-        public string ExceptionType { get; set; }
-        public string Message { get; set; }
-        public string Source { get; set; }
-        public string StackTrace { get; set; }
-    }
-    public class FailureDetails
-    {
-        public FailureDetails() { }
-        public string AddressOfFailingEndpoint { get; set; }
-        public ServiceControl.Contracts.Operations.ExceptionDetails Exception { get; set; }
-        public System.DateTime TimeOfFailure { get; set; }
-    }
-    public enum MessageStatus
-    {
-        Failed = 1,
-        RepeatedFailure = 2,
-        Successful = 3,
-        ResolvedSuccessfully = 4,
-        ArchivedFailure = 5,
-        RetryIssued = 6,
-    }
 }
 namespace ServiceControl.CustomChecks
 {
-    public class CustomCheck
-    {
-        public CustomCheck() { }
-        public string Category { get; set; }
-        public string CustomCheckId { get; set; }
-        public string FailureReason { get; set; }
-        public System.Guid Id { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails OriginatingEndpoint { get; set; }
-        public System.DateTime ReportedAt { get; set; }
-        public ServiceControl.CustomChecks.Status Status { get; set; }
-    }
     public class CustomCheckDeleted
     {
         public CustomCheckDeleted() { }
         public System.Guid Id { get; set; }
-    }
-    public class CustomChecksIndex : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.CustomChecks.CustomCheck>
-    {
-        public CustomChecksIndex() { }
     }
     public class CustomChecksUpdated : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
     {
@@ -500,24 +408,19 @@ namespace ServiceControl.CustomChecks
         public int Failed { get; set; }
         public System.DateTime RaisedAt { get; set; }
     }
-    public enum Status
-    {
-        Fail = 0,
-        Pass = 1,
-    }
 }
 namespace ServiceControl.EndpointControl.Contracts
 {
     public class MonitoringDisabledForEndpoint
     {
         public MonitoringDisabledForEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
         public System.Guid EndpointInstanceId { get; set; }
     }
     public class MonitoringEnabledForEndpoint
     {
         public MonitoringEnabledForEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails Endpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails Endpoint { get; set; }
         public System.Guid EndpointInstanceId { get; set; }
     }
 }
@@ -548,14 +451,6 @@ namespace ServiceControl.ExternalIntegrations
     {
         public RemoveVersionInformationBehavior() { }
         public override System.Threading.Tasks.Task Invoke(NServiceBus.Pipeline.IOutgoingPhysicalMessageContext context, System.Func<System.Threading.Tasks.Task> next) { }
-    }
-}
-namespace ServiceControl.HeartbeatMonitoring
-{
-    public enum Status
-    {
-        Beating = 0,
-        Dead = 1,
     }
 }
 namespace ServiceControl.Infrastructure.BackgroundTasks
@@ -621,19 +516,6 @@ namespace ServiceControl.Infrastructure.SignalR
     }
     public interface IUserInterfaceEvent { }
 }
-namespace ServiceControl.MessageAuditing
-{
-    public class ProcessedMessage
-    {
-        public ProcessedMessage() { }
-        public ProcessedMessage(System.Collections.Generic.Dictionary<string, string> headers, System.Collections.Generic.Dictionary<string, object> metadata) { }
-        public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-        public string Id { get; set; }
-        public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-        public System.DateTime ProcessedAt { get; set; }
-        public string UniqueMessageId { get; set; }
-    }
-}
 namespace ServiceControl.MessageFailures.Api
 {
     public class EditConfigurationModel
@@ -666,8 +548,8 @@ namespace ServiceControl.MessageFailures.Api
         public string MessageType { get; set; }
         public int NumberOfProcessingAttempts { get; set; }
         public string QueueAddress { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails ReceivingEndpoint { get; set; }
-        public ServiceControl.Contracts.Operations.EndpointDetails SendingEndpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails ReceivingEndpoint { get; set; }
+        public ServiceControl.Operations.EndpointDetails SendingEndpoint { get; set; }
         public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
         public System.DateTime TimeOfFailure { get; set; }
         public System.DateTime? TimeSent { get; set; }
@@ -698,61 +580,6 @@ namespace ServiceControl.MessageFailures.Api
         public QueueAddressIndex() { }
     }
 }
-namespace ServiceControl.MessageFailures
-{
-    public class FailedMessage : ServiceControl.MessageFailures.IHaveStatus
-    {
-        public const string CollectionName = "FailedMessages";
-        public FailedMessage() { }
-        public System.Collections.Generic.List<ServiceControl.MessageFailures.FailedMessage.FailureGroup> FailureGroups { get; set; }
-        public string Id { get; set; }
-        public System.Collections.Generic.List<ServiceControl.MessageFailures.FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
-        public ServiceControl.MessageFailures.FailedMessageStatus Status { get; set; }
-        public string UniqueMessageId { get; set; }
-        public static string MakeDocumentId(string messageUniqueId) { }
-        public class FailureGroup
-        {
-            public FailureGroup() { }
-            public string Id { get; set; }
-            public string Title { get; set; }
-            public string Type { get; set; }
-        }
-        public class ProcessingAttempt
-        {
-            public ProcessingAttempt() { }
-            public System.DateTime AttemptedAt { get; set; }
-            public string Body { get; set; }
-            public ServiceControl.Contracts.Operations.FailureDetails FailureDetails { get; set; }
-            public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
-            public string MessageId { get; set; }
-            public System.Collections.Generic.Dictionary<string, object> MessageMetadata { get; set; }
-        }
-    }
-    public enum FailedMessageStatus
-    {
-        Unresolved = 1,
-        Resolved = 2,
-        RetryIssued = 3,
-        Archived = 4,
-    }
-    public class GroupComment
-    {
-        public GroupComment() { }
-        public string Comment { get; set; }
-        public string Id { get; set; }
-        public static string MakeId(string groupId) { }
-    }
-    public interface IHaveStatus
-    {
-        ServiceControl.MessageFailures.FailedMessageStatus Status { get; }
-    }
-    public class QueueAddress
-    {
-        public QueueAddress() { }
-        public int FailedMessageCount { get; set; }
-        public string PhysicalAddress { get; set; }
-    }
-}
 namespace ServiceControl.MessageFailures.InternalMessages
 {
     public class ReclassificationOfErrorMessageComplete
@@ -761,26 +588,20 @@ namespace ServiceControl.MessageFailures.InternalMessages
         public int NumberofMessageReclassified { get; set; }
     }
 }
+namespace ServiceControl.MessageFailures
+{
+    public class QueueAddress
+    {
+        public QueueAddress() { }
+        public int FailedMessageCount { get; set; }
+        public string PhysicalAddress { get; set; }
+    }
+}
 namespace ServiceControl.Monitoring
 {
-    public class EndpointInstanceId : System.IEquatable<ServiceControl.Monitoring.EndpointInstanceId>
+    public static class EndpointDetailsExtensions
     {
-        public readonly System.Guid HostGuid;
-        public readonly string HostName;
-        public readonly string LogicalName;
-        public EndpointInstanceId(string logicalName, string hostName, System.Guid hostGuid) { }
-        public System.Guid UniqueId { get; }
-        public bool Equals(ServiceControl.Monitoring.EndpointInstanceId other) { }
-        public override bool Equals(object obj) { }
-        public override int GetHashCode() { }
-    }
-    public class EndpointMonitoringStats
-    {
-        public EndpointMonitoringStats() { }
-        public int Active { get; }
-        public int Failing { get; }
-        public void RecordActive() { }
-        public void RecordFailing() { }
+        public static ServiceControl.Persistence.EndpointInstanceId ToInstanceId(this ServiceControl.Operations.EndpointDetails endpointDetails) { }
     }
     public class EndpointUpdateModel
     {
@@ -792,23 +613,6 @@ namespace ServiceControl.Monitoring
         Unknown = 0,
         Alive = 1,
         Dead = 2,
-    }
-    public class KnownEndpoint
-    {
-        public const string CollectionName = "KnownEndpoints";
-        public KnownEndpoint() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public bool HasTemporaryId { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
-        public bool Monitored { get; set; }
-    }
-    public class KnownEndpointsView
-    {
-        public KnownEndpointsView() { }
-        public ServiceControl.Contracts.Operations.EndpointDetails EndpointDetails { get; set; }
-        public string HostDisplayName { get; set; }
-        public System.Guid Id { get; set; }
     }
 }
 namespace ServiceControl.Notifications.Api
@@ -914,14 +718,6 @@ namespace ServiceControl.Operations
         public byte[] Body { get; set; }
         public System.Collections.Generic.Dictionary<string, string> Headers { get; set; }
         public string Id { get; set; }
-    }
-}
-namespace ServiceControl.Persistence
-{
-    public static class SetupSqlPersistence
-    {
-        public static System.Threading.Tasks.Task SetupCustomChecks(string connectionString) { }
-        public static System.Threading.Tasks.Task SetupMonitoring(string connectionString) { }
     }
 }
 namespace ServiceControl.Recoverability
@@ -1054,20 +850,6 @@ namespace ServiceControl.Recoverability
         public string GroupName { get; set; }
         public int MessagesCount { get; set; }
     }
-    public class FailedMessageRetries_ByBatch : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.FailedMessageRetry>
-    {
-        public FailedMessageRetries_ByBatch() { }
-    }
-    public class FailedMessageRetry
-    {
-        public const string CollectionName = "FailedMessageRetries";
-        public FailedMessageRetry() { }
-        public string FailedMessageId { get; set; }
-        public string Id { get; set; }
-        public string RetryBatchId { get; set; }
-        public int StageAttempts { get; set; }
-        public static string MakeDocumentId(string messageUniqueId) { }
-    }
     public class FailedMessages_ByGroup : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.MessageFailures.FailedMessage, ServiceControl.Recoverability.FailureGroupMessageView>
     {
         public FailedMessages_ByGroup() { }
@@ -1121,7 +903,7 @@ namespace ServiceControl.Recoverability
         public int NumberOfMessagesProcessed { get; set; }
         public string Originator { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
     public interface IFailedMessageEnricher
@@ -1178,65 +960,13 @@ namespace ServiceControl.Recoverability
         public string GroupId { get; set; }
         public System.DateTime? Started { get; set; }
     }
-    public class RetryBatch
-    {
-        public RetryBatch() { }
-        public string Classifier { get; set; }
-        public string Context { get; set; }
-        public System.Collections.Generic.IList<string> FailureRetries { get; set; }
-        public string Id { get; set; }
-        public int InitialBatchSize { get; set; }
-        public System.DateTime? Last { get; set; }
-        public string Originator { get; set; }
-        public string RequestId { get; set; }
-        public string RetrySessionId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
-        public string StagingId { get; set; }
-        public System.DateTime StartTime { get; set; }
-        public ServiceControl.Recoverability.RetryBatchStatus Status { get; set; }
-        public static string MakeDocumentId(string messageUniqueId) { }
-    }
-    public class RetryBatchGroup
-    {
-        public RetryBatchGroup() { }
-        public string Classifier { get; set; }
-        public bool HasForwardingBatches { get; set; }
-        public bool HasStagingBatches { get; set; }
-        public int InitialBatchSize { get; set; }
-        public System.DateTime Last { get; set; }
-        public string Originator { get; set; }
-        public string RequestId { get; set; }
-        [Raven.Imports.Newtonsoft.Json.JsonProperty(NullValueHandling=Raven.Imports.Newtonsoft.Json.NullValueHandling.Ignore)]
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
-        public System.DateTime StartTime { get; set; }
-    }
-    public class RetryBatchNowForwarding
-    {
-        public const string Id = "RetryBatches/NowForwarding";
-        public RetryBatchNowForwarding() { }
-        public string RetryBatchId { get; set; }
-    }
-    public enum RetryBatchStatus
-    {
-        MarkingDocuments = 1,
-        Staging = 2,
-        Forwarding = 3,
-    }
-    public class RetryBatches_ByStatusAndSession : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch>
-    {
-        public RetryBatches_ByStatusAndSession() { }
-    }
-    public class RetryBatches_ByStatus_ReduceInitialBatchSize : Raven.Client.Indexes.AbstractIndexCreationTask<ServiceControl.Recoverability.RetryBatch, ServiceControl.Recoverability.RetryBatchGroup>
-    {
-        public RetryBatches_ByStatus_ReduceInitialBatchSize() { }
-    }
     public class RetryHistory
     {
         public RetryHistory() { }
         public System.Collections.Generic.List<ServiceControl.Recoverability.HistoricRetryOperation> HistoricOperations { get; set; }
         public string Id { get; set; }
         public System.Collections.Generic.List<ServiceControl.Recoverability.UnacknowledgedRetryOperation> UnacknowledgedOperations { get; set; }
-        public bool Acknowledge(string requestId, ServiceControl.Recoverability.RetryType type) { }
+        public bool Acknowledge(string requestId, ServiceControl.Persistence.RetryType type) { }
         public void AddToHistory(ServiceControl.Recoverability.HistoricRetryOperation historicOperation, int historyDepth) { }
         public void AddToUnacknowledged(ServiceControl.Recoverability.UnacknowledgedRetryOperation unacknowledgedRetryOperation) { }
         public string GetHistoryOperationsUniqueIdentifier() { }
@@ -1261,7 +991,7 @@ namespace ServiceControl.Recoverability
         public bool IsFailed { get; set; }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
@@ -1276,7 +1006,7 @@ namespace ServiceControl.Recoverability
         public string Originator { get; set; }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
     public class RetryOperationForwarding : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent
@@ -1285,7 +1015,7 @@ namespace ServiceControl.Recoverability
         public bool IsFailed { get; set; }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
@@ -1295,7 +1025,7 @@ namespace ServiceControl.Recoverability
         public bool IsFailed { get; set; }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
         public int TotalNumberOfMessages { get; set; }
     }
@@ -1304,7 +1034,7 @@ namespace ServiceControl.Recoverability
         public RetryOperationWaiting() { }
         public ServiceControl.Recoverability.RetryProgress Progress { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
     public struct RetryProgress
@@ -1323,16 +1053,6 @@ namespace ServiceControl.Recoverability
         Forwarding = 2,
         Completed = 3,
     }
-    public enum RetryType
-    {
-        Unknown = 0,
-        SingleMessage = 1,
-        FailureGroup = 2,
-        MultipleMessages = 3,
-        AllForEndpoint = 4,
-        All = 5,
-        ByQueueAddress = 6,
-    }
     public class UnacknowledgedRetryOperation
     {
         public UnacknowledgedRetryOperation() { }
@@ -1343,7 +1063,7 @@ namespace ServiceControl.Recoverability
         public int NumberOfMessagesProcessed { get; set; }
         public string Originator { get; set; }
         public string RequestId { get; set; }
-        public ServiceControl.Recoverability.RetryType RetryType { get; set; }
+        public ServiceControl.Persistence.RetryType RetryType { get; set; }
         public System.DateTime StartTime { get; set; }
     }
     public class UnarchiveOperationBatchCompleted : ServiceControl.Infrastructure.SignalR.IUserInterfaceEvent

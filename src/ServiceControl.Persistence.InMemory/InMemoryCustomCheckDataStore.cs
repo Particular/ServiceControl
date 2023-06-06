@@ -4,10 +4,8 @@ namespace ServiceControl.Persistence.InMemory
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
     using Contracts.CustomChecks;
     using Infrastructure;
-    using ServiceControl.CustomChecks;
     using ServiceControl.Persistence;
 
     class InMemoryCustomCheckDataStore : ICustomChecksDataStore

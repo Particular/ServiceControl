@@ -15,6 +15,7 @@
     using NServiceBus.Transport;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class ErrorIngestor
     {

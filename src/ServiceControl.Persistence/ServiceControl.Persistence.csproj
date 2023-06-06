@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>  
+  
+  <ItemGroup>
+    <PackageReference Include="Lucene.Net" />
+    <PackageReference Include="Microsoft.AspNet.WebApi" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
+    <PackageReference Include="NServiceBus" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>  
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
+  </ItemGroup>  
+</Project>

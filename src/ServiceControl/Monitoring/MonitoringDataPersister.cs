@@ -13,7 +13,7 @@
         IDomainHandler<MonitoringEnabledForEndpoint>,
         IDomainHandler<MonitoringDisabledForEndpoint>
     {
-        public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore, EndpointInstanceMonitoring endpointInstanceMonitoring)
+        public MonitoringDataPersister(IMonitoringDataStore monitoringDataStore, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             _monitoringDataStore = monitoringDataStore;
             _endpointInstanceMonitoring = endpointInstanceMonitoring;
@@ -40,6 +40,6 @@
         }
 
         IMonitoringDataStore _monitoringDataStore;
-        EndpointInstanceMonitoring _endpointInstanceMonitoring;
+        IEndpointInstanceMonitoring _endpointInstanceMonitoring;
     }
 }

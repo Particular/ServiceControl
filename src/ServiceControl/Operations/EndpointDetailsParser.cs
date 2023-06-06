@@ -4,6 +4,7 @@ namespace ServiceControl.Contracts.Operations
     using System.Collections.Generic;
     using Infrastructure;
     using NServiceBus;
+    using ServiceControl.Operations;
 
     class EndpointDetailsParser
     {

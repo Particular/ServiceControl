@@ -4,7 +4,7 @@
     using System.Data;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
+    using ServiceControl.Persistence.Infrastructure;
 
     class SqlDbConnectionManager
     {

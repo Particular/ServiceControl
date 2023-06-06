@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Results;
-    using CompositeViews.Endpoints;
     using ServiceControl.Persistence;
 
     public class EndpointUpdateModel
@@ -18,7 +17,7 @@
     {
         readonly IMonitoringDataStore monitoringDataStore;
 
-        public EndpointsMonitoringController(EndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
+        public EndpointsMonitoringController(IEndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
         {
             this.getKnownEndpointsApi = getKnownEndpointsApi;
             this.monitoringDataStore = monitoringDataStore;
@@ -88,7 +87,7 @@
             return StatusCode(HttpStatusCode.Accepted);
         }
 
-        readonly EndpointInstanceMonitoring endpointInstanceMonitoring;
+        readonly IEndpointInstanceMonitoring endpointInstanceMonitoring;
         readonly GetKnownEndpointsApi getKnownEndpointsApi;
     }
 }

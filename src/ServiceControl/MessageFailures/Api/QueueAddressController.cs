@@ -5,9 +5,9 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Infrastructure.Extensions;
     using Infrastructure.WebApi;
     using Raven.Client;
+    using ServiceControl.Persistence;
 
     class QueueAddressController : ApiController
     {

@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.EndpointControl.Handlers
 {
     using System;
-    using Monitoring;
     using Operations;
     using ServiceControl.Contracts.Operations;
+    using ServiceControl.Persistence;
 
     class DetectNewEndpointsFromErrorImportsEnricher : IEnrichImportedErrorMessages
     {
-        public DetectNewEndpointsFromErrorImportsEnricher(EndpointInstanceMonitoring monitoring)
+        public DetectNewEndpointsFromErrorImportsEnricher(IEndpointInstanceMonitoring monitoring)
         {
             this.monitoring = monitoring;
         }
@@ -48,6 +48,6 @@
             }
         }
 
-        EndpointInstanceMonitoring monitoring;
+        IEndpointInstanceMonitoring monitoring;
     }
 }

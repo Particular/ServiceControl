@@ -2,7 +2,7 @@
 {
     using System;
     using NServiceBus;
-    using Operations;
+    using ServiceControl.Operations;
 
     public class RegisterNewEndpoint : ICommand
     {

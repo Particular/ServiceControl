@@ -3,12 +3,10 @@ namespace ServiceControl.Persistence.SqlServer
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
-    using Contracts.CustomChecks;
-    using Contracts.Operations;
     using Dapper;
     using Infrastructure;
-    using ServiceControl.CustomChecks;
+    using ServiceControl.Contracts.CustomChecks;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
     class SqlDbCustomCheckDataStore : ICustomChecksDataStore

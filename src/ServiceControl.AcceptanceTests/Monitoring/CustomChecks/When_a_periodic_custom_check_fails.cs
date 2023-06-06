@@ -126,7 +126,7 @@
                 EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
             }
 
-            class FailingCustomCheck : CustomCheck
+            class FailingCustomCheck : NServiceBus.CustomChecks.CustomCheck
             {
                 public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
                 {
