@@ -45,6 +45,10 @@ Replace `ServiceControl.Audit` with the project name of the instance to set up.
 
 The instance will start as usual, execute the setup process, and exit. Remove the `launchSettings.json` file and run/debug the instance normally.
 
+### Run Instances on Learning transport
+
+To help with local testing, the Learning transport has been added to the list of available transports when setting up a new instance in SCMU. For it to become available, an environment variable `ServiceControl_IncludeLearningTransport` needs to be created with a value of `true`.
+
 ## Secrets
 
 Testing using the [CI workflow](/.github/workflows/ci.yml) depends on the following secrets, which must be defined for both Actions and Dependabot secrets. The Particular values for these secrets are stored in the secure note named **ServiceControl Repo Secrets**.
