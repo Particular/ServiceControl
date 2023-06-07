@@ -26,6 +26,10 @@ ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/d
   - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
 - Run or debug the project as usual
 
+A video demo, showing how to set it up, is available on the Particular YouTube channel:
+
+[![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/w3tYnj11dQ8)
+
 ### Infrastructure setup
 
 If the instance is executed for the first time, it must set up the required infrastructure. To do so, once the instance is configured to use the selected transport and persister, run/debug it in setup mode by adding a `launchSettings.json` file to the project of the instance to set up. The file content for the `ServiceControl.Audit` instance looks like the following:
