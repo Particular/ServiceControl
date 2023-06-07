@@ -6,7 +6,10 @@
   "ConnectionString": null,
   "ErrorQueue": "error",
   "LogPath": "C:\\Logs",
-  "LogLevel": "Warn",
+  "LogLevel": {
+    "Name": "Warn",
+    "Ordinal": 3
+  },
   "Username": null,
   "EnableInstallers": false,
   "HttpHostName": "localhost",
@@ -16,17 +19,5 @@
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 32,
   "LicenseFileText": null,
-  "ExposeApi": true,
-  "OnMessage": {
-    "Method": {
-      "Name": "<.ctor>b__0_0",
-      "AssemblyName": "ServiceControl.Monitoring, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
-      "ClassName": "ServiceControl.Monitoring.Settings+<>c",
-      "Signature": "System.Threading.Tasks.Task <.ctor>b__0_0(System.String, System.Collections.Generic.Dictionary`2[System.String,System.String], Byte[], System.Func`1[System.Threading.Tasks.Task])",
-      "Signature2": "System.Threading.Tasks.Task <.ctor>b__0_0(System.String, System.Collections.Generic.Dictionary`2[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], System.Byte[], System.Func`1[[System.Threading.Tasks.Task, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]])",
-      "MemberType": 8,
-      "GenericArguments": null
-    },
-    "Target": {}
-  }
+  "ExposeApi": true
 }

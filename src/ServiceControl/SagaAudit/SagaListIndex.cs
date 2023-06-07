@@ -37,9 +37,9 @@ namespace ServiceControl.SagaAudit
 
         public class Result
         {
-            public Guid Id;
-            public string Uri;
-            public string SagaType;
+            public Guid Id { get; set; }
+            public string Uri { get; set; }
+            public string SagaType { get; set; }
         }
     }
 }

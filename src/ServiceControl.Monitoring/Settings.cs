@@ -96,7 +96,7 @@ namespace ServiceControl.Monitoring
 
         string endpointName;
 
-        public Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
+        internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
     }
