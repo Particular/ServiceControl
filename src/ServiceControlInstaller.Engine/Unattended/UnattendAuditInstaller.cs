@@ -74,6 +74,8 @@
                         logger.Error(error);
                     }
 
+                    instanceInstaller.RemoveUrlAcl();
+
                     return false;
                 }
             }

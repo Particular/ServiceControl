@@ -66,6 +66,8 @@
 
                     if (instanceInstaller.ReportCard.HasErrors)
                     {
+                        instanceInstaller.RemoveUrlAcl();
+
                         return false;
                     }
                 }

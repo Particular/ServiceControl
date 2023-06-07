@@ -133,6 +133,12 @@
             reservation.Create();
         }
 
+        public void RemoveUrlAcl()
+        {
+            var reservation = new UrlReservation(Url, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            reservation.Delete();
+        }
+
         public void SetupInstance()
         {
             try

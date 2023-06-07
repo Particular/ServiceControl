@@ -80,6 +80,10 @@ namespace ServiceControl.Config.Framework.Modules
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
             }
+            else
+            {
+                instanceInstaller.RemoveUrlAcl();
+            }
 
             instanceInstaller.ReportCard.SetStatus();
             return instanceInstaller.ReportCard;
@@ -301,6 +305,10 @@ namespace ServiceControl.Config.Framework.Modules
                 {
                     instanceInstaller.ReportCard.Warnings.Add($"New instance did not startup - please check configuration for {instance.Name}");
                 }
+            }
+            else
+            {
+                instanceInstaller.RemoveUrlAcl();
             }
 
             instanceInstaller.ReportCard.SetStatus();
