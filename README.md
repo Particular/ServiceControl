@@ -26,7 +26,9 @@ ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/d
   - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
 - Run or debug the project as usual
 
-[A video demo is available on the Particular YouTube channel.](https://www.youtube.com/embed/w3tYnj11dQ8)
+A video demo, showing how to set it up, is available on the Particular YouTube channel:
+
+[![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/w3tYnj11dQ8)
 
 ### Infrastructure setup
 
