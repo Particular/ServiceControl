@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿// ReSharper disable NotAccessedField.Local
+#pragma warning disable CS0649
+namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Threading;
@@ -34,15 +36,27 @@
             return ensureStopped(shutdownTokenSource.Token);
         }
 
-        public Task Start()
+        public async Task Start()
         {
+            var startupAttemptDone = new TaskCompletionSource<bool>();
+            Exception startupException = null;
+
             watchdog = Task.Run(async () =>
             {
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
                     try
                     {
-                        await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
+                        try
+                        {
+                            await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
+                        }
+                        catch (Exception e)
+                        {
+                            startupException = e;
+                            throw;
+                        }
+
                         clearFailure();
                     }
                     catch (OperationCanceledException)
@@ -52,9 +66,16 @@
                     }
                     catch (Exception e)
                     {
-                        log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                        log.Error(
+                            $"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.",
+                            e);
                         reportFailure(e.Message);
                     }
+                    finally
+                    {
+                        startupAttemptDone.SetResult(true);
+                    }
+
                     try
                     {
                         await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
@@ -75,7 +96,18 @@
                     reportFailure(e.Message);
                 }
             });
-            return Task.CompletedTask;
+
+            await startupAttemptDone.Task.ConfigureAwait(false);
+
+            if (startupException != null)
+            {
+                dynamic exception = startupException;
+
+                if (exception.ShutdownReason.ReplyCode == 404 && exception.ShutdownReason.ReplyText.Contains("audit"))
+                {
+                    throw startupException;
+                }
+            }
         }
 
         public Task Stop()
