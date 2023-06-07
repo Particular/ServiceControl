@@ -1127,10 +1127,10 @@ namespace ServiceControl.SagaAudit
         public SagaListIndex() { }
         public class Result
         {
-            public System.Guid Id;
-            public string SagaType;
-            public string Uri;
             public Result() { }
+            public System.Guid Id { get; set; }
+            public string SagaType { get; set; }
+            public string Uri { get; set; }
         }
     }
 }
