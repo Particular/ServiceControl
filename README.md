@@ -28,7 +28,7 @@ ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/d
 
 A video demo, showing how to set it up, is available on the Particular YouTube channel:
 
-[![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/w3tYnj11dQ8)
+[![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/watch?v=w3tYnj11dQ8)
 
 ### Infrastructure setup
 
