@@ -1,9 +1,14 @@
 name: Release
 on:
   push:
+    branches:
+      - master
+      - release-*
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
+  pull_request:
+  workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
 jobs:
@@ -64,6 +69,11 @@ jobs:
         run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
+      - name: Docker Diagnostics
+        shell: pwsh
+        run: |
+          # List out the docker images on the system
+          docker images
       - name: Publish assets
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -96,21 +106,19 @@ jobs:
 
           $serviceControlMetadata | ConvertTo-Json | Out-File -Path ServiceControlMetadata.json
       - name: Deploy
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: Particular/push-octopus-package-action@v1.1.0
         with:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
           additional-metadata-paths: ServiceControlMetadata.json
       - name: Login to Docker Hub
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: docker/login-action@v2.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Diagnostics
-        shell: pwsh
-        run: |
-          # List out the docker images on the system
-          docker images
       - name: Push Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
         run: |
           Get-ChildItem -Path dockerfiles -Filter *.dockerfile | ForEach-Object {
