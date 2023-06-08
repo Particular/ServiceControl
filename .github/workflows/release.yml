@@ -68,12 +68,12 @@ jobs:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
-      - name: Docker Diagnostics
+      - name: List Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
-        run: |
-          # List out the docker images on the system
-          docker images
+        run: docker images
       - name: Publish assets
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -93,6 +93,7 @@ jobs:
           path: zip/*
           retention-days: 1
       - name: Prepare ServiceControl metadata
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
         run: |
           #List of Docker image names used to control re-tagging during push to production
