@@ -92,6 +92,34 @@ jobs:
           name: zips
           path: zip/*
           retention-days: 1
+      - name : Verify release artifact counts
+        shell: pwsh
+        run: |
+          $assetsCount = (Get-ChildItem -Recurse -File assets).Count
+          $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
+          $zipCount = (Get-ChildItem -Recurse -File zip).Count
+
+          $expectedAssetsCount = 2
+          $expectedNugetsCount = 1
+          $expectedZipCount = 3
+
+          if ($assetsCount -ne $expectedAssetsCount)
+          {
+              Write-Host Assets: Expected $expectedAssetsCount but found $assetsCount
+              exit -1
+          }
+
+          if ($nugetsCount -ne $expectedNugetsCount)
+          {
+              Write-Host Nugets: Expected $expectedNugetsCount but found $nugetsCount
+              exit -1
+          }
+
+          if ($expectedZipCount -ne $zipCount)
+          {
+              Write-Host Zips: Expected $expectedZipCount but found $zipCount
+              exit -1
+          }
       - name: Prepare ServiceControl metadata
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
