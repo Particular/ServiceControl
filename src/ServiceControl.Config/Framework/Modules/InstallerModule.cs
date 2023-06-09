@@ -63,10 +63,18 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.CopyFiles(ZipInfo.FilePath);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
-            progress.Report(5, 9, "Registering URL ACLs...");
-            instanceInstaller.RegisterUrlAcl();
-            progress.Report(6, 9, "Creating queues...");
-            instanceInstaller.SetupInstance();
+
+            try
+            {
+                progress.Report(5, 9, "Registering URL ACLs...");
+                instanceInstaller.RegisterUrlAcl();
+                progress.Report(6, 9, "Creating queues...");
+                instanceInstaller.SetupInstance();
+            }
+            catch (Exception ex)
+            {
+                instanceInstaller.ReportCard.Errors.Add(ex.Message);
+            }
 
             if (!instanceInstaller.ReportCard.HasErrors)
             {
@@ -289,10 +297,18 @@ namespace ServiceControl.Config.Framework.Modules
             instanceInstaller.CopyFiles(ZipInfo.FilePath);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
-            progress.Report(5, 9, "Registering URL ACLs...");
-            instanceInstaller.RegisterUrlAcl();
-            progress.Report(6, 9, "Creating queues...");
-            instanceInstaller.SetupInstance();
+
+            try
+            {
+                progress.Report(5, 9, "Registering URL ACLs...");
+                instanceInstaller.RegisterUrlAcl();
+                progress.Report(6, 9, "Creating queues...");
+                instanceInstaller.SetupInstance();
+            }
+            catch (Exception ex)
+            {
+                instanceInstaller.ReportCard.Errors.Add(ex.Message);
+            }
 
             if (!instanceInstaller.ReportCard.HasErrors)
             {

@@ -59,9 +59,18 @@
             {
                 instanceInstaller.CopyFiles(ZipInfo.FilePath);
                 instanceInstaller.WriteConfigurationFile();
-                instanceInstaller.RegisterUrlAcl();
-                instanceInstaller.SetupInstance();
-                instanceInstaller.RegisterService();
+
+                try
+                {
+                    instanceInstaller.RegisterUrlAcl();
+                    instanceInstaller.SetupInstance();
+                    instanceInstaller.RegisterService();
+                }
+                catch (Exception ex)
+                {
+                    instanceInstaller.ReportCard.Errors.Add(ex.Message);
+                }
+
                 foreach (var warning in instanceInstaller.ReportCard.Warnings)
                 {
                     logger.Warn(warning);
