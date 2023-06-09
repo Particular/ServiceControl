@@ -73,8 +73,19 @@
             }
 
             EmbeddedServer.Instance.StartServer(serverOptions);
-
+            EmbeddedServer.Instance.ServerProcessExited += Instance_ServerProcessExited;
             return new EmbeddedDatabase(databaseConfiguration);
+        }
+
+        static void Instance_ServerProcessExited(object sender, ServerProcessExitedEventArgs e)
+        {
+            logger.Warn($"RavenDB process exited - attempting to restart...");
+
+            //TODO should this be tried a few times, and if doesn't work shutdown audit instance?
+            //OR should we stop the audit instance altogether
+            EmbeddedServer.Instance.RestartServerAsync().GetAwaiter().GetResult();
+
+            logger.Info("RavenDB process restarted");
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
