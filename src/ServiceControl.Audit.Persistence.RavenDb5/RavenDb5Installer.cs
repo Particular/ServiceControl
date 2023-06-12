@@ -13,7 +13,7 @@
 
         public async Task Install(CancellationToken cancellationToken)
         {
-            await lifecycle.Start(cancellationToken).ConfigureAwait(false);
+            await lifecycle.Start(() => { }, cancellationToken).ConfigureAwait(false);
 
             try
             {

@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using ServiceControl.Audit.Persistence.RavenDb;
 
     class RavenDbExternalPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {
@@ -24,7 +23,7 @@
             return documentStore;
         }
 
-        public Task Start(CancellationToken cancellationToken)
+        public Task Start(Action onCriticalError, CancellationToken cancellationToken)
         {
             var store = new DocumentStore
             {

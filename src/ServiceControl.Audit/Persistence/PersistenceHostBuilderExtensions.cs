@@ -15,7 +15,7 @@ namespace ServiceControl.Audit.Persistence
             {
                 var lifecycle = persistence.Configure(serviceCollection);
 
-                serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
+                serviceCollection.AddHostedService(sp => new PersistenceLifecycleHostedService(lifecycle, sp.GetRequiredService<IHostApplicationLifetime>()));
             });
 
             return hostBuilder;

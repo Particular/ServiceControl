@@ -33,7 +33,7 @@
             var persistence = config.Create(settings);
             persistenceLifecycle = persistence.Configure(serviceCollection);
 
-            await persistenceLifecycle.Start();
+            await persistenceLifecycle.Start(() => { });
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
