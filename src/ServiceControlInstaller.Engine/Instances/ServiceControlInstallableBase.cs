@@ -186,6 +186,15 @@
             maintenanceReservation.Create();
         }
 
+        public void RemoveUrlAcl()
+        {
+            var reservation = new UrlReservation(AclUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            reservation.Delete();
+
+            var maintenanceReservation = new UrlReservation(AclMaintenanceUrl, new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null));
+            maintenanceReservation.Delete();
+        }
+
         public void SetupInstance()
         {
             try

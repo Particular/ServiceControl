@@ -4,6 +4,8 @@
     {
         Success = 0,
 
+        NotFound = 2,
+
         AlreadyExists = 183,
 
         InsufficientBuffer = 122,

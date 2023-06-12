@@ -255,7 +255,7 @@
                 HttpApi.HttpTerminate(HttpApiConstants.InitializeConfig, IntPtr.Zero);
             }
 
-            if (retVal != ErrorCode.Success)
+            if (retVal is not ErrorCode.Success and not ErrorCode.NotFound)
             {
                 throw new Win32Exception(Convert.ToInt32(retVal));
             }
