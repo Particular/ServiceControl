@@ -93,6 +93,7 @@
 
         async Task EnsureStarted(CancellationToken cancellationToken = default)
         {
+            bool failedToStart = false;
             try
             {
                 logger.Debug("Ensure started. Start/stop semaphore acquiring");
@@ -137,11 +138,21 @@
 
                 logger.Info("Ensure started. Infrastructure started");
             }
+            catch (Exception ex)
+            {
+                logger.Debug("Failed to start", ex);
+                failedToStart = true;
+            }
             finally
             {
                 logger.Debug("Ensure started. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
                 logger.Debug("Ensure started. Start/stop semaphore released");
+
+                if (failedToStart)
+                {
+                    applicationLifetime.StopApplication();
+                }
             }
         }
 
@@ -169,7 +180,6 @@
                 logger.Info("Shutting down. Start/stop semaphore releasing");
                 startStopSemaphore.Release();
                 logger.Info("Shutting down. Start/stop semaphore released");
-                applicationLifetime.StopApplication();
             }
         }
 
