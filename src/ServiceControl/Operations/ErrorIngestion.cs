@@ -157,7 +157,11 @@
             }
             catch
             {
-                await queueIngestor.Stop().ConfigureAwait(false);
+                if (queueIngestor != null)
+                {
+                    await queueIngestor.Stop().ConfigureAwait(false);
+                }
+
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
             }
             finally
