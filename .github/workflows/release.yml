@@ -13,6 +13,7 @@ env:
   DOTNET_NOLOGO: true
 jobs:
   release:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-2022
     steps:
       - name: Check for secrets
