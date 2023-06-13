@@ -1,15 +1,26 @@
 name: Release
 on:
   push:
+    branches:
+      - master
+      - release-*
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-*'
+  pull_request:
+  workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
 jobs:
   release:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: windows-2022
     steps:
+      - name: Check for secrets
+        env:
+          SECRETS_AVAILABLE: ${{ secrets.SECRETS_AVAILABLE }}
+        shell: pwsh
+        run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
         uses: actions/checkout@v3.5.3
         with:
@@ -63,7 +74,12 @@ jobs:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
+      - name: List Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        shell: pwsh
+        run: docker images
       - name: Publish assets
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -82,7 +98,36 @@ jobs:
           name: zips
           path: zip/*
           retention-days: 1
+      - name : Verify release artifact counts
+        shell: pwsh
+        run: |
+          $assetsCount = (Get-ChildItem -Recurse -File assets).Count
+          $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
+          $zipCount = (Get-ChildItem -Recurse -File zip).Count
+
+          $expectedAssetsCount = 2
+          $expectedNugetsCount = 1
+          $expectedZipCount = 3
+
+          if ($assetsCount -ne $expectedAssetsCount)
+          {
+              Write-Host Assets: Expected $expectedAssetsCount but found $assetsCount
+              exit -1
+          }
+
+          if ($nugetsCount -ne $expectedNugetsCount)
+          {
+              Write-Host Nugets: Expected $expectedNugetsCount but found $nugetsCount
+              exit -1
+          }
+
+          if ($expectedZipCount -ne $zipCount)
+          {
+              Write-Host Zips: Expected $expectedZipCount but found $zipCount
+              exit -1
+          }
       - name: Prepare ServiceControl metadata
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
         run: |
           #List of Docker image names used to control re-tagging during push to production
@@ -96,21 +141,19 @@ jobs:
 
           $serviceControlMetadata | ConvertTo-Json | Out-File -Path ServiceControlMetadata.json
       - name: Deploy
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: Particular/push-octopus-package-action@v1.1.0
         with:
           octopus-deploy-api-key: ${{ secrets.OCTOPUS_DEPLOY_API_KEY }}
           additional-metadata-paths: ServiceControlMetadata.json
       - name: Login to Docker Hub
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: docker/login-action@v2.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Diagnostics
-        shell: pwsh
-        run: |
-          # List out the docker images on the system
-          docker images
       - name: Push Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         shell: pwsh
         run: |
           Get-ChildItem -Path dockerfiles -Filter *.dockerfile | ForEach-Object {
