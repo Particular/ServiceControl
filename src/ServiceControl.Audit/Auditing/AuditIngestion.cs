@@ -102,7 +102,6 @@
                     return;
                 }
 
-
                 if (queueIngestor != null)
                 {
                     logger.Debug("Ensure started. Already started, skipping start up");
@@ -126,6 +125,15 @@
                     .ConfigureAwait(false);
 
                 logger.Info("Ensure started. Infrastructure started");
+            }
+            catch
+            {
+                if (queueIngestor != null)
+                {
+                    await queueIngestor.Stop().ConfigureAwait(false);
+                }
+
+                queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
             }
             finally
             {
