@@ -11,12 +11,15 @@
 
     class SharedEmbeddedServer
     {
+        public static bool OnErrorCalled;
         public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
             await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
+                OnErrorCalled = false;
+
                 if (embeddedDatabase != null)
                 {
                     return embeddedDatabase;
@@ -27,7 +30,10 @@
                 var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)), () => { });
+                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)), () =>
+                {
+                    OnErrorCalled = true;
+                });
 
                 //make sure that the database is up
                 while (true)
