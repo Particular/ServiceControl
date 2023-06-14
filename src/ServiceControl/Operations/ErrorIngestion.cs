@@ -163,6 +163,8 @@
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
+
+                throw;
             }
             finally
             {

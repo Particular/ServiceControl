@@ -16,6 +16,7 @@
         TimeSpan timeToWaitBetweenStartupAttempts;
         ILog log;
         string processName;
+        bool startedSuccessfuly;
 
         public Watchdog(Func<CancellationToken, Task> ensureStarted, Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure, Action clearFailure, TimeSpan timeToWaitBetweenStartupAttempts, ILog log, string processName)
         {
@@ -45,6 +46,7 @@
                     {
                         log.Debug($"Ensuring {processName} is running");
                         await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
+                        startedSuccessfuly = true;
                         clearFailure();
                     }
                     catch (OperationCanceledException)
@@ -54,12 +56,23 @@
                     }
                     catch (Exception e)
                     {
-                        log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
                         reportFailure(e.Message);
+                        if (!startedSuccessfuly)
+                        {
+                            //there was an error during startup hence we want to shut down the instance
+                            shutdownTokenSource.Cancel(); //NOTE seems to be hanging
+                        }
+                        else
+                        {
+                            log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                        }
                     }
                     try
                     {
-                        await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                        if (startedSuccessfuly)
+                        {
+                            await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
