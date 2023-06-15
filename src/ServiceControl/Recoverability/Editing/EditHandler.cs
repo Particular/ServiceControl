@@ -58,7 +58,7 @@
                 }
                 else if (edit.EditId != context.MessageId)
                 {
-                    log.WarnFormat("Discarding edit {0} because the failure ({1}) has already been edited by edit {2}", context.MessageId, message.FailedMessageId, edit.EditId);
+                    log.WarnFormat($"Discarding edit & retry request because the failure ({FailedMessage.MakeDocumentId(message.FailedMessageId)}) has already been edited by {FailedMessageEdit.MakeDocumentId(message.FailedMessageId)}");
                     return;
                 }
 
