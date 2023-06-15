@@ -44,7 +44,7 @@
             return (localRavenLicense, serverDirectory);
         }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, Action onCriticalError)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, Action onRavenServerExit)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
@@ -73,11 +73,26 @@
             }
 
             EmbeddedServer.Instance.StartServer(serverOptions);
-            EmbeddedServer.Instance.ServerProcessExited += (_, __) =>
+            EmbeddedServer.Instance.ServerProcessExited += (p, __) =>
             {
-                logger.Fatal("RavenDB server process exited unexpectedly");
+                if (((System.Diagnostics.Process)p).HasExited && ((System.Diagnostics.Process)p).ExitCode != 0)
+                {
+                    logger.Warn("RavenDB server process exited unexpectedly - attempting to restart");
 
-                onCriticalError();
+                    try
+                    {
+                        EmbeddedServer.Instance.RestartServerAsync().GetAwaiter().GetResult();
+                    }
+                    catch (Exception)
+                    {
+                        logger.Fatal("RavenDB server process exited unexpectedly");
+                        onRavenServerExit();
+                    }
+                }
+                else
+                {
+                    onRavenServerExit();
+                }
             };
 
             return new EmbeddedDatabase(databaseConfiguration);

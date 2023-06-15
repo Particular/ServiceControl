@@ -7,7 +7,7 @@
     class EmbeddedServerExitTests
     {
         [Test]
-        public async Task Verify_onerror_is_called_if_dbserver_stopped()
+        public async Task Verify_onRavenServerExit_is_called_if_dbserver_stopped()
         {
             var _ = await SharedEmbeddedServer.GetInstance();
             Assert.IsFalse(SharedEmbeddedServer.OnErrorCalled, "OnErrorCalled should be false");

@@ -22,9 +22,9 @@
             return documentStore;
         }
 
-        public async Task Start(Action onCriticalError, CancellationToken cancellationToken)
+        public async Task Start(Action onRavenServerExit, CancellationToken cancellationToken)
         {
-            database = EmbeddedDatabase.Start(databaseConfiguration, onCriticalError);
+            database = EmbeddedDatabase.Start(databaseConfiguration, onRavenServerExit);
 
             documentStore = await database.Connect(cancellationToken).ConfigureAwait(false);
         }

@@ -6,7 +6,7 @@
 
     public interface IPersistenceLifecycle
     {
-        Task Start(Action onCriticalError, CancellationToken cancellationToken = default);
+        Task Start(Action onRavenServerExit, CancellationToken cancellationToken = default);
         Task Stop(CancellationToken cancellationToken = default);
     }
 }
