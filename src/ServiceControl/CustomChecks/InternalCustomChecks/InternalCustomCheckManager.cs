@@ -35,11 +35,15 @@
 
         async Task<TimerJobExecutionResult> Run(CancellationToken cancellationToken)
         {
-            CheckResult result;
+            CheckResult result = default;
             try
             {
                 result = await check.PerformCheck()
                     .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                //Do nothing as we are shutting down
             }
             catch (Exception ex)
             {

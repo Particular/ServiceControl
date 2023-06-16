@@ -207,6 +207,11 @@
                         await auditIngestor.Ingest(contexts, dispatcher).ConfigureAwait(false);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    //Do nothing as we are shutting down
+                    continue;
+                }
                 catch (Exception e) // show must go on
                 {
                     if (logger.IsInfoEnabled)
