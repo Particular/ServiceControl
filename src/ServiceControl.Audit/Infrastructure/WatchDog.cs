@@ -16,7 +16,6 @@
         TimeSpan timeToWaitBetweenStartupAttempts;
         ILog log;
         string processName;
-        bool startedSuccessfuly;
 
         public Watchdog(Func<CancellationToken, Task> ensureStarted, Func<CancellationToken, Task> ensureStopped, Action<string> reportFailure, Action clearFailure, TimeSpan timeToWaitBetweenStartupAttempts, ILog log, string processName)
         {
@@ -35,46 +34,54 @@
             return ensureStopped(shutdownTokenSource.Token);
         }
 
-        public Task Start()
+        public Task Start(Action onStartupFailure)
         {
             watchdog = Task.Run(async () =>
             {
+                bool startedSuccessfuly = default;
+                bool erroredOnStart = default;
+                log.Debug($"Starting watching process {processName}");
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
-                    try
+                    if (!erroredOnStart)
                     {
-                        await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
-                        startedSuccessfuly = true;
-                        clearFailure();
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        //Do not Delay
-                        continue;
-                    }
-                    catch (Exception e)
-                    {
-                        reportFailure(e.Message);
-                        if (!startedSuccessfuly)
+                        try
                         {
-                            //there was an error during startup hence we want to shut down the instance
-                            shutdownTokenSource.Cancel(); //NOTE seems to be hanging
+                            log.Debug($"Ensuring {processName} is running");
+                            await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
+                            startedSuccessfuly = true;
+                            clearFailure();
                         }
-                        else
+                        catch (OperationCanceledException)
                         {
-                            log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                            //Do not Delay
+                            continue;
                         }
-                    }
-                    try
-                    {
-                        if (startedSuccessfuly)
+                        catch (Exception e)
                         {
-                            await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                            reportFailure(e.Message);
+                            if (!startedSuccessfuly)
+                            {
+                                //there was an error during startup hence we want to shut down the instance
+                                erroredOnStart = true;
+                                onStartupFailure();
+                            }
+                            else
+                            {
+                                log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
+                            }
                         }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        //Ignore
+                        try
+                        {
+                            if (startedSuccessfuly)
+                            {
+                                await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            //Ignore
+                        }
                     }
                 }
                 try

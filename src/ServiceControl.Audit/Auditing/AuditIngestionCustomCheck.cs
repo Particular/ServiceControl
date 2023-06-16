@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
-    using NServiceBus.Logging;
 
     class AuditIngestionCustomCheck : CustomCheck
     {

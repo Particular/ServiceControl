@@ -27,7 +27,7 @@
                 return Task.CompletedTask;
             }, x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
 
-            await dog.Start();
+            await dog.Start(() => { });
 
             await started.Task;
 
@@ -51,7 +51,7 @@
                 token => throw new Exception("Simulated"),
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
-            await dog.Start();
+            await dog.Start(() => { });
 
             await started.Task;
 
@@ -89,7 +89,7 @@
                 },
                 x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
 
-            await dog.Start();
+            await dog.Start(() => { });
 
             await started.Task;
 
@@ -131,7 +131,7 @@
                 token => Task.CompletedTask,
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
-            await dog.Start();
+            await dog.Start(() => { });
 
             await recoveredFromError.Task;
 
@@ -143,11 +143,11 @@
         }
 
         [Test]
-        public async Task When_start_doesnt_work_it_stops()
+        public async Task When_start_doesnt_work_onStartupFailure_is_called()
         {
             string lastFailure = null;
             var runAttempts = 0;
-            var stopCalled = new TaskCompletionSource<bool>();
+            var onStartupFailureCalled = new TaskCompletionSource<bool>();
 
             var dog = new Watchdog(
                 token =>
@@ -155,20 +155,15 @@
                     runAttempts++;
                     throw new Exception("Simulated");
                 },
-                token =>
-                {
-                    stopCalled.SetResult(true);
-                    return Task.CompletedTask;
-                },
+                token => Task.CompletedTask,
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
-            await dog.Start();
+            await dog.Start(() => { onStartupFailureCalled.SetResult(true); });
 
-            await stopCalled.Task;
+            await onStartupFailureCalled.Task;
 
             Assert.AreEqual("Simulated", lastFailure);
             Assert.AreEqual(1, runAttempts);
-
         }
     }
 }

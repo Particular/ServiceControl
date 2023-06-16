@@ -29,7 +29,8 @@
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
-            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory)
+            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
+            IHostApplicationLifetime appLifetime)
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -37,6 +38,7 @@
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
+            this.appLifetime = appLifetime;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
             batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", FrequencyInMilliseconds);
@@ -58,7 +60,7 @@
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start();
+        public Task StartAsync(CancellationToken _) => watchdog.Start(() => appLifetime.StopApplication());
 
         public async Task StopAsync(CancellationToken _)
         {
@@ -247,6 +249,7 @@
         readonly Counter receivedMeter;
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
+        readonly IHostApplicationLifetime appLifetime;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
