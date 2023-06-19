@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,7 +13,7 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        public EmbeddedDatabase(DatabaseConfiguration configuration)
+        EmbeddedDatabase(DatabaseConfiguration configuration)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerConfiguration.ServerUrl;
@@ -72,30 +73,38 @@
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
+            var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration);
+
+            EmbeddedServer.Instance.ServerProcessExited += embeddedDatabase.OnServerProcessExisted;
             EmbeddedServer.Instance.StartServer(serverOptions);
-            EmbeddedServer.Instance.ServerProcessExited += (p, __) =>
+
+            return new EmbeddedDatabase(databaseConfiguration);
+        }
+
+        async void OnServerProcessExisted(object sender, ServerProcessExitedEventArgs args)
+        {
+            if (sender is Process process)
             {
-                if (((System.Diagnostics.Process)p).HasExited && ((System.Diagnostics.Process)p).ExitCode != 0)
+                if (process.HasExited)
                 {
-                    logger.Warn("RavenDB server process exited unexpectedly - attempting to restart");
+                    logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted in {delayBetweenRestarts}.");
 
                     try
                     {
-                        EmbeddedServer.Instance.RestartServerAsync().GetAwaiter().GetResult();
-                    }
-                    catch (Exception)
-                    {
-                        logger.Fatal("RavenDB server process exited unexpectedly");
-                        onRavenServerExit();
-                    }
-                }
-                else
-                {
-                    onRavenServerExit();
-                }
-            };
+                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token).ConfigureAwait(false);
 
-            return new EmbeddedDatabase(databaseConfiguration);
+                        await EmbeddedServer.Instance.RestartServerAsync().ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //no-op
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Fatal("RavenDB server process exited unexpectedly.", e);
+                    }
+                }
+            }
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -118,11 +127,14 @@
 
         public void Dispose()
         {
+            shutdownTokenSource.Cancel();
             EmbeddedServer.Instance?.Dispose();
         }
 
+        CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
         readonly DatabaseConfiguration configuration;
 
+        static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
 }
