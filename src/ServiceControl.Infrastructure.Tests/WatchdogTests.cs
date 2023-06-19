@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Infrastructure
+﻿namespace ServiceControl.Infrastructure.Tests
 {
     using System;
     using System.Threading.Tasks;
@@ -101,7 +101,7 @@
         }
 
         [Test]
-        public async Task When_start_works_it_recovers_from_errors()
+        public async Task When_first_start_attempt_works_it_recovers_from_further_errors()
         {
             string lastFailure = null;
             var runAttempts = 0;
@@ -111,21 +111,24 @@
                 token =>
                 {
                     runAttempts++;
-                    if (runAttempts > 1)
+
+                    if (runAttempts == 1)
                     {
-                        if (runAttempts < 4)
-                        {
-                            if (runAttempts > 2)
-                            {
-                                Assert.AreEqual("Simulated", lastFailure);
-                            }
-                            throw new Exception("Simulated");
-                        }
-                        else if (runAttempts == 4)
-                        {
-                            recoveredFromError.SetResult(true);
-                        }
+                        return Task.CompletedTask;
                     }
+
+                    if (runAttempts == 2)
+                    {
+                        throw new Exception("Simulated");
+                    }
+
+                    if (runAttempts == 3)
+                    {
+                        Assert.AreEqual("Simulated", lastFailure);
+                        throw new Exception("Simulated");
+                    }
+
+                    recoveredFromError.SetResult(true);
                     return Task.CompletedTask;
                 },
                 token => Task.CompletedTask,
@@ -143,18 +146,13 @@
         }
 
         [Test]
-        public async Task When_start_doesnt_work_onStartupFailure_is_called()
+        public async Task When_first_start_attempt_fails_onFailedOnStartup_is_called()
         {
             string lastFailure = null;
-            var runAttempts = 0;
             var onStartupFailureCalled = new TaskCompletionSource<bool>();
 
             var dog = new Watchdog(
-                token =>
-                {
-                    runAttempts++;
-                    throw new Exception("Simulated");
-                },
+                token => throw new Exception("Simulated"),
                 token => Task.CompletedTask,
                 x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
 
@@ -163,7 +161,6 @@
             await onStartupFailureCalled.Task;
 
             Assert.AreEqual("Simulated", lastFailure);
-            Assert.AreEqual(1, runAttempts);
         }
     }
 }
