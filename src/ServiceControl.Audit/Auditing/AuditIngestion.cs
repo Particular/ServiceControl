@@ -6,13 +6,13 @@
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.Transports;
 

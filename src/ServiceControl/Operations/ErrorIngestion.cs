@@ -12,6 +12,7 @@
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 

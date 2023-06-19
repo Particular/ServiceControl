@@ -1,11 +1,11 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Infrastructure
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
 
-    class Watchdog
+    public class Watchdog
     {
         Func<CancellationToken, Task> ensureStopped;
         Func<CancellationToken, Task> ensureStarted;
@@ -86,6 +86,7 @@
                 }
                 try
                 {
+                    log.Debug($"Stopping watching process {processName}");
                     //We don't pass the shutdown token here because it has already been cancelled and we want to ensure we stop the ingestion.
                     await ensureStopped(CancellationToken.None).ConfigureAwait(false);
                 }

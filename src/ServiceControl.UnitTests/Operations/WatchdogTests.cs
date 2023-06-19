@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.UnitTests.Operations
+﻿namespace ServiceControl.UnitTests.Infrastructure
 {
     using System;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NUnit.Framework;
-    using ServiceControl.Operations;
+    using ServiceControl.Infrastructure;
 
     [TestFixture]
     public class WatchdogTests
