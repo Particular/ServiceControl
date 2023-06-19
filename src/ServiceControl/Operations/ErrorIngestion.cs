@@ -31,7 +31,7 @@
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IHostApplicationLifetime appLifetime)
+            IHostApplicationLifetime applicationLifetime)
         {
             this.settings = settings;
             this.transportCustomization = transportCustomization;
@@ -39,7 +39,7 @@
             errorQueue = settings.ErrorQueue;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.appLifetime = appLifetime;
+            this.applicationLifetime = applicationLifetime;
 
             receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
@@ -65,7 +65,7 @@
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start(() => appLifetime.StopApplication());
+        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
         public async Task StopAsync(CancellationToken _)
         {
@@ -234,7 +234,7 @@
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
-        readonly IHostApplicationLifetime appLifetime;
+        readonly IHostApplicationLifetime applicationLifetime;
         static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

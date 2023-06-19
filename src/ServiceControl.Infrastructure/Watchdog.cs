@@ -34,54 +34,55 @@
             return ensureStopped(shutdownTokenSource.Token);
         }
 
-        public Task Start(Action onStartupFailure)
+        public Task Start(Action onFailedOnStartup)
         {
             watchdog = Task.Run(async () =>
             {
-                bool startedSuccessfuly = default;
-                bool erroredOnStart = default;
                 log.Debug($"Starting watching process {processName}");
+
+                bool? failedOnStartup = null;
+
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
-                    if (!erroredOnStart)
+                    try
                     {
-                        try
+                        log.Debug($"Ensuring {processName} is running");
+                        await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
+                        clearFailure();
+
+                        if (failedOnStartup == null)
                         {
-                            log.Debug($"Ensuring {processName} is running");
-                            await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
-                            startedSuccessfuly = true;
-                            clearFailure();
+                            failedOnStartup = false;
                         }
-                        catch (OperationCanceledException)
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //Do not Delay
+                        continue;
+                    }
+                    catch (Exception e)
+                    {
+                        reportFailure(e.Message);
+
+                        if (failedOnStartup == null)
                         {
-                            //Do not Delay
-                            continue;
+                            failedOnStartup = true;
+
+                            //there was an error during startup hence we want to shut down the instance
+                            onFailedOnStartup();
                         }
-                        catch (Exception e)
+                        else
                         {
-                            reportFailure(e.Message);
-                            if (!startedSuccessfuly)
-                            {
-                                //there was an error during startup hence we want to shut down the instance
-                                erroredOnStart = true;
-                                onStartupFailure();
-                            }
-                            else
-                            {
-                                log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
-                            }
+                            log.Error($"Error while trying to start {processName}. Starting will be retried in {timeToWaitBetweenStartupAttempts}.", e);
                         }
-                        try
-                        {
-                            if (startedSuccessfuly)
-                            {
-                                await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
-                            }
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            //Ignore
-                        }
+                    }
+                    try
+                    {
+                        await Task.Delay(timeToWaitBetweenStartupAttempts, shutdownTokenSource.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //Ignore
                     }
                 }
                 try
