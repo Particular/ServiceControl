@@ -17,7 +17,7 @@
             var started = new TaskCompletionSource<bool>();
             var stopped = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(token =>
+            var dog = new Watchdog("test process", token =>
             {
                 started.SetResult(true);
                 return Task.CompletedTask;
@@ -25,7 +25,7 @@
             {
                 stopped.SetResult(true);
                 return Task.CompletedTask;
-            }, x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
+            }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
             await dog.Start(() => { });
 
@@ -42,14 +42,11 @@
             string lastFailure = null;
             var started = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(
-                token =>
-                {
-                    started.SetResult(true);
-                    return Task.CompletedTask;
-                },
-                token => throw new Exception("Simulated"),
-                x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
+            var dog = new Watchdog("test process", token =>
+            {
+                started.SetResult(true);
+                return Task.CompletedTask;
+            }, token => throw new Exception("Simulated"), x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
             await dog.Start(() => { });
 
@@ -68,26 +65,23 @@
             var started = new TaskCompletionSource<bool>();
             var restarted = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(
-                token =>
+            var dog = new Watchdog("test process", token =>
+            {
+                if (startAttempts == 0)
                 {
-                    if (startAttempts == 0)
-                    {
-                        started.SetResult(true);
-                    }
-                    else if (stopCalled)
-                    {
-                        restarted.SetResult(true);
-                    }
-                    startAttempts++;
-                    return Task.CompletedTask;
-                },
-                token =>
+                    started.SetResult(true);
+                }
+                else if (stopCalled)
                 {
-                    stopCalled = true;
-                    return Task.CompletedTask;
-                },
-                x => { }, () => { }, TimeSpan.FromSeconds(1), log, "test process");
+                    restarted.SetResult(true);
+                }
+                startAttempts++;
+                return Task.CompletedTask;
+            }, token =>
+            {
+                stopCalled = true;
+                return Task.CompletedTask;
+            }, x => { }, () => { }, TimeSpan.FromSeconds(1), log);
 
             await dog.Start(() => { });
 
@@ -107,32 +101,29 @@
             var runAttempts = 0;
             var recoveredFromError = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(
-                token =>
+            var dog = new Watchdog("test process", token =>
+            {
+                runAttempts++;
+
+                if (runAttempts == 1)
                 {
-                    runAttempts++;
-
-                    if (runAttempts == 1)
-                    {
-                        return Task.CompletedTask;
-                    }
-
-                    if (runAttempts == 2)
-                    {
-                        throw new Exception("Simulated");
-                    }
-
-                    if (runAttempts == 3)
-                    {
-                        Assert.AreEqual("Simulated", lastFailure);
-                        throw new Exception("Simulated");
-                    }
-
-                    recoveredFromError.SetResult(true);
                     return Task.CompletedTask;
-                },
-                token => Task.CompletedTask,
-                x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
+                }
+
+                if (runAttempts == 2)
+                {
+                    throw new Exception("Simulated");
+                }
+
+                if (runAttempts == 3)
+                {
+                    Assert.AreEqual("Simulated", lastFailure);
+                    throw new Exception("Simulated");
+                }
+
+                recoveredFromError.SetResult(true);
+                return Task.CompletedTask;
+            }, token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
             await dog.Start(() => { });
 
@@ -151,10 +142,7 @@
             string lastFailure = null;
             var onStartupFailureCalled = new TaskCompletionSource<bool>();
 
-            var dog = new Watchdog(
-                token => throw new Exception("Simulated"),
-                token => Task.CompletedTask,
-                x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log, "test process");
+            var dog = new Watchdog("test process", token => throw new Exception("Simulated"), token => Task.CompletedTask, x => lastFailure = x, () => lastFailure = null, TimeSpan.FromSeconds(1), log);
 
             await dog.Start(() => { onStartupFailureCalled.SetResult(true); });
 

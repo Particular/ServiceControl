@@ -59,8 +59,7 @@
                 return watchdog.OnFailure(failure);
             });
 
-            watchdog = new Watchdog(EnsureStarted, EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log, "failed message ingestion");
+            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }

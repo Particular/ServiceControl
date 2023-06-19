@@ -54,8 +54,7 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, FailedMessageFactory, OnCriticalError);
 
-            watchdog = new Watchdog(EnsureStarted, EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger, "audit message ingestion");
+            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
@@ -127,6 +126,8 @@
                     .ConfigureAwait(false);
 
                 logger.Info("Ensure started. Infrastructure started");
+
+                throw new Exception("Boom!");
             }
             catch
             {
@@ -136,8 +137,6 @@
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
-
-                throw;
             }
             finally
             {
