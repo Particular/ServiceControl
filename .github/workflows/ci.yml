@@ -8,9 +8,6 @@ on:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
-  # The following env var is required as a workaround to
-  # https://github.com/Azure/azure-cli/issues/26272#issuecomment-1534158361
-  AZURE_CORE_USE_COMMAND_INDEX: False
 jobs:
   build:
     name: ${{ matrix.os-name }}-${{ matrix.test-category }}
