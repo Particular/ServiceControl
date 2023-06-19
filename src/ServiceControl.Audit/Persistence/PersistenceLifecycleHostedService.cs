@@ -6,21 +6,15 @@
 
     class PersistenceLifecycleHostedService : IHostedService
     {
-        public PersistenceLifecycleHostedService(IPersistenceLifecycle lifecycle, IHostApplicationLifetime hostApplicationLifetime)
+        public PersistenceLifecycleHostedService(IPersistenceLifecycle lifecycle)
         {
             this.lifecycle = lifecycle;
-            this.hostApplicationLifetime = hostApplicationLifetime;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken) =>
-            lifecycle.Start(() =>
-            {
-                hostApplicationLifetime.StopApplication();
-            }, cancellationToken);
+        public Task StartAsync(CancellationToken cancellationToken) => lifecycle.Start(cancellationToken);
 
         public Task StopAsync(CancellationToken cancellationToken) => lifecycle.Stop(cancellationToken);
 
-        readonly IHostApplicationLifetime hostApplicationLifetime;
         readonly IPersistenceLifecycle lifecycle;
     }
 }

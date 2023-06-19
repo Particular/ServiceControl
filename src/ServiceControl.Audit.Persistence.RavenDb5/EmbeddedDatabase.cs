@@ -13,7 +13,7 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(DatabaseConfiguration configuration)
+        public EmbeddedDatabase(DatabaseConfiguration configuration)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerConfiguration.ServerUrl;
@@ -45,7 +45,7 @@
             return (localRavenLicense, serverDirectory);
         }
 
-        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration, Action onRavenServerExit)
+        public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 

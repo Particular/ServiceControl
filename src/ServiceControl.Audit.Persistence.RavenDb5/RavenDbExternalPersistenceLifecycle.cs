@@ -23,7 +23,7 @@
             return documentStore;
         }
 
-        public Task Start(Action onCriticalError, CancellationToken cancellationToken)
+        public Task Start(CancellationToken cancellationToken)
         {
             var store = new DocumentStore
             {

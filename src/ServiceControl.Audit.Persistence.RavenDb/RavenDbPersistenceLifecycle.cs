@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDb
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
@@ -17,7 +16,7 @@
             this.documentStore = documentStore;
         }
 
-        public async Task Start(Action onCriticalError, CancellationToken cancellationToken)
+        public async Task Start(CancellationToken cancellationToken)
         {
             Logger.Info("Database initialization starting");
             documentStore.Initialize();
