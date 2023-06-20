@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
+    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
     using Audit.Infrastructure.WebApi;
@@ -102,7 +103,7 @@
             });
 
             config.GetSettings().Set(settings);
-
+            config.SetDiagnosticsPath(settings.LogPath);
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             config.UseSerialization<NewtonsoftJsonSerializer>();
