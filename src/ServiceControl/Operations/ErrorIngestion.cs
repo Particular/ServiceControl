@@ -8,10 +8,12 @@
     using System.Threading.Tasks;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 
@@ -29,7 +31,8 @@
             LoggingSettings loggingSettings,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
-            IIngestionUnitOfWorkFactory unitOfWorkFactory)
+            IIngestionUnitOfWorkFactory unitOfWorkFactory,
+            IHostApplicationLifetime applicationLifetime)
         {
             this.settings = settings;
             this.transportCustomization = transportCustomization;
@@ -37,6 +40,7 @@
             errorQueue = settings.ErrorQueue;
             this.ingestor = ingestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
+            this.applicationLifetime = applicationLifetime;
 
             receivedMeter = metrics.GetCounter("Error ingestion - received");
             batchSizeMeter = metrics.GetMeter("Error ingestion - batch size");
@@ -50,19 +54,14 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, (failure, arg2) =>
-            {
-                log.Warn($"OnCriticalError. '{failure}'", arg2);
-                return watchdog.OnFailure(failure);
-            });
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog(EnsureStarted, EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log, "failed message ingestion");
+            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start();
+        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
         public async Task StopAsync(CancellationToken _)
         {
@@ -163,6 +162,8 @@
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
+
+                throw;
             }
             finally
             {
@@ -229,6 +230,7 @@
         readonly Counter receivedMeter;
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
+        readonly IHostApplicationLifetime applicationLifetime;
         static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

@@ -6,13 +6,13 @@
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
     using Persistence.UnitOfWork;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.Transports;
 
@@ -29,7 +29,8 @@
             LoggingSettings loggingSettings,
             AuditIngestionCustomCheck.State ingestionState,
             AuditIngestor auditIngestor,
-            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory)
+            IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
+            IHostApplicationLifetime applicationLifetime)
         {
             inputEndpoint = settings.AuditQueue;
             this.transportCustomization = transportCustomization;
@@ -37,6 +38,7 @@
             this.auditIngestor = auditIngestor;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.settings = settings;
+            this.applicationLifetime = applicationLifetime;
 
             batchSizeMeter = metrics.GetMeter("Audit ingestion - batch size");
             batchDurationMeter = metrics.GetMeter("Audit ingestion - batch processing duration", FrequencyInMilliseconds);
@@ -52,13 +54,12 @@
 
             errorHandlingPolicy = new AuditIngestionFaultPolicy(failedImportsStorage, loggingSettings, FailedMessageFactory, OnCriticalError);
 
-            watchdog = new Watchdog(EnsureStarted, EnsureStopped, ingestionState.ReportError,
-                ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger, "audit message ingestion");
+            watchdog = new Watchdog("audit message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartAuditIngestionAfterFailure, logger);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
-        public Task StartAsync(CancellationToken _) => watchdog.Start();
+        public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
         public async Task StopAsync(CancellationToken _)
         {
@@ -134,6 +135,8 @@
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
+
+                throw;
             }
             finally
             {
@@ -245,6 +248,7 @@
         readonly Counter receivedMeter;
         readonly Watchdog watchdog;
         readonly Task ingestionWorker;
+        readonly IHostApplicationLifetime applicationLifetime;
 
         static readonly ILog logger = LogManager.GetLogger<AuditIngestion>();
     }
