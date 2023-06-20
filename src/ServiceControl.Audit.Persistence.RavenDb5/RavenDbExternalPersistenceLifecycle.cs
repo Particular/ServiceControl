@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
-    using ServiceControl.Audit.Persistence.RavenDb;
 
     class RavenDbExternalPersistenceLifecycle : IRavenDbPersistenceLifecycle
     {

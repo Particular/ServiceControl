@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -72,9 +73,55 @@
                 serverOptions.ServerDirectory = licenseFileNameAndServerDirectory.ServerDirectory;
             }
 
+            var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration);
+
+            embeddedDatabase.Start(serverOptions);
+
+            return embeddedDatabase;
+        }
+
+        void Start(ServerOptions serverOptions)
+        {
+            EmbeddedServer.Instance.ServerProcessExited += (sender, args) =>
+            {
+                if (sender is Process process && process.HasExited && process.ExitCode != 0)
+                {
+                    logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted.");
+
+                    restartRequired = true;
+                }
+            };
+
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            return new EmbeddedDatabase(databaseConfiguration);
+            var _ = Task.Run(async () =>
+            {
+                while (!shutdownTokenSource.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token).ConfigureAwait(false);
+
+                        if (restartRequired)
+                        {
+                            logger.Info("Restarting RavenDB server process");
+
+                            await EmbeddedServer.Instance.RestartServerAsync().ConfigureAwait(false);
+                            restartRequired = false;
+
+                            logger.Info("RavenDB server process restarted successfully.");
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //no-op
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Fatal($"RavenDB server restart failed. Restart will be retried in {delayBetweenRestarts}.", e);
+                    }
+                }
+            });
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -97,11 +144,15 @@
 
         public void Dispose()
         {
+            shutdownTokenSource.Cancel();
             EmbeddedServer.Instance?.Dispose();
         }
 
+        CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
+        bool restartRequired;
         readonly DatabaseConfiguration configuration;
 
+        static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();
     }
 }
