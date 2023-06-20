@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Raven.Client;
@@ -53,11 +54,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, (failure, arg2) =>
-            {
-                log.Warn($"OnCriticalError. '{failure}'", arg2);
-                return watchdog.OnFailure(failure);
-            });
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
 

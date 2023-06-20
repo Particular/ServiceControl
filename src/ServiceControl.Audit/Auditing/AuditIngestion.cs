@@ -126,8 +126,6 @@
                     .ConfigureAwait(false);
 
                 logger.Info("Ensure started. Infrastructure started");
-
-                throw new Exception("Boom!");
             }
             catch
             {
@@ -137,6 +135,8 @@
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
+
+                throw;
             }
             finally
             {
