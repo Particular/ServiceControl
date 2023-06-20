@@ -75,33 +75,40 @@
 
             var embeddedDatabase = new EmbeddedDatabase(databaseConfiguration);
 
-            EmbeddedServer.Instance.ServerProcessExited += embeddedDatabase.OnServerProcessExisted;
+            EmbeddedServer.Instance.ServerProcessExited += embeddedDatabase.OnServerProcessExited;
             EmbeddedServer.Instance.StartServer(serverOptions);
 
             return new EmbeddedDatabase(databaseConfiguration);
         }
 
-        async void OnServerProcessExisted(object sender, ServerProcessExitedEventArgs args)
+        async void OnServerProcessExited(object sender, ServerProcessExitedEventArgs args)
         {
             if (sender is Process process)
             {
-                if (process.HasExited)
+                if (process.HasExited && process.ExitCode != 0)
                 {
-                    logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted in {delayBetweenRestarts}.");
+                    bool serverRestarted = false;
+                    while (!shutdownTokenSource.IsCancellationRequested && !serverRestarted)
+                    {
+                        logger.Warn($"RavenDB server process exited unexpectedly with exitCode: {process.ExitCode}. Process will be restarted in {delayBetweenRestarts}.");
 
-                    try
-                    {
-                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token).ConfigureAwait(false);
+                        try
+                        {
+                            await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token).ConfigureAwait(false);
 
-                        await EmbeddedServer.Instance.RestartServerAsync().ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        //no-op
-                    }
-                    catch (Exception e)
-                    {
-                        logger.Fatal("RavenDB server process exited unexpectedly.", e);
+                            await EmbeddedServer.Instance.RestartServerAsync().ConfigureAwait(false);
+                            serverRestarted = true;
+
+                            logger.Info("RavenDB server process restarted successfully.");
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            //no-op
+                        }
+                        catch (Exception e)
+                        {
+                            logger.Fatal("RavenDB server restart failed.", e);
+                        }
                     }
                 }
             }
