@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
     using Audit.Infrastructure.WebApi;
