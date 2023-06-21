@@ -59,6 +59,7 @@
             }
 
             var message = $"Audit message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
+            Logger.Warn(message);
             stateHolder.CanIngestMore = false;
             return CheckResult.Failed(message);
         }
