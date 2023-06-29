@@ -7,10 +7,10 @@
     {
         [Test]
         [TestCase("Foo/*", "Foo")]
-        [TestCase("Foo     ", "Foo.")]
+        [TestCase("Foo     ", "Foo")]
         [TestCase("  Foo/*", "Foo")]
-        [TestCase("  Foo     ", "Foo.")]
-        [TestCase("  Foo a     ", "Foo.a.")]
+        [TestCase("  Foo     ", "Foo")]
+        [TestCase("  Foo a     ", "Foo.a")]
         [TestCase(@"<foo", "foo")]
         [TestCase(@">  foo", "foo")]
         [TestCase(@"foo | foo", "foo.foo")]

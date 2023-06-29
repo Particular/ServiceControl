@@ -36,7 +36,7 @@
 
             instanceName = serviceNameBuilder.ToString();
 
-            instanceName = instanceName.TrimStart();
+            instanceName = instanceName.Trim();
 
             instanceName = ReplaceSpacesWithPeriods(instanceName);
 
