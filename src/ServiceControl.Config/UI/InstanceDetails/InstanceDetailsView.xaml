@@ -26,7 +26,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="80" />
+            <RowDefinition Height="90" />
             <RowDefinition Height="8" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -231,7 +231,7 @@
         <GroupBox Grid.Row="8"
                   Header="TRANSPORT"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
-            <TextBlock FontSize="14px" Text="{Binding Transport.Name}" />
+            <TextBlock FontSize="14px" Text="{Binding Transport.Name}" TextWrapping="WrapWithOverflow" />
         </GroupBox>
         <GroupBox Grid.Row="8"
                    Grid.Column="1"
