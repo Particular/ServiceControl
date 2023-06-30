@@ -43,7 +43,12 @@
                 {
                     while (await ie.MoveNextAsync().ConfigureAwait(false))
                     {
-                        await context.SendLocal<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id)
+                        var sendOptions = new SendOptions();
+                        sendOptions.RouteToThisEndpoint();
+                        // In AzureServiceBus transport there is a limit of 100 messages being sent in a single transaction
+                        // These do not need to be transactionally consistent so we can dispatch the messages immediately
+                        sendOptions.RequireImmediateDispatch();
+                        await context.Send<MarkPendingRetryAsResolved>(m => m.FailedMessageId = ie.Current.Document.Id, sendOptions)
                             .ConfigureAwait(false);
                     }
                 }
