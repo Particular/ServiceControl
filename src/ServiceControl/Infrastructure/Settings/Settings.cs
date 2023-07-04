@@ -74,8 +74,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableExternalIntegrationsPublishing { get; set; }
 
-        public bool DisableRavenDBPerformanceCounters { get; set; }
-
         public bool SkipQueueCreation { get; set; }
 
         public bool RunCleanupBundle { get; set; }
