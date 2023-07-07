@@ -38,8 +38,7 @@
             CheckResult result = default;
             try
             {
-                result = await check.PerformCheck()
-                    .ConfigureAwait(false);
+                result = await check.PerformCheck();
             }
             catch (OperationCanceledException)
             {
@@ -61,7 +60,7 @@
                 FailureReason = result.FailureReason
             };
 
-            await checkResultProcessor.ProcessResult(detail).ConfigureAwait(false);
+            await checkResultProcessor.ProcessResult(detail);
 
             return check.Interval.HasValue
                 ? TimerJobExecutionResult.ScheduleNextExecution

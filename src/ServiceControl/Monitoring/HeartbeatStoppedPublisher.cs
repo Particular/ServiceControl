@@ -7,7 +7,6 @@ namespace ServiceControl.Monitoring
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using ExternalIntegrations;
-    using Raven.Client;
 
     class HeartbeatStoppedPublisher : EventPublisher<EndpointFailedToHeartbeat, HeartbeatStoppedPublisher.DispatchContext>
     {
@@ -23,7 +22,7 @@ namespace ServiceControl.Monitoring
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
             return Task.FromResult(contexts.Select(r => (object)new HeartbeatStopped
             {

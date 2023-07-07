@@ -4,33 +4,23 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class MessagesByConversationApi : ScatterGatherApiMessageView<string>
+    class MessagesByConversationApi : ScatterGatherApiMessageView<IErrorMessageDataStore, string>
     {
-        public MessagesByConversationApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public MessagesByConversationApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string input)
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string conversationId)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Where(m => m.ConversationId == input)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var pagingInfo = request.GetPagingInfo();
+            var sortInfo = request.GetSortInfo();
+            var includeSystemMessages = request.GetIncludeSystemMessages();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return DataStore.GetAllMessagesByConversation(conversationId, pagingInfo, sortInfo, includeSystemMessages);
         }
     }
 }

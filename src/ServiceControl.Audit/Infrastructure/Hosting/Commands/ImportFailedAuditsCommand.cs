@@ -28,7 +28,7 @@
 
                 var host = bootstrapper.HostBuilder.Build();
 
-                await host.StartAsync(tokenSource.Token).ConfigureAwait(false);
+                await host.StartAsync(tokenSource.Token);
 
                 var importer = host.Services.GetRequiredService<ImportFailedAudits>();
 
@@ -36,7 +36,7 @@
 
                 try
                 {
-                    await importer.Run(tokenSource.Token).ConfigureAwait(false);
+                    await importer.Run(tokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -44,7 +44,7 @@
                 }
                 finally
                 {
-                    await host.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                    await host.StopAsync(CancellationToken.None);
                 }
             }
         }

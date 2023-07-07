@@ -29,8 +29,7 @@
             var contentType = GetContentType(processingAttempt.Headers, "text/xml");
             processingAttempt.MessageMetadata.Add("ContentType", contentType);
 
-            await StoreBody(body, processingAttempt, bodySize, contentType)
-                .ConfigureAwait(false);
+            await StoreBody(body, processingAttempt, bodySize, contentType);
         }
 
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
@@ -77,8 +76,7 @@
 
             if (useBodyStore)
             {
-                await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                    .ConfigureAwait(false);
+                await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize);
             }
 
             processingAttempt.MessageMetadata.Add("BodyUrl", bodyUrl);
@@ -88,8 +86,7 @@
         {
             using (var bodyStream = Memory.Manager.GetStream(bodyId, body, 0, bodySize))
             {
-                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
-                    .ConfigureAwait(false);
+                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
             }
         }
 

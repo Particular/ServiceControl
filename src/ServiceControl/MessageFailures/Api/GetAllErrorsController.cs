@@ -1,128 +1,90 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
-    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
     class GetAllErrorsController : ApiController
     {
-        public GetAllErrorsController(IDocumentStore documentStore)
+        public GetAllErrorsController(IErrorMessageDataStore dataStore)
         {
-            this.documentStore = documentStore;
+            this.dataStore = dataStore;
         }
 
         [Route("errors")]
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorsGet()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .Statistics(out var stats)
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .FilterByQueueAddress(Request)
-                    .Sort(Request)
-                    .Paging(Request)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string queueAddress = Request.GetQueueAddress();
 
-                return Negotiator
-                    .FromModel(Request, results)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
-            }
+            var sortInfo = Request.GetSortInfo();
+            var pagingInfo = Request.GetPagingInfo();
+
+            var results = await dataStore.ErrorGet(
+                    status: status,
+                    modified: modified,
+                    queueAddress: queueAddress,
+                    pagingInfo,
+                    sortInfo
+                    );
+
+            return Negotiator.FromQueryResult(Request, results);
         }
 
         [Route("errors")]
         [HttpHead]
         public async Task<HttpResponseMessage> ErrorsHead()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .FilterByQueueAddress(Request)
-                    .QueryResultAsync()
-                    .ConfigureAwait(false);
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string queueAddress = Request.GetQueueAddress();
 
-                var response = Request.CreateResponse(HttpStatusCode.OK);
+            var queryResult = await dataStore.ErrorsHead(
+                    status: status,
+                    modified: modified,
+                    queueAddress: queueAddress
+                    );
 
-                return response
-                    .WithTotalCount(queryResult.TotalResults)
-                    .WithEtag(queryResult.IndexEtag);
-            }
+
+            return Negotiator.FromQueryStatsInfo(Request, queryResult);
         }
 
         [Route("endpoints/{endpointname}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsByEndpointName(string endpointName)
+        public async Task<HttpResponseMessage> ErrorsByEndpointName()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .Statistics(out var stats)
-                    .FilterByStatusWhere(Request)
-                    .AndAlso()
-                    .WhereEquals("ReceivingEndpointName", endpointName)
-                    .FilterByLastModifiedRange(Request)
-                    .Sort(Request)
-                    .Paging(Request)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string endpointName = Request.GetEndpointName();
 
-                return Negotiator
-                    .FromModel(Request, results)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
-            }
+            var sortInfo = Request.GetSortInfo();
+            var pagingInfo = Request.GetPagingInfo();
+
+            var results = await dataStore.ErrorsByEndpointName(
+                status: status,
+                endpointName: endpointName,
+                modified: modified,
+                pagingInfo,
+                sortInfo
+                );
+
+            return Negotiator.FromQueryResult(Request, results);
         }
 
         [Route("errors/summary")]
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorsSummary()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                    .ToFacetsAsync(new List<Facet>
-                    {
-                        new Facet
-                        {
-                            Name = "Name",
-                            DisplayName = "Endpoints"
-                        },
-                        new Facet
-                        {
-                            Name = "Host",
-                            DisplayName = "Hosts"
-                        },
-                        new Facet
-                        {
-                            Name = "MessageType",
-                            DisplayName = "Message types"
-                        }
-                    })
-                    .ConfigureAwait(false);
+            var results = await dataStore.ErrorsSummary();
 
-                return Negotiator.FromModel(Request, facetResults.Results);
-            }
+            return Negotiator.FromModel(Request, results);
         }
 
-        readonly IDocumentStore documentStore;
+        readonly IErrorMessageDataStore dataStore;
     }
 }

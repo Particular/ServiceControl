@@ -33,18 +33,18 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate().ConfigureAwait(false);
+            await migrator.Migrate();
 
-            var dbStatistics = await configuration.DocumentStore.AsyncDatabaseCommands.GetStatisticsAsync().ConfigureAwait(false);
+            var dbStatistics = await configuration.DocumentStore.AsyncDatabaseCommands.GetStatisticsAsync();
             var indexStats = dbStatistics.Indexes.First(index => index.Name == "EndpointsIndex");
             Assert.AreEqual(IndexingPriority.Disabled, indexStats.Priority);
         }
@@ -69,19 +69,19 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate().ConfigureAwait(false);
-            await migrator.Migrate().ConfigureAwait(false);
+            await migrator.Migrate();
+            await migrator.Migrate();
 
-            var knownEndpointsIndex = await configuration.DocumentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex").ConfigureAwait(false);
+            var knownEndpointsIndex = await configuration.DocumentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex");
             Assert.IsNull(knownEndpointsIndex);
         }
 
@@ -105,21 +105,21 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate().ConfigureAwait(false);
+            await migrator.Migrate();
 
             using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
-                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
-                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
+                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId));
+                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId));
 
                 Assert.NotNull(loadedReceiverEndpoint);
                 Assert.NotNull(loadedSenderEndpoint);
@@ -146,30 +146,30 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate().ConfigureAwait(false);
+            await migrator.Migrate();
 
             configuration.DocumentStore.ExecuteIndex(new EndpointsIndex());
             configuration.DocumentStore.WaitForIndexing();
 
-            await migrator.Migrate().ConfigureAwait(false);
-            await migrator.Migrate().ConfigureAwait(false);
-            await migrator.Migrate().ConfigureAwait(false);
-            await migrator.Migrate().ConfigureAwait(false);
-            await migrator.Migrate().ConfigureAwait(false);
+            await migrator.Migrate();
+            await migrator.Migrate();
+            await migrator.Migrate();
+            await migrator.Migrate();
+            await migrator.Migrate();
 
             using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
-                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
-                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
+                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId));
+                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId));
 
                 Assert.NotNull(loadedReceiverEndpoint);
                 Assert.NotNull(loadedSenderEndpoint);
@@ -196,21 +196,21 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
+            await migrator.Migrate(pageSize: 1);
 
             using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
-                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
-                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId)).ConfigureAwait(false);
+                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId));
+                var loadedReceiverEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("ReceivingHostName", receiverHostId));
 
                 Assert.NotNull(loadedReceiverEndpoint);
                 Assert.NotNull(loadedSenderEndpoint);
@@ -235,20 +235,20 @@
                         { "SendingEndpoint", new EndpointDetails { Host = "SendHost", HostId = sendHostId, Name = "SendHostName" } },
                         { "ReceivingEndpoint", new EndpointDetails { Host = "ReceivingHost", HostId = receiverHostId, Name = "ReceivingHostName" } },
                     }
-                }).ConfigureAwait(false);
+                });
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             configuration.DocumentStore.WaitForIndexing();
 
             var migrator = new MigrateKnownEndpoints(configuration.DocumentStore);
 
-            await migrator.Migrate(pageSize: 1).ConfigureAwait(false);
+            await migrator.Migrate(pageSize: 1);
 
             using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
-                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId)).ConfigureAwait(false);
+                var loadedSenderEndpoint = await session.LoadAsync<KnownEndpoint>(KnownEndpoint.MakeDocumentId("SendHostName", sendHostId));
 
                 Assert.Null(loadedSenderEndpoint);
             }

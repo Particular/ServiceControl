@@ -28,9 +28,9 @@ namespace ServiceControl.Audit.Auditing
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            var dispatcher = await transportCustomization.InitializeDispatcher("ImportFailedAudits", transportSettings).ConfigureAwait(false);
+            var dispatcher = await transportCustomization.InitializeDispatcher("ImportFailedAudits", transportSettings);
 
-            await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+            await auditIngestor.VerifyCanReachForwardingAddress(dispatcher);
 
             var succeeded = 0;
             var failed = 0;
@@ -44,12 +44,11 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher).ConfigureAwait(false);
+                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher);
 
-                            await taskCompletionSource.Task.ConfigureAwait(false);
+                            await taskCompletionSource.Task;
 
-                            await markComplete(token)
-                                .ConfigureAwait(false);
+                            await markComplete(token);
                             succeeded++;
                             if (Logger.IsDebugEnabled)
                             {
@@ -66,7 +65,7 @@ namespace ServiceControl.Audit.Auditing
                             failed++;
                         }
 
-                    }, cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken);
 
             Logger.Info($"Done re-importing failed audits. Successfully re-imported {succeeded} messages. Failed re-importing {failed} messages.");
 

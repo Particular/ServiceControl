@@ -13,10 +13,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.customConfiguration = customConfiguration;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
@@ -31,13 +31,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, dataStoreToUse, setSettings, customConfiguration, hostBuilderCustomization);
-            await runner.Initialize(run).ConfigureAwait(false);
+            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, hostBuilderCustomization);
+            await runner.Initialize(run);
             return runner;
         }
 
         ITransportIntegration transportIntegration;
-        DataStoreConfiguration dataStoreToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;

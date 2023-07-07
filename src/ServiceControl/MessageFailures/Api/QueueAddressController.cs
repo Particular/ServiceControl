@@ -1,68 +1,45 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
     class QueueAddressController : ApiController
     {
-        public QueueAddressController(IDocumentStore documentStore)
+        public QueueAddressController(IQueueAddressStore dataStore)
         {
-            this.documentStore = documentStore;
+            this.dataStore = dataStore;
         }
 
         [Route("errors/queues/addresses")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetAddresses()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var addresses = await session
-                    .Query<QueueAddress, QueueAddressIndex>()
-                    .Statistics(out var stats)
-                    .Paging(Request)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var pagingInfo = Request.GetPagingInfo();
+            var result = await dataStore.GetAddresses(pagingInfo);
 
-                return Negotiator
-                    .FromModel(Request, addresses)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
-            }
+            return Negotiator.FromQueryResult(Request, result);
         }
 
         [Route("errors/queues/addresses/search/{search}")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetAddressesBySearchTerm(string search = null)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            if (string.IsNullOrWhiteSpace(search))
             {
-                if (string.IsNullOrWhiteSpace(search))
-                {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest);
-                }
-
-                var failedMessageQueues =
-                    await session.Query<QueueAddress, QueueAddressIndex>()
-                        .Statistics(out var stats)
-                        .Where(q => q.PhysicalAddress.StartsWith(search))
-                        .OrderBy(q => q.PhysicalAddress)
-                        .Paging(Request)
-                        .ToListAsync()
-                        .ConfigureAwait(false);
-
-                return Negotiator
-                    .FromModel(Request, failedMessageQueues)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
+
+            var pagingInfo = Request.GetPagingInfo();
+            var result = await dataStore.GetAddressesBySearchTerm(search, pagingInfo);
+
+            return Negotiator.FromQueryResult(Request, result);
         }
 
-        readonly IDocumentStore documentStore;
+        readonly IQueueAddressStore dataStore;
     }
 }

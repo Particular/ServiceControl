@@ -12,17 +12,79 @@ namespace ServiceControl.Persistence
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
 
-    public static class RavenQueryExtensions
+    static class RavenQueryExtensions
     {
-        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
+        public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
+            this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, bool includeSystemMessages)
         {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
+            if (!includeSystemMessages)
+            {
+                return source.Where(m => !m.IsSystemMessage);
+            }
+
+            return source;
+        }
+
+        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, PagingInfo pagingInfo)
+            => source.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize);
+
+        public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, SortInfo sortInfo)
+            where TSource : MessagesViewIndex.SortAndFilterOptions
+        {
+            Expression<Func<TSource, object>> keySelector;
+            switch (sortInfo.Sort)
+            {
+                case "id":
+                case "message_id":
+                    keySelector = m => m.MessageId;
+                    break;
+
+                case "message_type":
+                    keySelector = m => m.MessageType;
+                    break;
+
+                case "critical_time":
+                    keySelector = m => m.CriticalTime;
+                    break;
+
+                case "delivery_time":
+                    keySelector = m => m.DeliveryTime;
+                    break;
+
+                case "processing_time":
+                    keySelector = m => m.ProcessingTime;
+                    break;
+
+                case "processed_at":
+                    keySelector = m => m.ProcessedAt;
+                    break;
+
+                case "status":
+                    keySelector = m => m.Status;
+                    break;
+
+                default:
+                    keySelector = m => m.TimeSent;
+                    break;
+            }
+
+            if (sortInfo.Direction == "asc")
+            {
+                return source.OrderBy(keySelector);
+            }
+
+            return source.OrderByDescending(keySelector);
+        }
+
+        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, PagingInfo pagingInfo)
+        {
+            var maxResultsPerPage = pagingInfo.PageSize;
             if (maxResultsPerPage < 1)
             {
                 maxResultsPerPage = 50;
             }
 
-            var page = request.GetQueryStringValue("page", 1);
+            var page = pagingInfo.Page;
             if (page < 1)
             {
                 page = 1;
@@ -34,11 +96,11 @@ namespace ServiceControl.Persistence
                 .Take(maxResultsPerPage);
         }
 
-        public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, SortInfo sortInfo)
         {
             var descending = true;
 
-            var direction = request.GetQueryStringValue("direction", "desc");
+            var direction = sortInfo.Direction;
             if (direction == "asc")
             {
                 descending = false;
@@ -46,7 +108,7 @@ namespace ServiceControl.Persistence
 
             string keySelector;
 
-            var sort = request.GetQueryStringValue("sort", "time_sent");
+            var sort = sortInfo.Sort;
             if (!AsyncDocumentQuerySortOptions.Contains(sort))
             {
                 sort = "time_sent";
@@ -84,9 +146,8 @@ namespace ServiceControl.Persistence
         }
 
 
-        public static IAsyncDocumentQuery<T> FilterByStatusWhere<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByStatusWhere<T>(this IAsyncDocumentQuery<T> source, string status)
         {
-            var status = request.GetQueryStringValue<string>("status");
             if (status == null)
             {
                 return source;
@@ -146,10 +207,8 @@ namespace ServiceControl.Persistence
         }
 
 
-        public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, string modified)
         {
-            var modified = request.GetQueryStringValue<string>("modified");
-
             if (modified == null)
             {
                 return source;
@@ -177,9 +236,8 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, string queueAddress)
         {
-            var queueAddress = request.GetQueryStringValue<string>("queueaddress");
             if (string.IsNullOrWhiteSpace(queueAddress))
             {
                 return source;
@@ -217,12 +275,6 @@ namespace ServiceControl.Persistence
 
             return (IOrderedQueryable<TSource>)source.Skip(skipResults)
                 .Take(maxResultsPerPage);
-        }
-
-        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, PagingInfo paging)
-        {
-            return source.Skip(paging.Offset)
-                .Take(paging.PageSize);
         }
 
         public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, HttpRequestMessage request)

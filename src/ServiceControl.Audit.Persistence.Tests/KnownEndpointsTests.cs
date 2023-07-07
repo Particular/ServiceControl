@@ -56,8 +56,7 @@
             var unitOfWork = StartAuditUnitOfWork(knownEndpoints.Length);
             foreach (var knownEndpoint in knownEndpoints)
             {
-                await unitOfWork.RecordKnownEndpoint(knownEndpoint)
-                    ;
+                await unitOfWork.RecordKnownEndpoint(knownEndpoint);
             }
             await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();

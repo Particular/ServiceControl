@@ -4,13 +4,12 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
 
-    abstract class ScatterGatherApiMessageView<TInput> : ScatterGatherApi<TInput, IList<MessagesView>>
+    abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
     {
-        protected ScatterGatherApiMessageView(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 

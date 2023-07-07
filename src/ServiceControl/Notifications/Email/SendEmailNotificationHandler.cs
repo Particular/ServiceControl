@@ -5,15 +5,15 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
     {
-        readonly IDocumentStore store;
+        readonly IErrorMessageDataStore store;
         readonly EmailThrottlingState throttlingState;
 
-        public SendEmailNotificationHandler(IDocumentStore store, Settings settings, EmailThrottlingState throttlingState)
+        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState)
         {
             this.store = store;
             this.throttlingState = throttlingState;
@@ -25,14 +25,9 @@
         {
             NotificationsSettings notifications;
 
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager())
             {
-                using (session.Advanced.DocumentStore.AggressivelyCacheFor(cacheTimeout))
-                {
-                    notifications = await session
-                        .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
-                        .ConfigureAwait(false);
-                }
+                notifications = await manager.LoadSettings(cacheTimeout);
             }
 
             if (notifications == null || !notifications.Email.Enabled)
@@ -55,7 +50,7 @@
                         return;
                     }
 
-                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay, cancellationToken).ConfigureAwait(false);
+                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay, cancellationToken);
                 }
 
                 if (context.MessageId == throttlingState.RetriedMessageId)
@@ -64,8 +59,7 @@
                         "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
-                await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder)
-                    .ConfigureAwait(false);
+                await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
@@ -73,7 +67,7 @@
                 {
                     throttlingState.ThrottlingOn();
 
-                    await Task.Delay(throttlingDelay, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(throttlingDelay, cancellationToken);
 
                     throttlingState.ThrottlingOff();
 

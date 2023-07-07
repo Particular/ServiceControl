@@ -43,11 +43,11 @@
                 {
                     try
                     {
-                        await FetchQueueSizes(token).ConfigureAwait(false);
+                        await FetchQueueSizes(token);
 
                         UpdateQueueLengthStore();
 
-                        await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(QueryDelayInterval, token);
                     }
                     catch (OperationCanceledException)
                     {
@@ -78,7 +78,7 @@
             {
                 var queueReference = queueLength.QueueReference;
 
-                QueueProperties properties = await queueReference.GetPropertiesAsync(cancellationToken).ConfigureAwait(false);
+                QueueProperties properties = await queueReference.GetPropertiesAsync(cancellationToken);
 
                 queueLength.Length = properties.ApproximateMessagesCount;
 

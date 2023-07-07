@@ -20,7 +20,7 @@
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await persistence.WarmupMonitoringFromPersistence(monitor).ConfigureAwait(false);
+            await persistence.WarmupMonitoringFromPersistence(monitor);
             timer = scheduler.Schedule(_ => CheckEndpoints(), TimeSpan.Zero, TimeSpan.FromSeconds(5), e => { log.Error("Exception occurred when monitoring endpoint instances", e); });
         }
 
@@ -28,7 +28,7 @@
         {
             try
             {
-                await timer.Stop().ConfigureAwait(false);
+                await timer.Stop();
             }
             catch (OperationCanceledException)
             {
@@ -44,7 +44,7 @@
                 log.Debug($"Monitoring Endpoint Instances. Inactivity Threshold = {inactivityThreshold}");
             }
 
-            await monitor.CheckEndpoints(inactivityThreshold).ConfigureAwait(false);
+            await monitor.CheckEndpoints(inactivityThreshold);
             return TimerJobExecutionResult.ScheduleNextExecution;
         }
 

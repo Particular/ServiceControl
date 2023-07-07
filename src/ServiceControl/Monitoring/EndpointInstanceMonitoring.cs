@@ -28,13 +28,12 @@ namespace ServiceControl.Monitoring
 
                 var endpointInstanceId = entry.Key;
                 var monitor = endpoints.GetOrAdd(endpointInstanceId.UniqueId, id => new EndpointInstanceMonitor(endpointInstanceId, true, domainEvents));
-                await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp)
-                    .ConfigureAwait(false);
+                await monitor.UpdateStatus(recordedHeartbeat.Status, recordedHeartbeat.Timestamp);
             }
 
             var stats = GetStats();
 
-            await Update(stats).ConfigureAwait(false);
+            await Update(stats);
         }
 
         public bool IsNewInstance(EndpointDetails newEndpointDetails)
@@ -53,7 +52,7 @@ namespace ServiceControl.Monitoring
                 {
                     DetectedAt = DateTime.UtcNow,
                     Endpoint = newEndpointDetails
-                }).ConfigureAwait(false);
+                });
             }
         }
 
@@ -66,7 +65,7 @@ namespace ServiceControl.Monitoring
             {
                 EndpointDetails = newEndpointDetails,
                 StartedAt = startedAt
-            }).ConfigureAwait(false);
+            });
         }
 
         public void DetectEndpointFromPersistentStore(EndpointDetails endpointDetails, bool monitored)
@@ -86,7 +85,7 @@ namespace ServiceControl.Monitoring
                     Active = stats.Active,
                     Failing = stats.Failing,
                     RaisedAt = DateTime.UtcNow
-                }).ConfigureAwait(false);
+                });
                 previousStats = stats;
             }
         }

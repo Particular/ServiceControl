@@ -33,8 +33,7 @@
             var client = httpClientFactory();
             try
             {
-                var result = await client.GetStringAsync(remoteConnectionUri)
-                    .ConfigureAwait(false);
+                var result = await client.GetStringAsync(remoteConnectionUri);
                 var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
                 if (dictionary == null)
                 {

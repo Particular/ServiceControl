@@ -30,14 +30,13 @@ namespace ServiceControl.Recoverability.API
 
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
             {
-                await retryingManager.Wait(groupId, RetryType.FailureGroup, started)
-                    .ConfigureAwait(false);
+                await retryingManager.Wait(groupId, RetryType.FailureGroup, started);
 
                 await bus.SendLocal(new RetryAllInGroup
                 {
                     GroupId = groupId,
                     Started = started
-                }).ConfigureAwait(false);
+                });
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);

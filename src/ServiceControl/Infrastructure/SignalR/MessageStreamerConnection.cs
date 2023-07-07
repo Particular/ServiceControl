@@ -44,7 +44,7 @@
                 var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
                 var transportOperations = new TransportOperations(transportOperation);
 
-                await sender.Dispatch(transportOperations, transportTransaction, contextBag).ConfigureAwait(false);
+                await sender.Dispatch(transportOperations, transportTransaction, contextBag);
             }
             catch (Exception ex)
             {

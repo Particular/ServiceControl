@@ -1,12 +1,10 @@
 namespace Particular.ServiceControl
 {
     using System.Threading.Tasks;
-    using global::ServiceControl.Infrastructure.RavenDB;
     using global::ServiceControl.LicenseManagement;
+    using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using NServiceBus.Logging;
-    using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -34,18 +32,16 @@ namespace Particular.ServiceControl
 
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
-                await installationTask().ConfigureAwait(false);
+                await installationTask();
             }
 
-            if (!settings.RunInMemory) //RunInMemory is used in acceptance tests
-            {
-                using (var documentStore = new EmbeddableDocumentStore())
-                {
-                    RavenBootstrapper.Configure(documentStore, settings);
-                    var service = new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], componentSetupContext);
-                    await service.SetupDatabase().ConfigureAwait(false);
-                }
-            }
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var installer = persistence.CreateInstaller();
+
+            await installer.Install();
+
             EventSourceCreator.Create();
 
             if (settings.SkipQueueCreation)
@@ -60,7 +56,7 @@ namespace Particular.ServiceControl
                 await transportCustomization.ProvisionQueues(
                     username,
                     transportSettings,
-                    componentSetupContext.Queues).ConfigureAwait(false);
+                    componentSetupContext.Queues);
             }
         }
 

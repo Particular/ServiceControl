@@ -23,10 +23,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {

@@ -47,8 +47,7 @@
         {
             if (managers.Any())
             {
-                await Task.WhenAll(managers.Select(m => m.Stop()).ToArray())
-                    .ConfigureAwait(false);
+                await Task.WhenAll(managers.Select(m => m.Stop()).ToArray());
             }
         }
 

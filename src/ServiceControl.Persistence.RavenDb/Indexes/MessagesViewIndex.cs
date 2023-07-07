@@ -9,7 +9,7 @@ namespace ServiceControl.Persistence
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
-    public class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
+    class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
         {

@@ -2,57 +2,42 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
-    using MessageFailures;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Recoverability;
 
     class GroupFetcher
     {
-        public GroupFetcher(RetryingManager retryingManager, ArchivingManager archivingManager)
+        public GroupFetcher(IGroupsDataStore store, IRetryHistoryDataStore retryStore, RetryingManager retryingManager, IArchiveMessages archiver)
         {
+            this.store = store;
+            this.retryStore = retryStore;
             this.retryingManager = retryingManager;
-            this.archivingManager = archivingManager;
+            this.archiver = archiver;
         }
 
-        public async Task<GroupOperation[]> GetGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
+        public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter)
         {
-            var dbGroups = await GetDBGroups(session, classifier, classifierFilter).ConfigureAwait(false);
-
-            await GetComments(session, dbGroups).ConfigureAwait(false);
-
-            var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ?? RetryHistory.CreateNew();
+            var dbGroups = await store.GetFailureGroupsByClassifier(classifier, classifierFilter);
+            var retryHistory = await retryStore.GetRetryHistory();
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
 
             var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
-            closedGroups = closedGroups.Union(MapClosedGroups(classifier, archivingManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
+            closedGroups = closedGroups.Union(MapClosedGroups(classifier, archiver.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
 
             var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
-            openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations()).ToList();
+            openGroups = MapOpenGroups(openGroups, archiver.GetArchivalOperations()).ToList();
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
-            MakeSureForwardingBatchIsIncludedAsOpen(classifier, await GetCurrentForwardingBatch(session).ConfigureAwait(false), openGroups);
+            var currentForwardingBatch = await store.GetCurrentForwardingBatch();
+            MakeSureForwardingBatchIsIncludedAsOpen(classifier, currentForwardingBatch, openGroups);
 
             var groups = openGroups.Union(closedGroups);
 
             return groups.OrderByDescending(g => g.Last).ToArray();
-        }
-
-        async Task GetComments(IAsyncDocumentSession session, IList<FailureGroupView> dbGroups)
-        {
-            var commentIds = dbGroups.Select(x => GroupComment.MakeId(x.Id)).ToArray();
-            var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
-                .ToListAsync(CancellationToken.None).ConfigureAwait(false);
-
-            foreach (var group in dbGroups)
-            {
-                group.Comment = comments.FirstOrDefault(x => x.Id == GroupComment.MakeId(group.Id))?.Comment;
-            }
         }
 
         void MakeSureForwardingBatchIsIncludedAsOpen(string classifier, RetryBatch forwardingBatch, List<GroupOperation> open)
@@ -78,20 +63,6 @@
                     select unack).ToArray();
         }
 
-        static Task<IList<FailureGroupView>> GetDBGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
-        {
-            var groups = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
-
-            if (!string.IsNullOrWhiteSpace(classifierFilter))
-            {
-                groups = groups.Where(v => v.Title == classifierFilter);
-            }
-
-            return groups.OrderByDescending(x => x.Last)
-                .Take(200)
-                .ToListAsync();
-        }
-
         static bool IsCurrentForwardingOperationIncluded(List<GroupOperation> open, RetryBatch forwardingBatch)
         {
             return open.Any(x => x.Id == forwardingBatch.RequestId && x.Type == forwardingBatch.Classifier && forwardingBatch.RetryType == RetryType.FailureGroup);
@@ -115,15 +86,6 @@
                 OperationStartTime = summary.Started,
                 NeedUserAcknowledgement = false
             };
-        }
-
-        static async Task<RetryBatch> GetCurrentForwardingBatch(IAsyncDocumentSession session)
-        {
-            var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
-                .ConfigureAwait(false);
-
-            return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
         }
 
         static IEnumerable<GroupOperation> MapClosedGroups(string classifier, UnacknowledgedRetryOperation[] standaloneUnacknowledgements)
@@ -226,7 +188,9 @@
                 .FirstOrDefault();
         }
 
+        readonly IGroupsDataStore store;
+        readonly IRetryHistoryDataStore retryStore;
         readonly RetryingManager retryingManager;
-        readonly ArchivingManager archivingManager;
+        readonly IArchiveMessages archiver;
     }
 }

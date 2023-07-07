@@ -24,8 +24,7 @@
 
             Logger.Info("Index creation started");
             var indexProvider = ravenStartup.CreateIndexProvider();
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore);
             Logger.Info("Index creation complete");
         }
 

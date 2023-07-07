@@ -11,7 +11,9 @@
             RaisedAt = DateTime.UtcNow;
         }
 
-        public int Total { get; set; }
+        [Obsolete]
+        public int Total => UnresolvedTotal;  // Left here for backwards compatibility, to be removed eventually.
+
         public DateTime RaisedAt { get; set; }
         public int ArchivedTotal { get; set; }
         public int UnresolvedTotal { get; set; }

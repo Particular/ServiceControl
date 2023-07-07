@@ -18,7 +18,7 @@
         }
         public async Task Migrate(int pageSize = 1024, CancellationToken cancellationToken = default)
         {
-            var knownEndpointsIndex = await documentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex", cancellationToken).ConfigureAwait(false);
+            var knownEndpointsIndex = await documentStore.AsyncDatabaseCommands.GetIndexAsync("EndpointsIndex", cancellationToken);
             if (knownEndpointsIndex == null)
             {
                 Logger.Debug("EndpointsIndex migration already completed.");
@@ -26,7 +26,7 @@
                 return;
             }
 
-            var dbStatistics = await documentStore.AsyncDatabaseCommands.GetStatisticsAsync(cancellationToken).ConfigureAwait(false);
+            var dbStatistics = await documentStore.AsyncDatabaseCommands.GetStatisticsAsync(cancellationToken);
             var indexStats = dbStatistics.Indexes.First(index => index.Name == knownEndpointsIndex.Name);
             if (indexStats.Priority == IndexingPriority.Disabled)
             {
@@ -34,7 +34,7 @@
 
                 // This should only happen the second time the migration is attempted.
                 // The index is disabled so the data should have been migrated. We can now delete the index.
-                await documentStore.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name, cancellationToken).ConfigureAwait(false);
+                await documentStore.AsyncDatabaseCommands.DeleteIndexAsync(knownEndpointsIndex.Name, cancellationToken);
                 return;
             }
 
@@ -46,8 +46,7 @@
                     var endpointsFromIndex = await session.Query<dynamic>(knownEndpointsIndex.Name, true)
                         .Skip(previouslyDone)
                         .Take(pageSize)
-                        .ToListAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                        .ToListAsync(cancellationToken);
 
                     if (endpointsFromIndex.Count == 0)
                     {
@@ -77,7 +76,7 @@
                         }
 
                         Logger.Debug($"Migrating {endpointsFromIndex.Count} entries.");
-                        await bulkInsert.DisposeAsync().ConfigureAwait(false);
+                        await bulkInsert.DisposeAsync();
                     }
                 }
             }
@@ -85,7 +84,7 @@
 
             Logger.Debug("EndpointsIndex entries migrated. Disabling EndpointsIndex.");
             // Disable the index so it can be safely deleted in the next migration run
-            await documentStore.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled, cancellationToken).ConfigureAwait(false);
+            await documentStore.AsyncDatabaseCommands.SetIndexPriorityAsync(knownEndpointsIndex.Name, IndexingPriority.Disabled, cancellationToken);
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(MigrateKnownEndpoints));

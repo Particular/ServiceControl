@@ -23,15 +23,13 @@ namespace ServiceControl.Monitoring
 
         public async Task EnableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) })
-                .ConfigureAwait(false);
+            await domainEvents.Raise(new MonitoringEnabledForEndpoint { Endpoint = Convert(Id) });
             Monitored = true;
         }
 
         public async Task DisableMonitoring()
         {
-            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) })
-                .ConfigureAwait(false);
+            await domainEvents.Raise(new MonitoringDisabledForEndpoint { Endpoint = Convert(Id) });
             Monitored = false;
         }
 
@@ -39,8 +37,7 @@ namespace ServiceControl.Monitoring
         {
             if (newStatus != status)
             {
-                await RaiseStateChangeEvents(newStatus, latestTimestamp)
-                    .ConfigureAwait(false);
+                await RaiseStateChangeEvents(newStatus, latestTimestamp);
             }
 
             lastSeen = latestTimestamp;
@@ -60,7 +57,7 @@ namespace ServiceControl.Monitoring
                     {
                         Endpoint = Convert(Id),
                         DetectedAt = latestTimestamp ?? DateTime.UtcNow
-                    }).ConfigureAwait(false);
+                    });
                 }
                 else if (status == HeartbeatStatus.Dead && Monitored)
                 {
@@ -68,7 +65,7 @@ namespace ServiceControl.Monitoring
                     {
                         Endpoint = Convert(Id),
                         RestoredAt = latestTimestamp ?? DateTime.UtcNow
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
             else if (newStatus == HeartbeatStatus.Dead && Monitored)
@@ -78,7 +75,7 @@ namespace ServiceControl.Monitoring
                     Endpoint = Convert(Id),
                     DetectedAt = DateTime.UtcNow,
                     LastReceivedAt = latestTimestamp ?? DateTime.MinValue
-                }).ConfigureAwait(false);
+                });
             }
         }
 

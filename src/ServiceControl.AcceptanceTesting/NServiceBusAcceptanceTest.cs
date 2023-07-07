@@ -10,6 +10,7 @@
     /// Base class for all the NSB test that sets up our conventions
     /// </summary>
     [TestFixture]
+    [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
     public abstract partial class NServiceBusAcceptanceTest
     {
         [SetUp]

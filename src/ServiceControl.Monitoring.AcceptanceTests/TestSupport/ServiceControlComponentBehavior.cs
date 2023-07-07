@@ -27,7 +27,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
             runner = new ServiceControlComponentRunner(transportIntegration, setSettings, customConfiguration);
-            await runner.Initialize(run).ConfigureAwait(false);
+            await runner.Initialize(run);
             return runner;
         }
 

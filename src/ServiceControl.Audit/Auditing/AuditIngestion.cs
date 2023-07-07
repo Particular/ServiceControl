@@ -63,9 +63,9 @@
 
         public async Task StopAsync(CancellationToken _)
         {
-            await watchdog.Stop().ConfigureAwait(false);
+            await watchdog.Stop();
             channel.Writer.Complete();
-            await ingestionWorker.ConfigureAwait(false);
+            await ingestionWorker;
         }
 
         FailedAuditImport FailedMessageFactory(FailedTransportMessage msg)
@@ -87,7 +87,7 @@
             try
             {
                 logger.Debug("Ensure started. Start/stop semaphore acquiring");
-                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await startStopSemaphore.WaitAsync(cancellationToken);
                 logger.Debug("Ensure started. Start/stop semaphore acquired");
 
                 if (!unitOfWorkFactory.CanIngestMore())
@@ -97,7 +97,7 @@
                         var stoppable = queueIngestor;
                         queueIngestor = null;
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
-                        await stoppable.Stop().ConfigureAwait(false);
+                        await stoppable.Stop();
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
@@ -116,14 +116,13 @@
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError).ConfigureAwait(false);
+                    OnCriticalError);
 
-                dispatcher = await transportCustomization.InitializeDispatcher(inputEndpoint, transportSettings).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher(inputEndpoint, transportSettings);
 
-                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher);
 
-                await queueIngestor.Start()
-                    .ConfigureAwait(false);
+                await queueIngestor.Start();
 
                 logger.Info("Ensure started. Infrastructure started");
             }
@@ -131,7 +130,7 @@
             {
                 if (queueIngestor != null)
                 {
-                    await queueIngestor.Stop().ConfigureAwait(false);
+                    await queueIngestor.Stop();
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
@@ -151,7 +150,7 @@
             try
             {
                 logger.Info("Shutting down. Start/stop semaphore acquiring");
-                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await startStopSemaphore.WaitAsync(cancellationToken);
                 logger.Info("Shutting down. Start/stop semaphore acquired");
 
                 if (queueIngestor == null)
@@ -162,7 +161,7 @@
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
-                await stoppable.Stop().ConfigureAwait(false);
+                await stoppable.Stop();
                 logger.Info("Shutting down. Infrastructure shut down completed");
             }
             finally
@@ -185,15 +184,15 @@
 
             receivedMeter.Mark();
 
-            await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
-            await taskCompletionSource.Task.ConfigureAwait(false);
+            await channel.Writer.WriteAsync(messageContext);
+            await taskCompletionSource.Task;
         }
 
         async Task Loop()
         {
             var contexts = new List<MessageContext>(settings.MaximumConcurrencyLevel);
 
-            while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
+            while (await channel.Reader.WaitToReadAsync())
             {
                 // will only enter here if there is something to read.
                 try
@@ -207,7 +206,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await auditIngestor.Ingest(contexts, dispatcher).ConfigureAwait(false);
+                        await auditIngestor.Ingest(contexts, dispatcher);
                     }
                 }
                 catch (OperationCanceledException)

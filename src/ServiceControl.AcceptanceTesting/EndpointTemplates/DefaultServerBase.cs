@@ -51,7 +51,7 @@
             runDescriptor.OnTestCompleted(_ => endpointTestExecutionConfiguration.Cleanup());
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
-            await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations).ConfigureAwait(false);
+            await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations);
 
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointCustomizations.EndpointName);
 

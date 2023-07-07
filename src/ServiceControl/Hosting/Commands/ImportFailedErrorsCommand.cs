@@ -28,7 +28,7 @@
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             var host = bootstrapper.HostBuilder.Build();
-            await host.StartAsync(CancellationToken.None).ConfigureAwait(false);
+            await host.StartAsync(CancellationToken.None);
 
             var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
 
@@ -36,7 +36,7 @@
 
             try
             {
-                await importFailedErrors.Run(tokenSource.Token).ConfigureAwait(false);
+                await importFailedErrors.Run(tokenSource.Token);
             }
             catch (OperationCanceledException)
             {
@@ -44,7 +44,7 @@
             }
             finally
             {
-                await host.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                await host.StopAsync(CancellationToken.None);
             }
         }
     }

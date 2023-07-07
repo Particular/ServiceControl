@@ -14,7 +14,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public class Settings
     {
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null, string transportType = null, string persisterType = null)
         {
             ServiceName = serviceName;
 
@@ -32,13 +32,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-            TransportType = SettingsReader<string>.Read("TransportType");
+            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
+            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
-            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
+            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);  // TODO: Should not be in Core but in the persister implementation
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
@@ -47,12 +48,10 @@ namespace ServiceBus.Management.Infrastructure.Settings
             NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
-            MinimumStorageLeftRequiredForIngestion = GetMinimumStorageLeftRequiredForIngestion();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = GetDataStoreType();
         }
 
         public string NotificationsFilter { get; set; }
@@ -61,9 +60,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
-
-        //HINT: acceptance tests only
-        public bool RunInMemory { get; set; }
 
         //HINT: acceptance tests only
         public string EmailDropFolder { get; set; }
@@ -102,11 +98,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string StagingQueue => $"{ServiceName}.staging";
 
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int DatabaseMaintenancePort { get; set; } // TODO: Should not be in Core but in the persister implementation
 
         public string LicenseFileText { get; set; }
 
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
+        public Dictionary<string, string> PersisterSpecificSettings { get; set; } = new Dictionary<string, string>();
+
+        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
         public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
@@ -128,7 +126,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         public string TransportType { get; set; }
-        public string DbPath { get; set; }
+        public string PersistenceType { get; private set; }
+        public string DbPath { get; set; } // TODO: Should not be in Core but in the persister implementation
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 
@@ -137,52 +136,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-        public int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if (expirationProcessTimerInSeconds < 0)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
-        public TimeSpan? AuditRetentionPeriod { get; }
+        public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
         public TimeSpan EventsRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < 1)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                return expirationProcessBatchSize;
-            }
-        }
-
         public string ServiceName { get; }
 
         public int HttpDefaultConnectionLimit { get; set; }
@@ -196,15 +154,12 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
-        public int MinimumStorageLeftRequiredForIngestion { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
         public bool DisableHealthChecks { get; set; }
 
         public bool ExposeApi { get; set; } = true;
-
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDB35;
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -499,49 +454,15 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return threshold;
         }
 
-        int GetMinimumStorageLeftRequiredForIngestion()
-        {
-            string message;
-            var threshold = SettingsReader<int>.Read("MinimumStorageLeftRequiredForIngestion", MinimumStorageLeftRequiredForIngestionDefault);
-            if (threshold < 0)
-            {
-                message = $"{nameof(MinimumStorageLeftRequiredForIngestion)} is invalid, minimum value is 0.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (threshold > 100)
-            {
-                message = $"{nameof(MinimumStorageLeftRequiredForIngestion)} is invalid, maximum value is 100.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return threshold;
-        }
-
-        DataStoreType GetDataStoreType()
-        {
-            var value = SettingsReader<string>.Read("DataStoreType", "RavenDB35");
-
-            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
-        }
-
         void TryLoadLicenseFromConfig()
         {
             LicenseFileText = SettingsReader<string>.Read("LicenseText");
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
         const int DataSpaceRemainingThresholdDefault = 20;
-        const int MinimumStorageLeftRequiredForIngestionDefault = 5;
     }
 }

@@ -151,7 +151,7 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 instance.ReportCard = new ReportCard();
-                await instance.ValidateChanges().ConfigureAwait(false);
+                await instance.ValidateChanges();
                 if (instance.ReportCard.HasErrors)
                 {
                     instance.ReportCard.Status = Status.FailedValidation;

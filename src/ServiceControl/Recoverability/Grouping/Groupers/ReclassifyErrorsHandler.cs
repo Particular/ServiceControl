@@ -1,23 +1,20 @@
 namespace ServiceControl.Recoverability
 {
-    using System.Collections.Generic;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using MessageFailures.InternalMessages;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus;
-    using Raven.Client;
+    using ServiceControl.Persistence;
 
+    [Obsolete("Only used by legacy RavenDB35 storage engine")] // TODO: how to deal with this domain event
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
-        public ReclassifyErrorsHandler(IDocumentStore store, IDomainEvents domainEvents, IHostApplicationLifetime lifetime, IEnumerable<IFailureClassifier> classifiers)
+        public ReclassifyErrorsHandler(IReclassifyFailedMessages reclassifier, IDomainEvents domainEvents)
         {
-            this.store = store;
-            this.classifiers = classifiers;
+            this.reclassifier = reclassifier;
             this.domainEvents = domainEvents;
-
-            reclassifier = new Reclassifier(lifetime);
         }
 
         public async Task Handle(ReclassifyErrors message, IMessageHandlerContext context)
@@ -30,15 +27,14 @@ namespace ServiceControl.Recoverability
 
             try
             {
-                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(store, message.Force, classifiers)
-                    .ConfigureAwait(false);
+                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(message.Force);
 
                 if (failedMessagesReclassified > 0)
                 {
                     await domainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
             finally
@@ -48,9 +44,7 @@ namespace ServiceControl.Recoverability
         }
 
         IDomainEvents domainEvents;
-        IDocumentStore store;
-        IEnumerable<IFailureClassifier> classifiers;
-        Reclassifier reclassifier;
+        IReclassifyFailedMessages reclassifier;
         static int executing;
     }
 }

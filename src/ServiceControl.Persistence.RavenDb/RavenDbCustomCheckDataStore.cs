@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
@@ -24,8 +24,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var customCheck = await session.LoadAsync<CustomCheck>(id)
-                    .ConfigureAwait(false);
+                var customCheck = await session.LoadAsync<CustomCheck>(id);
 
                 if (customCheck == null ||
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||
@@ -48,10 +47,8 @@
                 customCheck.ReportedAt = detail.ReportedAt;
                 customCheck.FailureReason = detail.FailureReason;
                 customCheck.OriginatingEndpoint = detail.OriginatingEndpoint;
-                await session.StoreAsync(customCheck)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.StoreAsync(customCheck);
+                await session.SaveChangesAsync();
             }
 
             return status;
@@ -68,17 +65,25 @@
 
                 var results = await query
                     .Paging(paging)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
-                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale));
             }
         }
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false), null)
-                .ConfigureAwait(false);
+            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false), null);
+        }
+
+        public async Task<int> GetNumberOfFailedChecks()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
+
+                return failedCustomCheckCount;
+            }
         }
 
         static IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query, string status)

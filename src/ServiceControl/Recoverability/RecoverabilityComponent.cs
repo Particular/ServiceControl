@@ -10,21 +10,16 @@
     using ExternalIntegrations;
     using Infrastructure.BackgroundTasks;
     using Infrastructure.DomainEvents;
-    using Infrastructure.RavenDB;
-    using MessageFailures;
-    using MessageFailures.Api;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Operations;
     using Operations.BodyStorage;
-    using Operations.BodyStorage.RavenAttachments;
     using Particular.ServiceControl;
-    using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
@@ -37,12 +32,7 @@
                 collection.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
 
                 //Archiving
-                collection.AddSingleton<ArchivingManager>();
-                collection.AddSingleton<ArchiveDocumentManager>();
-
                 collection.AddSingleton<OperationsManager>();
-                collection.AddSingleton<UnarchivingManager>();
-                collection.AddSingleton<UnarchiveDocumentManager>();
 
                 //Grouping
                 collection.AddSingleton<IFailureClassifier, ExceptionTypeAndStackTraceFailureClassifier>();
@@ -84,11 +74,9 @@
                 }
 
                 //Failed messages
-                collection.AddSingleton<FailedMessageViewIndexNotifications>();
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
 
                 //Body storage
-                collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
                 collection.AddSingleton<BodyStorageEnricher>();
 
                 //Health checks
@@ -136,23 +124,32 @@
             {
                 context.CreateQueue(settings.ErrorLogQueue);
             }
-
-            context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
-            context.AddIndexAssembly(typeof(CustomChecksIndex).Assembly);
         }
 
         class FailedMessageNotificationsHostedService : IHostedService
         {
-            public FailedMessageNotificationsHostedService(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
+            public FailedMessageNotificationsHostedService(
+                IDomainEvents domainEvents,
+                IFailedMessageViewIndexNotifications store
+                )
             {
-                this.notifications = notifications;
+                this.domainEvents = domainEvents;
                 this.store = store;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
-                subscription = store.Changes().ForIndex(new FailedMessageViewIndex().IndexName).Subscribe(notifications);
+                subscription = store.Subscribe(Callback);
                 return Task.FromResult(true);
+            }
+
+            Task Callback(FailedMessageTotals message)
+            {
+                return domainEvents.Raise(new MessageFailuresUpdated
+                {
+                    UnresolvedTotal = message.UnresolvedTotal,
+                    ArchivedTotal = message.UnresolvedTotal
+                });
             }
 
             public Task StopAsync(CancellationToken cancellationToken)
@@ -161,8 +158,8 @@
                 return Task.FromResult(true);
             }
 
-            FailedMessageViewIndexNotifications notifications;
-            IDocumentStore store;
+            readonly IDomainEvents domainEvents;
+            IFailedMessageViewIndexNotifications store;
             IDisposable subscription;
         }
 
@@ -191,7 +188,7 @@
 
             async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations()
             {
-                var processedRequests = await retries.ProcessNextBulkRetry().ConfigureAwait(false);
+                var processedRequests = await retries.ProcessNextBulkRetry();
                 return processedRequests ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
@@ -204,18 +201,14 @@
 
         class RebuildRetryGroupStatusesHostedService : IHostedService
         {
-            public RebuildRetryGroupStatusesHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            public RebuildRetryGroupStatusesHostedService(RetryDocumentManager retryDocumentManager)
             {
-                this.store = store;
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            public async Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
-                using (var storageSession = store.OpenAsyncSession())
-                {
-                    await retryDocumentManager.RebuildRetryOperationState(storageSession).ConfigureAwait(false);
-                }
+                return retryDocumentManager.RebuildRetryOperationState();
             }
 
             public Task StopAsync(CancellationToken cancellationToken)
@@ -223,35 +216,30 @@
                 return Task.CompletedTask;
             }
 
-            RetryDocumentManager retryDocumentManager;
-            IDocumentStore store;
+            readonly RetryDocumentManager retryDocumentManager;
         }
 
         internal class AdoptOrphanBatchesFromPreviousSessionHostedService : IHostedService
         {
-            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store, IAsyncTimer scheduler)
+            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IAsyncTimer scheduler)
             {
                 this.retryDocumentManager = retryDocumentManager;
-                this.store = store;
                 this.scheduler = scheduler;
                 startTime = DateTime.UtcNow;
             }
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
-                bool hasMoreWorkToDo;
-                using (var session = store.OpenAsyncSession())
-                {
-                    hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(session, startTime).ConfigureAwait(false);
-                }
+                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(startTime);
 
                 return hasMoreWorkToDo;
             }
+
             public Task StartAsync(CancellationToken cancellationToken)
             {
                 timer = scheduler.Schedule(async _ =>
                 {
-                    var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
+                    var hasMoreWork = await AdoptOrphanedBatchesAsync();
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
                 }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => { log.Error("Unhandled exception while trying to adopt orphaned batches", e); });
                 return Task.CompletedTask;
@@ -263,17 +251,15 @@
             }
 
             TimerJob timer;
-            DateTime startTime;
-            IDocumentStore store;
+            readonly DateTime startTime;
             readonly IAsyncTimer scheduler;
-            RetryDocumentManager retryDocumentManager;
-            static ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
+            readonly RetryDocumentManager retryDocumentManager;
+            static readonly ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
         }
 
         class ProcessRetryBatchesHostedService : IHostedService
         {
             public ProcessRetryBatchesHostedService(
-                IDocumentStore store,
                 RetryProcessor processor,
                 Settings settings,
                 IAsyncTimer scheduler,
@@ -281,7 +267,6 @@
                 TransportSettings transportSettings)
             {
                 this.processor = processor;
-                this.store = store;
                 this.settings = settings;
                 this.scheduler = scheduler;
                 this.transportCustomization = transportCustomization;
@@ -290,9 +275,9 @@
 
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings);
 
-                timer = scheduler.Schedule(t => Process(t), TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
+                timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
             }
 
             public Task StopAsync(CancellationToken cancellationToken)
@@ -302,12 +287,8 @@
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
-                using (var session = store.OpenAsyncSession())
-                {
-                    var batchesProcessed = await processor.ProcessBatches(session, dispatcher, cancellationToken).ConfigureAwait(false);
-                    await session.SaveChangesAsync(CancellationToken.None).ConfigureAwait(false);
-                    return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
-                }
+                var batchesProcessed = await processor.ProcessBatches(dispatcher, cancellationToken);
+                return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
             readonly Settings settings;
@@ -316,7 +297,6 @@
             readonly TransportSettings transportSettings;
             TimerJob timer;
 
-            IDocumentStore store;
             RetryProcessor processor;
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
             IDispatchMessages dispatcher;
