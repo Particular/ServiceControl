@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <Import Project="..\Transports.Includes.props" />
+  <Import Project="..\Persisters.Primary.Includes.props" />
 
   <ItemGroup Label="Copy artifacts for the F5 experience">
+    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
   </ItemGroup>
 
@@ -19,7 +21,6 @@
     <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
   </ItemGroup>
 
