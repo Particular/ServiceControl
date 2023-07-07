@@ -128,6 +128,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         public string TransportType { get; set; }
+        public string PersistenceType { get; private set; }
         public string DbPath { get; set; }
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }

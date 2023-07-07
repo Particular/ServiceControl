@@ -1,11 +1,16 @@
 ﻿namespace ServiceControl.Persistence
 {
+    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
 
     public interface IPersistenceConfiguration
     {
+        string Name { get; }
+        IEnumerable<string> ConfigurationKeys { get; }
+        IPersistence Create(PersistenceSettings settings);
+        // TODO: Services should be configured as part of the IPersistence implementation
         void ConfigureServices(IServiceCollection serviceCollection);
     }
 
