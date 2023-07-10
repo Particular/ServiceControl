@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Infrastructure\RavenDB\RavenLicense.xml" />
-    <EmbeddedResource Include="Infrastructure\RavenDB\RavenLicense.xml" />
+    <None Remove="RavenLicense.xml" />
+    <EmbeddedResource Include="RavenLicense.xml" />
   </ItemGroup>
 
   <ItemGroup>
