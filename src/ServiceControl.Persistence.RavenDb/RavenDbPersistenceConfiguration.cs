@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Collections.Generic;
+    using Raven.Client.Embedded;
 
     public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -11,10 +12,35 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
 
-        public string Name => throw new System.NotImplementedException();
 
-        public IEnumerable<string> ConfigurationKeys => throw new System.NotImplementedException();
+        public string Name => "RavenDB35";
 
-        public IPersistence Create(PersistenceSettings settings) => throw new System.NotImplementedException();
+        public IEnumerable<string> ConfigurationKeys => new string[]{
+            RavenBootstrapper.DatabasePathKey,
+            RavenBootstrapper.HostNameKey,
+            RavenBootstrapper.DatabaseMaintenancePortKey,
+            RavenBootstrapper.ExposeRavenDBKey,
+            RavenBootstrapper.ExpirationProcessTimerInSecondsKey,
+            RavenBootstrapper.ExpirationProcessBatchSizeKey,
+            RavenBootstrapper.RunCleanupBundleKey,
+            RavenBootstrapper.RunInMemoryKey,
+            RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey
+        };
+
+        public IPersistence Create(PersistenceSettings settings)
+        {
+            var documentStore = new EmbeddableDocumentStore();
+            RavenBootstrapper.Configure(documentStore, settings);
+
+            var ravenStartup = new RavenStartup();
+
+            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
+            {
+                ravenStartup.AddIndexAssembly(indexAssembly);
+            }
+
+            return new RavenDbPersistence(settings, documentStore, ravenStartup);
+
+        }
     }
 }
