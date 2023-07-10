@@ -2,26 +2,22 @@ namespace Particular.ServiceControl
 {
     using System;
     using System.Threading.Tasks;
-    using global::ServiceControl.Infrastructure.RavenDB;
+    using global::ServiceControl.Persistence;
     using Hosting;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class MaintenanceBootstrapper
     {
         public static async Task Run(HostArguments args, Settings settings)
         {
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+
+            persistenceSettings.MaintenanceMode = true;
+
             var hostBuilder = new HostBuilder()
-                .ConfigureServices(services =>
-                {
-                    var documentStore = new EmbeddableDocumentStore();
-
-                    RavenBootstrapper.Configure(documentStore, settings, true);
-
-                    services.AddHostedService(sp => new EmbeddedRavenDbHostedService(documentStore, new IDataMigration[0], new ComponentInstallationContext()));
-                });
+                .SetupPersistence(persistenceSettings, persistenceConfiguration);
 
             if (args.RunAsWindowsService)
             {
