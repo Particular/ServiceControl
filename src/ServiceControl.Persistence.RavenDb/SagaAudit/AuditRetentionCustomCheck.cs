@@ -1,10 +1,13 @@
-﻿namespace ServiceControl.SagaAudit
+﻿
+namespace ServiceControl.Persistence.RavenDb.SagaAudit
 {
     using System;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
+    using Persistence;
+    using Persistence.RavenDb;
+    using ServiceControl.SagaAudit;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class AuditRetentionCustomCheck : CustomCheck
 
@@ -12,11 +15,11 @@
         readonly IDocumentStore _documentStore;
         readonly bool _auditRetentionPeriodIsSet;
 
-        public AuditRetentionCustomCheck(IDocumentStore documentStore, Settings settings, TimeSpan? repeatAfter = null)
+        public AuditRetentionCustomCheck(IDocumentStore documentStore, PersistenceSettings settings, TimeSpan? repeatAfter = null)
             : base("Saga Audit Data Retention", "ServiceControl Health", repeatAfter.HasValue ? repeatAfter : TimeSpan.FromHours(1))
         {
             _documentStore = documentStore;
-            _auditRetentionPeriodIsSet = settings.AuditRetentionPeriod.HasValue;
+            _auditRetentionPeriodIsSet = settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.AuditRetentionPeriodKey);
         }
 
         public override async Task<CheckResult> PerformCheck()

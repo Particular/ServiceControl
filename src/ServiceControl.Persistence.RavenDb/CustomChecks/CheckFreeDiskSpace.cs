@@ -5,14 +5,16 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Persistence;
+    using Persistence.RavenDb;
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        public CheckFreeDiskSpace(Settings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(PersistenceSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
         {
-            dataPath = settings.DbPath;
-            percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
+            dataPath = settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey];
+            percentageThreshold = int.Parse(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey]) / 100m;
+
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }
 

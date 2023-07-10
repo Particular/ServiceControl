@@ -6,22 +6,25 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using Persistence;
+    using Persistence.RavenDb;
     using Raven.Client;
     using Raven.Abstractions.Data;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Raven.Abstractions.Extensions;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IDocumentStore store, LoggingSettings settings)
+        public CheckRavenDBIndexLag(IDocumentStore store, PersistenceSettings settings)
             : base("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
         {
-            _store = store;
-            LogPath = settings?.LogPath;
+            this.store = store;
+            this.settings = settings;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            var statistics = _store.DatabaseCommands.GetStatistics();
+            var statistics = store.DatabaseCommands.GetStatistics();
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
             CreateDiagnosticsLogEntry(statistics, indexes);
@@ -30,7 +33,9 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `{LogPath}` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                var logPath = settings.PersisterSpecificSettings.GetOrDefault(RavenDbPersistenceConfiguration.LogPathKey);
+
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `{logPath}` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
@@ -84,7 +89,8 @@
         const int IndexLagThresholdWarning = 10000;
         const int IndexLagThresholdError = 100000;
         static ILog _log = LogManager.GetLogger<CheckRavenDBIndexLag>();
-        IDocumentStore _store;
-        string LogPath;
+
+        IDocumentStore store;
+        PersistenceSettings settings;
     }
 }

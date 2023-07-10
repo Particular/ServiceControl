@@ -5,12 +5,12 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using Persistence.RavenDb;
     using ServiceControl.Persistence;
 
     class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
-        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, Settings settings)
+        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, PersistenceSettings settings)
             : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
@@ -19,9 +19,10 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            var percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
+            var minimumStorageLeftRequiredForIngestion = int.Parse(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey]);
+            var percentageThreshold = minimumStorageLeftRequiredForIngestion / 100m;
 
-            var dataPathRoot = Path.GetPathRoot(settings.DbPath);
+            var dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey]);
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
@@ -47,14 +48,14 @@
                 return successResult;
             }
 
-            var message = $"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {nameof(Settings.MinimumStorageLeftRequiredForIngestion)} configuration setting.";
+            var message = $"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {nameof(minimumStorageLeftRequiredForIngestion)} configuration setting.";
             Logger.Warn(message);
             stateHolder.CanIngestMore = false;
             return CheckResult.Failed(message);
         }
 
         readonly MinimumRequiredStorageState stateHolder;
-        readonly Settings settings;
+        readonly PersistenceSettings settings;
         static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }
