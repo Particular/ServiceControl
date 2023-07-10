@@ -13,12 +13,12 @@
         public CheckRavenDBIndexErrors(IDocumentStore store)
             : base("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
         {
-            _store = store;
+            this.store = store;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            var statistics = _store.DatabaseCommands.GetStatistics();
+            var statistics = store.DatabaseCommands.GetStatistics();
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
             if (statistics.Errors.Length == 0)
@@ -37,11 +37,12 @@
             text.AppendLine().AppendLine("See: https://docs.particular.net/search?q=servicecontrol+troubleshooting");
 
             var message = text.ToString();
-            _log.Error(message);
+            Logger.Error(message);
             return CheckResult.Failed(message);
         }
 
-        static ILog _log = LogManager.GetLogger<CheckRavenDBIndexLag>();
-        IDocumentStore _store;
+        static ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
+
+        IDocumentStore store;
     }
 }
