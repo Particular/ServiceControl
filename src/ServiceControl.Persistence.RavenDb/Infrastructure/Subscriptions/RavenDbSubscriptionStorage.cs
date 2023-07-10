@@ -14,15 +14,17 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Raven.Client;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDb.Infrastructure;
 
-    class SubscriptionPersister : ISubscriptionStorage, IPrimableSubscriptionStorage
+    class RavenDbSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public SubscriptionPersister(IDocumentStore store, ReadOnlySettings settings) :
+        public RavenDbSubscriptionStorage(IDocumentStore store, ReadOnlySettings settings) :
             this(store, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
-        public SubscriptionPersister(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public RavenDbSubscriptionStorage(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
             this.store = store;
             localClient = new SubscriptionClient
@@ -37,7 +39,7 @@
             SetSubscriptions(new Subscriptions()).GetAwaiter().GetResult();
         }
 
-        public async Task Prime()
+        public async Task Initialize()
         {
             using (var session = store.OpenAsyncSession())
             {
@@ -238,7 +240,7 @@
 
         SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
-        static ILog logger = LogManager.GetLogger<SubscriptionPersister>();
+        static ILog logger = LogManager.GetLogger<RavenDbSubscriptionStorage>();
     }
 
     class Subscriptions
