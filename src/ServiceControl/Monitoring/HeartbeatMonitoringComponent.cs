@@ -5,7 +5,6 @@
     using EventLog;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
-    using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
@@ -19,7 +18,6 @@
         {
             hostBuilder.ConfigureServices(collection =>
             {
-                collection.AddSingleton<IDataMigration, PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration>();
                 collection.AddHostedService<HeartbeatMonitoringHostedService>();
                 collection.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
 
