@@ -3,15 +3,12 @@
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.DependencyInjection;
 
     public interface IPersistenceConfiguration
     {
         string Name { get; }
         IEnumerable<string> ConfigurationKeys { get; }
         IPersistence Create(PersistenceSettings settings);
-        // TODO: Services should be configured as part of the IPersistence implementation
-        void ConfigureServices(IServiceCollection serviceCollection);
     }
 
     //NOTE ideally once we only have one type of persistence (ie use ravendb or sql for all) then these could be refactored
