@@ -1,28 +1,26 @@
-namespace ServiceControl.CompositeViews.Messages
+﻿namespace ServiceControl.Persistence.RavenDb
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Raven.Client;
-    using Raven.Client.Linq;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAllMessagesForEndpointApi : ScatterGatherApiMessageView<string>
+    class ErrorMessagesDataStore : IErrorMessageDataStore
     {
-        public GetAllMessagesForEndpointApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        readonly IDocumentStore documentStore;
+
+        public ErrorMessagesDataStore(IDocumentStore documentStore)
         {
+            this.documentStore = documentStore;
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string input)
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(HttpRequestMessage request)
         {
-            using (var session = DataStore.OpenAsyncSession())
+            using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(request)
-                    .Where(m => m.ReceivingEndpointName == input)
                     .Statistics(out var stats)
                     .Sort(request)
                     .Paging(request)
