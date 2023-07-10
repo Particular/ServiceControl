@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
     using Raven.Client;
 
-    public interface IDataMigration
+    interface IDataMigration
     {
         Task Migrate(IDocumentStore store);
     }
