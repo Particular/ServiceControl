@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using CompositeViews.Messages;
     using Raven.Client;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -15,15 +16,15 @@
             this.documentStore = documentStore;
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(HttpRequestMessage request)
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(request)
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Statistics(out var stats)
-                    .Sort(request)
-                    .Paging(request)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
                     .ToListAsync()
                     .ConfigureAwait(false);
