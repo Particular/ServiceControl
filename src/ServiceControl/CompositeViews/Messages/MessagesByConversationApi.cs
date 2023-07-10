@@ -18,7 +18,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string input)
         {
-            using (var session = Store.OpenAsyncSession())
+            using (var session = DataStore.OpenAsyncSession())
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)

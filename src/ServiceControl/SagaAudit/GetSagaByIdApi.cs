@@ -17,7 +17,7 @@ namespace ServiceControl.SagaAudit
 
         protected override async Task<QueryResult<SagaHistory>> LocalQuery(HttpRequestMessage request, Guid input)
         {
-            using (var session = Store.OpenAsyncSession())
+            using (var session = DataStore.OpenAsyncSession())
             {
                 var sagaHistory = await
                     session.Query<SagaHistory, SagaDetailsIndex>()

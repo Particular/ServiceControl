@@ -12,8 +12,8 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
     interface IApi
@@ -29,14 +29,14 @@ namespace ServiceControl.CompositeViews.Messages
     abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        protected ScatterGatherApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)
+        protected ScatterGatherApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory)
         {
-            Store = documentStore;
+            DataStore = dataStore;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
         }
 
-        protected IDocumentStore Store { get; }
+        protected IErrorMessageDataStore DataStore { get; }
         protected Settings Settings { get; }
         protected Func<HttpClient> HttpClientFactory { get; }
 
@@ -168,7 +168,7 @@ namespace ServiceControl.CompositeViews.Messages
     abstract class ScatterGatherApiNoInput<TOut> : ScatterGatherApi<NoInput, TOut>
         where TOut : class
     {
-        protected ScatterGatherApiNoInput(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        protected ScatterGatherApiNoInput(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 
