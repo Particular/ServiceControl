@@ -14,9 +14,13 @@ namespace ServiceControl.CompositeViews.Messages
         {
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, NoInput input)
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, NoInput input)
         {
-            return await DataStore.GetAllMessages(request).ConfigureAwait(false);
+            var pagingInfo = request.GetPagingInfo();
+            var sortInfo = request.GetSortInfo();
+            var includeSystemMessages = request.GetIncludeSystemMessages();
+
+            return DataStore.GetAllMessages(pagingInfo, sortInfo, includeSystemMessages);
         }
     }
 }
