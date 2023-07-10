@@ -1,12 +1,12 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
+﻿namespace ServiceControl.Infrastructure.Subscriptions
 {
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Persistence;
 
-    class CachedRavenDBPersistence : PersistenceDefinition
+    class ServiceControlSubscriptionPersistence : PersistenceDefinition
     {
-        public CachedRavenDBPersistence()
+        public ServiceControlSubscriptionPersistence()
         {
             Supports<StorageType.Subscriptions>(s => s.EnableFeatureByDefault<SubscriptionStorage>());
         }

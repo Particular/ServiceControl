@@ -40,7 +40,6 @@
             }
 
             return new RavenDbPersistence(settings, documentStore, ravenStartup);
-
         }
     }
 }

@@ -1,10 +1,11 @@
-﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
+﻿namespace ServiceControl.Infrastructure.Subscriptions
 {
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Settings;
     using NServiceBus.Transport;
+    using ServiceControl.Persistence;
 
     class SubscriptionStorage : Feature
     {
@@ -20,23 +21,24 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<SubscriptionPersister>(DependencyLifecycle.SingleInstance);
-            context.Container.ConfigureComponent<PrimeSubscriptions>(DependencyLifecycle.SingleInstance);
+            // TODO: As it is now, I think each Persistence project would just need to know it has to register a IServiceControlSubscriptionStorage implementation.
+            // Having trouble making it more elegant given the disconnect between the NServiceBus setup and the app's persistence setup
+            context.Container.ConfigureComponent<IServiceControlSubscriptionStorage>(DependencyLifecycle.SingleInstance);
             context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
         }
 
         class PrimeSubscriptions : FeatureStartupTask
         {
-            public IPrimableSubscriptionStorage persister;
+            public IServiceControlSubscriptionStorage persister;
 
-            public PrimeSubscriptions(IPrimableSubscriptionStorage persister)
+            public PrimeSubscriptions(IServiceControlSubscriptionStorage persister)
             {
                 this.persister = persister;
             }
 
             protected override Task OnStart(IMessageSession session)
             {
-                return persister?.Prime() ?? Task.FromResult(0);
+                return persister?.Initialize() ?? Task.FromResult(0);
             }
 
             protected override Task OnStop(IMessageSession session)
