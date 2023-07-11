@@ -8,12 +8,11 @@
     using System.Threading.Tasks;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 
@@ -27,7 +26,7 @@
             TransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
-            IDocumentStore documentStore,
+            IErrorMessageDataStore dataStore,
             LoggingSettings loggingSettings,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
@@ -54,7 +53,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
 

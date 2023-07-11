@@ -6,6 +6,7 @@
     using CompositeViews.Messages;
     using Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
 
     public interface IErrorMessageDataStore
     {
@@ -17,5 +18,6 @@
         Task<FailedMessage> FailedMessageFetch(string failedMessageId);
         Task FailedMessageMarkAsArchived(string failedMessageId);
         Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
+        Task StoreFailedErrorImport(FailedErrorImport failure);
     }
 }
