@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
     using System.Web.Cors;
     using Microsoft.Owin.Cors;
-    using Raven.Abstractions.Extensions;
+    using ServiceControl.Infrastructure;
 
     class Cors
     {
