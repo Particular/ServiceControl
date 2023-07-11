@@ -13,7 +13,6 @@ namespace ServiceControl.CompositeViews.Messages
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
     interface IApi
@@ -26,17 +25,17 @@ namespace ServiceControl.CompositeViews.Messages
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
-    abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
+    abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        protected ScatterGatherApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory)
+        protected ScatterGatherApi(TDataStore store, Settings settings, Func<HttpClient> httpClientFactory)
         {
-            DataStore = dataStore;
+            DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
         }
 
-        protected IErrorMessageDataStore DataStore { get; }
+        protected TDataStore DataStore { get; }
         protected Settings Settings { get; }
         protected Func<HttpClient> HttpClientFactory { get; }
 
@@ -162,13 +161,13 @@ namespace ServiceControl.CompositeViews.Messages
             }
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
+        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TDataStore, TIn, TOut>));
     }
 
-    abstract class ScatterGatherApiNoInput<TOut> : ScatterGatherApi<NoInput, TOut>
+    abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
         where TOut : class
     {
-        protected ScatterGatherApiNoInput(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
+        protected ScatterGatherApiNoInput(TStore store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
         {
         }
 

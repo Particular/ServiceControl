@@ -3,26 +3,22 @@
     using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using NServiceBus;
-    using Raven.Client;
+    using ServiceControl.Persistence;
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        public SagaUpdatedHandler(IDocumentStore store)
+        public SagaUpdatedHandler(ISagaAuditDataStore store)
         {
             this.store = store;
         }
 
-        public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
+        public Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
             var sagaSnapshot = SagaSnapshotFactory.Create(message);
 
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(sagaSnapshot).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
+            return store.StoreSnapshot(sagaSnapshot);
         }
 
-        readonly IDocumentStore store;
+        readonly ISagaAuditDataStore store;
     }
 }
