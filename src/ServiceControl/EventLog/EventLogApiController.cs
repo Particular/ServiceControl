@@ -5,33 +5,30 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
     class EventLogApiController : ApiController
     {
-        public EventLogApiController(IDocumentStore documentStore)
+        public EventLogApiController(IEventLogDataStore eventLogDataStore)
         {
-            this.documentStore = documentStore;
+            this.eventLogDataStore = eventLogDataStore;
         }
 
         [Route("eventlogitems")]
         [HttpGet]
         public async Task<HttpResponseMessage> Items()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<EventLogItem>().Statistics(out var stats).OrderByDescending(p => p.RaisedAt)
-                    .Paging(Request)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var pagingInfo = Request.GetPagingInfo();
 
-                return Negotiator.FromModel(Request, results)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
-            }
+            var (results, stats, version) = await eventLogDataStore.GetEventLogItems(pagingInfo);
+
+
+            return Negotiator.FromModel(Request, results)
+                .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
+                .WithEtag(version);
         }
 
-        readonly IDocumentStore documentStore;
+        readonly IEventLogDataStore eventLogDataStore;
     }
 }
