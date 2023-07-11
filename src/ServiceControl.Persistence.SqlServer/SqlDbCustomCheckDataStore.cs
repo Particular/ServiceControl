@@ -123,6 +123,8 @@ namespace ServiceControl.Persistence.SqlServer
             }).ConfigureAwait(false);
         }
 
+        public Task<int> GetNumberOfFailedChecks() => throw new NotImplementedException();
+
         readonly SqlDbConnectionManager connectionManager;
     }
 }

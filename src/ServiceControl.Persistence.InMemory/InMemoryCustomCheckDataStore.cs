@@ -62,6 +62,8 @@ namespace ServiceControl.Persistence.InMemory
             return Task.CompletedTask;
         }
 
+        public Task<int> GetNumberOfFailedChecks() => Task.FromResult(storage.Count(x => x.Value.HasFailed));
+
         Dictionary<Guid, CustomCheckDetail> storage = new Dictionary<Guid, CustomCheckDetail>();
     }
 }

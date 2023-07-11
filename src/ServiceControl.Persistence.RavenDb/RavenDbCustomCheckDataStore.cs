@@ -81,6 +81,17 @@
                 .ConfigureAwait(false);
         }
 
+        public async Task<int> GetNumberOfFailedChecks()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail)
+                    .ConfigureAwait(false);
+
+                return failedCustomCheckCount;
+            }
+        }
+
         static IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query, string status)
         {
             if (status == null)

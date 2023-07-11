@@ -22,6 +22,19 @@ namespace ServiceControl.CustomChecks
             {
                 var statusChange = await store.UpdateCustomCheckStatus(checkDetail).ConfigureAwait(false);
                 await RaiseEvents(statusChange, checkDetail).ConfigureAwait(false);
+
+                var numberOfFailedChecks = await store.GetNumberOfFailedChecks().ConfigureAwait(false);
+
+                if (lastCount == numberOfFailedChecks)
+                {
+                    return;
+                }
+                lastCount = numberOfFailedChecks;
+
+                await domainEvents.Raise(new CustomChecksUpdated
+                {
+                    Failed = numberOfFailedChecks
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -63,6 +76,8 @@ namespace ServiceControl.CustomChecks
 
         readonly IDomainEvents domainEvents;
         readonly ICustomChecksDataStore store;
+
+        int lastCount;
 
         static ILog Logger = LogManager.GetLogger<CustomCheckResultProcessor>();
     }
