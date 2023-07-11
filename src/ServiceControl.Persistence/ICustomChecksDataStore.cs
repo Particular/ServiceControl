@@ -12,5 +12,6 @@ namespace ServiceControl.Persistence
 
         Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null);
         Task DeleteCustomCheck(Guid id);
+        Task<int> GetNumberOfFailedChecks();
     }
 }
