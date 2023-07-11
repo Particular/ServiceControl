@@ -11,5 +11,6 @@
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages);
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages);
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo);
+        Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string searchTerms, string receivingEndpointName, PagingInfo pagingInfo, SortInfo sortInfo);
     }
 }

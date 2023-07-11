@@ -4,34 +4,19 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
     class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>
     {
-        public SearchEndpointApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public SearchEndpointApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
         }
 
-        protected override async Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, Input input)
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, Input input)
         {
-            using (var session = DataStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, input.Keyword)
-                    .Where(m => m.ReceivingEndpointName == input.Endpoint)
-                    .Sort(request)
-                    .Paging(request)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return DataStore.GetAllMessagesForEndpoint(request.GetPagingInfo(), request.GetSortInfo());
         }
 
         public class Input
