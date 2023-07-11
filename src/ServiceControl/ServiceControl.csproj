@@ -50,4 +50,8 @@
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Infrastructure\RavenDB\" />
+  </ItemGroup>
+
 </Project>

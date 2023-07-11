@@ -7,11 +7,21 @@
     using NServiceBus.Logging;
     using Raven.Database;
     using Raven.Database.Plugins;
+    using ServiceControl.Persistence;
 
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "customDocumentExpiration")]
     public class ExpiredDocumentsCleanerBundle : IStartupTask, IDisposable
     {
+        // TODO: Ensure that the timers are started when the persister starts!
+
+        PersistenceSettings persistenceSettings;
+
+        ExpiredDocumentsCleanerBundle(PersistenceSettings persistenceSettings)
+        {
+            this.persistenceSettings = persistenceSettings;
+        }
+
         public void Dispose()
         {
             lock (this)
@@ -41,7 +51,7 @@
 
         public void Execute(DocumentDatabase database)
         {
-            var deleteFrequencyInSeconds = RavenBootstrapper.Settings.ExpirationProcessTimerInSeconds;
+            var deleteFrequencyInSeconds = persistenceSettings.ExpirationProcessTimerInSeconds();
 
             if (deleteFrequencyInSeconds == 0)
             {
@@ -49,21 +59,21 @@
             }
 
             var due = TimeSpan.FromSeconds(deleteFrequencyInSeconds);
-            var deletionBatchSize = RavenBootstrapper.Settings.ExpirationProcessBatchSize;
+            var deletionBatchSize = persistenceSettings.ExpirationProcessBatchSize();
 
             logger.Info($"Running deletion of expired documents every {deleteFrequencyInSeconds} seconds");
             logger.Info($"Deletion batch size set to {deletionBatchSize}");
-            logger.Info($"Retention period for errors is {RavenBootstrapper.Settings.ErrorRetentionPeriod}");
+            logger.Info($"Retention period for errors is {persistenceSettings.ErrorRetentionPeriod}");
 
-            var auditRetention = RavenBootstrapper.Settings.AuditRetentionPeriod;
+            var auditRetention = persistenceSettings.AuditRetentionPeriod;
 
             if (auditRetention.HasValue)
             {
-                logger.InfoFormat("Retention period for audits and saga history is {0}", RavenBootstrapper.Settings.AuditRetentionPeriod);
+                logger.InfoFormat("Retention period for audits and saga history is {0}", persistenceSettings.AuditRetentionPeriod);
             }
 
             timer = new TimerJob(
-                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, RavenBootstrapper.Settings, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
+                token => ExpiredDocumentsCleaner.RunCleanup(deletionBatchSize, database, persistenceSettings, token), due, due, e => { logger.Error("Error when trying to find expired documents", e); });
         }
 
         ILog logger = LogManager.GetLogger(typeof(ExpiredDocumentsCleanerBundle));

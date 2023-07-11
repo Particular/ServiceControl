@@ -5,12 +5,21 @@
 
     public class PersistenceSettings
     {
-        public PersistenceSettings()
+        public PersistenceSettings(
+            TimeSpan errorRetentionPeriod,
+            TimeSpan? auditRetentionPeriod,
+            bool maintenanceMode
+            )
         {
-            PersisterSpecificSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            ErrorRetentionPeriod = errorRetentionPeriod;
+            AuditRetentionPeriod = auditRetentionPeriod;
+            MaintenanceMode = maintenanceMode;
         }
 
-        public bool MaintenanceMode { get; set; }
-        public IDictionary<string, string> PersisterSpecificSettings { get; }
+        public IDictionary<string, string> PersisterSpecificSettings { get; } = new Dictionary<string, string>();
+
+        public bool MaintenanceMode { get; }
+        public TimeSpan ErrorRetentionPeriod { get; }
+        public TimeSpan? AuditRetentionPeriod { get; }
     }
 }
