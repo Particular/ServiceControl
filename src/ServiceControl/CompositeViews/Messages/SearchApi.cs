@@ -19,7 +19,7 @@ namespace ServiceControl.CompositeViews.Messages
             // TODO: Will the INPUT format be identical between RavenDB 3.x and 5.x? Also, what if we want to support a different storage engine?
             var pagingInfo = request.GetPagingInfo();
             var sortInfo = request.GetSortInfo();
-            return DataStore.GetAllMessageForSearch(input, pagingInfo, sortInfo);
+            return DataStore.GetAllMessagesForSearch(input, pagingInfo, sortInfo);
         }
     }
 }
