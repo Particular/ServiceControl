@@ -8,13 +8,15 @@
     using Raven.Abstractions;
     using Raven.Database;
     using SagaAudit;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class ExpiredDocumentsCleaner
     {
-        public static Task<TimerJobExecutionResult> RunCleanup(int deletionBatchSize, DocumentDatabase database, Settings settings, CancellationToken cancellationToken = default)
+        public static Task<TimerJobExecutionResult> RunCleanup(int deletionBatchSize, DocumentDatabase database, PersistenceSettings settings, CancellationToken cancellationToken = default)
         {
-            var threshold = SystemTime.UtcNow.Add(-settings.ErrorRetentionPeriod);
+
+
+            var threshold = SystemTime.UtcNow.Add(settings.ErrorRetentionPeriod);
 
             if (logger.IsDebugEnabled)
             {
@@ -22,7 +24,7 @@
             }
             ErrorMessageCleaner.Clean(deletionBatchSize, database, threshold, cancellationToken);
 
-            threshold = SystemTime.UtcNow.Add(-settings.EventsRetentionPeriod);
+            threshold = SystemTime.UtcNow.Add(settings.EventsRetentionPeriod);
 
             if (logger.IsDebugEnabled)
             {
@@ -32,7 +34,7 @@
 
             if (settings.AuditRetentionPeriod.HasValue)
             {
-                threshold = SystemTime.UtcNow.Add(-settings.AuditRetentionPeriod.Value);
+                threshold = SystemTime.UtcNow.Add(settings.AuditRetentionPeriod.Value);
 
                 if (logger.IsDebugEnabled)
                 {
