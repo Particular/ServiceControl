@@ -21,11 +21,11 @@
         {
             var pagingInfo = Request.GetPagingInfo();
 
-            var (results, stats, version) = await eventLogDataStore.GetEventLogItems(pagingInfo);
+            var (results, totalCount, version) = await eventLogDataStore.GetEventLogItems(pagingInfo);
 
 
             return Negotiator.FromModel(Request, results)
-                .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
+                .WithPagingLinksAndTotalCount(totalCount, Request)
                 .WithEtag(version);
         }
 
