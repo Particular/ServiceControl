@@ -24,8 +24,6 @@
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
             {
-                failedMessage.Status = FailedMessageStatus.Archived;
-
                 await domainEvents.Raise(new FailedMessageArchived
                 {
                     FailedMessageId = failedMessageId
