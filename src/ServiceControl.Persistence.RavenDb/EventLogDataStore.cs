@@ -16,7 +16,7 @@
             this.documentStore = documentStore;
         }
 
-        public async Task Add(EventLog.EventLogItem logItem)
+        public async Task Add(EventLogItem logItem)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -34,7 +34,8 @@
                 var results = await session.Query<EventLogItem>().Statistics(out var stats)
                     .OrderByDescending(p => p.RaisedAt)
                     .Paging(pagingInfo)
-                    .ToListAsync();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 return (results, stats.TotalResults, stats.ResultEtag.ToString());
             }
