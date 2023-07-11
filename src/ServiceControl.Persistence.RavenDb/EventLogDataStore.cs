@@ -1,7 +1,11 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using EventLog;
+    using Persistence.Infrastructure;
     using Raven.Client;
+    using Raven.Client.Linq;
 
     class EventLogDataStore : IEventLogDataStore
     {
@@ -20,6 +24,19 @@
                     .ConfigureAwait(false);
                 await session.SaveChangesAsync()
                     .ConfigureAwait(false);
+            }
+        }
+
+        public async Task<(IList<EventLogItem>, int, string)> GetEventLogItems(PagingInfo pagingInfo)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<EventLogItem>().Statistics(out var stats)
+                    .OrderByDescending(p => p.RaisedAt)
+                    .Paging(pagingInfo)
+                    .ToListAsync();
+
+                return (results, stats.TotalResults, stats.ResultEtag.ToString());
             }
         }
     }
