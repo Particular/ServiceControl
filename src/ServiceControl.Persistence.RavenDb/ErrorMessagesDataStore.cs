@@ -16,7 +16,11 @@
             this.documentStore = documentStore;
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages)
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
+            PagingInfo pagingInfo,
+            SortInfo sortInfo,
+            bool includeSystemMessages
+            )
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -33,9 +37,12 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName,
-            PagingInfo pagingInfo, SortInfo sortInfo,
-            bool includeSystemMessages)
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
+            string endpointName,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo,
+            bool includeSystemMessages
+            )
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -53,9 +60,12 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId,
-            PagingInfo pagingInfo, SortInfo sortInfo,
-            bool includeSystemMessages)
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
+            string conversationId,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo,
+            bool includeSystemMessages
+            )
         {
             using (var session = documentStore.OpenAsyncSession())
             {
