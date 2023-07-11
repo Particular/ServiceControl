@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Recoverability.Editing
+﻿namespace ServiceControl.Persistence.Recoverability.Editing
 {
     class FailedMessageEdit
     {

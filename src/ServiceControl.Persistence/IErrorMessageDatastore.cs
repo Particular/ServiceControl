@@ -19,5 +19,6 @@
         Task FailedMessageMarkAsArchived(string failedMessageId);
         Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
         Task StoreFailedErrorImport(FailedErrorImport failure);
+        Task<AbstractEditFailedMessagesManager> CreateEditFailedMessageManager(string failedMessageId);
     }
 }

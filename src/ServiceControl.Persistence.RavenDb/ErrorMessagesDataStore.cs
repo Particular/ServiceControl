@@ -176,5 +176,12 @@
                     .ConfigureAwait(false);
             }
         }
+
+        public async Task<AbstractEditFailedMessagesManager> CreateEditFailedMessageManager(string failedMessageId)
+        {
+            var session = documentStore.OpenAsyncSession();
+            var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
+            return new EditFailedMessageManager(session, failedMessage);
+        }
     }
 }
