@@ -6,11 +6,18 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using ExternalIntegrations;
-    using MessageFailures;
-    using Raven.Client;
+    using Microsoft.Extensions.DependencyInjection;
+    using ServiceControl.Persistence;
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
+        readonly IServiceProvider serviceProvider;
+
+        public MessageFailedPublisher(IServiceProvider serviceProvider)
+        {
+            this.serviceProvider = serviceProvider;
+        }
+
         protected override DispatchContext CreateDispatchRequest(MessageFailed @event)
         {
             return new DispatchContext
@@ -19,23 +26,21 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             };
         }
 
-        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
+        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
-            var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
-            var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
-                .ConfigureAwait(false);
+            // TODO: MessageFailedPublisher is registered as a singleton so it cannot take a dependency on IErrorMessageDataStore.
+            // Alternative is to have a IErrorMessageDataStore as an argument and have it flow with the `PublishEvents` except
+            // that created coupling between the the publisher and the subscriber which likely is unwanted.
 
-            var failedMessages = new List<object>(failedMessageData.Length);
-            foreach (var entity in failedMessageData)
+            using (var scope = serviceProvider.CreateScope())
             {
-                if (entity != null)
-                {
-                    session.Advanced.Evict(entity);
-                    failedMessages.Add(entity.ToEvent());
-                }
-            }
+                var dataStore = scope.ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
 
-            return failedMessages;
+                var ids = contexts.Select(x => x.FailedMessageId).ToArray();
+                var results = await dataStore.FailedMessagesFetch(ids)
+                    .ConfigureAwait(false);
+                return results.Select(x => x.ToEvent());
+            }
         }
 
         public class DispatchContext

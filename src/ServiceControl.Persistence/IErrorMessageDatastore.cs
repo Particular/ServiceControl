@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
@@ -15,5 +16,6 @@
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string searchTerms, string receivingEndpointName, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<FailedMessage> FailedMessageFetch(string failedMessageId);
         Task FailedMessageMarkAsArchived(string failedMessageId);
+        Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
     }
 }
