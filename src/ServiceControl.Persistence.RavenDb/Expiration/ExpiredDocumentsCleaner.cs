@@ -14,8 +14,6 @@
     {
         public static Task<TimerJobExecutionResult> RunCleanup(int deletionBatchSize, DocumentDatabase database, PersistenceSettings settings, CancellationToken cancellationToken = default)
         {
-
-
             var threshold = SystemTime.UtcNow.Add(settings.ErrorRetentionPeriod);
 
             if (logger.IsDebugEnabled)

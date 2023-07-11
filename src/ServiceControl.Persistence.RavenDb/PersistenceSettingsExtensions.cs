@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Persistence
 {
+    using System;
+
     public static class PersistenceSettingsExtensions
     {
         public static int ExpirationProcessTimerInSeconds(this PersistenceSettings instance)

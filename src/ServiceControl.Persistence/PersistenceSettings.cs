@@ -7,11 +7,13 @@
     {
         public PersistenceSettings(
             TimeSpan errorRetentionPeriod,
+            TimeSpan eventsRetentionPeriod,
             TimeSpan? auditRetentionPeriod,
             bool maintenanceMode
             )
         {
             ErrorRetentionPeriod = errorRetentionPeriod;
+            EventsRetentionPeriod = eventsRetentionPeriod;
             AuditRetentionPeriod = auditRetentionPeriod;
             MaintenanceMode = maintenanceMode;
         }
@@ -20,6 +22,8 @@
 
         public bool MaintenanceMode { get; }
         public TimeSpan ErrorRetentionPeriod { get; }
+        public TimeSpan EventsRetentionPeriod { get; }
+
         public TimeSpan? AuditRetentionPeriod { get; }
     }
 }

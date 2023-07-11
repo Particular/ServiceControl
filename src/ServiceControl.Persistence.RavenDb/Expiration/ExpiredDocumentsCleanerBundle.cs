@@ -17,7 +17,7 @@
 
         PersistenceSettings persistenceSettings;
 
-        ExpiredDocumentsCleanerBundle(PersistenceSettings persistenceSettings)
+        public ExpiredDocumentsCleanerBundle(PersistenceSettings persistenceSettings)
         {
             this.persistenceSettings = persistenceSettings;
         }
