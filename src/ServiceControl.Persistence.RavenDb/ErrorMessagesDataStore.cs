@@ -102,6 +102,20 @@
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
         }
+
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
+            string searchTerms,
+            string receivingEndpointName,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchTerms)
+                    .Where(m => m.ReceivingEndpointName == receivingEndpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
