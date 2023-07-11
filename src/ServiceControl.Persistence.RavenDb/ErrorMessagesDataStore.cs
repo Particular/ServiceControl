@@ -8,6 +8,7 @@
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
@@ -161,6 +162,18 @@
                 var results = await session.LoadAsync<FailedMessage>(ids.Cast<ValueType>())
                     .ConfigureAwait(false);
                 return results.Where(x => x != null).ToArray();
+            }
+        }
+
+        public async Task StoreFailedErrorImport(FailedErrorImport failure)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                await session.StoreAsync(failure)
+                    .ConfigureAwait(false);
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
             }
         }
     }

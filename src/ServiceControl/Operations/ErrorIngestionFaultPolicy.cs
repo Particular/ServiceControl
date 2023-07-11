@@ -5,21 +5,21 @@
     using System.IO;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
 
     class ErrorIngestionFaultPolicy
     {
-        IDocumentStore store;
+        IErrorMessageDataStore store;
         string logPath;
 
         ImportFailureCircuitBreaker failureCircuitBreaker;
 
-        public ErrorIngestionFaultPolicy(IDocumentStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
+        public ErrorIngestionFaultPolicy(IErrorMessageDataStore store, LoggingSettings loggingSettings, Func<string, Exception, Task> onCriticalError)
         {
             this.store = store;
-            logPath = Path.Combine(loggingSettings.LogPath, @"FailedImports\Error");
+            logPath = Path.Combine(loggingSettings.LogPath, "FailedImports", "Error");
 
             failureCircuitBreaker = new ImportFailureCircuitBreaker(onCriticalError);
 
@@ -69,19 +69,11 @@
 
         async Task DoLogging(Exception exception, FailedErrorImport failure)
         {
-            var id = Guid.NewGuid();
+            failure.Id = Guid.NewGuid();
 
-            // Write to Raven
-            using (var session = store.OpenAsyncSession())
-            {
-                failure.Id = id;
-
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
-
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            // Write to data store
+            await store.StoreFailedErrorImport(failure)
+                .ConfigureAwait(false);
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");
