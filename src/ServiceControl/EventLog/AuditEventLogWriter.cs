@@ -4,7 +4,7 @@
     using Contracts.EventLog;
     using Infrastructure.DomainEvents;
     using Infrastructure.SignalR;
-    using Raven.Client;
+    using ServiceControl.Persistence;
 
     /// <summary>
     /// Only for events that have been defined (under EventLog\Definitions), a logentry item will
@@ -12,10 +12,10 @@
     /// </summary>
     class AuditEventLogWriter : IDomainHandler<IDomainEvent>
     {
-        public AuditEventLogWriter(GlobalEventHandler broadcaster, IDocumentStore store, EventLogMappings mappings)
+        public AuditEventLogWriter(GlobalEventHandler broadcaster, IErrorMessageDataStore dataStore, EventLogMappings mappings)
         {
             this.broadcaster = broadcaster;
-            this.store = store;
+            this.dataStore = dataStore;
             this.mappings = mappings;
         }
 
@@ -28,13 +28,8 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(logItem)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            await dataStore.Add(logItem)
+                .ConfigureAwait(false);
 
             await broadcaster.Broadcast(new EventLogItemAdded
             {
@@ -51,7 +46,7 @@
         }
 
         readonly GlobalEventHandler broadcaster;
-        readonly IDocumentStore store;
+        readonly IErrorMessageDataStore dataStore;
         readonly EventLogMappings mappings;
         static string[] emptyArray = new string[0];
     }
