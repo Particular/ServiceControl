@@ -8,7 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAllMessagesApi : ScatterGatherApiMessageView<NoInput>
+    class GetAllMessagesApi : ScatterGatherApiMessageView<IErrorMessageDataStore, NoInput>
     {
         public GetAllMessagesApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {

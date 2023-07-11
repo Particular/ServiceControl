@@ -10,7 +10,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAuditCountsForEndpointApi : ScatterGatherApi<string, IList<AuditCount>>
+    class GetAuditCountsForEndpointApi : ScatterGatherApi<IErrorMessageDataStore, string, IList<AuditCount>>
     {
         static readonly IList<AuditCount> empty = new List<AuditCount>().AsReadOnly();
 
