@@ -82,8 +82,8 @@
             }
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessageForSearch(
-            string input,
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
+            string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo
             )
@@ -92,7 +92,16 @@
             {
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
-                    .Search(x => x.Query, input)
+                    .Search(x => x.Query, searchTerms)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
