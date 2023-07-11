@@ -81,5 +81,26 @@
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
         }
+
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessageForSearch(
+            string input,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, input)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
     }
 }
