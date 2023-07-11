@@ -8,7 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class SearchEndpointApi : ScatterGatherApiMessageView<SearchEndpointApi.Input>
+    class SearchEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchEndpointApi.Input>
     {
         public SearchEndpointApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
         {
