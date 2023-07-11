@@ -6,16 +6,15 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using ExternalIntegrations;
-    using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Persistence;
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
-        readonly IServiceProvider serviceProvider;
+        readonly IErrorMessageDataStore dataStore;
 
-        public MessageFailedPublisher(IServiceProvider serviceProvider)
+        public MessageFailedPublisher(IErrorMessageDataStore dataStore)
         {
-            this.serviceProvider = serviceProvider;
+            this.dataStore = dataStore;
         }
 
         protected override DispatchContext CreateDispatchRequest(MessageFailed @event)
@@ -28,19 +27,10 @@ namespace ServiceControl.Recoverability.ExternalIntegration
 
         protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
-            // TODO: MessageFailedPublisher is registered as a singleton so it cannot take a dependency on IErrorMessageDataStore.
-            // Alternative is to have a IErrorMessageDataStore as an argument and have it flow with the `PublishEvents` except
-            // that created coupling between the the publisher and the subscriber which likely is unwanted.
-
-            using (var scope = serviceProvider.CreateScope())
-            {
-                var dataStore = scope.ServiceProvider.GetRequiredService<IErrorMessageDataStore>();
-
-                var ids = contexts.Select(x => x.FailedMessageId).ToArray();
-                var results = await dataStore.FailedMessagesFetch(ids)
-                    .ConfigureAwait(false);
-                return results.Select(x => x.ToEvent());
-            }
+            var ids = contexts.Select(x => x.FailedMessageId).ToArray();
+            var results = await dataStore.FailedMessagesFetch(ids)
+                .ConfigureAwait(false);
+            return results.Select(x => x.ToEvent());
         }
 
         public class DispatchContext
