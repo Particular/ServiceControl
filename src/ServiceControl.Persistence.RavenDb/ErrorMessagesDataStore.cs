@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client;
@@ -150,6 +151,16 @@
                 }
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.LoadAsync<FailedMessage>(ids.Cast<ValueType>())
+                    .ConfigureAwait(false);
+                return results.Where(x => x != null).ToArray();
             }
         }
     }
