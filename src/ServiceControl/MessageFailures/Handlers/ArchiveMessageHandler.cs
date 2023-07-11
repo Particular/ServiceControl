@@ -1,48 +1,42 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using ServiceControl.Persistence;
 
     class ArchiveMessageHandler : IHandleMessages<ArchiveMessage>
     {
-        public ArchiveMessageHandler(IDocumentStore store, IDomainEvents domainEvents)
+        public ArchiveMessageHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents)
         {
-            this.store = store;
+            this.dataStore = dataStore;
             this.domainEvents = domainEvents;
         }
 
         public async Task Handle(ArchiveMessage message, IMessageHandlerContext context)
         {
-            using (var session = store.OpenAsyncSession())
+            var failedMessageId = message.FailedMessageId;
+
+            var failedMessage = await dataStore.FailedMessageFetch(failedMessageId)
+                .ConfigureAwait(false);
+
+            if (failedMessage.Status != FailedMessageStatus.Archived)
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(message.FailedMessageId))
+                failedMessage.Status = FailedMessageStatus.Archived;
+
+                await domainEvents.Raise(new FailedMessageArchived
+                {
+                    FailedMessageId = failedMessageId
+                }).ConfigureAwait(false);
+
+                await dataStore.FailedMessageMarkAsArchived(failedMessageId)
                     .ConfigureAwait(false);
-
-                if (failedMessage == null)
-                {
-                    return;
-                }
-
-                if (failedMessage.Status != FailedMessageStatus.Archived)
-                {
-                    failedMessage.Status = FailedMessageStatus.Archived;
-
-                    await domainEvents.Raise(new FailedMessageArchived
-                    {
-                        FailedMessageId = message.FailedMessageId
-                    }).ConfigureAwait(false);
-                }
-
-                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
-        IDocumentStore store;
+        IErrorMessageDataStore dataStore;
         IDomainEvents domainEvents;
     }
 }

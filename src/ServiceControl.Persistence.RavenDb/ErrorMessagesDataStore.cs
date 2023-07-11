@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client;
     using Raven.Client.Linq;
+    using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
@@ -123,6 +125,31 @@
                     .ConfigureAwait(false);
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<FailedMessage> FailedMessageFetch(string failedMessageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                return await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                    .ConfigureAwait(false);
+            }
+        }
+
+        public async Task FailedMessageMarkAsArchived(string failedMessageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                    .ConfigureAwait(false);
+
+                if (failedMessage.Status != FailedMessageStatus.Archived)
+                {
+                    failedMessage.Status = FailedMessageStatus.Archived;
+                }
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }
