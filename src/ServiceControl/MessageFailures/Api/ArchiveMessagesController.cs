@@ -45,6 +45,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
+
             using (var session = store.OpenAsyncSession())
             {
                 var groups = session.Query<FailureGroupView, ArchivedGroupsViewIndex>().Where(v => v.Type == classifier);
