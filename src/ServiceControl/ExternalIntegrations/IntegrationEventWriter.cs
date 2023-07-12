@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.ExternalIntegrations
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -10,7 +9,7 @@
 
     class IntegrationEventWriter : IDomainHandler<IDomainEvent>
     {
-        public IntegrationEventWriter(IIntegrationEventDataStore store, IEnumerable<IEventPublisher> eventPublishers)
+        public IntegrationEventWriter(IExternalIntegrationRequestsDataStore store, IEnumerable<IEventPublisher> eventPublishers)
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
@@ -42,7 +41,7 @@
             await store.StoreDispatchRequest(dispatchRequests).ConfigureAwait(false);
         }
 
-        readonly IIntegrationEventDataStore store;
+        readonly IExternalIntegrationRequestsDataStore store;
         readonly IEnumerable<IEventPublisher> eventPublishers;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(IntegrationEventWriter));
