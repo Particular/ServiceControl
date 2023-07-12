@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
     <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="Rx-Linq" />
   </ItemGroup>
 
   <ItemGroup>
