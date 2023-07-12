@@ -187,7 +187,7 @@
             return new EditFailedMessageManager(session, failedMessage);
         }
 
-        public async Task<(FailureGroupView failureGroupView, string version)> GetFailureGroupView(string groupId, string status, string modified)
+        public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -200,7 +200,7 @@
                     .FirstOrDefaultAsync()  // TODO: Was previously a to list with a linq to object FirstOrDefault, not sure if this works
                     .ConfigureAwait(false);
 
-                return (document, stats.IndexEtag); // TODO: Could also be stats.ResultsTag
+                return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
             }
         }
 

@@ -21,7 +21,7 @@
         Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
         Task StoreFailedErrorImport(FailedErrorImport failure);
         Task<AbstractEditFailedMessagesManager> CreateEditFailedMessageManager(string failedMessageId);
-        Task<(FailureGroupView failureGroupView, string version)> GetFailureGroupView(string groupId, string status, string modified);
+        Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified);
         Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier);
     }
 }
