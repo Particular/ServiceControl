@@ -74,12 +74,12 @@ namespace ServiceControl.MessageFailures.Api
             [FromUri] string modified // TODO: Previously Request.GetQueryStringValue<string>("modified");
             )
         {
-            var (failureGroupView, version) = await dataStore.GetFailureGroupView(groupId, status, modified)
+            var result = await dataStore.GetFailureGroupView(groupId, status, modified)
                 .ConfigureAwait(false);
 
             return Negotiator
-                .FromModel(Request, failureGroupView)
-                .WithEtag(version);
+                .FromModel(Request, result.Results)
+                .WithEtag(result.QueryStats.ETag);
         }
 
         readonly IErrorMessageDataStore dataStore;
