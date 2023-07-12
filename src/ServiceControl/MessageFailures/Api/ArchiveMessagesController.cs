@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.MessageFailures.Api
+namespace ServiceControl.MessageFailures.Api
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -45,19 +45,10 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
+            var results = await dataStore.GetFailureGroupsByClassifier(classifier);
 
-            using (var session = store.OpenAsyncSession())
-            {
-                var groups = session.Query<FailureGroupView, ArchivedGroupsViewIndex>().Where(v => v.Type == classifier);
-
-                var results = await groups.OrderByDescending(x => x.Last)
-                    .Take(200) // only show 200 groups
-                    .ToListAsync()
-                    .ConfigureAwait(false);
-
-                return Negotiator.FromModel(Request, results)
-                    .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
-            }
+            return Negotiator.FromModel(Request, results)
+                .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
         }
 
         [Route("errors/{messageid}/archive")]
