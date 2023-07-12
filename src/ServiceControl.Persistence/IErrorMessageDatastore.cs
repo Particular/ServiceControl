@@ -7,6 +7,7 @@
     using Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using ServiceControl.Recoverability;
 
     public interface IErrorMessageDataStore
     {
@@ -20,5 +21,6 @@
         Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
         Task StoreFailedErrorImport(FailedErrorImport failure);
         Task<AbstractEditFailedMessagesManager> CreateEditFailedMessageManager(string failedMessageId);
+        Task<(FailureGroupView failureGroupView, string version)> GetFailureGroupView(string groupId, string status, string modified);
     }
 }
