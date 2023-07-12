@@ -25,10 +25,9 @@
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
-            MessageRedirectsCollection redirects;
-            using (var session = await store.CreateEditFailedMessageManager(message.FailedMessageId).ConfigureAwait(false))
+            using (var session = await store.CreateEditFailedMessageManager().ConfigureAwait(false))
             {
-                failedMessage = session.FailedMessage;
+                failedMessage = await session.GetFailedMessage(message.FailedMessageId).ConfigureAwait(false);
 
                 if (failedMessage == null)
                 {
@@ -36,7 +35,7 @@
                     return;
                 }
 
-                var editId = await session.GetCurrentEditingMessageId().ConfigureAwait(false);
+                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId).ConfigureAwait(false);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -57,11 +56,12 @@
                 // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
                 await session.SetFailedMessageAsResolved().ConfigureAwait(false);
 
-                redirects = await MessageRedirectsCollection.GetOrCreate(session)
-                    .ConfigureAwait(false);
 
                 await session.SaveChanges().ConfigureAwait(false);
             }
+
+            var redirects = await MessageRedirectsCollection.GetOrCreate(session)
+                .ConfigureAwait(false);
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 

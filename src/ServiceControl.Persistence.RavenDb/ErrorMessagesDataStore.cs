@@ -180,11 +180,11 @@
             }
         }
 
-        public async Task<AbstractEditFailedMessagesManager> CreateEditFailedMessageManager(string failedMessageId)
+        public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
         {
             var session = documentStore.OpenAsyncSession();
-            var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
-            return new EditFailedMessageManager(session, failedMessage);
+            var manager = new EditFailedMessageManager(session);
+            return Task.FromResult(manager as IEditFailedMessagesManager);
         }
 
         public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
