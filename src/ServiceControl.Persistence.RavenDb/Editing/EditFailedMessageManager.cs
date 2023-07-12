@@ -6,44 +6,46 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
 
-    class EditFailedMessageManager : AbstractEditFailedMessagesManager
+    class EditFailedMessageManager : AbstractSessionManager, IEditFailedMessagesManager
     {
         readonly IAsyncDocumentSession session;
+        FailedMessage failedMessage;
 
-        public EditFailedMessageManager(IAsyncDocumentSession session, FailedMessage failedMessage)
-            : base(failedMessage)
+        public EditFailedMessageManager(IAsyncDocumentSession session)
+            : base(session)
         {
             this.session = session;
         }
 
-        public override async Task<string> GetCurrentEditingMessageId()
+        public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
         {
-            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(FailedMessage.Id))
+            failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
+            return failedMessage;
+        }
+
+        public async Task<string> GetCurrentEditingMessageId(string failedMessageId)
+        {
+            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId))
                 .ConfigureAwait(false);
 
             return edit?.Id;
         }
 
-        public override Task SetCurrentEditingMessageId(string editingMessageId)
+        public Task SetCurrentEditingMessageId(string editingMessageId)
         {
             return session.StoreAsync(new FailedMessageEdit
             {
-                Id = FailedMessageEdit.MakeDocumentId(FailedMessage.Id),
-                FailedMessageId = FailedMessage.Id,
+                Id = FailedMessageEdit.MakeDocumentId(failedMessage.Id),
+                FailedMessageId = failedMessage.Id,
                 EditId = editingMessageId
             }, Etag.Empty);
         }
 
-        public override Task SetFailedMessageAsResolved()
+        public Task SetFailedMessageAsResolved()
         {
             // Instance is tracked by the document session
-            FailedMessage.Status = FailedMessageStatus.Resolved;
+            failedMessage.Status = FailedMessageStatus.Resolved;
             return Task.CompletedTask;
-        }
-
-        public override Task SaveChanges()
-        {
-            return session.SaveChangesAsync();
         }
     }
 }

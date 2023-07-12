@@ -1,26 +1,18 @@
-﻿namespace ServiceControl.Persistence.RavenDb.Transactions
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
     using Raven.Client;
 
-    class RavenTransaction : IDataStoreTransaction
+    abstract class AbstractSessionManager : IDataSessionManager
     {
         public IAsyncDocumentSession Session { get; }
 
-        public RavenTransaction(IDocumentStore store)
+        public AbstractSessionManager(IAsyncDocumentSession session)
         {
-            Session = store.OpenAsyncSession();
+            Session = session;
         }
 
         public Task SaveChanges() => Session.SaveChangesAsync();
         public void Dispose() => Session.Dispose();
-    }
-
-    public static class RavenTransactionExtensions
-    {
-        public static IAsyncDocumentSession GetSession(this IDataStoreTransaction transaction)
-        {
-            return (transaction as RavenTransaction).Session;
-        }
     }
 }
