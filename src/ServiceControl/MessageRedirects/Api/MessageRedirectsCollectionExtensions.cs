@@ -4,6 +4,7 @@ namespace ServiceControl.MessageRedirects.Api
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using ServiceControl.Persistence.MessageRedirects;
 
     static class MessageRedirectsCollectionExtensions
     {

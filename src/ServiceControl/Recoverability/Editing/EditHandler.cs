@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
-    using MessageRedirects;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -12,12 +11,14 @@
     using NServiceBus.Support;
     using NServiceBus.Transport;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.MessageRedirects;
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IDispatchMessages dispatcher)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IDispatchMessages dispatcher)
         {
             this.store = store;
+            this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
@@ -60,8 +61,7 @@
                 await session.SaveChanges().ConfigureAwait(false);
             }
 
-            var redirects = await MessageRedirectsCollection.GetOrCreate(session)
-                .ConfigureAwait(false);
+            var redirects = await redirectsStore.GetOrCreate().ConfigureAwait(false);
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
@@ -107,9 +107,10 @@
                 new ContextBag());
         }
 
-        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
-        IErrorMessageDataStore store;
-        IDispatchMessages dispatcher;
+        readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        readonly IErrorMessageDataStore store;
+        readonly IMessageRedirectsDataStore redirectsStore;
+        readonly IDispatchMessages dispatcher;
         static ILog log = LogManager.GetLogger<EditHandler>();
     }
 }

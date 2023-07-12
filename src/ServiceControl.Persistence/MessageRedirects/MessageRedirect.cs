@@ -1,10 +1,10 @@
-﻿namespace ServiceControl.MessageRedirects
+﻿namespace ServiceControl.Persistence.MessageRedirects
 {
     using System;
     using System.Collections.Concurrent;
     using Infrastructure;
 
-    class MessageRedirect
+    public class MessageRedirect
     {
         public Guid MessageRedirectId => idCache.GetOrAdd(FromPhysicalAddress, DeterministicGuid.MakeId);
 

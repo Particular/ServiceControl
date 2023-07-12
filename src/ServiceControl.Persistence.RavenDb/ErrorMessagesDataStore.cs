@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client;
@@ -12,7 +11,6 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
