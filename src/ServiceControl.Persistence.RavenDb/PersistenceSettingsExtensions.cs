@@ -14,5 +14,10 @@
         {
             return int.Parse(instance.PersisterSpecificSettings["ExpirationProcessBatchSize"]);
         }
+
+        public static int ExternalIntegrationsDispatchingBatchSize(this PersistenceSettings instance)
+        {
+            return int.Parse(instance.PersisterSpecificSettings["ExternalIntegrationsDispatchingBatchSize"]);
+        }
     }
 }
