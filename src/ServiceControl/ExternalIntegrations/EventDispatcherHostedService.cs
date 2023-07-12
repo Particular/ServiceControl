@@ -9,11 +9,15 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using Persistence;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class EventDispatcherHostedService : IHostedService
     {
-        public EventDispatcherHostedService(IExternalIntegrationRequestsDataStore store, IDomainEvents domainEvents, CriticalError criticalError, IEnumerable<IEventPublisher> eventPublishers, IMessageSession messageSession)
+        public EventDispatcherHostedService(
+            IExternalIntegrationRequestsDataStore store,
+            IDomainEvents domainEvents,
+            IEnumerable<IEventPublisher> eventPublishers,
+            IMessageSession messageSession
+            )
         {
             this.store = store;
             this.eventPublishers = eventPublishers;
@@ -24,7 +28,7 @@
         public Task StartAsync(CancellationToken cancellationToken)
         {
             store.Subscribe(TryDispatchEventBatch);
-           
+
             return Task.FromResult(0);
         }
 
@@ -73,16 +77,16 @@
             }
         }
 
-        public async Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
-            await store.Stop();
+            return store.Stop();
         }
 
         IMessageSession messageSession;
         IEnumerable<IEventPublisher> eventPublishers;
         IExternalIntegrationRequestsDataStore store;
         IDomainEvents domainEvents;
-       
+
         static ILog Logger = LogManager.GetLogger(typeof(EventDispatcherHostedService));
     }
 }

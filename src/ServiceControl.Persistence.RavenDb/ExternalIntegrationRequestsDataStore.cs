@@ -13,7 +13,6 @@
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
-    using static Lucene.Net.Documents.Field;
 
     public class ExternalIntegrationRequestsDataStore : IExternalIntegrationRequestsDataStore
     {
@@ -22,6 +21,29 @@
             this.settings = settings;
             this.documentStore = documentStore;
             this.criticalError = criticalError;
+        }
+
+        const string KeyPrefix = "ExternalIntegrationDispatchRequests";
+
+        public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                foreach (var dispatchRequest in dispatchRequests)
+                {
+                    if (dispatchRequest.Id != null)
+                    {
+                        throw new ArgumentException("Items cannot have their Id property set");
+                    }
+
+                    dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();  // TODO: Key is generated to persistence
+                    await session.StoreAsync(dispatchRequest)
+                        .ConfigureAwait(false);
+                }
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
         }
 
         public void Subscribe(Func<object[], Task> callback)
@@ -35,7 +57,7 @@
 
             subscription = documentStore
                 .Changes()
-                .ForDocumentsStartingWith("ExternalIntegrationDispatchRequests")
+                .ForDocumentsStartingWith(KeyPrefix)
                 .Where(c => c.Type == DocumentChangeTypes.Put)
                 .Subscribe(d =>
                 {
@@ -45,9 +67,9 @@
 
             tokenSource = new CancellationTokenSource();
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
-                TimeSpan.FromMinutes(5),
+                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20));
+                TimeSpan.FromSeconds(20)); // TODO: Shouldn't be magic value but coming from settings
 
             StartDispatcher();
         }
