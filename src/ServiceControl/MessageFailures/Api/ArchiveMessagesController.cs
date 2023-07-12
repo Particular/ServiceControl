@@ -8,17 +8,17 @@
     using System.Web.Http;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
     using Infrastructure.WebApi;
     using Recoverability;
     using ServiceControl.Persistence;
+    using Microsoft.AspNet.SignalR;
 
     class ArchiveMessagesController : ApiController
     {
-        public ArchiveMessagesController(IMessageSession session, IDocumentStore store)
+        public ArchiveMessagesController(IMessageSession session, IErrorMessageDataStore dataStore)
         {
             messageSession = session;
-            this.store = store;
+            this.dataStore = dataStore;
         }
 
         [Route("errors/archive")]
@@ -76,26 +76,21 @@
 
         [Route("archive/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroup(string groupId)
+        public async Task<HttpResponseMessage> GetGroup(
+            string groupId,
+            [FromUri] string status,  // TODO: Previously Request.GetQueryStringValue<string>("status");
+            [FromUri] string modified // TODO: Previously Request.GetQueryStringValue<string>("modified");
+            )
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
-                    .Statistics(out var stats)
-                    .WhereEquals(group => group.Id, groupId)
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var (failureGroupView, version) = await dataStore.GetFailureGroupView(groupId, status, modified)
+                .ConfigureAwait(false);
 
-                return Negotiator
-                    .FromModel(Request, queryResult.FirstOrDefault())
-                    .WithEtag(stats);
-            }
+            return Negotiator
+                .FromModel(Request, failureGroupView)
+                .WithEtag(version);
         }
 
-        readonly IDocumentStore store;
+        readonly IErrorMessageDataStore dataStore;
         readonly IMessageSession messageSession;
     }
 }

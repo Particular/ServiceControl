@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Raven.Client;
@@ -10,6 +11,8 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
+    using ServiceControl.Recoverability;
+    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -182,6 +185,42 @@
             var session = documentStore.OpenAsyncSession();
             var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
             return new EditFailedMessageManager(session, failedMessage);
+        }
+
+        public async Task<(FailureGroupView failureGroupView, string version)> GetFailureGroupView(string groupId, string status, string modified)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var document = await session.Advanced
+                    .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
+                    .Statistics(out var stats)
+                    .WhereEquals(group => group.Id, groupId)
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .FirstOrDefaultAsync()  // TODO: Was previously a to list with a linq to object FirstOrDefault, not sure if this works
+                    .ConfigureAwait(false);
+
+                return (document, stats.IndexEtag); // TODO: Could also be stats.ResultsTag
+            }
+        }
+
+        public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var groups = session
+                    .Query<FailureGroupView, ArchivedGroupsViewIndex>()
+                    .Where(v => v.Type == classifier
+                    );
+
+                var results = await groups
+                    .OrderByDescending(x => x.Last)
+                    .Take(200) // only show 200 groups
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return results;
+            }
         }
     }
 }

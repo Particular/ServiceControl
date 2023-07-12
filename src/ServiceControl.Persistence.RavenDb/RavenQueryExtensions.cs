@@ -146,9 +146,8 @@ namespace ServiceControl.Persistence
         }
 
 
-        public static IAsyncDocumentQuery<T> FilterByStatusWhere<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByStatusWhere<T>(this IAsyncDocumentQuery<T> source, string status)
         {
-            var status = request.GetQueryStringValue<string>("status");
             if (status == null)
             {
                 return source;
@@ -208,10 +207,8 @@ namespace ServiceControl.Persistence
         }
 
 
-        public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, string modified)
         {
-            var modified = request.GetQueryStringValue<string>("modified");
-
             if (modified == null)
             {
                 return source;
