@@ -8,7 +8,6 @@
     public interface IExternalIntegrationRequestsDataStore
     {
         void Subscribe(Func<object[], Task> callback);
-        Task Stop();
         Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests);
     }
 }

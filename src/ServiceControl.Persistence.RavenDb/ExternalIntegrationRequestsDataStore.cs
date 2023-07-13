@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ExternalIntegrations;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
@@ -14,7 +15,10 @@
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
 
-    public class ExternalIntegrationRequestsDataStore : IExternalIntegrationRequestsDataStore
+    public class ExternalIntegrationRequestsDataStore
+        : IExternalIntegrationRequestsDataStore
+        , IHostedService
+        , IAsyncDisposable
     {
         public ExternalIntegrationRequestsDataStore(PersistenceSettings settings, IDocumentStore documentStore, CriticalError criticalError)
         {
@@ -54,22 +58,6 @@
             }
 
             this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
-
-            subscription = documentStore
-                .Changes()
-                .ForDocumentsStartingWith(KeyPrefix)
-                .Where(c => c.Type == DocumentChangeTypes.Put)
-                .Subscribe(d =>
-                {
-                    latestEtag = Etag.Max(d.Etag, latestEtag);
-                    signal.Set();
-                });
-
-            tokenSource = new CancellationTokenSource();
-            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventDispatcher",
-                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
-                ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20)); // TODO: Shouldn't be magic value but coming from settings
 
             StartDispatcher();
         }
@@ -173,9 +161,38 @@
             return true;
         }
 
-        public async Task Stop()
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            subscription.Dispose();
+            subscription = documentStore
+                .Changes()
+                .ForDocumentsStartingWith(KeyPrefix)
+                .Where(c => c.Type == DocumentChangeTypes.Put)
+                .Subscribe(d =>
+                {
+                    latestEtag = Etag.Max(d.Etag, latestEtag);
+                    signal.Set();
+                });
+
+            tokenSource = new CancellationTokenSource();
+            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
+                "EventDispatcher",
+                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
+                ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
+                TimeSpan.FromSeconds(20) // TODO: Shouldn't be magic value but coming from settings
+                );
+
+            return Task.CompletedTask;
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await DisposeAsync()
+                .ConfigureAwait(false);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            subscription?.Dispose();
             tokenSource.Cancel();
 
             if (task != null)

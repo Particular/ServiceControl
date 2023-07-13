@@ -26,6 +26,10 @@
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
 
+            serviceCollection.AddSingleton<ExternalIntegrationRequestsDataStore>();
+            serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore, ExternalIntegrationRequestsDataStore>();
+            serviceCollection.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
+
 
             // TODO: Find where these extension methods came from, worried there might be some circular references
             //serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
