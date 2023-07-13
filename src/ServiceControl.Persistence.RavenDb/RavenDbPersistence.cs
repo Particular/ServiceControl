@@ -1,9 +1,12 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using CustomChecks;
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client;
     using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbPersistence : IPersistence
@@ -25,6 +28,8 @@
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
+
+            serviceCollection.AddCustomCheck<FailedErrorImportCustomCheck>();
 
             serviceCollection.AddSingleton<IFailedMessageDataStore>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
             serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
