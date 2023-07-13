@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-  </PropertyGroup>  
-  
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="Microsoft.AspNet.WebApi" />
@@ -11,9 +11,10 @@
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="NServiceBus" />
     <PackageReference Include="System.Text.Json" />
-  </ItemGroup>  
-  
+    <PackageReference Include="NServiceBus.CustomChecks" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
-  </ItemGroup>  
+  </ItemGroup>
 </Project>
