@@ -7,6 +7,7 @@ namespace ServiceControl.Persistence
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
+    using Lucene.Net.Search;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
@@ -76,15 +77,15 @@ namespace ServiceControl.Persistence
             return source.OrderByDescending(keySelector);
         }
 
-        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<TSource> Paging<TSource>(this IAsyncDocumentQuery<TSource> source, PagingInfo pagingInfo)
         {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", 50);
+            var maxResultsPerPage = pagingInfo.PageSize;
             if (maxResultsPerPage < 1)
             {
                 maxResultsPerPage = 50;
             }
 
-            var page = request.GetQueryStringValue("page", 1);
+            var page = pagingInfo.Page;
             if (page < 1)
             {
                 page = 1;
@@ -96,11 +97,11 @@ namespace ServiceControl.Persistence
                 .Take(maxResultsPerPage);
         }
 
-        public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, SortInfo sortInfo)
         {
             var descending = true;
 
-            var direction = request.GetQueryStringValue("direction", "desc");
+            var direction = sortInfo.Direction;
             if (direction == "asc")
             {
                 descending = false;
@@ -108,7 +109,7 @@ namespace ServiceControl.Persistence
 
             string keySelector;
 
-            var sort = request.GetQueryStringValue("sort", "time_sent");
+            var sort = sortInfo.Sort;
             if (!AsyncDocumentQuerySortOptions.Contains(sort))
             {
                 sort = "time_sent";
@@ -236,9 +237,8 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, HttpRequestMessage request)
+        public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, string queueAddress)
         {
-            var queueAddress = request.GetQueryStringValue<string>("queueaddress");
             if (string.IsNullOrWhiteSpace(queueAddress))
             {
                 return source;

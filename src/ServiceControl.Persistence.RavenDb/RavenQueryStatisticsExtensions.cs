@@ -9,5 +9,9 @@
         {
             return new QueryStatsInfo(stats.IndexEtag, stats.TotalResults);
         }
+        public static QueryStatsInfo ToQueryStatsInfo(this Raven.Abstractions.Data.QueryResult queryResult)
+        {
+            return new QueryStatsInfo(queryResult.IndexEtag, queryResult.TotalResults);
+        }
     }
 }
