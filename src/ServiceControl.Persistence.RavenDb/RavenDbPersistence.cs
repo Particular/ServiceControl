@@ -26,6 +26,10 @@
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
 
+            serviceCollection.AddSingleton<IFailedMessageDataStore>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
+            serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
+            serviceCollection.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
+
             serviceCollection.AddSingleton<ExternalIntegrationRequestsDataStore>();
             serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore, ExternalIntegrationRequestsDataStore>();
             serviceCollection.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());

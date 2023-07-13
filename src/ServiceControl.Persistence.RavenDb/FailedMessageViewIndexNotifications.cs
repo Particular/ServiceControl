@@ -7,12 +7,10 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Persistence;
-    using Raven.Abstractions.Data;
     using Raven.Client;
 
     class FailedMessageViewIndexNotifications  // TODO: Must be registered as single and as hosted service
-        : IObserver<IndexChangeNotification>
-        , IFailedMessageDataStore
+        : IFailedMessageDataStore
         , IDisposable
         , IHostedService
     {
@@ -21,7 +19,7 @@
             this.store = store;
         }
 
-        public void OnNext(IndexChangeNotification value)
+        void OnNext()
         {
             try
             {
@@ -31,16 +29,6 @@
             {
                 logging.WarnFormat("Failed to emit MessageFailuresUpdated - {0}", ex);
             }
-        }
-
-        public void OnError(Exception error)
-        {
-            //Ignore
-        }
-
-        public void OnCompleted()
-        {
-            //Ignore
         }
 
         async Task UpdatedCount()
@@ -76,8 +64,6 @@
             }
         }
 
-        Func<FailedMessageTotals, Task> subscriber = null;
-
         public IDisposable Subscribe(Func<FailedMessageTotals, Task> callback)
         {
             if (callback is null)
@@ -105,7 +91,7 @@
             subscription = store
                 .Changes()
                 .ForIndex(new FailedMessageViewIndex().IndexName)
-                .Subscribe(this);
+                .Subscribe(d => OnNext());
             return Task.CompletedTask;
         }
 
@@ -118,6 +104,7 @@
         readonly IDocumentStore store;
         readonly ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
+        Func<FailedMessageTotals, Task> subscriber;
         IDisposable subscription;
         int lastUnresolvedCount;
         int lastArchivedCount;

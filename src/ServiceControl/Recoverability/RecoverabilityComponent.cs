@@ -85,7 +85,6 @@
                 }
 
                 //Failed messages
-                collection.AddSingleton<FailedMessageViewIndexNotifications>();
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
 
                 //Body storage
