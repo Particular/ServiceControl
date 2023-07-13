@@ -5,9 +5,11 @@
     using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Raven.Abstractions.Data;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
@@ -182,7 +184,7 @@
         {
             var session = documentStore.OpenAsyncSession();
             var manager = new EditFailedMessageManager(session);
-            return Task.FromResult(manager as IEditFailedMessagesManager);
+            return Task.FromResult((IEditFailedMessagesManager)manager);
         }
 
         public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
@@ -216,6 +218,119 @@
                     .Take(200) // only show 200 groups
                     .ToListAsync()
                     .ConfigureAwait(false);
+
+                return results;
+            }
+        }
+
+        public async Task<QueryResult<IList<FailedMessageView>>> ErrorGet(
+            string status,
+            string modified,
+            string queueAddress,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Advanced
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .Statistics(out var stats)
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .FilterByQueueAddress(queueAddress)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<QueryStatsInfo> ErrorsHead(
+            string status,
+            string modified,
+            string queueAddress
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var stats = await session.Advanced
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .FilterByQueueAddress(queueAddress)
+                    .QueryResultAsync()
+                    .ConfigureAwait(false);
+
+                return stats.ToQueryStatsInfo();
+            }
+        }
+
+        public async Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(
+            string status,
+            string endpointName,
+            string modified,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Advanced
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .Statistics(out var stats)
+                    .FilterByStatusWhere(status)
+                    .AndAlso()
+                    .WhereEquals("ReceivingEndpointName", endpointName)
+                    .FilterByLastModifiedRange(modified)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<IDictionary<string, object>> ErrorsSummary()
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
+                    .ToFacetsAsync(new List<Facet>
+                    {
+                        new Facet
+                        {
+                            Name = "Name",
+                            DisplayName = "Endpoints"
+                        },
+                        new Facet
+                        {
+                            Name = "Host",
+                            DisplayName = "Hosts"
+                        },
+                        new Facet
+                        {
+                            Name = "MessageType",
+                            DisplayName = "Message types"
+                        }
+                    })
+                    .ConfigureAwait(false);
+
+                var results = facetResults
+                    .Results
+                    .ToDictionary(
+                        x => x.Key,
+                        x => (object)x.Value
+                        );
+
+                Review.Assert("Check how to convert dictionary item VALUES, currently return object which must be typed");
 
                 return results;
             }
