@@ -23,10 +23,7 @@
             var result = await dataStore.GetAddresses(pagingInfo)
                 .ConfigureAwait(false);
 
-            return Negotiator
-                .FromModel(Request, result)
-                .WithPagingLinksAndTotalCount(result.QueryStats.TotalCount, Request)
-                .WithEtag(result.QueryStats.ETag);
+            return Negotiator.FromQueryResult(Request, result);
         }
 
         [Route("errors/queues/addresses/search/{search}")]
@@ -42,10 +39,7 @@
             var result = await dataStore.GetAddressesBySearchTerm(search, pagingInfo)
                 .ConfigureAwait(false);
 
-            return Negotiator
-                .FromModel(Request, result.Results)
-                .WithPagingLinksAndTotalCount(result.QueryStats.TotalCount, Request)
-                .WithEtag(result.QueryStats.ETag);
+            return Negotiator.FromQueryResult(Request, result);
         }
 
         readonly IQueueAddressStore dataStore;

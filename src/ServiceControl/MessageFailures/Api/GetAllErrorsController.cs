@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
-    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
@@ -35,10 +33,7 @@
                     )
                 .ConfigureAwait(false);
 
-            return Negotiator
-                .FromModel(Request, results.Results)
-                .WithPagingLinksAndTotalCount(results.QueryStats.TotalCount, Request)
-                .WithEtag(results.QueryStats.ETag);
+            return Negotiator.FromQueryResult(Request, results);
         }
 
         [Route("errors")]
@@ -56,11 +51,8 @@
                     )
                 .ConfigureAwait(false);
 
-            var response = Request.CreateResponse(HttpStatusCode.OK);
 
-            return response
-                .WithTotalCount(queryResult.TotalCount)
-                .WithEtag(queryResult.ETag);
+            return Negotiator.FromQueryStatsInfo(Request, queryResult);
         }
 
         [Route("endpoints/{endpointname}/errors")]
@@ -82,10 +74,7 @@
                 sortInfo
                 ).ConfigureAwait(false);
 
-            return Negotiator
-                .FromModel(Request, results)
-                .WithPagingLinksAndTotalCount(results.QueryStats.TotalCount, Request)
-                .WithEtag(results.QueryStats.ETag);
+            return Negotiator.FromQueryResult(Request, results);
         }
 
         [Route("errors/summary")]

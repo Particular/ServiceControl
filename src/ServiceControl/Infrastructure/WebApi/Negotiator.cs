@@ -8,6 +8,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
+    using ServiceControl.Persistence.Infrastructure;
     using QueryResult = Persistence.Infrastructure.QueryResult;
 
     static class Negotiator
@@ -159,6 +160,21 @@ namespace ServiceControl.Infrastructure.WebApi
 
             var guid = DeterministicGuid.MakeId(data);
             return response.WithEtag(guid.ToString());
+        }
+
+        public static HttpResponseMessage FromQueryStatsInfo(HttpRequestMessage request, QueryStatsInfo queryStatsInfo)
+        {
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            return WithTotalCount(response, queryStatsInfo.TotalCount)
+                .WithEtag(queryStatsInfo.ETag);
+        }
+
+        public static HttpResponseMessage FromQueryResult<T>(HttpRequestMessage request, QueryResult<T> queryResult)
+            where T : class
+        {
+            return FromModel(request, queryResult)
+                .WithPagingLinksAndTotalCount(queryResult.QueryStats.TotalCount, request)
+                .WithEtag(queryResult.QueryStats.ETag);
         }
 
         static HttpResponseMessage WithHeader(this HttpResponseMessage response, string header, string value)
