@@ -25,6 +25,7 @@
     using Raven.Client;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Contracts.MessageFailures;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
@@ -143,16 +144,28 @@
 
         class FailedMessageNotificationsHostedService : IHostedService
         {
-            public FailedMessageNotificationsHostedService(FailedMessageViewIndexNotifications notifications, IDocumentStore store)
+            public FailedMessageNotificationsHostedService(
+                IDomainEvents domainEvents,
+                IFailedMessageDataStore store
+                )
             {
-                this.notifications = notifications;
+                this.domainEvents = domainEvents;
                 this.store = store;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
-                subscription = store.Changes().ForIndex(new FailedMessageViewIndex().IndexName).Subscribe(notifications);
+                subscription = store.Subscribe(Callback);
                 return Task.FromResult(true);
+            }
+
+            Task Callback(FailedMessageTotals message)
+            {
+                return domainEvents.Raise(new MessageFailuresUpdated
+                {
+                    UnresolvedTotal = message.UnresolvedTotal,
+                    ArchivedTotal = message.UnresolvedTotal
+                });
             }
 
             public Task StopAsync(CancellationToken cancellationToken)
@@ -161,8 +174,8 @@
                 return Task.FromResult(true);
             }
 
-            FailedMessageViewIndexNotifications notifications;
-            IDocumentStore store;
+            readonly IDomainEvents domainEvents;
+            IFailedMessageDataStore store;
             IDisposable subscription;
         }
 
