@@ -3,10 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
-    using System.Net;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using CompositeViews.Messages;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
@@ -17,7 +14,6 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using Raven.Abstractions.Extensions;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
