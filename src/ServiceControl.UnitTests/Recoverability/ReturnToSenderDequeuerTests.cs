@@ -213,10 +213,10 @@
                 throw new NotImplementedException();
             }
 
-            public Task<StreamResult> TryFetch(string bodyId)
+            public Task<MessageBodyStreamResult> TryFetch(string bodyId)
             {
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return Task.FromResult(new StreamResult
+                return Task.FromResult(new MessageBodyStreamResult
                 {
                     HasResult = true,
                     Stream = stream
