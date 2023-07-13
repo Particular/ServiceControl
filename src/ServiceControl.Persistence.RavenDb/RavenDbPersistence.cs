@@ -31,7 +31,7 @@
 
             serviceCollection.AddCustomCheck<FailedErrorImportCustomCheck>();
 
-            serviceCollection.AddSingleton<IFailedMessageDataStore>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
+            serviceCollection.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
             serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
             serviceCollection.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
 

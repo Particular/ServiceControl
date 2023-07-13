@@ -10,7 +10,7 @@
     using Raven.Client;
 
     class FailedMessageViewIndexNotifications  // TODO: Must be registered as single and as hosted service
-        : IFailedMessageDataStore
+        : IFailedMessageViewIndexNotifications
         , IDisposable
         , IHostedService
     {
