@@ -1,26 +1,35 @@
-﻿namespace ServiceControl.Recoverability
+﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
-    using MessageFailures;
-    using MessageFailures.Api;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Json.Linq;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Persistence.Infrastructure;
+    using ServiceControl.Recoverability;
 
-    public class Reclassifier
+    class FailedMessageReclassifier : IReclassifyFailedMessages
     {
-        internal Reclassifier(IHostApplicationLifetime applicationLifetime)
-            => applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
+        readonly IDocumentStore store;
+        readonly IEnumerable<IFailureClassifier> classifiers;
 
-        internal async Task<int> ReclassifyFailedMessages(IDocumentStore store, bool force, IEnumerable<IFailureClassifier> classifiers)
+        public FailedMessageReclassifier(IDocumentStore store, IHostApplicationLifetime applicationLifetime, IEnumerable<IFailureClassifier> classifiers)
+        {
+            this.store = store;
+            this.classifiers = classifiers;
+
+            applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
+        }
+
+        public async Task<int> ReclassifyFailedMessages(bool force)
         {
             logger.Info("Reclassification of failures started.");
 
@@ -139,9 +148,8 @@
             }
         }
 
-        bool abort;
-
-        ILog logger = LogManager.GetLogger<Reclassifier>();
+        readonly ILog logger = LogManager.GetLogger<FailedMessageReclassifier>();
         const int BatchSize = 1000;
+        bool abort;
     }
 }
