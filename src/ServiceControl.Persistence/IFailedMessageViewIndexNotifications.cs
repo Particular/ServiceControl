@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
 
-    public interface IFailedMessageDataStore
+    public interface IFailedMessageViewIndexNotifications
     {
         IDisposable Subscribe(Func<FailedMessageTotals, Task> callback);
     }

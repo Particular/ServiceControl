@@ -145,7 +145,7 @@
         {
             public FailedMessageNotificationsHostedService(
                 IDomainEvents domainEvents,
-                IFailedMessageDataStore store
+                IFailedMessageViewIndexNotifications store
                 )
             {
                 this.domainEvents = domainEvents;
@@ -174,7 +174,7 @@
             }
 
             readonly IDomainEvents domainEvents;
-            IFailedMessageDataStore store;
+            IFailedMessageViewIndexNotifications store;
             IDisposable subscription;
         }
 
