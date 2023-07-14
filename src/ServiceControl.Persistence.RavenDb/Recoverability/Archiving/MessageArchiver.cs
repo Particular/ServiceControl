@@ -11,30 +11,33 @@
 
     class MessageArchiver : IArchiveMessages
     {
-        public MessageArchiver(IDocumentStore store, OperationsManager operationsManager)
+        public MessageArchiver(IDocumentStore store, OperationsManager operationsManager, IDomainEvents domainEvents)
         {
             this.store = store;
-            this.operationsManager = operationsManager;
+            this.domainEvents = domainEvents;
+
+            archiveDocumentManager = new ArchiveDocumentManager();
+            archivingManager = new ArchivingManager(domainEvents, operationsManager);
+
+            unarchiveDocumentManager = new UnarchiveDocumentManager();
+            unarchivingManager = new UnarchivingManager(domainEvents, operationsManager);
         }
 
-        public async Task ArchiveAllInGroup(string groupId, IDomainEvents domainEvents)
+        public async Task ArchiveAllInGroup(string groupId)
         {
             logger.Info($"Archiving of {groupId} started");
             ArchiveOperation archiveOperation;
-
-            var documentManager = new ArchiveDocumentManager();
-            var archiveOperationManager = new ArchivingManager(domainEvents, operationsManager);
 
             using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
-                archiveOperation = await documentManager.LoadArchiveOperation(session, groupId, ArchiveType.FailureGroup)
+                archiveOperation = await archiveDocumentManager.LoadArchiveOperation(session, groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
                 if (archiveOperation == null)
                 {
-                    var groupDetails = await documentManager.GetGroupDetails(session, groupId).ConfigureAwait(false);
+                    var groupDetails = await archiveDocumentManager.GetGroupDetails(session, groupId).ConfigureAwait(false);
                     if (groupDetails.NumberOfMessagesInGroup == 0)
                     {
                         logger.Warn($"No messages to archive in group {groupId}");
@@ -42,7 +45,7 @@
                     }
 
                     logger.Info($"Splitting group {groupId} into batches");
-                    archiveOperation = await documentManager.CreateArchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
+                    archiveOperation = await archiveDocumentManager.CreateArchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
                         .ConfigureAwait(false);
                     await session.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -51,14 +54,14 @@
                 }
             }
 
-            await archiveOperationManager.StartArchiving(archiveOperation)
+            await archivingManager.StartArchiving(archiveOperation)
                 .ConfigureAwait(false);
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
                 using (var batchSession = store.OpenAsyncSession())
                 {
-                    var nextBatch = await documentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch)
+                    var nextBatch = await archiveDocumentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch)
                         .ConfigureAwait(false);
                     if (nextBatch == null)
                     {
@@ -70,15 +73,15 @@
                         logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
                     }
 
-                    await documentManager.ArchiveMessageGroupBatch(batchSession, nextBatch)
+                    await archiveDocumentManager.ArchiveMessageGroupBatch(batchSession, nextBatch)
                         .ConfigureAwait(false);
 
-                    await archiveOperationManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
+                    await archivingManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
                         .ConfigureAwait(false);
 
-                    archiveOperation = archiveOperationManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
+                    archiveOperation = archivingManager.GetStatusForArchiveOperation(archiveOperation.RequestId, archiveOperation.ArchiveType).ToArchiveOperation();
 
-                    await documentManager.UpdateArchiveOperation(batchSession, archiveOperation)
+                    await archiveDocumentManager.UpdateArchiveOperation(batchSession, archiveOperation)
                         .ConfigureAwait(false);
 
                     await batchSession.SaveChangesAsync()
@@ -101,17 +104,17 @@
             }
 
             logger.Info($"Archiving of group {groupId} is complete. Waiting for index updates.");
-            await archiveOperationManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType)
+            await archivingManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            if (!await documentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 .ConfigureAwait(false))
             {
                 logger.Warn($"Archiving group {groupId} completed but index not updated.");
             }
 
-            await archiveOperationManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
+            await archivingManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            await documentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
+            await archiveDocumentManager.RemoveArchiveOperation(store, archiveOperation).ConfigureAwait(false);
 
             await domainEvents.Raise(new FailedMessageGroupArchived
             {
@@ -123,24 +126,21 @@
             logger.Info($"Archiving of group {groupId} completed");
         }
 
-        public async Task UnarchiveAllInGroup(string groupId, IDomainEvents domainEvents)
+        public async Task UnarchiveAllInGroup(string groupId)
         {
             logger.Info($"Unarchiving of {groupId} started");
             UnarchiveOperation unarchiveOperation;
-
-            var documentManager = new UnarchiveDocumentManager();
-            var unarchiveOperationManager = new UnarchivingManager(domainEvents, operationsManager);
 
             using (var session = store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
-                unarchiveOperation = await documentManager.LoadUnarchiveOperation(session, groupId, ArchiveType.FailureGroup)
+                unarchiveOperation = await unarchiveDocumentManager.LoadUnarchiveOperation(session, groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
                 if (unarchiveOperation == null)
                 {
-                    var groupDetails = await documentManager.GetGroupDetails(session, groupId).ConfigureAwait(false);
+                    var groupDetails = await unarchiveDocumentManager.GetGroupDetails(session, groupId).ConfigureAwait(false);
                     if (groupDetails.NumberOfMessagesInGroup == 0)
                     {
                         logger.Warn($"No messages to unarchive in group {groupId}");
@@ -149,7 +149,7 @@
                     }
 
                     logger.Info($"Splitting group {groupId} into batches");
-                    unarchiveOperation = await documentManager.CreateUnarchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
+                    unarchiveOperation = await unarchiveDocumentManager.CreateUnarchiveOperation(session, groupId, ArchiveType.FailureGroup, groupDetails.NumberOfMessagesInGroup, groupDetails.GroupName, batchSize)
                         .ConfigureAwait(false);
                     await session.SaveChangesAsync()
                     .ConfigureAwait(false);
@@ -158,14 +158,14 @@
                 }
             }
 
-            await unarchiveOperationManager.StartUnarchiving(unarchiveOperation)
+            await unarchivingManager.StartUnarchiving(unarchiveOperation)
                 .ConfigureAwait(false);
 
             while (unarchiveOperation.CurrentBatch < unarchiveOperation.NumberOfBatches)
             {
                 using (var batchSession = store.OpenAsyncSession())
                 {
-                    var nextBatch = await documentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch)
+                    var nextBatch = await unarchiveDocumentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch)
                         .ConfigureAwait(false);
                     if (nextBatch == null)
                     {
@@ -177,15 +177,15 @@
                         logger.Info($"Unarchiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
                     }
 
-                    await documentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch)
+                    await unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch)
                         .ConfigureAwait(false);
 
-                    await unarchiveOperationManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
+                    await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0)
                         .ConfigureAwait(false);
 
-                    unarchiveOperation = unarchiveOperationManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
+                    unarchiveOperation = unarchivingManager.GetStatusForUnarchiveOperation(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType).ToUnarchiveOperation();
 
-                    await documentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation)
+                    await unarchiveDocumentManager.UpdateUnarchiveOperation(batchSession, unarchiveOperation)
                         .ConfigureAwait(false);
 
                     await batchSession.SaveChangesAsync()
@@ -208,18 +208,18 @@
             }
 
             logger.Info($"Unarchiving of group {groupId} is complete. Waiting for index updates.");
-            await unarchiveOperationManager.UnarchiveOperationFinalizing(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType)
+            await unarchivingManager.UnarchiveOperationFinalizing(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            if (!await documentManager.WaitForIndexUpdateOfUnarchiveOperation(store, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(store, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 .ConfigureAwait(false))
             {
                 logger.Warn($"Unarchiving group {groupId} completed but index not updated.");
             }
 
             logger.Info($"Unarchiving of group {groupId} completed");
-            await unarchiveOperationManager.UnarchiveOperationCompleted(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType)
+            await unarchivingManager.UnarchiveOperationCompleted(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType)
                 .ConfigureAwait(false);
-            await documentManager.RemoveUnarchiveOperation(store, unarchiveOperation).ConfigureAwait(false);
+            await unarchiveDocumentManager.RemoveUnarchiveOperation(store, unarchiveOperation).ConfigureAwait(false);
 
             await domainEvents.Raise(new FailedMessageGroupUnarchived
             {
@@ -233,8 +233,12 @@
         public Task StartArchiving(string groupId, ArchiveType archiveType) => throw new NotImplementedException();
 
         readonly IDocumentStore store;
-        readonly OperationsManager operationsManager;
-        static ILog logger = LogManager.GetLogger<MessageArchiver>();
+        readonly IDomainEvents domainEvents;
+        readonly ArchiveDocumentManager archiveDocumentManager;
+        readonly ArchivingManager archivingManager;
+        readonly UnarchiveDocumentManager unarchiveDocumentManager;
+        readonly UnarchivingManager unarchivingManager;
+        static readonly ILog logger = LogManager.GetLogger<MessageArchiver>();
         const int batchSize = 1000;
     }
 }
