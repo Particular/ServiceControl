@@ -15,6 +15,7 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
+    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -518,6 +519,28 @@
                     .ConfigureAwait(false);
 
                 return queryResult.ToQueryResult(stats);
+            }
+        }
+
+        public async Task<bool> MarkMessageAsResolved(string failedMessageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
+                    .ConfigureAwait(false);
+
+                if (failedMessage == null)
+                {
+                    return false;
+                }
+
+                failedMessage.Status = FailedMessageStatus.Resolved;
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
+
+                return true;
             }
         }
 
