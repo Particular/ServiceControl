@@ -16,5 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
