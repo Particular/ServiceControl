@@ -40,5 +40,15 @@
 
         //NotificationsController
         Task<INotificationsManager> CreateNotificationsManager();
+
+        // FailureGroupsController
+        Task EditComment(string groupId, string comment);
+        Task DeleteComment(string groupId);
+        // Task<GroupOperation[]> GetAllGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace"); TODO: Analyze what to do with the `GroupFetcher` dependency
+        Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo);
+        Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified);
+        Task<RetryHistory> GetRetryHistory();
+        Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified);
+
     }
 }

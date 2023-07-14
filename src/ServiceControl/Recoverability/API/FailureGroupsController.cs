@@ -8,11 +8,9 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using MessageFailures;
-    using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
     class FailureGroupsController : ApiController
@@ -20,14 +18,14 @@
         public FailureGroupsController(
             IEnumerable<IFailureClassifier> classifiers,
             IMessageSession bus,
-            IDocumentStore store,
             GroupFetcher groupFetcher
+            IErrorMessageDataStore dataStore
             )
         {
             this.classifiers = classifiers;
             this.bus = bus;
-            this.store = store;
             this.groupFetcher = groupFetcher;
+            this.dataStore = dataStore;
         }
 
         [Route("recoverability/classifiers")]
@@ -60,18 +58,8 @@
         [HttpPost]
         public async Task<IHttpActionResult> EditComment(string groupId, string comment)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var groupComment =
-                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId)).ConfigureAwait(false)
-                    ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
-
-                groupComment.Comment = comment;
-
-                await session.StoreAsync(groupComment).ConfigureAwait(false);
-
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
+            await dataStore.EditComment(groupId, comment)
+                .ConfigureAwait(false);
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
@@ -80,11 +68,8 @@
         [HttpDelete]
         public async Task<IHttpActionResult> DeleteComment(string groupId)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                session.Delete(GroupComment.MakeId(groupId));
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
+            await dataStore.DeleteComment(groupId)
+                .ConfigureAwait(false);
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
@@ -100,7 +85,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var results = await groupFetcher.GetGroups(session, classifier, classifierFilter).ConfigureAwait(false);
+                var results = await groupFetcher.GetGroups(session, classifier, classifierFilter).ConfigureAwait(false); // TODO: Analyze what to do with the GroupFetcher dependency
 
                 return Negotiator.FromModel(Request, results)
                     .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
@@ -109,91 +94,67 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroupErrors(string groupId)
+        public async Task<HttpResponseMessage> GetGroupErrors(
+            string groupId,
+            [FromUri] string status,
+            [FromUri] string modified
+            )
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var results = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .Statistics(out var stats)
-                    .WhereEquals(view => view.FailureGroupId, groupId)
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .Sort(Request)
-                    .Paging(Request)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            var sortInfo = Request.GetSortInfo();
+            var pagingInfo = Request.GetPagingInfo();
 
-                return Negotiator.FromModel(Request, results)
-                    .WithPagingLinksAndTotalCount(stats.TotalResults, Request)
-                    .WithEtag(stats);
-            }
+            var results = await dataStore.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo)
+                .ConfigureAwait(false);
+
+            return Negotiator.FromQueryResult(Request, results);
         }
 
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpHead]
-        public async Task<HttpResponseMessage> GetGroupErrorsCount(string groupId)
+        public async Task<HttpResponseMessage> GetGroupErrorsCount(
+            string groupId,
+            [FromUri] string status,
+            [FromUri] string modified
+            )
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .WhereEquals(view => view.FailureGroupId, groupId)
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .QueryResultAsync()
-                    .ConfigureAwait(false);
+            var results = await dataStore.GetGroupErrorsCount(groupId, status, modified)
+                .ConfigureAwait(false);
 
-                var response = Request.CreateResponse(HttpStatusCode.OK);
-
-                return response
-                    .WithTotalCount(queryResult.TotalResults)
-                    .WithEtag(queryResult.IndexEtag);
-            }
+            return Negotiator.FromQueryStatsInfo(Request, results);
         }
 
         [Route("recoverability/history")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetRetryHistory()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false)
-                                   ?? RetryHistory.CreateNew();
+            var retryHistory = await dataStore.GetRetryHistory()
+                .ConfigureAwait(false);
 
-                return Negotiator
-                    .FromModel(Request, retryHistory)
-                    .WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
-            }
+            return Negotiator
+                .FromModel(Request, retryHistory)
+                .WithDeterministicEtag(retryHistory.GetHistoryOperationsUniqueIdentifier());
         }
 
         [Route("recoverability/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroup(string groupId)
+        public async Task<HttpResponseMessage> GetGroup(
+            string groupId,
+            [FromUri] string status,
+            [FromUri] string modified
+            )
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
-                    .Statistics(out var stats)
-                    .WhereEquals(group => group.Id, groupId)
-                    .FilterByStatusWhere(Request)
-                    .FilterByLastModifiedRange(Request)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+            // TODO: Migrated as previous behavior but can be optimized as http api will return at most 1 item
+            var result = await dataStore.GetGroup(groupId, status, modified).ConfigureAwait(false);
 
-                return Negotiator
-                    .FromModel(Request, queryResult.FirstOrDefault())
-                    .WithEtag(stats);
-            }
+            return Negotiator
+                .FromModel(Request, result.Results.FirstOrDefault())
+                .WithEtag(result.QueryStats.ETag);
         }
 
         readonly IEnumerable<IFailureClassifier> classifiers;
         readonly IMessageSession bus;
-        readonly IDocumentStore store;
         readonly GroupFetcher groupFetcher;
+        readonly IErrorMessageDataStore dataStore;
     }
 }
