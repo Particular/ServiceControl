@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Editing;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -353,6 +354,14 @@
                 var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
                 return message;
             }
+        }
+
+        public Task<INotificationsManager> CreateNotificationsManager()
+        {
+            var session = documentStore.OpenAsyncSession();
+            var manager = new NotificationsManager(session);
+
+            return Task.FromResult<INotificationsManager>(manager);
         }
 
         public async Task<FailedMessageView> ErrorLastBy(Guid failedMessageId)
