@@ -34,5 +34,6 @@
         // GetErrorByIdController
         Task<FailedMessage> ErrorBy(Guid failedMessageId);
         Task<FailedMessageView> ErrorLastBy(Guid failedMessageId);
+        Task<FailedMessage> ErrorBy(string failedMessageId);
     }
 }

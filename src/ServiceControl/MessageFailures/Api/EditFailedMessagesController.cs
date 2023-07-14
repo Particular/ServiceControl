@@ -10,16 +10,16 @@
     using System.Web.Http.Results;
     using NServiceBus;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class EditFailedMessagesController : ApiController
     {
-        public EditFailedMessagesController(Settings settings, IDocumentStore documentStore, IMessageSession messageSession)
+        public EditFailedMessagesController(Settings settings, IErrorMessageDataStore store, IMessageSession messageSession)
         {
             this.messageSession = messageSession;
-            this.documentStore = documentStore;
+            this.store = store;
             this.settings = settings;
         }
 
@@ -42,13 +42,8 @@
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
-            FailedMessage failedMessage;
-
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
-            }
-
+            var failedMessage = await store.ErrorBy(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
+            
             if (failedMessage == null)
             {
                 logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
@@ -138,7 +133,7 @@
         }
 
         Settings settings;
-        IDocumentStore documentStore;
+        IErrorMessageDataStore store;
         IMessageSession messageSession;
 
         static ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
