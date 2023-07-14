@@ -422,6 +422,105 @@
             return failedMsgView;
         }
 
+
+        public async Task EditComment(string groupId, string comment)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var groupComment =
+                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId)).ConfigureAwait(false)
+                    ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
+
+                groupComment.Comment = comment;
+
+                await session.StoreAsync(groupComment).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task DeleteComment(string groupId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                session.Delete(GroupComment.MakeId(groupId));
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(
+            string groupId,
+            string status,
+            string modified,
+            SortInfo sortInfo,
+            PagingInfo pagingInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Advanced
+                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .Statistics(out var stats)
+                    .WhereEquals(view => view.FailureGroupId, groupId)
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    .SelectFields<FailedMessageView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var queryResult = await session.Advanced
+                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                    .WhereEquals(view => view.FailureGroupId, groupId)
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .QueryResultAsync()
+                    .ConfigureAwait(false);
+
+                return queryResult.ToQueryStatsInfo();
+            }
+        }
+
+        public async Task<RetryHistory> GetRetryHistory()
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var id = RetryHistory.MakeId();
+                var retryHistory = await session.LoadAsync<RetryHistory>(id)
+                    .ConfigureAwait(false);
+
+                retryHistory = retryHistory ?? RetryHistory.CreateNew();
+
+                return retryHistory;
+            }
+        }
+
+        public async Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var queryResult = await session.Advanced
+                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
+                    .Statistics(out var stats)
+                    .WhereEquals(group => group.Id, groupId)
+                    .FilterByStatusWhere(status)
+                    .FilterByLastModifiedRange(modified)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<FailureGroupView>>(queryResult, stats.ToQueryStatsInfo());
+            }
+        }
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
