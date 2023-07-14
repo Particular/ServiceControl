@@ -5,13 +5,14 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using NServiceBus;
+    using ServiceControl.Persistence.Recoverability;
 
     class FailureGroupsArchiveController : ApiController
     {
-        public FailureGroupsArchiveController(IMessageSession bus, ArchivingManager archivingManager)
+        public FailureGroupsArchiveController(IMessageSession bus, IArchiveMessages archiver)
         {
             this.bus = bus;
-            this.archivingManager = archivingManager;
+            this.archiver = archiver;
         }
 
 
@@ -24,9 +25,9 @@
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "missing groupId");
             }
 
-            if (!archivingManager.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
+            if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await archivingManager.StartArchiving(groupId, ArchiveType.FailureGroup)
+                await archiver.StartArchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
                 await bus.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
@@ -36,6 +37,6 @@
         }
 
         readonly IMessageSession bus;
-        readonly ArchivingManager archivingManager;
+        readonly IArchiveMessages archiver;
     }
 }
