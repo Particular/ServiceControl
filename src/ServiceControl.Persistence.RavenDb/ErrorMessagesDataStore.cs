@@ -647,6 +647,46 @@ if(this.Status === archivedStatus) {
                 failedMessages.Length
                 );
         }
+
+        public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
+            string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ??
+                                   RetryHistory.CreateNew();
+
+                retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
+                {
+                    RequestId = requestId,
+                    RetryType = retryType,
+                    StartTime = startTime,
+                    CompletionTime = completionTime,
+                    Originator = originator,
+                    Classifier = classifier,
+                    Failed = messageFailed,
+                    NumberOfMessagesProcessed = numberOfMessagesProcessed,
+                    Last = lastProcessed
+                });
+
+                retryHistory.AddToHistory(new HistoricRetryOperation
+                {
+                    RequestId = requestId,
+                    RetryType = retryType,
+                    StartTime = startTime,
+                    CompletionTime = completionTime,
+                    Originator = originator,
+                    Failed = messageFailed,
+                    NumberOfMessagesProcessed = numberOfMessagesProcessed
+                }, retryHistoryDepth);
+
+                await session.StoreAsync(retryHistory)
+                    .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
