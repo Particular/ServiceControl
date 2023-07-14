@@ -53,5 +53,7 @@
         // LegacyMessageFailureResolvedHandler
         Task<bool> MarkMessageAsResolved(string failedMessageId);
 
+        // MessageFailureResolvedHandler
+        Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback); // TODO: Passing a callback is there to not change behavior of original implementation.
     }
 }
