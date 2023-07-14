@@ -3,7 +3,7 @@
     /// <summary>
     /// A marker interface for domain events.
     /// </summary>
-    interface IDomainEvent
+    public interface IDomainEvent
     {
     }
 }

@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    interface IDomainEvents
+    public interface IDomainEvents
     {
         Task Raise<T>(T domainEvent) where T : IDomainEvent;
     }

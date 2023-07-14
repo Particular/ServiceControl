@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
 
-    class DomainEvents : IDomainEvents
+    public class DomainEvents : IDomainEvents
     {
         readonly IServiceProvider serviceProvider;
         public DomainEvents(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
