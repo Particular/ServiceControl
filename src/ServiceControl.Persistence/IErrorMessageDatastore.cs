@@ -50,5 +50,8 @@
         Task<RetryHistory> GetRetryHistory();
         Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified);
 
+        // LegacyMessageFailureResolvedHandler
+        Task<bool> MarkMessageAsResolved(string failedMessageId);
+
     }
 }
