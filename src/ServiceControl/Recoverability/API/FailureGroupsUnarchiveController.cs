@@ -25,9 +25,9 @@
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "missing groupId");
             }
 
-            if (!unarchivingManager.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
+            if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await unarchivingManager.StartUnarchiving(groupId, ArchiveType.FailureGroup)
+                await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup)
                     .ConfigureAwait(false);
 
                 await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);

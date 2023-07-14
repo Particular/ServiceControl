@@ -5,16 +5,15 @@
     using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Recoverability;
 
     class GroupFetcher
     {
-        public GroupFetcher(RetryingManager retryingManager, ArchivingManager archivingManager)
+        public GroupFetcher(RetryingManager retryingManager, IArchiveMessages archiver)
         {
             this.retryingManager = retryingManager;
-            this.archivingManager = archivingManager;
+            this.archiver = archiver;
         }
 
         public async Task<GroupOperation[]> GetGroups(IAsyncDocumentSession session, string classifier, string classifierFilter)
@@ -30,10 +29,10 @@
             var closedRetryAcknowledgements = unacknowledgedRetries.Except(openRetryAcknowledgements).ToArray();
 
             var closedGroups = MapClosedGroups(classifier, closedRetryAcknowledgements);
-            closedGroups = closedGroups.Union(MapClosedGroups(classifier, archivingManager.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
+            closedGroups = closedGroups.Union(MapClosedGroups(classifier, archiver.GetArchivalOperations().Where(archiveOp => archiveOp.NeedsAcknowledgement())));
 
             var openGroups = MapOpenGroups(dbGroups, retryHistory, openRetryAcknowledgements).ToList();
-            openGroups = MapOpenGroups(openGroups, archivingManager.GetArchivalOperations()).ToList();
+            openGroups = MapOpenGroups(openGroups, archiver.GetArchivalOperations()).ToList();
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, await GetCurrentForwardingBatch(session).ConfigureAwait(false), openGroups);
@@ -227,6 +226,6 @@
         }
 
         readonly RetryingManager retryingManager;
-        readonly ArchivingManager archivingManager;
+        readonly IArchiveMessages archiver;
     }
 }
