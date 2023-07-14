@@ -18,7 +18,7 @@
         public FailureGroupsController(
             IEnumerable<IFailureClassifier> classifiers,
             IMessageSession bus,
-            GroupFetcher groupFetcher
+            GroupFetcher groupFetcher,
             IErrorMessageDataStore dataStore
             )
         {
