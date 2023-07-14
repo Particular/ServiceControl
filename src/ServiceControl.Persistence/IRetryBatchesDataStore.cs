@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using MessageFailures;
-    using Recoverability;
+    using ServiceControl.Recoverability;
 
     public interface IRetryBatchesDataStore
     {

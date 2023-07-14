@@ -1,12 +1,11 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
     using MessageRedirects;
-    using Recoverability;
+    using ServiceControl.Recoverability;
 
     public interface IRetryBatchesManager : IDataSessionManager
     {

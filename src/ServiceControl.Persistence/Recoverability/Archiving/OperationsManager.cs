@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
 
-    class OperationsManager
+    public class OperationsManager
     {
         public bool IsOperationInProgressFor(string requestId, ArchiveType archiveType)
         {

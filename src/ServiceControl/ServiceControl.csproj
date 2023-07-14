@@ -9,6 +9,11 @@
 
   <Import Project="..\Transports.Includes.props" />
   <Import Project="..\Persisters.Primary.Includes.props" />
+  <ItemGroup>
+    <Compile Remove="Recoverability\Archiving\Raven\**" />
+    <EmbeddedResource Remove="Recoverability\Archiving\Raven\**" />
+    <None Remove="Recoverability\Archiving\Raven\**" />
+  </ItemGroup>
 
   <ItemGroup Label="Copy artifacts for the F5 experience">
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />

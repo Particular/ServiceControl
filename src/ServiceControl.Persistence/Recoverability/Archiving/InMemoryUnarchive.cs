@@ -4,9 +4,9 @@
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
 
-    class InMemoryArchive // in memory
+    public class InMemoryUnarchive // in memory
     {
-        public InMemoryArchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
+        public InMemoryUnarchive(string requestId, ArchiveType archiveType, IDomainEvents domainEvents)
         {
             RequestId = requestId;
             ArchiveType = archiveType;
@@ -14,7 +14,7 @@
         }
 
         public int TotalNumberOfMessages { get; set; }
-        public int NumberOfMessagesArchived { get; set; }
+        public int NumberOfMessagesUnarchived { get; set; }
         public int NumberOfBatches { get; set; }
         public int CurrentBatch { get; set; }
         public DateTime? CompletionTime { get; set; }
@@ -30,22 +30,22 @@
             return $"{archiveType}/{requestId}";
         }
 
-        public ArchiveProgress GetProgress()
+        public UnarchiveProgress GetProgress()
         {
-            var percentage = OperationProgressCalculator.CalculateProgress(TotalNumberOfMessages, NumberOfMessagesArchived, ArchiveState);
+            var percentage = OperationProgressCalculator.CalculateProgress(TotalNumberOfMessages, NumberOfMessagesUnarchived, ArchiveState);
             var roundedPercentage = Math.Round(percentage, 2);
 
-            var remaining = TotalNumberOfMessages - NumberOfMessagesArchived;
+            var remaining = TotalNumberOfMessages - NumberOfMessagesUnarchived;
 
-            return new ArchiveProgress(roundedPercentage, TotalNumberOfMessages, NumberOfMessagesArchived, remaining);
+            return new UnarchiveProgress(roundedPercentage, TotalNumberOfMessages, NumberOfMessagesUnarchived, remaining);
         }
 
-        internal Task Start()
+        public Task Start()
         {
             ArchiveState = ArchiveState.ArchiveStarted;
             CompletionTime = null;
 
-            return domainEvents.Raise(new ArchiveOperationStarting
+            return domainEvents.Raise(new UnarchiveOperationStarting
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -54,14 +54,14 @@
             });
         }
 
-        internal Task BatchArchived(int numberOfMessagesArchivedInBatch)
+        public Task BatchUnarchived(int numberOfMessagesUnarchivedInBatch)
         {
             ArchiveState = ArchiveState.ArchiveProgressing;
-            NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
+            NumberOfMessagesUnarchived += numberOfMessagesUnarchivedInBatch;
             CurrentBatch++;
             Last = DateTime.Now;
 
-            return domainEvents.Raise(new ArchiveOperationBatchCompleted
+            return domainEvents.Raise(new UnarchiveOperationBatchCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -71,13 +71,13 @@
             });
         }
 
-        internal Task FinalizeArchive()
+        public Task FinalizeUnarchive()
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
-            NumberOfMessagesArchived = TotalNumberOfMessages;
+            NumberOfMessagesUnarchived = TotalNumberOfMessages;
             Last = DateTime.Now;
 
-            return domainEvents.Raise(new ArchiveOperationFinalizing
+            return domainEvents.Raise(new UnarchiveOperationFinalizing
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -87,14 +87,14 @@
             });
         }
 
-        internal Task Complete()
+        public Task Complete()
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
-            NumberOfMessagesArchived = TotalNumberOfMessages;
+            NumberOfMessagesUnarchived = TotalNumberOfMessages;
             CompletionTime = DateTime.Now;
             Last = DateTime.Now;
 
-            return domainEvents.Raise(new ArchiveOperationCompleted
+            return domainEvents.Raise(new UnarchiveOperationCompleted
             {
                 RequestId = RequestId,
                 ArchiveType = ArchiveType,
@@ -104,22 +104,6 @@
                 CompletionTime = CompletionTime.Value,
                 GroupName = GroupName
             });
-        }
-
-        internal ArchiveOperation ToArchiveOperation()
-        {
-            return new ArchiveOperation
-            {
-                ArchiveType = ArchiveType,
-                GroupName = GroupName,
-                Id = ArchiveOperation.MakeId(RequestId, ArchiveType),
-                NumberOfMessagesArchived = NumberOfMessagesArchived,
-                RequestId = RequestId,
-                Started = Started,
-                TotalNumberOfMessages = TotalNumberOfMessages,
-                NumberOfBatches = NumberOfBatches,
-                CurrentBatch = CurrentBatch
-            };
         }
 
         internal bool NeedsAcknowledgement()
