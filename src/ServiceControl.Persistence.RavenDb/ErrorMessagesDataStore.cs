@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
-    using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
@@ -18,7 +17,6 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
