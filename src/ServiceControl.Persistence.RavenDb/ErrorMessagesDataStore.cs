@@ -470,7 +470,7 @@
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
+                return results.ToQueryResult(stats);
             }
         }
 
@@ -517,7 +517,7 @@
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<FailureGroupView>>(queryResult, stats.ToQueryStatsInfo());
+                return queryResult.ToQueryResult(stats);
             }
         }
 
