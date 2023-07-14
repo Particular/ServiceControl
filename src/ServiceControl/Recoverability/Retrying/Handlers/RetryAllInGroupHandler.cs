@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Recoverability;
 
     class RetryAllInGroupHandler : IHandleMessages<RetryAllInGroup>
     {
@@ -16,7 +17,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            if (archivingManager.IsArchiveInProgressFor(message.GroupId))
+            if (archiver.IsArchiveInProgressFor(message.GroupId))
             {
                 log.Warn($"Attempt to retry a group ({message.GroupId}) which is currently in the process of being archived");
                 return;
@@ -43,18 +44,16 @@ namespace ServiceControl.Recoverability
             retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
         }
 
-        public RetryAllInGroupHandler(RetriesGateway retries, IDocumentStore store, RetryingManager retryingManager, ArchivingManager archivingManager)
+        public RetryAllInGroupHandler(RetriesGateway retries, RetryingManager retryingManager, IArchiveMessages archiver)
         {
             this.retries = retries;
-            this.store = store;
             this.retryingManager = retryingManager;
-            this.archivingManager = archivingManager;
+            this.archiver = archiver;
         }
 
         readonly RetriesGateway retries;
-        readonly IDocumentStore store;
         readonly RetryingManager retryingManager;
-        readonly ArchivingManager archivingManager;
+        readonly IArchiveMessages archiver;
         static ILog log = LogManager.GetLogger(typeof(RetryAllInGroupHandler));
     }
 }

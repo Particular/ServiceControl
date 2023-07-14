@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb.Recoverability
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
@@ -15,6 +16,7 @@
         {
             this.store = store;
             this.domainEvents = domainEvents;
+            this.operationsManager = operationsManager;
 
             archiveDocumentManager = new ArchiveDocumentManager();
             archivingManager = new ArchivingManager(domainEvents, operationsManager);
@@ -229,10 +231,28 @@
             }).ConfigureAwait(false);
         }
 
-        public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType) => throw new NotImplementedException();
-        public Task StartArchiving(string groupId, ArchiveType archiveType) => throw new NotImplementedException();
+        public bool IsOperationInProgressFor(string groupId, ArchiveType archiveType)
+        {
+            return operationsManager.IsOperationInProgressFor(groupId, archiveType);
+        }
+
+        public bool IsArchiveInProgressFor(string groupId)
+            => archivingManager.IsArchiveInProgressFor(groupId);
+
+        public void DismissArchiveOperation(string groupId, ArchiveType archiveType)
+            => archivingManager.DismissArchiveOperation(groupId, archiveType);
+
+        public Task StartArchiving(string groupId, ArchiveType archiveType)
+            => archivingManager.StartArchiving(groupId, archiveType);
+
+        public Task StartUnarchiving(string groupId, ArchiveType archiveType)
+            => unarchivingManager.StartUnarchiving(groupId, archiveType);
+
+        public IEnumerable<InMemoryArchive> GetArchivalOperations()
+            => archivingManager.GetArchivalOperations();
 
         readonly IDocumentStore store;
+        readonly OperationsManager operationsManager;
         readonly IDomainEvents domainEvents;
         readonly ArchiveDocumentManager archiveDocumentManager;
         readonly ArchivingManager archivingManager;

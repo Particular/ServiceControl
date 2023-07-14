@@ -33,12 +33,7 @@
                 collection.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
 
                 //Archiving
-                collection.AddSingleton<ArchivingManager>();
-                collection.AddSingleton<ArchiveDocumentManager>();
-
                 collection.AddSingleton<OperationsManager>();
-                collection.AddSingleton<UnarchivingManager>();
-                collection.AddSingleton<UnarchiveDocumentManager>();
 
                 //Grouping
                 collection.AddSingleton<IFailureClassifier, ExceptionTypeAndStackTraceFailureClassifier>();
