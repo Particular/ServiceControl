@@ -5,13 +5,14 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using NServiceBus;
+    using ServiceControl.Persistence.Recoverability;
 
     class FailureGroupsUnarchiveController : ApiController
     {
-        public FailureGroupsUnarchiveController(IMessageSession bus, UnarchivingManager unarchivingManager)
+        public FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver)
         {
             this.bus = bus;
-            this.unarchivingManager = unarchivingManager;
+            this.archiver = archiver;
         }
 
 
@@ -36,6 +37,6 @@
         }
 
         readonly IMessageSession bus;
-        readonly UnarchivingManager unarchivingManager;
+        readonly IArchiveMessages archiver;
     }
 }
