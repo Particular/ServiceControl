@@ -7,12 +7,12 @@
     using System.Web.Http;
     using Email;
     using Infrastructure.WebApi;
-    using Raven.Client;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class NotificationsController : ApiController
     {
-        public NotificationsController(IDocumentStore store, Settings settings)
+        public NotificationsController(IErrorMessageDataStore store, Settings settings)
         {
             this.store = store;
             instanceName = settings.ServiceName;
@@ -22,9 +22,9 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetEmailNotificationsSettings(HttpRequestMessage request)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await LoadSettings(session).ConfigureAwait(false);
+                var settings = await manager.LoadSettings().ConfigureAwait(false);
 
                 return Negotiator.FromModel(request, settings.Email);
             }
@@ -34,13 +34,13 @@
         [HttpPost]
         public async Task<HttpResponseMessage> ToggleEmailNotifications(ToggleEmailNotifications request)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await LoadSettings(session).ConfigureAwait(false);
+                var settings = await manager.LoadSettings().ConfigureAwait(false);
 
                 settings.Email.Enabled = request.Enabled;
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await manager.SaveChanges().ConfigureAwait(false);
             }
 
             return new HttpResponseMessage(HttpStatusCode.OK);
@@ -50,9 +50,9 @@
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await LoadSettings(session).ConfigureAwait(false);
+                var settings = await manager.LoadSettings().ConfigureAwait(false);
 
                 var emailSettings = settings.Email;
 
@@ -66,7 +66,7 @@
                 emailSettings.From = request.From;
                 emailSettings.To = request.To;
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await manager.SaveChanges().ConfigureAwait(false);
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
@@ -76,9 +76,9 @@
         [HttpPost]
         public async Task<HttpResponseMessage> SendTestEmail()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await LoadSettings(session).ConfigureAwait(false);
+                var settings = await manager.LoadSettings().ConfigureAwait(false);
 
                 try
                 {
@@ -101,24 +101,7 @@
             }
         }
 
-        static async Task<NotificationsSettings> LoadSettings(IAsyncDocumentSession session)
-        {
-            var settings = await session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
-
-            if (settings == null)
-            {
-                settings = new NotificationsSettings
-                {
-                    Id = NotificationsSettings.SingleDocumentId
-                };
-
-                await session.StoreAsync(settings).ConfigureAwait(false);
-            }
-
-            return settings;
-        }
-
-        readonly IDocumentStore store;
+        readonly IErrorMessageDataStore store;
         readonly string instanceName;
     }
 }
