@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
@@ -7,6 +8,7 @@ namespace ServiceControl.Recoverability
     using NServiceBus;
     using ServiceControl.Persistence;
 
+    [Obsolete("Only used by legacy RavenDB35 storage engine")] // TODO: how to deal with this domain event
     class ReclassifyErrorsHandler : IHandleMessages<ReclassifyErrors>
     {
         public ReclassifyErrorsHandler(IReclassifyFailedMessages reclassifier, IDomainEvents domainEvents)

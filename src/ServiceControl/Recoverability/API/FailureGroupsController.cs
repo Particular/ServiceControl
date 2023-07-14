@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -42,6 +43,7 @@
                 .WithTotalCount(result.Length);
         }
 
+        [Obsolete("Only used by legacy RavenDB35 storage engine")] // TODO: how to deal with this domain event
         [Route("recoverability/groups/reclassify")]
         [HttpPost]
         public async Task<IHttpActionResult> ReclassifyErrors()
