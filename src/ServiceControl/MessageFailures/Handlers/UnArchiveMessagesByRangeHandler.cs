@@ -1,67 +1,42 @@
 ﻿namespace ServiceControl.MessageFailures.Handlers
 {
-    using System.Globalization;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Api;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
+    using Persistence;
 
     class UnArchiveMessagesByRangeHandler : IHandleMessages<UnArchiveMessagesByRange>
     {
-        public UnArchiveMessagesByRangeHandler(IDocumentStore store, IDomainEvents domainEvents)
+        public UnArchiveMessagesByRangeHandler(IErrorMessageDataStore dataStore, IDomainEvents domainEvents)
         {
-            this.store = store;
+            this.dataStore = dataStore;
             this.domainEvents = domainEvents;
         }
 
         public async Task Handle(UnArchiveMessagesByRange message, IMessageHandlerContext context)
         {
-            var options = new BulkOperationOptions
-            {
-                AllowStale = true
-            };
-            var result = await store.AsyncDatabaseCommands.UpdateByIndexAsync(
-                new FailedMessageViewIndex().IndexName,
-                new IndexQuery
-                {
-                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", message.From.Ticks, message.To.Ticks, (int)FailedMessageStatus.Archived),
-                    Cutoff = message.CutOff
-                }, new ScriptedPatchRequest
-                {
-                    Script = @"
-if(this.Status === archivedStatus) {
-    this.Status = unresolvedStatus;
-}
-",
-                    Values =
-                    {
-                        {"archivedStatus", (int)FailedMessageStatus.Archived},
-                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
-                    }
-                }, options).ConfigureAwait(false);
-
-            var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
-                .JsonDeserialization<DocumentPatchResult[]>();
+            var (ids, count) = await dataStore.UnArchiveMessagesByRange(
+                message.From,
+                message.To,
+                message.CutOff
+                )
+                .ConfigureAwait(false);
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
-                DocumentIds = patchedDocumentIds.Select(x => FailedMessage.GetMessageIdFromDocumentId(x.Document)).ToArray(),
-                MessagesCount = patchedDocumentIds.Length
-            }).ConfigureAwait(false);
+                DocumentIds = ids,
+                MessagesCount = count
+            })
+                .ConfigureAwait(false);
+
         }
 
-        IDocumentStore store;
+        IErrorMessageDataStore dataStore;
         IDomainEvents domainEvents;
 
-        class DocumentPatchResult
-        {
-            public string Document { get; set; }
-        }
     }
 }

@@ -2,12 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
+    using NServiceBus;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
@@ -15,6 +18,7 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
+    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -574,6 +578,77 @@
             }
         }
 
+        class DocumentPatchResult
+        {
+            public string Document { get; set; }
+        }
+
+        public async Task<(string[] ids, int count)> UnArchiveMessagesByRange(DateTime from, DateTime to, DateTime cutOff)
+        {
+            var options = new BulkOperationOptions
+            {
+                AllowStale = true
+            };
+
+            var result = await documentStore.AsyncDatabaseCommands.UpdateByIndexAsync(
+                new FailedMessageViewIndex().IndexName,
+                new IndexQuery
+                {
+                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", from.Ticks, to.Ticks, (int)FailedMessageStatus.Archived),
+                    Cutoff = cutOff
+                }, new ScriptedPatchRequest
+                {
+                    Script = @"
+if(this.Status === archivedStatus) {
+    this.Status = unresolvedStatus;
+}
+",
+                    Values =
+                    {
+                        {"archivedStatus", (int)FailedMessageStatus.Archived},
+                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
+                    }
+                }, options).ConfigureAwait(false);
+
+            var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
+                .JsonDeserialization<DocumentPatchResult[]>();
+
+            return (
+                patchedDocumentIds.Select(x => FailedMessage.GetMessageIdFromDocumentId(x.Document)).ToArray(),
+                patchedDocumentIds.Length
+                );
+        }
+
+        public async Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds)
+        {
+            FailedMessage[] failedMessages;
+
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                session.Advanced.UseOptimisticConcurrency = true;
+
+                var documentIds = failedMessageIds.Select(FailedMessage.MakeDocumentId);
+
+                failedMessages = await session.LoadAsync<FailedMessage>(documentIds)
+                    .ConfigureAwait(false);
+
+                foreach (var failedMessage in failedMessages)
+                {
+                    if (failedMessage.Status == FailedMessageStatus.Archived)
+                    {
+                        failedMessage.Status = FailedMessageStatus.Unresolved;
+                    }
+                }
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+
+            return (
+                failedMessages.Select(x => x.UniqueMessageId).ToArray(),
+                failedMessages.Length
+                );
+        }
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
