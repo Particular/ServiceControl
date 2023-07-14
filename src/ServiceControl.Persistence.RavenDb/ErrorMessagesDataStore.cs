@@ -346,6 +346,15 @@
             }
         }
 
+        public async Task<FailedMessage> ErrorBy(string failedMessageId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                return message;
+            }
+        }
+
         public async Task<FailedMessageView> ErrorLastBy(Guid failedMessageId)
         {
             using (var session = documentStore.OpenAsyncSession())
