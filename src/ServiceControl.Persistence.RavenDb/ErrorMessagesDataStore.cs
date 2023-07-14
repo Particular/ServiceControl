@@ -15,7 +15,6 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using static Lucene.Net.Documents.Field;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -541,6 +540,37 @@
                 await session.SaveChangesAsync().ConfigureAwait(false);
 
                 return true;
+            }
+        }
+
+        public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var prequery = session.Advanced
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+                .AndAlso()
+                .WhereBetweenOrEqual("LastModified", periodFrom.Ticks, periodTo.Ticks);
+
+                if (!string.IsNullOrWhiteSpace(queueAddress))
+                {
+                    prequery = prequery.AndAlso()
+                        .WhereEquals(options => options.QueueAddress, queueAddress);
+                }
+
+                var query = prequery
+                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    .SelectFields<FailedMessageView>();
+
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                {
+                    while (await ie.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        await processCallback(ie.Current.Document.Id)
+                            .ConfigureAwait(false);
+                    }
+                }
             }
         }
 
