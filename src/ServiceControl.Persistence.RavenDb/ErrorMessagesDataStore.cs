@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
@@ -12,6 +13,7 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Linq;
+    using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
@@ -743,6 +745,24 @@ if(this.Status === archivedStatus) {
             }
 
             return ids.ToArray(); // TODO: Currently returning array as all other API's return arrays and not IEnumerable<T>
+        }
+
+        // TODO: How is this different than what RavenAttachmentBodyStorage.TryFetch is doing? Is this implemented twice?
+        public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
+        {
+            string documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
+            var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
+                transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
+
+            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)
+                ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
+
+            if (resultBody != null)
+            {
+                return Encoding.UTF8.GetBytes(resultBody);
+            }
+
+            return null;
         }
 
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
