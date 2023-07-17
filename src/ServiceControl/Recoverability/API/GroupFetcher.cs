@@ -8,10 +8,10 @@
 
     class GroupFetcher
     {
-        public GroupFetcher(IGroupsDataStore store, IErrorMessageDataStore errorStore, RetryingManager retryingManager, IArchiveMessages archiver)
+        public GroupFetcher(IGroupsDataStore store, IRetryHistoryDataStore retryStore, RetryingManager retryingManager, IArchiveMessages archiver)
         {
             this.store = store;
-            this.errorStore = errorStore;
+            this.retryStore = retryStore;
             this.retryingManager = retryingManager;
             this.archiver = archiver;
         }
@@ -19,7 +19,7 @@
         public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter)
         {
             var dbGroups = await store.GetFailureGroupsByClassifier(classifier, classifierFilter).ConfigureAwait(false);
-            var retryHistory = await errorStore.GetRetryHistory().ConfigureAwait(false);
+            var retryHistory = await retryStore.GetRetryHistory().ConfigureAwait(false);
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
@@ -189,7 +189,7 @@
         }
 
         readonly IGroupsDataStore store;
-        readonly IErrorMessageDataStore errorStore;
+        readonly IRetryHistoryDataStore retryStore;
         readonly RetryingManager retryingManager;
         readonly IArchiveMessages archiver;
     }
