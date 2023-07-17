@@ -41,7 +41,7 @@
             return retryOperations.Values.Any(o => o.RequestId == requestId && o.IsInProgress());
         }
 
-        public async Task Prepairing(string requestId, RetryType retryType, int totalNumberOfMessages)
+        public async Task Preparing(string requestId, RetryType retryType, int totalNumberOfMessages)
         {
             if (requestId == null) //legacy support for batches created before operations were introduced
             {
