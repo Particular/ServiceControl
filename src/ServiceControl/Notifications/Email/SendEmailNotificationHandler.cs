@@ -5,15 +5,15 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public class SendEmailNotificationHandler : IHandleMessages<SendEmailNotification>
     {
-        readonly IDocumentStore store;
+        readonly IErrorMessageDataStore store;
         readonly EmailThrottlingState throttlingState;
 
-        public SendEmailNotificationHandler(IDocumentStore store, Settings settings, EmailThrottlingState throttlingState)
+        public SendEmailNotificationHandler(IErrorMessageDataStore store, Settings settings, EmailThrottlingState throttlingState)
         {
             this.store = store;
             this.throttlingState = throttlingState;
@@ -25,14 +25,9 @@
         {
             NotificationsSettings notifications;
 
-            using (var session = store.OpenAsyncSession())
+            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
             {
-                using (session.Advanced.DocumentStore.AggressivelyCacheFor(cacheTimeout))
-                {
-                    notifications = await session
-                        .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
-                        .ConfigureAwait(false);
-                }
+                notifications = await manager.LoadSettings(cacheTimeout).ConfigureAwait(false);
             }
 
             if (notifications == null || !notifications.Email.Enabled)
