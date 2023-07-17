@@ -6,7 +6,6 @@
     using Infrastructure.DomainEvents;
     using NServiceBus;
     using Persistence;
-    using Recoverability;
 
     /// <summary>
     /// This class handles legacy messages that mark a failed message as successfully retried. For further details go to message definitions.
@@ -15,11 +14,10 @@
         IHandleMessages<MarkMessageFailureResolvedByRetry>,
         IHandleMessages<MessageFailureResolvedByRetry>
     {
-        public LegacyMessageFailureResolvedHandler(IErrorMessageDataStore store, IDomainEvents domainEvents, RetryDocumentManager retryDocumentManager)
+        public LegacyMessageFailureResolvedHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
-            this.retryDocumentManager = retryDocumentManager;
         }
 
         public async Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
@@ -47,7 +45,7 @@
 
         async Task MarkAsResolvedByRetry(string primaryId, string[] messageAlternativeFailedMessageIds)
         {
-            await retryDocumentManager.RemoveFailedMessageRetryDocument(primaryId).ConfigureAwait(false);
+            await store.RemoveFailedMessageRetryDocument(primaryId).ConfigureAwait(false);
 
             var primaryUpdated = await store.MarkMessageAsResolved(primaryId).ConfigureAwait(false);
 
@@ -63,7 +61,7 @@
 
             foreach (var alternative in messageAlternativeFailedMessageIds.Where(x => x != primaryId))
             {
-                await retryDocumentManager.RemoveFailedMessageRetryDocument(alternative).ConfigureAwait(false);
+                await store.RemoveFailedMessageRetryDocument(alternative).ConfigureAwait(false);
 
                 var alternativeUpdated = await store.MarkMessageAsResolved(alternative).ConfigureAwait(false);
 
@@ -74,8 +72,7 @@
             }
         }
 
-        IErrorMessageDataStore store;
-        IDomainEvents domainEvents;
-        RetryDocumentManager retryDocumentManager;
+        readonly IErrorMessageDataStore store;
+        readonly IDomainEvents domainEvents;
     }
 }

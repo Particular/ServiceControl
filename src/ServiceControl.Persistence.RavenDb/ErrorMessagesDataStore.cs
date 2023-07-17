@@ -712,6 +712,39 @@ if(this.Status === archivedStatus) {
             }
         }
 
+        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
+        {
+            return documentStore.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+        }
+
+        public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) // TODO: Could we use IAsyncEnumerable here as this is an unbounded query?
+        {
+            var ids = new List<string>();
+
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var query = session.Advanced
+                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+                .AndAlso()
+                .WhereBetweenOrEqual(options => options.LastModified, from.Ticks, to.Ticks)
+                .AndAlso()
+                    .WhereEquals(o => o.QueueAddress, queueAddress)
+                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    .SelectFields<FailedMessageView>(new[] { "Id" });
+
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                {
+                    while (await ie.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        ids.Add(ie.Current.Document.Id);
+                    }
+                }
+            }
+
+            return ids.ToArray(); // TODO: Currently returning array as all other API's return arrays and not IEnumerable<T>
+        }
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
