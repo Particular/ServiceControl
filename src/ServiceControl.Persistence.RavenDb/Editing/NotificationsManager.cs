@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDb.Editing
 {
+    using System;
     using System.Threading.Tasks;
     using Notifications;
     using Raven.Client;
@@ -10,21 +11,26 @@
         {
         }
 
-        public async Task<NotificationsSettings> LoadSettings()
+        public async Task<NotificationsSettings> LoadSettings(TimeSpan? cacheTimeout = null)
         {
-            var settings = await Session.LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId).ConfigureAwait(false);
-
-            if (settings == null)
+            using (Session.Advanced.DocumentStore.AggressivelyCacheFor(cacheTimeout ?? TimeSpan.Zero))
             {
-                settings = new NotificationsSettings
+                var settings = await Session
+                    .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
+                    .ConfigureAwait(false);
+
+                if (settings == null)
                 {
-                    Id = NotificationsSettings.SingleDocumentId
-                };
+                    settings = new NotificationsSettings
+                    {
+                        Id = NotificationsSettings.SingleDocumentId
+                    };
 
-                await Session.StoreAsync(settings).ConfigureAwait(false);
+                    await Session.StoreAsync(settings).ConfigureAwait(false);
+                }
+
+                return settings;
             }
-
-            return settings;
         }
     }
 }
