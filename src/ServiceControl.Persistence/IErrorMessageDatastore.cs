@@ -47,7 +47,7 @@
         // Task<GroupOperation[]> GetAllGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace"); TODO: Analyze what to do with the `GroupFetcher` dependency
         Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo);
         Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified);
-        Task<RetryHistory> GetRetryHistory();
+
         Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified);
 
         // LegacyMessageFailureResolvedHandler
@@ -62,7 +62,9 @@
         // UnArchiveMessagesHandler
         Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds);
 
-        // StoreHistoryHandler
+        // RetryHistory
+        // TODO: Could be different store
+        Task<RetryHistory> GetRetryHistory();
         Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth);
 
