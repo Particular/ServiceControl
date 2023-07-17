@@ -106,7 +106,7 @@
             });
         }
 
-        internal bool NeedsAcknowledgement()
+        public bool NeedsAcknowledgement()
         {
             return ArchiveState == ArchiveState.ArchiveCompleted;
         }
