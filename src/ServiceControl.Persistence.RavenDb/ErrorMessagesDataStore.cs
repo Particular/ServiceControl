@@ -687,6 +687,31 @@ if(this.Status === archivedStatus) {
             }
         }
 
+        public async Task RevertRetry(string messageUniqueId)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var failedMessage = await session
+                    .LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId))
+                    .ConfigureAwait(false);
+                if (failedMessage != null)
+                {
+                    failedMessage.Status = FailedMessageStatus.Unresolved;
+                }
+
+                var failedMessageRetry = await session
+                    .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId))
+                    .ConfigureAwait(false);
+                if (failedMessageRetry != null)
+                {
+                    session.Delete(failedMessageRetry);
+                }
+
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
+        }
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
