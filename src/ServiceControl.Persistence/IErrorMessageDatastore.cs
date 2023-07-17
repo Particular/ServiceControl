@@ -68,5 +68,7 @@
 
         // ReturnToSenderDequeuer.CaptureIfMessageSendingFails
         Task RevertRetry(string messageUniqueId);
+        Task RemoveFailedMessageRetryDocument(string uniqueMessageId);
+        Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress);
     }
 }

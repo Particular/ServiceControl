@@ -96,11 +96,6 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
-        {
-            return store.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
-        }
-
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
         {
             var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
