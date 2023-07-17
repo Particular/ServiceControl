@@ -7,6 +7,8 @@
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbPersistence : IPersistence
@@ -28,6 +30,7 @@
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
+            serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
             serviceCollection.AddCustomCheck<FailedErrorImportCustomCheck>();
 
@@ -69,8 +72,8 @@
             return new RavenDbInstaller(documentStore, ravenStartup);
         }
 
+        readonly RavenStartup ravenStartup;
         readonly PersistenceSettings settings;
         readonly EmbeddableDocumentStore documentStore;
-        readonly RavenStartup ravenStartup;
     }
 }

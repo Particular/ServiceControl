@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
 
     class RavenDbInstaller : IPersistenceInstaller
     {
@@ -20,11 +19,7 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
-            Logger.Info("Index creation started");
-            var indexProvider = ravenStartup.CreateIndexProvider();
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
-            Logger.Info("Index creation complete");
+            await ravenStartup.CreateIndexesAsync(documentStore).ConfigureAwait(false);
 
             Logger.Info("Data migrations starting **TODO NOT IMPLEMENTED YET**");
 

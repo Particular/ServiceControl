@@ -3,7 +3,6 @@
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
-    using System.Reflection;
     using System.Runtime.Serialization;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
@@ -154,11 +153,6 @@
         }
 
         static SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
-
-        public static Assembly[] IndexAssemblies =
-        {
-            typeof(RavenBootstrapper).Assembly
-        };
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
 

@@ -13,7 +13,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Operations;
     using Operations.BodyStorage;
@@ -78,7 +77,6 @@
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
 
                 //Body storage
-                collection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
                 collection.AddSingleton<BodyStorageEnricher>();
 
                 //Health checks
@@ -126,9 +124,6 @@
             {
                 context.CreateQueue(settings.ErrorLogQueue);
             }
-
-            context.AddIndexAssembly(typeof(RavenBootstrapper).Assembly);
-            context.AddIndexAssembly(typeof(CustomChecksIndex).Assembly);
         }
 
         class FailedMessageNotificationsHostedService : IHostedService
