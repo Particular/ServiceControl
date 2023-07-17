@@ -81,7 +81,7 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
-            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
+            await operationManager.Preparing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
             await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
                 .ConfigureAwait(false);
@@ -97,7 +97,7 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
-            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
+            await operationManager.Preparing(requestId, retryType, numberOfMessages)
                 .ConfigureAwait(false);
             await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow)
                 .ConfigureAwait(false);
@@ -156,7 +156,7 @@ namespace ServiceControl.Recoverability
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Prepairing(request.RequestId, request.RetryType, totalMessages)
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages)
                     .ConfigureAwait(false);
 
                 for (var i = 0; i < batches.Count; i++)
