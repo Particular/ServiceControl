@@ -9,8 +9,9 @@
 
     class UnacknowledgedGroupsController : ApiController
     {
-        public UnacknowledgedGroupsController(IArchiveMessages archiver)
+        public UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver)
         {
+            this.retryStore = retryStore;
             this.archiver = archiver;
         }
 
@@ -24,24 +25,18 @@
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
 
-            using (var session = store.OpenAsyncSession())
-            {
-                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false);
-                if (retryHistory != null)
-                {
-                    if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))
-                    {
-                        await session.StoreAsync(retryHistory).ConfigureAwait(false);
-                        await session.SaveChangesAsync().ConfigureAwait(false);
+            var success = await retryStore.AcknowledgeRetryGroup(groupId).ConfigureAwait(false);
 
-                        return Request.CreateResponse(HttpStatusCode.OK);
-                    }
-                }
+            if (success)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK);
             }
+
 
             return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
+        readonly IRetryHistoryDataStore retryStore;
         readonly IArchiveMessages archiver;
     }
 }
