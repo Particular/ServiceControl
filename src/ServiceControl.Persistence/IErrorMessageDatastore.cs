@@ -65,5 +65,8 @@
         // StoreHistoryHandler
         Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth);
+
+        // ReturnToSenderDequeuer.CaptureIfMessageSendingFails
+        Task RevertRetry(string messageUniqueId);
     }
 }
