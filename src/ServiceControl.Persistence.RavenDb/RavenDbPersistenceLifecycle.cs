@@ -6,7 +6,6 @@
     using NServiceBus.Logging;
     using Raven.Client;
     using Raven.Client.Embedded;
-    using Raven.Client.Indexes;
     using ServiceControl.Persistence;
 
     class RavenDbPersistenceLifecycle : IPersistenceLifecycle
@@ -23,11 +22,7 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
-            Logger.Info("Index creation started");
-            var indexProvider = ravenStartup.CreateIndexProvider();
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
-            Logger.Info("Index creation complete");
+            await ravenStartup.CreateIndexesAsync(documentStore).ConfigureAwait(false);
 
             Logger.Info("Testing indexes");
             await TestAllIndexesAndResetIfException(documentStore).ConfigureAwait(false);

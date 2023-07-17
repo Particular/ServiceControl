@@ -34,11 +34,6 @@
 
             var ravenStartup = new RavenStartup();
 
-            foreach (var indexAssembly in RavenBootstrapper.IndexAssemblies)
-            {
-                ravenStartup.AddIndexAssembly(indexAssembly);
-            }
-
             return new RavenDbPersistence(settings, documentStore, ravenStartup);
         }
     }
