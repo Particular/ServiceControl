@@ -64,5 +64,17 @@
                 Logger.Warn($"{failed} messages could not be re-imported. This could indicate a problem with the data. Contact Particular support if you need help with recovering the messages.");
             }
         }
+
+        public async Task<bool> QueryContainsFailedImports()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
+                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                {
+                    return await ie.MoveNextAsync().ConfigureAwait(false);
+                }
+            }
+        }
     }
 }
