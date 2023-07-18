@@ -14,6 +14,7 @@
     using Raven.Client;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
+    using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
@@ -27,6 +28,7 @@
         public ErrorMessagesDataStore(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
+
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -63,6 +65,29 @@
                     .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
+            string endpointName,
+            string searchKeyword,
+            PagingInfo pagingInfo,
+            SortInfo sortInfo
+            )
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchKeyword)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
@@ -710,6 +735,17 @@ if(this.Status === archivedStatus) {
             }
 
             return null;
+        }
+
+        public async Task StoreEventLogItem(EventLogItem logItem)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                await session.StoreAsync(logItem)
+                   .ConfigureAwait(false);
+                await session.SaveChangesAsync()
+                    .ConfigureAwait(false);
+            }
         }
 
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();

@@ -7,7 +7,7 @@
 
     public class StoreHistoryHandler : IDomainHandler<RetryOperationCompleted>
     {
-        public StoreHistoryHandler(IErrorMessageDataStore store, Settings settings)
+        public StoreHistoryHandler(IRetryHistoryDataStore store, Settings settings)
         {
             this.store = store;
             this.settings = settings;
@@ -28,7 +28,7 @@
                 settings.RetryHistoryDepth);
         }
 
-        readonly IErrorMessageDataStore store;
+        readonly IRetryHistoryDataStore store;
         readonly Settings settings;
     }
 }
