@@ -158,7 +158,7 @@ namespace ServiceControl.CompositeViews.Messages
                     etag = etags.ElementAt(0);
                 }
 
-                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
+                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
             }
         }
 
