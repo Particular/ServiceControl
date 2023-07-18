@@ -221,10 +221,9 @@
 
         internal class AdoptOrphanBatchesFromPreviousSessionHostedService : IHostedService
         {
-            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store, IAsyncTimer scheduler)
+            public AdoptOrphanBatchesFromPreviousSessionHostedService(RetryDocumentManager retryDocumentManager, IAsyncTimer scheduler)
             {
                 this.retryDocumentManager = retryDocumentManager;
-                this.store = store;
                 this.scheduler = scheduler;
                 startTime = DateTime.UtcNow;
             }
@@ -252,11 +251,10 @@
             }
 
             TimerJob timer;
-            DateTime startTime;
-            IDocumentStore store;
+            readonly DateTime startTime;
             readonly IAsyncTimer scheduler;
-            RetryDocumentManager retryDocumentManager;
-            static ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
+            readonly RetryDocumentManager retryDocumentManager;
+            static readonly ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
         }
 
         class ProcessRetryBatchesHostedService : IHostedService
