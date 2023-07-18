@@ -1,12 +1,15 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System.Collections.ObjectModel;
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client;
     using Raven.Client.Embedded;
+    using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Persistence.RavenDb.SagaAudit;
     using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbPersistence : IPersistence
@@ -42,6 +45,7 @@
             // TODO: Find where these extension methods came from, worried there might be some circular references
             //serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
             //serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
+            serviceCollection.AddCustomCheck<AuditRetentionCustomCheck>();
 
             //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
 
