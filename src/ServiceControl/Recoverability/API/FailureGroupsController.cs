@@ -19,13 +19,15 @@
             IEnumerable<IFailureClassifier> classifiers,
             IMessageSession bus,
             GroupFetcher groupFetcher,
-            IErrorMessageDataStore dataStore
+            IErrorMessageDataStore dataStore,
+            IRetryHistoryDataStore retryStore
             )
         {
             this.classifiers = classifiers;
             this.bus = bus;
             this.groupFetcher = groupFetcher;
             this.dataStore = dataStore;
+            this.retryStore = retryStore;
         }
 
         [Route("recoverability/classifiers")]
@@ -128,7 +130,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetRetryHistory()
         {
-            var retryHistory = await dataStore.GetRetryHistory()
+            var retryHistory = await retryStore.GetRetryHistory()
                 .ConfigureAwait(false);
 
             return Negotiator
@@ -156,5 +158,6 @@
         readonly IMessageSession bus;
         readonly GroupFetcher groupFetcher;
         readonly IErrorMessageDataStore dataStore;
+        readonly IRetryHistoryDataStore retryStore;
     }
 }
