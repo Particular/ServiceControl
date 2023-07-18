@@ -79,7 +79,7 @@
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            return store.Stop();
+            return store.StopAsync(cancellationToken);
         }
 
         IMessageSession messageSession;

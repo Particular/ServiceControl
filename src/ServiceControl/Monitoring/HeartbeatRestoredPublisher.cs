@@ -21,7 +21,7 @@ namespace ServiceControl.Monitoring
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> context)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
             return Task.FromResult(contexts.Select(r => (object)new HeartbeatRestored
             {
