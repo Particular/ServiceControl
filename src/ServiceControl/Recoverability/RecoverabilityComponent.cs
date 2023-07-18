@@ -236,14 +236,11 @@
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
-                bool hasMoreWorkToDo;
-                using (var session = store.OpenAsyncSession())
-                {
-                    hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(session, startTime).ConfigureAwait(false);
-                }
+                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(startTime).ConfigureAwait(false);
 
                 return hasMoreWorkToDo;
             }
+
             public Task StartAsync(CancellationToken cancellationToken)
             {
                 timer = scheduler.Schedule(async _ =>
