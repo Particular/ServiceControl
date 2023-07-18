@@ -1,18 +1,16 @@
 namespace ServiceControl.Recoverability
 {
     using System.Threading.Tasks;
-    using Infrastructure.DomainEvents;
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceControl.Persistence.Recoverability;
 
     class UnarchiveAllInGroupHandler : IHandleMessages<UnarchiveAllInGroup>
     {
-        public UnarchiveAllInGroupHandler(IArchiveMessages archiver, IDomainEvents domainEvents, RetryingManager retryingManager)
+        public UnarchiveAllInGroupHandler(IArchiveMessages archiver, RetryingManager retryingManager)
         {
             this.archiver = archiver;
             this.retryingManager = retryingManager;
-            this.domainEvents = domainEvents;
         }
 
         public async Task Handle(UnarchiveAllInGroup message, IMessageHandlerContext context)
@@ -23,11 +21,10 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            await archiver.UnarchiveAllInGroup(message.GroupId, domainEvents).ConfigureAwait(false);
+            await archiver.UnarchiveAllInGroup(message.GroupId).ConfigureAwait(false);
         }
 
         IArchiveMessages archiver;
-        IDomainEvents domainEvents;
         RetryingManager retryingManager;
 
         static ILog logger = LogManager.GetLogger<UnarchiveAllInGroupHandler>();
