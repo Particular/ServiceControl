@@ -7,6 +7,7 @@
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
     using ServiceControl.Persistence.RavenDb.SagaAudit;
@@ -46,6 +47,9 @@
             //serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
             //serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
             serviceCollection.AddCustomCheck<AuditRetentionCustomCheck>();
+            serviceCollection.AddCustomCheck<CheckFreeDiskSpace>();
+            serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();
+            serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
             //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
 
