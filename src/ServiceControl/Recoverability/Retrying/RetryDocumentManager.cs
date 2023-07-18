@@ -1,18 +1,10 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using Persistence.Infrastructure;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
-    using Raven.Client.Linq;
-    using Raven.Json.Linq;
     using ServiceControl.Persistence;
 
     class RetryDocumentManager
@@ -24,7 +16,7 @@ namespace ServiceControl.Recoverability
             this.operationManager = operationManager;
         }
 
-        internal async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
+        public async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
         {
             var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff).ConfigureAwait(false);
 
@@ -53,13 +45,9 @@ namespace ServiceControl.Recoverability
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
 
-
-        internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
+        public async Task RebuildRetryOperationState()
         {
-            var stagingBatchGroups = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
-                .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
-                .ToListAsync()
-                .ConfigureAwait(false);
+            var stagingBatchGroups = await store.QueryAvailableBatches().ConfigureAwait(false);
 
             foreach (var group in stagingBatchGroups)
             {
@@ -76,13 +64,11 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        RetryingManager operationManager;
-        IRetryDocumentDataStore store;
+        readonly RetryingManager operationManager;
+        readonly IRetryDocumentDataStore store;
         bool abort;
-        public static string RetrySessionId = Guid.NewGuid().ToString();
+        public static string RetrySessionId = Guid.NewGuid().ToString(); // TODO: Uplift this into DI?
 
-        
-
-        static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
+        static readonly ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }
 }
