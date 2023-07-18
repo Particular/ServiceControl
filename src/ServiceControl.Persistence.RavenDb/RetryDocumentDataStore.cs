@@ -1,13 +1,16 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
+    using Persistence.Infrastructure;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
+    using Raven.Client.Linq;
     using Raven.Json.Linq;
     using ServiceControl.Recoverability;
 
@@ -83,6 +86,21 @@
             }
 
             return batchDocumentId;
+        }
+
+        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
+                    .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
+                    .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
+                    .Statistics(out var stats)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return orphanedBatches.ToQueryResult(stats);
+            }
         }
 
         static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)

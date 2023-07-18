@@ -1,9 +1,12 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
+    using Persistence.Infrastructure;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
@@ -21,25 +24,20 @@ namespace ServiceControl.Recoverability
             this.operationManager = operationManager;
         }
 
-        internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
+        internal async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
         {
-            var orphanedBatches = await session.Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-                .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
-                .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != RetrySessionId)
-                .Statistics(out var stats)
-                .ToListAsync()
-                .ConfigureAwait(false);
+            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff).ConfigureAwait(false);
 
-            log.Info($"Found {orphanedBatches.Count} orphaned retry batches from previous sessions.");
+            log.Info($"Found {orphanedBatches.Results.Count} orphaned retry batches from previous sessions.");
 
             // let's leave Task.Run for now due to sync sends
-            await Task.WhenAll(orphanedBatches.Select(b => Task.Run(async () =>
+            await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
                 log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
                 await store.MoveBatchToStaging(b.Id).ConfigureAwait(false);
             }))).ConfigureAwait(false);
 
-            foreach (var batch in orphanedBatches)
+            foreach (var batch in orphanedBatches.Results)
             {
                 if (batch.RetryType != RetryType.MultipleMessages)
                 {
@@ -52,8 +50,9 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            return stats.IsStale || orphanedBatches.Any();
+            return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
         }
+
 
         internal async Task RebuildRetryOperationState(IAsyncDocumentSession session)
         {

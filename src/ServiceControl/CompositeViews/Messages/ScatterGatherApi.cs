@@ -92,6 +92,7 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryStatsInfo(
                 string.Join("", infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
                 infos.Sum(x => x.TotalCount),
+                isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
         }
