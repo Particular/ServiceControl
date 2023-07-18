@@ -9,9 +9,7 @@ namespace ServiceControl.MessageFailures.Api
     using InternalMessages;
     using NServiceBus;
     using Infrastructure.WebApi;
-    using Recoverability;
     using ServiceControl.Persistence;
-    using Microsoft.AspNet.SignalR;
 
     class ArchiveMessagesController : ApiController
     {
