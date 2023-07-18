@@ -1,9 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
-    using MessageFailures;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
@@ -16,61 +14,11 @@ namespace ServiceControl.Recoverability
 
     class RetryDocumentManager
     {
-        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IDocumentStore store, RetryingManager operationManager)
+        public RetryDocumentManager(IHostApplicationLifetime applicationLifetime, IRetryDocumentDataStore store, RetryingManager operationManager)
         {
             this.store = store;
             applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
             this.operationManager = operationManager;
-        }
-
-        public async Task<string> CreateBatchDocument(string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
-        {
-            var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(new RetryBatch
-                {
-                    Id = batchDocumentId,
-                    Context = batchName,
-                    RequestId = requestId,
-                    RetryType = retryType,
-                    Originator = originator,
-                    Classifier = classifier,
-                    StartTime = startTime,
-                    Last = last,
-                    InitialBatchSize = failedMessageRetryIds.Length,
-                    RetrySessionId = RetrySessionId,
-                    FailureRetries = failedMessageRetryIds,
-                    Status = RetryBatchStatus.MarkingDocuments
-                }).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
-            }
-
-            return batchDocumentId;
-        }
-
-       
-
-        public virtual async Task MoveBatchToStaging(string batchDocumentId)
-        {
-            try
-            {
-                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
-                    new[]
-                    {
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int)RetryBatchStatus.Staging,
-                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
-                        }
-                    }).ConfigureAwait(false);
-            }
-            catch (ConcurrencyException)
-            {
-                log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
-            }
         }
 
         internal async Task<bool> AdoptOrphanedBatches(IAsyncDocumentSession session, DateTime cutoff)
@@ -88,7 +36,7 @@ namespace ServiceControl.Recoverability
             await Task.WhenAll(orphanedBatches.Select(b => Task.Run(async () =>
             {
                 log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
-                await MoveBatchToStaging(b.Id).ConfigureAwait(false);
+                await store.MoveBatchToStaging(b.Id).ConfigureAwait(false);
             }))).ConfigureAwait(false);
 
             foreach (var batch in orphanedBatches)
@@ -130,9 +78,9 @@ namespace ServiceControl.Recoverability
         }
 
         RetryingManager operationManager;
-        IDocumentStore store;
+        IRetryDocumentDataStore store;
         bool abort;
-        protected static string RetrySessionId = Guid.NewGuid().ToString();
+        public static string RetrySessionId = Guid.NewGuid().ToString();
 
         
 

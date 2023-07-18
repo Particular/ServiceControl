@@ -9,5 +9,8 @@
             DateTime startTime, DateTime? last = null, string originator = null, string batchName = null,
             string classifier = null);
 
+        Task MoveBatchToStaging(string batchDocumentId);
+
+        Task<string> CreateBatchDocument(string retrySessionId, string requestId, RetryType retryType, string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
     }
 }
