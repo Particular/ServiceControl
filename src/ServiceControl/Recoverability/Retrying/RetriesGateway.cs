@@ -14,11 +14,12 @@ namespace ServiceControl.Recoverability
     using Raven.Client;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
+    using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.Persistence;
 
     class RetriesGateway
     {
-        public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager, RetryingManager operationManager)
+        public RetriesGateway(IRetryDocumentDataStore store, RetryDocumentManager documentManager, RetryingManager operationManager)
         {
             this.store = store;
             retryDocumentManager = documentManager;
@@ -135,14 +136,8 @@ namespace ServiceControl.Recoverability
 
             log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            var commands = new ICommandData[messageIds.Length];
-            for (var i = 0; i < messageIds.Length; i++)
-            {
-                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
-            }
-
-            await store.AsyncDatabaseCommands.BatchAsync(commands)
-                .ConfigureAwait(false);
+            await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, failedMessageRetryIds, startTime, last,
+                originator, batchName, classifier).ConfigureAwait(false);
 
             await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
@@ -196,7 +191,7 @@ namespace ServiceControl.Recoverability
             return $"'{context}' batch {pageNum} of {totalPages}";
         }
 
-        IDocumentStore store;
+        IRetryDocumentDataStore store;
         RetryDocumentManager retryDocumentManager;
         RetryingManager operationManager;
         ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();

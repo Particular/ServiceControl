@@ -49,30 +49,7 @@ namespace ServiceControl.Recoverability
             return batchDocumentId;
         }
 
-        public static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
-        {
-            return new PatchCommandData
-            {
-                Patches = patchRequestsEmpty,
-                PatchesIfMissing = new[]
-                {
-                    new PatchRequest
-                    {
-                        Name = "FailedMessageId",
-                        Type = PatchCommandType.Set,
-                        Value = FailedMessage.MakeDocumentId(messageId)
-                    },
-                    new PatchRequest
-                    {
-                        Name = "RetryBatchId",
-                        Type = PatchCommandType.Set,
-                        Value = batchDocumentId
-                    }
-                },
-                Key = FailedMessageRetry.MakeDocumentId(messageId),
-                Metadata = defaultMetadata
-            };
-        }
+       
 
         public virtual async Task MoveBatchToStaging(string batchDocumentId)
         {
@@ -157,13 +134,7 @@ namespace ServiceControl.Recoverability
         bool abort;
         protected static string RetrySessionId = Guid.NewGuid().ToString();
 
-        static RavenJObject defaultMetadata = RavenJObject.Parse($@"
-                                    {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}");
-
-        static PatchRequest[] patchRequestsEmpty = new PatchRequest[0];
+        
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }
