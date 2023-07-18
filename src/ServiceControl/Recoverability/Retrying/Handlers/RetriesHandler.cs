@@ -1,10 +1,7 @@
 namespace ServiceControl.Recoverability
 {
-    using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
-    using MessageFailures;
-    using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
     using ServiceControl.Persistence;
@@ -43,11 +40,11 @@ namespace ServiceControl.Recoverability
         {
             if (!string.IsNullOrWhiteSpace(message.Endpoint))
             {
-                retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(message.Endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
+                retries.StartRetryForEndpoint(message.Endpoint);
             }
             else
             {
-                retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
+                retries.StartRetryForAllMessages();
             }
 
             return Task.FromResult(0);
@@ -67,7 +64,7 @@ namespace ServiceControl.Recoverability
         {
             var failedQueueAddress = message.QueueAddress;
 
-            retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
+            retries.StartRetryForFailedQueueAddress(failedQueueAddress, message.Status);
 
             return Task.FromResult(0);
         }

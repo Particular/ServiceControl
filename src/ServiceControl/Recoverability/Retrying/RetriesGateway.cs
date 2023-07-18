@@ -62,6 +62,21 @@ namespace ServiceControl.Recoverability
             return Tuple.Create(response, latestAttempt);
         }
 
+        public void StartRetryForAllMessages()
+        {
+            StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
+
+        }
+        public void StartRetryForEndpoint(string endpoint)
+        {
+            StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
+        }
+
+        public void StartRetryForFailedQueueAddress(string failedQueueAddress, FailedMessageStatus status)
+        {
+            StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == status, $"all messages for failed queue address '{failedQueueAddress}'");
+        }
+
         public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus
