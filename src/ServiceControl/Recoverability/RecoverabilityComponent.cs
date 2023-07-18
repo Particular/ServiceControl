@@ -201,18 +201,14 @@
 
         class RebuildRetryGroupStatusesHostedService : IHostedService
         {
-            public RebuildRetryGroupStatusesHostedService(RetryDocumentManager retryDocumentManager, IDocumentStore store)
+            public RebuildRetryGroupStatusesHostedService(RetryDocumentManager retryDocumentManager)
             {
-                this.store = store;
                 this.retryDocumentManager = retryDocumentManager;
             }
 
-            public async Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
-                using (var storageSession = store.OpenAsyncSession())
-                {
-                    await retryDocumentManager.RebuildRetryOperationState(storageSession).ConfigureAwait(false);
-                }
+                return retryDocumentManager.RebuildRetryOperationState();
             }
 
             public Task StopAsync(CancellationToken cancellationToken)
@@ -220,8 +216,7 @@
                 return Task.CompletedTask;
             }
 
-            RetryDocumentManager retryDocumentManager;
-            IDocumentStore store;
+            readonly RetryDocumentManager retryDocumentManager;
         }
 
         internal class AdoptOrphanBatchesFromPreviousSessionHostedService : IHostedService
