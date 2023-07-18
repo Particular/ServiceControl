@@ -42,7 +42,7 @@
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest(new List<MessageContext> {messageContext}, dispatcher).ConfigureAwait(false);
+                await errorIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher).ConfigureAwait(false);
                 await taskCompletionSource.Task.ConfigureAwait(false);
             }, cancellationToken)
                 .ConfigureAwait(false);

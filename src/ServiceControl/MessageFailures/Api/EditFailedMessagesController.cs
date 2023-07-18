@@ -43,7 +43,7 @@
             }
 
             var failedMessage = await store.ErrorBy(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
-            
+
             if (failedMessage == null)
             {
                 logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
