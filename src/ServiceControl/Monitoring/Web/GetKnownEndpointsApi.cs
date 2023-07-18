@@ -23,7 +23,7 @@
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
                     knownEndpoints,
-                    new QueryStatsInfo(string.Empty, knownEndpoints.Count)
+                    new QueryStatsInfo(string.Empty, knownEndpoints.Count, isStale: false)
                 )
             );
         }
