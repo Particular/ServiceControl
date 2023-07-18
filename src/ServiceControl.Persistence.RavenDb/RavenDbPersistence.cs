@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
-    using System.Collections.ObjectModel;
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client;
     using Raven.Client.Embedded;
@@ -42,10 +41,8 @@
             serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore, ExternalIntegrationRequestsDataStore>();
             serviceCollection.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
-
-            // TODO: Find where these extension methods came from, worried there might be some circular references
-            //serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
-            //serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
+            serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
+            serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
             serviceCollection.AddCustomCheck<AuditRetentionCustomCheck>();
             serviceCollection.AddCustomCheck<CheckFreeDiskSpace>();
             serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();

@@ -10,9 +10,16 @@ namespace ServiceControl.Persistence
         {
             try
             {
+                // TODO: This is just to make it compile, values are random
+                var settings = new PersistenceSettings(TimeSpan.FromHours(1), TimeSpan.FromHours(1), TimeSpan.FromHours(1), false);
+
                 var persistenceCreationInfo = GetPersistenceCreationInfo(dataStoreType);
                 var persistenceConfig = (IPersistenceConfiguration)Activator.CreateInstance(persistenceCreationInfo);
-                persistenceConfig.ConfigureServices(serviceCollection);
+
+                var persistence = persistenceConfig.Create(settings);
+                var lifecycle = persistence.Configure(serviceCollection);
+
+                // TODO: Something probably needs to happen with the lifecycle in order to run the tests - look in Audit instance for inspiration
 
             }
             catch (Exception e)
