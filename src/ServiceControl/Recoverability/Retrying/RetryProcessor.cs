@@ -230,7 +230,7 @@ namespace ServiceControl.Recoverability
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
             }
 
-            await TryDispatch(manager, sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
+            await TryDispatch(sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
@@ -252,7 +252,7 @@ namespace ServiceControl.Recoverability
             return messages.Length;
         }
 
-        Task TryDispatch(IRetryBatchesManager manager, IDispatchMessages sender,
+        Task TryDispatch(IDispatchMessages sender,
             TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages,
             IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId,
             bool previousAttemptFailed)

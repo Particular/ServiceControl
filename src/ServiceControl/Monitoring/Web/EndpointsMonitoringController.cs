@@ -66,7 +66,7 @@
 
         [Route("endpoints/known")]
         [HttpGet]
-        public Task<HttpResponseMessage> KnownEndpoints() => getKnownEndpointsApi.Execute(this, endpointInstanceMonitoring);
+        public Task<HttpResponseMessage> KnownEndpoints() => getKnownEndpointsApi.Execute(this);
 
 
         [Route("endpoints/{endpointId}")]

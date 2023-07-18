@@ -13,15 +13,14 @@ namespace ServiceControl.Recoverability
         IHandleMessages<RetryMessagesByQueueAddress>
     {
         readonly RetriesGateway retries;
-        readonly RetryDocumentManager retryDocumentManager;
         readonly IErrorMessageDataStore dataStore;
 
-        public RetriesHandler(RetriesGateway retries, RetryDocumentManager retryDocumentManager, IErrorMessageDataStore dataStore)
+        public RetriesHandler(RetriesGateway retries, IErrorMessageDataStore dataStore)
         {
             this.retries = retries;
-            this.retryDocumentManager = retryDocumentManager;
             this.dataStore = dataStore;
         }
+
         /// <summary>
         /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to
         /// <see cref="FailedMessageRetryCleaner" />.
