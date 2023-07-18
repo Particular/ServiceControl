@@ -308,6 +308,7 @@
         {
             if (progressToStaged)
             {
+                //TODO: this method was moved to IRetryDocumentDataStore
                 return base.MoveBatchToStaging(batchDocumentId);
             }
 

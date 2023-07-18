@@ -3,8 +3,10 @@
     using System;
     using System.Threading.Tasks;
     using MessageFailures;
+    using NServiceBus.Logging;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Json.Linq;
     using ServiceControl.Recoverability;
@@ -31,6 +33,56 @@
 
             await store.AsyncDatabaseCommands.BatchAsync(commands)
                 .ConfigureAwait(false);
+        }
+
+        public async Task MoveBatchToStaging(string batchDocumentId)
+        {
+            try
+            {
+                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
+                    new[]
+                    {
+                        new PatchRequest
+                        {
+                            Type = PatchCommandType.Set,
+                            Name = "Status",
+                            Value = (int)RetryBatchStatus.Staging,
+                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
+                        }
+                    }).ConfigureAwait(false);
+            }
+            catch (ConcurrencyException)
+            {
+                log.DebugFormat("Ignoring concurrency exception while moving batch to staging {0}", batchDocumentId);
+            }
+        }
+
+        public async Task<string> CreateBatchDocument(string retrySessionId, string requestId, RetryType retryType, string[] failedMessageRetryIds,
+            string originator,
+            DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
+        {
+            var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
+            using (var session = store.OpenAsyncSession())
+            {
+                await session.StoreAsync(new RetryBatch
+                {
+                    Id = batchDocumentId,
+                    Context = batchName,
+                    RequestId = requestId,
+                    RetryType = retryType,
+                    Originator = originator,
+                    Classifier = classifier,
+                    StartTime = startTime,
+                    Last = last,
+                    InitialBatchSize = failedMessageRetryIds.Length,
+                    RetrySessionId = retrySessionId,
+                    FailureRetries = failedMessageRetryIds,
+                    Status = RetryBatchStatus.MarkingDocuments
+                }).ConfigureAwait(false);
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+
+            return batchDocumentId;
         }
 
         static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
@@ -65,5 +117,7 @@
                                     }}");
 
         static PatchRequest[] PatchRequestsEmpty = Array.Empty<PatchRequest>();
+
+        static ILog log = LogManager.GetLogger(typeof(RetryDocumentDataStore));
     }
 }

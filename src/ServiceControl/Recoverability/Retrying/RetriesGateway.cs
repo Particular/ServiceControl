@@ -131,7 +131,7 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
 
-            var batchDocumentId = await retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
+            var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
                 .ConfigureAwait(false);
 
             log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
@@ -139,7 +139,7 @@ namespace ServiceControl.Recoverability
             await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, failedMessageRetryIds, startTime, last,
                 originator, batchName, classifier).ConfigureAwait(false);
 
-            await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
+            await store.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
 
             log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }
