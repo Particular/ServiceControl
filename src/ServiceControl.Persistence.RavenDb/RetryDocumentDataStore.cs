@@ -28,7 +28,7 @@
             DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
         {
             var commands = new ICommandData[messageIds.Length];
-            
+
             for (var i = 0; i < messageIds.Length; i++)
             {
                 commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);

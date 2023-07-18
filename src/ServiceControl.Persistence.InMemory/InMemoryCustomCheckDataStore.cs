@@ -47,7 +47,7 @@ namespace ServiceControl.Persistence.InMemory
                 })
                 .ToList();
 
-            var stats = new QueryStatsInfo("", storage.Count);
+            var stats = new QueryStatsInfo("", storage.Count, false);
 
             return Task.FromResult(new QueryResult<IList<CustomCheck>>(result, stats));
         }

@@ -37,7 +37,7 @@
                     return QueryResult<SagaHistory>.Empty();
                 }
 
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale));
             }
         }
 
