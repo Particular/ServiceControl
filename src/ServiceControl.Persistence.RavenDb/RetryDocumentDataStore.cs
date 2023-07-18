@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq.Expressions;
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
@@ -10,8 +12,10 @@
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
+    using Raven.Client.Indexes;
     using Raven.Client.Linq;
     using Raven.Json.Linq;
+    using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
     public class RetryDocumentDataStore : IRetryDocumentDataStore
@@ -149,5 +153,123 @@
         static PatchRequest[] PatchRequestsEmpty = Array.Empty<PatchRequest>();
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentDataStore));
+
+
+
+        public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
+        {
+            // StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
+            //public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
+            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
+
+            var x = new IndexBasedBulkRetryRequest<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(
+                "All",
+                RetryType.All,
+                originator: "all messages",
+                classifier: null,
+                cutoff,
+                filter: null
+                );
+
+            using (var session = store.OpenAsyncSession())
+            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            {
+                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                {
+                    var current = stream.Current.Document;
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        public async Task GetBatchesForEndpoint(DateTime cutoff, string endpoint, Func<string, DateTime, Task> callback)
+        {
+            //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
+            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
+
+            var x = new IndexBasedBulkRetryRequest<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(
+                endpoint,
+                RetryType.AllForEndpoint,
+                originator: $"all messages for endpoint {endpoint}",
+                classifier: null,
+                cutoff,
+                filter: m => m.ReceivingEndpointName == endpoint
+            );
+
+            using (var session = store.OpenAsyncSession())
+            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            {
+                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                {
+                    var current = stream.Current.Document;
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        public async Task GetBatchesForFailedQueueAddress(DateTime cutoff, string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback)
+        {
+            //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
+            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == status, );
+
+            var x = new IndexBasedBulkRetryRequest<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(
+                failedQueueAddress,
+                RetryType.AllForEndpoint,
+                originator: $"all messages for failed queue address '{failedQueueAddress}'",
+                classifier: null,
+                cutoff,
+                filter: m => m.QueueAddress == failedQueueAddress && m.Status == status
+            );
+
+            using (var session = store.OpenAsyncSession())
+            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            {
+                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                {
+                    var current = stream.Current.Document;
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        class IndexBasedBulkRetryRequest<TType, TIndex>
+            where TIndex : AbstractIndexCreationTask, new()
+            where TType : IHaveStatus
+        {
+            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, string classifier, DateTime startTime, Expression<Func<TType, bool>> filter)
+            {
+                RequestId = requestId;
+                RetryType = retryType;
+                Originator = originator;
+                this.filter = filter;
+                StartTime = startTime;
+                Classifier = classifier;
+            }
+
+            public string RequestId { get; set; }
+            public RetryType RetryType { get; set; }
+            public string Originator { get; set; }
+            public string Classifier { get; set; }
+            public DateTime StartTime { get; set; }
+
+            public Task<Raven.Abstractions.Util.IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
+            {
+                var query = session.Query<TType, TIndex>();
+
+                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
+
+                if (filter != null)
+                {
+                    query = query.Where(filter);
+                }
+
+                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
+            }
+
+            readonly Expression<Func<TType, bool>> filter;
+        }
     }
 }
