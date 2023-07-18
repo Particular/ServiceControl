@@ -71,7 +71,7 @@
                     .ToListAsync()
                     .ConfigureAwait(false);
 
-                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
+                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale));
             }
         }
 

@@ -106,7 +106,7 @@ namespace ServiceControl.Persistence.SqlServer
                     totalCount = multi.ReadFirst<int>();
                 }
 
-                return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount));
+                return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount, false));
             }).ConfigureAwait(false);
         }
 
