@@ -44,7 +44,8 @@
 
                 await errorIngestor.Ingest(new List<MessageContext> {messageContext}, dispatcher).ConfigureAwait(false);
                 await taskCompletionSource.Task.ConfigureAwait(false);
-            }, cancellationToken);
+            }, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         readonly IFailedErrorImportDataStore store;

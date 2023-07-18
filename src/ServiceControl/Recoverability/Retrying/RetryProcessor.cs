@@ -33,7 +33,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> ProcessBatches(IDispatchMessages sender, CancellationToken cancellationToken = default)
         {
-            using (var manager = await store.CreateRetryBatchesManager())
+            using (var manager = await store.CreateRetryBatchesManager().ConfigureAwait(false))
             {
                 var result = await ForwardCurrentBatch(manager, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(manager, sender).ConfigureAwait(false);
 
@@ -54,7 +54,7 @@ namespace ServiceControl.Recoverability
 
                 isRecoveringFromPrematureShutdown = false;
 
-                var stagingBatch = await manager.GetStagingBatch();
+                var stagingBatch = await manager.GetStagingBatch().ConfigureAwait(false);
 
                 if (stagingBatch != null)
                 {
@@ -102,7 +102,7 @@ namespace ServiceControl.Recoverability
                     Log.Debug($"Loading batch {nowForwarding.RetryBatchId} for forwarding.");
                 }
 
-                var forwardingBatch = await manager.GetRetryBatch(nowForwarding.RetryBatchId, cancellationToken);
+                var forwardingBatch = await manager.GetRetryBatch(nowForwarding.RetryBatchId, cancellationToken).ConfigureAwait(false);
 
                 if (forwardingBatch != null)
                 {
@@ -281,7 +281,7 @@ namespace ServiceControl.Recoverability
             }
             catch (Exception e)
             {
-                await store.RecordFailedStagingAttempt(messages, failedMessageRetriesById, e, MaxStagingAttempts, stagingId);
+                await store.RecordFailedStagingAttempt(messages, failedMessageRetriesById, e, MaxStagingAttempts, stagingId).ConfigureAwait(false);
 
                 throw new RetryStagingException(e);
             }

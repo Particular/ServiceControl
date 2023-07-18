@@ -22,7 +22,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetEmailNotificationsSettings(HttpRequestMessage request)
         {
-            using (var manager = await store.CreateNotificationsManager())
+            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
             {
                 var settings = await manager.LoadSettings().ConfigureAwait(false);
 
@@ -34,7 +34,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> ToggleEmailNotifications(ToggleEmailNotifications request)
         {
-            using (var manager = await store.CreateNotificationsManager())
+            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
             {
                 var settings = await manager.LoadSettings().ConfigureAwait(false);
 
@@ -50,7 +50,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
         {
-            using (var manager = await store.CreateNotificationsManager())
+            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
             {
                 var settings = await manager.LoadSettings().ConfigureAwait(false);
 
@@ -76,7 +76,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> SendTestEmail()
         {
-            using (var manager = await store.CreateNotificationsManager())
+            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
             {
                 var settings = await manager.LoadSettings().ConfigureAwait(false);
 

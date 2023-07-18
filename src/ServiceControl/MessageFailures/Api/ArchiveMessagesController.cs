@@ -43,7 +43,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
-            var results = await dataStore.GetFailureGroupsByClassifier(classifier);
+            var results = await dataStore.GetFailureGroupsByClassifier(classifier).ConfigureAwait(false);
 
             return Negotiator.FromModel(Request, results)
                 .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
