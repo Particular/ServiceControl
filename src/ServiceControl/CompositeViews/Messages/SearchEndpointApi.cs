@@ -16,7 +16,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, Input input)
         {
-            return DataStore.GetAllMessagesForEndpoint(request.GetPagingInfo(), request.GetSortInfo());
+            return DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, request.GetPagingInfo(), request.GetSortInfo());
         }
 
         public class Input

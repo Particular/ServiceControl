@@ -6,6 +6,7 @@
     using CompositeViews.Messages;
     using Infrastructure;
     using MessageFailures.Api;
+    using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability;
@@ -69,5 +70,10 @@
 
         // ReturnToSender.FetchFromFailedMessage
         Task<byte[]> FetchFromFailedMessage(string uniqueMessageId);
+
+        // AuditEventLogWriter
+        Task StoreEventLogItem(EventLogItem logItem);
+
+        Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo);
     }
 }

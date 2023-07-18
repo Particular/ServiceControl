@@ -28,7 +28,7 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            await dataStore.Add(logItem)
+            await dataStore.StoreEventLogItem(logItem)
                 .ConfigureAwait(false);
 
             await broadcaster.Broadcast(new EventLogItemAdded
