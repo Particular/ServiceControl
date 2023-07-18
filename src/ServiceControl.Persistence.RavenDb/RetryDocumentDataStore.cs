@@ -103,6 +103,18 @@
             }
         }
 
+        public async Task<IList<RetryBatchGroup>> QueryAvailableBatches()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var results = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
+                    .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+                return results;
+            }
+        }
+
         static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
             return new PatchCommandData

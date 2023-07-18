@@ -1,13 +1,13 @@
 namespace ServiceControl.Persistence
 {
     using System;
-    using Raven.Imports.Newtonsoft.Json;
 
     public class RetryBatchGroup
     {
         public string RequestId { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] //default to RetryType.Unknown for backwards compatability
+        // [Raven.Imports.Newtonsoft.Json.JsonProperty(NullValueHandling = NullValueHandling.Ignore)] //default to RetryType.Unknown for backwards compatability
+        // TODO: Need to fix ethe JsonProperty, maybe RavenDB has a method to specify metatdata or use a mapper/transformation
         public RetryType RetryType { get; set; }
 
         public bool HasStagingBatches { get; set; }

@@ -18,5 +18,6 @@
             string batchName = null, string classifier = null);
 
         Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff);
+        Task<IList<RetryBatchGroup>> QueryAvailableBatches();
     }
 }
