@@ -93,6 +93,11 @@ namespace Particular.ServiceControl
 
             HostBuilder = new HostBuilder();
             HostBuilder
+                .UseDefaultServiceProvider(c => // TODO: Remove when done testing
+                {
+                    c.ValidateOnBuild = false;
+                    c.ValidateScopes = false;
+                })
                 .ConfigureLogging(builder =>
                 {
                     builder.ClearProviders();
