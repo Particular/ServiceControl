@@ -31,10 +31,4 @@
     <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB35" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="persistence.manifest">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
