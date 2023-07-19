@@ -15,7 +15,7 @@
 
         public string Name => "RavenDB35";
 
-        public IEnumerable<string> ConfigurationKeys => new string[]{
+        public IEnumerable<string> ConfigurationKeys => new[]{
             RavenBootstrapper.DatabasePathKey,
             RavenBootstrapper.HostNameKey,
             RavenBootstrapper.DatabaseMaintenancePortKey,
@@ -24,7 +24,8 @@
             RavenBootstrapper.ExpirationProcessBatchSizeKey,
             RavenBootstrapper.RunCleanupBundleKey,
             RavenBootstrapper.RunInMemoryKey,
-            RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey
+            RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey,
+            DataSpaceRemainingThresholdKey
         };
 
         public IPersistence Create(PersistenceSettings settings)
