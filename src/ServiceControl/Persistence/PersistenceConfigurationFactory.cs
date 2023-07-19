@@ -3,6 +3,8 @@ namespace ServiceControl.Persistence
     using System;
     using ServiceBus.Management.Infrastructure.Settings;
 
+    // Added recently by David
+
     static class PersistenceConfigurationFactory
     {
         public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType)
@@ -22,13 +24,16 @@ namespace ServiceControl.Persistence
             }
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-        public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings)
-#pragma warning restore IDE0060 // Remove unused parameter
+        public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration, Settings settings, bool maintenanceMode = false)
         {
             // TODO: Audit instance passed settings.AuditRetentionPeriod, settings.EnableFullTextSearchOnBodies, settings.MaxBodySizeToStore - are those needed?
             // And then remove settings parameter if not needed (but it probably is for something)
-            var persistenceSettings = new PersistenceSettings();
+            var persistenceSettings = new PersistenceSettings(
+                settings.ErrorRetentionPeriod,
+                settings.EventsRetentionPeriod,
+                settings.AuditRetentionPeriod,
+                maintenanceMode
+                );
 
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
