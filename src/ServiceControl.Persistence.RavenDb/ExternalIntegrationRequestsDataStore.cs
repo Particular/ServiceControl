@@ -193,15 +193,15 @@
         public async ValueTask DisposeAsync()
         {
             subscription?.Dispose();
-            tokenSource.Cancel();
+            tokenSource?.Cancel();
 
             if (task != null)
             {
                 await task.ConfigureAwait(false);
             }
 
-            tokenSource.Dispose();
-            circuitBreaker.Dispose();
+            tokenSource?.Dispose();
+            circuitBreaker?.Dispose();
         }
 
         readonly PersistenceSettings settings;
