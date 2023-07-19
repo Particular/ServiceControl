@@ -59,7 +59,7 @@
 
         public void Subscribe(Func<object[], Task> callback)
         {
-            if (subscription != null)
+            if (this.callback != null)
             {
                 throw new InvalidOperationException("Subscription already exists.");
             }
