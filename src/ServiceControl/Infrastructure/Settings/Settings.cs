@@ -48,7 +48,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
-            MinimumStorageLeftRequiredForIngestion = GetMinimumStorageLeftRequiredForIngestion();
             DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
@@ -139,52 +138,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-        public int ExpirationProcessTimerInSeconds
-        {
-            get
-            {
-                if (expirationProcessTimerInSeconds < 0)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
-                {
-                    logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
-                    return ExpirationProcessTimerInSecondsDefault;
-                }
-
-                return expirationProcessTimerInSeconds;
-            }
-        }
-
         public TimeSpan? AuditRetentionPeriod { get; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
         public TimeSpan EventsRetentionPeriod { get; }
-
-        public int ExpirationProcessBatchSize
-        {
-            get
-            {
-                if (expirationProcessBatchSize < 1)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than 1. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                if (ValidateConfiguration && expirationProcessBatchSize < ExpirationProcessBatchSizeMinimum)
-                {
-                    logger.Error($"ExpirationProcessBatchSize cannot be less than {ExpirationProcessBatchSizeMinimum}. Defaulting to {ExpirationProcessBatchSizeDefault}");
-                    return ExpirationProcessBatchSizeDefault;
-                }
-
-                return expirationProcessBatchSize;
-            }
-        }
-
         public string ServiceName { get; }
 
         public int HttpDefaultConnectionLimit { get; set; }
@@ -198,7 +156,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
-        public int MinimumStorageLeftRequiredForIngestion { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; }
 
@@ -501,27 +458,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return threshold;
         }
 
-        int GetMinimumStorageLeftRequiredForIngestion()
-        {
-            string message;
-            var threshold = SettingsReader<int>.Read("MinimumStorageLeftRequiredForIngestion", MinimumStorageLeftRequiredForIngestionDefault);
-            if (threshold < 0)
-            {
-                message = $"{nameof(MinimumStorageLeftRequiredForIngestion)} is invalid, minimum value is 0.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            if (threshold > 100)
-            {
-                message = $"{nameof(MinimumStorageLeftRequiredForIngestion)} is invalid, maximum value is 100.";
-                logger.Fatal(message);
-                throw new Exception(message);
-            }
-
-            return threshold;
-        }
-
         DataStoreType GetDataStoreType()
         {
             var value = SettingsReader<string>.Read("DataStoreType", "RavenDB35");
@@ -535,15 +471,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int expirationProcessBatchSize = SettingsReader<int>.Read("ExpirationProcessBatchSize", ExpirationProcessBatchSizeDefault);
-        int expirationProcessTimerInSeconds = SettingsReader<int>.Read("ExpirationProcessTimerInSeconds", ExpirationProcessTimerInSecondsDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
-        const int ExpirationProcessBatchSizeMinimum = 10240;
         const int DataSpaceRemainingThresholdDefault = 20;
-        const int MinimumStorageLeftRequiredForIngestionDefault = 5;
     }
 }
