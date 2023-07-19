@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using Raven.Client.Embedded;
 
-    public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
+    class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
         //TODO: figure out what can be strongly typed
         public const string LogPathKey = "LogPath";

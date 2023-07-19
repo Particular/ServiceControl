@@ -11,7 +11,7 @@
     using Raven.Client;
     using ServiceControl.Recoverability;
 
-    public class RetryBatchesDataStore : IRetryBatchesDataStore
+    class RetryBatchesDataStore : IRetryBatchesDataStore
     {
         readonly IDocumentStore documentStore;
 

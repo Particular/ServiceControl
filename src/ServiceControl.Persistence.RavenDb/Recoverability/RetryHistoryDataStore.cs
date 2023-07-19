@@ -5,7 +5,7 @@
     using Raven.Client;
     using ServiceControl.Recoverability;
 
-    public class RetryHistoryDataStore : IRetryHistoryDataStore
+    class RetryHistoryDataStore : IRetryHistoryDataStore
     {
         public RetryHistoryDataStore(IDocumentStore documentStore)
         {

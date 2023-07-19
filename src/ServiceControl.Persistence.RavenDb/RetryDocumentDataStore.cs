@@ -17,7 +17,7 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
-    public class RetryDocumentDataStore : IRetryDocumentDataStore
+    class RetryDocumentDataStore : IRetryDocumentDataStore
     {
         readonly IDocumentStore store;
 

@@ -15,7 +15,7 @@
     using Raven.Client.Linq;
     using ServiceBus.Management.Infrastructure.Extensions;
 
-    public class ExternalIntegrationRequestsDataStore
+    class ExternalIntegrationRequestsDataStore
         : IExternalIntegrationRequestsDataStore
         , IHostedService
         , IAsyncDisposable

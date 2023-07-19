@@ -4,14 +4,14 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public enum TimerJobExecutionResult
+    enum TimerJobExecutionResult
     {
         ScheduleNextExecution,
         ExecuteImmediately,
         DoNotContinueExecuting
     }
 
-    public class TimerJob
+    class TimerJob
     {
         public TimerJob(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback)
         {
@@ -84,12 +84,12 @@
         CancellationTokenSource tokenSource;
     }
 
-    public interface IAsyncTimer
+    interface IAsyncTimer
     {
         TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback);
     }
 
-    public class AsyncTimer : IAsyncTimer
+    class AsyncTimer : IAsyncTimer
     {
         public TimerJob Schedule(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback) => new TimerJob(callback, due, interval, errorCallback);
     }
