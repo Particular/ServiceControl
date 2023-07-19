@@ -17,4 +17,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB35\SqlServer" />
+  </ItemGroup>
+
 </Project>
