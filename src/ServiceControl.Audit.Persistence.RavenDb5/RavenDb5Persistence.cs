@@ -7,10 +7,9 @@
 
     class RavenDb5Persistence : IPersistence
     {
-        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration, DatabaseSetup databaseSetup)
+        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration)
         {
             this.databaseConfiguration = databaseConfiguration;
-            this.databaseSetup = databaseSetup;
         }
 
         public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
@@ -29,7 +28,7 @@
             return lifecycle;
         }
 
-        public IPersistenceInstaller CreateInstaller() => new RavenDb5Installer(CreateLifecycle(), databaseSetup);
+        public IPersistenceInstaller CreateInstaller() => new RavenDb5Installer(CreateLifecycle());
 
         IRavenDbPersistenceLifecycle CreateLifecycle()
         {
@@ -44,6 +43,5 @@
         }
 
         readonly DatabaseConfiguration databaseConfiguration;
-        readonly DatabaseSetup databaseSetup;
     }
 }

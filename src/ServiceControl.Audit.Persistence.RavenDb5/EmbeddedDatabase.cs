@@ -139,7 +139,12 @@
                 dbOptions.Conventions.FindClrType += configuration.FindClrType;
             }
 
-            return await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
+            var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
+
+            var databaseSetup = new DatabaseSetup(configuration);
+            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+
+            return store;
         }
 
         public void Dispose()

@@ -31,9 +31,8 @@
         public IPersistence Create(PersistenceSettings settings)
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
-            var databaseSetup = new DatabaseSetup(databaseConfiguration);
 
-            return new RavenDb5Persistence(databaseConfiguration, databaseSetup);
+            return new RavenDb5Persistence(databaseConfiguration);
         }
 
         internal static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
