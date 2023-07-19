@@ -5,6 +5,7 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Commands;
+    using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
     using NServiceBus.Logging;
@@ -55,6 +56,13 @@
                 if (transportFolder != null)
                 {
                     var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                    assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                }
+
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
+                if (assembly == null && persistenceFolder != null)
+                {
+                    var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
                     assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
                 }
             }

@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB35\InMemory" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\InMemory" />
   </ItemGroup>
 
 </Project>
