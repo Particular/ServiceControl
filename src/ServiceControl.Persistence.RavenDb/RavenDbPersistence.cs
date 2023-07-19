@@ -3,6 +3,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Raven.Client;
     using Raven.Client.Embedded;
+    using Recoverability;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.MessageFailures;
@@ -47,6 +48,13 @@
             serviceCollection.AddCustomCheck<CheckFreeDiskSpace>();
             serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();
             serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+
+            serviceCollection.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
+            serviceCollection.AddSingleton<IEventLogDataStore, EventLogDataStore>();
+            serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+            serviceCollection.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
+            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
+            serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
 
             //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
 
