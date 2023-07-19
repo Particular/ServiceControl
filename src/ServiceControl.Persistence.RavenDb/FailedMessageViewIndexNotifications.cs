@@ -83,7 +83,7 @@
         public void Dispose()
         {
             subscriber = null;
-            subscription.Dispose();
+            subscription?.Dispose();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
