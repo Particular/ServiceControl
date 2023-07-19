@@ -13,7 +13,6 @@
         {
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
-                serviceCollection.AddHostedService<CustomChecksHostedService>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
                 serviceCollection.AddEventLogMapping<CustomCheckDeletedDefinition>();
