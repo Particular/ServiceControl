@@ -9,7 +9,7 @@
 
     class SubscriptionStorage : Feature
     {
-        SubscriptionStorage()
+        public SubscriptionStorage()
         {
             Prerequisite(c => c.Settings.Get<TransportInfrastructure>().OutboundRoutingPolicy.Publishes == OutboundRoutingType.Unicast || IsMigrationModeEnabled(c.Settings), "The transport supports native pub sub");
         }
