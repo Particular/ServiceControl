@@ -12,9 +12,7 @@ namespace Particular.ServiceControl
         public static async Task Run(HostArguments args, Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-
-            persistenceSettings.MaintenanceMode = true;
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings, maintenanceMode: true);
 
             var hostBuilder = new HostBuilder()
                 .SetupPersistence(persistenceSettings, persistenceConfiguration);
