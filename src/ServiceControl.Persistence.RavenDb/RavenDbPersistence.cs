@@ -22,7 +22,7 @@
             this.ravenStartup = ravenStartup;
         }
 
-        public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
+        public void Configure(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
@@ -62,8 +62,10 @@
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
 
-            //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
+        }
 
+        public IPersistenceLifecycle CreateLifecycle()
+        {
             return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
 
