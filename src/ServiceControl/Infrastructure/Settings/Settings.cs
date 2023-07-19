@@ -33,6 +33,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             TransportConnectionString = GetConnectionString();
             TransportType = SettingsReader<string>.Read("TransportType");
+            PersistenceType = SettingsReader<string>.Read("PersistenceType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
