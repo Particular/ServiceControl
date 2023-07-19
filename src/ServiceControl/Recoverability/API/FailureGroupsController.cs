@@ -85,13 +85,10 @@
                 classifierFilter = null;
             }
 
-            using (var session = store.OpenAsyncSession())
-            {
-                var results = await groupFetcher.GetGroups(session, classifier, classifierFilter).ConfigureAwait(false); // TODO: Analyze what to do with the GroupFetcher dependency
+            var results = await groupFetcher.GetGroups(classifier, classifierFilter).ConfigureAwait(false); // TODO: Analyze what to do with the GroupFetcher dependency
 
-                return Negotiator.FromModel(Request, results)
-                    .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
-            }
+            return Negotiator.FromModel(Request, results)
+                .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
         }
 
         [Route("recoverability/groups/{groupId}/errors")]
