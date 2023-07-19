@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using Infrastructure;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Recoverability;
 
     public interface IRetryDocumentDataStore
     {
@@ -25,5 +26,9 @@
         Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback);
         Task GetBatchesForEndpoint(DateTime cutoff, string endpoint, Func<string, DateTime, Task> callback);
         Task GetBatchesForFailedQueueAddress(DateTime cutoff, string failedQueueAddresspoint, FailedMessageStatus status, Func<string, DateTime, Task> callback);
+        Task GetBatchesForFailureGroup(string groupId, string groupTitle, string groupType, DateTime cutoff, Func<string, DateTime, Task> callback);
+
+        // RetryAllInGroupHandler
+        Task<FailureGroupView> QueryFailureGroupViewOnGroupId(string groupId);
     }
 }

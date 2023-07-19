@@ -234,6 +234,42 @@
             }
         }
 
+        public async Task GetBatchesForFailureGroup(string groupId, string groupTitle, string groupType, DateTime cutoff, Func<string, DateTime, Task> callback)
+        {
+            //retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
+
+            var x = new IndexBasedBulkRetryRequest<FailureGroupMessageView, FailedMessages_ByGroup>(
+                groupId,
+                RetryType.AllForEndpoint,
+                originator: groupTitle,
+                classifier: groupType,
+                cutoff,
+                filter: m => m.FailureGroupId == groupId
+            );
+
+            using (var session = store.OpenAsyncSession())
+            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            {
+                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                {
+                    var current = stream.Current.Document;
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        public async Task<FailureGroupView> QueryFailureGroupViewOnGroupId(string groupId)
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
+                    .FirstOrDefaultAsync(x => x.Id == groupId)
+                    .ConfigureAwait(false);
+                return group;
+            }
+        }
+
         class IndexBasedBulkRetryRequest<TType, TIndex>
             where TIndex : AbstractIndexCreationTask, new()
             where TType : IHaveStatus

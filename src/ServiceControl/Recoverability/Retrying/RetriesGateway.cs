@@ -142,6 +142,12 @@ namespace ServiceControl.Recoverability
             bulkRequests.Enqueue(item);
         }
 
+        public void EnqueueRetryForFailureGroup(RetryForFailureGroup item)
+        {
+            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            bulkRequests.Enqueue(item);
+        }
+
         readonly IRetryDocumentDataStore store;
         readonly RetryingManager operationManager;
         readonly ConcurrentQueue<BulkRetryRequest> bulkRequests = new ConcurrentQueue<BulkRetryRequest>();
@@ -149,7 +155,7 @@ namespace ServiceControl.Recoverability
 
         static readonly ILog Log = LogManager.GetLogger(typeof(RetriesGateway));
 
-        abstract class BulkRetryRequest
+        public abstract class BulkRetryRequest
         {
             public string RequestId { get; }
             public RetryType RetryType { get; }
@@ -234,6 +240,31 @@ namespace ServiceControl.Recoverability
             protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
             {
                 return store.GetBatchesForEndpoint(StartTime, Endpoint, callback);
+            }
+        }
+
+        public sealed class RetryForFailureGroup : BulkRetryRequest
+        {
+            public string GroupId { get; }
+            public string GroupTitle { get; }
+            public string GroupType { get; }
+
+            public RetryForFailureGroup(string groupId, string groupTitle, string groupType, DateTime started) : base(requestId: groupId, RetryType.FailureGroup, started, originator: groupTitle)
+            {
+                GroupId = groupId;
+                GroupType = groupType;
+                GroupTitle = groupTitle;
+            }
+
+            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            {
+                return store.GetBatchesForFailureGroup(
+                    groupId: GroupId,
+                    groupTitle: GroupTitle,
+                    groupType: GroupType,
+                    cutoff: StartTime,
+                    callback
+                    );
             }
         }
 
