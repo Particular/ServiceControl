@@ -7,7 +7,7 @@
     using Raven.Client;
     using ServiceControl.Operations;
 
-    public class FailedErrorImportDataStore : IFailedErrorImportDataStore
+    class FailedErrorImportDataStore : IFailedErrorImportDataStore
     {
         readonly IDocumentStore store;
 
