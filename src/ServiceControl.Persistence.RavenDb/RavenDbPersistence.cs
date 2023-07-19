@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
+    using Persistence.Recoverability;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Recoverability;
@@ -10,6 +12,7 @@
     using ServiceControl.Operations;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;
+    using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.Persistence.RavenDb.SagaAudit;
     using ServiceControl.Persistence.UnitOfWork;
 
@@ -49,19 +52,22 @@
             serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();
             serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
+            serviceCollection.AddSingleton<IArchiveMessages, MessageArchiver>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
             serviceCollection.AddSingleton<IEventLogDataStore, EventLogDataStore>();
             serviceCollection.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
             serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
             serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+            serviceCollection.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<IQueueAddressStore, QueueAddressStore>();
+            serviceCollection.AddSingleton<IReclassifyFailedMessages, FailedMessageReclassifier>();
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
+            serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDataStore>();
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
-
         }
 
         public IPersistenceLifecycle CreateLifecycle()
