@@ -19,8 +19,7 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            var minimumStorageLeftRequiredForIngestion = int.Parse(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.MinimumStorageLeftRequiredForIngestionKey]);
-            var percentageThreshold = minimumStorageLeftRequiredForIngestion / 100m;
+            var percentageThreshold = MinimumStorageLeftRequiredForIngestionKey / 100m;
 
             var dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey]);
             if (dataPathRoot == null)
@@ -48,11 +47,42 @@
                 return successResult;
             }
 
-            var message = $"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {nameof(minimumStorageLeftRequiredForIngestion)} configuration setting.";
+            var message = $"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
             Logger.Warn(message);
             stateHolder.CanIngestMore = false;
             return CheckResult.Failed(message);
         }
+
+        int MinimumStorageLeftRequiredForIngestionKey
+        {
+            get
+            {
+                int threshold = MinimumStorageLeftRequiredForIngestionDefault;
+
+                if (RavenBootstrapper.Settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
+                {
+                    threshold = int.Parse(thresholdValue);
+                }
+
+                string message;
+                if (threshold < 0)
+                {
+                    message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+                    Logger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                if (threshold > 100)
+                {
+                    message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+                    Logger.Fatal(message);
+                    throw new Exception(message);
+                }
+
+                return threshold;
+            }
+        }
+        const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         readonly MinimumRequiredStorageState stateHolder;
         readonly PersistenceSettings settings;

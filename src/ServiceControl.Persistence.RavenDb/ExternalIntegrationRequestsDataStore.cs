@@ -24,7 +24,13 @@
         {
             this.settings = settings;
             this.documentStore = documentStore;
-            this.criticalError = criticalError;
+
+            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
+                "EventDispatcher",
+                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
+                ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
+                TimeSpan.FromSeconds(20) // TODO: Shouldn't be magic value but coming from settings
+            );
         }
 
         const string KeyPrefix = "ExternalIntegrationDispatchRequests";
@@ -131,7 +137,7 @@
                 var awaitingDispatching = await session
                     .Query<ExternalIntegrationDispatchRequest>()
                     .Statistics(out var stats)
-                    .Take(settings.ExternalIntegrationsDispatchingBatchSize())
+                    .Take(settings.ExternalIntegrationsDispatchingBatchSize)
                     .ToListAsync()
                     .ConfigureAwait(false);
 
@@ -173,14 +179,6 @@
                     signal.Set();
                 });
 
-            tokenSource = new CancellationTokenSource();
-            circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
-                "EventDispatcher",
-                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
-                ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20) // TODO: Shouldn't be magic value but coming from settings
-                );
-
             return Task.CompletedTask;
         }
 
@@ -206,13 +204,13 @@
 
         readonly PersistenceSettings settings;
         readonly IDocumentStore documentStore;
+        readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        readonly RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
+
         IDisposable subscription;
         Etag latestEtag = Etag.Empty;
-        RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
         Task task;
         ManualResetEventSlim signal = new ManualResetEventSlim();
-        CancellationTokenSource tokenSource;
-        CriticalError criticalError;
         Func<object[], Task> callback;
 
         static ILog Logger = LogManager.GetLogger(typeof(ExternalIntegrationRequestsDataStore));

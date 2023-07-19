@@ -32,8 +32,9 @@ namespace ServiceControl.Persistence
                 settings.ErrorRetentionPeriod,
                 settings.EventsRetentionPeriod,
                 settings.AuditRetentionPeriod,
+                settings.ExternalIntegrationsDispatchingBatchSize,
                 maintenanceMode
-                );
+            );
 
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
