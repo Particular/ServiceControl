@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2A91F751-8432-424C-8D45-7E3BFC4CDBAD} = {2A91F751-8432-424C-8D45-7E3BFC4CDBAD}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.csproj", "{A1E60657-039F-4BAB-B031-2515F86B0C3D}"
 EndProject
@@ -183,7 +186,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.Tests", "ServiceControl.Infrastructure.Tests\ServiceControl.Infrastructure.Tests.csproj", "{80008096-F1F9-43C3-8CE6-E79A68F8676E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.DomainEvents", "ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj", "{B93B8B7E-BEAF-4645-AA5C-2A1CADEC3D4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.DomainEvents", "ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj", "{B93B8B7E-BEAF-4645-AA5C-2A1CADEC3D4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
