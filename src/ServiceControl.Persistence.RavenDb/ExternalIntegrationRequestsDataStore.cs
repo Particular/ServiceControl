@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reactive.Linq;
     using System.Threading;
@@ -190,6 +191,12 @@
 
         public async ValueTask DisposeAsync()
         {
+            if (isDisposed)
+            {
+                return;
+            }
+
+            isDisposed = true;
             subscription?.Dispose();
             tokenSource?.Cancel();
 
@@ -212,6 +219,7 @@
         Task task;
         ManualResetEventSlim signal = new ManualResetEventSlim();
         Func<object[], Task> callback;
+        bool isDisposed;
 
         static ILog Logger = LogManager.GetLogger(typeof(ExternalIntegrationRequestsDataStore));
     }
