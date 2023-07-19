@@ -49,12 +49,18 @@
             serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();
             serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
 
+            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
             serviceCollection.AddSingleton<IEventLogDataStore, EventLogDataStore>();
-            serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
-            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+            serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
+            serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+            serviceCollection.AddSingleton<IQueueAddressStore, QueueAddressStore>();
+            serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
+            serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
+            serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
+            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
 
             //serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
 
