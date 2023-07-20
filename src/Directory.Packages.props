@@ -27,7 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageVersion Include="Mindscape.Raygun4Net" Version="5.13.0" />
     <PackageVersion Include="Moq" Version="4.18.4" />
@@ -48,7 +48,7 @@
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="7.0.5" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="3.0.1" />
     <PackageVersion Include="NServiceBus.Testing" Version="7.4.2" />
-    <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.5" />
+    <PackageVersion Include="NServiceBus.Transport.AzureServiceBus" Version="2.0.6" />
     <PackageVersion Include="NServiceBus.Transport.AzureStorageQueues" Version="10.0.4" />
     <PackageVersion Include="NServiceBus.Transport.Msmq" Version="1.2.1" />
     <PackageVersion Include="NServiceBus.Transport.SqlServer" Version="6.3.4" />
