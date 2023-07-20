@@ -20,14 +20,14 @@
         public async Task Setup()
         {
             var services = new ServiceCollection();
-            await persistence.Configure(services).ConfigureAwait(false);
+            await persistence.Configure(services);
             serviceProvider = services.BuildServiceProvider();
         }
 
         [TearDown]
         public async Task Cleanup()
         {
-            await persistence.CleanupDB().ConfigureAwait(false);
+            await persistence.CleanupDB();
         }
 
         protected Task CompleteDBOperation() => persistence.CompleteDBOperation();

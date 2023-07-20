@@ -18,12 +18,12 @@
 
         public override async Task Configure(IServiceCollection services)
         {
-            await SetupSqlPersistence.SetupMonitoring(sqlDbConnectionString).ConfigureAwait(false);
-            await SetupSqlPersistence.SetupCustomChecks(sqlDbConnectionString).ConfigureAwait(false);
+            await SetupSqlPersistence.SetupMonitoring(sqlDbConnectionString);
+            await SetupSqlPersistence.SetupCustomChecks(sqlDbConnectionString);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", sqlDbConnectionString);
 
-            fallback = await services.AddInitializedDocumentStore().ConfigureAwait(false);
+            fallback = await services.AddInitializedDocumentStore();
             services.AddSingleton(new Settings() /*{ SqlStorageConnectionString = sqlDbConnectionString }*/);
             services.AddServiceControlPersistence(DataStoreType.SqlDb);
         }
@@ -35,9 +35,9 @@
                 var dropConstraints = "EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT all'";
                 var dropTables = "EXEC sp_msforeachtable 'DROP TABLE ?'";
 
-                await connection.OpenAsync().ConfigureAwait(false);
-                await connection.ExecuteAsync(dropConstraints).ConfigureAwait(false);
-                await connection.ExecuteAsync(dropTables).ConfigureAwait(false);
+                await connection.OpenAsync();
+                await connection.ExecuteAsync(dropConstraints);
+                await connection.ExecuteAsync(dropTables);
             }
 
             fallback?.Dispose();
