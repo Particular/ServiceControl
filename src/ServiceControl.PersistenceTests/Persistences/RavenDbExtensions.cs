@@ -1,24 +1,25 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
+    using System;
     using System.ComponentModel.Composition.Hosting;
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
+    using Persistence.RavenDb;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Raven.Client.Indexes;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
 
     static class RavenDbExtensions
     {
         public static async Task<EmbeddableDocumentStore> AddInitializedDocumentStore(this IServiceCollection serviceCollection)
         {
-            var settings = new Settings
+            var retentionPeriod = TimeSpan.FromMinutes(1);
+            var settings = new PersistenceSettings(retentionPeriod, retentionPeriod, retentionPeriod, 100, false)
             {
-                RunInMemory = true
+                PersisterSpecificSettings = { [RavenBootstrapper.RunInMemoryKey] = bool.TrueString }
             };
             var documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings);
