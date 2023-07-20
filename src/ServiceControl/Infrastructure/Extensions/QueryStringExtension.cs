@@ -9,6 +9,19 @@
     {
         public static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
         {
+            var queryStringDictionary = GetCachedQueryStringDictionary(request);
+
+            queryStringDictionary.TryGetValue(key, out var value);
+            if (string.IsNullOrEmpty(value))
+            {
+                return defaultValue;
+            }
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        static Dictionary<string, string> GetCachedQueryStringDictionary(HttpRequestMessage request)
+        {
             Dictionary<string, string> queryStringDictionary;
             if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))
             {
@@ -20,13 +33,7 @@
                 queryStringDictionary = (Dictionary<string, string>)dictionaryAsObject;
             }
 
-            queryStringDictionary.TryGetValue(key, out var value);
-            if (string.IsNullOrEmpty(value))
-            {
-                return defaultValue;
-            }
-
-            return (T)Convert.ChangeType(value, typeof(T));
+            return queryStringDictionary;
         }
     }
 }
