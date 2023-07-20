@@ -40,7 +40,7 @@
 
             return new QueryResult<IList<MessagesView>>(
                 pageOfResults,
-                new QueryStatsInfo(etag, allResults.Count))
+                new QueryStatsInfo(etag, allResults.Count, isStale: false))
             {
                 InstanceId = instanceId
             };
