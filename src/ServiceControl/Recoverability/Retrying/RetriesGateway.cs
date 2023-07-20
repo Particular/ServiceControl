@@ -73,6 +73,9 @@ namespace ServiceControl.Recoverability
             Log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }
 
+        // Needs to be overridable by a test
+        protected virtual Task MoveBatchToStaging(string batchDocumentId) => store.MoveBatchToStaging(batchDocumentId);
+
 
         public async Task<bool> ProcessNextBulkRetry()  // Invoked from BulkRetryBatchCreationHostedService in schedule
         {

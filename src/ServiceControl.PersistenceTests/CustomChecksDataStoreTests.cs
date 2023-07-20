@@ -35,10 +35,10 @@ namespace ServiceControl.PersistenceTests
                 },
             };
 
-            var status = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var status = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            await CompleteDBOperation().ConfigureAwait(false);
-            var stats = await CustomChecks.GetStats(new PagingInfo()).ConfigureAwait(false);
+            await CompleteDBOperation();
+            var stats = await CustomChecks.GetStats(new PagingInfo());
 
             Assert.AreEqual(1, stats.Results.Count);
             Assert.AreEqual(Status.Fail, stats.Results[0].Status);
@@ -62,10 +62,10 @@ namespace ServiceControl.PersistenceTests
                 },
             };
 
-            var statusInitial = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
-            var statusUpdate = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var statusInitial = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
+            var statusUpdate = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            await CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation();
 
             Assert.AreEqual(CheckStateChange.Changed, statusInitial);
             Assert.AreEqual(CheckStateChange.Unchanged, statusUpdate);
@@ -88,11 +88,11 @@ namespace ServiceControl.PersistenceTests
                 },
             };
 
-            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            await CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation();
 
-            var stats = await CustomChecks.GetStats(new PagingInfo(), "pass").ConfigureAwait(false);
+            var stats = await CustomChecks.GetStats(new PagingInfo(), "pass");
 
             Assert.AreEqual(1, stats.Results.Count);
         }
@@ -115,15 +115,15 @@ namespace ServiceControl.PersistenceTests
 
             var checkId = checkDetails.GetDeterministicId();
 
-            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails);
 
-            await CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation();
 
-            await CustomChecks.DeleteCustomCheck(checkId).ConfigureAwait(false);
+            await CustomChecks.DeleteCustomCheck(checkId);
 
-            await CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation();
 
-            var storedChecks = await CustomChecks.GetStats(new PagingInfo()).ConfigureAwait(false);
+            var storedChecks = await CustomChecks.GetStats(new PagingInfo());
             var check = storedChecks.Results.Where(c => c.Id == checkId).ToList();
 
             Assert.AreEqual(0, check.Count);

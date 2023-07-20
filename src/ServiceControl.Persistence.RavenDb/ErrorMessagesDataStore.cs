@@ -748,6 +748,19 @@ if(this.Status === archivedStatus) {
             }
         }
 
+        public async Task StoreFailedMessages(params FailedMessage[] failedMessages)
+        {
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                foreach (var message in failedMessages)
+                {
+                    await session.StoreAsync(message).ConfigureAwait(false);
+                }
+
+                await session.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
     }
 }
