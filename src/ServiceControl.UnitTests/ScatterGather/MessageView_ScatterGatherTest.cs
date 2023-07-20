@@ -69,9 +69,9 @@
         protected const string RemoteETag = nameof(RemoteETag);
         protected const int PageSize = 50;
 
-        class TestApi : ScatterGatherApiMessageView<NoInput>
+        class TestApi : ScatterGatherApiMessageView<object, NoInput>
         {
-            public TestApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+            public TestApi(object documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
             {
             }
 
