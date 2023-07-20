@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests
+﻿namespace ServiceControl.PersistenceTests
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;

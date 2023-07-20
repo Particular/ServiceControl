@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests
+﻿namespace ServiceControl.PersistenceTests
 {
     using System.Threading.Tasks;
     using NUnit.Framework;

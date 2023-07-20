@@ -6,33 +6,26 @@
     using Dapper;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence;
-    using Persistence.Tests;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence.UnitOfWork;
 
-    class SqlDb : PersistenceDataStoreFixture
+    class SqlDb : TestPersistence
     {
         public SqlDb(string sqlDbConnectionString)
         {
             this.sqlDbConnectionString = sqlDbConnectionString;
         }
 
-        public override async Task SetupDataStore()
+        public override async Task Configure(IServiceCollection services)
         {
             await SetupSqlPersistence.SetupMonitoring(sqlDbConnectionString).ConfigureAwait(false);
             await SetupSqlPersistence.SetupCustomChecks(sqlDbConnectionString).ConfigureAwait(false);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", sqlDbConnectionString);
 
-            var serviceCollection = new ServiceCollection();
-            fallback = await serviceCollection.AddInitializedDocumentStore().ConfigureAwait(false);
-            serviceCollection.AddSingleton(new Settings() /*{ SqlStorageConnectionString = sqlDbConnectionString }*/);
-            serviceCollection.AddServiceControlPersistence(DataStoreType.SqlDb);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
-            CustomCheckDataStore = serviceProvider.GetRequiredService<ICustomChecksDataStore>();
-            UnitOfWorkFactory = serviceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
+            fallback = await services.AddInitializedDocumentStore().ConfigureAwait(false);
+            services.AddSingleton(new Settings() /*{ SqlStorageConnectionString = sqlDbConnectionString }*/);
+            services.AddServiceControlPersistence(DataStoreType.SqlDb);
         }
 
         public override async Task CleanupDB()
