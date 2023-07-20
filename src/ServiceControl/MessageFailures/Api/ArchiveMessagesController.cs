@@ -10,6 +10,7 @@ namespace ServiceControl.MessageFailures.Api
     using NServiceBus;
     using Infrastructure.WebApi;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class ArchiveMessagesController : ApiController
     {
@@ -66,12 +67,11 @@ namespace ServiceControl.MessageFailures.Api
 
         [Route("archive/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroup(
-            string groupId,
-            [FromUri] string status,  // TODO: Previously Request.GetQueryStringValue<string>("status");
-            [FromUri] string modified // TODO: Previously Request.GetQueryStringValue<string>("modified");
-            )
+        public async Task<HttpResponseMessage> GetGroup(string groupId)
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+
             var result = await dataStore.GetFailureGroupView(groupId, status, modified)
                 .ConfigureAwait(false);
 

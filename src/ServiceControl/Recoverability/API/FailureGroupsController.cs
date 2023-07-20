@@ -78,8 +78,10 @@
 
         [Route("recoverability/groups/{classifier?}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetAllGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace")
+        public async Task<HttpResponseMessage> GetAllGroups(string classifier = "Exception Type and Stack Trace")
         {
+            string classifierFilter = Request.GetClassifierFilter();
+
             if (classifierFilter == "undefined")
             {
                 classifierFilter = null;
@@ -93,12 +95,11 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroupErrors(
-            string groupId,
-            [FromUri] string status,
-            [FromUri] string modified
-            )
+        public async Task<HttpResponseMessage> GetGroupErrors(string groupId)
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+
             var sortInfo = Request.GetSortInfo();
             var pagingInfo = Request.GetPagingInfo();
 
@@ -111,12 +112,11 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpHead]
-        public async Task<HttpResponseMessage> GetGroupErrorsCount(
-            string groupId,
-            [FromUri] string status,
-            [FromUri] string modified
-            )
+        public async Task<HttpResponseMessage> GetGroupErrorsCount(string groupId)
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+
             var results = await dataStore.GetGroupErrorsCount(groupId, status, modified)
                 .ConfigureAwait(false);
 
@@ -137,12 +137,11 @@
 
         [Route("recoverability/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroup(
-            string groupId,
-            [FromUri] string status,
-            [FromUri] string modified
-            )
+        public async Task<HttpResponseMessage> GetGroup(string groupId)
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+
             // TODO: Migrated as previous behavior but can be optimized as http api will return at most 1 item
             var result = await dataStore.GetGroup(groupId, status, modified).ConfigureAwait(false);
 
