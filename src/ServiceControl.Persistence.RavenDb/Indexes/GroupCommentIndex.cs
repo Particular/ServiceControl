@@ -4,7 +4,7 @@ namespace ServiceControl.Recoverability
     using MessageFailures;
     using Raven.Client.Indexes;
 
-    public class GroupCommentIndex : AbstractIndexCreationTask<GroupComment>
+    class GroupCommentIndex : AbstractIndexCreationTask<GroupComment>
     {
         public GroupCommentIndex()
         {

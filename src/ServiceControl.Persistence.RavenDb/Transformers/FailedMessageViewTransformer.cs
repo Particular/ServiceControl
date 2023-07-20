@@ -4,7 +4,7 @@
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
+    class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage>
     {
         public FailedMessageViewTransformer()
         {

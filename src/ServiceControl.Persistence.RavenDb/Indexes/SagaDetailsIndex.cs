@@ -3,7 +3,7 @@ namespace ServiceControl.SagaAudit
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class SagaDetailsIndex : AbstractMultiMapIndexCreationTask<SagaHistory>
+    class SagaDetailsIndex : AbstractMultiMapIndexCreationTask<SagaHistory>
     {
         public SagaDetailsIndex()
         {

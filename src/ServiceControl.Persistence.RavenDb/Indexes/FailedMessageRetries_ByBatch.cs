@@ -4,7 +4,7 @@ namespace ServiceControl.Persistence
     using Raven.Client.Indexes;
     using ServiceControl.Recoverability;
 
-    public class FailedMessageRetries_ByBatch : AbstractIndexCreationTask<FailedMessageRetry>
+    class FailedMessageRetries_ByBatch : AbstractIndexCreationTask<FailedMessageRetry>
     {
         public FailedMessageRetries_ByBatch()
         {

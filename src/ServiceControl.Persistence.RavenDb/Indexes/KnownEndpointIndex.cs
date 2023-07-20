@@ -3,7 +3,7 @@ namespace ServiceControl.Persistence
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
+    class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {
         public KnownEndpointIndex()
         {

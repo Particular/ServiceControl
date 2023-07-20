@@ -7,13 +7,12 @@ namespace ServiceControl.Persistence
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
-    using Lucene.Net.Search;
     using Raven.Client;
     using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
 
-    public static class RavenQueryExtensions
+    static class RavenQueryExtensions
     {
         public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
             this IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> source, bool includeSystemMessages)

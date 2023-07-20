@@ -3,7 +3,7 @@ namespace ServiceControl.Persistence
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class RetryBatches_ByStatus_ReduceInitialBatchSize : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
+    class RetryBatches_ByStatus_ReduceInitialBatchSize : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
     {
         public RetryBatches_ByStatus_ReduceInitialBatchSize()
         {
