@@ -23,7 +23,7 @@
             return documentStore;
         }
 
-        public Task Start(CancellationToken cancellationToken)
+        public async Task Start(CancellationToken cancellationToken)
         {
             var store = new DocumentStore
             {
@@ -44,7 +44,8 @@
 
             documentStore = store;
 
-            return Task.CompletedTask;
+            var databaseSetup = new DatabaseSetup(configuration);
+            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
         }
 
         public Task Stop(CancellationToken cancellationToken)
