@@ -9,8 +9,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.SagaAudit;
     using TestSupport;
     using TestSupport.EndpointTemplates;
@@ -91,16 +89,18 @@
             CustomServiceControlSettings = settings =>
             {
                 settings.DisableHealthChecks = false;
+                settings.AuditRetentionPeriod = TimeSpan.FromSeconds(10);
             };
 
+            // TODO: Once tests generally run, verify this isn't needed if settings.AuditRetentionPeriod is defined above
             //Override the configuration of the check in the container in order to make it run more frequently for testing purposes.
-            CustomEndpointConfiguration = config =>
-            {
-                config.RegisterComponents(registration =>
-                {
-                    registration.ConfigureComponent((builder) => new AuditRetentionCustomCheck(builder.Build<IDocumentStore>(), builder.Build<Settings>(), TimeSpan.FromSeconds(10)), DependencyLifecycle.SingleInstance);
-                });
-            };
+            //CustomEndpointConfiguration = config =>
+            //{
+            //    config.RegisterComponents(registration =>
+            //    {
+            //        registration.ConfigureComponent((builder) => new AuditRetentionCustomCheck(builder.Build<IDocumentStore>(), builder.Build<Settings>(), TimeSpan.FromSeconds(10)), DependencyLifecycle.SingleInstance);
+            //    });
+            //};
 
             SingleResult<EventLogItem> customCheckEventEntry = default;
             bool sagaAudiDataInMainInstanceIsAvailableForQuery = false;
