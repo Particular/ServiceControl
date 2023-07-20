@@ -11,7 +11,7 @@
 
     [InheritedExport(typeof(IStartupTask))]
     [ExportMetadata("Bundle", "customDocumentExpiration")]
-    public class ExpiredDocumentsCleanerBundle : IStartupTask, IDisposable
+    class ExpiredDocumentsCleanerBundle : IStartupTask, IDisposable
     {
         // TODO: Ensure that the timers are started when the persister starts!
 

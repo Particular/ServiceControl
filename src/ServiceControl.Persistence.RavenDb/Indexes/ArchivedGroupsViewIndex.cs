@@ -4,7 +4,7 @@ namespace ServiceControl.Recoverability
     using MessageFailures;
     using Raven.Client.Indexes;
 
-    public class ArchivedGroupsViewIndex : AbstractIndexCreationTask<FailedMessage, FailureGroupView>
+    class ArchivedGroupsViewIndex : AbstractIndexCreationTask<FailedMessage, FailureGroupView>
     {
         public ArchivedGroupsViewIndex()
         {

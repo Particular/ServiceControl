@@ -3,7 +3,7 @@
     using Raven.Client;
     using ServiceControl.Persistence.Infrastructure;
 
-    public static class RavenQueryStatisticsExtensions
+    static class RavenQueryStatisticsExtensions
     {
         public static QueryStatsInfo ToQueryStatsInfo(this RavenQueryStatistics stats)
         {

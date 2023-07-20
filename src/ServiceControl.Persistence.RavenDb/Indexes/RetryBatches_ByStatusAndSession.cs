@@ -3,7 +3,7 @@ namespace ServiceControl.Persistence
     using System.Linq;
     using Raven.Client.Indexes;
 
-    public class RetryBatches_ByStatusAndSession : AbstractIndexCreationTask<RetryBatch>
+    class RetryBatches_ByStatusAndSession : AbstractIndexCreationTask<RetryBatch>
     {
         public RetryBatches_ByStatusAndSession()
         {

@@ -5,7 +5,7 @@ namespace ServiceControl.MessageFailures.Api
     using Raven.Client.Indexes;
     using ServiceControl.Operations;
 
-    public class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
+    class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
     {
         public FailedMessageViewIndex()
         {

@@ -5,7 +5,7 @@ namespace ServiceControl.Recoverability
     using MessageFailures;
     using Raven.Client.Indexes;
 
-    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
+    class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
     {
         public FailedMessages_UniqueMessageIdAndTimeOfFailures()
         {
