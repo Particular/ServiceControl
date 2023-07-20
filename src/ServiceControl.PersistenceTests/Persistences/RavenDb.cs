@@ -3,23 +3,15 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence;
-    using Persistence.Tests;
     using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence.UnitOfWork;
 
-    class RavenDb : PersistenceDataStoreFixture
+    class RavenDb : TestPersistence
     {
-        public override async Task SetupDataStore()
+        public override async Task Configure(IServiceCollection services)
         {
-            var serviceCollection = new ServiceCollection();
-
-            documentStore = await serviceCollection.AddInitializedDocumentStore().ConfigureAwait(false);
-            serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDB35);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
-            MonitoringDataStore = serviceProvider.GetRequiredService<IMonitoringDataStore>();
-            CustomCheckDataStore = serviceProvider.GetRequiredService<ICustomChecksDataStore>();
-            UnitOfWorkFactory = serviceProvider.GetRequiredService<IIngestionUnitOfWorkFactory>();
+            documentStore = await services.AddInitializedDocumentStore().ConfigureAwait(false);
+            services.AddServiceControlPersistence(DataStoreType.RavenDB35);
         }
 
         public override Task CompleteDBOperation()

@@ -1,32 +1,22 @@
-namespace ServiceControl.Persistence.Tests
+namespace ServiceControl.PersistenceTests
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Infrastructure;
     using NUnit.Framework;
     using ServiceControl.Operations;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
-    [TestFixtureSource(typeof(PersistenceTestCollection))]
-    class CustomChecksDataStoreTests
+    class CustomChecksDataStoreTests : PersistenceTestBase
     {
-        public CustomChecksDataStoreTests(PersistenceDataStoreFixture fixture)
+        public CustomChecksDataStoreTests(TestPersistence persistence)
+            : base(persistence)
         {
-            this.fixture = fixture;
         }
 
-        [SetUp]
-        public async Task Setup()
-        {
-            await fixture.SetupDataStore().ConfigureAwait(false);
-        }
-
-        [TearDown]
-        public async Task Cleanup()
-        {
-            await fixture.CleanupDB().ConfigureAwait(false);
-        }
+        public ICustomChecksDataStore CustomChecks => GetService<ICustomChecksDataStore>();
 
         [Test]
         public async Task CustomChecks_load_from_data_store()
@@ -45,10 +35,10 @@ namespace ServiceControl.Persistence.Tests
                 },
             };
 
-            var status = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var status = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
 
-            await fixture.CompleteDBOperation().ConfigureAwait(false);
-            var stats = await fixture.CustomCheckDataStore.GetStats(new PagingInfo()).ConfigureAwait(false);
+            await CompleteDBOperation().ConfigureAwait(false);
+            var stats = await CustomChecks.GetStats(new PagingInfo()).ConfigureAwait(false);
 
             Assert.AreEqual(1, stats.Results.Count);
             Assert.AreEqual(Status.Fail, stats.Results[0].Status);
@@ -72,10 +62,10 @@ namespace ServiceControl.Persistence.Tests
                 },
             };
 
-            var statusInitial = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
-            var statusUpdate = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var statusInitial = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var statusUpdate = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
 
-            await fixture.CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation().ConfigureAwait(false);
 
             Assert.AreEqual(CheckStateChange.Changed, statusInitial);
             Assert.AreEqual(CheckStateChange.Unchanged, statusUpdate);
@@ -98,11 +88,11 @@ namespace ServiceControl.Persistence.Tests
                 },
             };
 
-            var _ = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
 
-            await fixture.CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation().ConfigureAwait(false);
 
-            var stats = await fixture.CustomCheckDataStore.GetStats(new PagingInfo(), "pass").ConfigureAwait(false);
+            var stats = await CustomChecks.GetStats(new PagingInfo(), "pass").ConfigureAwait(false);
 
             Assert.AreEqual(1, stats.Results.Count);
         }
@@ -125,20 +115,18 @@ namespace ServiceControl.Persistence.Tests
 
             var checkId = checkDetails.GetDeterministicId();
 
-            var _ = await fixture.CustomCheckDataStore.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
+            var _ = await CustomChecks.UpdateCustomCheckStatus(checkDetails).ConfigureAwait(false);
 
-            await fixture.CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation().ConfigureAwait(false);
 
-            await fixture.CustomCheckDataStore.DeleteCustomCheck(checkId).ConfigureAwait(false);
+            await CustomChecks.DeleteCustomCheck(checkId).ConfigureAwait(false);
 
-            await fixture.CompleteDBOperation().ConfigureAwait(false);
+            await CompleteDBOperation().ConfigureAwait(false);
 
-            var storedChecks = await fixture.CustomCheckDataStore.GetStats(new PagingInfo()).ConfigureAwait(false);
+            var storedChecks = await CustomChecks.GetStats(new PagingInfo()).ConfigureAwait(false);
             var check = storedChecks.Results.Where(c => c.Id == checkId).ToList();
 
             Assert.AreEqual(0, check.Count);
         }
-
-        readonly PersistenceDataStoreFixture fixture;
     }
 }
