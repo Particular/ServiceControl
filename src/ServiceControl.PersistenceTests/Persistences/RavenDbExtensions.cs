@@ -33,8 +33,7 @@
                 );
 
             var indexProvider = CreateIndexProvider(new System.Collections.Generic.List<Assembly> { typeof(RavenBootstrapper).Assembly, typeof(CustomChecksIndex).Assembly });
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore);
 
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
             return documentStore;

@@ -10,7 +10,7 @@
     {
         public override async Task Configure(IServiceCollection services)
         {
-            fallback = await services.AddInitializedDocumentStore().ConfigureAwait(false);
+            fallback = await services.AddInitializedDocumentStore();
             services.AddServiceControlPersistence(DataStoreType.InMemory);
         }
 

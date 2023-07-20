@@ -10,7 +10,7 @@
     {
         public override async Task Configure(IServiceCollection services)
         {
-            documentStore = await services.AddInitializedDocumentStore().ConfigureAwait(false);
+            documentStore = await services.AddInitializedDocumentStore();
             services.AddServiceControlPersistence(DataStoreType.RavenDB35);
         }
 
