@@ -16,11 +16,12 @@
 
         [Route("errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsGet(
-            [FromUri] string status,
-            [FromUri] string modified,
-            [FromUri] string queueAddress)
+        public async Task<HttpResponseMessage> ErrorsGet()
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string queueAddress = Request.GetQueueAddress();
+
             var sortInfo = Request.GetSortInfo();
             var pagingInfo = Request.GetPagingInfo();
 
@@ -38,12 +39,12 @@
 
         [Route("errors")]
         [HttpHead]
-        public async Task<HttpResponseMessage> ErrorsHead(
-            [FromUri] string status,
-            [FromUri] string modified,
-            [FromUri] string queueAddress
-            )
+        public async Task<HttpResponseMessage> ErrorsHead()
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string queueAddress = Request.GetQueueAddress();
+
             var queryResult = await dataStore.ErrorsHead(
                     status: status,
                     modified: modified,
@@ -57,12 +58,12 @@
 
         [Route("endpoints/{endpointname}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsByEndpointName(
-            [FromUri] string endpointName,
-            [FromUri] string status,
-            [FromUri] string modified
-            )
+        public async Task<HttpResponseMessage> ErrorsByEndpointName()
         {
+            string status = Request.GetStatus();
+            string modified = Request.GetModified();
+            string endpointName = Request.GetEndpointName();
+
             var sortInfo = Request.GetSortInfo();
             var pagingInfo = Request.GetPagingInfo();
 
