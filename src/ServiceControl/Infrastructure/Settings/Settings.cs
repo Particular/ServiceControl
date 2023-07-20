@@ -138,7 +138,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool IngestErrorMessages { get; set; } = true;
         public bool RunRetryProcessor { get; set; } = true;
 
-        public TimeSpan? AuditRetentionPeriod { get; }
+        public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public TimeSpan ErrorRetentionPeriod { get; }
 
