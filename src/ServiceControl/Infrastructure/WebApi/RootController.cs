@@ -10,13 +10,15 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, PersistenceSettings persistenceSettings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
+            this.persistenceSettings = persistenceSettings;
             this.license = license;
             this.loggingSettings = loggingSettings;
             this.httpClientFactory = httpClientFactory;
@@ -83,10 +85,9 @@
                 PerformanceTunning = new
                 {
                     settings.HttpDefaultConnectionLimit,
-                    settings.ExternalIntegrationsDispatchingBatchSize,
-                    //settings.ExpirationProcessBatchSize,  // TODO : Check is this is still needed
-                    //settings.ExpirationProcessTimerInSeconds  // TODO : Check is this is still needed
+                    settings.ExternalIntegrationsDispatchingBatchSize
                 },
+                PersistenceSettings = persistenceSettings,
                 Transport = new
                 {
                     settings.TransportType,
@@ -156,6 +157,7 @@
         readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
+        readonly PersistenceSettings persistenceSettings;
         readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
