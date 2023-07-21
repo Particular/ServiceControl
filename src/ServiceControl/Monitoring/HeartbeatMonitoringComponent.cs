@@ -37,15 +37,5 @@
                 collection.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
             });
         }
-
-        public override void Setup(Settings settings, IComponentInstallationContext context)
-        {
-            // TODO: Move this in the persister project
-            if (settings.DataStoreType == DataStoreType.SqlDb)
-            {
-                var connectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
-                context.RegisterInstallationTask(() => SetupSqlPersistence.SetupMonitoring(connectionString));
-            }
-        }
     }
 }

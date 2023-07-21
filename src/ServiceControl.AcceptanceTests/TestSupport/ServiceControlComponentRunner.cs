@@ -75,7 +75,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-            ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", dataStoreToUse.ConnectionString);
 
             var settings = new Settings(instanceName)
             {

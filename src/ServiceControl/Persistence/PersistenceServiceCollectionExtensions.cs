@@ -38,8 +38,6 @@ namespace ServiceControl.Persistence
                     return Type.GetType(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName, true);
                 case DataStoreType.RavenDB35:
                     return Type.GetType(DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName, true);
-                case DataStoreType.SqlDb:
-                    return Type.GetType(DataStoreConfig.SqlServerPersistenceTypeFullyQualifiedName, true);
                 default:
                     return default;
             }

@@ -3,7 +3,6 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.InMemory")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.RavenDb")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Persistence.SqlServer")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.PersistenceTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.UnitTests")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
@@ -40,13 +39,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
     {
         public static string InMemoryPersistenceTypeFullyQualifiedName;
         public static string RavenDB35PersistenceTypeFullyQualifiedName;
-        public static string SqlServerPersistenceTypeFullyQualifiedName;
     }
     public enum DataStoreType
     {
         InMemory = 1,
         RavenDB35 = 2,
-        SqlDb = 3,
     }
     public class RemoteInstanceSetting
     {

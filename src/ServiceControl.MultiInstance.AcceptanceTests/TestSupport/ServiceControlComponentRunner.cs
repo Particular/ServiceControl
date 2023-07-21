@@ -80,7 +80,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-            ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", dataStoreConfiguration.ConnectionString);
 
             var settings = new Settings(instanceName)
             {
