@@ -1,4 +1,0 @@
-[*.cs]
-
-# Justification: ServiceControl app has no synchronization context
-dotnet_diagnostic.CA2007.severity = none

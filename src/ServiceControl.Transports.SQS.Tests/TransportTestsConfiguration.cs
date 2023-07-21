@@ -18,7 +18,7 @@
 
             if (string.IsNullOrEmpty(ConnectionString))
             {
-                throw new Exception($"Environment variable {ConnectionStringKey} is required for SQL transport tests to run");
+                throw new Exception($"Environment variable {ConnectionStringKey} is required for SQS transport tests to run");
             }
 
             return Task.CompletedTask;
