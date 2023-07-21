@@ -8,7 +8,6 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
-    using Infrastructure.RavenDB;
     using MessageAuditing;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;

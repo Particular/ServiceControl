@@ -7,13 +7,14 @@
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageFailures;
-    using MessageRedirects;
     using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Raven.Client;
     using Raven.Tests.Helpers;
+    using ServiceControl.Persistence.MessageRedirects;
+    using ServiceControl.Persistence.Recoverability.Editing;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
