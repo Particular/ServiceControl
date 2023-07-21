@@ -17,6 +17,7 @@
     using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Persistence;
     using ServiceControlInstaller.Engine.Instances;
 
     [TestFixture]
@@ -28,7 +29,8 @@
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
             request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
 
-            var controller = new RootController(new ActiveLicense { IsValid = true }, new LoggingSettings("testEndpoint"), new Settings(), httpClientFactory: null)
+            var persistenceSettings = new PersistenceSettings(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, 1, false);
+            var controller = new RootController(new ActiveLicense { IsValid = true }, new LoggingSettings("testEndpoint"), new Settings(), persistenceSettings, httpClientFactory: null)
             {
                 Url = new UrlHelper(request)
             };
