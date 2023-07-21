@@ -5,16 +5,16 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
+    using MessageFailures;
     using MessageFailures.Handlers;
     using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
+    using Persistence.RavenDb;
     using Raven.Client;
     using Raven.Tests.Helpers;
-    using MessageFailures;
-    using Persistence.RavenDb;
     using ServiceControl.Operations;
     using ServiceControl.Recoverability;
 

@@ -4,7 +4,6 @@
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Infrastructure.RavenDB;
     using Microsoft.Extensions.DependencyInjection;
     using Notifications;
     using NServiceBus;
