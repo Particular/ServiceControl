@@ -22,19 +22,17 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 hostBuilder.UseWindowsService();
 
-                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+                await hostBuilder.Build().RunAsync();
             }
             else
             {
                 hostBuilder.UseConsoleLifetime();
 
-                await Console.Out.WriteLineAsync("Running in Maintenance Mode - Press CTRL+C to exit")
-                    .ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("Running in Maintenance Mode - Press CTRL+C to exit");
 
-                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+                await hostBuilder.Build().RunAsync();
 
-                await Console.Out.WriteLineAsync("Disposing persister (this might take a while)...")
-                    .ConfigureAwait(false);
+                await Console.Out.WriteLineAsync("Disposing persister (this might take a while)...");
             }
         }
     }

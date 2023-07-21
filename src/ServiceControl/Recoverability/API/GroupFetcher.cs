@@ -18,8 +18,8 @@
 
         public async Task<GroupOperation[]> GetGroups(string classifier, string classifierFilter)
         {
-            var dbGroups = await store.GetFailureGroupsByClassifier(classifier, classifierFilter).ConfigureAwait(false);
-            var retryHistory = await retryStore.GetRetryHistory().ConfigureAwait(false);
+            var dbGroups = await store.GetFailureGroupsByClassifier(classifier, classifierFilter);
+            var retryHistory = await retryStore.GetRetryHistory();
             var unacknowledgedRetries = retryHistory.GetUnacknowledgedByClassifier(classifier);
 
             var openRetryAcknowledgements = MapAcksToOpenGroups(dbGroups, unacknowledgedRetries);
@@ -32,7 +32,7 @@
             openGroups = MapOpenGroups(openGroups, archiver.GetArchivalOperations()).ToList();
             openGroups = openGroups.Where(group => !closedGroups.Any(closedGroup => closedGroup.Id == group.Id)).ToList();
 
-            var currentForwardingBatch = await store.GetCurrentForwardingBatch().ConfigureAwait(false);
+            var currentForwardingBatch = await store.GetCurrentForwardingBatch();
             MakeSureForwardingBatchIsIncludedAsOpen(classifier, currentForwardingBatch, openGroups);
 
             var groups = openGroups.Union(closedGroups);

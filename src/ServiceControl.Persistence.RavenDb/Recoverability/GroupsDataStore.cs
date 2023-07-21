@@ -31,12 +31,11 @@
 
                 var groups = await query.OrderByDescending(x => x.Last)
                     .Take(200)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 var commentIds = groups.Select(x => GroupComment.MakeId(x.Id)).ToArray();
                 var comments = await session.Query<GroupComment, GroupCommentIndex>().Where(x => x.Id.In(commentIds))
-                    .ToListAsync(CancellationToken.None).ConfigureAwait(false);
+                    .ToListAsync(CancellationToken.None);
 
                 foreach (var group in groups)
                 {
@@ -52,10 +51,9 @@
             using (var session = store.OpenAsyncSession())
             {
                 var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                    .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
-                    .ConfigureAwait(false);
+                    .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
-                return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId).ConfigureAwait(false);
+                return nowForwarding == null ? null : await session.LoadAsync<RetryBatch>(nowForwarding.RetryBatchId);
             }
         }
     }

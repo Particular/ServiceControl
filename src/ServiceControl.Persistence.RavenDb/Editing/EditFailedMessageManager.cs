@@ -19,14 +19,13 @@
 
         public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
         {
-            failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
+            failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId));
             return failedMessage;
         }
 
         public async Task<string> GetCurrentEditingMessageId(string failedMessageId)
         {
-            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId))
-                .ConfigureAwait(false);
+            var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
 
             return edit?.Id;
         }

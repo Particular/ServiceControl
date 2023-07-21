@@ -24,15 +24,13 @@
 
             Logger.Info("Index creation started");
             var indexProvider = ravenStartup.CreateIndexProvider();
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore);
             Logger.Info("Index creation complete");
 
             Logger.Info("Data migrations starting");
 
             var endpointMigrations = new MigrateKnownEndpoints(documentStore);
-            await endpointMigrations.Migrate(cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+            await endpointMigrations.Migrate(cancellationToken: cancellationToken);
 
             Logger.Info("Data migrations complete");
         }

@@ -65,8 +65,7 @@
             }
 
 
-            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages)
-                .ConfigureAwait(false);
+            var storedFailed = await PersistFailedMessages(failedMessages, retriedMessages);
 
             try
             {
@@ -80,7 +79,7 @@
                     announcerTasks.Add(retryConfirmationProcessor.Announce(context));
                 }
 
-                await Task.WhenAll(announcerTasks).ConfigureAwait(false);
+                await Task.WhenAll(announcerTasks);
 
                 if (settings.ForwardErrorMessages)
                 {
@@ -88,7 +87,7 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(storedFailed, dispatcher).ConfigureAwait(false);
+                    await Forward(storedFailed, dispatcher);
                     if (log.IsDebugEnabled)
                     {
                         log.Debug("Forwarded messages");
@@ -123,17 +122,14 @@
 
             try
             {
-                using (var unitOfWork = await unitOfWorkFactory.StartNew().ConfigureAwait(false))
+                using (var unitOfWork = await unitOfWorkFactory.StartNew())
                 {
-                    var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork)
-                        .ConfigureAwait(false);
-                    await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork)
-                        .ConfigureAwait(false);
+                    var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork);
+                    await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
 
                     using (bulkInsertDurationMeter.Measure())
                     {
-                        await unitOfWork.Complete()
-                            .ConfigureAwait(false);
+                        await unitOfWork.Complete();
                     }
                     return storedFailedMessageContexts;
                 }
@@ -200,8 +196,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag())
-                    .ConfigureAwait(false);
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
             catch (Exception e)
             {

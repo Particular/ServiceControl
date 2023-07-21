@@ -18,7 +18,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var redirects = await session.LoadAsync<MessageRedirectsCollection>(DefaultId).ConfigureAwait(false);
+                var redirects = await session.LoadAsync<MessageRedirectsCollection>(DefaultId);
 
                 if (redirects != null)
                 {
@@ -36,8 +36,8 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.StoreAsync(redirects, redirects.ETag, DefaultId).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(redirects, redirects.ETag, DefaultId);
+                await session.SaveChangesAsync();
             }
         }
 

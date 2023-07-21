@@ -32,7 +32,7 @@ namespace Particular.ServiceControl
 
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
-                await installationTask().ConfigureAwait(false);
+                await installationTask();
             }
 
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
@@ -40,8 +40,7 @@ namespace Particular.ServiceControl
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();
 
-            await installer.Install()
-                .ConfigureAwait(false);
+            await installer.Install();
 
             EventSourceCreator.Create();
 
@@ -57,7 +56,7 @@ namespace Particular.ServiceControl
                 await transportCustomization.ProvisionQueues(
                     username,
                     transportSettings,
-                    componentSetupContext.Queues).ConfigureAwait(false);
+                    componentSetupContext.Queues);
             }
         }
 

@@ -28,8 +28,7 @@
 
             var logItem = mappings.ApplyMapping(message);
 
-            await dataStore.StoreEventLogItem(logItem)
-                .ConfigureAwait(false);
+            await dataStore.StoreEventLogItem(logItem);
 
             await broadcaster.Broadcast(new EventLogItemAdded
             {
@@ -42,7 +41,7 @@
                 // The reason is because this data is not useful for end users, so for now we just empty it.
                 // At the moment too much data is being populated in this field, and this has significant down sides to the amount of data we are sending down to ServicePulse (it actually crashes it).
                 RelatedTo = emptyArray
-            }).ConfigureAwait(false);
+            });
         }
 
         readonly GlobalEventHandler broadcaster;

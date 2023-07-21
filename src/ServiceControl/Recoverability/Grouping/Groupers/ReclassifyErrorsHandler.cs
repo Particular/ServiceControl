@@ -27,15 +27,14 @@ namespace ServiceControl.Recoverability
 
             try
             {
-                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(message.Force)
-                    .ConfigureAwait(false);
+                var failedMessagesReclassified = await reclassifier.ReclassifyFailedMessages(message.Force);
 
                 if (failedMessagesReclassified > 0)
                 {
                     await domainEvents.Raise(new ReclassificationOfErrorMessageComplete
                     {
                         NumberofMessageReclassified = failedMessagesReclassified
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
             finally

@@ -38,7 +38,7 @@
             }).ToList();
 
 
-            await store.StoreDispatchRequest(dispatchRequests).ConfigureAwait(false);
+            await store.StoreDispatchRequest(dispatchRequests);
         }
 
         readonly IExternalIntegrationRequestsDataStore store;

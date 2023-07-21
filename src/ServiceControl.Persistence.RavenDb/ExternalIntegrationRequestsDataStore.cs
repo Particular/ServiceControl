@@ -47,12 +47,10 @@
                     }
 
                     dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();  // TODO: Key is generated to persistence
-                    await session.StoreAsync(dispatchRequest)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(dispatchRequest);
                 }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -77,12 +75,12 @@
         {
             try
             {
-                await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
+                await DispatchEvents(tokenSource.Token);
                 do
                 {
                     try
                     {
-                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token).ConfigureAwait(false);
+                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token);
                         signal.Reset();
                     }
                     catch (OperationCanceledException)
@@ -90,7 +88,7 @@
                         break;
                     }
 
-                    await DispatchEvents(tokenSource.Token).ConfigureAwait(false);
+                    await DispatchEvents(tokenSource.Token);
                 }
                 while (!tokenSource.IsCancellationRequested);
             }
@@ -101,7 +99,7 @@
             catch (Exception ex)
             {
                 Logger.Error("An exception occurred when dispatching external integration events", ex);
-                await circuitBreaker.Failure(ex).ConfigureAwait(false);
+                await circuitBreaker.Failure(ex);
 
                 if (!tokenSource.IsCancellationRequested)
                 {
@@ -116,15 +114,14 @@
 
             do
             {
-                more = await TryDispatchEventBatch()
-                    .ConfigureAwait(false);
+                more = await TryDispatchEventBatch();
 
                 circuitBreaker.Success();
 
                 if (more && !cancellationToken.IsCancellationRequested)
                 {
                     //if there is more events to dispatch we sleep for a bit and then we go again
-                    await Task.Delay(1000, CancellationToken.None).ConfigureAwait(false);
+                    await Task.Delay(1000, CancellationToken.None);
                 }
             }
             while (!cancellationToken.IsCancellationRequested && more);
@@ -138,8 +135,7 @@
                     .Query<ExternalIntegrationDispatchRequest>()
                     .Statistics(out var stats)
                     .Take(settings.ExternalIntegrationsDispatchingBatchSize)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 if (awaitingDispatching.Count == 0)
                 {
@@ -153,15 +149,14 @@
                     Logger.Debug($"Dispatching {allContexts.Length} events.");
                 }
 
-                await callback(allContexts).ConfigureAwait(false);
+                await callback(allContexts);
 
                 foreach (var dispatchedEvent in awaitingDispatching)
                 {
                     session.Delete(dispatchedEvent);
                 }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             return true;
@@ -184,8 +179,7 @@
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await DisposeAsync()
-                .ConfigureAwait(false);
+            await DisposeAsync();
         }
 
         public async ValueTask DisposeAsync()
@@ -201,7 +195,7 @@
 
             if (task != null)
             {
-                await task.ConfigureAwait(false);
+                await task;
             }
 
             tokenSource?.Dispose();

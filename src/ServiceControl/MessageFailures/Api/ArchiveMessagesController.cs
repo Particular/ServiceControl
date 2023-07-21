@@ -34,7 +34,7 @@ namespace ServiceControl.MessageFailures.Api
             {
                 var request = new ArchiveMessage { FailedMessageId = id };
 
-                await messageSession.SendLocal(request).ConfigureAwait(false);
+                await messageSession.SendLocal(request);
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
@@ -44,7 +44,7 @@ namespace ServiceControl.MessageFailures.Api
         [HttpGet]
         public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
-            var results = await dataStore.GetFailureGroupsByClassifier(classifier).ConfigureAwait(false);
+            var results = await dataStore.GetFailureGroupsByClassifier(classifier);
 
             return Negotiator.FromModel(Request, results)
                 .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
@@ -60,7 +60,7 @@ namespace ServiceControl.MessageFailures.Api
                 return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
-            await messageSession.SendLocal<ArchiveMessage>(m => { m.FailedMessageId = messageId; }).ConfigureAwait(false);
+            await messageSession.SendLocal<ArchiveMessage>(m => { m.FailedMessageId = messageId; });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
@@ -72,8 +72,7 @@ namespace ServiceControl.MessageFailures.Api
             string status = Request.GetStatus();
             string modified = Request.GetModified();
 
-            var result = await dataStore.GetFailureGroupView(groupId, status, modified)
-                .ConfigureAwait(false);
+            var result = await dataStore.GetFailureGroupView(groupId, status, modified);
 
             return Negotiator
                 .FromModel(Request, result.Results)

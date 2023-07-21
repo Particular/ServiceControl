@@ -146,7 +146,7 @@
             // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
             var shortAppVersion = AppVersion.Split('-').First();
 
-            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion).ConfigureAwait(false);
+            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion);
 
             if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
             {

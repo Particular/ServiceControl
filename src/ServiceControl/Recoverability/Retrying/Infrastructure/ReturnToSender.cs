@@ -35,13 +35,11 @@ namespace ServiceControl.Recoverability
             {
                 if (outgoingHeaders.Remove("ServiceControl.Retry.BodyOnFailedMessage"))
                 {
-                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId)
-                        .ConfigureAwait(false);
+                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId);
                 }
                 else
                 {
-                    body = await FetchFromBodyStore(attemptMessageId, messageId)
-                        .ConfigureAwait(false);
+                    body = await FetchFromBodyStore(attemptMessageId, messageId);
                 }
 
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
@@ -74,8 +72,7 @@ namespace ServiceControl.Recoverability
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
-            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions)
-                .ConfigureAwait(false);
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions);
 
             if (Log.IsDebugEnabled)
             {
@@ -86,7 +83,7 @@ namespace ServiceControl.Recoverability
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
         {
             var uniqueMessageId = outgoingHeaders["ServiceControl.Retry.UniqueMessageId"];
-            byte[] body = await errorMessageStore.FetchFromFailedMessage(uniqueMessageId).ConfigureAwait(false);
+            byte[] body = await errorMessageStore.FetchFromFailedMessage(uniqueMessageId);
 
             // TODO: Weird that none of these logged parameters are actually used in the attempt to load the thing
             if (body == null)
@@ -104,8 +101,7 @@ namespace ServiceControl.Recoverability
         async Task<byte[]> FetchFromBodyStore(string attemptMessageId, string messageId)
         {
             byte[] body = null;
-            var result = await bodyStorage.TryFetch(attemptMessageId)
-                .ConfigureAwait(false);
+            var result = await bodyStorage.TryFetch(attemptMessageId);
             if (result.HasResult)
             {
                 using (result.Stream)

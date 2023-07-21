@@ -60,7 +60,7 @@
 
             try
             {
-                await documentStore.AsyncDatabaseCommands.BatchAsync(commands).ConfigureAwait(false);
+                await documentStore.AsyncDatabaseCommands.BatchAsync(commands);
             }
             catch (ConcurrencyException)
             {
@@ -83,7 +83,7 @@
                             Name = "StageAttempts",
                             Value = message.StageAttempts + 1
                         }
-                    }).ConfigureAwait(false);
+                    });
             }
             catch (ConcurrencyException)
             {

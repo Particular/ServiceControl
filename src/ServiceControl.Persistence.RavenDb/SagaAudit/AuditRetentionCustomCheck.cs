@@ -30,7 +30,7 @@ namespace ServiceControl.Persistence.RavenDb.SagaAudit
                 return CheckResult.Pass;
             }
 
-            if (await DetectSagaAuditData().ConfigureAwait(false))
+            if (await DetectSagaAuditData())
             {
                 return CheckResult.Failed("Saga snapshot data detected without an audit retention period configured. If saga audit data is allowed to accumulate, it can result in degraded performance.  Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
@@ -42,7 +42,7 @@ namespace ServiceControl.Persistence.RavenDb.SagaAudit
         {
             using (var session = _documentStore.OpenAsyncSession())
             {
-                return await session.Query<SagaListIndex.Result, SagaListIndex>().AnyAsync().ConfigureAwait(false);
+                return await session.Query<SagaListIndex.Result, SagaListIndex>().AnyAsync();
             }
         }
     }

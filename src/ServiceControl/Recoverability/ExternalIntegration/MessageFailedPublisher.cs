@@ -28,8 +28,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
         protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
             var ids = contexts.Select(x => x.FailedMessageId).ToArray();
-            var results = await dataStore.FailedMessagesFetch(ids)
-                .ConfigureAwait(false);
+            var results = await dataStore.FailedMessagesFetch(ids);
             return results.Select(x => x.ToEvent());
         }
 

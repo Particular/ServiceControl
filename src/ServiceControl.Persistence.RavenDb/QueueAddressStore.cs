@@ -26,8 +26,7 @@
                     .Query<QueueAddress, QueueAddressIndex>()
                     .Statistics(out var stats)
                     .Paging(pagingInfo)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 var result = new QueryResult<IList<QueueAddress>>(addresses, stats.ToQueryStatsInfo());
                 return result;
@@ -44,8 +43,7 @@
                         .Where(q => q.PhysicalAddress.StartsWith(search))
                         .OrderBy(q => q.PhysicalAddress)
                         .Paging(pagingInfo)
-                        .ToListAsync()
-                        .ConfigureAwait(false);
+                        .ToListAsync();
 
                 var result = new QueryResult<IList<QueueAddress>>(failedMessageQueues, stats.ToQueryStatsInfo());
                 return result;

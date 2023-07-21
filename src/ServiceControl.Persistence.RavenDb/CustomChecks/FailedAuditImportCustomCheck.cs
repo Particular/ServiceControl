@@ -20,9 +20,9 @@
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
                 using (var ie = await session.Advanced.StreamAsync(query)
-                    .ConfigureAwait(false))
+                    )
                 {
-                    if (await ie.MoveNextAsync().ConfigureAwait(false))
+                    if (await ie.MoveNextAsync())
                     {
                         Logger.Warn(message);
                         return CheckResult.Failed(message);

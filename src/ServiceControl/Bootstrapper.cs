@@ -133,8 +133,7 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
-                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
-                ;
+                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
         TransportSettings MapSettings(Settings settings)

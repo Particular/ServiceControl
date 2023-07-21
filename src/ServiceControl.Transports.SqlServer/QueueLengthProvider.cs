@@ -50,9 +50,9 @@
                 {
                     try
                     {
-                        await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(QueryDelayInterval, token);
 
-                        await QueryTableSizes(token).ConfigureAwait(false);
+                        await QueryTableSizes(token);
 
                         UpdateQueueLengthStore();
                     }
@@ -110,11 +110,11 @@
 
             using (var connection = new SqlConnection(connectionString))
             {
-                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                await connection.OpenAsync(cancellationToken);
 
                 foreach (var chunk in chunks)
                 {
-                    await UpdateChunk(connection, chunk, cancellationToken).ConfigureAwait(false);
+                    await UpdateChunk(connection, chunk, cancellationToken);
                 }
             }
         }
@@ -125,11 +125,11 @@
 
             using (var command = new SqlCommand(query, connection))
             {
-                using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                using (var reader = await command.ExecuteReaderAsync(cancellationToken))
                 {
                     foreach (var chunkPair in chunk)
                     {
-                        await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                        await reader.ReadAsync(cancellationToken);
 
                         var queueLength = reader.GetInt32(0);
 
@@ -142,7 +142,7 @@
                             tableSizes.TryUpdate(chunkPair.Key, queueLength, chunkPair.Value);
                         }
 
-                        await reader.NextResultAsync(cancellationToken).ConfigureAwait(false);
+                        await reader.NextResultAsync(cancellationToken);
                     }
                 }
             }

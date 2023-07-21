@@ -20,10 +20,10 @@ namespace ServiceControl.CustomChecks
         {
             try
             {
-                var statusChange = await store.UpdateCustomCheckStatus(checkDetail).ConfigureAwait(false);
-                await RaiseEvents(statusChange, checkDetail).ConfigureAwait(false);
+                var statusChange = await store.UpdateCustomCheckStatus(checkDetail);
+                await RaiseEvents(statusChange, checkDetail);
 
-                var numberOfFailedChecks = await store.GetNumberOfFailedChecks().ConfigureAwait(false);
+                var numberOfFailedChecks = await store.GetNumberOfFailedChecks();
 
                 if (lastCount == numberOfFailedChecks)
                 {
@@ -34,7 +34,7 @@ namespace ServiceControl.CustomChecks
                 await domainEvents.Raise(new CustomChecksUpdated
                 {
                     Failed = numberOfFailedChecks
-                }).ConfigureAwait(false);
+                });
             }
             catch (Exception ex)
             {
@@ -58,7 +58,7 @@ namespace ServiceControl.CustomChecks
                         FailedAt = detail.ReportedAt,
                         FailureReason = detail.FailureReason,
                         OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
+                    });
                 }
                 else
                 {
@@ -69,7 +69,7 @@ namespace ServiceControl.CustomChecks
                         Category = detail.Category,
                         SucceededAt = detail.ReportedAt,
                         OriginatingEndpoint = detail.OriginatingEndpoint
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
         }

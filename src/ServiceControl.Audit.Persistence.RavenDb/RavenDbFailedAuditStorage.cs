@@ -17,11 +17,9 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
+                await session.StoreAsync(failure);
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -29,8 +27,8 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.StoreAsync(message).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(message);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -42,14 +40,14 @@
             {
                 var query = session.Query<FailedAuditImport, FailedAuditImportIndex>();
                 using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                           .ConfigureAwait(false))
+                           )
                 {
                     while (!cancellationToken.IsCancellationRequested &&
-                           await stream.MoveNextAsync().ConfigureAwait(false))
+                           await stream.MoveNextAsync())
                     {
                         FailedTransportMessage transportMessage = stream.Current.Document.Message;
 
-                        await onMessage(transportMessage, (token) => store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token), cancellationToken).ConfigureAwait(false);
+                        await onMessage(transportMessage, (token) => store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, token), cancellationToken);
                     }
                 }
             }

@@ -8,8 +8,7 @@ namespace ServiceControl.Monitoring
         public override async Task Execute(Settings settings)
         {
             await new SetupBootstrapper(settings)
-                .Run()
-                .ConfigureAwait(false);
+                .Run();
         }
     }
 }

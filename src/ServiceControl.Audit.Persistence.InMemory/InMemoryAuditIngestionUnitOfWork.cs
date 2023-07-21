@@ -31,9 +31,9 @@
         {
             if (body != null)
             {
-                await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage).ConfigureAwait(false);
+                await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage);
             }
-            await dataStore.SaveProcessedMessage(processedMessage).ConfigureAwait(false);
+            await dataStore.SaveProcessedMessage(processedMessage);
         }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)

@@ -22,10 +22,10 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
-            await ravenStartup.CreateIndexesAsync(documentStore).ConfigureAwait(false);
+            await ravenStartup.CreateIndexesAsync(documentStore);
 
             Logger.Info("Testing indexes");
-            await TestAllIndexesAndResetIfException(documentStore).ConfigureAwait(false);
+            await TestAllIndexesAndResetIfException(documentStore);
         }
 
         public Task Stop(CancellationToken cancellationToken)
@@ -42,7 +42,7 @@
                 {
                     using (var session = store.OpenAsyncSession())
                     {
-                        await session.Advanced.AsyncDocumentQuery<object>(index.Name).Take(1).ToListAsync().ConfigureAwait(false);
+                        await session.Advanced.AsyncDocumentQuery<object>(index.Name).Take(1).ToListAsync();
                     }
                 }
                 catch (Exception ex)

@@ -59,14 +59,14 @@ namespace ServiceControl.CompositeViews.Messages
                 tasks.Add(RemoteCall(currentRequest, remote.ApiAsUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
-            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks).ConfigureAwait(false));
+            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));
 
             return Negotiator.FromQueryResult(currentRequest, response);
         }
 
         async Task<QueryResult<TOut>> LocalCall(HttpRequestMessage request, TIn input, string instanceId)
         {
-            var result = await LocalQuery(request, input).ConfigureAwait(false);
+            var result = await LocalQuery(request, input);
             result.InstanceId = instanceId;
             return result;
         }
@@ -99,7 +99,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         async Task<QueryResult<TOut>> RemoteCall(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
         {
-            var fetched = await FetchAndParse(currentRequest, remoteUri).ConfigureAwait(false);
+            var fetched = await FetchAndParse(currentRequest, remoteUri);
             fetched.InstanceId = instanceId;
             return fetched;
         }
@@ -111,15 +111,14 @@ namespace ServiceControl.CompositeViews.Messages
             try
             {
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
-                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri))
-                    .ConfigureAwait(false);
+                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri));
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
                     return QueryResult<TOut>.Empty();
                 }
 
-                return await ParseResult(rawResponse).ConfigureAwait(false);
+                return await ParseResult(rawResponse);
             }
             catch (HttpRequestException httpRequestException)
             {
@@ -141,7 +140,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
-            using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
+            using (var responseStream = await responseMessage.Content.ReadAsStreamAsync())
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
                 var remoteResults = jsonSerializer.Deserialize<TOut>(jsonReader);

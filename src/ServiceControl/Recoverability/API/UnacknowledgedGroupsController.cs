@@ -25,7 +25,7 @@
                 return Request.CreateResponse(HttpStatusCode.OK);
             }
 
-            var success = await retryStore.AcknowledgeRetryGroup(groupId).ConfigureAwait(false);
+            var success = await retryStore.AcknowledgeRetryGroup(groupId);
 
             if (success)
             {

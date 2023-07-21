@@ -27,10 +27,9 @@
 
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup)
-                    .ConfigureAwait(false);
+                await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup);
 
-                await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
+                await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; });
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);

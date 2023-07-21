@@ -50,8 +50,7 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.Prepare(totalNumberOfMessages)
-                .ConfigureAwait(false);
+            await summary.Prepare(totalNumberOfMessages);
         }
 
         public async Task PreparedAdoptedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared, int totalNumberOfMessages, string originator, string classifier, DateTime startTime, DateTime last)
@@ -63,8 +62,8 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.Prepare(totalNumberOfMessages).ConfigureAwait(false);
-            await summary.PrepareAdoptedBatch(numberOfMessagesPrepared, originator, classifier, startTime, last).ConfigureAwait(false);
+            await summary.Prepare(totalNumberOfMessages);
+            await summary.PrepareAdoptedBatch(numberOfMessagesPrepared, originator, classifier, startTime, last);
         }
 
         public async Task PreparedBatch(string requestId, RetryType retryType, int numberOfMessagesPrepared)
@@ -76,7 +75,7 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.PrepareBatch(numberOfMessagesPrepared).ConfigureAwait(false);
+            await summary.PrepareBatch(numberOfMessagesPrepared);
         }
 
         public async Task Forwarding(string requestId, RetryType retryType)
@@ -88,7 +87,7 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.Forwarding().ConfigureAwait(false);
+            await summary.Forwarding();
         }
 
         public async Task ForwardedBatch(string requestId, RetryType retryType, int numberOfMessagesForwarded)
@@ -100,8 +99,7 @@
 
             var summary = GetOrCreate(retryType, requestId);
 
-            await summary.BatchForwarded(numberOfMessagesForwarded)
-                .ConfigureAwait(false);
+            await summary.BatchForwarded(numberOfMessagesForwarded);
         }
 
         public void Fail(RetryType retryType, string requestId)
@@ -124,8 +122,7 @@
             }
 
             var summary = GetOrCreate(retryType, requestId);
-            await summary.Skip(numberOfMessagesSkipped)
-                .ConfigureAwait(false);
+            await summary.Skip(numberOfMessagesSkipped);
         }
 
         InMemoryRetry GetOrCreate(RetryType retryType, string requestId)

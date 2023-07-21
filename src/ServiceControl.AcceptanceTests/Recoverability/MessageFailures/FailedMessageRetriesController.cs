@@ -26,7 +26,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync().ConfigureAwait(false);
+                await session.Query<FailedMessageRetry>().Statistics(out var stats).ToListAsync();
 
                 return Request.CreateResponse(HttpStatusCode.OK, new FailedMessageRetriesCountReponse
                 {

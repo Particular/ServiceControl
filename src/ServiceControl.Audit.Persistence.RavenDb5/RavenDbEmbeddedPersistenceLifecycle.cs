@@ -26,7 +26,7 @@
         {
             database = EmbeddedDatabase.Start(databaseConfiguration);
 
-            documentStore = await database.Connect(cancellationToken).ConfigureAwait(false);
+            documentStore = await database.Connect(cancellationToken);
         }
 
         public Task Stop(CancellationToken cancellationToken)

@@ -27,28 +27,25 @@
 
         public async Task<RetryBatchNowForwarding> GetRetryBatchNowForwarding() =>
             await Session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
-                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id)
-                .ConfigureAwait(false);
+                .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);
 
         public async Task<RetryBatch> GetRetryBatch(string retryBatchId, CancellationToken cancellationToken) =>
-            await Session.LoadAsync<RetryBatch>(retryBatchId, cancellationToken)
-                .ConfigureAwait(false);
+            await Session.LoadAsync<RetryBatch>(retryBatchId, cancellationToken);
 
         public async Task<RetryBatch> GetStagingBatch() =>
             await Session.Query<RetryBatch>()
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
-                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging)
-                .ConfigureAwait(false);
+                .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging);
 
         public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding, string stagingBatchId) =>
             await Session.StoreAsync(new RetryBatchNowForwarding
             {
                 RetryBatchId = stagingBatchId
-            }, RetryBatchNowForwarding.Id).ConfigureAwait(false);
+            }, RetryBatchNowForwarding.Id);
 
         public async Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection()
         {
-            var redirects = await Session.LoadAsync<MessageRedirectsCollection>(MessageRedirectsCollection.DefaultId).ConfigureAwait(false);
+            var redirects = await Session.LoadAsync<MessageRedirectsCollection>(MessageRedirectsCollection.DefaultId);
 
             if (redirects != null)
             {

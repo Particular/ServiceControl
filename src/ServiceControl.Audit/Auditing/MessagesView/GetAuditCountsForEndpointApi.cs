@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         protected override async Task<QueryResult<IList<AuditCount>>> Query(HttpRequestMessage request, string endpointName)
         {
-            return await DataStore.QueryAuditCounts(endpointName).ConfigureAwait(false);
+            return await DataStore.QueryAuditCounts(endpointName);
         }
     }
 }

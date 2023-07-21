@@ -22,8 +22,7 @@
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousArchiveBatch);
 
                     var previousArchiveOperation = new ArchiveOperation
                     {
@@ -37,11 +36,9 @@
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousArchiveOperation)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousArchiveOperation);
 
-                    await session.SaveChangesAsync()
-                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync();
                 }
 
                 var domainEvents = new FakeDomainEvents();
@@ -55,8 +52,7 @@
                 var message = new ArchiveAllInGroup { GroupId = groupId };
 
                 // Act
-                await handler.Handle(message, context)
-                    .ConfigureAwait(false);
+                await handler.Handle(message, context);
 
                 // Assert
                 using (var session = documentStore.OpenSession())
@@ -82,8 +78,7 @@
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousArchiveBatch);
 
                     var previousArchiveOperation = new ArchiveOperation
                     {
@@ -97,11 +92,9 @@
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousArchiveOperation)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousArchiveOperation);
 
-                    await session.SaveChangesAsync()
-                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync();
                 }
 
                 var domainEvents = new FakeDomainEvents();
@@ -119,7 +112,7 @@
                 Assert.DoesNotThrowAsync(async () =>
                 {
                     // Act
-                    await handler.Handle(message, context).ConfigureAwait(false);
+                    await handler.Handle(message, context);
                 });
             }
         }

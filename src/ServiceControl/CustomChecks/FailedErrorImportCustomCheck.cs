@@ -16,8 +16,7 @@
 
         public override async Task<CheckResult> PerformCheck()
         {
-            var hasFailedImports = await store.QueryContainsFailedImports()
-                .ConfigureAwait(false);
+            var hasFailedImports = await store.QueryContainsFailedImports();
 
             if (hasFailedImports)
             {

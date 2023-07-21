@@ -21,11 +21,9 @@
         {
             using (var session = sessionProvider.OpenSession())
             {
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
+                await session.StoreAsync(failure);
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -33,8 +31,8 @@
         {
             using (var session = sessionProvider.OpenSession())
             {
-                await session.StoreAsync(message).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(message);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -49,10 +47,9 @@
                 IAsyncEnumerator<StreamResult<FailedAuditImport>> stream = default;
                 try
                 {
-                    stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                        .ConfigureAwait(false);
+                    stream = await session.Advanced.StreamAsync(query, cancellationToken);
                     while (!cancellationToken.IsCancellationRequested &&
-                           await stream.MoveNextAsync().ConfigureAwait(false))
+                           await stream.MoveNextAsync())
                     {
                         FailedTransportMessage transportMessage = stream.Current.Document.Message;
                         var localSession = session;
@@ -62,16 +59,16 @@
                             localSession.Advanced.Defer(
                                 new DeleteCommandData(stream.Current.Id, stream.Current.ChangeVector));
                             return Task.CompletedTask;
-                        }, cancellationToken).ConfigureAwait(false);
+                        }, cancellationToken);
                     }
 
-                    await session.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    await session.SaveChangesAsync(cancellationToken);
                 }
                 finally
                 {
                     if (stream != null)
                     {
-                        await stream.DisposeAsync().ConfigureAwait(false);
+                        await stream.DisposeAsync();
                     }
                 }
             }
@@ -82,8 +79,7 @@
             using (var session = sessionProvider.OpenSession())
             {
                 return await session.Query<FailedAuditImport, FailedAuditImportIndex>()
-                    .CountAsync()
-                    .ConfigureAwait(false);
+                    .CountAsync();
             }
         }
 

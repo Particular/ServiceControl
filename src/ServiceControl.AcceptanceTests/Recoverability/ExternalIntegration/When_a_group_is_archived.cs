@@ -52,7 +52,7 @@
                     ctx => Task.FromResult(ctx.ExternalProcessorSubscribed))
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors");
                     return failedMessages && failedMessages.Items.Count == 1;
                 })
                 .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })

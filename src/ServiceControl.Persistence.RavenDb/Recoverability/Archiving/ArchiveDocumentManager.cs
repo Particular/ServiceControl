@@ -32,7 +32,7 @@
                 CurrentBatch = 0
             };
 
-            await session.StoreAsync(operation).ConfigureAwait(false);
+            await session.StoreAsync(operation);
 
             var documentCount = 0;
             var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName);
@@ -42,7 +42,7 @@
                 .Where(failure => failure.Status == FailedMessageStatus.Unresolved)
                 .Select(document => document.Id);
 
-            var docs = await StreamResults(session, docQuery).ConfigureAwait(false);
+            var docs = await StreamResults(session, docQuery);
 
             var batches = docs
                 .GroupBy(d => documentCount++ / batchSize);
@@ -55,7 +55,7 @@
                     DocumentIds = batch.ToList()
                 };
 
-                await session.StoreAsync(archiveBatch).ConfigureAwait(false);
+                await session.StoreAsync(archiveBatch);
             }
 
             return operation;
@@ -64,9 +64,9 @@
         async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
             var results = new List<string>();
-            using (var enumerator = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+            using (var enumerator = await session.Advanced.StreamAsync(query))
             {
-                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                while (await enumerator.MoveNextAsync())
                 {
                     results.Add(enumerator.Current.Document);
                 }
@@ -83,8 +83,7 @@
         public async Task<GroupDetails> GetGroupDetails(IAsyncDocumentSession session, string groupId)
         {
             var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                .FirstOrDefaultAsync(x => x.Id == groupId)
-                .ConfigureAwait(false);
+                .FirstOrDefaultAsync(x => x.Id == groupId);
 
             return new GroupDetails
             {
@@ -99,10 +98,8 @@
 
             if (patchCommands != null)
             {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands)
-                    .ConfigureAwait(false);
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null)
-                    .ConfigureAwait(false);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null);
             }
         }
 
@@ -119,7 +116,7 @@
 
                 try
                 {
-                    await docQuery.AnyAsync().ConfigureAwait(false);
+                    await docQuery.AnyAsync();
 
                     return true;
                 }
@@ -139,10 +136,8 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null);
+                await session.SaveChangesAsync();
 
                 logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
             }

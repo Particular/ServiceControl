@@ -17,8 +17,7 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 var id = RetryHistory.MakeId();
-                var retryHistory = await session.LoadAsync<RetryHistory>(id)
-                    .ConfigureAwait(false);
+                var retryHistory = await session.LoadAsync<RetryHistory>(id);
 
                 retryHistory = retryHistory ?? RetryHistory.CreateNew();
 
@@ -31,7 +30,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false) ??
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()) ??
                                    RetryHistory.CreateNew();
 
                 retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
@@ -58,10 +57,8 @@
                     NumberOfMessagesProcessed = numberOfMessagesProcessed
                 }, retryHistoryDepth);
 
-                await session.StoreAsync(retryHistory)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.StoreAsync(retryHistory);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -69,13 +66,13 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()).ConfigureAwait(false);
+                var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId());
                 if (retryHistory != null)
                 {
                     if (retryHistory.Acknowledge(groupId, RetryType.FailureGroup))
                     {
-                        await session.StoreAsync(retryHistory).ConfigureAwait(false);
-                        await session.SaveChangesAsync().ConfigureAwait(false);
+                        await session.StoreAsync(retryHistory);
+                        await session.SaveChangesAsync();
 
                         return true;
                     }

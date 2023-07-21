@@ -21,8 +21,7 @@
             var indexProvider = new CompositionContainer(new AggregateCatalog(indexAssemblies.Select(a => new AssemblyCatalog(a))));
 
             Logger.Info("Index creation started");
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
-                .ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore);
             Logger.Info("Index creation complete");
         }
 

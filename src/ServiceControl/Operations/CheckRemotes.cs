@@ -34,7 +34,7 @@
 
                     try
                     {
-                        await Task.WhenAll(remoteQueryTasks).ConfigureAwait(false);
+                        await Task.WhenAll(remoteQueryTasks);
                         return CheckResult.Pass;
                     }
                     catch (Exception)
@@ -45,7 +45,7 @@
                         {
                             try
                             {
-                                await task.ConfigureAwait(false);
+                                await task;
                             }
                             catch (TimeoutException e)
                             {
@@ -67,7 +67,7 @@
         {
             try
             {
-                var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken).ConfigureAwait(false);
+                var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
             }

@@ -37,13 +37,11 @@
             {
                 var failedUnresolvedMessageCount = await session
                     .Query<FailedMessage, FailedMessageViewIndex>()
-                    .CountAsync(p => p.Status == FailedMessageStatus.Unresolved)
-                    .ConfigureAwait(false);
+                    .CountAsync(p => p.Status == FailedMessageStatus.Unresolved);
 
                 var failedArchivedMessageCount = await session
                     .Query<FailedMessage, FailedMessageViewIndex>()
-                    .CountAsync(p => p.Status == FailedMessageStatus.Archived)
-                    .ConfigureAwait(false);
+                    .CountAsync(p => p.Status == FailedMessageStatus.Archived);
 
                 if (lastUnresolvedCount == failedUnresolvedMessageCount && lastArchivedCount == failedArchivedMessageCount)
                 {
@@ -59,7 +57,7 @@
                     {
                         ArchivedTotal = failedArchivedMessageCount,
                         UnresolvedTotal = failedUnresolvedMessageCount
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
         }

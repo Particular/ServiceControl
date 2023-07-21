@@ -21,7 +21,7 @@
         {
             var messageId = input;
 
-            var result = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
+            var result = await bodyStorage.TryFetch(messageId);
 
             if (result == null)
             {

@@ -18,30 +18,25 @@ namespace ServiceControl.Recoverability
         {
             var messageIds = new List<string>();
 
-            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress)
-                .ConfigureAwait(false);
+            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress);
 
             foreach (var id in ids)
             {
-                await dataStore.RemoveFailedMessageRetryDocument(id)
-                    .ConfigureAwait(false);
+                await dataStore.RemoveFailedMessageRetryDocument(id);
                 messageIds.Add(id);
             }
 
-            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() })
-                .ConfigureAwait(false);
+            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() });
         }
 
         public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId)
-                    .ConfigureAwait(false);
+                await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId);
             }
 
-            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds)
-                .ConfigureAwait(false);
+            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
         }
 
         readonly IErrorMessageDataStore dataStore;

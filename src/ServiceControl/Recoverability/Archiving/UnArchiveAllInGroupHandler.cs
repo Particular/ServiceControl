@@ -21,7 +21,7 @@ namespace ServiceControl.Recoverability
                 return;
             }
 
-            await archiver.UnarchiveAllInGroup(message.GroupId).ConfigureAwait(false);
+            await archiver.UnarchiveAllInGroup(message.GroupId);
         }
 
         IArchiveMessages archiver;

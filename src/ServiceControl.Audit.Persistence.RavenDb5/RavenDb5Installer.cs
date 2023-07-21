@@ -12,8 +12,8 @@
 
         public async Task Install(CancellationToken cancellationToken)
         {
-            await lifecycle.Start(cancellationToken).ConfigureAwait(false);
-            await lifecycle.Stop(cancellationToken).ConfigureAwait(false);
+            await lifecycle.Start(cancellationToken);
+            await lifecycle.Stop(cancellationToken);
         }
 
         readonly IRavenDbPersistenceLifecycle lifecycle;

@@ -26,9 +26,9 @@
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
-            using (var session = await store.CreateEditFailedMessageManager().ConfigureAwait(false))
+            using (var session = await store.CreateEditFailedMessageManager())
             {
-                failedMessage = await session.GetFailedMessage(message.FailedMessageId).ConfigureAwait(false);
+                failedMessage = await session.GetFailedMessage(message.FailedMessageId);
 
                 if (failedMessage == null)
                 {
@@ -36,7 +36,7 @@
                     return;
                 }
 
-                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId).ConfigureAwait(false);
+                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId);
                 if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
@@ -46,7 +46,7 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.SetCurrentEditingMessageId(context.MessageId).ConfigureAwait(false);
+                    await session.SetCurrentEditingMessageId(context.MessageId);
                 }
                 else if (editId != context.MessageId)
                 {
@@ -55,13 +55,13 @@
                 }
 
                 // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
-                await session.SetFailedMessageAsResolved().ConfigureAwait(false);
+                await session.SetFailedMessageAsResolved();
 
 
-                await session.SaveChanges().ConfigureAwait(false);
+                await session.SaveChanges();
             }
 
-            var redirects = await redirectsStore.GetOrCreate().ConfigureAwait(false);
+            var redirects = await redirectsStore.GetOrCreate();
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
@@ -69,8 +69,7 @@
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
-            await DispatchEditedMessage(outgoingMessage, address, context)
-                .ConfigureAwait(false);
+            await DispatchEditedMessage(outgoingMessage, address, context);
         }
 
         OutgoingMessage BuildMessage(EditAndSend message)

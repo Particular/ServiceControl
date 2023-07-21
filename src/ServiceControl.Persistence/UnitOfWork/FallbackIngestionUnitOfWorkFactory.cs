@@ -15,8 +15,8 @@
 
         public async ValueTask<IIngestionUnitOfWork> StartNew()
         {
-            var primaryUnitOfWork = await primary.StartNew().ConfigureAwait(false);
-            var secondaryUnitOfWork = await secondary.StartNew().ConfigureAwait(false);
+            var primaryUnitOfWork = await primary.StartNew();
+            var secondaryUnitOfWork = await secondary.StartNew();
 
             return new FallbackIngestionUnitOfWork(
                 primaryUnitOfWork,

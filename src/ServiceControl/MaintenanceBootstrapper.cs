@@ -21,16 +21,16 @@ namespace Particular.ServiceControl
             {
                 hostBuilder.UseWindowsService();
 
-                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+                await hostBuilder.Build().RunAsync();
             }
             else
             {
-                await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}").ConfigureAwait(false);
-                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit").ConfigureAwait(false);
+                await Console.Out.WriteLineAsync($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}");
+                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit");
 
                 hostBuilder.UseConsoleLifetime();
 
-                await hostBuilder.Build().RunAsync().ConfigureAwait(false);
+                await hostBuilder.Build().RunAsync();
             }
         }
     }

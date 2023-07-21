@@ -29,7 +29,7 @@
             {
                 while (!tokenSource.IsCancellationRequested)
                 {
-                    await Task.Delay(2000, tokenSource.Token).ConfigureAwait(false);
+                    await Task.Delay(2000, tokenSource.Token);
                     try
                     {
                         var message = new ProcessingReport
@@ -38,7 +38,7 @@
                             AuditQueue = auditQueueAddress,
                             HostId = statistics.HostId
                         };
-                        await session.Send(loadGenetorQueue, message).ConfigureAwait(false);
+                        await session.Send(loadGenetorQueue, message);
                     }
                     catch (Exception e)
                     {
@@ -56,7 +56,7 @@
             {
                 try
                 {
-                    await reportTask.ConfigureAwait(false);
+                    await reportTask;
                 }
                 catch (OperationCanceledException)
                 {

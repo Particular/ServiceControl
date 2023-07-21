@@ -19,7 +19,7 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
-            await ravenStartup.CreateIndexesAsync(documentStore).ConfigureAwait(false);
+            await ravenStartup.CreateIndexesAsync(documentStore);
 
             Logger.Info("Data migrations starting **TODO NOT IMPLEMENTED YET**");
 
@@ -27,12 +27,12 @@
             // This was copied from audit code:
             ////var endpointMigrations = new MigrateKnownEndpoints(documentStore);
             ////await endpointMigrations.Migrate(cancellationToken: cancellationToken)
-            ////    .ConfigureAwait(false);
+            ////    ;
             // While this was copied from EmbeddedRavenDbHostedService in main ServiceControl project, but list was injected
             ////foreach (var migration in dataMigrations)
             ////{
             ////    await migration.Migrate(documentStore)
-            ////        .ConfigureAwait(false);
+            ////        ;
             ////}
 
             Logger.Info("Data migrations complete");

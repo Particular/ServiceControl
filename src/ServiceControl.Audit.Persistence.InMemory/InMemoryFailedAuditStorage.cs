@@ -15,7 +15,7 @@
             {
                 FailedTransportMessage transportMessage = failedMessage.Message;
 
-                await onMessage(transportMessage, (_) => { return Task.CompletedTask; }, cancellationToken).ConfigureAwait(false);
+                await onMessage(transportMessage, (_) => { return Task.CompletedTask; }, cancellationToken);
             }
 
             dataStore.failedAuditImports.Clear();

@@ -51,7 +51,7 @@
 
             protected override async Task OnStart(IMessageSession session)
             {
-                await before(session).ConfigureAwait(false);
+                await before(session);
                 var operations = operationFactory();
                 foreach (var op in operations.UnicastTransportOperations)
                 {
@@ -63,9 +63,8 @@
                     op.Message.Headers["SC.SessionID"] = scenarioContext.TestRunId.ToString();
                 }
 
-                await dispatchMessages.Dispatch(operations, new TransportTransaction(), new ContextBag())
-                    .ConfigureAwait(false);
-                await after(session).ConfigureAwait(false);
+                await dispatchMessages.Dispatch(operations, new TransportTransaction(), new ContextBag());
+                await after(session);
             }
 
             protected override Task OnStop(IMessageSession session)

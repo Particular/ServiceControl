@@ -22,32 +22,30 @@
 
         public async Task Handle(MarkMessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
-            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
-                .ConfigureAwait(false);
+            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds);
             await domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId
-            }).ConfigureAwait(false);
+            });
         }
 
         // This is only needed because we might get this from legacy not yet converted instances
         public async Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
         {
-            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds)
-                .ConfigureAwait(false);
+            await MarkAsResolvedByRetry(message.FailedMessageId, message.AlternativeFailedMessageIds);
             await domainEvents.Raise(new MessageFailureResolvedByRetry
             {
                 AlternativeFailedMessageIds = message.AlternativeFailedMessageIds,
                 FailedMessageId = message.FailedMessageId
-            }).ConfigureAwait(false);
+            });
         }
 
         async Task MarkAsResolvedByRetry(string primaryId, string[] messageAlternativeFailedMessageIds)
         {
-            await store.RemoveFailedMessageRetryDocument(primaryId).ConfigureAwait(false);
+            await store.RemoveFailedMessageRetryDocument(primaryId);
 
-            var primaryUpdated = await store.MarkMessageAsResolved(primaryId).ConfigureAwait(false);
+            var primaryUpdated = await store.MarkMessageAsResolved(primaryId);
 
             if (primaryUpdated)
             {
@@ -61,9 +59,9 @@
 
             foreach (var alternative in messageAlternativeFailedMessageIds.Where(x => x != primaryId))
             {
-                await store.RemoveFailedMessageRetryDocument(alternative).ConfigureAwait(false);
+                await store.RemoveFailedMessageRetryDocument(alternative);
 
-                var alternativeUpdated = await store.MarkMessageAsResolved(alternative).ConfigureAwait(false);
+                var alternativeUpdated = await store.MarkMessageAsResolved(alternative);
 
                 if (alternativeUpdated)
                 {

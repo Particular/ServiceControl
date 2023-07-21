@@ -15,7 +15,7 @@
         {
             var connection = new SqlConnection(connectionString);
 
-            await connection.OpenAsync().ConfigureAwait(false);
+            await connection.OpenAsync();
 
             var transaction = connection.BeginTransaction();
 

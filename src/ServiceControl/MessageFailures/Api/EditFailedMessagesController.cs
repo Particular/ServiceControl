@@ -42,7 +42,7 @@
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
-            var failedMessage = await store.ErrorBy(FailedMessage.MakeDocumentId(failedMessageId)).ConfigureAwait(false);
+            var failedMessage = await store.ErrorBy(FailedMessage.MakeDocumentId(failedMessageId));
 
             if (failedMessage == null)
             {
@@ -79,7 +79,7 @@
                 FailedMessageId = failedMessageId,
                 NewBody = base64String,
                 NewHeaders = edit.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-            }).ConfigureAwait(false);
+            });
 
             return StatusCode(HttpStatusCode.Accepted);
         }
