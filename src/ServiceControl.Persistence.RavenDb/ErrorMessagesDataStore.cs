@@ -229,8 +229,7 @@
             {
                 var groups = session
                     .Query<FailureGroupView, ArchivedGroupsViewIndex>()
-                    .Where(v => v.Type == classifier
-                    );
+                    .Where(v => v.Type == classifier);
 
                 var results = await groups
                     .OrderByDescending(x => x.Last)
