@@ -31,8 +31,7 @@
                     queueAddress: queueAddress,
                     pagingInfo,
                     sortInfo
-                    )
-                .ConfigureAwait(false);
+                    );
 
             return Negotiator.FromQueryResult(Request, results);
         }
@@ -49,8 +48,7 @@
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress
-                    )
-                .ConfigureAwait(false);
+                    );
 
 
             return Negotiator.FromQueryStatsInfo(Request, queryResult);
@@ -73,7 +71,7 @@
                 modified: modified,
                 pagingInfo,
                 sortInfo
-                ).ConfigureAwait(false);
+                );
 
             return Negotiator.FromQueryResult(Request, results);
         }
@@ -82,8 +80,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorsSummary()
         {
-            var results = await dataStore.ErrorsSummary()
-                .ConfigureAwait(false);
+            var results = await dataStore.ErrorsSummary();
 
             return Negotiator.FromModel(Request, results);
         }

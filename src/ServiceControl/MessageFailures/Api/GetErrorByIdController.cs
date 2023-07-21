@@ -19,8 +19,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorBy(Guid failedMessageId)
         {
-            var result = await dataStore.ErrorBy(failedMessageId)
-                .ConfigureAwait(false);
+            var result = await dataStore.ErrorBy(failedMessageId);
 
             if (result == null)
             {
@@ -34,8 +33,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> ErrorLastBy(Guid failedMessageId)
         {
-            var result = await dataStore.ErrorLastBy(failedMessageId)
-                .ConfigureAwait(false);
+            var result = await dataStore.ErrorLastBy(failedMessageId);
 
             if (result == null)
             {

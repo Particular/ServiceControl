@@ -27,7 +27,7 @@
             Logger.Debug("Checking Dead Letter Queue length");
             var managementClient = new ServiceBusAdministrationClient(connectionString);
 
-            var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue).ConfigureAwait(false);
+            var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue);
             var deadLetterMessageCount = queueRuntimeInfo.Value.DeadLetterMessageCount;
 
             if (deadLetterMessageCount > 0)

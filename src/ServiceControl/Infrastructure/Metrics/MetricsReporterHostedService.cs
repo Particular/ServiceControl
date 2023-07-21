@@ -28,7 +28,7 @@
         {
             try
             {
-                await reporter.Stop().ConfigureAwait(false);
+                await reporter.Stop();
             }
             catch (OperationCanceledException)
             {

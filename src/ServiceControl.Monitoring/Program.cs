@@ -24,8 +24,7 @@ namespace ServiceControl.Monitoring
             LoggingConfigurator.Configure(settings, !runAsWindowsService);
 
             await new CommandRunner(arguments.Commands)
-                .Run(settings)
-                .ConfigureAwait(false);
+                .Run(settings);
         }
 
         static void LoadSettings(HostArguments args)

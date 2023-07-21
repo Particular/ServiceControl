@@ -120,14 +120,14 @@
 
                     try
                     {
-                        var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+                        var response = await httpClient.GetAsync(uri);
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {
                             version = values.FirstOrDefault() ?? "Missing";
                         }
 
-                        using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        using (var stream = await response.Content.ReadAsStreamAsync())
                         using (var reader = new StreamReader(stream))
                         using (var jsonReader = new JsonTextReader(reader))
                         {
@@ -149,7 +149,7 @@
                 })
                 .ToArray();
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var results = await Task.WhenAll(tasks);
 
             return Negotiator.FromModel(Request, results);
         }

@@ -27,10 +27,9 @@
 
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await archiver.StartArchiving(groupId, ArchiveType.FailureGroup)
-                    .ConfigureAwait(false);
+                await archiver.StartArchiving(groupId, ArchiveType.FailureGroup);
 
-                await bus.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
+                await bus.SendLocal<ArchiveAllInGroup>(m => { m.GroupId = groupId; });
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);

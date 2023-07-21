@@ -22,8 +22,7 @@
         public override async Task<CheckResult> PerformCheck()
         {
             var store = documentStoreProvider.GetDocumentStore();
-            var statistics = await store.Maintenance.SendAsync(new GetIndexesStatisticsOperation())
-                .ConfigureAwait(false);
+            var statistics = await store.Maintenance.SendAsync(new GetIndexesStatisticsOperation());
             var indexes = statistics.OrderBy(x => x.Name).ToArray();
 
             CreateDiagnosticsLogEntry(indexes);

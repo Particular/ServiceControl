@@ -13,19 +13,18 @@
 
         public async Task Install(CancellationToken cancellationToken)
         {
-            await lifecycle.Start(cancellationToken).ConfigureAwait(false);
+            await lifecycle.Start(cancellationToken);
 
             try
             {
                 using (var documentStore = lifecycle.GetDocumentStore())
                 {
-                    await databaseSetup.Execute(documentStore, cancellationToken)
-                        .ConfigureAwait(false);
+                    await databaseSetup.Execute(documentStore, cancellationToken);
                 }
             }
             finally
             {
-                await lifecycle.Stop(cancellationToken).ConfigureAwait(false);
+                await lifecycle.Stop(cancellationToken);
             }
         }
 

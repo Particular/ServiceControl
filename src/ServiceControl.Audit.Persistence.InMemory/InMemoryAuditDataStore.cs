@@ -35,10 +35,10 @@
 
             if (sagaHistory == null)
             {
-                return await Task.FromResult(QueryResult<SagaHistory>.Empty()).ConfigureAwait(false);
+                return await Task.FromResult(QueryResult<SagaHistory>.Empty());
             }
 
-            return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(string.Empty, 1)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetMessages(bool includeSystemMessages, PagingInfo pagingInfo, SortInfo sortInfo)
@@ -47,7 +47,7 @@
                 .Where(w => !w.IsSystemMessage || includeSystemMessages)
                 .ToList();
 
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessages(string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
@@ -57,7 +57,7 @@
             var matched = messageViews
                 .Where(w => messages.Contains(w.MessageId))
                 .ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count()))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count())));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndKeyword(string endpoint, string keyword, PagingInfo pagingInfo, SortInfo sortInfo)
@@ -65,28 +65,28 @@
             var messages = GetMessageIdsMatchingQuery(keyword);
 
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint && messages.Contains(w.MessageId)).ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpointName).ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByConversationId(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo)
         {
             var matched = messageViews.Where(w => w.ConversationId == conversationId).ToList();
-            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
-            var result = await GetMessageBodyFromMetadata(messageId).ConfigureAwait(false);
+            var result = await GetMessageBodyFromMetadata(messageId);
 
             if (!result.Found)
             {
-                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId);
                 if (fromAttachments.Found)
                 {
                     return fromAttachments;
@@ -123,7 +123,7 @@
         }
         async Task<MessageBodyView> GetMessageBodyFromAttachments(string messageId)
         {
-            var fromBodyStorage = await bodyStorage.TryFetch(messageId).ConfigureAwait(false);
+            var fromBodyStorage = await bodyStorage.TryFetch(messageId);
 
             if (fromBodyStorage.HasResult)
             {
@@ -181,7 +181,7 @@
                 })
                 .ToList();
 
-            return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count))).ConfigureAwait(false);
+            return await Task.FromResult(new QueryResult<IList<KnownEndpointsView>>(knownEndpointsView, new QueryStatsInfo(string.Empty, knownEndpointsView.Count)));
         }
 
         public Task<QueryResult<IList<AuditCount>>> QueryAuditCounts(string endpointName)

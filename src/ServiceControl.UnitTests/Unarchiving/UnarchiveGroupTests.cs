@@ -22,8 +22,7 @@
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     var previousUnarchiveBatch = new UnarchiveBatch { Id = previousUnarchiveBatchId };
-                    await session.StoreAsync(previousUnarchiveBatch)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousUnarchiveBatch);
 
                     var previousUnarchiveOperation = new UnarchiveOperation
                     {
@@ -37,11 +36,9 @@
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousUnarchiveOperation)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousUnarchiveOperation);
 
-                    await session.SaveChangesAsync()
-                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync();
                 }
 
                 var domainEvents = new FakeDomainEvents();
@@ -55,8 +52,7 @@
                 var message = new UnarchiveAllInGroup { GroupId = groupId };
 
                 // Act
-                await handler.Handle(message, context)
-                    .ConfigureAwait(false);
+                await handler.Handle(message, context);
 
                 // Assert
                 using (var session = documentStore.OpenSession())
@@ -82,8 +78,7 @@
                 using (var session = documentStore.OpenAsyncSession())
                 {
                     var previousUnarchiveBatch = new UnarchiveBatch { Id = previousUnarchiveBatchId };
-                    await session.StoreAsync(previousUnarchiveBatch)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousUnarchiveBatch);
 
                     var previousUnarchiveOperation = new UnarchiveOperation
                     {
@@ -97,11 +92,9 @@
                         NumberOfBatches = 3,
                         CurrentBatch = 0
                     };
-                    await session.StoreAsync(previousUnarchiveOperation)
-                        .ConfigureAwait(false);
+                    await session.StoreAsync(previousUnarchiveOperation);
 
-                    await session.SaveChangesAsync()
-                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync();
                 }
 
                 var domainEvents = new FakeDomainEvents();
@@ -119,7 +112,7 @@
                 Assert.DoesNotThrowAsync(async () =>
                 {
                     // Act
-                    await handler.Handle(message, context).ConfigureAwait(false);
+                    await handler.Handle(message, context);
                 });
             }
         }

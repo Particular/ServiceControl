@@ -16,8 +16,7 @@
             using (Session.Advanced.DocumentStore.AggressivelyCacheFor(cacheTimeout ?? TimeSpan.Zero))
             {
                 var settings = await Session
-                    .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId)
-                    .ConfigureAwait(false);
+                    .LoadAsync<NotificationsSettings>(NotificationsSettings.SingleDocumentId);
 
                 if (settings == null)
                 {
@@ -26,7 +25,7 @@
                         Id = NotificationsSettings.SingleDocumentId
                     };
 
-                    await Session.StoreAsync(settings).ConfigureAwait(false);
+                    await Session.StoreAsync(settings);
                 }
 
                 return settings;

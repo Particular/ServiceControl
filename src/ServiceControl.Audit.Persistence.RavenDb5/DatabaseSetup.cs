@@ -26,16 +26,14 @@
         {
             try
             {
-                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken)
-                    .ConfigureAwait(false);
+                await documentStore.Maintenance.ForDatabase(configuration.Name).SendAsync(new GetStatisticsOperation(), cancellationToken);
             }
             catch (DatabaseDoesNotExistException)
             {
                 try
                 {
                     await documentStore.Maintenance.Server
-                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)), cancellationToken)
-                        .ConfigureAwait(false);
+                        .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(configuration.Name)), cancellationToken);
                 }
                 catch (ConcurrencyException)
                 {
@@ -51,18 +49,16 @@
             if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
-                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken)
-                    .ConfigureAwait(false);
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
             }
             else
             {
                 indexList.Add(new MessagesViewIndex());
                 await documentStore.Maintenance
-                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken)
-                    .ConfigureAwait(false);
+                    .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
             }
 
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken).ConfigureAwait(false);
+            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
 
             var expirationConfig = new ExpirationConfiguration
             {
@@ -70,8 +66,7 @@
                 DeleteFrequencyInSec = configuration.ExpirationProcessTimerInSeconds
             };
 
-            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken)
-                .ConfigureAwait(false);
+            await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
 
         readonly DatabaseConfiguration configuration;

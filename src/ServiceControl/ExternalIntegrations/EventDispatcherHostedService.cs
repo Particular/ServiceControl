@@ -37,8 +37,7 @@
             var eventsToBePublished = new List<object>();
             foreach (var publisher in eventPublishers)
             {
-                var events = await publisher.PublishEventsForOwnContexts(allContexts)
-                    .ConfigureAwait(false);
+                var events = await publisher.PublishEventsForOwnContexts(allContexts);
                 eventsToBePublished.AddRange(events);
             }
 
@@ -51,8 +50,7 @@
 
                 try
                 {
-                    await messageSession.Publish(eventToBePublished)
-                        .ConfigureAwait(false);
+                    await messageSession.Publish(eventToBePublished);
                 }
                 catch (Exception e)
                 {
@@ -71,8 +69,7 @@
                         m.Reason = "Failed to retrieve reason!";
                     }
 
-                    await domainEvents.Raise(m)
-                        .ConfigureAwait(false);
+                    await domainEvents.Raise(m);
                 }
             }
         }

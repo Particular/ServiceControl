@@ -28,8 +28,7 @@
             var contentType = GetContentType(processedMessage.Headers, "text/xml");
             processedMessage.MessageMetadata.Add("ContentType", contentType);
 
-            var stored = await TryStoreBody(body, processedMessage, bodySize, contentType)
-                .ConfigureAwait(false);
+            var stored = await TryStoreBody(body, processedMessage, bodySize, contentType);
             if (!stored)
             {
                 processedMessage.MessageMetadata.Add("BodyNotStored", true);
@@ -84,8 +83,7 @@
 
                 if (useBodyStore)
                 {
-                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize)
-                        .ConfigureAwait(false);
+                    await StoreBodyInBodyStorage(body, bodyId, contentType, bodySize);
                     storedInBodyStorage = true;
                 }
             }
@@ -98,8 +96,7 @@
         {
             using (var bodyStream = Manager.GetStream(bodyId, body, 0, bodySize))
             {
-                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream)
-                    .ConfigureAwait(false);
+                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
             }
         }
 

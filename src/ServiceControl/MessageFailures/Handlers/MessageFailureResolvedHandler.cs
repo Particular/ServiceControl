@@ -39,13 +39,12 @@
 
         public async Task Handle(MarkPendingRetryAsResolved message, IMessageHandlerContext context)
         {
-            _ = await dataStore.MarkMessageAsResolved(message.FailedMessageId)
-                .ConfigureAwait(false);
+            _ = await dataStore.MarkMessageAsResolved(message.FailedMessageId);
 
             await domainEvents.Raise(new MessageFailureResolvedManually
             {
                 FailedMessageId = message.FailedMessageId
-            }).ConfigureAwait(false);
+            });
         }
 
         IErrorMessageDataStore dataStore;

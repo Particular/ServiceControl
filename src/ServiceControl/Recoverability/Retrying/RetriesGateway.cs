@@ -26,12 +26,9 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
-                .ConfigureAwait(false);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages);
+            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds)
@@ -42,12 +39,9 @@ namespace ServiceControl.Recoverability
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
-            await operationManager.Preparing(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow)
-                .ConfigureAwait(false);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages);
+            await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
         async Task StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
@@ -60,15 +54,14 @@ namespace ServiceControl.Recoverability
 
             var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
 
-            var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
-                .ConfigureAwait(false);
+            var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
 
             Log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
             await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, failedMessageRetryIds, startTime, last,
-                originator, batchName, classifier).ConfigureAwait(false);
+                originator, batchName, classifier);
 
-            await store.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
+            await store.MoveBatchToStaging(batchDocumentId);
 
             Log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }
@@ -84,13 +77,13 @@ namespace ServiceControl.Recoverability
                 return false;
             }
 
-            await ProcessRequest(request).ConfigureAwait(false);
+            await ProcessRequest(request);
             return true;
         }
 
         async Task ProcessRequest(BulkRetryRequest request)
         {
-            var batchesWithLastAttempt = await request.GetRequestedBatches(store).ConfigureAwait(false);
+            var batchesWithLastAttempt = await request.GetRequestedBatches(store);
             var batches = batchesWithLastAttempt.Item1;
             var latestAttempt = batchesWithLastAttempt.Item2;
             var totalMessages = batches.Sum(b => b.Length);
@@ -99,17 +92,14 @@ namespace ServiceControl.Recoverability
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages)
-                    .ConfigureAwait(false);
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages);
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    await StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier)
-                        .ConfigureAwait(false);
+                    await StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier);
                     numberOfMessagesAdded += batches[i].Length;
 
-                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded)
-                        .ConfigureAwait(false);
+                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
                 }
             }
         }
@@ -207,7 +197,7 @@ namespace ServiceControl.Recoverability
                     return Task.FromResult(response);
                 }
 
-                await Invoke(store, Process).ConfigureAwait(false);
+                await Invoke(store, Process);
 
                 if (currentBatch.Count > 0)
                 {

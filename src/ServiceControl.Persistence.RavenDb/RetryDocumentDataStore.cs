@@ -37,8 +37,7 @@
                 commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
-            await store.AsyncDatabaseCommands.BatchAsync(commands)
-                .ConfigureAwait(false);
+            await store.AsyncDatabaseCommands.BatchAsync(commands);
         }
 
         public async Task MoveBatchToStaging(string batchDocumentId)
@@ -55,7 +54,7 @@
                             Value = (int)RetryBatchStatus.Staging,
                             PrevVal = (int)RetryBatchStatus.MarkingDocuments
                         }
-                    }).ConfigureAwait(false);
+                    });
             }
             catch (ConcurrencyException)
             {
@@ -84,8 +83,8 @@
                     RetrySessionId = retrySessionId,
                     FailureRetries = failedMessageRetryIds,
                     Status = RetryBatchStatus.MarkingDocuments
-                }).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                });
+                await session.SaveChangesAsync();
             }
 
             return batchDocumentId;
@@ -99,8 +98,7 @@
                     .Customize(c => c.BeforeQueryExecution(index => index.Cutoff = cutoff))
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
                     .Statistics(out var stats)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return orphanedBatches.ToQueryResult(stats);
             }
@@ -112,8 +110,7 @@
             {
                 var results = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
                     .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
                 return results;
             }
         }
@@ -171,13 +168,12 @@
                 );
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            using (var stream = await x.GetDocuments(session))
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                while (await stream.MoveNextAsync())
                 {
                     var current = stream.Current.Document;
-                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
-                        .ConfigureAwait(false);
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure);
                 }
             }
         }
@@ -197,13 +193,12 @@
             );
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            using (var stream = await x.GetDocuments(session))
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                while (await stream.MoveNextAsync())
                 {
                     var current = stream.Current.Document;
-                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
-                        .ConfigureAwait(false);
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure);
                 }
             }
         }
@@ -223,13 +218,12 @@
             );
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            using (var stream = await x.GetDocuments(session))
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                while (await stream.MoveNextAsync())
                 {
                     var current = stream.Current.Document;
-                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
-                        .ConfigureAwait(false);
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure);
                 }
             }
         }
@@ -248,13 +242,12 @@
             );
 
             using (var session = store.OpenAsyncSession())
-            using (var stream = await x.GetDocuments(session).ConfigureAwait(false))
+            using (var stream = await x.GetDocuments(session))
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                while (await stream.MoveNextAsync())
                 {
                     var current = stream.Current.Document;
-                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure)
-                        .ConfigureAwait(false);
+                    await callback(current.UniqueMessageId, current.LatestTimeOfFailure);
                 }
             }
         }
@@ -264,8 +257,7 @@
             using (var session = store.OpenAsyncSession())
             {
                 var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .FirstOrDefaultAsync(x => x.Id == groupId)
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync(x => x.Id == groupId);
                 return group;
             }
         }

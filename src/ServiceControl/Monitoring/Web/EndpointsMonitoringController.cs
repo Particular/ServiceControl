@@ -58,7 +58,7 @@
                 return StatusCode(HttpStatusCode.NotFound);
             }
 
-            await monitoringDataStore.Delete(endpointId).ConfigureAwait(false);
+            await monitoringDataStore.Delete(endpointId);
 
             endpointInstanceMonitoring.RemoveEndpoint(endpointId);
             return StatusCode(HttpStatusCode.NoContent);
@@ -75,13 +75,11 @@
         {
             if (data.MonitorHeartbeat)
             {
-                await endpointInstanceMonitoring.EnableMonitoring(endpointId)
-                    .ConfigureAwait(false);
+                await endpointInstanceMonitoring.EnableMonitoring(endpointId);
             }
             else
             {
-                await endpointInstanceMonitoring.DisableMonitoring(endpointId)
-                    .ConfigureAwait(false);
+                await endpointInstanceMonitoring.DisableMonitoring(endpointId);
             }
 
             return StatusCode(HttpStatusCode.Accepted);

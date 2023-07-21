@@ -33,11 +33,11 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> ProcessBatches(IDispatchMessages sender, CancellationToken cancellationToken = default)
         {
-            using (var manager = await store.CreateRetryBatchesManager().ConfigureAwait(false))
+            using (var manager = await store.CreateRetryBatchesManager())
             {
-                var result = await ForwardCurrentBatch(manager, cancellationToken).ConfigureAwait(false) || await MoveStagedBatchesToForwardingBatch(manager, sender).ConfigureAwait(false);
+                var result = await ForwardCurrentBatch(manager, cancellationToken) || await MoveStagedBatchesToForwardingBatch(manager, sender);
 
-                await manager.SaveChanges().ConfigureAwait(false);
+                await manager.SaveChanges();
 
                 return result;
             }
@@ -54,16 +54,15 @@ namespace ServiceControl.Recoverability
 
                 isRecoveringFromPrematureShutdown = false;
 
-                var stagingBatch = await manager.GetStagingBatch().ConfigureAwait(false);
+                var stagingBatch = await manager.GetStagingBatch();
 
                 if (stagingBatch != null)
                 {
                     Log.Info($"Staging batch {stagingBatch.Id}.");
-                    redirects = await manager.GetOrCreateMessageRedirectsCollection().ConfigureAwait(false);
-                    var stagedMessages = await Stage(stagingBatch, manager, sender).ConfigureAwait(false);
+                    redirects = await manager.GetOrCreateMessageRedirectsCollection();
+                    var stagedMessages = await Stage(stagingBatch, manager, sender);
                     var skippedMessages = stagingBatch.InitialBatchSize - stagedMessages;
-                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages)
-                        .ConfigureAwait(false);
+                    await retryingManager.Skip(stagingBatch.RequestId, stagingBatch.RetryType, skippedMessages);
 
                     if (stagedMessages > 0)
                     {
@@ -71,7 +70,7 @@ namespace ServiceControl.Recoverability
                         await manager.Store(new RetryBatchNowForwarding
                         {
                             RetryBatchId = stagingBatch.Id
-                        }, RetryBatchNowForwarding.Id).ConfigureAwait(false);
+                        }, RetryBatchNowForwarding.Id);
                     }
 
                     return true;
@@ -93,7 +92,7 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Looking for batch to forward.");
             }
 
-            var nowForwarding = await manager.GetRetryBatchNowForwarding().ConfigureAwait(false);
+            var nowForwarding = await manager.GetRetryBatchNowForwarding();
 
             if (nowForwarding != null)
             {
@@ -102,7 +101,7 @@ namespace ServiceControl.Recoverability
                     Log.Debug($"Loading batch {nowForwarding.RetryBatchId} for forwarding.");
                 }
 
-                var forwardingBatch = await manager.GetRetryBatch(nowForwarding.RetryBatchId, cancellationToken).ConfigureAwait(false);
+                var forwardingBatch = await manager.GetRetryBatch(nowForwarding.RetryBatchId, cancellationToken);
 
                 if (forwardingBatch != null)
                 {
@@ -111,8 +110,7 @@ namespace ServiceControl.Recoverability
                         Log.Info($"Forwarding batch {forwardingBatch.Id}.");
                     }
 
-                    await Forward(forwardingBatch, manager, cancellationToken)
-                        .ConfigureAwait(false);
+                    await Forward(forwardingBatch, manager, cancellationToken);
 
                     if (Log.IsDebugEnabled)
                     {
@@ -141,16 +139,13 @@ namespace ServiceControl.Recoverability
         {
             var messageCount = forwardingBatch.FailureRetries.Count;
 
-            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType)
-                .ConfigureAwait(false);
+            await retryingManager.Forwarding(forwardingBatch.RequestId, forwardingBatch.RetryType);
 
             if (isRecoveringFromPrematureShutdown)
             {
                 Log.Warn($"Recovering from premature shutdown. Starting forwarder for batch {forwardingBatch.Id} in timeout mode.");
-                await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), null, cancellationToken)
-                    .ConfigureAwait(false);
-                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize)
-                    .ConfigureAwait(false);
+                await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), null, cancellationToken);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, forwardingBatch.InitialBatchSize);
             }
             else
             {
@@ -161,12 +156,10 @@ namespace ServiceControl.Recoverability
                 else
                 {
                     Log.Info($"Starting forwarder for batch {forwardingBatch.Id} with {messageCount} messages in counting mode.");
-                    await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount, cancellationToken)
-                        .ConfigureAwait(false);
+                    await returnToSender.Run(forwardingBatch.Id, IsPartOfStagedBatch(forwardingBatch.StagingId), messageCount, cancellationToken);
                 }
 
-                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount)
-                    .ConfigureAwait(false);
+                await retryingManager.ForwardedBatch(forwardingBatch.RequestId, forwardingBatch.RetryType, messageCount);
             }
 
             manager.Delete(forwardingBatch);
@@ -187,7 +180,7 @@ namespace ServiceControl.Recoverability
         {
             var stagingId = Guid.NewGuid().ToString();
 
-            var failedMessageRetryDocs = await manager.GetFailedMessageRetries(stagingBatch.FailureRetries).ConfigureAwait(false);
+            var failedMessageRetryDocs = await manager.GetFailedMessageRetries(stagingBatch.FailureRetries);
 
             var failedMessageRetriesById = failedMessageRetryDocs
                 .Where(r => r != null && r.RetryBatchId == stagingBatch.Id)
@@ -209,7 +202,7 @@ namespace ServiceControl.Recoverability
                 return 0;
             }
 
-            var failedMessagesDocs = await manager.GetFailedMessages(failedMessageRetriesById.Keys).ConfigureAwait(false);
+            var failedMessagesDocs = await manager.GetFailedMessages(failedMessageRetriesById.Keys);
             var messages = failedMessagesDocs.Where(m => m != null).ToArray();
 
             Log.Info($"Staging {messages.Length} messages for retry batch {stagingBatch.Id} with staging attempt Id {stagingId}.");
@@ -230,7 +223,7 @@ namespace ServiceControl.Recoverability
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
             }
 
-            await TryDispatch(sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed).ConfigureAwait(false);
+            await TryDispatch(sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed);
 
             if (stagingBatch.RetryType != RetryType.FailureGroup) //FailureGroup published on completion of entire group
             {
@@ -240,7 +233,7 @@ namespace ServiceControl.Recoverability
                     FailedMessageIds = failedIds,
                     NumberOfFailedMessages = failedIds.Length,
                     Context = stagingBatch.Context
-                }).ConfigureAwait(false);
+                });
             }
 
             var msgLookup = messages.ToLookup(x => x.Id);
@@ -277,11 +270,11 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                await Enqueue(sender, new TransportOperations(transportOperations)).ConfigureAwait(false);
+                await Enqueue(sender, new TransportOperations(transportOperations));
             }
             catch (Exception e)
             {
-                await store.RecordFailedStagingAttempt(messages, failedMessageRetriesById, e, MaxStagingAttempts, stagingId).ConfigureAwait(false);
+                await store.RecordFailedStagingAttempt(messages, failedMessageRetriesById, e, MaxStagingAttempts, stagingId);
 
                 throw new RetryStagingException(e);
             }
@@ -291,7 +284,7 @@ namespace ServiceControl.Recoverability
         {
             try
             {
-                await Enqueue(sender, new TransportOperations(transportOperation)).ConfigureAwait(false);
+                await Enqueue(sender, new TransportOperations(transportOperation));
             }
             catch (Exception e)
             {
@@ -302,19 +295,18 @@ namespace ServiceControl.Recoverability
                 {
                     Log.Warn($"Attempt {incrementedAttempts} of {MaxStagingAttempts} to stage a retry message {uniqueMessageId} failed", e);
 
-                    await store.IncrementAttemptCounter(failedMessageRetry)
-                        .ConfigureAwait(false);
+                    await store.IncrementAttemptCounter(failedMessageRetry);
                 }
                 else
                 {
                     Log.Error($"Retry message {uniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
 
-                    await store.DeleteFailedMessageRetry(FailedMessageRetry.MakeDocumentId(uniqueMessageId)).ConfigureAwait(false);
+                    await store.DeleteFailedMessageRetry(FailedMessageRetry.MakeDocumentId(uniqueMessageId));
 
                     await domainEvents.Raise(new MessageFailedInStaging
                     {
                         UniqueMessageId = uniqueMessageId
-                    }).ConfigureAwait(false);
+                    });
                 }
 
                 throw new RetryStagingException(e);

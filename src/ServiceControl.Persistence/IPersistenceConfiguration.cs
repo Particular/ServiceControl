@@ -39,7 +39,7 @@
                 connection.Open();
 
                 var cmd = new SqlCommand(createCommand, connection);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -72,7 +72,7 @@
                 connection.Open();
 
                 var cmd = new SqlCommand(createCommand, connection);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
     }

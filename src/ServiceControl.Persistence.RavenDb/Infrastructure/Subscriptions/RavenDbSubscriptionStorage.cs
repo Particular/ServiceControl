@@ -43,10 +43,9 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                var primeSubscriptions = await LoadSubscriptions(session).ConfigureAwait(false) ?? await MigrateSubscriptions(session, localClient).ConfigureAwait(false);
+                var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
 
-                await SetSubscriptions(primeSubscriptions)
-                    .ConfigureAwait(false);
+                await SetSubscriptions(primeSubscriptions);
             }
         }
 
@@ -59,11 +58,11 @@
 
             try
             {
-                await subscriptionsLock.WaitAsync().ConfigureAwait(false);
+                await subscriptionsLock.WaitAsync();
 
                 if (AddOrUpdateSubscription(messageType, subscriber))
                 {
-                    await SaveSubscriptions().ConfigureAwait(false);
+                    await SaveSubscriptions();
                 }
             }
             finally
@@ -76,7 +75,7 @@
         {
             try
             {
-                await subscriptionsLock.WaitAsync().ConfigureAwait(false);
+                await subscriptionsLock.WaitAsync();
 
                 var needsSave = false;
                 if (subscriptions.All.TryGetValue(FormatId(messageType), out var subscription))
@@ -90,7 +89,7 @@
 
                 if (needsSave)
                 {
-                    await SaveSubscriptions().ConfigureAwait(false);
+                    await SaveSubscriptions();
                 }
             }
             finally
@@ -151,10 +150,9 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId)
-                    .ConfigureAwait(false);
+                await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
                 UpdateLookup();
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -193,8 +191,7 @@
         {
             try
             {
-                await subscriptionsLock.WaitAsync()
-                    .ConfigureAwait(false);
+                await subscriptionsLock.WaitAsync();
 
                 subscriptions = newSubscriptions;
                 UpdateLookup();
@@ -215,20 +212,19 @@
             var subscriptions = new Subscriptions();
 
             using (var stream = await session.Advanced.StreamAsync<Subscription>("Subscriptions")
-                .ConfigureAwait(false))
+                )
             {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
+                while (await stream.MoveNextAsync())
                 {
                     var existingSubscription = stream.Current.Document;
                     existingSubscription.Subscribers.Remove(localClient);
                     subscriptions.All.Add(existingSubscription.Id.Replace("Subscriptions/", string.Empty), existingSubscription);
-                    await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null)
-                        .ConfigureAwait(false);
+                    await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null);
                 }
             }
 
-            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId).ConfigureAwait(false);
-            await session.SaveChangesAsync().ConfigureAwait(false);
+            await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
+            await session.SaveChangesAsync();
             return subscriptions;
         }
 

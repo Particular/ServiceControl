@@ -26,17 +26,16 @@
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
                 using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                    .ConfigureAwait(false))
+                    )
                 {
-                    while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync().ConfigureAwait(false))
+                    while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync())
                     {
                         var transportMessage = stream.Current.Document.Message;
                         try
                         {
-                            await processMessage(transportMessage).ConfigureAwait(false);
+                            await processMessage(transportMessage);
 
-                            await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken)
-                                .ConfigureAwait(false);
+                            await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken);
                             succeeded++;
 
                             if (Logger.IsDebugEnabled)
@@ -70,9 +69,9 @@
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                using (var ie = await session.Advanced.StreamAsync(query))
                 {
-                    return await ie.MoveNextAsync().ConfigureAwait(false);
+                    return await ie.MoveNextAsync();
                 }
             }
         }

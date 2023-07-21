@@ -20,10 +20,8 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                await session.StoreAsync(logItem)
-                    .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.StoreAsync(logItem);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -34,8 +32,7 @@
                 var results = await session.Query<EventLogItem>().Statistics(out var stats)
                     .OrderByDescending(p => p.RaisedAt)
                     .Paging(pagingInfo)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return (results, stats.TotalResults, stats.ResultEtag.ToString());
             }

@@ -25,9 +25,9 @@
         {
             NotificationsSettings notifications;
 
-            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
+            using (var manager = await store.CreateNotificationsManager())
             {
-                notifications = await manager.LoadSettings(cacheTimeout).ConfigureAwait(false);
+                notifications = await manager.LoadSettings(cacheTimeout);
             }
 
             if (notifications == null || !notifications.Email.Enabled)
@@ -50,7 +50,7 @@
                         return;
                     }
 
-                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay, cancellationToken).ConfigureAwait(false);
+                    hasSemaphore = await throttlingState.Semaphore.WaitAsync(spinDelay, cancellationToken);
                 }
 
                 if (context.MessageId == throttlingState.RetriedMessageId)
@@ -59,8 +59,7 @@
                         "\n\nWARNING: Your SMTP server was temporarily unavailable. Make sure to check ServicePulse for a full list of health check notifications.";
                 }
 
-                await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder)
-                    .ConfigureAwait(false);
+                await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
@@ -68,7 +67,7 @@
                 {
                     throttlingState.ThrottlingOn();
 
-                    await Task.Delay(throttlingDelay, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(throttlingDelay, cancellationToken);
 
                     throttlingState.ThrottlingOff();
 

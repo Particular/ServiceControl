@@ -15,11 +15,9 @@
 
         public async Task Handle(DeleteCustomCheck message, IMessageHandlerContext context)
         {
-            await customChecksDataStore.DeleteCustomCheck(message.Id)
-                .ConfigureAwait(false);
+            await customChecksDataStore.DeleteCustomCheck(message.Id);
 
-            await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id })
-                .ConfigureAwait(false);
+            await domainEvents.Raise(new CustomCheckDeleted { Id = message.Id });
         }
 
         ICustomChecksDataStore customChecksDataStore;

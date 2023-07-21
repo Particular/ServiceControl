@@ -22,9 +22,9 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetEmailNotificationsSettings(HttpRequestMessage request)
         {
-            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await manager.LoadSettings().ConfigureAwait(false);
+                var settings = await manager.LoadSettings();
 
                 return Negotiator.FromModel(request, settings.Email);
             }
@@ -34,13 +34,13 @@
         [HttpPost]
         public async Task<HttpResponseMessage> ToggleEmailNotifications(ToggleEmailNotifications request)
         {
-            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await manager.LoadSettings().ConfigureAwait(false);
+                var settings = await manager.LoadSettings();
 
                 settings.Email.Enabled = request.Enabled;
 
-                await manager.SaveChanges().ConfigureAwait(false);
+                await manager.SaveChanges();
             }
 
             return new HttpResponseMessage(HttpStatusCode.OK);
@@ -50,9 +50,9 @@
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateSettings(UpdateEmailNotificationsSettingsRequest request)
         {
-            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await manager.LoadSettings().ConfigureAwait(false);
+                var settings = await manager.LoadSettings();
 
                 var emailSettings = settings.Email;
 
@@ -66,7 +66,7 @@
                 emailSettings.From = request.From;
                 emailSettings.To = request.To;
 
-                await manager.SaveChanges().ConfigureAwait(false);
+                await manager.SaveChanges();
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
@@ -76,17 +76,16 @@
         [HttpPost]
         public async Task<HttpResponseMessage> SendTestEmail()
         {
-            using (var manager = await store.CreateNotificationsManager().ConfigureAwait(false))
+            using (var manager = await store.CreateNotificationsManager())
             {
-                var settings = await manager.LoadSettings().ConfigureAwait(false);
+                var settings = await manager.LoadSettings();
 
                 try
                 {
                     await EmailSender.Send(
                             settings.Email,
                             $"[{instanceName}] health check notification check successful",
-                            $"[{instanceName}] health check notification check successful.")
-                        .ConfigureAwait(false);
+                            $"[{instanceName}] health check notification check successful.");
                 }
                 catch (Exception e)
                 {

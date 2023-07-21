@@ -42,8 +42,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error")
-                .ConfigureAwait(false);
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
 
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
         }
@@ -61,8 +60,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error")
-                .ConfigureAwait(false);
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
         }
@@ -110,8 +108,7 @@
 
                 documentStore.WaitForIndexing();
 
-                await new ReturnToSender(null, documentStore).HandleMessage(message, sender, "error")
-                    .ConfigureAwait(false);
+                await new ReturnToSender(null, documentStore).HandleMessage(message, sender, "error");
 
                 Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
             }
@@ -130,8 +127,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error")
-                .ConfigureAwait(false);
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("Proxy", sender.Destination);
             Assert.AreEqual("TargetEndpoint", sender.Message.Headers["ServiceControl.TargetEndpointAddress"]);
@@ -149,8 +145,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error")
-                .ConfigureAwait(false);
+            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("TargetEndpoint", sender.Destination);
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
@@ -171,8 +166,7 @@
 
             try
             {
-                await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error")
-                    .ConfigureAwait(false);
+                await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
             }
             catch (Exception)
             {

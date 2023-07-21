@@ -33,8 +33,8 @@
                         endpoint.Host,
                         HostDisplayName = endpoint.Name,
                         Monitored = false
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
         }
 
         public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
@@ -56,8 +56,8 @@
                         endpoint.Host,
                         HostDisplayName = endpoint.Name,
                         Monitored = endpointInstanceMonitoring.IsMonitored(id)
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
         }
 
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
@@ -70,15 +70,15 @@
                     {
                         Id = endpoint.GetDeterministicId(),
                         Monitored = isMonitored
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
         }
 
         public async Task WarmupMonitoringFromPersistence(IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             await connectionManager.Perform(async connection =>
             {
-                var rows = await connection.QueryAsync("SELECT * FROM [KnownEndpoints]").ConfigureAwait(false);
+                var rows = await connection.QueryAsync("SELECT * FROM [KnownEndpoints]");
 
                 foreach (dynamic row in rows)
                 {
@@ -89,7 +89,7 @@
                         Name = row.HostDisplayName
                     }, row.Monitored);
                 }
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task Delete(Guid endpointId)
@@ -101,8 +101,8 @@
                     new
                     {
                         Id = endpointId
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
         }
 
         public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
@@ -111,7 +111,7 @@
 
             await connectionManager.Perform(async connection =>
             {
-                var rows = await connection.QueryAsync("SELECT * FROM [KnownEndpoints]").ConfigureAwait(false);
+                var rows = await connection.QueryAsync("SELECT * FROM [KnownEndpoints]");
 
                 foreach (var row in rows)
                 {
@@ -128,7 +128,7 @@
                         Monitored = row.Monitored
                     });
                 }
-            }).ConfigureAwait(false);
+            });
 
             return endpoints;
         }

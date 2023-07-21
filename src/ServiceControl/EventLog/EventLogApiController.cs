@@ -20,7 +20,7 @@
         {
             var pagingInfo = Request.GetPagingInfo();
 
-            var (results, totalCount, version) = await eventLogDataStore.GetEventLogItems(pagingInfo).ConfigureAwait(false);
+            var (results, totalCount, version) = await eventLogDataStore.GetEventLogItems(pagingInfo);
 
 
             return Negotiator.FromModel(Request, results)

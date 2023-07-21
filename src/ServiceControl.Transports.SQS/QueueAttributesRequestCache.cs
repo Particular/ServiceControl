@@ -21,7 +21,7 @@
                 return attReq;
             }
 
-            var queueUrl = await GetQueueUrl(queueName, cancellationToken).ConfigureAwait(false);
+            var queueUrl = await GetQueueUrl(queueName, cancellationToken);
 
             attReq = new GetQueueAttributesRequest { QueueUrl = queueUrl };
             attReq.AttributeNames.Add("ApproximateNumberOfMessages");
@@ -33,8 +33,7 @@
 
         async Task<string> GetQueueUrl(string queueName, CancellationToken cancellationToken)
         {
-            var response = await sqsClient.GetQueueUrlAsync(queueName, cancellationToken)
-                .ConfigureAwait(false);
+            var response = await sqsClient.GetQueueUrlAsync(queueName, cancellationToken);
             return response.QueueUrl;
         }
 

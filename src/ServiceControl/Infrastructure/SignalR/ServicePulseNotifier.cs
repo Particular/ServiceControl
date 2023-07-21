@@ -17,8 +17,7 @@ namespace ServiceControl.Infrastructure.SignalR
         {
             if (domainEvent is IUserInterfaceEvent userInteraceEvent)
             {
-                await broadcaster.Broadcast(userInteraceEvent)
-                    .ConfigureAwait(false);
+                await broadcaster.Broadcast(userInteraceEvent);
             }
         }
 

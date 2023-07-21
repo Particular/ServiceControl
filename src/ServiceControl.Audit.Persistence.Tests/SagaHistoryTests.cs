@@ -21,8 +21,7 @@
                 }
                 );
 
-            var queryResult = await DataStore.QuerySagaHistoryById(sagaId)
-                ;
+            var queryResult = await DataStore.QuerySagaHistoryById(sagaId);
 
             Assert.That(queryResult.Results.SagaId, Is.EqualTo(sagaId));
             Assert.That(queryResult.Results.SagaType, Is.EqualTo("MySagaType"));
@@ -62,8 +61,7 @@
             var unitOfWork = StartAuditUnitOfWork(snapshots.Length);
             foreach (var snapshot in snapshots)
             {
-                await unitOfWork.RecordSagaSnapshot(snapshot)
-                    ;
+                await unitOfWork.RecordSagaSnapshot(snapshot);
             }
             await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();

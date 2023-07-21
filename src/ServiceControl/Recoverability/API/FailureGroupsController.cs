@@ -51,7 +51,7 @@
             await bus.SendLocal(new ReclassifyErrors
             {
                 Force = true
-            }).ConfigureAwait(false);
+            });
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
@@ -60,8 +60,7 @@
         [HttpPost]
         public async Task<IHttpActionResult> EditComment(string groupId, string comment)
         {
-            await dataStore.EditComment(groupId, comment)
-                .ConfigureAwait(false);
+            await dataStore.EditComment(groupId, comment);
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
@@ -70,8 +69,7 @@
         [HttpDelete]
         public async Task<IHttpActionResult> DeleteComment(string groupId)
         {
-            await dataStore.DeleteComment(groupId)
-                .ConfigureAwait(false);
+            await dataStore.DeleteComment(groupId);
 
             return Content(HttpStatusCode.Accepted, string.Empty);
         }
@@ -87,7 +85,7 @@
                 classifierFilter = null;
             }
 
-            var results = await groupFetcher.GetGroups(classifier, classifierFilter).ConfigureAwait(false); // TODO: Analyze what to do with the GroupFetcher dependency
+            var results = await groupFetcher.GetGroups(classifier, classifierFilter); // TODO: Analyze what to do with the GroupFetcher dependency
 
             return Negotiator.FromModel(Request, results)
                 .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
@@ -103,8 +101,7 @@
             var sortInfo = Request.GetSortInfo();
             var pagingInfo = Request.GetPagingInfo();
 
-            var results = await dataStore.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo)
-                .ConfigureAwait(false);
+            var results = await dataStore.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
 
             return Negotiator.FromQueryResult(Request, results);
         }
@@ -117,8 +114,7 @@
             string status = Request.GetStatus();
             string modified = Request.GetModified();
 
-            var results = await dataStore.GetGroupErrorsCount(groupId, status, modified)
-                .ConfigureAwait(false);
+            var results = await dataStore.GetGroupErrorsCount(groupId, status, modified);
 
             return Negotiator.FromQueryStatsInfo(Request, results);
         }
@@ -127,8 +123,7 @@
         [HttpGet]
         public async Task<HttpResponseMessage> GetRetryHistory()
         {
-            var retryHistory = await retryStore.GetRetryHistory()
-                .ConfigureAwait(false);
+            var retryHistory = await retryStore.GetRetryHistory();
 
             return Negotiator
                 .FromModel(Request, retryHistory)
@@ -143,7 +138,7 @@
             string modified = Request.GetModified();
 
             // TODO: Migrated as previous behavior but can be optimized as http api will return at most 1 item
-            var result = await dataStore.GetGroup(groupId, status, modified).ConfigureAwait(false);
+            var result = await dataStore.GetGroup(groupId, status, modified);
 
             return Negotiator
                 .FromModel(Request, result.Results.FirstOrDefault())

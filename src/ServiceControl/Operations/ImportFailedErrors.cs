@@ -27,11 +27,11 @@
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            var dispatcher = await transportCustomization.InitializeDispatcher("ImportFailedErrors", transportSettings).ConfigureAwait(false);
+            var dispatcher = await transportCustomization.InitializeDispatcher("ImportFailedErrors", transportSettings);
 
             if (settings.ForwardErrorMessages)
             {
-                await errorIngestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+                await errorIngestor.VerifyCanReachForwardingAddress(dispatcher);
             }
 
             await store.ProcessFailedErrorImports(async transportMessage =>
@@ -42,10 +42,9 @@
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher).ConfigureAwait(false);
-                await taskCompletionSource.Task.ConfigureAwait(false);
-            }, cancellationToken)
-                .ConfigureAwait(false);
+                await errorIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher);
+                await taskCompletionSource.Task;
+            }, cancellationToken);
         }
 
         readonly IFailedErrorImportDataStore store;

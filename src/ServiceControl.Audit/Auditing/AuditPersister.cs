@@ -60,7 +60,7 @@
                     inserts.Add(ProcessMessage(context, dispatcher));
                 }
 
-                await Task.WhenAll(inserts).ConfigureAwait(false);
+                await Task.WhenAll(inserts);
 
                 var knownEndpoints = new Dictionary<string, KnownEndpoint>();
 
@@ -85,7 +85,7 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body).ConfigureAwait(false);
+                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
                         }
 
                         storedContexts.Add(context);
@@ -100,7 +100,7 @@
 
                         using (sagaAuditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordSagaSnapshot(sagaSnapshot).ConfigureAwait(false);
+                            await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
                         }
 
                         storedContexts.Add(context);
@@ -115,7 +115,7 @@
                         Logger.Debug($"Adding known endpoint '{endpoint.Name}' for bulk storage");
                     }
 
-                    await unitOfWork.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
+                    await unitOfWork.RecordKnownEndpoint(endpoint);
                 }
             }
             catch (Exception e)
@@ -142,7 +142,7 @@
                         // this can throw even though dispose is never supposed to throw
                         using (bulkInsertCommitDurationMeter.Measure())
                         {
-                            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+                            await unitOfWork.DisposeAsync();
                         }
                     }
                     catch (Exception e)
@@ -199,7 +199,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context, dispatcher).ConfigureAwait(false);
+                await ProcessAuditMessage(context, dispatcher);
             }
         }
 
@@ -263,13 +263,12 @@
                 }
                 foreach (var commandToEmit in commandsToEmit)
                 {
-                    await messageSession.Send(commandToEmit)
-                        .ConfigureAwait(false);
+                    await messageSession.Send(commandToEmit);
                 }
 
                 await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction(), //Do not hook into the incoming transaction
-                    new ContextBag()).ConfigureAwait(false);
+                    new ContextBag());
 
                 if (Logger.IsDebugEnabled)
                 {

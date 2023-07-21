@@ -23,15 +23,13 @@
                 message.From,
                 message.To,
                 message.CutOff
-                )
-                .ConfigureAwait(false);
+                );
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 DocumentIds = ids,
                 MessagesCount = count
-            })
-                .ConfigureAwait(false);
+            });
 
         }
 

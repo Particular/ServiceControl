@@ -34,8 +34,7 @@
                 return ErrorHandleResult.RetryRequired;
             }
 
-            await Handle(errorContext)
-                .ConfigureAwait(false);
+            await Handle(errorContext);
             return ErrorHandleResult.Handled;
         }
 
@@ -58,8 +57,7 @@
         {
             try
             {
-                await DoLogging(exception, failure)
-                    .ConfigureAwait(false);
+                await DoLogging(exception, failure);
             }
             finally
             {
@@ -72,8 +70,7 @@
             failure.Id = Guid.NewGuid();
 
             // Write to data store
-            await store.StoreFailedErrorImport(failure)
-                .ConfigureAwait(false);
+            await store.StoreFailedErrorImport(failure);
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");

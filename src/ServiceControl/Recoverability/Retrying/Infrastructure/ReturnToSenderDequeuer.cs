@@ -53,7 +53,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress).ConfigureAwait(false);
+                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress);
                 IncrementCounterOrProlongTimer();
             }
             else
@@ -119,11 +119,11 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>();
                 registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
-                var startable = await RawEndpoint.Create(config).ConfigureAwait(false);
+                var startable = await RawEndpoint.Create(config);
 
                 errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
 
-                processor = await startable.Start().ConfigureAwait(false);
+                processor = await startable.Start();
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
@@ -144,16 +144,16 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
                 }
 
-                await syncEvent.Task.ConfigureAwait(false);
+                await syncEvent.Task;
                 registration?.Dispose();
                 if (processor != null)
                 {
-                    await processor.Stop().ConfigureAwait(false);
+                    await processor.Stop();
                 }
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
-                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None).ConfigureAwait(false);
+                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
             }
 
             if (endedPrematurely || cancellationToken.IsCancellationRequested)
@@ -183,8 +183,8 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Completing forwarding.");
             }
 
-            await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
-            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
+            await Task.Run(() => syncEvent?.TrySetResult(true));
+            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0));
             if (Log.IsDebugEnabled)
             {
                 Log.Debug("Forwarding completed.");
@@ -224,8 +224,7 @@ namespace ServiceControl.Recoverability
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
                     Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Error.Exception);
 
-                    await dataStore.RevertRetry(messageUniqueId)
-                        .ConfigureAwait(false);
+                    await dataStore.RevertRetry(messageUniqueId);
 
 
                     string reason;
@@ -243,7 +242,7 @@ namespace ServiceControl.Recoverability
                         Reason = reason,
                         FailedMessageId = messageUniqueId,
                         Destination = destination
-                    }).ConfigureAwait(false);
+                    });
                 }
                 catch (Exception ex)
                 {

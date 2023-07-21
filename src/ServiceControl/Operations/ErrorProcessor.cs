@@ -37,7 +37,7 @@
                 tasks.Add(ProcessMessage(context, unitOfWork));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
 
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
@@ -63,7 +63,7 @@
                     Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
+                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
             }
 
             return storedContexts;
@@ -130,13 +130,11 @@
                     new Dictionary<string, object>(metadata),
                     failureDetails);
 
-                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt)
-                    .ConfigureAwait(false);
+                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt);
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups)
-                    .ConfigureAwait(false);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);

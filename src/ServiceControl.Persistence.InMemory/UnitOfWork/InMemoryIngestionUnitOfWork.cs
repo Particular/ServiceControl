@@ -19,8 +19,7 @@
         {
             foreach (var endpoint in knownEndpoints)
             {
-                await dataStore.CreateIfNotExists(endpoint.EndpointDetails)
-                    .ConfigureAwait(false);
+                await dataStore.CreateIfNotExists(endpoint.EndpointDetails);
             }
         }
 

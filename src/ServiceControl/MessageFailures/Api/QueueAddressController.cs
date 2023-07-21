@@ -20,8 +20,7 @@
         public async Task<HttpResponseMessage> GetAddresses()
         {
             var pagingInfo = Request.GetPagingInfo();
-            var result = await dataStore.GetAddresses(pagingInfo)
-                .ConfigureAwait(false);
+            var result = await dataStore.GetAddresses(pagingInfo);
 
             return Negotiator.FromQueryResult(Request, result);
         }
@@ -36,8 +35,7 @@
             }
 
             var pagingInfo = Request.GetPagingInfo();
-            var result = await dataStore.GetAddressesBySearchTerm(search, pagingInfo)
-                .ConfigureAwait(false);
+            var result = await dataStore.GetAddressesBySearchTerm(search, pagingInfo);
 
             return Negotiator.FromQueryResult(Request, result);
         }

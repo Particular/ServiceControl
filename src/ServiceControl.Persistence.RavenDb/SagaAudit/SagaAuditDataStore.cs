@@ -17,8 +17,8 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.StoreAsync(sagaSnapshot).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(sagaSnapshot);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -29,8 +29,7 @@
                 var sagaHistory = await
                     session.Query<SagaHistory, SagaDetailsIndex>()
                         .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == sagaId)
-                        .ConfigureAwait(false);
+                        .SingleOrDefaultAsync(x => x.SagaId == sagaId);
 
                 if (sagaHistory == null)
                 {

@@ -52,8 +52,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var mainInstanceDbPort = FindAvailablePort(mainInstancePort + 1);
             var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
 
-            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort).ConfigureAwait(false);
-            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort).ConfigureAwait(false);
+            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort);
+            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort);
         }
 
         static int FindAvailablePort(int startPort)
@@ -190,7 +190,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 };
 
                 host = bootstrapper.HostBuilder.Build();
-                await host.StartAsync().ConfigureAwait(false);
+                await host.StartAsync();
                 hosts[instanceName] = host;
             }
 
@@ -327,7 +327,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
                 host = bootstrapper.HostBuilder.Build();
 
-                await host.StartAsync().ConfigureAwait(false);
+                await host.StartAsync();
 
                 hosts[instanceName] = host;
             }
@@ -363,7 +363,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     if (hosts.ContainsKey(instanceName))
                     {
-                        await hosts[instanceName].StopAsync().ConfigureAwait(false);
+                        await hosts[instanceName].StopAsync();
                     }
                     HttpClients[instanceName].Dispose();
                     handlers[instanceName].Dispose();

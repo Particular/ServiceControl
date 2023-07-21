@@ -29,7 +29,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}");
 #pragma warning restore 618
 
             return attachment == null

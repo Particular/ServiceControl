@@ -182,7 +182,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
-                await host.StartAsync().ConfigureAwait(false);
+                await host.StartAsync();
                 DomainEvents = host.Services.GetService<IDomainEvents>();
             }
 
@@ -209,7 +209,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync().ConfigureAwait(false);
+                await host.StopAsync();
                 HttpClient.Dispose();
                 Handler.Dispose();
                 DirectoryDeleter.Delete(Settings.DbPath);

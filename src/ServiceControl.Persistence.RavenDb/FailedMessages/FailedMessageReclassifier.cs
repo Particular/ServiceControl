@@ -42,8 +42,7 @@
 
                 if (!force)
                 {
-                    settings = await session.LoadAsync<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase)
-                        .ConfigureAwait(false);
+                    settings = await session.LoadAsync<ReclassifyErrorSettings>(ReclassifyErrorSettings.IdentifierCase);
 
                     if (settings != null && settings.ReclassificationDone)
                     {
@@ -58,9 +57,9 @@
                 var totalMessagesReclassified = 0;
 
                 using (var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
-                    .ConfigureAwait(false))
+                    )
                 {
-                    while (!abort && await stream.MoveNextAsync().ConfigureAwait(false))
+                    while (!abort && await stream.MoveNextAsync())
                     {
                         currentBatch.Add(Tuple.Create(stream.Current.Document.Id, new ClassifiableMessageDetails(stream.Current.Document)));
 
@@ -88,8 +87,8 @@
                 }
 
                 settings.ReclassificationDone = true;
-                await session.StoreAsync(settings).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(settings);
+                await session.SaveChangesAsync();
 
                 return failedMessagesReclassified;
             }

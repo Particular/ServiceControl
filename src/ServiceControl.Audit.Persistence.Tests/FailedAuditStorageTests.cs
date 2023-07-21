@@ -31,8 +31,7 @@
             var succeeded = 0;
             await FailedAuditStorage.ProcessFailedMessages(async (transportMessage, markComplete, token) =>
             {
-                await markComplete(token)
-                    ;
+                await markComplete(token);
                 succeeded++;
             }, CancellationToken.None);
 

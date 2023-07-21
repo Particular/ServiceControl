@@ -13,7 +13,7 @@
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
-            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var response = await base.SendAsync(request, cancellationToken);
 
             response.Headers.TransferEncodingChunked = true;
 
@@ -114,7 +114,7 @@
 
             try
             {
-                await originalContent.CopyToAsync(compressedStream).ConfigureAwait(false);
+                await originalContent.CopyToAsync(compressedStream);
             }
             finally
             {

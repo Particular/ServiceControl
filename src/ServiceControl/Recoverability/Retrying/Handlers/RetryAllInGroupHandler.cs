@@ -24,7 +24,7 @@ namespace ServiceControl.Recoverability
             }
 
 
-            var group = await dataStore.QueryFailureGroupViewOnGroupId(message.GroupId).ConfigureAwait(false);
+            var group = await dataStore.QueryFailureGroupViewOnGroupId(message.GroupId);
 
             string originator = null;
             if (group?.Title != null)
@@ -33,8 +33,7 @@ namespace ServiceControl.Recoverability
             }
 
             var started = message.Started ?? DateTime.UtcNow;
-            await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last)
-                .ConfigureAwait(false);
+            await retryingManager.Wait(message.GroupId, RetryType.FailureGroup, started, originator, group?.Type, group?.Last);
 
             retries.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(
                 message.GroupId,

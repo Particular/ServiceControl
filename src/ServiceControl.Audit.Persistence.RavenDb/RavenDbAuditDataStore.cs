@@ -31,8 +31,7 @@
                 var sagaHistory = await
                     session.Query<SagaHistory, SagaDetailsIndex>()
                         .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == input)
-                        .ConfigureAwait(false);
+                        .SingleOrDefaultAsync(x => x.SagaId == input);
 
                 if (sagaHistory == null)
                 {
@@ -53,8 +52,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -70,8 +68,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -88,8 +85,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -106,8 +102,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -123,8 +118,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -132,11 +126,11 @@
 
         public async Task<MessageBodyView> GetMessageBody(string messageId)
         {
-            var fromIndex = await GetMessageBodyFromIndex(messageId).ConfigureAwait(false);
+            var fromIndex = await GetMessageBodyFromIndex(messageId);
 
             if (!fromIndex.Found)
             {
-                var fromAttachments = await GetMessageBodyFromAttachments(messageId).ConfigureAwait(false);
+                var fromAttachments = await GetMessageBodyFromAttachments(messageId);
                 if (fromAttachments.Found)
                 {
                     return fromAttachments;
@@ -153,8 +147,7 @@
                 var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                    .FirstOrDefaultAsync(f => f.MessageId == messageId)
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync(f => f.MessageId == messageId);
 
                 if (message == null)
                 {
@@ -179,7 +172,7 @@
         {
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}").ConfigureAwait(false);
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{messageId}");
 #pragma warning restore 618
 
             if (attachment == null)
@@ -199,8 +192,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
-                    .ConfigureAwait(false);
+                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
 
                 var knownEndpoints = endpoints
                     .Select(x => new KnownEndpointsView
@@ -233,8 +225,7 @@
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .OrderBy(m => m.ProcessedAt)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .FirstOrDefaultAsync()
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync();
 
                 if (oldestMsg != null)
                 {
@@ -252,8 +243,7 @@
                             .Statistics(out var stats)
                             .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
                             .Take(0)
-                            .ToListAsync()
-                            .ConfigureAwait(false);
+                            .ToListAsync();
 
                         if (stats.TotalResults > 0)
                         {

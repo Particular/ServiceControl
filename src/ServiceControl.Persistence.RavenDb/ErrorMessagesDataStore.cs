@@ -45,8 +45,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -68,8 +67,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -91,8 +89,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -113,8 +110,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -134,8 +130,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -157,8 +152,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -168,8 +162,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                return await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
-                    .ConfigureAwait(false);
+                return await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
             }
         }
 
@@ -177,15 +170,14 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
-                    .ConfigureAwait(false);
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
                 }
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -193,8 +185,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.LoadAsync<FailedMessage>(ids.Cast<ValueType>())
-                    .ConfigureAwait(false);
+                var results = await session.LoadAsync<FailedMessage>(ids.Cast<ValueType>());
                 return results.Where(x => x != null).ToArray();
             }
         }
@@ -203,11 +194,9 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                await session.StoreAsync(failure)
-                    .ConfigureAwait(false);
+                await session.StoreAsync(failure);
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -228,8 +217,7 @@
                     .WhereEquals(group => group.Id, groupId)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
-                    .FirstOrDefaultAsync()  // TODO: Was previously a to list with a linq to object FirstOrDefault, not sure if this works
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync(); // TODO: Was previously a to list with a linq to object FirstOrDefault, not sure if this works;
 
                 return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
             }
@@ -247,8 +235,7 @@
                 var results = await groups
                     .OrderByDescending(x => x.Last)
                     .Take(200) // only show 200 groups
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return results;
             }
@@ -274,8 +261,7 @@
                     .Paging(pagingInfo)
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
             }
@@ -294,8 +280,7 @@
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
                     .FilterByQueueAddress(queueAddress)
-                    .QueryResultAsync()
-                    .ConfigureAwait(false);
+                    .QueryResultAsync();
 
                 return stats.ToQueryStatsInfo();
             }
@@ -322,8 +307,7 @@
                     .Paging(pagingInfo)
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
             }
@@ -351,8 +335,7 @@
                             Name = "MessageType",
                             DisplayName = "Message types"
                         }
-                    })
-                    .ConfigureAwait(false);
+                    });
 
                 var results = facetResults
                     .Results
@@ -371,7 +354,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
                 return message;
             }
         }
@@ -380,7 +363,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
                 return message;
             }
         }
@@ -397,7 +380,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId).ConfigureAwait(false);
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
                 var result = Map(message, session);
                 return result;
             }
@@ -457,13 +440,13 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 var groupComment =
-                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId)).ConfigureAwait(false)
+                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId))
                     ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
 
                 groupComment.Comment = comment;
 
-                await session.StoreAsync(groupComment).ConfigureAwait(false);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.StoreAsync(groupComment);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -472,7 +455,7 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 session.Delete(GroupComment.MakeId(groupId));
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -496,8 +479,7 @@
                     .Paging(pagingInfo)
                     .SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return results.ToQueryResult(stats);
             }
@@ -512,8 +494,7 @@
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
-                    .QueryResultAsync()
-                    .ConfigureAwait(false);
+                    .QueryResultAsync();
 
                 return queryResult.ToQueryStatsInfo();
             }
@@ -529,8 +510,7 @@
                     .WhereEquals(group => group.Id, groupId)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return queryResult.ToQueryResult(stats);
             }
@@ -542,8 +522,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId))
-                    .ConfigureAwait(false);
+                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
 
                 if (failedMessage == null)
                 {
@@ -552,7 +531,7 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
 
                 return true;
             }
@@ -578,12 +557,11 @@
                     .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                using (var ie = await session.Advanced.StreamAsync(query))
                 {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
+                    while (await ie.MoveNextAsync())
                     {
-                        await processCallback(ie.Current.Document.Id)
-                            .ConfigureAwait(false);
+                        await processCallback(ie.Current.Document.Id);
                     }
                 }
             }
@@ -619,9 +597,9 @@ if(this.Status === archivedStatus) {
                         {"archivedStatus", (int)FailedMessageStatus.Archived},
                         {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
                     }
-                }, options).ConfigureAwait(false);
+                }, options);
 
-            var patchedDocumentIds = (await result.WaitForCompletionAsync().ConfigureAwait(false))
+            var patchedDocumentIds = (await result.WaitForCompletionAsync())
                 .JsonDeserialization<DocumentPatchResult[]>();
 
             return (
@@ -640,8 +618,7 @@ if(this.Status === archivedStatus) {
 
                 var documentIds = failedMessageIds.Select(FailedMessage.MakeDocumentId);
 
-                failedMessages = await session.LoadAsync<FailedMessage>(documentIds)
-                    .ConfigureAwait(false);
+                failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
 
                 foreach (var failedMessage in failedMessages)
                 {
@@ -651,8 +628,7 @@ if(this.Status === archivedStatus) {
                     }
                 }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
 
             return (
@@ -666,23 +642,20 @@ if(this.Status === archivedStatus) {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var failedMessage = await session
-                    .LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId))
-                    .ConfigureAwait(false);
+                    .LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId));
                 if (failedMessage != null)
                 {
                     failedMessage.Status = FailedMessageStatus.Unresolved;
                 }
 
                 var failedMessageRetry = await session
-                    .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId))
-                    .ConfigureAwait(false);
+                    .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
                 if (failedMessageRetry != null)
                 {
                     session.Delete(failedMessageRetry);
                 }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -707,9 +680,9 @@ if(this.Status === archivedStatus) {
                     .SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(new[] { "Id" });
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
+                using (var ie = await session.Advanced.StreamAsync(query))
                 {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
+                    while (await ie.MoveNextAsync())
                     {
                         ids.Add(ie.Current.Document.Id);
                     }
@@ -724,7 +697,7 @@ if(this.Status === archivedStatus) {
         {
             string documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
             var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
-                transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
+                transformer: MessagesBodyTransformer.Name);
 
             string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)
                 ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
@@ -741,10 +714,8 @@ if(this.Status === archivedStatus) {
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                await session.StoreAsync(logItem)
-                   .ConfigureAwait(false);
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.StoreAsync(logItem);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -754,10 +725,10 @@ if(this.Status === archivedStatus) {
             {
                 foreach (var message in failedMessages)
                 {
-                    await session.StoreAsync(message).ConfigureAwait(false);
+                    await session.StoreAsync(message);
                 }
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 

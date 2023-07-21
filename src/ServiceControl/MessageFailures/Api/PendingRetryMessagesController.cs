@@ -28,8 +28,7 @@
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
-            await messageSession.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray())
-                .ConfigureAwait(false);
+            await messageSession.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
 
             return StatusCode(HttpStatusCode.Accepted);
         }
@@ -60,7 +59,7 @@
                 m.QueueAddress = request.queueaddress;
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
-            }).ConfigureAwait(false);
+            });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }

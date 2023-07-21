@@ -18,7 +18,7 @@ namespace ServiceControl.Recoverability
 
         public async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
         {
-            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff).ConfigureAwait(false);
+            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff);
 
             log.Info($"Found {orphanedBatches.Results.Count} orphaned retry batches from previous sessions.");
 
@@ -26,8 +26,8 @@ namespace ServiceControl.Recoverability
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
                 log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
-                await store.MoveBatchToStaging(b.Id).ConfigureAwait(false);
-            }))).ConfigureAwait(false);
+                await store.MoveBatchToStaging(b.Id);
+            })));
 
             foreach (var batch in orphanedBatches.Results)
             {
@@ -47,7 +47,7 @@ namespace ServiceControl.Recoverability
 
         public async Task RebuildRetryOperationState()
         {
-            var stagingBatchGroups = await store.QueryAvailableBatches().ConfigureAwait(false);
+            var stagingBatchGroups = await store.QueryAvailableBatches();
 
             foreach (var group in stagingBatchGroups)
             {
@@ -58,8 +58,7 @@ namespace ServiceControl.Recoverability
                         log.DebugFormat("Rebuilt retry operation status for {0}/{1}. Aggregated batchsize: {2}", group.RetryType, group.RequestId, group.InitialBatchSize);
                     }
 
-                    await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last)
-                        .ConfigureAwait(false);
+                    await operationManager.PreparedAdoptedBatch(group.RequestId, group.RetryType, group.InitialBatchSize, group.InitialBatchSize, group.Originator, group.Classifier, group.StartTime, group.Last);
                 }
             }
         }

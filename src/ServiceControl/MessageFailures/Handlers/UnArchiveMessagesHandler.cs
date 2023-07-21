@@ -18,14 +18,13 @@
 
         public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
         {
-            var (ids, count) = await store.UnArchiveMessages(messages.FailedMessageIds)
-                .ConfigureAwait(false);
+            var (ids, count) = await store.UnArchiveMessages(messages.FailedMessageIds);
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 DocumentIds = ids,
                 MessagesCount = count
-            }).ConfigureAwait(false);
+            });
         }
 
         IErrorMessageDataStore store;

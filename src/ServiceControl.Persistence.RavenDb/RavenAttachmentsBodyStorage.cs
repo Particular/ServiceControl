@@ -43,8 +43,7 @@
                 var message = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .TransformWith<MessagesBodyTransformer, MessagesBodyTransformer.Result>()
-                    .FirstOrDefaultAsync(f => f.MessageId == bodyId)
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync(f => f.MessageId == bodyId);
 
                 if (message != null)
                 {
@@ -75,7 +74,7 @@
 
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}").ConfigureAwait(false);
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}");
 #pragma warning restore 618
 
             if (attachment != null)

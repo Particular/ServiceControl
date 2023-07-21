@@ -23,12 +23,10 @@
         {
             if (body != null)
             {
-                await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage)
-                .ConfigureAwait(false);
+                await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage);
             }
 
-            await bulkInsert.StoreAsync(processedMessage)
-                .ConfigureAwait(false);
+            await bulkInsert.StoreAsync(processedMessage);
         }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
@@ -38,6 +36,6 @@
             => bulkInsert.StoreAsync(knownEndpoint);
 
         public async ValueTask DisposeAsync()
-            => await bulkInsert.DisposeAsync().ConfigureAwait(false);
+            => await bulkInsert.DisposeAsync();
     }
 }

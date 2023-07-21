@@ -25,7 +25,7 @@ namespace ServiceControl.Persistence.SqlServer
             {
                 var customCheck = await connection.QueryFirstOrDefaultAsync(
                     "SELECT * FROM [CustomChecks] WHERE [Id] = @Id",
-                    new { Id = id }).ConfigureAwait(false);
+                    new { Id = id });
 
                 if (customCheck == null ||
                     ((int)customCheck.Status == (int)Status.Fail && !detail.HasFailed) ||
@@ -60,8 +60,8 @@ namespace ServiceControl.Persistence.SqlServer
                         OriginatingEndpointName = detail.OriginatingEndpoint.Name,
                         OriginatingEndpointHostId = detail.OriginatingEndpoint.HostId,
                         OriginatingEndpointHost = detail.OriginatingEndpoint.Host
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
 
             return status;
         }
@@ -82,9 +82,9 @@ namespace ServiceControl.Persistence.SqlServer
 
                 var countQuery = @"SELECT COUNT(Id) FROM [CustomChecks] " + filter;
 
-                using (var multi = await connection.QueryMultipleAsync(query + countQuery, new { paging.Offset, paging.Next, Status = checkStatus }).ConfigureAwait(false))
+                using (var multi = await connection.QueryMultipleAsync(query + countQuery, new { paging.Offset, paging.Next, Status = checkStatus }))
                 {
-                    var rows = await multi.ReadAsync().ConfigureAwait(false);
+                    var rows = await multi.ReadAsync();
                     foreach (dynamic row in rows)
                     {
                         checks.Add(new CustomCheck
@@ -107,7 +107,7 @@ namespace ServiceControl.Persistence.SqlServer
                 }
 
                 return new QueryResult<IList<CustomCheck>>(checks, new QueryStatsInfo(null, totalCount, false));
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task DeleteCustomCheck(Guid id)
@@ -119,8 +119,8 @@ namespace ServiceControl.Persistence.SqlServer
                     new
                     {
                         Id = id
-                    }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                    });
+            });
         }
 
         public Task<int> GetNumberOfFailedChecks() => throw new NotImplementedException();

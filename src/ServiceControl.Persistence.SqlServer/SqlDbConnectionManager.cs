@@ -19,8 +19,8 @@
         {
             using (var connection = new SqlConnection(manager.ConnectionString))
             {
-                await connection.OpenAsync().ConfigureAwait(false);
-                await action(connection).ConfigureAwait(false);
+                await connection.OpenAsync();
+                await action(connection);
             }
         }
 
@@ -28,9 +28,9 @@
         {
             using (var connection = new SqlConnection(manager.ConnectionString))
             {
-                await connection.OpenAsync().ConfigureAwait(false);
+                await connection.OpenAsync();
 
-                var result = await action(connection).ConfigureAwait(false);
+                var result = await action(connection);
 
                 return result;
             }

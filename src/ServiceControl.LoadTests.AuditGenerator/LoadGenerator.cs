@@ -17,7 +17,7 @@
 
         public async Task ProcessedCountReported(long processed)
         {
-            await semaphore.WaitAsync().ConfigureAwait(false);
+            await semaphore.WaitAsync();
             try
             {
                 if (processed != long.MinValue)
@@ -33,7 +33,7 @@
 
                     try
                     {
-                        await generationTask.ConfigureAwait(false);
+                        await generationTask;
                     }
                     catch (OperationCanceledException)
                     {

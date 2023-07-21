@@ -14,7 +14,7 @@
         public static async Task<Release> GetLatestRelease(string currentVersion)
         {
             var current = new Version(currentVersion);
-            List<Release> releases = await GetVersionInformation().ConfigureAwait(false);
+            List<Release> releases = await GetVersionInformation();
 
             if (releases != null)
             {
@@ -34,7 +34,7 @@
         {
             try
             {
-                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt").ConfigureAwait(false);
+                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
 
                 return JsonConvert.DeserializeObject<List<Release>>(json);
             }

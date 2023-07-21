@@ -188,7 +188,7 @@
 
             async Task<TimerJobExecutionResult> ProcessRequestedBulkRetryOperations()
             {
-                var processedRequests = await retries.ProcessNextBulkRetry().ConfigureAwait(false);
+                var processedRequests = await retries.ProcessNextBulkRetry();
                 return processedRequests ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
@@ -230,7 +230,7 @@
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
-                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(startTime).ConfigureAwait(false);
+                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(startTime);
 
                 return hasMoreWorkToDo;
             }
@@ -239,7 +239,7 @@
             {
                 timer = scheduler.Schedule(async _ =>
                 {
-                    var hasMoreWork = await AdoptOrphanedBatchesAsync().ConfigureAwait(false);
+                    var hasMoreWork = await AdoptOrphanedBatchesAsync();
                     return hasMoreWork ? TimerJobExecutionResult.ScheduleNextExecution : TimerJobExecutionResult.DoNotContinueExecuting;
                 }, TimeSpan.Zero, TimeSpan.FromMinutes(2), e => { log.Error("Unhandled exception while trying to adopt orphaned batches", e); });
                 return Task.CompletedTask;
@@ -275,7 +275,7 @@
 
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings);
 
                 timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
             }
@@ -287,7 +287,7 @@
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
-                var batchesProcessed = await processor.ProcessBatches(dispatcher, cancellationToken).ConfigureAwait(false);
+                var batchesProcessed = await processor.ProcessBatches(dispatcher, cancellationToken);
                 return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 

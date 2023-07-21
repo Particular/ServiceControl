@@ -60,7 +60,7 @@
                     ContentType = messageBody.ContentType,
                     BodySize = messageBody.BodySize,
                     Etag = string.Empty
-                }).ConfigureAwait(false);
+                });
         }
 
         class MessageBody
