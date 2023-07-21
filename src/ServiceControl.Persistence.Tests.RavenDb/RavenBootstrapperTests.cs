@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using ServiceControl.Infrastructure.RavenDB;
+using ServiceControl.Persistence.RavenDb;
 
 [TestFixture]
 class RavenBootstrapperTests
