@@ -21,11 +21,8 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.AcceptanceTests.Monitoring;
-    using ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -168,15 +165,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
+                // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
+                // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
                 bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
-                    .ConfigureServices(serviceCollection =>
-                {
-                    serviceCollection.AddScoped<CriticalErrorTriggerController>();
-                    serviceCollection.AddScoped<KnownEndpointPersistenceQueryController>();
-                    serviceCollection.AddScoped<FailedErrorsController>();
-                    serviceCollection.AddScoped<FailedMessageRetriesController>();
-                });
+                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging());
 
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
@@ -189,7 +181,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             {
                 var app = new AppBuilder();
                 var startup = new Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                startup.Configuration(app, typeof(AcceptanceTest).Assembly);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
