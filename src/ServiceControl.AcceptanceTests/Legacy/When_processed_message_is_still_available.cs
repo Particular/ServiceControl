@@ -18,6 +18,7 @@
     using ServiceControl.Persistence;
     using TestSupport.EndpointTemplates;
 
+    //TODO: this is ravendb 3.5 specific test and should be moved to raven specific assembly
     class When_processed_message_is_still_available : AcceptanceTest
     {
         [Test]

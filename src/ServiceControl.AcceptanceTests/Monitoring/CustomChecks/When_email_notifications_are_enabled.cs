@@ -57,6 +57,7 @@
             Assert.AreEqual("Subject: [Particular.ServiceControl] health check failed", emailText[6]);
         }
 
+        //TODO: we should use the REST API to create the notifications settings
         class CreateNotificationsDataMigration : IDataMigration
         {
             public Task Migrate(IDocumentStore store)
