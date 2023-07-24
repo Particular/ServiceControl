@@ -2,13 +2,11 @@
 {
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Persistence.Recoverability;
     using Raven.Client;
     using Raven.Client.Embedded;
     using Recoverability;
     using ServiceControl.CustomChecks;
-    using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
@@ -29,9 +27,6 @@
 
         public void Configure(IServiceCollection serviceCollection)
         {
-            //HINT: This should be registered as the first thing to ensure that it is the first service to start
-            serviceCollection.AddHostedService<IHostedService>(sp => new RavenDbPersistenceLifecycle(ravenStartup, documentStore, sp.GetServices<IDataMigration>()));
-
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
@@ -73,6 +68,11 @@
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
             serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDataStore>();
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
+        }
+
+        public IPersistenceLifecycle CreateLifecycle()
+        {
+            return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
 
         // TODO: Make sure this stuff from PersistenceHostBuilderExtensions is accounted for here
