@@ -1,17 +1,19 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Notifications;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
     using TestSupport.EndpointTemplates;
 
     [TestFixture]
@@ -31,8 +33,7 @@
             };
 
             CustomizeHostBuilder = hostBuilder =>
-                hostBuilder.ConfigureServices((hostBuilderContext, services) =>
-                    services.AddSingleton<IDataMigration, CreateNotificationsDataMigration>());
+                hostBuilder.ConfigureServices(services => services.AddHostedService<SetupNotificationSettings>());
 
             await Define<MyContext>(c =>
                 {
@@ -57,32 +58,29 @@
             Assert.AreEqual("Subject: [Particular.ServiceControl] health check failed", emailText[6]);
         }
 
-        //TODO: we should use the REST API to create the notifications settings
-        class CreateNotificationsDataMigration : IDataMigration
+        class SetupNotificationSettings : IHostedService
         {
-            public Task Migrate(IDocumentStore store)
+            INotificationsManager notificationsManager;
+
+            public SetupNotificationSettings(INotificationsManager notificationsManager)
             {
-                using (var session = store.OpenSession())
-                {
-                    var notificationsSettings = new NotificationsSettings
-                    {
-                        Id = NotificationsSettings.SingleDocumentId,
-                        Email = new EmailNotifications
-                        {
-                            Enabled = true,
-                            From = "YouServiceControl@particular.net",
-                            To = "WhoeverMightBeConcerned@particular.net",
-                        }
-                    };
-
-                    session.Store(notificationsSettings);
-
-                    session.SaveChanges();
-                }
-
-                return Task.CompletedTask;
-
+                this.notificationsManager = notificationsManager;
             }
+
+            public async Task StartAsync(CancellationToken cancellationToken)
+            {
+                var settings = await notificationsManager.LoadSettings();
+                settings.Email = new EmailNotifications
+                {
+                    Enabled = true,
+                    From = "YouServiceControl@particular.net",
+                    To = "WhoeverMightBeConcerned@particular.net",
+                };
+
+                await notificationsManager.SaveChanges();
+            }
+
+            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
 
         public class MyContext : ScenarioContext
