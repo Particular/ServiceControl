@@ -6,6 +6,8 @@
     using Contracts.MessageFailures;
     using Infrastructure;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -39,6 +41,8 @@
                 settings.ForwardErrorMessages = true;
                 settings.ErrorLogQueue = Conventions.EndpointNamingConvention(typeof(ErrorLogSpy));
             };
+
+            CustomizeHostBuilder = builder => builder.ConfigureServices(services => services.AddScoped<FailedErrorsController>());
 
             var runResult = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))

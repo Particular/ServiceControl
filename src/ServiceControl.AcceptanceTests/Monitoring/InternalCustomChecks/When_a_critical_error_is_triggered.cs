@@ -7,6 +7,7 @@
     using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
@@ -25,6 +26,8 @@
         [Test]
         public async Task Service_control_is_not_killed_and_error_is_reported_via_custom_check()
         {
+            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddScoped<CriticalErrorTriggerController>());
+
             SetSettings = settings =>
             {
                 settings.DisableHealthChecks = false;

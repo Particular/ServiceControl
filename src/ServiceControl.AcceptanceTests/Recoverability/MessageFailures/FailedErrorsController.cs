@@ -1,16 +1,16 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
+    using Infrastructure.RavenDB.Expiration;
+    using Infrastructure.WebApi;
+    using Operations;
+    using Raven.Client;
+    using Raven.Client.Embedded;
     using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Infrastructure.WebApi;
-    using Operations;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using Infrastructure.RavenDB.Expiration;
 
     public class FailedErrorsCountReponse
     {
