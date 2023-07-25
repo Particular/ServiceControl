@@ -23,13 +23,14 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Audit.AcceptanceTests;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
@@ -73,14 +74,12 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings(instanceName)
+            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 ForwardErrorMessages = false,
-                TransportType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
@@ -221,7 +220,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         IHost host;
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;
