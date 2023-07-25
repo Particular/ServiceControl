@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Infrastructure.RavenDB.Expiration;
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client;

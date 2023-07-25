@@ -14,13 +14,15 @@
             : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
+            this.settings = settings;
 
             dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey]);
-            percentageThreshold = GetMinimumStorageLeftRequiredForIngestion(settings) / 100m;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
+            percentageThreshold = GetMinimumStorageLeftRequiredForIngestion(settings) / 100m;
+
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
@@ -82,8 +84,10 @@
         const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         readonly MinimumRequiredStorageState stateHolder;
+        readonly PersistenceSettings settings;
         readonly string dataPathRoot;
-        readonly decimal percentageThreshold;
+
+        decimal percentageThreshold;
 
         static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
