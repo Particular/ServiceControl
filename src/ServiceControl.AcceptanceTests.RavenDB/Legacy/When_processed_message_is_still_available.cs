@@ -8,9 +8,9 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
-    using Infrastructure.RavenDB;
     using MessageAuditing;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -29,7 +29,7 @@
 
             CustomizeHostBuilder = hostBuilder
                 => hostBuilder.ConfigureServices((hostBuilderContext, services)
-                    => services.AddSingleton<IDataMigration>(new CreateMessageDataMigration(messageId)));
+                    => services.AddHostedService(sp => new CreateMessageDataMigration(messageId, sp.GetRequiredService<IDocumentStore>())));
 
             MessagesView auditedMessage = null;
             byte[] body = null;
@@ -59,13 +59,18 @@
             Assert.AreEqual("Some Content", bodyAsString);
         }
 
-        class CreateMessageDataMigration : IDataMigration
+        class CreateMessageDataMigration : IHostedService
         {
             readonly string messageId;
+            readonly IDocumentStore store;
 
-            public CreateMessageDataMigration(string messageId) => this.messageId = messageId;
+            public CreateMessageDataMigration(string messageId, IDocumentStore store)
+            {
+                this.messageId = messageId;
+                this.store = store;
+            }
 
-            public async Task Migrate(IDocumentStore store)
+            public async Task StartAsync(CancellationToken cancellationToken)
             {
                 using (var documentSession = store.OpenAsyncSession())
                 {
@@ -85,13 +90,14 @@
                         ProcessedAt = DateTime.UtcNow
                     };
 
-                    await documentSession.StoreAsync(processedMessage);
-                    await documentSession.SaveChangesAsync();
+                    await documentSession.StoreAsync(processedMessage, cancellationToken);
+                    await documentSession.SaveChangesAsync(cancellationToken);
                 }
 
                 SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
-
             }
+
+            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
 
         public class Endpoint : EndpointConfigurationBuilder
