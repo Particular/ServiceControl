@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Legacy
+﻿namespace ServiceControl.AcceptanceTests.RavenDB.Legacy
 {
     using System;
     using System.Collections.Generic;
@@ -8,6 +8,7 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
+    using Infrastructure.RavenDB;
     using MessageAuditing;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;

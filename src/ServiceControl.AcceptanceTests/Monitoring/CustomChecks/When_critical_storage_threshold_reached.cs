@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using MessageFailures.Api;
+    using Microsoft.Extensions.Configuration;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -21,9 +22,12 @@
             {
                 s.TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(1);
                 s.DisableHealthChecks = false;
-                s.MinimumStorageLeftRequiredForIngestion = 0;
+
+                SetMinimumStorageLeftForIngestion(0);
             };
 
+        [TearDown]
+        public void TearDown() => RemoveMinimumStorageLeftForIngestion();
 
         [Test]
         public async Task Should_stop_ingestion()
@@ -35,7 +39,7 @@
                         return context.Logs.ToArray().Any(i => i.Message.StartsWith("Ensure started. Infrastructure started"));
                     }, (_, __) =>
                     {
-                        Settings.MinimumStorageLeftRequiredForIngestion = 100;
+                        SetMinimumStorageLeftForIngestion(100);
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -64,7 +68,7 @@
                                 "Ensure started. Infrastructure started"));
                     }, (session, context) =>
                     {
-                        Settings.MinimumStorageLeftRequiredForIngestion = 100;
+                        SetMinimumStorageLeftForIngestion(100);
                         return Task.CompletedTask;
                     })
                     .When(context =>
@@ -81,7 +85,7 @@
                         })
                     .When(c => ingestionShutdown, (session, context) =>
                     {
-                        Settings.MinimumStorageLeftRequiredForIngestion = 0;
+                        SetMinimumStorageLeftForIngestion(0);
                         return Task.CompletedTask;
                     })
                     .DoNotFailOnErrorMessages())
@@ -110,6 +114,13 @@
                 }
             }
         }
+
+        static void SetMinimumStorageLeftForIngestion(int value) =>
+            System.Configuration.ConfigurationManager.AppSettings["ServiceControl/MinimumStorageLeftRequiredForIngestion"] = value.ToString();
+
+        static void RemoveMinimumStorageLeftForIngestion() =>
+            System.Configuration.ConfigurationManager.AppSettings.Remove("ServiceControl/MinimumStorageLeftRequiredForIngestion");
+
 
         public class MyMessage : ICommand
         {
