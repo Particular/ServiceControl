@@ -14,7 +14,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public class Settings
     {
-        public Settings(string serviceName = null)
+        public Settings(string serviceName = null, string transportType = null, string persisterType = null)
         {
             ServiceName = serviceName;
 
@@ -32,8 +32,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-            TransportType = SettingsReader<string>.Read("TransportType");
-            PersistenceType = SettingsReader<string>.Read("PersistenceType");
+            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
+            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
             ForwardErrorMessages = GetForwardErrorMessages();
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
@@ -52,7 +52,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
-            DataStoreType = GetDataStoreType();
         }
 
         public string NotificationsFilter { get; set; }
@@ -162,8 +161,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public bool DisableHealthChecks { get; set; }
 
         public bool ExposeApi { get; set; } = true;
-
-        public DataStoreType DataStoreType { get; set; } = DataStoreType.RavenDB35;
 
         public TransportCustomization LoadTransportCustomization()
         {
@@ -456,13 +453,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             return threshold;
-        }
-
-        DataStoreType GetDataStoreType()
-        {
-            var value = SettingsReader<string>.Read("DataStoreType", "RavenDB35");
-
-            return (DataStoreType)Enum.Parse(typeof(DataStoreType), value);
         }
 
         void TryLoadLicenseFromConfig()

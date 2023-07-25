@@ -20,7 +20,6 @@ namespace ServiceControl.Persistence
             catch (Exception e)
             {
                 throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
-
             }
         }
 

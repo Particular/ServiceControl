@@ -24,8 +24,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.AcceptanceTests\AcceptanceTestStorageConfiguration.cs;..\ServiceControl.AcceptanceTests\obj\**\*.*;..\ServiceControl.AcceptanceTests\bin\**\*.*" />
+    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.AcceptanceTests\AcceptanceTest.cs;..\ServiceControl.AcceptanceTests\AcceptanceTestStorageConfiguration.cs;..\ServiceControl.AcceptanceTests\obj\**\*.*;..\ServiceControl.AcceptanceTests\bin\**\*.*;..\ServiceControl.AcceptanceTests\AcceptanceTest.cs" />
     <Compile Remove="..\ServiceControl.AcceptanceTests\TestsFilter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
