@@ -1,7 +1,6 @@
 namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
-    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -11,16 +10,14 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Audit.AcceptanceTests;
 
     class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization, Action<IDictionary<string, string>> setStorageConfiguration)
+        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.customConfiguration = customConfiguration;
             this.persistenceToUse = persistenceToUse;
             this.hostBuilderCustomization = hostBuilderCustomization;
-            this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
             transportIntegration = transportToUse;
         }
@@ -34,7 +31,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, hostBuilderCustomization, setStorageConfiguration);
+            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, hostBuilderCustomization);
             await runner.Initialize(run);
             return runner;
         }
@@ -45,6 +42,5 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;
         ServiceControlComponentRunner runner;
-        Action<IDictionary<string, string>> setStorageConfiguration;
     }
 }

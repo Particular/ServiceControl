@@ -46,7 +46,7 @@ namespace ServiceControl.AcceptanceTests
         }
 
         [SetUp]
-        public Task Setup()
+        public async Task Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -68,23 +68,22 @@ namespace ServiceControl.AcceptanceTests
 
             TransportIntegration = new ConfigureEndpointLearningTransport();
 
-            DataStoreConfiguration = new DataStoreConfiguration
-            {
-                DataStoreTypeName = "RavenDB35"
-            };
+            StorageConfiguration = new AcceptanceTestStorageConfiguration();
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
+            await StorageConfiguration.Configure();
 
-            return Task.CompletedTask;
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
         }
 
         [TearDown]
-        public void Teardown()
+        public Task Teardown()
         {
             TransportIntegration = null;
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
+
+            return StorageConfiguration.Cleanup();
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -118,7 +117,7 @@ namespace ServiceControl.AcceptanceTests
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
-        protected DataStoreConfiguration DataStoreConfiguration;
+        protected AcceptanceTestStorageConfiguration StorageConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

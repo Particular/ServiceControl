@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.AcceptanceTests
+﻿namespace ServiceControl.AcceptanceTests
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using Persistence.RavenDb;
 
-    partial class AcceptanceTestStorageConfiguration
+    class AcceptanceTestStorageConfiguration
     {
         public string PersistenceType { get; protected set; }
 
