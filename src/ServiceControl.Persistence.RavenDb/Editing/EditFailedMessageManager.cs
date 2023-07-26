@@ -26,8 +26,7 @@
         public async Task<string> GetCurrentEditingMessageId(string failedMessageId)
         {
             var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
-
-            return edit?.Id;
+            return edit?.EditId;
         }
 
         public Task SetCurrentEditingMessageId(string editingMessageId)
