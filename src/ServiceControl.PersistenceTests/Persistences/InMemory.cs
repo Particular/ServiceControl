@@ -11,7 +11,11 @@
         public override async Task Configure(IServiceCollection services)
         {
             fallback = await services.AddInitializedDocumentStore();
-            services.AddServiceControlPersistence(DataStoreType.InMemory);
+
+            var config = PersistenceConfigurationFactory.LoadPersistenceConfiguration(DataStoreConfig.InMemoryPersistenceTypeFullyQualifiedName);
+            var settings = config.BuildPersistenceSettings(null); // TODO: Inmemory might also require settings
+            var instance = config.Create(settings);
+            instance.Configure(services);
         }
 
         public override Task CleanupDB()
