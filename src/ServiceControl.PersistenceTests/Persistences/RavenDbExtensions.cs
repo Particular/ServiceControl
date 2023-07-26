@@ -19,7 +19,12 @@
             var retentionPeriod = TimeSpan.FromMinutes(1);
             var settings = new PersistenceSettings(retentionPeriod, retentionPeriod, retentionPeriod, 100, false)
             {
-                PersisterSpecificSettings = { [RavenBootstrapper.RunInMemoryKey] = bool.TrueString }
+                PersisterSpecificSettings =
+                {
+                    [RavenBootstrapper.RunInMemoryKey] = bool.TrueString,
+                    [RavenBootstrapper.HostNameKey] = "localhost",
+                    [RavenBootstrapper.DatabaseMaintenancePortKey] = "55554",
+                }
             };
             var documentStore = new EmbeddableDocumentStore();
             RavenBootstrapper.Configure(documentStore, settings);
