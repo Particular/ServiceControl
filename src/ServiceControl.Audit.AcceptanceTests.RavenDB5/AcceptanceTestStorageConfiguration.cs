@@ -6,7 +6,7 @@
     using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.Audit.Persistence.Tests;
 
-    partial class AcceptanceTestStorageConfiguration
+    class AcceptanceTestStorageConfiguration
     {
         public string PersistenceType { get; protected set; }
 

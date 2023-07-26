@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence.RavenDb;
 
-    partial class AcceptanceTestStorageConfiguration
+    class AcceptanceTestStorageConfiguration
     {
         public string PersistenceType { get; protected set; }
 
