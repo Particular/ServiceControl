@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Generic;

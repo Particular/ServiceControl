@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -24,8 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.AcceptanceTests\AcceptanceTest.cs;..\ServiceControl.AcceptanceTests\AcceptanceTestStorageConfiguration.cs;..\ServiceControl.AcceptanceTests\obj\**\*.*;..\ServiceControl.AcceptanceTests\bin\**\*.*;..\ServiceControl.AcceptanceTests\AcceptanceTest.cs" />
-    <Compile Remove="..\ServiceControl.AcceptanceTests\TestsFilter.cs" />
+    <Compile Include="..\ServiceControl.AcceptanceTests\TestSupport\**\*.cs">
+        <Link>TestSupport\%(RecursiveDir)/%(FileName)%(Extension)</Link>
+    </Compile>
+    <Compile Include="..\ServiceControl.AcceptanceTests\ContextLoggerExtensions.cs"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,4 +36,5 @@
     </None>
   </ItemGroup>
 
+  
 </Project>
