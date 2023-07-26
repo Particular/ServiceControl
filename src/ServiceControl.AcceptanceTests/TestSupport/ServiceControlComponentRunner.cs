@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -27,12 +28,13 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization, Action<IDictionary<string, string>> setStorageConfiguration)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.hostBuilderCustomization = hostBuilderCustomization;
+            this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
         }
 
@@ -123,6 +125,23 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             setSettings(settings);
             Settings = settings;
+
+            var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
+
+            setStorageConfiguration(persisterSpecificSettings);
+
+            foreach (var persisterSpecificSetting in persisterSpecificSettings)
+            {
+                ConfigurationManager.AppSettings.Set($"ServiceControl/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
+            }
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+
+                var setupBootstrapper = new SetupBootstrapper(settings);
+                await setupBootstrapper.Run(null);
+            }
+
             var configuration = new EndpointConfiguration(instanceName);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -222,6 +241,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
+        Action<IDictionary<string, string>> setStorageConfiguration;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
