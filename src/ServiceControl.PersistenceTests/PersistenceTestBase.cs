@@ -17,7 +17,7 @@
         }
 
         [SetUp]
-        public async Task Setup()
+        public virtual async Task Setup()
         {
             var services = new ServiceCollection();
             await persistence.Configure(services);

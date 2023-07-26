@@ -13,22 +13,29 @@
     using NUnit.Framework;
     using Persistence;
     using ServiceControl.Persistence.MessageRedirects;
+    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
-    [TestFixture]
-    public class EditMessageTests
+    [TestFixtureSource(typeof(PersistenceTestCollection))]
+    class EditMessageTests : PersistenceTestBase
     {
         EditHandler handler;
         TestableUnicastDispatcher dispatcher;
         IErrorMessageDataStore errorMessageDataStore;
         IMessageRedirectsDataStore messageRedirectsDataStore;
 
-        [SetUp]
-        public void Setup()
+        public EditMessageTests(TestPersistence persistence) : base(persistence)
         {
-            errorMessageDataStore = new EditMessageTests(); // TODO: GET STUFF
-            messageRedirectsDataStore = new EditMessageTests(); // TODO: GET STUFF
+        }
+
+        [SetUp]
+        public override async Task Setup()
+        {
+            await base.Setup();
+
+            errorMessageDataStore = GetService<IErrorMessageDataStore>();
+            messageRedirectsDataStore = GetService<IMessageRedirectsDataStore>();
 
             dispatcher = new TestableUnicastDispatcher();
             handler = new EditHandler(errorMessageDataStore, messageRedirectsDataStore, dispatcher);
