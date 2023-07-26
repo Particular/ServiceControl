@@ -172,7 +172,7 @@ namespace ServiceControl.Infrastructure.WebApi
         public static HttpResponseMessage FromQueryResult<T>(HttpRequestMessage request, QueryResult<T> queryResult)
             where T : class
         {
-            return FromModel(request, queryResult)
+            return FromModel(request, queryResult.Results)
                 .WithPagingLinksAndTotalCount(queryResult.QueryStats.TotalCount, request)
                 .WithEtag(queryResult.QueryStats.ETag);
         }
