@@ -11,41 +11,36 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Raven.Client;
-    using Raven.Tests.Helpers;
+    using Persistence;
     using ServiceControl.Persistence.MessageRedirects;
-    using ServiceControl.Persistence.Recoverability.Editing;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
     [TestFixture]
-    public class EditMessageTests : RavenTestBase
+    public class EditMessageTests
     {
-        IDocumentStore Store { get; set; }
-        EditHandler Handler { get; set; }
-        TestableUnicastDispatcher Dispatcher { get; set; }
+        EditHandler handler;
+        TestableUnicastDispatcher dispatcher;
+        IErrorMessageDataStore errorMessageDataStore;
+        IMessageRedirectsDataStore messageRedirectsDataStore;
 
         [SetUp]
         public void Setup()
         {
-            Store = NewDocumentStore();
-            Dispatcher = new TestableUnicastDispatcher();
-            Handler = new EditHandler(Store, Dispatcher);
-        }
+            errorMessageDataStore = new EditMessageTests(); // TODO: GET STUFF
+            messageRedirectsDataStore = new EditMessageTests(); // TODO: GET STUFF
 
-        [TearDown]
-        public void Teardown()
-        {
-            Store.Dispose();
+            dispatcher = new TestableUnicastDispatcher();
+            handler = new EditHandler(errorMessageDataStore, messageRedirectsDataStore, dispatcher);
         }
 
         [Test]
         public async Task Should_discard_edit_when_failed_message_not_exists()
         {
             var message = CreateEditMessage("some-id");
-            await Handler.Handle(message, new TestableMessageHandlerContext());
+            await handler.Handle(message, new TestableMessageHandlerContext());
 
-            Assert.IsEmpty(Dispatcher.DispatchedMessages);
+            Assert.IsEmpty(dispatcher.DispatchedMessages);
         }
 
         [Test]
@@ -58,18 +53,17 @@
             await CreateFailedMessage(failedMessageId, status);
 
             var message = CreateEditMessage(failedMessageId);
-            await Handler.Handle(message, new TestableMessageHandlerContext());
+            await handler.Handle(message, new TestableMessageHandlerContext());
 
-            using (var session = Store.OpenAsyncSession())
-            {
-                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId));
-                var editOperation = await session.LoadAsync<FailedMessageEdit>(failedMessageId);
+            var failedMessage = await errorMessageDataStore.FailedMessageFetch(failedMessageId);
 
-                Assert.AreEqual(status, failedMessage.Status);
-                Assert.IsNull(editOperation);
-            }
+            var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager();
+            var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
 
-            Assert.IsEmpty(Dispatcher.DispatchedMessages);
+            Assert.AreEqual(status, failedMessage.Status);
+            Assert.IsNull(editOperation);
+
+            Assert.IsEmpty(dispatcher.DispatchedMessages);
         }
 
         [Test]
@@ -78,33 +72,27 @@
             var failedMessageId = Guid.NewGuid().ToString();
             var previousEdit = Guid.NewGuid().ToString();
 
-            await CreateFailedMessage(failedMessageId);
-
-            using (var session = Store.OpenAsyncSession())
+            using (var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager())
             {
-                await session.StoreAsync(new FailedMessageEdit
-                {
-                    Id = FailedMessageEdit.MakeDocumentId(failedMessageId),
-                    FailedMessageId = failedMessageId,
-                    EditId = previousEdit
-                });
-
-                await session.SaveChangesAsync();
+                _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
+                await editFailedMessagesManager.SetCurrentEditingMessageId(previousEdit);
             }
 
             var message = CreateEditMessage(failedMessageId);
-            await Handler.Handle(message, new TestableMessageHandlerContext());
 
-            using (var session = Store.OpenAsyncSession())
+            // Act
+            await handler.Handle(message, new TestableMessageHandlerContext());
+
+            using (var editFailedMessagesManagerAssert = await errorMessageDataStore.CreateEditFailedMessageManager())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(failedMessageId));
-                var editOperation = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessageId));
+                var failedMessage = editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
+                var editId = editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
 
                 Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
-                Assert.AreEqual(previousEdit, editOperation.EditId);
+                Assert.AreEqual(previousEdit, editId);
             }
 
-            Assert.IsEmpty(Dispatcher.DispatchedMessages);
+            Assert.IsEmpty(dispatcher.DispatchedMessages);
         }
 
         [Test]
@@ -117,21 +105,22 @@
             var message = CreateEditMessage(failedMessage.UniqueMessageId, newBodyContent, newHeaders);
 
             var handlerContent = new TestableMessageHandlerContext();
-            await Handler.Handle(message, handlerContent);
+            await handler.Handle(message, handlerContent);
 
-            var dispatchedMessage = Dispatcher.DispatchedMessages.Single();
+            var dispatchedMessage = dispatcher.DispatchedMessages.Single();
             Assert.AreEqual(
                 failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 dispatchedMessage.Item1.Destination);
             Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
             Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
-            using (var session = Store.OpenAsyncSession())
+
+            using (var x = await errorMessageDataStore.CreateEditFailedMessageManager())
             {
-                failedMessage = await session.LoadAsync<FailedMessage>(failedMessage.Id);
-                var editOperation = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(failedMessage.UniqueMessageId));
+                failedMessage = await x.GetFailedMessage(failedMessage.Id);
+                var editId = await x.GetCurrentEditingMessageId(failedMessage.Id);
 
                 Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage.Status);
-                Assert.AreEqual(handlerContent.MessageId, editOperation.EditId);
+                Assert.AreEqual(handlerContent.MessageId, editId);
             }
         }
 
@@ -143,10 +132,10 @@
 
             var handlerContext = new TestableMessageHandlerContext();
             var message = CreateEditMessage(failedMessageId);
-            await Handler.Handle(message, handlerContext);
-            await Handler.Handle(message, handlerContext);
+            await handler.Handle(message, handlerContext);
+            await handler.Handle(message, handlerContext);
 
-            Assert.AreEqual(2, Dispatcher.DispatchedMessages.Count);
+            Assert.AreEqual(2, dispatcher.DispatchedMessages.Count);
         }
 
         [Test]
@@ -158,9 +147,9 @@
             var transportTransaction = new TransportTransaction();
             handlerContent.Extensions.Set(transportTransaction);
 
-            await Handler.Handle(message, handlerContent);
+            await handler.Handle(message, handlerContent);
 
-            Assert.AreSame(Dispatcher.DispatchedMessages.Single().Item2, transportTransaction);
+            Assert.AreSame(dispatcher.DispatchedMessages.Single().Item2, transportTransaction);
         }
 
         [Test]
@@ -170,20 +159,17 @@
             var failedMessage = await CreateFailedMessage();
             var message = CreateEditMessage(failedMessage.UniqueMessageId);
 
-            using (var session = Store.OpenAsyncSession())
+            var redirects = await messageRedirectsDataStore.GetOrCreate();
+            redirects.Redirects.Add(new MessageRedirect
             {
-                var redirects = await MessageRedirectsCollection.GetOrCreate(session);
-                redirects.Redirects.Add(new MessageRedirect
-                {
-                    FromPhysicalAddress = failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
-                    ToPhysicalAddress = redirectAddress
-                });
-                await redirects.Save(session);
-            }
+                FromPhysicalAddress = failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
+                ToPhysicalAddress = redirectAddress
+            });
+            await messageRedirectsDataStore.Save(redirects);
 
-            await Handler.Handle(message, new TestableInvokeHandlerContext());
+            await handler.Handle(message, new TestableInvokeHandlerContext());
 
-            var sentMessage = Dispatcher.DispatchedMessages.Single().Item1;
+            var sentMessage = dispatcher.DispatchedMessages.Single().Item1;
             Assert.AreEqual(redirectAddress, sentMessage.Destination);
         }
 
@@ -193,9 +179,9 @@
             var messageFailure = await CreateFailedMessage();
             var message = CreateEditMessage(messageFailure.UniqueMessageId);
 
-            await Handler.Handle(message, new TestableInvokeHandlerContext());
+            await handler.Handle(message, new TestableInvokeHandlerContext());
 
-            var sentMessage = Dispatcher.DispatchedMessages.Single();
+            var sentMessage = dispatcher.DispatchedMessages.Single();
             Assert.AreEqual(
                 messageFailure.Id,
                 "FailedMessages/" + sentMessage.Item1.Message.Headers["ServiceControl.EditOf"]);
@@ -207,9 +193,9 @@
             var messageFailure = await CreateFailedMessage();
             var message = CreateEditMessage(messageFailure.UniqueMessageId);
 
-            await Handler.Handle(message, new TestableInvokeHandlerContext());
+            await handler.Handle(message, new TestableInvokeHandlerContext());
 
-            var sentMessage = Dispatcher.DispatchedMessages.Single();
+            var sentMessage = dispatcher.DispatchedMessages.Single();
             Assert.AreNotEqual(
                 messageFailure.ProcessingAttempts.Last().MessageId,
                 sentMessage.Item1.Message.MessageId);
@@ -228,14 +214,13 @@
         async Task<FailedMessage> CreateFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
         {
             failedMessageId = failedMessageId ?? Guid.NewGuid().ToString();
-            using (var session = Store.OpenAsyncSession())
+
+            var failedMessage = new FailedMessage
             {
-                var failedMessage = new FailedMessage
-                {
-                    UniqueMessageId = failedMessageId,
-                    Id = FailedMessage.MakeDocumentId(failedMessageId),
-                    Status = status,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                UniqueMessageId = failedMessageId,
+                Id = FailedMessage.MakeDocumentId(failedMessageId),
+                Status = status,
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {
                         new FailedMessage.ProcessingAttempt
                         {
@@ -246,11 +231,9 @@
                             }
                         }
                     }
-                };
-                await session.StoreAsync(failedMessage);
-                await session.SaveChangesAsync();
-                return failedMessage;
-            }
+            };
+            await errorMessageDataStore.StoreFailedMessages(new[] { failedMessage });
+            return failedMessage;
         }
     }
 
