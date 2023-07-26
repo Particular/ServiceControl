@@ -1,6 +1,7 @@
 namespace ServiceControl.AcceptanceTests
 {
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
@@ -73,7 +74,7 @@ namespace ServiceControl.AcceptanceTests
 
             await StorageConfiguration.Configure();
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb), SetStorageConfiguration);
         }
 
         [TearDown]
@@ -116,6 +117,7 @@ namespace ServiceControl.AcceptanceTests
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
+        protected Action<IDictionary<string, string>> SetStorageConfiguration = _ => { };
         protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
