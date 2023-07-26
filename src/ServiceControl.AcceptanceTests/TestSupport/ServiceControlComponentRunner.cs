@@ -1,7 +1,6 @@
 namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
     using System.Linq;
@@ -24,17 +23,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Audit.AcceptanceTests;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization, Action<IDictionary<string, string>> setStorageConfiguration)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.hostBuilderCustomization = hostBuilderCustomization;
-            this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
         }
 
@@ -127,8 +124,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             Settings = settings;
 
             var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
-
-            setStorageConfiguration(persisterSpecificSettings);
 
             foreach (var persisterSpecificSetting in persisterSpecificSettings)
             {
@@ -241,7 +236,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
-        Action<IDictionary<string, string>> setStorageConfiguration;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
