@@ -27,7 +27,6 @@
     <Compile Include="..\ServiceControl.AcceptanceTests\TestSupport\**\*.cs">
         <Link>TestSupport\%(RecursiveDir)/%(FileName)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\ServiceControl.AcceptanceTests\ContextLoggerExtensions.cs"/>
   </ItemGroup>
 
   <ItemGroup>
