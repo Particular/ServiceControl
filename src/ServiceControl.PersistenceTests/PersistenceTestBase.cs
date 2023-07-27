@@ -14,11 +14,11 @@
     [TestFixtureSource(typeof(PersistenceTestCollection))]
     abstract class PersistenceTestBase
     {
-        TestPersistence persistence;
-        IServiceProvider serviceProvider;
+        readonly TestPersistence persistence;
+        ServiceProvider serviceProvider;
         IHostedService[] hostedServices;
 
-        public PersistenceTestBase(TestPersistence persistence)
+        protected PersistenceTestBase(TestPersistence persistence)
         {
             this.persistence = persistence;
         }
@@ -40,6 +40,8 @@
             await persistence.CleanupDB();
 
             await HostedServicesStop();
+
+            await serviceProvider.DisposeAsync();
         }
 
         async Task HostedServicesStart()
