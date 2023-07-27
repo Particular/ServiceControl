@@ -15,7 +15,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
-    using ServiceControl.Persistence;
 
     [TestFixture]
     class WebApiHostBuilderExtensionsTests
@@ -23,11 +22,16 @@
         static IHostBuilder PrepareHostBuilder() => new HostBuilder()
             .ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddSingleton<IDocumentStore>(_ => InMemoryStoreBuilder.GetInMemoryStore());
                 serviceCollection.AddSingleton<Func<HttpClient>>(() => new HttpClient());
                 serviceCollection.AddSingleton<IDomainEvents, DomainEvents>();
-                serviceCollection.AddServiceControlPersistence(DataStoreType.InMemory);
                 serviceCollection.AddSingleton(new LoggingSettings("test"));
+
+                // TODO: Code below should be done by persister specific configuration. Currently manual registrations must be removed.
+                // TODO: Could maybe for the moment use RavenDB persister until we have an in-memory persister.
+                serviceCollection.AddSingleton<IDocumentStore>(_ => InMemoryStoreBuilder.GetInMemoryStore());
+                serviceCollection.AddServiceControlPersistence(DataStoreType.RavenDB35);
+                // TODO: ⬆️
+
             })
             .UseNServiceBus(_ =>
             {
