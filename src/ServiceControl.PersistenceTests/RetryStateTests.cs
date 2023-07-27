@@ -14,7 +14,6 @@
     using ServiceControl.Infrastructure.BackgroundTasks;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.MessageFailures;
-    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
@@ -26,11 +25,6 @@
             : base(persistence)
         {
         }
-
-        IErrorMessageDataStore ErrorStore => GetService<IErrorMessageDataStore>();
-        IRetryDocumentDataStore RetryStore => GetService<IRetryDocumentDataStore>();
-        IBodyStorage BodyStorage => GetService<IBodyStorage>();
-        IRetryBatchesDataStore RetryBatchesStore => GetService<IRetryBatchesDataStore>();
 
         [Test]
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()

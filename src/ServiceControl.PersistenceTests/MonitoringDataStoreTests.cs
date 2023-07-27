@@ -7,7 +7,6 @@
     using ServiceControl.Monitoring;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.UnitOfWork;
 
     class MonitoringDataStoreTests : PersistenceTestBase
     {
@@ -15,9 +14,6 @@
             : base(persistence)
         {
         }
-
-        public IMonitoringDataStore MonitoringDataStore => GetService<IMonitoringDataStore>();
-        public IIngestionUnitOfWorkFactory UnitOfWorkFactory => GetService<IIngestionUnitOfWorkFactory>();
 
         [Test]
         public async Task Endpoints_load_from_dataStore_into_monitor()

@@ -6,6 +6,10 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
+    using Persistence;
+    using Persistence.MessageRedirects;
+    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Persistence.UnitOfWork;
 
     [TestFixtureSource(typeof(PersistenceTestCollection))]
     abstract class PersistenceTestBase
@@ -47,6 +51,16 @@
 
         protected Task CompleteDBOperation() => persistence.CompleteDBOperation();
 
-        protected T GetService<T>() => serviceProvider.GetRequiredService<T>();
+        T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
+
+        protected IErrorMessageDataStore ErrorStore => GetRequiredService<IErrorMessageDataStore>();
+        protected IRetryDocumentDataStore RetryStore => GetRequiredService<IRetryDocumentDataStore>();
+        protected IBodyStorage BodyStorage => GetRequiredService<IBodyStorage>();
+        protected IRetryBatchesDataStore RetryBatchesStore => GetRequiredService<IRetryBatchesDataStore>();
+        protected IErrorMessageDataStore ErrorMessageDataStore => GetRequiredService<IErrorMessageDataStore>();
+        protected IMessageRedirectsDataStore MessageRedirectsDataStore => GetRequiredService<IMessageRedirectsDataStore>();
+        protected IMonitoringDataStore MonitoringDataStore => GetRequiredService<IMonitoringDataStore>();
+        protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
+        protected ICustomChecksDataStore CustomChecks => GetRequiredService<ICustomChecksDataStore>();
     }
 }

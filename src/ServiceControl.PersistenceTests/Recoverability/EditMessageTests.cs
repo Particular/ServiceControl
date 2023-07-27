@@ -11,7 +11,6 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Persistence;
     using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
@@ -22,8 +21,6 @@
     {
         EditHandler handler;
         TestableUnicastDispatcher dispatcher;
-        IErrorMessageDataStore errorMessageDataStore;
-        IMessageRedirectsDataStore messageRedirectsDataStore;
 
         public EditMessageTests(TestPersistence persistence) : base(persistence)
         {
@@ -34,11 +31,8 @@
         {
             await base.Setup();
 
-            errorMessageDataStore = GetService<IErrorMessageDataStore>();
-            messageRedirectsDataStore = GetService<IMessageRedirectsDataStore>();
-
             dispatcher = new TestableUnicastDispatcher();
-            handler = new EditHandler(errorMessageDataStore, messageRedirectsDataStore, dispatcher);
+            handler = new EditHandler(ErrorMessageDataStore, MessageRedirectsDataStore, dispatcher);
         }
 
         [Test]
@@ -62,9 +56,9 @@
             var message = CreateEditMessage(failedMessageId);
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            var failedMessage = await errorMessageDataStore.FailedMessageFetch(failedMessageId);
+            var failedMessage = await ErrorMessageDataStore.FailedMessageFetch(failedMessageId);
 
-            var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager();
+            var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);
 
             Assert.AreEqual(status, failedMessage.Status);
@@ -79,7 +73,7 @@
             var failedMessageId = Guid.NewGuid().ToString();
             var previousEdit = Guid.NewGuid().ToString();
 
-            using (var editFailedMessagesManager = await errorMessageDataStore.CreateEditFailedMessageManager())
+            using (var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
                 await editFailedMessagesManager.SetCurrentEditingMessageId(previousEdit);
@@ -90,7 +84,7 @@
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            using (var editFailedMessagesManagerAssert = await errorMessageDataStore.CreateEditFailedMessageManager())
+            using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 var failedMessage = editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
                 var editId = editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
@@ -121,7 +115,7 @@
             Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
             Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
 
-            using (var x = await errorMessageDataStore.CreateEditFailedMessageManager())
+            using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 failedMessage = await x.GetFailedMessage(failedMessage.Id);
                 var editId = await x.GetCurrentEditingMessageId(failedMessage.Id);
@@ -166,13 +160,13 @@
             var failedMessage = await CreateFailedMessage();
             var message = CreateEditMessage(failedMessage.UniqueMessageId);
 
-            var redirects = await messageRedirectsDataStore.GetOrCreate();
+            var redirects = await MessageRedirectsDataStore.GetOrCreate();
             redirects.Redirects.Add(new MessageRedirect
             {
                 FromPhysicalAddress = failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 ToPhysicalAddress = redirectAddress
             });
-            await messageRedirectsDataStore.Save(redirects);
+            await MessageRedirectsDataStore.Save(redirects);
 
             await handler.Handle(message, new TestableInvokeHandlerContext());
 
@@ -239,7 +233,7 @@
                         }
                     }
             };
-            await errorMessageDataStore.StoreFailedMessages(new[] { failedMessage });
+            await ErrorMessageDataStore.StoreFailedMessages(new[] { failedMessage });
             return failedMessage;
         }
     }
