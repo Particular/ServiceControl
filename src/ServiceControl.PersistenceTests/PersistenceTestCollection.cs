@@ -7,7 +7,7 @@ namespace ServiceControl.PersistenceTests
         public IEnumerator GetEnumerator()
         {
             yield return new InMemory();
-            yield return new RavenDb();
+            yield return new RavenDb35();
         }
     }
 }

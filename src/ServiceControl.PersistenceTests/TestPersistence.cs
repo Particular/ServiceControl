@@ -5,10 +5,12 @@
 
     abstract class TestPersistence
     {
-        public abstract Task Configure(IServiceCollection services);
+        public abstract void Configure(IServiceCollection services);
 
         public virtual Task CompleteDatabaseOperation() => Task.CompletedTask;
 
         public virtual Task CleanupDatabase() => Task.CompletedTask;
+
+        public override string ToString() => GetType().Name;
     }
 }

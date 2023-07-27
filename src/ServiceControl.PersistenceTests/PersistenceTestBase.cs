@@ -31,7 +31,7 @@
             var services = new ServiceCollection();
             services.AddSingleton(new CriticalError(null));
 
-            await testPersistence.Configure(services);
+            testPersistence.Configure(services);
             serviceProvider = services.BuildServiceProvider();
 
             await HostedServicesStart();
