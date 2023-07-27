@@ -73,6 +73,8 @@
             var failedMessageId = Guid.NewGuid().ToString();
             var previousEdit = Guid.NewGuid().ToString();
 
+            _ = await CreateFailedMessage(failedMessageId);
+
             using (var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
