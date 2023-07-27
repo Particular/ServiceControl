@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NUnit.Framework;
     using Persistence;
     using Persistence.MessageRedirects;
@@ -27,6 +28,8 @@
         public virtual async Task Setup()
         {
             var services = new ServiceCollection();
+            services.AddSingleton(new CriticalError(null));
+
             await persistence.Configure(services);
             serviceProvider = services.BuildServiceProvider();
 
