@@ -19,11 +19,11 @@
 
         public void Delete(RetryBatchNowForwarding forwardingBatch) => Session.Delete(forwardingBatch);
 
-        public Task<IList<FailedMessageRetry>> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries) => throw new NotImplementedException();
+        public Task<FailedMessageRetry[]> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries) => Session.LoadAsync<FailedMessageRetry>(stagingBatchFailureRetries);
 
         public void Evict(FailedMessageRetry failedMessageRetry) => Session.Advanced.Evict(failedMessageRetry);
 
-        public Task<IList<FailedMessage>> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys) => throw new NotImplementedException();
+        public Task<FailedMessage[]> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys) => Session.LoadAsync<FailedMessage>(keys);
 
         public async Task<RetryBatchNowForwarding> GetRetryBatchNowForwarding() =>
             await Session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
@@ -37,11 +37,8 @@
                 .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
                 .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging);
 
-        public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding, string stagingBatchId) =>
-            await Session.StoreAsync(new RetryBatchNowForwarding
-            {
-                RetryBatchId = stagingBatchId
-            }, RetryBatchNowForwarding.Id);
+        public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding) =>
+            await Session.StoreAsync(retryBatchNowForwarding, RetryBatchNowForwarding.Id);
 
         public async Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection()
         {

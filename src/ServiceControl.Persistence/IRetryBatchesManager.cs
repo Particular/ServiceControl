@@ -11,13 +11,13 @@
     {
         void Delete(RetryBatch retryBatch);
         void Delete(RetryBatchNowForwarding forwardingBatch);
-        Task<IList<FailedMessageRetry>> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries);
+        Task<FailedMessageRetry[]> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries);
         void Evict(FailedMessageRetry failedMessageRetry);
-        Task<IList<FailedMessage>> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys);
+        Task<FailedMessage[]> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys);
         Task<RetryBatchNowForwarding> GetRetryBatchNowForwarding();
         Task<RetryBatch> GetRetryBatch(string retryBatchId, CancellationToken cancellationToken);
         Task<RetryBatch> GetStagingBatch();
-        Task Store(RetryBatchNowForwarding retryBatchNowForwarding, string stagingBatchId);
+        Task Store(RetryBatchNowForwarding retryBatchNowForwarding);
         Task<MessageRedirectsCollection> GetOrCreateMessageRedirectsCollection();
     }
 }

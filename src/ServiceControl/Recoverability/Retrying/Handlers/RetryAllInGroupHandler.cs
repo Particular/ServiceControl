@@ -37,8 +37,8 @@ namespace ServiceControl.Recoverability
 
             retries.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(
                 message.GroupId,
-                group.Title,
-                group.Type,
+                originator,
+                group?.Type,
                 started
             ));
         }

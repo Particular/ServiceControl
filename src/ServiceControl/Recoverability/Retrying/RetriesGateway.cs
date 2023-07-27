@@ -58,7 +58,7 @@ namespace ServiceControl.Recoverability
 
             Log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, failedMessageRetryIds, startTime, last,
+            await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, messageIds, startTime, last,
                 originator, batchName, classifier);
 
             await store.MoveBatchToStaging(batchDocumentId);

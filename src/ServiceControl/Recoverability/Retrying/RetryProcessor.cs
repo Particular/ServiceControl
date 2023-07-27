@@ -70,7 +70,7 @@ namespace ServiceControl.Recoverability
                         await manager.Store(new RetryBatchNowForwarding
                         {
                             RetryBatchId = stagingBatch.Id
-                        }, RetryBatchNowForwarding.Id);
+                        });
                     }
 
                     return true;

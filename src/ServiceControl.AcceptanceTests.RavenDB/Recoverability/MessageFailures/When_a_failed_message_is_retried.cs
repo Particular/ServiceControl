@@ -21,7 +21,11 @@
     {
         public When_a_failed_message_is_retried()
         {
-            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddScoped<FailedMessageRetriesController>());
+            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) =>
+            {
+                services.AddScoped<FailedMessageRetriesController>();
+                services.AddScoped<FailedErrorsController>();
+            });
         }
 
         [Test]

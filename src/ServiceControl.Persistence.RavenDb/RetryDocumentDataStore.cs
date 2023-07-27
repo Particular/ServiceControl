@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
     using MessageFailures;
@@ -257,7 +258,7 @@
             using (var session = store.OpenAsyncSession())
             {
                 var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
-                    .FirstOrDefaultAsync(x => x.Id == groupId);
+                        .FirstOrDefaultAsync(x => x.Id == groupId);
                 return group;
             }
         }
