@@ -15,13 +15,13 @@
     [TestFixtureSource(typeof(PersistenceTestCollection))]
     abstract class PersistenceTestBase
     {
-        readonly TestPersistence persistence;
+        readonly TestPersistence testPersistence;
         ServiceProvider serviceProvider;
         IHostedService[] hostedServices;
 
-        protected PersistenceTestBase(TestPersistence persistence)
+        protected PersistenceTestBase(TestPersistence testPersistence)
         {
-            this.persistence = persistence;
+            this.testPersistence = testPersistence;
         }
 
         [SetUp]
@@ -30,7 +30,7 @@
             var services = new ServiceCollection();
             services.AddSingleton(new CriticalError(null));
 
-            await persistence.Configure(services);
+            await testPersistence.Configure(services);
             serviceProvider = services.BuildServiceProvider();
 
             await HostedServicesStart();
@@ -40,7 +40,7 @@
         [TearDown]
         public async Task Cleanup()
         {
-            await persistence.CleanupDB();
+            await testPersistence.CleanupDB();
 
             await HostedServicesStop();
 
@@ -65,7 +65,7 @@
             }
         }
 
-        protected Task CompleteDBOperation() => persistence.CompleteDBOperation();
+        protected Task CompleteDBOperation() => testPersistence.CompleteDBOperation();
 
         T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
 
