@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System;
     using System.Threading.Tasks;
     using Raven.Abstractions.Data;
     using Raven.Client;
@@ -31,6 +32,10 @@
 
         public Task SetCurrentEditingMessageId(string editingMessageId)
         {
+            if (failedMessage == null)
+            {
+                throw new InvalidOperationException("No failed message loaded");
+            }
             return session.StoreAsync(new FailedMessageEdit
             {
                 Id = FailedMessageEdit.MakeDocumentId(failedMessage.Id),
