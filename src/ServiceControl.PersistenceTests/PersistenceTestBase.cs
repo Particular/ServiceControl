@@ -30,6 +30,20 @@
             await persistence.Configure(services);
             serviceProvider = services.BuildServiceProvider();
 
+            await HostedServicesStart();
+        }
+
+
+        [TearDown]
+        public async Task Cleanup()
+        {
+            await persistence.CleanupDB();
+
+            await HostedServicesStop();
+        }
+
+        async Task HostedServicesStart()
+        {
             // TODO: Combine with logic in PersistenceTestBase
             hostedServices = serviceProvider.GetServices<IHostedService>().ToArray();
             foreach (var service in hostedServices)
@@ -38,11 +52,8 @@
             }
         }
 
-        [TearDown]
-        public async Task Cleanup()
+        async Task HostedServicesStop()
         {
-            await persistence.CleanupDB();
-
             foreach (var service in hostedServices.Reverse())
             {
                 await service.StopAsync(default);
