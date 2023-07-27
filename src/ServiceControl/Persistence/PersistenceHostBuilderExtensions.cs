@@ -11,13 +11,18 @@ namespace ServiceControl.Persistence
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                var lifecycle = persistence.CreateLifecycle();
-                // lifecycle needs to be started before any other hosted service
-                serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
-                persistence.Configure(serviceCollection);
+                CreatePersisterLifecyle(serviceCollection, persistence);
             });
 
             return hostBuilder;
+        }
+
+        public static void CreatePersisterLifecyle(IServiceCollection serviceCollection, IPersistence persistence)
+        {
+            var lifecycle = persistence.CreateLifecycle();
+            // lifecycle needs to be started before any other hosted service
+            serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
+            persistence.Configure(serviceCollection);
         }
     }
 }

@@ -1,42 +1,40 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
+    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence;
-    using Raven.Client.Embedded;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.RavenDb;
 
-
-    // TODO: Combine with logic in PersistenceTestBase
     class RavenDb : TestPersistence
     {
-        public override async Task Configure(IServiceCollection services)
+        public static PersistenceSettings CreateSettings()
         {
-            documentStore = await services.AddInitializedDocumentStore();
+            var retentionPeriod = TimeSpan.FromMinutes(1);
+            var settings = new PersistenceSettings(retentionPeriod, retentionPeriod, retentionPeriod, 100, false)
+            {
+                PersisterSpecificSettings =
+                {
+                    [RavenBootstrapper.RunInMemoryKey] = bool.TrueString,
+                    [RavenBootstrapper.HostNameKey] = "localhost",
+                    [RavenBootstrapper.DatabaseMaintenancePortKey] = "55554",
+                }
+            };
 
-            // TODO: Make settings initialization similar to AUDIT persistence tests
+            return settings;
+        }
+
+        public override Task Configure(IServiceCollection services)
+        {
             var config = PersistenceConfigurationFactory.LoadPersistenceConfiguration(DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName);
-            var settings = RavenBootstrapper.Settings;//TODO: This strange, RavenBootstrapper.Settings is already initialized due to "AddInitializedDocumentStore"
-            //var settings = config.BuildPersistenceSettings(null);
+            var settings = CreateSettings();
+
             var instance = config.Create(settings);
-            instance.Configure(services);
-        }
-
-        public override Task CompleteDBOperation()
-        {
-            documentStore.WaitForIndexing();
-            return base.CompleteDBOperation();
-        }
-
-        public override Task CleanupDB()
-        {
-            documentStore?.Dispose();
-            return base.CleanupDB();
+            PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, instance);
+            return Task.CompletedTask;
         }
 
         public override string ToString() => "RavenDB35";
-
-        EmbeddableDocumentStore documentStore;
     }
 }

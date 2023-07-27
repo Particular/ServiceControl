@@ -48,7 +48,7 @@
 
             // Needs index RetryBatches_ByStatusAndSession
             // Needs index FailedMessageRetries_ByBatch
-            await CompleteDBOperation();
+            await CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
 
@@ -71,7 +71,7 @@
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
-            await CompleteDBOperation();
+            await CompleteDatabaseOperation();
 
             await processor.ProcessBatches(sender); // mark ready
 
@@ -170,7 +170,7 @@
 
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
-            await CompleteDBOperation();
+            await CompleteDatabaseOperation();
 
             await processor.ProcessBatches(sender); // mark ready
             await processor.ProcessBatches(sender);
@@ -216,7 +216,7 @@
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
-            await CompleteDBOperation();
+            await CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new RetriesGateway(RetryStore, retryManager);
@@ -224,7 +224,7 @@
             // TODO: groupType appears to be the same as classifier, which was null in the previous StartRetryForIndex call - make sure that's true
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
 
-            await CompleteDBOperation();
+            await CompleteDatabaseOperation();
 
             await gateway.ProcessNextBulkRetry();
         }
