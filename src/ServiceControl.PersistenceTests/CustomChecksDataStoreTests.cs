@@ -16,8 +16,6 @@ namespace ServiceControl.PersistenceTests
         {
         }
 
-        public ICustomChecksDataStore CustomChecks => GetService<ICustomChecksDataStore>();
-
         [Test]
         public async Task CustomChecks_load_from_data_store()
         {
