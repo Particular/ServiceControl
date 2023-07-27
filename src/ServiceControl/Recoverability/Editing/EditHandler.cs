@@ -110,6 +110,6 @@
         readonly IErrorMessageDataStore store;
         readonly IMessageRedirectsDataStore redirectsStore;
         readonly IDispatchMessages dispatcher;
-        static ILog log = LogManager.GetLogger<EditHandler>();
+        static readonly ILog log = LogManager.GetLogger<EditHandler>();
     }
 }
