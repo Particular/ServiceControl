@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using Persistence;
     using Persistence.MessageRedirects;
+    using Raven.Client;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence.UnitOfWork;
 
@@ -34,13 +35,13 @@
             serviceProvider = services.BuildServiceProvider();
 
             await HostedServicesStart();
+            GetRequiredService<IDocumentStore>().WaitForIndexing();
         }
-
 
         [TearDown]
         public async Task Cleanup()
         {
-            await testPersistence.CleanupDB();
+            await testPersistence.CleanupDatabase();
 
             await HostedServicesStop();
 
@@ -65,7 +66,7 @@
             }
         }
 
-        protected Task CompleteDBOperation() => testPersistence.CompleteDBOperation();
+        protected Task CompleteDatabaseOperation() => testPersistence.CompleteDatabaseOperation();
 
         T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
 
