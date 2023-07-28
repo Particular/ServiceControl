@@ -301,7 +301,7 @@ namespace ServiceControl.Recoverability
                 {
                     Log.Error($"Retry message {uniqueMessageId} reached its staging retry limit ({MaxStagingAttempts}) and is going to be removed from the batch.", e);
 
-                    await store.DeleteFailedMessageRetry(FailedMessageRetry.MakeDocumentId(uniqueMessageId));
+                    await store.DeleteFailedMessageRetry(uniqueMessageId);
 
                     await domainEvents.Raise(new MessageFailedInStaging
                     {
