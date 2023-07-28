@@ -21,11 +21,6 @@
     // so this class compiles but the test framework bootstrapping needs to take Raven indexes into account.
     class RetryStateTests : PersistenceTestBase
     {
-        public RetryStateTests(TestPersistence persistence)
-            : base(persistence)
-        {
-        }
-
         [Test]
         public async Task When_a_group_is_processed_it_is_set_to_the_Preparing_state()
         {

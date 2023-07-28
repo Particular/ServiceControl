@@ -11,11 +11,6 @@ namespace ServiceControl.PersistenceTests
 
     class CustomChecksDataStoreTests : PersistenceTestBase
     {
-        public CustomChecksDataStoreTests(TestPersistence persistence)
-            : base(persistence)
-        {
-        }
-
         [Test]
         public async Task CustomChecks_load_from_data_store()
         {

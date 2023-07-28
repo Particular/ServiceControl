@@ -10,11 +10,6 @@
 
     class MonitoringDataStoreTests : PersistenceTestBase
     {
-        public MonitoringDataStoreTests(TestPersistence persistence)
-            : base(persistence)
-        {
-        }
-
         [Test]
         public async Task Endpoints_load_from_dataStore_into_monitor()
         {

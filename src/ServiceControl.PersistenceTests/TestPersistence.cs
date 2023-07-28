@@ -9,8 +9,6 @@
 
         public virtual Task CompleteDatabaseOperation() => Task.CompletedTask;
 
-        public virtual Task CleanupDatabase() => Task.CompletedTask;
-
         public override string ToString() => GetType().Name;
     }
 }

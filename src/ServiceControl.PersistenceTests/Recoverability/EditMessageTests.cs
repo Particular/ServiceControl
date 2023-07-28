@@ -16,21 +16,14 @@
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
-    [TestFixtureSource(typeof(PersistenceTestCollection))]
     class EditMessageTests : PersistenceTestBase
     {
         EditHandler handler;
         TestableUnicastDispatcher dispatcher;
 
-        public EditMessageTests(TestPersistence persistence) : base(persistence)
-        {
-        }
-
         [SetUp]
-        public override async Task Setup()
+        public new void Setup()
         {
-            await base.Setup();
-
             dispatcher = new TestableUnicastDispatcher();
             handler = new EditHandler(ErrorMessageDataStore, MessageRedirectsDataStore, dispatcher);
         }
