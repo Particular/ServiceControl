@@ -11,7 +11,6 @@
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence.UnitOfWork;
 
-    //[TestFixtureSource(typeof(PersistenceTestCollection))]
     abstract class PersistenceTestBase : BaseHostTest
     {
         TestPersistence testPersistence;
