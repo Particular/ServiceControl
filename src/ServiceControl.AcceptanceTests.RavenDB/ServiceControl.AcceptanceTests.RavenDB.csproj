@@ -8,9 +8,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
@@ -23,17 +24,6 @@
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\ServiceControl.AcceptanceTests\TestSupport\**\*.cs">
-        <Link>TestSupport\%(RecursiveDir)/%(FileName)%(Extension)</Link>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
+  <Import Project="..\ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.projitems" Label="Shared" />
   
 </Project>

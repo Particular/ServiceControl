@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>64c36b27-329d-4906-9dc6-5c0813d5c79e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ServiceControl.AcceptanceTests</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_a_custom_check_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_a_periodic_custom_check_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_critical_storage_threshold_reached.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_custom_check_events_are_triggered.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_email_notifications_are_enabled.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\CustomChecks\When_reporting_custom_check_with_signalr.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\ExternalIntegration\When_a_custom_check_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\ExternalIntegration\When_a_custom_check_succeeds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\ExternalIntegration\When_heartbeat_is_restored.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\ExternalIntegration\When_heartbeat_loss_is_detected.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\InternalCustomChecks\CriticalErrorTriggerController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\InternalCustomChecks\When_a_critical_error_is_triggered.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\InternalCustomChecks\When_a_custom_check_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\KnownEndpointPersistenceQueryController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_an_endpoint_is_removed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_an_endpoint_starts_up.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_an_endpoint_with_heartbeat_plugin_starts_up.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_an_unmonitored_endpoint_is_marked_as_monitored.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_a_failed_message_from_unmonitored_endpoint_is_imported.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monitoring\When_unmonitored_endpoint_starts_to_sends_heartbeats.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\EditMessageHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\ExternalIntegrationAcceptanceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_failed_message_is_archived.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_by_retry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_failed_message_is_resolved_manually.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_failed_message_is_unarchived.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_group_is_archived.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_a_message_has_failed_detected.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\ExternalIntegration\When_encountered_an_error.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_a_group_is_archived.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_a_group_is_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_a_message_fails_twice_with_different_exceptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_messages_have_failed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_message_groups_are_sorted_by_a_web_api_call.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_ServiceControl_has_started.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\Groups\When_two_similar_messages_have_failed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\ErrorImportPerformanceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\Is_System_Message_Tests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_all_messages_are_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_an_event_with_multiple_subscribers_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_failed_message_is_pending_retry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_invalid_id_is_sent_to_retry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_messages_fails_multiple_times.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_message_has_failed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_message_has_failed_from_send_only_endpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_pending_retry_is_resolved_by_queue_and_timeframe.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_pending_retry_is_resolved_by_selection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_pending_retry_is_retried_again.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_pending_retry_is_retried_by_queue_and_timeframe.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_retry_fails_to_be_sent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_retry_for_a_empty_body_message_is_successful.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_retry_for_a_failed_message_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_retry_for_a_failed_message_is_successful.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_a_SagaComplete_message_fails.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_errors_with_same_uniqueid_are_imported.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_failed_message_is_imported.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_failed_message_searched_by_body_content.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageFailures\When_processing_message_with_missing_metadata_failed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\MessageRedirect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\RedirectRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_a_message_fails_a_retry_with_a_redirect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_a_message_is_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_a_redirect_is_changed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_a_redirect_is_created.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_a_redirect_is_removed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\MessageRedirects\When_no_redirects_have_been_created.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_a_message_is_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_a_message_is_retried_and_succeeds_with_a_reply.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_a_message_is_retried_with_a_replyTo_header.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_a_message_without_a_correlationid_header_is_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_a_native_integration_message_is_retried.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_edited_message_fails_to_process.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_editing_message_body.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_editing_message_headers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_retry_is_confirmed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\When_single_message_fails_in_batch.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RootControllerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SagaAudit\When_a_saga_instance_is_being_created.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SagaAudit\When_multiple_messages_are_emitted_by_a_saga.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SagaAudit\When_requesting_timeout_from_a_saga.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestsFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\AcceptanceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\ContextLoggerExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\EndpointConfigurationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\EndpointTemplates\DefaultServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\ReportSuccessfulRetryToServiceControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\SelfVerification\EndpointNameEnforcementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\ServiceControlComponentBehavior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSupport\ServiceControlComponentRunner.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)App.config" />
+    <None Include="$(MSBuildThisFileDirectory)ServiceControl.runsettings" />
+  </ItemGroup>
+</Project>
