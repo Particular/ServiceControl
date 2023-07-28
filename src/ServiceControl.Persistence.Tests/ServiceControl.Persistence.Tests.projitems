@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>e30f8a5e-f6ef-481d-9347-1fe7dd9d1325</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>ServiceControl.Persistence.Tests</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BaseHostTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomChecksDataStoreTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FakeDomainEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MagicStringTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MonitoringDataStoreTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Persistences\InMemory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Persistences\RavenDb35.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PersistenceTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PersistenceTestCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RavenIndexAwaiter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Recoverability\EditMessageTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RetryStateTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestPersistence.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestsFilter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)app.config" />
+    <None Include="$(MSBuildThisFileDirectory)ServiceControl.runsettings" />
+  </ItemGroup>
+</Project>
