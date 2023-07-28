@@ -1,13 +1,20 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using NUnit.Framework;
     using Persistence;
+    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.RavenDb;
 
     sealed class TestPersistenceImpl : TestPersistence
     {
+        IDocumentStore documentStore;
+
         static PersistenceSettings CreateSettings()
         {
             var retentionPeriod = TimeSpan.FromMinutes(1);
@@ -31,6 +38,27 @@
 
             var instance = config.Create(settings);
             PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, instance);
+
+
+            services.AddHostedService(p => new Wrapper(this, p.GetRequiredService<IDocumentStore>()));
+        }
+
+        public override Task CompleteDatabaseOperation()
+        {
+            Assert.IsNotNull(documentStore);
+            documentStore.WaitForIndexing();
+            return Task.CompletedTask;
+        }
+
+        class Wrapper : IHostedService
+        {
+            public Wrapper(TestPersistenceImpl instance, IDocumentStore store)
+            {
+                instance.documentStore = store;
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
     }
 }

@@ -7,7 +7,6 @@
     using NUnit.Framework;
     using Persistence;
     using Persistence.MessageRedirects;
-    using Raven.Client;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence.UnitOfWork;
 
@@ -26,12 +25,15 @@
         }
 
         [SetUp]
-        public virtual void Setup()
+        public virtual Task Setup()
         {
-            GetRequiredService<IDocumentStore>().WaitForIndexing();
+            return CompleteDatabaseOperation();
         }
 
-        protected Task CompleteDatabaseOperation() => testPersistence.CompleteDatabaseOperation();
+        protected Task CompleteDatabaseOperation()
+        {
+            return testPersistence.CompleteDatabaseOperation();
+        }
 
         protected IErrorMessageDataStore ErrorStore => GetRequiredService<IErrorMessageDataStore>();
         protected IRetryDocumentDataStore RetryStore => GetRequiredService<IRetryDocumentDataStore>();

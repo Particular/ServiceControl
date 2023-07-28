@@ -7,7 +7,7 @@
     {
         public abstract void Configure(IServiceCollection services);
 
-        public virtual Task CompleteDatabaseOperation() => Task.CompletedTask;
+        public abstract Task CompleteDatabaseOperation();
 
         public override string ToString() => GetType().Name;
     }
