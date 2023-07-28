@@ -14,10 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FakeDomainEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MagicStringTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MonitoringDataStoreTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Persistences\InMemory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Persistences\RavenDb35.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PersistenceTestBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PersistenceTestCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RavenIndexAwaiter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Recoverability\EditMessageTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RetryStateTests.cs" />

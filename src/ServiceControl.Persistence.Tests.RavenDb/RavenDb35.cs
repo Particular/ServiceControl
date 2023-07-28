@@ -6,7 +6,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.RavenDb;
 
-    sealed class RavenDb35 : TestPersistence
+    sealed class TestPersistenceImpl : TestPersistence
     {
         static PersistenceSettings CreateSettings()
         {

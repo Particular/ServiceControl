@@ -21,7 +21,7 @@
             return base.CreateHostBuilder().ConfigureServices(services =>
             {
                 services.AddSingleton(new CriticalError(null));
-                testPersistence = new RavenDb35();
+                testPersistence = new TestPersistenceImpl();
                 testPersistence.Configure(services);
             });
         }
