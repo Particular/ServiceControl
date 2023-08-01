@@ -1,0 +1,99 @@
+namespace NServiceBus.Transport.Msmq
+{
+    using System.Messaging;
+    using System.Security.Principal;
+    using System.Threading.Tasks;
+    using Logging;
+    using Transport;
+
+    class MsmqQueueCreator : ICreateQueues
+    {
+        public MsmqQueueCreator(bool useTransactionalQueues, IDelayedMessageStore delayedMessageStore = null, string endpointName = null, string timeoutsQueue = null, string timeoutsErrorQueue = null)
+        {
+            this.useTransactionalQueues = useTransactionalQueues;
+            this.timeoutsQueue = timeoutsQueue;
+            this.timeoutsErrorQueue = timeoutsErrorQueue;
+            this.delayedMessageStore = delayedMessageStore;
+            this.endpointName = endpointName;
+        }
+
+        public Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
+        {
+            foreach (var receivingAddress in queueBindings.ReceivingAddresses)
+            {
+                CreateQueueIfNecessary(receivingAddress, identity);
+            }
+
+            foreach (var sendingAddress in queueBindings.SendingAddresses)
+            {
+                CreateQueueIfNecessary(sendingAddress, identity);
+            }
+
+            if (timeoutsQueue != null)
+            {
+                CreateQueueIfNecessary(timeoutsQueue, identity);
+                CreateQueueIfNecessary(timeoutsErrorQueue, identity);
+
+                return delayedMessageStore.Initialize(endpointName, TransportTransactionMode.TransactionScope);
+            }
+
+            return TaskEx.CompletedTask;
+        }
+
+        void CreateQueueIfNecessary(string address, string identity)
+        {
+            var msmqAddress = MsmqAddress.Parse(address);
+
+            Logger.Debug($"Creating '{address}' if needed.");
+
+            if (msmqAddress.IsRemote())
+            {
+                Logger.Info($"'{address}' is a remote queue and won't be created");
+                return;
+            }
+
+            var queuePath = msmqAddress.PathWithoutPrefix;
+
+            if (MessageQueue.Exists(queuePath))
+            {
+                Logger.Debug($"'{address}' already exists");
+                return;
+            }
+
+            try
+            {
+                using (var queue = MessageQueue.Create(queuePath, useTransactionalQueues))
+                {
+                    Logger.Debug($"Created queue, path: [{queuePath}], identity: [{identity}], transactional: [{useTransactionalQueues}]");
+
+                    try
+                    {
+                        queue.SetPermissions(identity, MessageQueueAccessRights.WriteMessage);
+                        queue.SetPermissions(identity, MessageQueueAccessRights.ReceiveMessage);
+                        queue.SetPermissions(identity, MessageQueueAccessRights.PeekMessage);
+                        queue.SetPermissions(identity, MessageQueueAccessRights.GetQueueProperties);
+
+                        queue.SetPermissions(LocalAdministratorsGroupName, MessageQueueAccessRights.FullControl);
+                    }
+                    catch (MessageQueueException permissionException) when (permissionException.MessageQueueErrorCode == MessageQueueErrorCode.FormatNameBufferTooSmall)
+                    {
+                        Logger.Warn($"The name for queue '{queue.FormatName}' is too long for permissions to be applied. Please consider a shorter endpoint name.", permissionException);
+                    }
+
+                }
+            }
+            catch (MessageQueueException ex) when (ex.MessageQueueErrorCode == MessageQueueErrorCode.QueueExists)
+            {
+                //Solves the race condition problem when multiple endpoints try to create same queue (e.g. error queue).
+            }
+        }
+
+        bool useTransactionalQueues;
+        string timeoutsQueue;
+        static readonly string LocalAdministratorsGroupName = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null).Translate(typeof(NTAccount)).ToString();
+        static ILog Logger = LogManager.GetLogger<MsmqQueueCreator>();
+        string timeoutsErrorQueue;
+        IDelayedMessageStore delayedMessageStore;
+        string endpointName;
+    }
+}
