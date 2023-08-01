@@ -4,8 +4,8 @@ namespace NServiceBus.Transport.Msmq.DelayedDelivery
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Transactions;
-    using Logging;
     using Extensibility;
+    using Logging;
     using Routing;
 
     class DelayedDeliveryPump : IPushMessages
@@ -73,7 +73,7 @@ namespace NServiceBus.Transport.Msmq.DelayedDelivery
             var id = context.MessageId; //Use message ID as a key in the delayed delivery table
             var at = DateTimeOffsetHelper.ToDateTimeOffset(atString);
 
-            var message = context.Extensions.Get<System.Messaging.Message>();
+            var message = context.Extensions.Get<MSMQ.Messaging.Message>();
 
             var diff = DateTime.UtcNow - at;
 

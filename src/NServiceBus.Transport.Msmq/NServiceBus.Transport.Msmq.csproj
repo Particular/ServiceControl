@@ -17,6 +17,7 @@
     <PackageReference Include="NServiceBus" />
     <PackageReference Include="System.Threading.Channels" />
     <PackageReference Include="System.Data.SqlClient" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
   <ItemGroup>
