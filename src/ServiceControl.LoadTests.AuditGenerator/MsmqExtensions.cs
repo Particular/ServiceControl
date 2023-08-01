@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Messaging;
 using System.Runtime.InteropServices;
+using MSMQ.Messaging;
 
 static class MsmqExtensions
 {

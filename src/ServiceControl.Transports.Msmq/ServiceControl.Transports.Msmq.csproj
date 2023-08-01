@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NServiceBus.Transport.Msmq" />
+    <ProjectReference Include="..\NServiceBus.Transport.Msmq\NServiceBus.Transport.Msmq.csproj" />
     <PackageReference Include="NServiceBus.CustomChecks" />
   </ItemGroup>
 

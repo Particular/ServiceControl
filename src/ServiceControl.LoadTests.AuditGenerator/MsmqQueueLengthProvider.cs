@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Concurrent;
     using System.Linq;
-    using System.Messaging;
     using System.Threading;
     using System.Threading.Tasks;
+    using global::MSMQ.Messaging;
     using NServiceBus.Logging;
     using ServiceControl.Transports;
 
