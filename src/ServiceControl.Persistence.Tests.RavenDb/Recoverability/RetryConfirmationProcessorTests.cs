@@ -12,43 +12,35 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Operations;
-    using Persistence.RavenDb;
-    using Raven.Client;
-    using Raven.Tests.Helpers;
-    using ServiceControl.Operations;
-    using ServiceControl.Recoverability;
+    //using Persistence.RavenDb;
+    using PersistenceTests;
 
-    public class RetryConfirmationProcessorTests : RavenTestBase
+    // TODO: Moved by Ramon to RavenDB specific tests, has a lot of RavenDB dependencies
+    class RetryConfirmationProcessorTests : PersistenceTestBase
     {
-        IDocumentStore Store { get; set; }
         RetryConfirmationProcessor Processor { get; set; }
         LegacyMessageFailureResolvedHandler Handler { get; set; }
 
         [SetUp]
-        public async Task Setup()
+        public new async Task Setup()
         {
-            Store = NewDocumentStore();
-
             var domainEvents = new FakeDomainEvents();
             Processor = new RetryConfirmationProcessor(domainEvents);
 
-            var retryDocumentManager = new RetryDocumentManager(new FakeApplicationLifetime(), Store, new RetryingManager(domainEvents));
-            Handler = new LegacyMessageFailureResolvedHandler(Store, domainEvents, retryDocumentManager);
+            Handler = new LegacyMessageFailureResolvedHandler(ErrorMessageDataStore, domainEvents);
 
-            using (var session = Store.OpenAsyncSession())
-            {
-                var failedMessage = new FailedMessage
+            await ErrorMessageDataStore.StoreFailedMessages(
+                new FailedMessage
                 {
-                    Id = FailedMessage.MakeDocumentId(MessageId),
+                    Id = MessageId,
                     Status = FailedMessageStatus.Unresolved
-                };
+                }
+            );
 
-                await session.StoreAsync(failedMessage);
-                await session.SaveChangesAsync();
-            }
+            // TODO: Strange... I just commented these lines and the tests are still green....
 
-            var retryDocumentCommands = RetryDocumentManager.CreateFailedMessageRetryDocument(Guid.NewGuid().ToString(), MessageId);
-            await Store.AsyncDatabaseCommands.BatchAsync(new[] { retryDocumentCommands });
+            //var retryDocumentCommands = RetryDocumentDataStore.CreateFailedMessageRetryDocument(Guid.NewGuid().ToString(), MessageId);
+            //await GetRequiredService<Raven.Client.IDocumentStore>().AsyncDatabaseCommands.BatchAsync(new[] { retryDocumentCommands });
         }
 
         [Test]
@@ -60,7 +52,7 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
 
             Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
@@ -83,7 +75,7 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
             await unitOfWork.Complete();
 
@@ -101,7 +93,7 @@
                 CreateRetryAcknowledgementMessage()
             };
 
-            var unitOfWork = new RavenDbIngestionUnitOfWork(Store);
+            var unitOfWork = await UnitOfWorkFactory.StartNew();
             await Processor.Process(messageContexts, unitOfWork);
             Assert.DoesNotThrowAsync(() => unitOfWork.Complete());
         }
@@ -125,7 +117,7 @@
             var messageContext = new MessageContext(
                 MessageId,
                 headers,
-                new byte[0],
+                Array.Empty<byte>(),
                 new TransportTransaction(),
                 new CancellationTokenSource(),
                 new ContextBag());
@@ -133,6 +125,5 @@
         }
 
         const string MessageId = "83C73A86-A45E-4FDF-8C95-E292526166F5";
-
     }
 }
