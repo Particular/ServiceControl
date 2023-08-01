@@ -2,7 +2,7 @@
 {
     using System;
     using System.ComponentModel;
-    using System.Messaging;
+    using MSMQ.Messaging;
     using System.Runtime.InteropServices;
     using System.Security.Principal;
 

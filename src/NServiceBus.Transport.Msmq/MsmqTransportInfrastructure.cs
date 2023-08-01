@@ -2,13 +2,13 @@ namespace NServiceBus.Transport.Msmq
 {
     using System;
     using System.Collections.Generic;
-    using System.Messaging;
     using System.Text;
     using System.Threading.Tasks;
     using System.Transactions;
-    using Faults;
-    using NServiceBus.DelayedDelivery;
     using DelayedDelivery;
+    using Faults;
+    using MSMQ.Messaging;
+    using NServiceBus.DelayedDelivery;
     using Performance.TimeToBeReceived;
     using Routing;
     using Settings;

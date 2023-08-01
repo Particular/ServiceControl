@@ -180,7 +180,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestHelper", "TestHelper\Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure", "ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj", "{F488851D-C635-49C9-8CD7-E9B90C756565}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Infrastructure.Tests", "ServiceControl.Infrastructure.Tests\ServiceControl.Infrastructure.Tests.csproj", "{80008096-F1F9-43C3-8CE6-E79A68F8676E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructure.Tests", "ServiceControl.Infrastructure.Tests\ServiceControl.Infrastructure.Tests.csproj", "{80008096-F1F9-43C3-8CE6-E79A68F8676E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NServiceBus.Transport.Msmq", "NServiceBus.Transport.Msmq\NServiceBus.Transport.Msmq.csproj", "{7F47B53E-8287-4525-9C19-25409CF9CFDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -464,6 +466,10 @@ Global
 		{80008096-F1F9-43C3-8CE6-E79A68F8676E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80008096-F1F9-43C3-8CE6-E79A68F8676E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80008096-F1F9-43C3-8CE6-E79A68F8676E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F47B53E-8287-4525-9C19-25409CF9CFDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F47B53E-8287-4525-9C19-25409CF9CFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F47B53E-8287-4525-9C19-25409CF9CFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F47B53E-8287-4525-9C19-25409CF9CFDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
