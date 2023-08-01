@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System.Threading.Tasks;
@@ -22,14 +21,8 @@ public abstract class BaseHostTest
     protected T GetRequiredService<T>() => testHost.Services.GetRequiredService<T>();
 
     protected virtual IHostBuilder CreateHostBuilder() => Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration((hostingContext, config) =>
-            {
-                config.AddJsonFile("appsettings.json", optional: true);
-                config.AddEnvironmentVariables();
-            })
             .ConfigureLogging((hostingContext, logging) =>
             {
-                logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                 logging.AddConsole();
             });
 }
