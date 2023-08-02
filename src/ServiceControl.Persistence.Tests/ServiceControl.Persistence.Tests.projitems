@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RetryStateTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestPersistence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestsFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControllerDependencies.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)app.config" />
