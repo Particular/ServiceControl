@@ -15,6 +15,7 @@
     using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.Persistence.RavenDb.SagaAudit;
     using ServiceControl.Persistence.UnitOfWork;
+    using ServiceControl.Recoverability;
 
     class RavenDbPersistence : IPersistence
     {
@@ -51,6 +52,8 @@
             serviceCollection.AddCustomCheck<CheckFreeDiskSpace>();
             serviceCollection.AddCustomCheck<FailedAuditImportCustomCheck>();
             serviceCollection.AddCustomCheck<CheckMinimumStorageRequiredForIngestion>();
+
+            serviceCollection.AddSingleton<OperationsManager>();
 
             serviceCollection.AddSingleton<IArchiveMessages, MessageArchiver>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
