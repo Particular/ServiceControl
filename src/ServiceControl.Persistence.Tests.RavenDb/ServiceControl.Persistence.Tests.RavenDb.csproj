@@ -25,6 +25,8 @@
     <PackageReference Include="PublicApiGenerator" />
   </ItemGroup>
 
-  <Import Project="..\ServiceControl.Persistence.Tests\ServiceControl.Persistence.Tests.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" Link="Shared\%(RecursiveDir)\%(Filename).%(Extension)" />
+  </ItemGroup>
 
 </Project>

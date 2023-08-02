@@ -24,6 +24,8 @@
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
-  <Import Project="..\ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" Link="Shared\%(RecursiveDir)\%(Filename).%(Extension)" />
+  </ItemGroup>
   
 </Project>

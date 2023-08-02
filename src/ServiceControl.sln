@@ -183,10 +183,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTests.RavenDB", "ServiceControl.AcceptanceTests.RavenDB\ServiceControl.AcceptanceTests.RavenDB.csproj", "{33D5D084-FABB-4F65-A046-1C6626DF9AFB}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServiceControl.Persistence.Tests", "ServiceControl.Persistence.Tests\ServiceControl.Persistence.Tests.shproj", "{E30F8A5E-F6EF-481D-9347-1FE7DD9D1325}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServiceControl.AcceptanceTests", "ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.shproj", "{64C36B27-329D-4906-9DC6-5C0813D5C79E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1116,16 +1112,8 @@ Global
 		{B93B8B7E-BEAF-4645-AA5C-2A1CADEC3D4B} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{F2BD40E4-A077-429A-8A22-1C80AFC240E8} = {350F72AB-142D-4AAD-9EF1-1A83DC991D87}
 		{33D5D084-FABB-4F65-A046-1C6626DF9AFB} = {350F72AB-142D-4AAD-9EF1-1A83DC991D87}
-		{E30F8A5E-F6EF-481D-9347-1FE7DD9D1325} = {350F72AB-142D-4AAD-9EF1-1A83DC991D87}
-		{64C36B27-329D-4906-9DC6-5C0813D5C79E} = {350F72AB-142D-4AAD-9EF1-1A83DC991D87}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3B9E5B72-F580-465A-A22C-2D2148AF4EB4}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.projitems*{33d5d084-fabb-4f65-a046-1c6626df9afb}*SharedItemsImports = 5
-		ServiceControl.AcceptanceTests\ServiceControl.AcceptanceTests.projitems*{64c36b27-329d-4906-9dc6-5c0813d5c79e}*SharedItemsImports = 13
-		ServiceControl.Persistence.Tests\ServiceControl.Persistence.Tests.projitems*{e30f8a5e-f6ef-481d-9347-1fe7dd9d1325}*SharedItemsImports = 13
-		ServiceControl.Persistence.Tests\ServiceControl.Persistence.Tests.projitems*{f2bd40e4-a077-429a-8a22-1c80afc240e8}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
