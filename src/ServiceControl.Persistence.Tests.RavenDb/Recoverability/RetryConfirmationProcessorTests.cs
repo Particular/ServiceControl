@@ -11,8 +11,7 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Operations;
-    //using Persistence.RavenDb;
+    using ServiceControl.Operations;
     using PersistenceTests;
 
     // TODO: Moved by Ramon to RavenDB specific tests, has a lot of RavenDB dependencies
