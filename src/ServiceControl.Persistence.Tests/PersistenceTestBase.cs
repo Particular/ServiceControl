@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
     using System.Threading.Tasks;
+    using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
@@ -8,6 +9,7 @@
     using Persistence;
     using Persistence.MessageRedirects;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Persistence.Recoverability;
     using ServiceControl.Persistence.UnitOfWork;
 
     abstract class PersistenceTestBase : BaseHostTest
@@ -18,6 +20,7 @@
         {
             return base.CreateHostBuilder().ConfigureServices(services =>
             {
+                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
                 services.AddSingleton(new CriticalError(null));
                 testPersistence = new TestPersistenceImpl();
                 testPersistence.Configure(services);
@@ -44,5 +47,6 @@
         protected IMonitoringDataStore MonitoringDataStore => GetRequiredService<IMonitoringDataStore>();
         protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
         protected ICustomChecksDataStore CustomChecks => GetRequiredService<ICustomChecksDataStore>();
+        protected IArchiveMessages ArchiveMessages => GetRequiredService<IArchiveMessages>();
     }
 }

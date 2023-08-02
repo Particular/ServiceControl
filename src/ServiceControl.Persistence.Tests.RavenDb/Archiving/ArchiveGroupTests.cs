@@ -2,64 +2,67 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using Raven.Client;
+    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ArchiveGroupTests
+    class ArchiveGroupTests : PersistenceTestBase
     {
+        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
+
+        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services =>
+        {
+            services.AddSingleton<ArchiveAllInGroupHandler>();
+            services.AddSingleton<RetryingManager>();
+        });
+
         [Test]
         public async Task ArchiveGroup_skips_over_empty_batches_but_still_completes()
         {
             // Arrange
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            var groupId = "TestGroup";
+            var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+
+            using (var session = DocumentStore.OpenAsyncSession())
             {
-                var groupId = "TestGroup";
-                var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+                var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                await session.StoreAsync(previousArchiveBatch);
 
-                using (var session = documentStore.OpenAsyncSession())
+                var previousArchiveOperation = new ArchiveOperation
                 {
-                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch);
+                    Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
+                    RequestId = groupId,
+                    ArchiveType = ArchiveType.FailureGroup,
+                    TotalNumberOfMessages = 2,
+                    NumberOfMessagesArchived = 0,
+                    Started = DateTime.Now,
+                    GroupName = "Test Group",
+                    NumberOfBatches = 3,
+                    CurrentBatch = 0
+                };
+                await session.StoreAsync(previousArchiveOperation);
 
-                    var previousArchiveOperation = new ArchiveOperation
-                    {
-                        Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
-                        RequestId = groupId,
-                        ArchiveType = ArchiveType.FailureGroup,
-                        TotalNumberOfMessages = 2,
-                        NumberOfMessagesArchived = 0,
-                        Started = DateTime.Now,
-                        GroupName = "Test Group",
-                        NumberOfBatches = 3,
-                        CurrentBatch = 0
-                    };
-                    await session.StoreAsync(previousArchiveOperation);
+                await session.SaveChangesAsync();
+            }
 
-                    await session.SaveChangesAsync();
-                }
+            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
 
-                var domainEvents = new FakeDomainEvents();
-                var handler = new ArchiveAllInGroupHandler(documentStore,
-                    new FakeDomainEvents(),
-                    new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents, new OperationsManager()),
-                    new RetryingManager(domainEvents));
+            var context = new TestableMessageHandlerContext();
+            var message = new ArchiveAllInGroup { GroupId = groupId };
 
-                var context = new TestableMessageHandlerContext();
-                var message = new ArchiveAllInGroup { GroupId = groupId };
+            // Act
+            await handler.Handle(message, context);
 
-                // Act
-                await handler.Handle(message, context);
-
-                // Assert
-                using (var session = documentStore.OpenSession())
-                {
-                    var loadedBatch = session.Load<ArchiveBatch>(previousArchiveBatchId);
-                    Assert.IsNull(loadedBatch);
-                }
+            // Assert
+            using (var session = DocumentStore.OpenSession())
+            {
+                var loadedBatch = session.Load<ArchiveBatch>(previousArchiveBatchId);
+                Assert.IsNull(loadedBatch);
             }
         }
 
@@ -67,59 +70,46 @@
         public async Task ArchiveGroup_GetGroupDetails_doesnt_fail_with_invalid_groupId()
         {
             // Arrange
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            var failureGroupsViewIndex = new FailureGroupsViewIndex();
+            await failureGroupsViewIndex.ExecuteAsync(DocumentStore);
+
+            var groupId = "TestGroup";
+            var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
+
+            using (var session = DocumentStore.OpenAsyncSession())
             {
-                var failureGroupsViewIndex = new FailureGroupsViewIndex();
-                await failureGroupsViewIndex.ExecuteAsync(documentStore);
+                var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
+                await session.StoreAsync(previousArchiveBatch);
 
-                var groupId = "TestGroup";
-                var previousArchiveBatchId = ArchiveBatch.MakeId(groupId, ArchiveType.FailureGroup, 1);
-
-                using (var session = documentStore.OpenAsyncSession())
+                var previousArchiveOperation = new ArchiveOperation
                 {
-                    var previousArchiveBatch = new ArchiveBatch { Id = previousArchiveBatchId };
-                    await session.StoreAsync(previousArchiveBatch);
+                    Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
+                    RequestId = groupId,
+                    ArchiveType = ArchiveType.FailureGroup,
+                    TotalNumberOfMessages = 2,
+                    NumberOfMessagesArchived = 0,
+                    Started = DateTime.Now,
+                    GroupName = "Test Group",
+                    NumberOfBatches = 3,
+                    CurrentBatch = 0
+                };
+                await session.StoreAsync(previousArchiveOperation);
 
-                    var previousArchiveOperation = new ArchiveOperation
-                    {
-                        Id = ArchiveOperation.MakeId(groupId, ArchiveType.FailureGroup),
-                        RequestId = groupId,
-                        ArchiveType = ArchiveType.FailureGroup,
-                        TotalNumberOfMessages = 2,
-                        NumberOfMessagesArchived = 0,
-                        Started = DateTime.Now,
-                        GroupName = "Test Group",
-                        NumberOfBatches = 3,
-                        CurrentBatch = 0
-                    };
-                    await session.StoreAsync(previousArchiveOperation);
-
-                    await session.SaveChangesAsync();
-                }
-
-                var domainEvents = new FakeDomainEvents();
-                var handler = new ArchiveAllInGroupHandler(documentStore,
-                    new FakeDomainEvents(),
-                    new ArchiveDocumentManager(),
-                    new ArchivingManager(domainEvents, new OperationsManager()),
-                    new RetryingManager(domainEvents));
-
-                var context = new TestableMessageHandlerContext();
-                var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
-
-                // Act
-                // Assert
-                Assert.DoesNotThrowAsync(async () =>
-                {
-                    // Act
-                    await handler.Handle(message, context);
-                });
+                await session.SaveChangesAsync();
             }
-        }
 
-        class FakeDomainEvents : IDomainEvents
-        {
-            public Task Raise<T>(T domainEvent) where T : IDomainEvent => Task.CompletedTask;
+            var handler = GetRequiredService<ArchiveAllInGroupHandler>(); // See this.CreateHostBuilder
+
+            var context = new TestableMessageHandlerContext();
+            var message = new ArchiveAllInGroup { GroupId = groupId + "Invalid" };
+
+            // Act
+            // Assert
+            Assert.DoesNotThrowAsync(async () =>
+            {
+                // Act
+                await handler.Handle(message, context);
+            });
         }
     }
 }
