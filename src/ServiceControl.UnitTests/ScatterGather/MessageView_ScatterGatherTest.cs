@@ -6,7 +6,6 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence.Infrastructure;
