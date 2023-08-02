@@ -81,9 +81,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings(instanceName)
+            var settings = new Settings(instanceName, transportToUse.TypeName, dataStoreConfiguration.DataStoreTypeName)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreConfiguration.DataStoreTypeName),
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),

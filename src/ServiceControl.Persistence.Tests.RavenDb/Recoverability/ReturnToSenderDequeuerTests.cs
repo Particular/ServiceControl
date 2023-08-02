@@ -13,6 +13,7 @@
     using NUnit.Framework;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Persistence.RavenDb;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -108,7 +109,9 @@
 
                 documentStore.WaitForIndexing();
 
-                await new ReturnToSender(null, documentStore).HandleMessage(message, sender, "error");
+                var errorStore = new ErrorMessagesDataStore(documentStore);
+
+                await new ReturnToSender(null, errorStore).HandleMessage(message, sender, "error");
 
                 Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
             }
