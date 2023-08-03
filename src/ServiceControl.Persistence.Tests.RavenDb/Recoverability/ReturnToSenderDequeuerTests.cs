@@ -8,16 +8,19 @@
     using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
+    using Raven.Client;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.Persistence.RavenDb;
+    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
 
     [TestFixture]
-    public class ReturnToSenderDequeuerTests
+    class ReturnToSenderDequeuerTests : PersistenceTestBase
     {
         MessageContext CreateMessage(string id, Dictionary<string, string> headers)
         {
@@ -30,6 +33,8 @@
                 new ContextBag()
             );
         }
+
+        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services => services.AddSingleton<ReturnToSender>());
 
         [Test]
         public async Task It_removes_staging_id_header()
@@ -81,40 +86,35 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            using (var documentStore = InMemoryStoreBuilder.GetInMemoryStore())
+            var documentStore = GetRequiredService<IDocumentStore>();
+
+            var failedMessage = new FailedMessage
             {
-                using (var session = documentStore.OpenAsyncSession())
+                Id = FailedMessage.MakeDocumentId("MessageBodyId"),
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                 {
-                    await session.StoreAsync(new FailedMessage
+                    new FailedMessage.ProcessingAttempt
                     {
-                        Id = FailedMessage.MakeDocumentId("MessageBodyId"),
-                        ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                        {
-                            new FailedMessage.ProcessingAttempt
-                            {
-                                MessageId = "MessageBodyId",
-                                MessageMetadata = new Dictionary<string, object>
-                                {
-                                    { "Body", "MessageBodyId" }
-                                }
-                            }
-                        }
-                    });
-
-                    await session.SaveChangesAsync();
+                        MessageId = "MessageBodyId",
+                        MessageMetadata = { { "Body", "MessageBodyId" } }
+                    }
                 }
+            };
 
-                var transformer = new MessagesBodyTransformer();
-                await transformer.ExecuteAsync(documentStore);
+            await ErrorMessageDataStore.StoreFailedMessages(failedMessage);
 
-                documentStore.WaitForIndexing();
+            var transformer = new MessagesBodyTransformer();
+            await transformer.ExecuteAsync(documentStore);
 
-                var errorStore = new ErrorMessagesDataStore(documentStore);
+            await CompleteDatabaseOperation();
 
-                await new ReturnToSender(null, errorStore).HandleMessage(message, sender, "error");
+            var instance = GetRequiredService<ReturnToSender>(); // See this.CreateHostBuilder
 
-                Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
-            }
+            // Acts
+            await instance.HandleMessage(message, sender, "error");
+
+            // Assert
+            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
         }
 
         [Test]
