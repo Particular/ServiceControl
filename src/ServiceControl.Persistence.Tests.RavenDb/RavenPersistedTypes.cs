@@ -20,7 +20,7 @@
                 .SelectMany(indexType => indexType.BaseType?.GenericTypeArguments)
                 .Distinct();
 
-            var documentTypeNames = string.Join(Environment.NewLine, documentTypes.Select(t => t.AssemblyQualifiedName));
+            var documentTypeNames = string.Join(Environment.NewLine, documentTypes.Select(t => t.AssemblyQualifiedName).OrderBy(x => x));
 
             Approver.Verify(documentTypeNames);
         }
