@@ -5,13 +5,9 @@
 
     abstract class AbstractSessionManager : IDataSessionManager
     {
-        public IAsyncDocumentSession Session { get; }
+        protected IAsyncDocumentSession Session { get; }
 
-        public AbstractSessionManager(IAsyncDocumentSession session)
-        {
-            Session = session;
-        }
-
+        protected AbstractSessionManager(IAsyncDocumentSession session) => Session = session;
         public Task SaveChanges() => Session.SaveChangesAsync();
         public void Dispose() => Session.Dispose();
     }
