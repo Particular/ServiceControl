@@ -39,7 +39,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ErrorRetentionPeriod = GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader<int>.Read("Port", 33333);
-            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);
+            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);  // TODO: Should not be in Core but in the persister implementation
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
@@ -101,11 +101,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string StagingQueue => $"{ServiceName}.staging";
 
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; }
+        public int DatabaseMaintenancePort { get; set; } // TODO: Should not be in Core but in the persister implementation
 
         public string LicenseFileText { get; set; }
 
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB");
+        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
         public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
         public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
@@ -128,7 +128,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
-        public string DbPath { get; set; }
+        public string DbPath { get; set; } // TODO: Should not be in Core but in the persister implementation
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 

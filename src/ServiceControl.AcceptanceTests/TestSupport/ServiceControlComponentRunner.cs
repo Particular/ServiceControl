@@ -1,4 +1,4 @@
-namespace ServiceControl.AcceptanceTests.TestSupport
+﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Configuration;
@@ -66,6 +66,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             return startPort;
         }
 
+
         async Task InitializeServiceControl(ScenarioContext context)
         {
             var instancePort = FindAvailablePort(33333);
@@ -73,11 +74,18 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
+            // TODO: ⬇️ This is required for the PERSISTER implementation to actually retrieve the DBPath settings are persister isn't using this type-safe settings class
+            var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            ConfigurationManager.AppSettings.Set("ServiceControl/DBPath", dbPath);
+            ConfigurationManager.AppSettings.Set("ServiceControl/DatabaseMaintenancePort", "33334");
+            ConfigurationManager.AppSettings.Set("ServiceControl/ExposeRavenDB", "False");
+            // TODO: ⬆️
+
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
             {
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                DbPath = dbPath,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
