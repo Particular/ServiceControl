@@ -234,6 +234,10 @@
 
         HttpClient HttpClientFactory()
         {
+            if (Handler == null)
+            {
+                throw new InvalidOperationException("Handler field not yet initialized"); // TODO: This method is invoked before `Initialize` completes which is strange and should be looked into as that seems like a race condition
+            }
             var httpClient = new HttpClient(Handler);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return httpClient;
