@@ -156,6 +156,10 @@ namespace Particular.ServiceControl
             try
             {
                 var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
                 return info.Length;
             }
             catch
