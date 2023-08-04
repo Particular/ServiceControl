@@ -1,5 +1,6 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
@@ -102,7 +103,8 @@ namespace ServiceControl.Recoverability
         {
             byte[] body = null;
             var result = await bodyStorage.TryFetch(attemptMessageId);
-            if (result.HasResult)
+
+            if (result != null && result.HasResult) // TODO: TryFetch can return null... but I don't know if that is allowed!
             {
                 using (result.Stream)
                 {
@@ -121,8 +123,7 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId,
-                    attemptMessageId);
+                Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId, attemptMessageId);
             }
             return body;
         }
