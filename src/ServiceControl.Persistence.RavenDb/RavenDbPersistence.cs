@@ -38,12 +38,12 @@
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
-            serviceCollection.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
             serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
+            serviceCollection.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
             serviceCollection.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
 
             serviceCollection.AddSingleton<ExternalIntegrationRequestsDataStore>();
-            serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore, ExternalIntegrationRequestsDataStore>();
+            serviceCollection.AddSingleton<IExternalIntegrationRequestsDataStore>(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
             serviceCollection.AddHostedService(p => p.GetRequiredService<ExternalIntegrationRequestsDataStore>());
 
             serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
