@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDb.Editing;
     using System;
     using System.IO;
     using System.Linq;
@@ -60,15 +61,17 @@
 
         class SetupNotificationSettings : IHostedService
         {
-            INotificationsManager notificationsManager;
+            IErrorMessageDataStore errorMessageDataStore;
 
-            public SetupNotificationSettings(INotificationsManager notificationsManager)
+            public SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore)
             {
-                this.notificationsManager = notificationsManager;
+                this.errorMessageDataStore = errorMessageDataStore;
             }
 
             public async Task StartAsync(CancellationToken cancellationToken)
             {
+                var notificationsManager = await errorMessageDataStore.CreateNotificationsManager();
+
                 var settings = await notificationsManager.LoadSettings();
                 settings.Email = new EmailNotifications
                 {
