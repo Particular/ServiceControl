@@ -68,19 +68,19 @@
 
         void StartDispatcher()
         {
-            task = StartDispatcherTask();
+            task = StartDispatcherTask(tokenSource.Token);
         }
 
-        async Task StartDispatcherTask()
+        async Task StartDispatcherTask(CancellationToken cancellationToken)
         {
             try
             {
-                await DispatchEvents(tokenSource.Token);
+                await DispatchEvents(cancellationToken);
                 do
                 {
                     try
                     {
-                        await signal.WaitHandle.WaitOneAsync(tokenSource.Token);
+                        await signal.WaitHandle.WaitOneAsync(cancellationToken);
                         signal.Reset();
                     }
                     catch (OperationCanceledException)
@@ -88,9 +88,9 @@
                         break;
                     }
 
-                    await DispatchEvents(tokenSource.Token);
+                    await DispatchEvents(cancellationToken);
                 }
-                while (!tokenSource.IsCancellationRequested);
+                while (!cancellationToken.IsCancellationRequested);
             }
             catch (OperationCanceledException)
             {
