@@ -183,7 +183,7 @@
         {
             var messages = messageIds.Select(id => new FailedMessage
             {
-                Id = FailedMessage.MakeDocumentId(id),
+                Id = FailedMessageIdGenerator.MakeDocumentId(id),
                 UniqueMessageId = id,
                 FailureGroups = new List<FailedMessage.FailureGroup>
                 {

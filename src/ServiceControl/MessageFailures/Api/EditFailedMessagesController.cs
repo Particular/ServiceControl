@@ -42,7 +42,7 @@
                 return StatusCode(HttpStatusCode.BadRequest);
             }
 
-            var failedMessage = await store.ErrorBy(FailedMessage.MakeDocumentId(failedMessageId));
+            var failedMessage = await store.ErrorBy(failedMessageId);
 
             if (failedMessage == null)
             {

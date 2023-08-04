@@ -127,7 +127,7 @@
                     {
                         Name = "FailedMessageId",
                         Type = PatchCommandType.Set,
-                        Value = FailedMessage.MakeDocumentId(messageId)
+                        Value = FailedMessageIdGenerator.MakeDocumentId(messageId)
                     },
                     new PatchRequest
                     {

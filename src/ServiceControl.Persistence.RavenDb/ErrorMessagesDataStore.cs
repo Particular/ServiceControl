@@ -362,7 +362,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
+                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
                 return message;
             }
         }
@@ -606,7 +606,7 @@ if(this.Status === archivedStatus) {
                 .JsonDeserialization<DocumentPatchResult[]>();
 
             return (
-                patchedDocumentIds.Select(x => FailedMessage.GetMessageIdFromDocumentId(x.Document)).ToArray(),
+                patchedDocumentIds.Select(x => FailedMessageIdGenerator.GetMessageIdFromDocumentId(x.Document)).ToArray(),
                 patchedDocumentIds.Length
                 );
         }
@@ -619,7 +619,7 @@ if(this.Status === archivedStatus) {
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var documentIds = failedMessageIds.Select(FailedMessage.MakeDocumentId);
+                var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
 
                 failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
 
@@ -645,7 +645,7 @@ if(this.Status === archivedStatus) {
             using (var session = documentStore.OpenAsyncSession())
             {
                 var failedMessage = await session
-                    .LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId));
+                    .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
                 if (failedMessage != null)
                 {
                     failedMessage.Status = FailedMessageStatus.Unresolved;
@@ -698,7 +698,7 @@ if(this.Status === archivedStatus) {
         // TODO: How is this different than what RavenAttachmentBodyStorage.TryFetch is doing? Is this implemented twice?
         public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
-            string documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
+            string documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
             var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
                 transformer: MessagesBodyTransformer.Name);
 

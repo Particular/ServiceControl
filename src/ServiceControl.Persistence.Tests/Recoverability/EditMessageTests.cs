@@ -214,7 +214,7 @@
             var failedMessage = new FailedMessage
             {
                 UniqueMessageId = failedMessageId,
-                Id = FailedMessage.MakeDocumentId(failedMessageId),
+                Id = FailedMessageIdGenerator.MakeDocumentId(failedMessageId),
                 Status = status,
                 ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                     {

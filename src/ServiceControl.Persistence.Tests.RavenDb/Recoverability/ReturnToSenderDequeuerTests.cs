@@ -90,7 +90,7 @@
 
             var failedMessage = new FailedMessage
             {
-                Id = FailedMessage.MakeDocumentId("MessageBodyId"),
+                Id = FailedMessageIdGenerator.MakeDocumentId("MessageBodyId"),
                 ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
                 {
                     new FailedMessage.ProcessingAttempt
