@@ -380,6 +380,10 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 var message = await session.LoadAsync<FailedMessage>(failedMessageId);
+                if (message == null)
+                {
+                    return null;
+                }
                 var result = Map(message, session);
                 return result;
             }
