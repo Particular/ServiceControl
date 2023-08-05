@@ -21,11 +21,6 @@
         public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
         {
             failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
-
-            if (failedMessage == null)
-            {
-                throw new ArgumentException("Failed message not found", nameof(failedMessageId));
-            }
             return failedMessage;
         }
 
