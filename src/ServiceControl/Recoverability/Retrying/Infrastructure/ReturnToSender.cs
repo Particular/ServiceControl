@@ -2,7 +2,7 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
