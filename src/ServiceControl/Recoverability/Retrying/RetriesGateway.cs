@@ -83,9 +83,7 @@ namespace ServiceControl.Recoverability
 
         async Task ProcessRequest(BulkRetryRequest request)
         {
-            var batchesWithLastAttempt = await request.GetRequestedBatches(store);
-            var batches = batchesWithLastAttempt.Item1;
-            var latestAttempt = batchesWithLastAttempt.Item2;
+            var (batches, latestAttempt) = await request.GetRequestedBatches(store);
             var totalMessages = batches.Sum(b => b.Length);
 
             if (!operationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
