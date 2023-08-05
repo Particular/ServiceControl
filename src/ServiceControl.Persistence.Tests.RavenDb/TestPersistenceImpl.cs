@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,8 @@
     {
         IDocumentStore documentStore;
 
+        public const string DatabaseMaintenancePort = "55554";
+
         static PersistenceSettings CreateSettings()
         {
             var retentionPeriod = TimeSpan.FromMinutes(1);
@@ -24,9 +27,14 @@
                 {
                     [RavenBootstrapper.RunInMemoryKey] = bool.TrueString,
                     [RavenBootstrapper.HostNameKey] = "localhost",
-                    [RavenBootstrapper.DatabaseMaintenancePortKey] = "55554",
+                    [RavenBootstrapper.DatabaseMaintenancePortKey] = DatabaseMaintenancePort
                 }
             };
+
+            if (Debugger.IsAttached)
+            {
+                settings.PersisterSpecificSettings[RavenBootstrapper.ExposeRavenDBKey] = bool.TrueString;
+            }
 
             return settings;
         }
