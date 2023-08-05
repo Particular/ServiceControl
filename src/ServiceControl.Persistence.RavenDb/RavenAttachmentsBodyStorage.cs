@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
+    using System;
     using System.IO;
     using System.Threading.Tasks;
     using Raven.Client;
@@ -20,9 +21,10 @@
 
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
+            var id = MessageBodyIdGenerator.MakeDocumentId(bodyId);
             //We want to continue using attachments for now
 #pragma warning disable 618
-            return documentStore.AsyncDatabaseCommands.PutAttachmentAsync($"messagebodies/{bodyId}", null, bodyStream,
+            return documentStore.AsyncDatabaseCommands.PutAttachmentAsync(id, null, bodyStream,
                 new RavenJObject
 #pragma warning restore 618
                 {
@@ -72,9 +74,11 @@
                 }
             }
 
+            var id = MessageBodyIdGenerator.MakeDocumentId(bodyId);
+
             //We want to continue using attachments for now
 #pragma warning disable 618
-            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync($"messagebodies/{bodyId}");
+            var attachment = await documentStore.AsyncDatabaseCommands.GetAttachmentAsync(id);
 #pragma warning restore 618
 
             if (attachment != null)
