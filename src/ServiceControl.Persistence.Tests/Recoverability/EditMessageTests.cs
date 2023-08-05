@@ -88,13 +88,15 @@
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
 
+            RavenStudioHelper.LaunchAndBlock();
+
             using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
-                var failedMessage = editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
-                var editId = editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
+                var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
+                var editId = await editFailedMessagesManagerAssert.GetCurrentEditingMessageId(failedMessageId);
 
-                Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
                 Assert.AreEqual(previousEdit, editId);
+                Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status);
             }
 
             Assert.IsEmpty(dispatcher.DispatchedMessages);
@@ -124,7 +126,7 @@
                 var failedMessage2 = await x.GetFailedMessage(failedMessage.Id);
                 Assert.IsNotNull(failedMessage2, "Edited failed message");
 
-                var editId = await x.GetCurrentEditingMessageId(failedMessage2.Id);
+                var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
 
                 Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage2.Status, "Failed message status");
                 Assert.AreEqual(handlerContent.MessageId, editId, "MessageId");
