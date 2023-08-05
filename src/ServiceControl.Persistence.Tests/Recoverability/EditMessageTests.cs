@@ -123,7 +123,7 @@
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
-                var failedMessage2 = await x.GetFailedMessage(failedMessage.Id);
+                var failedMessage2 = await x.GetFailedMessage(failedMessage.UniqueMessageId);
                 Assert.IsNotNull(failedMessage2, "Edited failed message");
 
                 var editId = await x.GetCurrentEditingMessageId(failedMessage2.UniqueMessageId);
