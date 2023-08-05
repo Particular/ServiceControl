@@ -7,6 +7,8 @@
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageFailures;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
@@ -16,16 +18,22 @@
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
-    class EditMessageTests : PersistenceTestBase
+    sealed class EditMessageTests : PersistenceTestBase
     {
         EditHandler handler;
-        TestableUnicastDispatcher dispatcher;
+        readonly TestableUnicastDispatcher dispatcher = new TestableUnicastDispatcher();
+
+        protected override IHostBuilder CreateHostBuilder() => base
+            .CreateHostBuilder()
+            .ConfigureServices(services => services
+                .AddSingleton<IDispatchMessages>(dispatcher)
+                .AddTransient<EditHandler>()
+            );
 
         [SetUp]
         public new void Setup()
         {
-            dispatcher = new TestableUnicastDispatcher();
-            handler = new EditHandler(ErrorMessageDataStore, MessageRedirectsDataStore, dispatcher);
+            handler = GetRequiredService<EditHandler>();
         }
 
         [Test]
@@ -44,7 +52,7 @@
         public async Task Should_discard_edit_if_edited_message_not_unresolved(FailedMessageStatus status)
         {
             var failedMessageId = Guid.NewGuid().ToString("D");
-            await CreateFailedMessage(failedMessageId, status);
+            await CreateAndStoreFailedMessage(failedMessageId, status);
 
             var message = CreateEditMessage(failedMessageId);
             await handler.Handle(message, new TestableMessageHandlerContext());
@@ -66,7 +74,7 @@
             var failedMessageId = Guid.NewGuid().ToString();
             var previousEdit = Guid.NewGuid().ToString();
 
-            _ = await CreateFailedMessage(failedMessageId);
+            _ = await CreateAndStoreFailedMessage(failedMessageId);
 
             using (var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
@@ -95,7 +103,7 @@
         [Test]
         public async Task Should_dispatch_edited_message_when_first_edit()
         {
-            var failedMessage = await CreateFailedMessage();
+            var failedMessage = await CreateAndStoreFailedMessage();
 
             var newBodyContent = Encoding.UTF8.GetBytes("new body content");
             var newHeaders = new Dictionary<string, string> { { "someKey", "someValue" } };
@@ -113,11 +121,13 @@
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
-                failedMessage = await x.GetFailedMessage(failedMessage.Id);
-                var editId = await x.GetCurrentEditingMessageId(failedMessage.Id);
+                var failedMessage2 = await x.GetFailedMessage(failedMessage.Id);
+                Assert.IsNotNull(failedMessage2, "Edited failed message");
 
-                Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage.Status);
-                Assert.AreEqual(handlerContent.MessageId, editId);
+                var editId = await x.GetCurrentEditingMessageId(failedMessage2.Id);
+
+                Assert.AreEqual(FailedMessageStatus.Resolved, failedMessage2.Status, "Failed message status");
+                Assert.AreEqual(handlerContent.MessageId, editId, "MessageId");
             }
         }
 
@@ -125,20 +135,20 @@
         public async Task Should_dispatch_edited_message_when_retrying()
         {
             var failedMessageId = Guid.NewGuid().ToString();
-            await CreateFailedMessage(failedMessageId);
+            await CreateAndStoreFailedMessage(failedMessageId);
 
             var handlerContext = new TestableMessageHandlerContext();
             var message = CreateEditMessage(failedMessageId);
             await handler.Handle(message, handlerContext);
             await handler.Handle(message, handlerContext);
 
-            Assert.AreEqual(2, dispatcher.DispatchedMessages.Count);
+            Assert.AreEqual(2, dispatcher.DispatchedMessages.Count, "Dispatched message count");
         }
 
         [Test]
         public async Task Should_dispatch_message_using_incoming_transaction()
         {
-            var failedMessage = await CreateFailedMessage();
+            var failedMessage = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(failedMessage.UniqueMessageId);
             var handlerContent = new TestableMessageHandlerContext();
             var transportTransaction = new TransportTransaction();
@@ -153,7 +163,7 @@
         public async Task Should_route_to_redirect_route_if_exists()
         {
             const string redirectAddress = "a different destination";
-            var failedMessage = await CreateFailedMessage();
+            var failedMessage = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(failedMessage.UniqueMessageId);
 
             var redirects = await MessageRedirectsDataStore.GetOrCreate();
@@ -173,7 +183,7 @@
         [Test]
         public async Task Should_mark_edited_message_with_edit_information()
         {
-            var messageFailure = await CreateFailedMessage();
+            var messageFailure = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(messageFailure.UniqueMessageId);
 
             await handler.Handle(message, new TestableInvokeHandlerContext());
@@ -187,7 +197,7 @@
         [Test]
         public async Task Should_assign_edited_message_new_message_id()
         {
-            var messageFailure = await CreateFailedMessage();
+            var messageFailure = await CreateAndStoreFailedMessage();
             var message = CreateEditMessage(messageFailure.UniqueMessageId);
 
             await handler.Handle(message, new TestableInvokeHandlerContext());
@@ -208,7 +218,7 @@
             };
         }
 
-        async Task<FailedMessage> CreateFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
+        async Task<FailedMessage> CreateAndStoreFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
         {
             failedMessageId = failedMessageId ?? Guid.NewGuid().ToString();
 
@@ -234,9 +244,9 @@
         }
     }
 
-    public class TestableUnicastDispatcher : IDispatchMessages
+    public sealed class TestableUnicastDispatcher : IDispatchMessages
     {
-        public List<(UnicastTransportOperation, TransportTransaction, ContextBag)> DispatchedMessages { get; set; } = new List<(UnicastTransportOperation, TransportTransaction, ContextBag)>();
+        public List<(UnicastTransportOperation, TransportTransaction, ContextBag)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction, ContextBag)>();
 
         public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
         {
