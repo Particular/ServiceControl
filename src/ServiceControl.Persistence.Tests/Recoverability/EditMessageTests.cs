@@ -72,6 +72,7 @@
             {
                 _ = await editFailedMessagesManager.GetFailedMessage(failedMessageId);
                 await editFailedMessagesManager.SetCurrentEditingMessageId(previousEdit);
+                await editFailedMessagesManager.SaveChanges();
             }
 
             var message = CreateEditMessage(failedMessageId);
