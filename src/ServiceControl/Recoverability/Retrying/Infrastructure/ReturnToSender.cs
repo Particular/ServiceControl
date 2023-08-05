@@ -130,7 +130,7 @@ namespace ServiceControl.Recoverability
             return body;
         }
 
-        static readonly byte[] EmptyBody = new byte[0];
+        static readonly byte[] EmptyBody = Array.Empty<byte>();
         readonly IBodyStorage bodyStorage;
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
         readonly IErrorMessageDataStore errorMessageStore;

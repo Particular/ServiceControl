@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
-    using System;
     using System.IO;
     using System.Threading.Tasks;
     using Raven.Client;
@@ -12,12 +11,12 @@
     // and there will be no need for a fallback method on a new persistence
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
+        readonly IDocumentStore documentStore;
+
         public RavenAttachmentsBodyStorage(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
         }
-
-        IDocumentStore documentStore;
 
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
         {
@@ -58,7 +57,9 @@
                     {
                         var stream = new MemoryStream();
                         var writer = new StreamWriter(stream);
+                        // ReSharper disable once MethodHasAsyncOverload, operations are MemoryStream so do not require async overloads
                         writer.Write(message.Body);
+                        // ReSharper disable once MethodHasAsyncOverload, operations are MemoryStream so do not require async overloads
                         writer.Flush();
                         stream.Position = 0;
 
