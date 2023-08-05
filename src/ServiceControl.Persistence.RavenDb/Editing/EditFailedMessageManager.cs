@@ -38,7 +38,7 @@
             }
             return session.StoreAsync(new FailedMessageEdit
             {
-                Id = FailedMessageEdit.MakeDocumentId(failedMessage.Id),
+                Id = FailedMessageEdit.MakeDocumentId(failedMessage.UniqueMessageId),
                 FailedMessageId = failedMessage.Id,
                 EditId = editingMessageId
             }, Etag.Empty);
