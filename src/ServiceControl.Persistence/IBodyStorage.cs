@@ -12,7 +12,7 @@
     public class MessageBodyStreamResult
     {
         public bool HasResult;
-        public Stream Stream;
+        public MemoryStream Stream; // Intentional, other streams could require a context
         public string ContentType;
         public int BodySize;
         public string Etag;

@@ -108,14 +108,14 @@ namespace ServiceControl.Recoverability
 
             if (result.HasResult)
             {
-                using (result.Stream)
+                using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
                 {
                     // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
                     // furthermore call ToArray would neglect many of the benefits of the recyclable stream
                     // RavenDB always returns a memory stream so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
                     // this assumption might change when the database is upgraded but right now this is the most memory efficient way to do things
                     // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
-                    body = ((MemoryStream)result.Stream).ToArray();
+                    body = result.Stream.ToArray();
                 }
 
                 if (Log.IsDebugEnabled)
