@@ -93,7 +93,7 @@
                 };
             }
 
-            return null;
+            return new MessageBodyStreamResult();
         }
     }
 }

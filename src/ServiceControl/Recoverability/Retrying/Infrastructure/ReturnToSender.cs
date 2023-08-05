@@ -104,7 +104,9 @@ namespace ServiceControl.Recoverability
             byte[] body = null;
             var result = await bodyStorage.TryFetch(attemptMessageId);
 
-            if (result != null && result.HasResult) // TODO: TryFetch can return null... but I don't know if that is allowed!
+            Debug.Assert(result != null, "IBodyStorage.TryFetch result cannot be null");
+
+            if (result.HasResult)
             {
                 using (result.Stream)
                 {
