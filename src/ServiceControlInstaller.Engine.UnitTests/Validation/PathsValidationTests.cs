@@ -4,21 +4,11 @@
     using System.Linq;
     using Engine.Validation;
     using Instances;
-    using Moq;
     using NUnit.Framework;
 
     [TestFixture]
     public class PathsValidationTests
     {
-        [SetUp]
-        public void Init()
-        {
-            var instanceA = new Mock<IServiceControlPaths>();
-            instanceA.SetupGet(p => p.InstallPath).Returns(@"c:\test\1\bin");
-            instanceA.SetupGet(p => p.LogPath).Returns(@"c:\test\1\logs");
-            instanceA.SetupGet(p => p.DBPath).Returns(@"c:\test\1\db");
-        }
-
         [Test]
         public void CheckPathsAreUnique_ShouldThrow()
         {

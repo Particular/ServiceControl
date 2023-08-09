@@ -6,32 +6,134 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
     using System.Linq;
     using Engine.Validation;
     using Instances;
-    using Moq;
     using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
     [TestFixture]
     public class QueueValidationTests
     {
+        class FakeServiceControlInstance : IServiceControlInstance
+        {
+            public string ErrorQueue { get; set; }
+
+            public string ErrorLogQueue { get; set; }
+
+            public string VirtualDirectory { get; set; }
+
+            public bool ForwardErrorMessages { get; set; }
+
+            public TimeSpan ErrorRetentionPeriod { get; set; }
+
+            public TimeSpan? AuditRetentionPeriod { get; set; }
+
+            public List<RemoteInstanceSetting> RemoteInstances { get; set; }
+
+            public bool EnableFullTextSearchOnBodies { get; set; }
+
+            public int Port { get; set; }
+
+            public string HostName { get; set; }
+
+            public int? DatabaseMaintenancePort { get; set; }
+
+            public string Name { get; set; }
+
+            public string DisplayName { get; set; }
+
+            public string ServiceAccount { get; set; }
+
+            public string ServiceAccountPwd { get; set; }
+
+            public Version Version { get; set; }
+
+            public string DBPath { get; set; }
+
+            public string InstallPath { get; set; }
+
+            public string LogPath { get; set; }
+
+            public bool SkipQueueCreation { get; set; }
+
+            public TransportInfo TransportPackage { get; set; }
+
+            public string ConnectionString { get; set; }
+
+            public string Url { get; set; }
+
+            public string BrowsableUrl { get; set; }
+        }
+
+        class FakeServiceControlAuditInstance : IServiceControlAuditInstance
+        {
+            public string AuditQueue { get; set; }
+
+            public string AuditLogQueue { get; set; }
+
+            public string VirtualDirectory { get; set; }
+
+            public bool ForwardAuditMessages { get; set; }
+
+            public TimeSpan AuditRetentionPeriod { get; set; }
+
+            public string ServiceControlQueueAddress { get; set; }
+
+            public PersistenceManifest PersistenceManifest { get; set; }
+
+            public bool EnableFullTextSearchOnBodies { get; set; }
+
+            public int Port { get; set; }
+
+            public string HostName { get; set; }
+
+            public int? DatabaseMaintenancePort { get; set; }
+
+            public string Name { get; set; }
+
+            public string DisplayName { get; set; }
+
+            public string ServiceAccount { get; set; }
+
+            public string ServiceAccountPwd { get; set; }
+
+            public Version Version { get; set; }
+
+            public string DBPath { get; set; }
+
+            public string InstallPath { get; set; }
+
+            public string LogPath { get; set; }
+
+            public bool SkipQueueCreation { get; set; }
+
+            public TransportInfo TransportPackage { get; set; }
+
+            public string ConnectionString { get; set; }
+        }
+
         [SetUp]
         public void Init()
         {
-            var instanceA = new Mock<IServiceControlInstance>();
-            instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
-            instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
-            instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
-            instanceA.SetupGet(p => p.ForwardErrorMessages).Returns(true);
+            var instanceA = new FakeServiceControlInstance
+            {
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                ErrorQueue = @"error",
+                ErrorLogQueue = @"errorlog",
+                ForwardErrorMessages = true
+            };
 
-            var instanceB = new Mock<IServiceControlInstance>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology));
-            instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
-            instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
-            instanceB.SetupGet(p => p.ForwardErrorMessages).Returns(true);
-            instanceB.SetupGet(p => p.ConnectionString).Returns(@"afakeconnectionstring");
+            var instanceB = new FakeServiceControlInstance
+            {
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
+                ErrorQueue = @"RMQerror",
+                ErrorLogQueue = @"RMQerrorlog",
+                ForwardErrorMessages = true,
+                ConnectionString = @"afakeconnectionstring"
+            };
 
             instances = new List<IServiceControlInstance>
             {
-                instanceA.Object,
-                instanceB.Object
+                instanceA,
+                instanceB
             };
         }
 
@@ -55,9 +157,11 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckChainingOfAuditQueues_ShouldSucceed()
         {
-            var existingAudit = new Mock<IServiceControlAuditInstance>();
-            existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
-            existingAudit.SetupGet(p => p.AuditQueue).Returns(@"audit");
+            var existingAudit = new FakeServiceControlAuditInstance
+            {
+                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                AuditQueue = @"audit"
+            };
 
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
 
@@ -66,7 +170,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var validator = new QueueNameValidator(newInstance)
             {
-                AuditInstances = new List<IServiceControlAuditInstance> { existingAudit.Object }
+                AuditInstances = new List<IServiceControlAuditInstance> { existingAudit }
             };
 
             Assert.DoesNotThrow(() => validator.CheckQueueNamesAreNotTakenByAnotherAuditInstance());
