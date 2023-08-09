@@ -9,26 +9,6 @@
     [TestFixture]
     public class PathsValidationTests
     {
-        class FakeServiceControlPaths : IServiceControlPaths
-        {
-            public string DBPath { get; set; }
-
-            public string InstallPath { get; set; }
-
-            public string LogPath { get; set; }
-        }
-
-        //[SetUp]
-        //public void Init()
-        //{
-        //    var instanceA = new FakeServiceControlPaths
-        //    {
-        //        InstallPath = @"c:\test\1\bin",
-        //        LogPath = @"c:\test\1\logs",
-        //        DBPath = @"c:\test\1\db"
-        //    };
-        //}
-
         [Test]
         public void CheckPathsAreUnique_ShouldThrow()
         {
