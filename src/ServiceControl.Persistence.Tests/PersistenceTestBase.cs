@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.PersistenceTests
 {
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,10 @@
         {
             return testPersistence.CompleteDatabaseOperation();
         }
+
+        // TODO: Evaluate if BlockToInspectDatabase() concept should stay in codebase long-term
+        [Conditional("DEBUG")]
+        protected void BlockToInspectDatabase() => testPersistence.BlockToInspectDatabase();
 
         protected IErrorMessageDataStore ErrorStore => GetRequiredService<IErrorMessageDataStore>();
         protected IRetryDocumentDataStore RetryStore => GetRequiredService<IRetryDocumentDataStore>();

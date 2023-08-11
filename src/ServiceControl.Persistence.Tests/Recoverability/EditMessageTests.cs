@@ -88,7 +88,7 @@
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            RavenStudioHelper.LaunchAndBlock();
+            BlockToInspectDatabase();
 
             using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {

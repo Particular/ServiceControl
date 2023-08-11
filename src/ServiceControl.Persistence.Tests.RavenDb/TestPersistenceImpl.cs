@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +68,36 @@
 
             public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
             public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        }
+
+        public override void BlockToInspectDatabase()
+        {
+            if (!Debugger.IsAttached)
+            {
+                return;
+            }
+
+            var url = $"http://localhost:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                url = url.Replace("&", "^&");
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+
+            while (true)
+            {
+                Thread.Sleep(5000);
+                Trace.Write("Waiting for debugger pause");
+            }
         }
     }
 }
