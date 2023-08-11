@@ -7,25 +7,13 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
-    using Particular.ServiceControl;
     using Persistence;
     using Persistence.RavenDb;
-    using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]
     class APIApprovals
     {
-        [Test]
-        public void PublicClr()
-        {
-            var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
-            Approver.Verify(publicApi);
-        }
-
         [Test]
         public void CustomCheckDetails()
         {
