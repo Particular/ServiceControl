@@ -94,7 +94,7 @@
                 };
             }
 
-            return new MessageBodyStreamResult();
+            return null;
         }
     }
 }
