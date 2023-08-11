@@ -1,8 +1,5 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
-    using System.ComponentModel.Composition.Hosting;
-    using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Client;
@@ -10,18 +7,10 @@
 
     class RavenStartup
     {
-        readonly Assembly[] indexAssemblies = new[]
-        {
-            typeof(RavenBootstrapper).Assembly,
-            typeof(CustomChecksIndex).Assembly
-        };
-
         public async Task CreateIndexesAsync(IDocumentStore documentStore)
         {
-            var indexProvider = new CompositionContainer(new AggregateCatalog(indexAssemblies.Select(a => new AssemblyCatalog(a))));
-
             Logger.Info("Index creation started");
-            await IndexCreation.CreateIndexesAsync(indexProvider, documentStore);
+            await IndexCreation.CreateIndexesAsync(typeof(RavenBootstrapper).Assembly, documentStore);
             Logger.Info("Index creation complete");
         }
 
