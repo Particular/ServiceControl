@@ -56,7 +56,7 @@
                         throw new Exception($"Method {type.FullName}:{pair.Method.Name} has Route attribute but no method attribute like HttpGet.");
                     }
 
-                    var parametersString = string.Join(", ", pair.Method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    var parametersString = string.Join(", ", pair.Method.GetParameters().Select(p => $"{PrettyTypeName(p.ParameterType)} {p.Name}"));
                     var methodSignature = $"{type.FullName}:{pair.Method.Name}({parametersString})";
 
                     return new
@@ -96,6 +96,23 @@
                     }
                 }
             }
+        }
+
+        static string PrettyTypeName(Type t)
+        {
+            if (t.IsArray)
+            {
+                return PrettyTypeName(t.GetElementType()) + "[]";
+            }
+
+            if (t.IsGenericType)
+            {
+                return string.Format("{0}<{1}>",
+                    t.Name.Substring(0, t.Name.LastIndexOf("`", StringComparison.InvariantCulture)),
+                    string.Join(", ", t.GetGenericArguments().Select(PrettyTypeName)));
+            }
+
+            return t.Name;
         }
 
         [Test]
