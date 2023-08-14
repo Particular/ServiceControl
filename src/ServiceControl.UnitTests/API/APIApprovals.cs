@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Reflection;
+    using System.Text;
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
@@ -34,6 +36,66 @@
             var result = controller.Urls();
 
             Approver.Verify(result.Content);
+        }
+
+        [Test]
+        public void HttpApiRoutes()
+        {
+            var httpApiMethods = GetControllerRoutes()
+                .Select(pair =>
+                {
+                    var type = pair.Method.DeclaringType;
+                    var httpMethods = pair.Method.GetCustomAttributes(true)
+                        .OfType<IActionHttpMethodProvider>()
+                           .SelectMany(att => att.HttpMethods.Select(m => m.Method))
+                           .Distinct()
+                           .OrderBy(httpMethod => httpMethod);
+
+                    if (!httpMethods.Any())
+                    {
+                        throw new Exception($"Method {type.FullName}:{pair.Method.Name} has Route attribute but no method attribute like HttpGet.");
+                    }
+
+                    var parametersString = string.Join(", ", pair.Method.GetParameters().Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    var methodSignature = $"{type.FullName}:{pair.Method.Name}({parametersString})";
+
+                    return new
+                    {
+                        MethodSignature = methodSignature,
+                        HttpMethods = string.Join("/", httpMethods),
+                        Route = pair.Route.Template
+                    };
+                })
+                .OrderBy(x => x.Route).ThenBy(x => x.HttpMethods)
+                .ToArray();
+
+            var builder = new StringBuilder();
+            foreach (var item in httpApiMethods)
+            {
+                builder.AppendLine($"{item.HttpMethods} /{item.Route} => {item.MethodSignature}");
+            }
+            var httpApi = builder.ToString();
+            Console.Write(httpApi);
+
+            Approver.Verify(httpApi);
+        }
+
+        IEnumerable<(MethodInfo Method, IHttpRouteInfoProvider Route)> GetControllerRoutes()
+        {
+            var controllers = typeof(Program).Assembly.GetTypes()
+                .Where(t => typeof(IHttpController).IsAssignableFrom(t));
+
+            foreach (var type in controllers)
+            {
+                foreach (var methodInfo in type.GetMethods())
+                {
+                    var routeAtts = methodInfo.GetCustomAttributes(true).OfType<IHttpRouteInfoProvider>();
+                    foreach (var routeAtt in routeAtts)
+                    {
+                        yield return (methodInfo, routeAtt);
+                    }
+                }
+            }
         }
 
         [Test]
