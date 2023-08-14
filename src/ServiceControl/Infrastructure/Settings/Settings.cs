@@ -102,7 +102,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string LicenseFileText { get; set; }
 
-        public Dictionary<string, string> PersisterSpecificSettings { get; set; }
+        public Dictionary<string, string> PersisterSpecificSettings { get; set; } = new Dictionary<string, string>();
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
         public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");

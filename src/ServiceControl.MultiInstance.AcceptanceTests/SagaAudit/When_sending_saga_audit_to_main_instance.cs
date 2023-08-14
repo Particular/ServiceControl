@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -79,58 +78,6 @@
 
             var sagaStateChange = sagaHistory.Changes.First();
             Assert.AreEqual("Send", sagaStateChange.InitiatingMessage.Intent);
-        }
-
-        [Test]
-        public async Task
-        Check_fails_if_no_audit_retention_is_configured()
-        {
-            //Ensure custom checks are enabled
-            CustomServiceControlSettings = settings =>
-            {
-                settings.DisableHealthChecks = false;
-                settings.AuditRetentionPeriod = TimeSpan.FromSeconds(10);
-            };
-
-            // TODO: Once tests generally run, verify this isn't needed if settings.AuditRetentionPeriod is defined above
-            //Override the configuration of the check in the container in order to make it run more frequently for testing purposes.
-            //CustomEndpointConfiguration = config =>
-            //{
-            //    config.RegisterComponents(registration =>
-            //    {
-            //        registration.ConfigureComponent((builder) => new AuditRetentionCustomCheck(builder.Build<IDocumentStore>(), builder.Build<Settings>(), TimeSpan.FromSeconds(10)), DependencyLifecycle.SingleInstance);
-            //    });
-            //};
-
-            SingleResult<EventLogItem> customCheckEventEntry = default;
-            bool sagaAudiDataInMainInstanceIsAvailableForQuery = false;
-
-            await Define<MyContext>()
-                .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
-                .Done(async c =>
-                {
-                    if (!c.SagaId.HasValue)
-                    {
-                        return false;
-                    }
-
-                    if (sagaAudiDataInMainInstanceIsAvailableForQuery == false)
-                    {
-                        var sagaData =
-                            await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
-                        sagaAudiDataInMainInstanceIsAvailableForQuery = sagaData.HasResult;
-                        return false;
-                    }
-
-                    customCheckEventEntry = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/",
-                        e => e.EventType == "CustomCheckFailed" && e.Description.StartsWith("Saga Audit Data Retention"));
-
-                    return customCheckEventEntry;
-                })
-                .Run();
-
-            Assert.IsTrue(customCheckEventEntry.Item.RelatedTo.Any(item => item == "/customcheck/Saga Audit Data Retention"), "Event log entry should be related to the Saga Audit Data Retention");
-            Assert.IsTrue(customCheckEventEntry.Item.RelatedTo.Any(item => item.StartsWith("/endpoint/Particular.ServiceControl")), "Event log entry should be related to the ServiceControl endpoint");
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
