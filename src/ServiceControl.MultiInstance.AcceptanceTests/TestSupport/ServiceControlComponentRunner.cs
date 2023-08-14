@@ -84,8 +84,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var settings = new Settings(instanceName, transportToUse.TypeName, dataStoreConfiguration.DataStoreTypeName)
             {
                 Port = instancePort,
-                DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                PersisterSpecificSettings = new Dictionary<string, string>()
+                {
+                    { "HostName", "localhost" },
+                    { "RavenDB35/RunInMemory", "true" },
+                    { "DatabaseMaintenancePort", maintenancePort.ToString() }
+                },
                 ForwardErrorMessages = false,
                 TransportType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
@@ -93,7 +97,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 DisableHealthChecks = true,
                 ExposeApi = false,
                 RemoteInstances = new[]
@@ -153,7 +156,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
             // This is needed because we no longer use the AppDomain separation.
-            configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
+            configuration.RegisterComponents(r =>
+            {
+                configuration.GetSettings().Set("SC.ConfigureComponent", r);
+            });
 
             configuration.RegisterComponents(r =>
             {
@@ -261,8 +267,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase),
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+                Path.GetFileName(typeof(Settings).Assembly.CodeBase), // ServiceControl.exe
+                "ServiceControl.Persistence.RavenDb.dll",
+                typeof(ServiceControlComponentRunner).Assembly.GetName().Name // This project
             };
 
             customServiceControlAuditSettings(settings);

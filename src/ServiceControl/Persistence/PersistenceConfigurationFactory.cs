@@ -35,6 +35,11 @@ namespace ServiceControl.Persistence
                 maintenanceMode
             );
 
+            foreach (var keyPair in settings.PersisterSpecificSettings)
+            {
+                persistenceSettings.PersisterSpecificSettings[keyPair.Key] = keyPair.Value;
+            }
+
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
                 var value = SettingsReader<string>.Read("ServiceControl", key, null);

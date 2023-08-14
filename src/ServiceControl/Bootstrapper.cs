@@ -243,7 +243,7 @@ Selected Transport Customization:   {settings.TransportType}
                     settings.NotificationsFilter,
                     settings.RemoteInstances,
                     settings.RetryHistoryDepth,
-                    settings.RunInMemory,
+                    settings.PersisterSpecificSettings,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
                     settings.TransportType,

@@ -62,9 +62,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
         //HINT: acceptance tests only
-        public bool RunInMemory { get; set; }
-
-        //HINT: acceptance tests only
         public string EmailDropFolder { get; set; }
 
         public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
@@ -104,6 +101,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public int DatabaseMaintenancePort { get; set; } // TODO: Should not be in Core but in the persister implementation
 
         public string LicenseFileText { get; set; }
+
+        public Dictionary<string, string> PersisterSpecificSettings { get; set; }
 
         public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
         public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
