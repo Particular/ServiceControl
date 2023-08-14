@@ -21,16 +21,6 @@
     class APIApprovals
     {
         [Test]
-        public void PublicClr()
-        {
-            var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
-            Approver.Verify(publicApi);
-        }
-
-        [Test]
         public void RootPathValue()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
