@@ -19,7 +19,15 @@
 
             if (messageType == RetriesMessageType)
             {
-                store.Store(message.Entries, instanceId, new EndpointMessageType(instanceId.EndpointName, message.TagValue));
+                var enclosedMessageTypes = message.TagValue;
+
+                var index = enclosedMessageTypes.IndexOf(';');
+
+                var firstType = index != -1
+                    ? enclosedMessageTypes.Substring(0, index)
+                    : enclosedMessageTypes;
+
+                store.Store(message.Entries, instanceId, new EndpointMessageType(instanceId.EndpointName, firstType));
             }
 
             return Task.CompletedTask;

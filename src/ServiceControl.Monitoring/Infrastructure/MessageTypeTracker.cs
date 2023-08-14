@@ -15,7 +15,15 @@
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
 
-            registry.Record(new EndpointMessageType(endpointName, message.TagValue));
+            var enclosedMessageTypes = message.TagValue;
+
+            var index = enclosedMessageTypes.IndexOf(';');
+
+            var firstType = index != -1
+                ? enclosedMessageTypes.Substring(0, index)
+                : enclosedMessageTypes;
+
+            registry.Record(new EndpointMessageType(endpointName, firstType));
 
             return Task.CompletedTask;
         }
