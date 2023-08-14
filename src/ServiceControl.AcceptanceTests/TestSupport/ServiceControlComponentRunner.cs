@@ -92,7 +92,6 @@
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 DisableHealthChecks = true,
                 ExposeApi = true,
                 MessageFilter = messageContext =>
