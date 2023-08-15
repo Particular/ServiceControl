@@ -235,20 +235,17 @@
 
             // TODO: Figure out how to implement value of progressToStaged, since RetryDocumentManager no longer has a MoveBatchToStaging method to override
 
-            //public override Task MoveBatchToStaging(string batchDocumentId)
-            //{
-            //    if (progressToStaged)
-            //    {
-            //        //TODO: this method was moved to IRetryDocumentDataStore
-            //        return base.MoveBatchToStaging(batchDocumentId);
-            //    }
+            public override Task MoveBatchToStaging(string batchDocumentId)
+            {
+                if (progressToStaged)
+                {
+                    return base.MoveBatchToStaging(batchDocumentId);
+                }
 
-            //    return Task.FromResult(0);
-            //}
+                return Task.FromResult(0);
+            }
 
-#pragma warning disable IDE0052 // Remove unread private members
             bool progressToStaged;
-#pragma warning restore IDE0052 // Remove unread private members
         }
 
 

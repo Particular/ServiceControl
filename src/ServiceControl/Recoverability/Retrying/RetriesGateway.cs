@@ -61,7 +61,7 @@ namespace ServiceControl.Recoverability
             await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, messageIds, startTime, last,
                 originator, batchName, classifier);
 
-            await store.MoveBatchToStaging(batchDocumentId);
+            await MoveBatchToStaging(batchDocumentId);
 
             Log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }

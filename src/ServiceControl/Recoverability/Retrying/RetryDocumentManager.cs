@@ -26,7 +26,7 @@ namespace ServiceControl.Recoverability
             await Task.WhenAll(orphanedBatches.Results.Select(b => Task.Run(async () =>
             {
                 log.Info($"Adopting retry batch {b.Id} with {b.FailureRetries.Count} messages.");
-                await store.MoveBatchToStaging(b.Id);
+                await MoveBatchToStaging(b.Id);
             })));
 
             foreach (var batch in orphanedBatches.Results)
@@ -43,6 +43,11 @@ namespace ServiceControl.Recoverability
             }
 
             return orphanedBatches.QueryStats.IsStale || orphanedBatches.Results.Any();
+        }
+
+        public virtual Task MoveBatchToStaging(string batchDocumentId)
+        {
+            return store.MoveBatchToStaging(batchDocumentId);
         }
 
         public async Task RebuildRetryOperationState()
