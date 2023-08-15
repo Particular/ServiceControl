@@ -34,6 +34,8 @@
 
             if (Debugger.IsAttached)
             {
+                Console.WriteLine("If you get 'Access is denied' exception while debugging, comment out this line or create a URLACL reservervation:");
+                Console.WriteLine("> netsh http add urlacl http://+:55554/ user=Everyone");
                 settings.PersisterSpecificSettings[RavenBootstrapper.ExposeRavenDBKey] = bool.TrueString;
             }
 

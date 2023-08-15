@@ -200,7 +200,7 @@
 
             var result = await bodyStorage.TryFetch(messageId);
             // Verify body expired
-            Assert.False(result.HasResult, "Audit document body should be deleted");
+            Assert.Null(result, "Audit document body should be deleted");
         }
 
         [Test]
