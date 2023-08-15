@@ -233,8 +233,6 @@
                 this.progressToStaged = progressToStaged;
             }
 
-            // TODO: Figure out how to implement value of progressToStaged, since RetryDocumentManager no longer has a MoveBatchToStaging method to override
-
             public override Task MoveBatchToStaging(string batchDocumentId)
             {
                 if (progressToStaged)
