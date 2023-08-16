@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
+    using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using Raven.Client;
@@ -67,6 +69,18 @@
                         {
                             HasResult = true,
                             Stream = stream,
+                            ContentType = message.ContentType,
+                            BodySize = message.BodySize,
+                            Etag = stats.IndexEtag
+                        };
+                    }
+                    else
+                    {
+                        Trace.Assert(message.BodySize == 0, "Body size is not equal to 0");
+                        return new MessageBodyStreamResult
+                        {
+                            HasResult = true,
+                            Stream = new MemoryStream(Array.Empty<byte>()),
                             ContentType = message.ContentType,
                             BodySize = message.BodySize,
                             Etag = stats.IndexEtag
