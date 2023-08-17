@@ -343,7 +343,7 @@
                         x => (object)x.Value
                         );
 
-                Review.Assert("Check how to convert dictionary item VALUES, currently return object which must be typed");
+                Guard.Assert(false, "TODO: Check how to convert dictionary item VALUES, currently return object which must be typed");
 
                 return results;
             }
