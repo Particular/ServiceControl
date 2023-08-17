@@ -14,6 +14,11 @@ namespace ServiceControl.Operations
         {
         }
 
+        internal CriticalErrorCustomCheck(TimeSpan interval)
+            : base("ServiceControl Primary Instance", "Health", interval)
+        {
+        }
+
         public override Task<CheckResult> PerformCheck()
         {
             var lastFailure = recentFailure;
