@@ -40,7 +40,7 @@ namespace ServiceControl.AcceptanceTests
         public string Port => serviceControlRunnerBehavior.Port;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public static void OneTimeSetup()
         {
             Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
         }
