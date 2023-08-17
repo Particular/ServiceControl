@@ -92,6 +92,7 @@
             var retryManager = new RetryingManager(domainEvents);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
+            await CompleteDatabaseOperation();
 
             var sender = new TestSender();
 
