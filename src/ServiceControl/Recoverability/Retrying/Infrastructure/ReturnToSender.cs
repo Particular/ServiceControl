@@ -2,7 +2,6 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
@@ -104,8 +103,10 @@ namespace ServiceControl.Recoverability
             byte[] body = null;
             var result = await bodyStorage.TryFetch(attemptMessageId);
 
-            // TODO: Ramon, is this what is making CI lock up?
-            //Debug.Assert(result != null, "IBodyStorage.TryFetch result cannot be null");
+            if (result == null)
+            {
+                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+            }
 
             if (result.HasResult)
             {
