@@ -27,7 +27,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageVersion Include="Mindscape.Raygun4Net" Version="5.13.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
