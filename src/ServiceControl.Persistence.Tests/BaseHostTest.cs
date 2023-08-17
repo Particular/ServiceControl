@@ -4,7 +4,6 @@ using NUnit.Framework;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class BaseHostTest
 {
