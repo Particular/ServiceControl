@@ -17,8 +17,6 @@
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
-    // TODO: Certain 'CopmleteDBOperation()' calls in this class require Raven indexes that are noted by comments starting with "Needs index"
-    // so this class compiles but the test framework bootstrapping needs to take Raven indexes into account.
     class RetryStateTests : PersistenceTestBase
     {
         [Test]
@@ -41,14 +39,11 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", false, 1);
 
-            // Needs index RetryBatches_ByStatusAndSession
-            // Needs index FailedMessageRetries_ByBatch
-            await CompleteDatabaseOperation();
-
             var documentManager = new CustomRetryDocumentManager(false, RetryStore, retryManager);
 
             var orphanage = new RecoverabilityComponent.AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, new AsyncTimer());
             await orphanage.AdoptOrphanedBatchesAsync();
+            await CompleteDatabaseOperation();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.True(status.Failed);
@@ -92,7 +87,6 @@
             var retryManager = new RetryingManager(domainEvents);
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1);
-            await CompleteDatabaseOperation();
 
             var sender = new TestSender();
 
@@ -215,7 +209,7 @@
             await CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
-            var gateway = new RetriesGateway(RetryStore, retryManager);
+            var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
             // TODO: groupType appears to be the same as classifier, which was null in the previous StartRetryForIndex call - make sure that's true
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
@@ -223,6 +217,30 @@
             await CompleteDatabaseOperation();
 
             await gateway.ProcessNextBulkRetry();
+
+            // Wait for indexes to catch up
+            await CompleteDatabaseOperation();
+        }
+
+        class CustomRetriesGateway : RetriesGateway
+        {
+            public CustomRetriesGateway(bool progressToStaged, IRetryDocumentDataStore store, RetryingManager retryManager)
+                : base(store, retryManager)
+            {
+                this.progressToStaged = progressToStaged;
+            }
+
+            protected override Task MoveBatchToStaging(string batchDocumentId)
+            {
+                if (progressToStaged)
+                {
+                    return base.MoveBatchToStaging(batchDocumentId);
+                }
+
+                return Task.FromResult(0);
+            }
+
+            bool progressToStaged;
         }
 
         class CustomRetryDocumentManager : RetryDocumentManager
