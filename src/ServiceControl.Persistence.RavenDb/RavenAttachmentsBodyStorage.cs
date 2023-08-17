@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
     using Raven.Client;
@@ -74,9 +73,8 @@
                             Etag = stats.IndexEtag
                         };
                     }
-                    else
+                    else if (message.BodySize == 0)
                     {
-                        Guard.Assert(message.BodySize == 0, "Body size is not equal to 0");
                         return new MessageBodyStreamResult
                         {
                             HasResult = true,
