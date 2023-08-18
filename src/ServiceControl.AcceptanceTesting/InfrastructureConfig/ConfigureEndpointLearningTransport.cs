@@ -1,6 +1,9 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
     using System.IO;
+    using System.Linq;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
@@ -30,8 +33,17 @@
             return Task.FromResult(0);
         }
 
+        static string Hash(string input)
+        {
+            using (var sha1 = new SHA1Managed())
+            {
+                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
+                return string.Concat(hash.Select(b => b.ToString("x2")));
+            }
+        }
+
         public string Name => "Learning";
         public string TypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
-        public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.transport");
+        public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.transport\" + Hash(TestContext.CurrentContext.Test.FullName).Substring(0, 7));
     }
 }
