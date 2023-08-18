@@ -93,7 +93,7 @@ namespace ServiceControl.Transports.ASBS
                             Logger.WarnFormat("Queue <{0}> already processed with different length (length {1} vs {2})", queueRuntimeProperties.Name, queuePathToRuntimeInfo.Count, existingItem.Count);
                         }
                     }
-                    queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties;
+                    queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties; // Assuming last write is most up to date
                 }
             }
             finally
