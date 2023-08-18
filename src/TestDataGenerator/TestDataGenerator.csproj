@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <NoWarn>NU1608</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
+    <PackageReference Include="NServiceBus.ServicePlatform.Connector" />
+  </ItemGroup>
+
+</Project>
