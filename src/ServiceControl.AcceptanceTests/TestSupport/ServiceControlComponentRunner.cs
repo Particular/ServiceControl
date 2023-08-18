@@ -76,8 +76,8 @@
 
             // TODO: ⬇️ This is required for the PERSISTER implementation to actually retrieve the DBPath settings are persister isn't using this type-safe settings class
             var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            ConfigurationManager.AppSettings.Set("ServiceControl/DBPath", dbPath);
-            ConfigurationManager.AppSettings.Set("ServiceControl/DatabaseMaintenancePort", "33334");
+            ConfigurationManager.AppSettings.Set("ServiceControl/DBPath", dbPath); // TODO: Tests should not use static ConfigurationManager.AppSettings
+            ConfigurationManager.AppSettings.Set("ServiceControl/DatabaseMaintenancePort", "33434");
             ConfigurationManager.AppSettings.Set("ServiceControl/ExposeRavenDB", "False");
             // TODO: ⬆️
 
