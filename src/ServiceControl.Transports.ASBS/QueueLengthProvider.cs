@@ -85,15 +85,20 @@ namespace ServiceControl.Transports.ASBS
                 while (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
                     var queueRuntimeProperties = enumerator.Current;
+
+                    // Assuming last write is most up to date
                     if (queuePathToRuntimeInfo.ContainsKey(queueRuntimeProperties.Name))
                     {
                         var existingItem = queuePathToRuntimeInfo[queueRuntimeProperties.Name];
-                        if(existingItem.Count!=queueRuntimeProperties.Count)
+                        if (existingItem != null)
                         {
-                            Logger.WarnFormat("Queue <{0}> already processed with different length (length {1} vs {2})", queueRuntimeProperties.Name, queuePathToRuntimeInfo.Count, existingItem.Count);
+                            queuePathToRuntimeInfo[queueRuntimeProperties.Name] = await CompareQueueDates(existingItem, queueRuntimeProperties).ConfigureAwait(false);
                         }
                     }
-                    queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties; // Assuming last write is most up to date
+                    else
+                    {
+                        queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties;
+                    }
                 }
             }
             finally
@@ -134,6 +139,47 @@ namespace ServiceControl.Transports.ASBS
             store(entries, new EndpointToQueueMapping(endpointName, queueName));
         }
 
+        async Task<QueueRuntimeProperties> CompareQueueDates(QueueRuntimeProperties existingItem, QueueRuntimeProperties queueRuntimeProperty)
+        {
+            var createdAtCompare = (TimeComparison)DateTimeOffset.Compare(existingItem.CreatedAt, queueRuntimeProperty.CreatedAt);
+            var updatedAtCompare = (TimeComparison)DateTimeOffset.Compare(existingItem.UpdatedAt, queueRuntimeProperty.UpdatedAt);
+            var accessedAtCompare = (TimeComparison)DateTimeOffset.Compare(existingItem.AccessedAt, queueRuntimeProperty.AccessedAt);
+
+            if (createdAtCompare == TimeComparison.Earlier)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with an older 'createdAt' date: {1}.  Queue is being updated with newer properties that has the 'createdAt' date: {2}", existingItem.Name, existingItem.CreatedAt, queueRuntimeProperty.CreatedAt);
+                return await Task.FromResult(queueRuntimeProperty).ConfigureAwait(false);
+            }
+            else if (createdAtCompare == TimeComparison.Later)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with a newer 'createdAt' date: {1}. The duplicate queue with the 'createdAt' date: {2} is being discarded.", existingItem.Name, existingItem.CreatedAt, queueRuntimeProperty.CreatedAt);
+            }
+            else if (updatedAtCompare == TimeComparison.Earlier)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with an older 'updatedAt' date: {1}. Queue is being updated with newer properties that has the 'updatedAt' date: {2}", existingItem.Name, existingItem.UpdatedAt, queueRuntimeProperty.UpdatedAt);
+                return await Task.FromResult(queueRuntimeProperty).ConfigureAwait(false);
+            }
+            else if (updatedAtCompare == TimeComparison.Later)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with a newer 'updatedAt' date: {1}. The duplicate queue with the 'updatedAt' date: {2} is being discarded.", existingItem.Name, existingItem.UpdatedAt, queueRuntimeProperty.UpdatedAt);
+            }
+            else if (accessedAtCompare == TimeComparison.Earlier)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with an older 'accessedAt' date: {1}. Queue is being updated with newer properties that has the 'accessedAt' date: {2}", existingItem.Name, existingItem.AccessedAt, queueRuntimeProperty.AccessedAt);
+                return await Task.FromResult(queueRuntimeProperty).ConfigureAwait(false);
+            }
+            else if (accessedAtCompare == TimeComparison.Later)
+            {
+                Logger.WarnFormat("Queue <{0}> already processed with a newer 'accessedAt' date: {1}. The duplicate queue with the 'accessedAt' date: {2} is being discarded.", existingItem.Name, existingItem.AccessedAt, queueRuntimeProperty.AccessedAt);
+            }
+            else
+            {
+                Logger.WarnFormat("Queue <{0}> already processed. The duplicate queue is being discarded.", existingItem.Name);
+            }
+
+            return await Task.FromResult(existingItem).ConfigureAwait(false);
+        }
+
         public async Task Stop()
         {
             stop.Cancel();
@@ -148,5 +194,12 @@ namespace ServiceControl.Transports.ASBS
         TimeSpan queryDelayInterval;
 
         static ILog Logger = LogManager.GetLogger<QueueLengthProvider>();
+
+        enum TimeComparison
+        {
+            Earlier = -1,
+            Same = 0,
+            Later = 1
+        }
     }
 }
