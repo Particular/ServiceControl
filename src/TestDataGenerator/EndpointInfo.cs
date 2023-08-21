@@ -1,6 +1,7 @@
 ﻿namespace TestDataGenerator
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using NServiceBus;
 
@@ -27,13 +28,15 @@
                 return;
             }
 
+            var path = Path.Combine(Path.GetTempPath(), ".learningtransport");
+
             var cfg = new EndpointConfiguration(Name);
 
             var transport = cfg.UseTransport<LearningTransport>();
-            transport.StorageDirectory(@"C:\tmp");
+            transport.StorageDirectory(path);
 
             var persistence = cfg.UsePersistence<LearningPersistence>();
-            persistence.SagaStorageDirectory(@"C:\tmp");
+            persistence.SagaStorageDirectory(path);
 
             cfg.UseSerialization<NewtonsoftJsonSerializer>();
 
