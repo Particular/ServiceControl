@@ -39,6 +39,7 @@
         {
             while (running)
             {
+                Console.CursorVisible = false;
                 Console.Clear();
                 if (commandResult != null)
                 {
@@ -77,6 +78,8 @@
 
                 Console.WriteLine();
                 Console.Write("> ");
+
+                Console.CursorVisible = true;
                 var input = Console.ReadLine();
                 await ProcessCommand(input);
             }
