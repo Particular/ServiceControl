@@ -34,6 +34,7 @@
 
             var transport = cfg.UseTransport<LearningTransport>();
             transport.StorageDirectory(path);
+            transport.NoPayloadSizeRestriction();
 
             var persistence = cfg.UsePersistence<LearningPersistence>();
             persistence.SagaStorageDirectory(path);

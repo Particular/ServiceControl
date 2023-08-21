@@ -7,6 +7,7 @@
     public class SimpleCommand : ICommand
     {
         public int Index { get; set; }
+        public byte[] Data { get; set; }
     }
 
     class SimpleHandler : IHandleMessages<SimpleCommand>

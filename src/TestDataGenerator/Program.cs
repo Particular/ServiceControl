@@ -8,15 +8,20 @@
 
     public class Program
     {
+        const int MaxBodySizeToStoreDefault = 102400;
         public const int EndpointCount = 6;
 
         static EndpointInfo sender;
         static EndpointInfo[] endpoints;
         static string commandResult;
         static bool running = true;
+        static Random random = new Random();
+        static readonly byte[] Data = new byte[MaxBodySizeToStoreDefault + 1]; // Gets serialized so will be larger than storage default so +1 isn't needed but just to indicate we w
 
         static async Task Main()
         {
+            random.NextBytes(Data); // Initialize with random data
+
             // Want the endpoints to be largely silent
             LogManager.Use<DefaultFactory>().Level(LogLevel.Fatal);
 
@@ -69,7 +74,7 @@
                 WriteCommand("saga-audits 1", "Create saga audit data on Endpoint1");
                 WriteCommand("check-fail 1", "Set custom checks on Endpoint1 to fail");
                 WriteCommand("check-pass 1", "Set custom checks on Endpoint1 to pass");
-                WriteCommand("send 1 100", "Send 100 simple messages to Endpoint1");
+                WriteCommand("send 1 100", "Send 100 simple messages with various sizes to Endpoint1");
                 WriteCommand("throw 1", "Set Endpoint1 to throw exceptions");
                 WriteCommand("recover 1", "Set Endpoint1 to no longer throw exceptions");
 
@@ -171,7 +176,7 @@
         {
             var destination = $"Endpoint{endpoint}";
             var tasks = Enumerable.Range(0, count)
-                .Select(i => new SimpleCommand { Index = i })
+                .Select(i => new SimpleCommand { Index = i, Data = random.Next(2) == 0 ? null : Data })
                 .Select(msg => sender.Instance.Send(destination, msg));
 
             await Task.WhenAll(tasks);
