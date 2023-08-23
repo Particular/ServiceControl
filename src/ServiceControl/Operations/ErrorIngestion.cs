@@ -194,7 +194,7 @@
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Warn($"OnCriticalError. '{failure}'", exception);
+            logger.Fatal($"OnCriticalError. '{failure}'", exception);
             return watchdog.OnFailure(failure);
         }
 
