@@ -1,0 +1,22 @@
+- Instance management installation
+  - [ ] Create a new instance of ServiceControl using the docker images
+  - [ ] Upgrade an existing instance of ServiceControl to the version being released
+  - [ ] Create a new instance of ServiceControl
+  - [ ] Check with both localhost and a custom hostname
+  - [ ] Upgrade an existing instance of ServiceControl to the version being released using the Powershell Scripts
+  - [ ] Create a new instance of ServiceControl using the Powershell Scripts
+- Functionality
+  - [ ] [Install the ServiceControl.SmokeTesting tool](https://github.com/Particular/ServiceControl.SmokeTest#installing)
+  - [ ] Audits
+     - [ ] Search with Full Text Search on and off
+     - [ ] Large and small messages
+  - [ ] Recoverability
+     - [ ] Retries
+     - [ ] Message body editing
+     - [ ] Queue redirection
+     - [ ] Large and small messages
+  - [ ] Saga Auditing
+  - [ ] Heartbeats
+  - [ ] CustomChecks
+  - [ ] External Integration
+  - [ ] Monitoring
