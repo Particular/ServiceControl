@@ -16,6 +16,7 @@
         public IFailedAuditStorage FailedAuditStorage { get; protected set; }
         public IBodyStorage BodyStorage { get; protected set; }
         public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        ServiceProvider serviceProvider;
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
@@ -35,7 +36,7 @@
 
             await persistenceLifecycle.Start();
 
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            serviceProvider = serviceCollection.BuildServiceProvider();
 
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
@@ -50,9 +51,11 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup()
+        public async Task Cleanup()
         {
-            return persistenceLifecycle?.Stop();
+            await persistenceLifecycle.Stop();
+            await serviceProvider.DisposeAsync();
+
         }
 
         IPersistenceLifecycle persistenceLifecycle;
