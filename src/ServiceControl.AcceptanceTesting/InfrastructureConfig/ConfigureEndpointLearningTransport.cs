@@ -12,6 +12,19 @@
 
     public class ConfigureEndpointLearningTransport : ITransportIntegration
     {
+        public ConfigureEndpointLearningTransport()
+        {
+            using (var sha1 = SHA1.Create())
+            {
+                var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(TestContext.CurrentContext.Test.FullName));
+                var hash = string.Concat(hashBytes.Take(6).Select(b => b.ToString("x2")));
+                var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport", hash);
+                ConnectionString = Path.GetFullPath(relativePath);
+            }
+        }
+
+        public string ConnectionString { get; set; }
+
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
             Directory.CreateDirectory(ConnectionString);
@@ -27,23 +40,19 @@
         {
             if (Directory.Exists(ConnectionString))
             {
-                Directory.Delete(ConnectionString, true);
+                try
+                {
+                    Directory.Delete(ConnectionString, true);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                }
             }
 
             return Task.FromResult(0);
         }
 
-        static string Hash(string input)
-        {
-            using (var sha1 = new SHA1Managed())
-            {
-                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
-                return string.Concat(hash.Select(b => b.ToString("x2")));
-            }
-        }
-
         public string Name => "Learning";
         public string TypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
-        public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.transport\" + Hash(TestContext.CurrentContext.Test.FullName).Substring(0, 7));
     }
 }
