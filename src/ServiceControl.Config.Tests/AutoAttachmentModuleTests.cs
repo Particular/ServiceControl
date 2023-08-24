@@ -10,10 +10,10 @@
     public class AutoAttachmentModuleTests
     {
         [OneTimeSetUp]
-        public void SetUp() => AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
+        public static void SetUp() => AssemblySource.Instance.Add(typeof(AutoAttachmentModuleTests).Assembly);
 
         [OneTimeTearDown]
-        public void TearDown() => AssemblySource.Instance.Remove(typeof(AutoAttachmentModuleTests).Assembly);
+        public static void TearDown() => AssemblySource.Instance.Remove(typeof(AutoAttachmentModuleTests).Assembly);
 
         [Test]
         public void AttachmentsAreAttached()

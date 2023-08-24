@@ -4,7 +4,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using System.Configuration;
     using System.Diagnostics;
     using System.IO;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using AcceptanceTesting;
@@ -37,7 +36,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
         public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public static void OneTimeSetup()
         {
             Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
         }
