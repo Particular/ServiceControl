@@ -17,6 +17,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
 
+    [NonParallelizable]
     class RetryStateTests : PersistenceTestBase
     {
         [Test]
