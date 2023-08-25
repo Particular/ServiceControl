@@ -85,19 +85,6 @@ namespace ServiceControl.Transports.ASBS
                 while (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
                     var queueRuntimeProperties = enumerator.Current;
-                    if (queuePathToRuntimeInfo.ContainsKey(queueRuntimeProperties.Name))
-                    {
-                        var existingItem = queuePathToRuntimeInfo[queueRuntimeProperties.Name];
-                        if(existingItem.ActiveMessageCount != queueRuntimeProperties.ActiveMessageCount)
-                        {
-                            Logger.WarnFormat(
-                                "Queue <{0}> already processed with different length (length {1} vs {2})",
-                                queueRuntimeProperties.Name,
-                                queuePathToRuntimeInfo.ActiveMessageCount,
-                                existingItem.ActiveMessageCount
-                                );
-                        }
-                    }
                     queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties; // Assuming last write is most up to date
                 }
             }
