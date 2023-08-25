@@ -57,7 +57,7 @@ namespace ServiceControl.Transports.ASB
                     {
                         Logger.DebugFormat("Querying namespace manager: {0}", namespaceManager.Address);
 
-                        var queues = await namespaceManager.GetQueuesAsync().ConfigureAwait(false);
+                        var queues = await namespaceManager.GetQueuesAsync();
                         var lookup = queues.ToLookup(x => x.Path, StringComparer.InvariantCultureIgnoreCase);
 
                         Logger.DebugFormat("Retrieved details of {0} queues", lookup.Count);
@@ -65,7 +65,7 @@ namespace ServiceControl.Transports.ASB
                         UpdateQueueLengthStore(lookup);
 
                         Logger.Debug("Waiting for next interval");
-                        await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(QueryDelayInterval, token);
                     }
                     catch (OperationCanceledException)
                     {

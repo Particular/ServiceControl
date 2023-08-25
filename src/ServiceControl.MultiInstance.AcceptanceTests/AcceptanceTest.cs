@@ -37,7 +37,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
 
         [OneTimeSetUp]
-        public void OneTimeSetup()
+        public static void OneTimeSetup()
         {
             Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
         }

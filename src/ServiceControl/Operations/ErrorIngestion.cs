@@ -8,12 +8,11 @@
     using System.Threading.Tasks;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Transports;
 
@@ -27,7 +26,7 @@
             TransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
-            IDocumentStore documentStore,
+            IErrorMessageDataStore dataStore,
             LoggingSettings loggingSettings,
             ErrorIngestionCustomCheck.State ingestionState,
             ErrorIngestor ingestor,
@@ -54,7 +53,7 @@
                 FullMode = BoundedChannelFullMode.Wait
             });
 
-            errorHandlingPolicy = new ErrorIngestionFaultPolicy(documentStore, loggingSettings, OnCriticalError);
+            errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingSettings, OnCriticalError);
 
             watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
 
@@ -65,16 +64,16 @@
 
         public async Task StopAsync(CancellationToken _)
         {
-            await watchdog.Stop().ConfigureAwait(false);
+            await watchdog.Stop();
             channel.Writer.Complete();
-            await ingestionWorker.ConfigureAwait(false);
+            await ingestionWorker;
         }
 
         async Task Loop()
         {
             var contexts = new List<MessageContext>(settings.MaximumConcurrencyLevel);
 
-            while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
+            while (await channel.Reader.WaitToReadAsync())
             {
                 // will only enter here if there is something to read.
                 try
@@ -88,7 +87,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await ingestor.Ingest(contexts, dispatcher).ConfigureAwait(false);
+                        await ingestor.Ingest(contexts, dispatcher);
                     }
                 }
                 catch (OperationCanceledException)
@@ -121,7 +120,7 @@
         {
             try
             {
-                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await startStopSemaphore.WaitAsync(cancellationToken);
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
@@ -129,7 +128,7 @@
                     {
                         var stoppable = queueIngestor;
                         queueIngestor = null;
-                        await stoppable.Stop().ConfigureAwait(false);
+                        await stoppable.Stop();
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
@@ -145,17 +144,16 @@
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError).ConfigureAwait(false);
+                    OnCriticalError);
 
-                dispatcher = await transportCustomization.InitializeDispatcher(errorQueue, transportSettings).ConfigureAwait(false);
+                dispatcher = await transportCustomization.InitializeDispatcher(errorQueue, transportSettings);
 
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress(dispatcher).ConfigureAwait(false);
+                    await ingestor.VerifyCanReachForwardingAddress(dispatcher);
                 }
 
-                await queueIngestor.Start()
-                  .ConfigureAwait(false);
+                await queueIngestor.Start();
 
                 logger.Info("Ensure started. Infrastructure started");
             }
@@ -163,7 +161,7 @@
             {
                 if (queueIngestor != null)
                 {
-                    await queueIngestor.Stop().ConfigureAwait(false);
+                    await queueIngestor.Stop();
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
@@ -188,8 +186,8 @@
 
             receivedMeter.Mark();
 
-            await channel.Writer.WriteAsync(messageContext).ConfigureAwait(false);
-            await taskCompletionSource.Task.ConfigureAwait(false);
+            await channel.Writer.WriteAsync(messageContext);
+            await taskCompletionSource.Task;
         }
 
         Task OnCriticalError(string failure, Exception exception)
@@ -202,7 +200,7 @@
         {
             try
             {
-                await startStopSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                await startStopSemaphore.WaitAsync(cancellationToken);
 
                 if (queueIngestor == null)
                 {
@@ -210,7 +208,7 @@
                 }
                 var stoppable = queueIngestor;
                 queueIngestor = null;
-                await stoppable.Stop().ConfigureAwait(false);
+                await stoppable.Stop();
             }
             finally
             {

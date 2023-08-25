@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -38,6 +39,8 @@
         [Test]
         public async Task It_is_persisted()
         {
+            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddScoped<KnownEndpointPersistenceQueryController>());
+
             var endpointName = Conventions.EndpointNamingConvention(typeof(Receiver));
             KnownEndpoint endpoint = default;
 

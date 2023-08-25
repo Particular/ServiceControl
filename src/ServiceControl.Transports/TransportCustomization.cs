@@ -61,7 +61,7 @@
 
             CustomizeRawSendOnlyEndpoint(config, transportSettings);
 
-            return await RawEndpoint.Create(config).ConfigureAwait(false);
+            return await RawEndpoint.Create(config);
         }
 
         public async Task<IQueueIngestor> InitializeQueueIngestor(
@@ -81,7 +81,7 @@
 
             CustomizeForQueueIngestion(config, transportSettings);
 
-            var startableRaw = await RawEndpoint.Create(config).ConfigureAwait(false);
+            var startableRaw = await RawEndpoint.Create(config);
             return new QueueIngestor(startableRaw);
         }
 
@@ -120,7 +120,7 @@
 
             public async Task Start()
             {
-                stoppableRaw = await startableRaw.Start().ConfigureAwait(false);
+                stoppableRaw = await startableRaw.Start();
             }
 
             public Task Stop()

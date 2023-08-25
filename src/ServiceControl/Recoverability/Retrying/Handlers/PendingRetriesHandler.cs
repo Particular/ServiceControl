@@ -2,66 +2,43 @@ namespace ServiceControl.Recoverability
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using MessageFailures;
-    using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Persistence;
 
     class PendingRetriesHandler : IHandleMessages<RetryPendingMessagesById>,
         IHandleMessages<RetryPendingMessages>
     {
-        public PendingRetriesHandler(IDocumentStore store, RetryDocumentManager manager)
+        public PendingRetriesHandler(IErrorMessageDataStore dataStore)
         {
-            this.store = store;
-            this.manager = manager;
+            this.dataStore = dataStore;
         }
 
         public async Task Handle(RetryPendingMessages message, IMessageHandlerContext context)
         {
             var messageIds = new List<string>();
 
-            using (var session = store.OpenAsyncSession())
-            {
-                var query = session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                    .AndAlso()
-                    .WhereBetweenOrEqual(options => options.LastModified, message.PeriodFrom.Ticks, message.PeriodTo.Ticks)
-                    .AndAlso()
-                    .WhereEquals(o => o.QueueAddress, message.QueueAddress)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>(fields);
+            var ids = await dataStore.GetRetryPendingMessages(message.PeriodFrom, message.PeriodTo, message.QueueAddress);
 
-                using (var ie = await session.Advanced.StreamAsync(query).ConfigureAwait(false))
-                {
-                    while (await ie.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        await manager.RemoveFailedMessageRetryDocument(ie.Current.Document.Id)
-                            .ConfigureAwait(false);
-                        messageIds.Add(ie.Current.Document.Id);
-                    }
-                }
+            foreach (var id in ids)
+            {
+                await dataStore.RemoveFailedMessageRetryDocument(id);
+                messageIds.Add(id);
             }
 
-            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() })
-                .ConfigureAwait(false);
+            await context.SendLocal(new RetryMessagesById { MessageUniqueIds = messageIds.ToArray() });
         }
 
         public async Task Handle(RetryPendingMessagesById message, IMessageHandlerContext context)
         {
             foreach (var messageUniqueId in message.MessageUniqueIds)
             {
-                await manager.RemoveFailedMessageRetryDocument(messageUniqueId)
-                    .ConfigureAwait(false);
+                await dataStore.RemoveFailedMessageRetryDocument(messageUniqueId);
             }
 
-            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds)
-                .ConfigureAwait(false);
+            await context.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = message.MessageUniqueIds);
         }
 
-        readonly IDocumentStore store;
-        readonly RetryDocumentManager manager;
-        static string[] fields = { "Id" };
+        readonly IErrorMessageDataStore dataStore;
     }
 }

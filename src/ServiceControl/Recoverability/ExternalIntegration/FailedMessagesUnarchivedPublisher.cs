@@ -5,7 +5,6 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using ExternalIntegrations;
-    using Raven.Client;
 
     class FailedMessagesUnarchivedPublisher : EventPublisher<FailedMessagesUnArchived, FailedMessagesUnarchivedPublisher.DispatchContext>
     {
@@ -18,7 +17,7 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.FailedMessagesUnArchived
             {

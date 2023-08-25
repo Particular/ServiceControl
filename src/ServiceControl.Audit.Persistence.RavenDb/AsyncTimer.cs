@@ -20,20 +20,20 @@
             {
                 try
                 {
-                    await Task.Delay(due, token).ConfigureAwait(false);
+                    await Task.Delay(due, token);
 
                     while (!token.IsCancellationRequested)
                     {
                         try
                         {
-                            var result = await callback(token).ConfigureAwait(false);
+                            var result = await callback(token);
                             if (result == TimerJobExecutionResult.DoNotContinueExecuting)
                             {
                                 tokenSource.Cancel();
                             }
                             else if (result == TimerJobExecutionResult.ScheduleNextExecution)
                             {
-                                await Task.Delay(interval, token).ConfigureAwait(false);
+                                await Task.Delay(interval, token);
                             }
 
                             //Otherwise execute immediately

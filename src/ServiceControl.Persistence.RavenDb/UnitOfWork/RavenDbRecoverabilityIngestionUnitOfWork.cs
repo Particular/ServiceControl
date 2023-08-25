@@ -33,7 +33,7 @@
 
         public Task RecordSuccessfulRetry(string retriedMessageUniqueId)
         {
-            var failedMessageDocumentId = FailedMessage.MakeDocumentId(retriedMessageUniqueId);
+            var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
             parentUnitOfWork.AddCommand(new PatchCommandData
@@ -52,7 +52,7 @@
         ICommandData CreateFailedMessagesPatchCommand(string uniqueMessageId, FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
-            var documentId = FailedMessage.MakeDocumentId(uniqueMessageId);
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
             var serializedGroups = RavenJToken.FromObject(groups);
             var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
@@ -125,7 +125,7 @@
 
             FailedMessageMetadata = RavenJObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{FailedMessage.CollectionName}"",
+                                        ""Raven-Entity-Name"": ""{FailedMessageIdGenerator.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
                                     }}");
         }

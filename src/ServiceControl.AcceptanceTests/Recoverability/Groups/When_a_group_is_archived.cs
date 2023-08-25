@@ -20,10 +20,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }).DoNotFailOnErrorMessages())
                 .Do("WaitUntilGrouped", async ctx =>
                 {
@@ -44,7 +42,7 @@
                 })
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors");
                     return failedMessages && failedMessages.Items.Count == 2;
                 })
                 .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
@@ -68,10 +66,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }).DoNotFailOnErrorMessages())
                 .Do("WaitUntilGrouped", async ctx =>
                 {
@@ -92,7 +88,7 @@
                 })
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors");
                     return failedMessages && failedMessages.Items.Count == 2;
                 })
                 .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
@@ -108,7 +104,7 @@
                 })
                 .Do("WaitUntilArchiveGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<ServiceControl.Recoverability.FailureGroupView>("/api/errors/groups/").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<ServiceControl.Recoverability.FailureGroupView>("/api/errors/groups/");
                     return failedMessages && failedMessages.Items.Count == 1 && failedMessages.Items[0].Count == 2;
                 })
                 .Done(ctx => true) //Done when sequence is finished
@@ -121,10 +117,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }).DoNotFailOnErrorMessages())
                 .Do("WaitUntilGrouped", async ctx =>
                 {
@@ -145,7 +139,7 @@
                 })
                 .Do("WaitUntilGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors").ConfigureAwait(false);
+                    var failedMessages = await this.TryGetMany<FailedMessage>($"/api/recoverability/groups/{ctx.GroupId}/errors");
                     return failedMessages && failedMessages.Items.Count == 2;
                 })
                 .Do("Archive", async ctx => { await this.Post<object>($"/api/recoverability/groups/{ctx.GroupId}/errors/archive"); })
@@ -161,7 +155,7 @@
                 })
                 .Do("WaitUntilArchiveGroupContainsBothMessages", async ctx =>
                 {
-                    var failedMessages = await this.TryGet<ServiceControl.Recoverability.FailureGroupView>($"/api/archive/groups/id/{ctx.GroupId}").ConfigureAwait(false);
+                    var failedMessages = await this.TryGet<ServiceControl.Recoverability.FailureGroupView>($"/api/archive/groups/id/{ctx.GroupId}");
                     return failedMessages && failedMessages.Item.Count == 2;
                 })
                 .Done(ctx => true) //Done when sequence is finished
@@ -174,10 +168,8 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1)
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 1);
+                    await bus.SendLocal<MyMessage>(m => m.MessageNumber = 2);
                 }).DoNotFailOnErrorMessages())
                 .Do("WaitUntilGrouped", async ctx =>
                 {

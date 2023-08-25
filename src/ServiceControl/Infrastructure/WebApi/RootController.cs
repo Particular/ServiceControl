@@ -10,13 +10,15 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, PersistenceSettings persistenceSettings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
+            this.persistenceSettings = persistenceSettings;
             this.license = license;
             this.loggingSettings = loggingSettings;
             this.httpClientFactory = httpClientFactory;
@@ -83,10 +85,9 @@
                 PerformanceTunning = new
                 {
                     settings.HttpDefaultConnectionLimit,
-                    settings.ExternalIntegrationsDispatchingBatchSize,
-                    settings.ExpirationProcessBatchSize,
-                    settings.ExpirationProcessTimerInSeconds
+                    settings.ExternalIntegrationsDispatchingBatchSize
                 },
+                PersistenceSettings = persistenceSettings,
                 Transport = new
                 {
                     settings.TransportType,
@@ -119,14 +120,14 @@
 
                     try
                     {
-                        var response = await httpClient.GetAsync(uri).ConfigureAwait(false);
+                        var response = await httpClient.GetAsync(uri);
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {
                             version = values.FirstOrDefault() ?? "Missing";
                         }
 
-                        using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        using (var stream = await response.Content.ReadAsStreamAsync())
                         using (var reader = new StreamReader(stream))
                         using (var jsonReader = new JsonTextReader(reader))
                         {
@@ -148,7 +149,7 @@
                 })
                 .ToArray();
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            var results = await Task.WhenAll(tasks);
 
             return Negotiator.FromModel(Request, results);
         }
@@ -156,6 +157,7 @@
         readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
+        readonly PersistenceSettings persistenceSettings;
         readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());

@@ -41,7 +41,7 @@
                     {
                         UpdateStore();
 
-                        await Task.Delay(QueryDelayInterval, cancel.Token).ConfigureAwait(false);
+                        await Task.Delay(QueryDelayInterval, cancel.Token);
                     }
                     catch (OperationCanceledException)
                     {

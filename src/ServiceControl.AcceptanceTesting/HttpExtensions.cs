@@ -64,7 +64,7 @@ namespace ServiceControl.AcceptanceTesting
                 condition = _ => true;
             }
 
-            var response = await provider.GetInternal<List<T>>(url).ConfigureAwait(false);
+            var response = await provider.GetInternal<List<T>>(url);
 
             if (response == null || !response.Any(m => condition(m)))
             {
@@ -83,13 +83,13 @@ namespace ServiceControl.AcceptanceTesting
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
+            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json"));
 
             Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var body = await response.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
 
@@ -103,7 +103,7 @@ namespace ServiceControl.AcceptanceTesting
                 condition = _ => true;
             }
 
-            var response = await provider.GetInternal<T>(url).ConfigureAwait(false);
+            var response = await provider.GetInternal<T>(url);
 
             if (response == null || !condition(response))
             {
@@ -115,9 +115,9 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Func<T, Task<bool>> condition) where T : class
         {
-            var response = await provider.GetInternal<T>(url).ConfigureAwait(false);
+            var response = await provider.GetInternal<T>(url);
 
-            if (response == null || !await condition(response).ConfigureAwait(false))
+            if (response == null || !await condition(response))
             {
                 return SingleResult<T>.Empty;
             }
@@ -162,7 +162,7 @@ namespace ServiceControl.AcceptanceTesting
             }
 
             var httpClient = provider.HttpClient;
-            var response = await httpClient.GetAsync(url).ConfigureAwait(false);
+            var response = await httpClient.GetAsync(url);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
@@ -178,7 +178,7 @@ namespace ServiceControl.AcceptanceTesting
 
             var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json")).ConfigureAwait(false);
+            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json"));
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
@@ -194,7 +194,7 @@ namespace ServiceControl.AcceptanceTesting
 
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var body = await response.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} - {body}");
             }
         }
@@ -238,7 +238,7 @@ namespace ServiceControl.AcceptanceTesting
 
         static async Task<T> GetInternal<T>(this IAcceptanceTestInfrastructureProvider provider, string url) where T : class
         {
-            var response = await provider.GetRaw(url).ConfigureAwait(false);
+            var response = await provider.GetRaw(url);
 
             //for now
             if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
@@ -254,7 +254,7 @@ namespace ServiceControl.AcceptanceTesting
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} {Environment.NewLine} {content}");
             }
 
-            var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync();
             LogRequest();
             return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
 

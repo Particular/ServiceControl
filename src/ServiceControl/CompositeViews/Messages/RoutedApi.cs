@@ -56,7 +56,7 @@ namespace ServiceControl.CompositeViews.Messages
 
                 currentRequest.Headers.Host = remoteUri.Authority; //switch the host header to the new instance host
 
-                var rawResponse = await httpClient.SendAsync(currentRequest).ConfigureAwait(false);
+                var rawResponse = await httpClient.SendAsync(currentRequest);
 
                 return rawResponse;
             }

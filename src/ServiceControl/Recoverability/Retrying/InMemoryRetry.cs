@@ -132,9 +132,9 @@
                 Progress = GetProgress(),
                 IsFailed = Failed,
                 StartTime = Started
-            }).ConfigureAwait(false);
+            });
 
-            await CheckForCompletion().ConfigureAwait(false);
+            await CheckForCompletion();
         }
 
         public Task Skip(int numberOfMessagesSkipped)
@@ -165,7 +165,7 @@
                 NumberOfMessagesProcessed = NumberOfMessagesForwarded,
                 Last = Last ?? DateTime.MaxValue,
                 Classifier = Classifier
-            }).ConfigureAwait(false);
+            });
 
             if (retryType == RetryType.FailureGroup)
             {
@@ -174,7 +174,7 @@
                     FailedMessageIds = new string[0],
                     NumberOfFailedMessages = NumberOfMessagesForwarded,
                     Context = Originator
-                }).ConfigureAwait(false);
+                });
             }
 
             Log.Info($"Retry operation {RequestId} completed. {NumberOfMessagesSkipped} messages skipped, {NumberOfMessagesForwarded} forwarded. Total {TotalNumberOfMessages}.");

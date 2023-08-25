@@ -4,20 +4,18 @@ namespace ServiceControl.Recoverability
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
-    using MessageFailures;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
 
     class ReturnToSenderDequeuer : IHostedService
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IDocumentStore store, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
         {
             InputAddress = settings.StagingQueue;
             this.returnToSender = returnToSender;
@@ -32,7 +30,7 @@ namespace ServiceControl.Recoverability
                 return config;
             };
 
-            faultManager = new CaptureIfMessageSendingFails(store, domainEvents, IncrementCounterOrProlongTimer);
+            faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
 
         }
@@ -55,7 +53,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress).ConfigureAwait(false);
+                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress);
                 IncrementCounterOrProlongTimer();
             }
             else
@@ -121,11 +119,11 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>();
                 registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
-                var startable = await RawEndpoint.Create(config).ConfigureAwait(false);
+                var startable = await RawEndpoint.Create(config);
 
                 errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
 
-                processor = await startable.Start().ConfigureAwait(false);
+                processor = await startable.Start();
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
@@ -146,16 +144,16 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat($"Waiting for forwarder for batch {forwardingBatchId} to finish.");
                 }
 
-                await syncEvent.Task.ConfigureAwait(false);
+                await syncEvent.Task;
                 registration?.Dispose();
                 if (processor != null)
                 {
-                    await processor.Stop().ConfigureAwait(false);
+                    await processor.Stop();
                 }
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
-                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None).ConfigureAwait(false);
+                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
             }
 
             if (endedPrematurely || cancellationToken.IsCancellationRequested)
@@ -185,8 +183,8 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Completing forwarding.");
             }
 
-            await Task.Run(() => syncEvent?.TrySetResult(true)).ConfigureAwait(false);
-            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0)).ConfigureAwait(false);
+            await Task.Run(() => syncEvent?.TrySetResult(true));
+            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0));
             if (Log.IsDebugEnabled)
             {
                 Log.Debug("Forwarding completed.");
@@ -210,9 +208,9 @@ namespace ServiceControl.Recoverability
 
         class CaptureIfMessageSendingFails : IErrorHandlingPolicy
         {
-            public CaptureIfMessageSendingFails(IDocumentStore store, IDomainEvents domainEvents, Action executeOnFailure)
+            public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure)
             {
-                this.store = store;
+                this.dataStore = dataStore;
                 this.executeOnFailure = executeOnFailure;
                 this.domainEvents = domainEvents;
             }
@@ -226,25 +224,8 @@ namespace ServiceControl.Recoverability
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
                     Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Error.Exception);
 
-                    using (var session = store.OpenAsyncSession())
-                    {
-                        var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(messageUniqueId))
-                            .ConfigureAwait(false);
-                        if (failedMessage != null)
-                        {
-                            failedMessage.Status = FailedMessageStatus.Unresolved;
-                        }
+                    await dataStore.RevertRetry(messageUniqueId);
 
-                        var failedMessageRetry = await session.LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId))
-                            .ConfigureAwait(false);
-                        if (failedMessageRetry != null)
-                        {
-                            session.Delete(failedMessageRetry);
-                        }
-
-                        await session.SaveChangesAsync()
-                            .ConfigureAwait(false);
-                    }
 
                     string reason;
                     try
@@ -261,7 +242,7 @@ namespace ServiceControl.Recoverability
                         Reason = reason,
                         FailedMessageId = messageUniqueId,
                         Destination = destination
-                    }).ConfigureAwait(false);
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -277,8 +258,8 @@ namespace ServiceControl.Recoverability
             }
 
             readonly Action executeOnFailure;
-            IDocumentStore store;
-            IDomainEvents domainEvents;
+            readonly IErrorMessageDataStore dataStore;
+            readonly IDomainEvents domainEvents;
             static readonly ILog Log = LogManager.GetLogger(typeof(CaptureIfMessageSendingFails));
         }
 

@@ -41,7 +41,7 @@ namespace ServiceControl.Audit.Infrastructure
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
 
-                    await transportCustomization.ProvisionQueues(username, transportSettings, additionalQueues).ConfigureAwait(false);
+                    await transportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
                 }
             }
 
@@ -52,8 +52,7 @@ namespace ServiceControl.Audit.Infrastructure
             var persistence = persistenceConfiguration.Create(persistenceSettings);
             var installer = persistence.CreateInstaller();
 
-            await installer.Install()
-                .ConfigureAwait(false);
+            await installer.Install();
         }
 
         bool ValidateLicense(Settings.Settings settings)

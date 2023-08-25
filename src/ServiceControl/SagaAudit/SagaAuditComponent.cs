@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.SagaAudit
 {
-    using CustomChecks;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -9,12 +8,11 @@
     {
         public override void Configure(Settings settings, IHostBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddCustomCheck<AuditRetentionCustomCheck>();
-            });
+            // TODO: If this component doesn't do anything, should it even exist?
         }
 
-        public override void Setup(Settings settings, IComponentInstallationContext context) => context.AddIndexAssembly(typeof(SagaDetailsIndex).Assembly);
+        public override void Setup(Settings settings, IComponentInstallationContext context)
+        {
+        }
     }
 }

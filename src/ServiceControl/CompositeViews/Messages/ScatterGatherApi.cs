@@ -12,7 +12,6 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -26,19 +25,19 @@ namespace ServiceControl.CompositeViews.Messages
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
-    abstract class ScatterGatherApi<TIn, TOut> : ScatterGatherApiBase, IApi
+    abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        protected ScatterGatherApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)
+        protected ScatterGatherApi(TDataStore store, Settings settings, Func<HttpClient> httpClientFactory)
         {
-            Store = documentStore;
+            DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
         }
 
-        protected IDocumentStore Store { get; }
-        protected Settings Settings { get; }
-        protected Func<HttpClient> HttpClientFactory { get; }
+        protected TDataStore DataStore { get; }
+        Settings Settings { get; }
+        Func<HttpClient> HttpClientFactory { get; }
 
         public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
         {
@@ -60,14 +59,15 @@ namespace ServiceControl.CompositeViews.Messages
                 tasks.Add(RemoteCall(currentRequest, remote.ApiAsUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
-            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks).ConfigureAwait(false));
+            var results = await Task.WhenAll(tasks);
+            var response = AggregateResults(currentRequest, results);
 
             return Negotiator.FromQueryResult(currentRequest, response);
         }
 
         async Task<QueryResult<TOut>> LocalCall(HttpRequestMessage request, TIn input, string instanceId)
         {
-            var result = await LocalQuery(request, input).ConfigureAwait(false);
+            var result = await LocalQuery(request, input);
             result.InstanceId = instanceId;
             return result;
         }
@@ -93,13 +93,14 @@ namespace ServiceControl.CompositeViews.Messages
             return new QueryStatsInfo(
                 string.Join("", infos.OrderBy(x => x.ETag).Select(x => x.ETag)),
                 infos.Sum(x => x.TotalCount),
+                isStale: infos.Any(x => x.IsStale),
                 infos.Max(x => x.HighestTotalCountOfAllTheInstances)
             );
         }
 
         async Task<QueryResult<TOut>> RemoteCall(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
         {
-            var fetched = await FetchAndParse(currentRequest, remoteUri).ConfigureAwait(false);
+            var fetched = await FetchAndParse(currentRequest, remoteUri);
             fetched.InstanceId = instanceId;
             return fetched;
         }
@@ -111,15 +112,14 @@ namespace ServiceControl.CompositeViews.Messages
             try
             {
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
-                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri))
-                    .ConfigureAwait(false);
+                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri));
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
                     return QueryResult<TOut>.Empty();
                 }
 
-                return await ParseResult(rawResponse).ConfigureAwait(false);
+                return await ParseResult(rawResponse);
             }
             catch (HttpRequestException httpRequestException)
             {
@@ -141,7 +141,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
-            using (var responseStream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false))
+            using (var responseStream = await responseMessage.Content.ReadAsStreamAsync())
             using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
             {
                 var remoteResults = jsonSerializer.Deserialize<TOut>(jsonReader);
@@ -152,23 +152,28 @@ namespace ServiceControl.CompositeViews.Messages
                     totalCount = int.Parse(totalCounts.ElementAt(0));
                 }
 
-                string etag = null;
-                if (responseMessage.Headers.TryGetValues("ETag", out var etags))
+                string etag = responseMessage.Headers.ETag?.Tag;
+                if (etag != null)
                 {
-                    etag = etags.ElementAt(0);
+                    // Strip quotes from Etag, checking for " which isn't really needed as Etag always has quotes but not 100% certain.
+                    // Later the value is joined into a new Etag when the results are aggregated and returned
+                    if (etag.StartsWith("\""))
+                    {
+                        etag = etag.Substring(1, etag.Length - 2);
+                    }
                 }
 
-                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount));
+                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
             }
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TIn, TOut>));
+        static readonly ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TDataStore, TIn, TOut>));
     }
 
-    abstract class ScatterGatherApiNoInput<TOut> : ScatterGatherApi<NoInput, TOut>
+    abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
         where TOut : class
     {
-        protected ScatterGatherApiNoInput(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        protected ScatterGatherApiNoInput(TStore store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
         {
         }
 

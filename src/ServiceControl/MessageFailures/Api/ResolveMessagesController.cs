@@ -31,8 +31,7 @@
 
                 foreach (var id in request.uniquemessageids)
                 {
-                    await messageSession.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id })
-                        .ConfigureAwait(false);
+                    await messageSession.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
                 }
 
                 return Request.CreateResponse(HttpStatusCode.Accepted);
@@ -54,7 +53,7 @@
             {
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
-            }).ConfigureAwait(false);
+            });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
@@ -85,7 +84,7 @@
                 m.QueueAddress = request.queueaddress;
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
-            }).ConfigureAwait(false);
+            });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }

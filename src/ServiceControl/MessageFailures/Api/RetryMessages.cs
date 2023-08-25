@@ -27,7 +27,7 @@
                 return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
-            return await retryMessagesApi.Execute(this, failedMessageId).ConfigureAwait(false);
+            return await retryMessagesApi.Execute(this, failedMessageId);
         }
 
         [Route("errors/retry")]
@@ -39,8 +39,7 @@
                 return Request.CreateResponse(HttpStatusCode.BadRequest);
             }
 
-            await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray())
-                .ConfigureAwait(false);
+            await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
@@ -58,7 +57,7 @@
             {
                 m.QueueAddress = queueAddress;
                 m.Status = FailedMessageStatus.Unresolved;
-            }).ConfigureAwait(false);
+            });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
@@ -67,8 +66,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> RetryAll()
         {
-            await messageSession.SendLocal(new RequestRetryAll())
-                .ConfigureAwait(false);
+            await messageSession.SendLocal(new RequestRetryAll());
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
@@ -77,8 +75,7 @@
         [HttpPost]
         public async Task<HttpResponseMessage> RetryAllByEndpoint(string endpointName)
         {
-            await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName })
-                .ConfigureAwait(false);
+            await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName });
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }

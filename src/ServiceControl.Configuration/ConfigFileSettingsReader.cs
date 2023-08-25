@@ -24,9 +24,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             var fullKey = $"{root}/{name}";
 
-            if (ConfigurationManager.AppSettings[fullKey] != null)
+            var appSettingValue = ConfigurationManager.AppSettings[fullKey];
+            if (appSettingValue != null)
             {
-                value = (T)Convert.ChangeType(ConfigurationManager.AppSettings[fullKey], typeof(T));
+                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue); // TODO: Just added this to have expansing on appsettings to not have hardcoded "temp" paths which are different for everyone.
+                value = (T)Convert.ChangeType(appSettingValue, typeof(T));
                 return true;
             }
 

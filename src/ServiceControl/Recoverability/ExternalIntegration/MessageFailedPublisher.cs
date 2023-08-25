@@ -6,11 +6,17 @@ namespace ServiceControl.Recoverability.ExternalIntegration
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using ExternalIntegrations;
-    using MessageFailures;
-    using Raven.Client;
+    using ServiceControl.Persistence;
 
     class MessageFailedPublisher : EventPublisher<MessageFailed, MessageFailedPublisher.DispatchContext>
     {
+        readonly IErrorMessageDataStore dataStore;
+
+        public MessageFailedPublisher(IErrorMessageDataStore dataStore)
+        {
+            this.dataStore = dataStore;
+        }
+
         protected override DispatchContext CreateDispatchRequest(MessageFailed @event)
         {
             return new DispatchContext
@@ -19,23 +25,11 @@ namespace ServiceControl.Recoverability.ExternalIntegration
             };
         }
 
-        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
+        protected override async Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
-            var documentIds = contexts.Select(x => x.FailedMessageId).Cast<ValueType>().ToArray();
-            var failedMessageData = await session.LoadAsync<FailedMessage>(documentIds)
-                .ConfigureAwait(false);
-
-            var failedMessages = new List<object>(failedMessageData.Length);
-            foreach (var entity in failedMessageData)
-            {
-                if (entity != null)
-                {
-                    session.Advanced.Evict(entity);
-                    failedMessages.Add(entity.ToEvent());
-                }
-            }
-
-            return failedMessages;
+            var ids = contexts.Select(x => x.FailedMessageId).ToArray();
+            var results = await dataStore.FailedMessagesFetch(ids);
+            return results.Select(x => x.ToEvent());
         }
 
         public class DispatchContext

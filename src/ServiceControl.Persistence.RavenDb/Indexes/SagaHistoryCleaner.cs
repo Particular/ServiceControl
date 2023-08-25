@@ -13,7 +13,7 @@
     using Raven.Database;
     using ServiceControl.Infrastructure.RavenDB;
 
-    public static class SagaHistoryCleaner
+    static class SagaHistoryCleaner
     {
         public static void Clean(int deletionBatchSize, DocumentDatabase database, DateTime expiryThreshold, CancellationToken cancellationToken = default)
         {

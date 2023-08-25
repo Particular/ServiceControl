@@ -9,7 +9,7 @@
     using UnitOfWork;
 
     [TestFixture]
-    class PersistenceTestFixture
+    abstract class PersistenceTestFixture
     {
         public Action<PersistenceSettings> SetSettings = _ => { };
 

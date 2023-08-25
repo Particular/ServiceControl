@@ -5,13 +5,14 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using NServiceBus;
+    using ServiceControl.Persistence.Recoverability;
 
     class FailureGroupsUnarchiveController : ApiController
     {
-        public FailureGroupsUnarchiveController(IMessageSession bus, UnarchivingManager unarchivingManager)
+        public FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver)
         {
             this.bus = bus;
-            this.unarchivingManager = unarchivingManager;
+            this.archiver = archiver;
         }
 
 
@@ -24,18 +25,17 @@
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "missing groupId");
             }
 
-            if (!unarchivingManager.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
+            if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
-                await unarchivingManager.StartUnarchiving(groupId, ArchiveType.FailureGroup)
-                    .ConfigureAwait(false);
+                await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup);
 
-                await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; }).ConfigureAwait(false);
+                await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; });
             }
 
             return Request.CreateResponse(HttpStatusCode.Accepted);
         }
 
         readonly IMessageSession bus;
-        readonly UnarchivingManager unarchivingManager;
+        readonly IArchiveMessages archiver;
     }
 }

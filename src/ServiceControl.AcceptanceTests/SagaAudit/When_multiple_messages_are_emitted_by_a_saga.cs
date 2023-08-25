@@ -81,14 +81,10 @@
 
                 public async Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    await context.Reply(new MessageReplyBySaga())
-                        .ConfigureAwait(false);
-                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga())
-                        .ConfigureAwait(false);
-                    await context.SendLocal(new MessageSentBySaga())
-                        .ConfigureAwait(false);
-                    await context.Publish(new MessagePublishedBySaga())
-                        .ConfigureAwait(false);
+                    await context.Reply(new MessageReplyBySaga());
+                    await ReplyToOriginator(context, new MessageReplyToOriginatorBySaga());
+                    await context.SendLocal(new MessageSentBySaga());
+                    await context.Publish(new MessagePublishedBySaga());
                     testContext.SagaId = Data.Id;
                 }
 

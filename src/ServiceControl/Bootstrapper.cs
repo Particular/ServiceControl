@@ -70,6 +70,9 @@ namespace Particular.ServiceControl
 
         void CreateHost()
         {
+            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
+            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
+
             RecordStartup(loggingSettings, configuration);
 
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
@@ -90,6 +93,11 @@ namespace Particular.ServiceControl
 
             HostBuilder = new HostBuilder();
             HostBuilder
+                .UseDefaultServiceProvider(c => // TODO: Remove when done testing
+                {
+                    c.ValidateOnBuild = false;
+                    c.ValidateScopes = false;
+                })
                 .ConfigureLogging(builder =>
                 {
                     builder.ClearProviders();
@@ -112,7 +120,7 @@ namespace Particular.ServiceControl
                     services.AddSingleton(sp => HttpClientFactory);
                 })
                 .UseLicenseCheck()
-                .SetupPersistence(settings)
+                .SetupPersistence(persistenceSettings, persistenceConfiguration)
                 .UseMetrics(settings.PrintMetrics)
                 .UseNServiceBus(context =>
                 {
@@ -125,8 +133,7 @@ namespace Particular.ServiceControl
                 .UseEmailNotifications()
                 .UseAsyncTimer()
                 .If(!settings.DisableHealthChecks, b => b.UseInternalCustomChecks())
-                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components)
-                ;
+                .UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
         TransportSettings MapSettings(Settings settings)
@@ -149,6 +156,10 @@ namespace Particular.ServiceControl
             try
             {
                 var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
                 return info.Length;
             }
             catch
@@ -174,16 +185,21 @@ namespace Particular.ServiceControl
         static long DirSize(DirectoryInfo d)
         {
             long size = 0;
-            FileInfo[] fis = d.GetFiles();
-            foreach (FileInfo fi in fis)
+            if (d.Exists)
             {
-                size += fi.Length;
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di);
+                }
             }
-            DirectoryInfo[] dis = d.GetDirectories();
-            foreach (DirectoryInfo di in dis)
-            {
-                size += DirSize(di);
-            }
+
             return size;
         }
 
@@ -227,7 +243,7 @@ Selected Transport Customization:   {settings.TransportType}
                     settings.NotificationsFilter,
                     settings.RemoteInstances,
                     settings.RetryHistoryDepth,
-                    settings.RunInMemory,
+                    settings.PersisterSpecificSettings,
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
                     settings.TransportType,

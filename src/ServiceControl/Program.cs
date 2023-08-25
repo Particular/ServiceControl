@@ -5,6 +5,7 @@
     using System.Reflection;
     using System.Threading.Tasks;
     using Commands;
+    using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
     using NServiceBus.Logging;
@@ -32,8 +33,7 @@
 
             settings = new Settings(arguments.ServiceName);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments, settings)
-                .ConfigureAwait(false);
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
         static void LogException(Exception ex)
         {
@@ -55,6 +55,13 @@
                 if (transportFolder != null)
                 {
                     var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
+                    assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                }
+
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
+                if (assembly == null && persistenceFolder != null)
+                {
+                    var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
                     assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
                 }
             }

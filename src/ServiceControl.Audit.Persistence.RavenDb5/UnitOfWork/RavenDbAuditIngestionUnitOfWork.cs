@@ -39,7 +39,7 @@
                 processedMessage.MessageMetadata["ContentLength"] = 0;
             }
 
-            await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata()).ConfigureAwait(false);
+            await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata());
 
             if (body != null)
             {
@@ -50,7 +50,7 @@
                         contentType = "text/xml";
                     }
 
-                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream).ConfigureAwait(false);
+                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream);
                 }
             }
         }
@@ -70,6 +70,6 @@
             => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()
-            => await bulkInsert.DisposeAsync().ConfigureAwait(false);
+            => await bulkInsert.DisposeAsync();
     }
 }

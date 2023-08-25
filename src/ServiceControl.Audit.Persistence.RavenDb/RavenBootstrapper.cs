@@ -3,12 +3,10 @@
     using System;
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
-    using System.Reflection;
     using System.Runtime.Serialization;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
     using ServiceControl.Audit.Infrastructure.Migration;
-    using ServiceControl.SagaAudit;
 
     class RavenBootstrapper
     {
@@ -134,10 +132,5 @@
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
 
         static readonly SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
-
-        public static Assembly[] IndexAssemblies =
-        {
-            typeof(RavenBootstrapper).Assembly, typeof(SagaDetailsIndex).Assembly
-        };
     }
 }

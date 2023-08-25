@@ -58,7 +58,7 @@
                 log.Debug($"Ingesting {contexts.Count} message contexts");
             }
 
-            var stored = await auditPersister.Persist(contexts, dispatcher).ConfigureAwait(false);
+            var stored = await auditPersister.Persist(contexts, dispatcher);
 
             try
             {
@@ -68,8 +68,7 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(stored, settings.AuditLogQueue, dispatcher)
-                        .ConfigureAwait(false);
+                    await Forward(stored, settings.AuditLogQueue, dispatcher);
                     if (log.IsDebugEnabled)
                     {
                         log.Debug("Forwarded messages");
@@ -146,8 +145,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag())
-                    .ConfigureAwait(false);
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
             }
             catch (Exception e)
             {

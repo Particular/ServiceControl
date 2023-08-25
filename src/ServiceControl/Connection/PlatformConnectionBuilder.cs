@@ -18,7 +18,7 @@
             await Task.WhenAll(
                 from provider in platformConnectionProviders
                 select provider.ProvideConnectionDetails(connectionDetails)
-            ).ConfigureAwait(false);
+            );
 
             return connectionDetails;
         }

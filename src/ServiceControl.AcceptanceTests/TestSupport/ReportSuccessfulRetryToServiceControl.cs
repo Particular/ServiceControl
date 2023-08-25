@@ -11,7 +11,7 @@
     {
         public async Task Invoke(IIncomingPhysicalMessageContext context, Func<IIncomingPhysicalMessageContext, Task> next)
         {
-            await next(context).ConfigureAwait(false);
+            await next(context);
 
             if (context.MessageHeaders.TryGetValue("ServiceControl.Retry.UniqueMessageId", out var messageId))
             {
@@ -21,7 +21,7 @@
                 await context.Send(new MarkMessageFailureResolvedByRetry
                 {
                     FailedMessageId = messageId
-                }, options).ConfigureAwait(false);
+                }, options);
             }
         }
     }

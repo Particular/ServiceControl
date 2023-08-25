@@ -5,17 +5,17 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAuditCountsForEndpointApi : ScatterGatherApi<string, IList<AuditCount>>
+    class GetAuditCountsForEndpointApi : ScatterGatherApi<IErrorMessageDataStore, string, IList<AuditCount>>
     {
         static readonly IList<AuditCount> empty = new List<AuditCount>().AsReadOnly();
 
-        public GetAuditCountsForEndpointApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory)
-            : base(documentStore, settings, httpClientFactory)
+        public GetAuditCountsForEndpointApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory)
+            : base(dataStore, settings, httpClientFactory)
         {
         }
 

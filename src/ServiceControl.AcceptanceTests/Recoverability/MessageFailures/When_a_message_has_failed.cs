@@ -75,12 +75,21 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .WithEndpoint<Receiver>(b => b.When(bus => bus.SendLocal(myMessage)).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
+                    if (c.MessageId == null)
+                    {
+                        // Message hasn't failed yet
+                        return false;
+                    }
+
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })
                 .Run();
 
-            Assert.AreEqual($"{{\"Content\":\"{myMessage.Content}\"}}", await result.Content.ReadAsStringAsync());
+            var stringResult = await result.Content.ReadAsStringAsync();
+            var expectedResult = $"{{\"Content\":\"{myMessage.Content}\"}}";
+
+            Assert.AreEqual(expectedResult, stringResult);
         }
 
         [Test]
@@ -97,6 +106,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 .WithEndpoint<ReceiverWithCustomSerializer>(b => b.When(bus => bus.SendLocal(myMessage)).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
+                    if (c.MessageId == null)
+                    {
+                        // Message hasn't failed yet
+                        return false;
+                    }
+
                     result = await this.GetRaw("/api/messages/" + c.MessageId + "/body");
                     return result.IsSuccessStatusCode;
                 })

@@ -1,24 +1,19 @@
 namespace ServiceControl.Recoverability
 {
+    using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
-    using MessageFailures;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using Operations.BodyStorage;
-    using Raven.Client;
-    using Raven.Json.Linq;
+    using ServiceControl.Persistence;
 
     class ReturnToSender
     {
-        public ReturnToSender(IBodyStorage bodyStorage, IDocumentStore documentStore)
+        public ReturnToSender(IBodyStorage bodyStorage, IErrorMessageDataStore errorMessageStore)
         {
-            this.documentStore = documentStore;
+            this.errorMessageStore = errorMessageStore;
             this.bodyStorage = bodyStorage;
         }
 
@@ -40,13 +35,11 @@ namespace ServiceControl.Recoverability
             {
                 if (outgoingHeaders.Remove("ServiceControl.Retry.BodyOnFailedMessage"))
                 {
-                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId)
-                        .ConfigureAwait(false);
+                    body = await FetchFromFailedMessage(outgoingHeaders, messageId, attemptMessageId);
                 }
                 else
                 {
-                    body = await FetchFromBodyStore(attemptMessageId, messageId)
-                        .ConfigureAwait(false);
+                    body = await FetchFromBodyStore(attemptMessageId, messageId);
                 }
 
                 outgoingHeaders.Remove("ServiceControl.Retry.Attempt.MessageId");
@@ -79,8 +72,7 @@ namespace ServiceControl.Recoverability
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
-            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions)
-                .ConfigureAwait(false);
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions);
 
             if (Log.IsDebugEnabled)
             {
@@ -90,45 +82,42 @@ namespace ServiceControl.Recoverability
 
         async Task<byte[]> FetchFromFailedMessage(Dictionary<string, string> outgoingHeaders, string messageId, string attemptMessageId)
         {
-            byte[] body = null;
-            string documentId = FailedMessage.MakeDocumentId(outgoingHeaders["ServiceControl.Retry.UniqueMessageId"]);
-            var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
-                transformer: MessagesBodyTransformer.Name).ConfigureAwait(false);
+            var uniqueMessageId = outgoingHeaders["ServiceControl.Retry.UniqueMessageId"];
+            byte[] body = await errorMessageStore.FetchFromFailedMessage(uniqueMessageId);
 
-            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)
-                ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
-
-            if (resultBody != null)
-            {
-                body = Encoding.UTF8.GetBytes(resultBody);
-
-                if (Log.IsDebugEnabled)
-                {
-                    Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
-                }
-            }
-            else
+            // TODO: Weird that none of these logged parameters are actually used in the attempt to load the thing
+            if (body == null)
             {
                 Log.WarnFormat("{0}: Message Body not found on index for attempt Id {1}", messageId, attemptMessageId);
             }
+            else if (Log.IsDebugEnabled)
+            {
+                Log.DebugFormat("{0}: Body size: {1} bytes retrieved from index", messageId, body.LongLength);
+            }
+
             return body;
         }
 
         async Task<byte[]> FetchFromBodyStore(string attemptMessageId, string messageId)
         {
             byte[] body = null;
-            var result = await bodyStorage.TryFetch(attemptMessageId)
-                .ConfigureAwait(false);
+            var result = await bodyStorage.TryFetch(attemptMessageId);
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+            }
+
             if (result.HasResult)
             {
-                using (result.Stream)
+                using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
                 {
                     // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
                     // furthermore call ToArray would neglect many of the benefits of the recyclable stream
                     // RavenDB always returns a memory stream so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
                     // this assumption might change when the database is upgraded but right now this is the most memory efficient way to do things
                     // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
-                    body = ((MemoryStream)result.Stream).ToArray();
+                    body = result.Stream.ToArray();
                 }
 
                 if (Log.IsDebugEnabled)
@@ -138,15 +127,14 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId,
-                    attemptMessageId);
+                Log.WarnFormat("{0}: Message Body not found in attachment store for attempt Id {1}", messageId, attemptMessageId);
             }
             return body;
         }
 
-        static readonly byte[] EmptyBody = new byte[0];
+        static readonly byte[] EmptyBody = Array.Empty<byte>();
         readonly IBodyStorage bodyStorage;
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
-        readonly IDocumentStore documentStore;
+        readonly IErrorMessageDataStore errorMessageStore;
     }
 }

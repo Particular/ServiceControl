@@ -1,7 +1,5 @@
 namespace ServiceControl.Persistence.Infrastructure
 {
-    using System.Net.Http;
-
     public class PagingInfo
     {
         public const int DefaultPageSize = 50;
@@ -17,26 +15,6 @@ namespace ServiceControl.Persistence.Infrastructure
             PageSize = pageSize;
             Next = pageSize;
             Offset = (Page - 1) * Next;
-        }
-    }
-
-    public static class PagingInfoExtension
-    {
-        public static PagingInfo GetPagingInfo(this HttpRequestMessage request)
-        {
-            var maxResultsPerPage = request.GetQueryStringValue("per_page", PagingInfo.DefaultPageSize);
-            if (maxResultsPerPage < 1)
-            {
-                maxResultsPerPage = PagingInfo.DefaultPageSize;
-            }
-
-            var page = request.GetQueryStringValue("page", 1);
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            return new PagingInfo(page, maxResultsPerPage);
         }
     }
 }

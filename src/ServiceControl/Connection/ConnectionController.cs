@@ -15,7 +15,7 @@
         [HttpGet]
         public async Task<IHttpActionResult> GetConnectionDetails()
         {
-            var connectionDetails = await connectionBuilder.BuildPlatformConnection().ConfigureAwait(false);
+            var connectionDetails = await connectionBuilder.BuildPlatformConnection();
 
             return Json(
                 new

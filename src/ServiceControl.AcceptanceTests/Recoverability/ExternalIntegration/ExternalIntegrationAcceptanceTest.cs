@@ -54,7 +54,7 @@
                         {"NServiceBus.ProcessingEndpoint", nameof(ErrorSender)},
                         {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, typeof(AMessage).AssemblyQualifiedName}
-                    }, new byte[0]);
+                    }, Array.Empty<byte>());
                     return msg;
                 }
             }

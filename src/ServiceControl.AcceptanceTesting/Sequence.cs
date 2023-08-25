@@ -18,7 +18,7 @@
         {
             steps.Add(async context =>
             {
-                await handler(context).ConfigureAwait(false);
+                await handler(context);
                 return true;
             });
             stepNames.Add(step);
@@ -39,7 +39,7 @@
             }
 
             var step = steps[currentStep];
-            var advance = await step(context).ConfigureAwait(false);
+            var advance = await step(context);
             if (advance)
             {
                 var nextStep = currentStep + 1;

@@ -20,8 +20,7 @@
 
         protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
         {
-            await messageSession.SendLocal<RetryMessage>(m => { m.FailedMessageId = input; })
-                .ConfigureAwait(false);
+            await messageSession.SendLocal<RetryMessage>(m => { m.FailedMessageId = input; });
 
             return request.CreateResponse(HttpStatusCode.Accepted);
         }

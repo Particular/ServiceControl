@@ -47,7 +47,7 @@ namespace ServiceControl.Persistence.InMemory
                 })
                 .ToList();
 
-            var stats = new QueryStatsInfo("", storage.Count);
+            var stats = new QueryStatsInfo("", storage.Count, false);
 
             return Task.FromResult(new QueryResult<IList<CustomCheck>>(result, stats));
         }
@@ -61,6 +61,8 @@ namespace ServiceControl.Persistence.InMemory
             }
             return Task.CompletedTask;
         }
+
+        public Task<int> GetNumberOfFailedChecks() => Task.FromResult(storage.Count(x => x.Value.HasFailed));
 
         Dictionary<Guid, CustomCheckDetail> storage = new Dictionary<Guid, CustomCheckDetail>();
     }

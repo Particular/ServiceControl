@@ -188,7 +188,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                         s.AddTransient<FailedAuditsController>();
                     });
 
-                host = await bootstrapper.HostBuilder.StartAsync().ConfigureAwait(false);
+                host = await bootstrapper.HostBuilder.StartAsync();
 
                 ServiceProvider = host.Services;
             }
@@ -215,7 +215,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync().ConfigureAwait(false);
+                await host.StopAsync();
                 HttpClient.Dispose();
                 handler.Dispose();
             }

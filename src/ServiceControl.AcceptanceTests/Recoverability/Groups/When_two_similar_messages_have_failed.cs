@@ -27,12 +27,9 @@
             await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal<MyMessage>(m => m.IsFirst = true)
-                        .ConfigureAwait(false);
-                    await Task.Delay(TimeSpan.FromSeconds(1))
-                        .ConfigureAwait(false);
-                    await bus.SendLocal<MyMessage>(m => m.IsFirst = false)
-                        .ConfigureAwait(false);
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = true);
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    await bus.SendLocal<MyMessage>(m => m.IsFirst = false);
                 }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
