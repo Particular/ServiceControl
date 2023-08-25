@@ -36,8 +36,8 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         protected TDataStore DataStore { get; }
-        protected Settings Settings { get; }
-        protected Func<HttpClient> HttpClientFactory { get; }
+        Settings Settings { get; }
+        Func<HttpClient> HttpClientFactory { get; }
 
         public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
         {
@@ -161,7 +161,7 @@ namespace ServiceControl.CompositeViews.Messages
             }
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TDataStore, TIn, TOut>));
+        static readonly ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TDataStore, TIn, TOut>));
     }
 
     abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
