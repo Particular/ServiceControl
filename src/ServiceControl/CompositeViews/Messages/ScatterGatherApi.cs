@@ -59,7 +59,8 @@ namespace ServiceControl.CompositeViews.Messages
                 tasks.Add(RemoteCall(currentRequest, remote.ApiAsUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
             }
 
-            var response = AggregateResults(currentRequest, await Task.WhenAll(tasks));
+            var results = await Task.WhenAll(tasks);
+            var response = AggregateResults(currentRequest, results);
 
             return Negotiator.FromQueryResult(currentRequest, response);
         }
@@ -151,10 +152,15 @@ namespace ServiceControl.CompositeViews.Messages
                     totalCount = int.Parse(totalCounts.ElementAt(0));
                 }
 
-                string etag = null;
-                if (responseMessage.Headers.TryGetValues("ETag", out var etags))
+                string etag = responseMessage.Headers.ETag?.Tag;
+                if (etag != null)
                 {
-                    etag = etags.ElementAt(0);
+                    // Strip quotes from Etag, checking for " which isn't really needed as Etag always has quotes but not 100% certain.
+                    // Later the value is joined into a new Etag when the results are aggregated and returned
+                    if (etag.StartsWith("\""))
+                    {
+                        etag = etag.Substring(1, etag.Length - 2);
+                    }
                 }
 
                 return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
