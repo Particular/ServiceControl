@@ -1,9 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
     using System.IO;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
@@ -14,13 +11,8 @@
     {
         public ConfigureEndpointLearningTransport()
         {
-            using (var sha1 = SHA1.Create())
-            {
-                var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(TestContext.CurrentContext.Test.FullName));
-                var hash = string.Concat(hashBytes.Take(6).Select(b => b.ToString("x2")));
-                var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport", hash);
-                ConnectionString = Path.GetFullPath(relativePath);
-            }
+            var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport");
+            ConnectionString = Path.GetFullPath(relativePath);
         }
 
         public string ConnectionString { get; set; }
