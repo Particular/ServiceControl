@@ -147,29 +147,28 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void ProcessRecord()
         {
-            var details = new ServiceControlNewInstance
-            {
-                InstallPath = InstallPath,
-                LogPath = LogPath,
-                DBPath = DBPath,
-                Name = Name,
-                DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName,
-                ServiceDescription = Description,
-                ServiceAccount = ServiceAccount,
-                ServiceAccountPwd = ServiceAccountPassword,
-                HostName = HostName,
-                Port = Port,
-                DatabaseMaintenancePort = DatabaseMaintenancePort,
-                VirtualDirectory = VirtualDirectory,
-                ErrorQueue = ErrorQueue,
-                ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue,
-                ForwardErrorMessages = ForwardErrorMessages.ToBool(),
-                ErrorRetentionPeriod = ErrorRetentionPeriod,
-                ConnectionString = ConnectionString,
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
-                SkipQueueCreation = SkipQueueCreation,
-                EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies,
-            };
+            var details = ServiceControlNewInstance.CreateWithDefaultPersistence();
+
+            details.InstallPath = InstallPath;
+            details.LogPath = LogPath;
+            details.DBPath = DBPath;
+            details.Name = Name;
+            details.DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
+            details.ServiceDescription = Description;
+            details.ServiceAccount = ServiceAccount;
+            details.ServiceAccountPwd = ServiceAccountPassword;
+            details.HostName = HostName;
+            details.Port = Port;
+            details.DatabaseMaintenancePort = DatabaseMaintenancePort;
+            details.VirtualDirectory = VirtualDirectory;
+            details.ErrorQueue = ErrorQueue;
+            details.ErrorLogQueue = string.IsNullOrWhiteSpace(ErrorLogQueue) ? null : ErrorLogQueue;
+            details.ForwardErrorMessages = ForwardErrorMessages.ToBool();
+            details.ErrorRetentionPeriod = ErrorRetentionPeriod;
+            details.ConnectionString = ConnectionString;
+            details.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            details.SkipQueueCreation = SkipQueueCreation;
+            details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
             var zipfolder = ZipPath.Get(this);

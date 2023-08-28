@@ -49,30 +49,29 @@
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
             var root = Path.Combine(@"c:\Test", instanceName);
-            var details = new ServiceControlNewInstance
-            {
-                DisplayName = instanceName.Replace(".", " "),
-                Name = instanceName,
-                ServiceDescription = "Test SC Instance",
-                DBPath = Path.Combine(root, "Database"),
-                LogPath = Path.Combine(root, "Logs"),
-                InstallPath = Path.Combine(root, "Binaries"),
-                HostName = "localhost",
-                Port = 33335,
-                DatabaseMaintenancePort = 33336,
-                VirtualDirectory = null,
-                AuditQueue = "audittest",
-                ForwardAuditMessages = false,
-                ForwardErrorMessages = false,
-                AuditRetentionPeriod = TimeSpan.FromDays(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI),
-                ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI),
-                ErrorQueue = "testerror",
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ReportCard = new ReportCard(),
-                // but this fails for unit tests as the deploymentCache path is not used
-                // constructer of ServiceControlInstanceMetadata extracts version from zip
-                Version = installer.ZipInfo.Version
-            };
+            var details = ServiceControlNewInstance.CreateWithDefaultPersistence(DeploymentCache);
+
+            details.DisplayName = instanceName.Replace(".", " ");
+            details.Name = instanceName;
+            details.ServiceDescription = "Test SC Instance";
+            details.DBPath = Path.Combine(root, "Database");
+            details.LogPath = Path.Combine(root, "Logs");
+            details.InstallPath = Path.Combine(root, "Binaries");
+            details.HostName = "localhost";
+            details.Port = 33335;
+            details.DatabaseMaintenancePort = 33336;
+            details.VirtualDirectory = null;
+            details.AuditQueue = "audittest";
+            details.ForwardAuditMessages = false;
+            details.ForwardErrorMessages = false;
+            details.AuditRetentionPeriod = TimeSpan.FromDays(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI);
+            details.ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
+            details.ErrorQueue = "testerror";
+            details.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            details.ReportCard = new ReportCard();
+            // but this fails for unit tests as the deploymentCache path is not used
+            // constructer of ServiceControlInstanceMetadata extracts version from zip
+            details.Version = installer.ZipInfo.Version;
 
             await details.Validate(s => Task.FromResult(false)).ConfigureAwait(false);
             if (details.ReportCard.HasErrors)

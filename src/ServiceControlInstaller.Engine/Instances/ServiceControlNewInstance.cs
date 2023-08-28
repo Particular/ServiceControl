@@ -15,11 +15,29 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class ServiceControlNewInstance : ServiceControlInstallableBase, IServiceControlInstance
     {
-        public ServiceControlNewInstance()
+        public static ServiceControlNewInstance CreateWithDefaultPersistence()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var zipInfo = ServiceControlZipInfo.Find(appDirectory);
-            Version = zipInfo.Version;
+            return CreateWithDefaultPersistence(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+        }
+
+        public static ServiceControlNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
+        {
+            return CreateWithPersistence(deploymentCachePath, DefaultPersister);
+        }
+
+        public static ServiceControlNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
+        {
+            var zipInfo = ServiceControlZipInfo.Find(deploymentCachePath);
+            var persistenceManifest = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath)
+                .Single(manifest => manifest.Name == persistence);
+
+            return new ServiceControlNewInstance(zipInfo.Version, persistenceManifest);
+        }
+
+        public ServiceControlNewInstance(Version version, PersistenceManifest persistenceManifest)
+        {
+            Version = version;
+            PersistenceManifest = persistenceManifest;
         }
 
         public override void WriteConfigurationFile()
@@ -28,6 +46,7 @@ namespace ServiceControlInstaller.Engine.Instances
             appConfig.Save();
         }
 
+        public PersistenceManifest PersistenceManifest { get; }
         public override string DirectoryName => "ServiceControl";
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
@@ -126,5 +145,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
             return instanceData;
         }
+
+        // TODO: Change after Raven5 introduced
+        public const string DefaultPersister = "RavenDB35";
     }
 }

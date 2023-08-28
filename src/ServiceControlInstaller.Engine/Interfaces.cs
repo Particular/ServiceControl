@@ -103,5 +103,6 @@ namespace ServiceControlInstaller.Engine
         TimeSpan ErrorRetentionPeriod { get; }
         TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
+        PersistenceManifest PersistenceManifest { get; }
     }
 }

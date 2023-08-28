@@ -5,6 +5,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Configuration;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Configuration;
     using Configuration.ServiceControl;
@@ -15,8 +16,15 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class ServiceControlInstance : ServiceControlBaseService, IServiceControlInstance
     {
-        public ServiceControlInstance(WindowsServiceController service) : base(service)
+        public ServiceControlInstance(IWindowsServiceController service)
+            : this(service, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
         {
+        }
+
+        public ServiceControlInstance(IWindowsServiceController service, string deploymentCachePath) : base(service)
+        {
+            this.deploymentCachePath = deploymentCachePath;
+
             Reload();
         }
 
@@ -25,6 +33,8 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan? AuditRetentionPeriod { get; set; }
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
+
+        public PersistenceManifest PersistenceManifest { get; set; }
 
         public void AddRemoteInstance(string apiUri)
         {
@@ -111,6 +121,19 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
+            var zipInfo = ServiceControlZipInfo.Find(deploymentCachePath);
+            var manifests = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath);
+            var persistenceType = AppConfig.Read<string>(ServiceControlSettings.PersistenceType, null);
+
+            if (string.IsNullOrEmpty(persistenceType))
+            {
+                PersistenceManifest = manifests.Single(m => m.Name == ServiceControlNewInstance.DefaultPersister);
+            }
+            else
+            {
+                PersistenceManifest = manifests.Single(m => m.TypeName == persistenceType);
+            }
+
             ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);
             if (ForwardErrorMessages)
             {
@@ -168,6 +191,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
+            settings.Set(ServiceControlSettings.PersistenceType, PersistenceManifest.TypeName);
 
             if (RemoteInstances != null)
             {
@@ -214,5 +238,7 @@ namespace ServiceControlInstaller.Engine.Instances
                     : folderpath;
             }
         }
+
+        readonly string deploymentCachePath;
     }
 }
