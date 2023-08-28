@@ -117,6 +117,13 @@ namespace ServiceControlInstaller.Engine.Instances
             ConnectionStringValidator.Validate(this);
         }
 
+        public override void CopyFiles(string zipFilePath)
+        {
+            base.CopyFiles(zipFilePath);
+
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
+        }
+
         public static ServiceControlNewInstance Load(string path)
         {
             ServiceControlNewInstance instanceData;
