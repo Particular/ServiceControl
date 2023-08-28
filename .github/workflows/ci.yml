@@ -53,7 +53,7 @@ jobs:
             assets/
           retention-days: 1
       - name: Azure login
-        uses: azure/login@v1.4.6
+        uses: azure/login@v1.4.7
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
