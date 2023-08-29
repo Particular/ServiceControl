@@ -6,7 +6,7 @@
     using System.Linq;
     using Newtonsoft.Json;
 
-    public class ServiceControlAuditPersisters
+    public class ServiceControlPersisters
     {
         public static IReadOnlyList<PersistenceManifest> LoadAllManifests(string zipFilePath)
         {

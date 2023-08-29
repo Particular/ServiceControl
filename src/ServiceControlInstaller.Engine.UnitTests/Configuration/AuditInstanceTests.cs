@@ -7,7 +7,6 @@
     using System.Xml;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 

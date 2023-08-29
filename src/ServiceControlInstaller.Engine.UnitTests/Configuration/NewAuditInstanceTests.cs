@@ -38,7 +38,7 @@
 
             var zipFile = zipFiles.Single(f => f.Name.StartsWith("Particular.ServiceControl.Audit"));
 
-            var allManifests = ServiceControlAuditPersisters.LoadAllManifests(zipFile.FullName);
+            var allManifests = ServiceControlPersisters.LoadAllManifests(zipFile.FullName);
 
             CollectionAssert.IsNotEmpty(allManifests);
         }

@@ -25,6 +25,7 @@
             settings.Set(ServiceControlSettings.DBPath, details.DBPath);
             settings.Set(ServiceControlSettings.ForwardErrorMessages, details.ForwardErrorMessages.ToString(), version);
             settings.Set(ServiceControlSettings.TransportType, details.TransportPackage.TypeName, version);
+            settings.Set(ServiceControlSettings.PersistenceType, details.PersistenceManifest.TypeName);
             settings.Set(ServiceControlSettings.ErrorQueue, details.ErrorQueue);
             settings.Set(ServiceControlSettings.ErrorLogQueue, details.ForwardErrorMessages ? details.ErrorLogQueue : null);
             settings.Set(ServiceControlSettings.AuditRetentionPeriod, details.AuditRetentionPeriod.ToString(), version);
