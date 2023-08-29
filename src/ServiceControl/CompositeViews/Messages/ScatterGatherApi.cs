@@ -62,7 +62,7 @@ namespace ServiceControl.CompositeViews.Messages
             var results = await Task.WhenAll(tasks);
             var response = AggregateResults(currentRequest, results);
 
-            return Negotiator.FromQueryResult(currentRequest, response, scatterGatherRequest: true);
+            return Negotiator.FromQueryResult(currentRequest, response);
         }
 
         async Task<QueryResult<TOut>> LocalCall(HttpRequestMessage request, TIn input, string instanceId)
