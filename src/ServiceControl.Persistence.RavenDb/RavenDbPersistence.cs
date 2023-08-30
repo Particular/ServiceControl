@@ -19,7 +19,7 @@
 
     class RavenDbPersistence : IPersistence
     {
-        public RavenDbPersistence(PersistenceSettings settings, EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
+        public RavenDbPersistence(RavenDBPersisterSettings settings, EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
         {
             this.settings = settings;
             this.documentStore = documentStore;
@@ -84,7 +84,7 @@
         }
 
         readonly RavenStartup ravenStartup;
-        readonly PersistenceSettings settings;
+        readonly RavenDBPersisterSettings settings;
         readonly EmbeddableDocumentStore documentStore;
     }
 }

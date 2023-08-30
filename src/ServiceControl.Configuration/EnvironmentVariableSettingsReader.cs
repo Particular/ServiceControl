@@ -2,16 +2,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
 
-    static class EnvironmentVariableSettingsReader<T>
+    class EnvironmentVariableSettingsReader : ISettingsReader
     {
-        public static T Read(string name, T defaultValue = default)
+        public object Read(string root, string name, Type type, object defaultValue = default)
         {
-            return Read("ServiceControl", name, defaultValue);
-        }
-
-        public static T Read(string root, string name, T defaultValue = default)
-        {
-            if (TryRead(root, name, out var value))
+            if (TryRead(root, name, type, out var value))
             {
                 return value;
             }
@@ -19,14 +14,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return defaultValue;
         }
 
-        public static bool TryRead(string root, string name, out T value)
+        public bool TryRead(string root, string name, Type type, out object value)
         {
-            if (TryReadVariable(out value, $"{root}/{name}"))
+            if (TryReadVariable(type, out value, $"{root}/{name}"))
             {
                 return true;
             }
             // Azure container instance compatibility:
-            if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_')))
+            if (TryReadVariable(type, out value, $"{root}_{name}".Replace('.', '_')))
             {
                 return true;
             }
@@ -35,14 +30,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return false;
         }
 
-        static bool TryReadVariable(out T value, string fullKey)
+        static bool TryReadVariable(Type type, out object value, string fullKey)
         {
             var environmentValue = Environment.GetEnvironmentVariable(fullKey);
 
             if (environmentValue != null)
             {
                 environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-                value = (T)Convert.ChangeType(environmentValue, typeof(T));
+                value = Convert.ChangeType(environmentValue, type);
                 return true;
             }
 

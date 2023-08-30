@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System.Collections.Generic;
+    using System;
 
     public interface IPersistenceConfiguration
     {
-        string Name { get; }
-        IEnumerable<string> ConfigurationKeys { get; }
-        IPersistence Create(PersistenceSettings settings);
+        IPersistence Create(Func<string, Type, object> readSetting);
     }
 }

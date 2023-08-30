@@ -70,9 +70,6 @@ namespace Particular.ServiceControl
 
         void CreateHost()
         {
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-
             RecordStartup(loggingSettings, configuration);
 
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
@@ -115,7 +112,7 @@ namespace Particular.ServiceControl
                     services.AddSingleton(sp => HttpClientFactory);
                 })
                 .UseLicenseCheck()
-                .SetupPersistence(persistenceSettings, persistenceConfiguration)
+                .SetupPersistence(settings.PersistenceType)
                 .UseMetrics(settings.PrintMetrics)
                 .UseNServiceBus(context =>
                 {

@@ -24,17 +24,13 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
 
-        public static PersistenceSettings Settings { get; private set; }
+        public static RavenDBPersisterSettings Settings { get; private set; }
 
-        public static void Configure(EmbeddableDocumentStore documentStore, PersistenceSettings settings)
+        public static void Configure(EmbeddableDocumentStore documentStore, RavenDBPersisterSettings settings)
         {
             Settings = settings;
 
-            var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue(RunInMemoryKey, out var runInMemoryString))
-            {
-                runInMemory = bool.Parse(runInMemoryString);
-            }
+            var runInMemory = settings.RunInMemory;
 
             if (runInMemory)
             {
@@ -42,7 +38,9 @@
             }
             else
             {
-                if (!settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out string dbPath))
+                var dbPath = settings.DatabasePath;
+
+                if (string.IsNullOrEmpty(dbPath))
                 {
                     throw new InvalidOperationException($"{DatabasePathKey} is mandatory");
                 }
@@ -54,11 +52,7 @@
                 documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
             }
 
-            var exposeRavenDB = false;
-            if (settings.PersisterSpecificSettings.TryGetValue(ExposeRavenDBKey, out var exposeRavenDBString))
-            {
-                exposeRavenDB = bool.Parse(exposeRavenDBString);
-            }
+            var exposeRavenDB = settings.ExposeRavenDB;
 
             documentStore.UseEmbeddedHttpServer = settings.MaintenanceMode || exposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
@@ -79,11 +73,7 @@
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            var runCleanupBundle = true;
-            if (settings.PersisterSpecificSettings.TryGetValue(RunCleanupBundleKey, out var runCleanupBundleString))
-            {
-                runCleanupBundle = bool.Parse(runCleanupBundleString);
-            }
+            var runCleanupBundle = settings.RunCleanupBundle;
 
             if (runCleanupBundle)
             {
@@ -93,17 +83,19 @@
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePort))
+            if (settings.DatabaseMaintenancePort == 0)
             {
                 throw new Exception($"{DatabaseMaintenancePortKey} is mandatory.");
             }
 
-            documentStore.Configuration.Port = int.Parse(databaseMaintenancePort);
+            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(HostNameKey, out var hostName))
+            if (string.IsNullOrEmpty(settings.HostName))
             {
                 throw new Exception($"{HostNameKey} is mandatory.");
             }
+
+            var hostName = settings.HostName;
 
             documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
                 ? "localhost"
@@ -152,7 +144,7 @@
             }
         }
 
-        static SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
+        static readonly SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
 

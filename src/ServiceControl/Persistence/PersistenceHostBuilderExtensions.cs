@@ -5,9 +5,9 @@ namespace ServiceControl.Persistence
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings, IPersistenceConfiguration persistenceConfiguration)
+        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, string persistenceType)
         {
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var persistence = PersistenceFactory.Create(persistenceType);
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {

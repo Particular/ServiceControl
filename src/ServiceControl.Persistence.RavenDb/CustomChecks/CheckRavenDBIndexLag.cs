@@ -6,20 +6,16 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence;
-    using Persistence.RavenDb;
     using Raven.Client;
     using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IDocumentStore store, PersistenceSettings settings)
+        public CheckRavenDBIndexLag(IDocumentStore store)
             : base("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
         {
             this.store = store;
-            this.settings = settings;
         }
 
         public override Task<CheckResult> PerformCheck()
@@ -33,9 +29,7 @@
 
             if (indexCountWithTooMuchLag > 0)
             {
-                var logPath = settings.PersisterSpecificSettings.GetOrDefault(RavenDbPersistenceConfiguration.LogPathKey);
-
-                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file in `{logPath}` for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
             }
 
             return CheckResult.Pass;
@@ -54,12 +48,12 @@
                 if (indexLag > IndexLagThresholdError)
                 {
                     indexCountWithTooMuchLag++;
-                    _log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above error threshold ({IndexLagThresholdError:n0}). Launch in maintenance mode to let indexes catch up.");
+                    Log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above error threshold ({IndexLagThresholdError:n0}). Launch in maintenance mode to let indexes catch up.");
                 }
                 else if (indexLag > IndexLagThresholdWarning)
                 {
                     indexCountWithTooMuchLag++;
-                    _log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above warning threshold ({IndexLagThresholdWarning:n0}). Launch in maintenance mode to let indexes catch up.");
+                    Log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above warning threshold ({IndexLagThresholdWarning:n0}). Launch in maintenance mode to let indexes catch up.");
                 }
             }
 
@@ -68,7 +62,7 @@
 
         static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexStats[] indexes)
         {
-            if (!_log.IsDebugEnabled)
+            if (!Log.IsDebugEnabled)
             {
                 return;
             }
@@ -83,14 +77,13 @@
                 indexLag = Math.Abs(indexLag);
                 report.AppendLine($"- Index [{indexStats.Name,-44}] Stale: {statistics.StaleIndexes.Contains(indexStats.Name),-5}, Lag: {indexLag,9:n0}, Valid: {indexStats.IsInvalidIndex,-5}, LastIndexed: {indexStats.LastIndexedTimestamp:u}, LastIndexing: {indexStats.LastIndexingTime:u}");
             }
-            _log.Debug(report.ToString());
+            Log.Debug(report.ToString());
         }
 
         const int IndexLagThresholdWarning = 10000;
         const int IndexLagThresholdError = 100000;
-        static ILog _log = LogManager.GetLogger<CheckRavenDBIndexLag>();
+        static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
-        IDocumentStore store;
-        PersistenceSettings settings;
+        readonly IDocumentStore store;
     }
 }

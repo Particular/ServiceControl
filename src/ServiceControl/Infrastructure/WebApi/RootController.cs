@@ -45,8 +45,8 @@
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
                 AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
-                Name = SettingsReader<string>.Read("Name", "ServiceControl"),
-                Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
+                Name = SettingsReader.Read("Name", "ServiceControl"),
+                Description = SettingsReader.Read("Description", "The management backend for the Particular Service Platform"),
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",

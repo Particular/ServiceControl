@@ -10,33 +10,30 @@
     using NUnit.Framework;
     using Persistence;
     using Raven.Client;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.RavenDb;
 
     sealed class TestPersistenceImpl : TestPersistence
     {
+        readonly RavenDBPersisterSettings settings = CreateSettings();
         IDocumentStore documentStore;
 
-        public const string DatabaseMaintenancePort = "55554";
-
-        static PersistenceSettings CreateSettings()
+        static RavenDBPersisterSettings CreateSettings()
         {
             var retentionPeriod = TimeSpan.FromMinutes(1);
-            var settings = new PersistenceSettings(retentionPeriod, retentionPeriod, retentionPeriod, 100, false)
+
+            var settings = new RavenDBPersisterSettings
             {
-                PersisterSpecificSettings =
-                {
-                    [RavenBootstrapper.RunInMemoryKey] = bool.TrueString,
-                    [RavenBootstrapper.HostNameKey] = "localhost",
-                    [RavenBootstrapper.DatabaseMaintenancePortKey] = DatabaseMaintenancePort
-                }
+                AuditRetentionPeriod = retentionPeriod,
+                ErrorRetentionPeriod = retentionPeriod,
+                EventsRetentionPeriod = retentionPeriod,
+                RunInMemory = true,
             };
 
             if (Debugger.IsAttached)
             {
                 Console.WriteLine("If you get 'Access is denied' exception while debugging, comment out this line or create a URLACL reservervation:");
                 Console.WriteLine("> netsh http add urlacl http://+:55554/ user=Everyone");
-                settings.PersisterSpecificSettings[RavenBootstrapper.ExposeRavenDBKey] = bool.TrueString;
+                settings.ExposeRavenDB = true;
             }
 
             return settings;
@@ -44,12 +41,9 @@
 
         public override void Configure(IServiceCollection services)
         {
-            var config = PersistenceConfigurationFactory.LoadPersistenceConfiguration(DataStoreConfig.RavenDB35PersistenceTypeFullyQualifiedName);
-            var settings = CreateSettings();
+            var persistence = new RavenDbPersistenceConfiguration().Create(CreateSettings());
 
-            var instance = config.Create(settings);
-            PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, instance);
-
+            PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, persistence);
 
             services.AddHostedService(p => new Wrapper(this, p.GetRequiredService<IDocumentStore>()));
         }
@@ -79,7 +73,7 @@
                 return;
             }
 
-            var url = $"http://localhost:{DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
+            var url = $"http://localhost:{settings.DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

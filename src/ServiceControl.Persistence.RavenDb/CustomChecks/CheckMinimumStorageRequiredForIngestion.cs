@@ -10,23 +10,25 @@
 
     class CheckMinimumStorageRequiredForIngestion : CustomCheck
     {
-        public CheckMinimumStorageRequiredForIngestion(MinimumRequiredStorageState stateHolder, PersistenceSettings settings)
+        public CheckMinimumStorageRequiredForIngestion(
+            MinimumRequiredStorageState stateHolder,
+            RavenDBPersisterSettings settings)
             : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
             this.settings = settings;
 
-            dataPathRoot = Path.GetPathRoot(settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey]);
+            dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            percentageThreshold = GetMinimumStorageLeftRequiredForIngestion(settings) / 100m;
+            percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
 
             if (dataPathRoot == null)
             {
                 stateHolder.CanIngestMore = true;
-                return successResult;
+                return SuccessResult;
             }
 
             Logger.Debug($"Check ServiceControl data drive space starting. Threshold {percentageThreshold:P0}");
@@ -45,7 +47,7 @@
             if (percentRemaining > percentageThreshold)
             {
                 stateHolder.CanIngestMore = true;
-                return successResult;
+                return SuccessResult;
             }
 
             var message = $"Error message ingestion stopped! {percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'. This is less than {percentageThreshold}% - the minimal required space configured. The threshold can be set using the {RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} configuration setting.";
@@ -54,42 +56,42 @@
             return CheckResult.Failed(message);
         }
 
-        int GetMinimumStorageLeftRequiredForIngestion(PersistenceSettings settings)
-        {
-            int threshold = MinimumStorageLeftRequiredForIngestionDefault;
+        //int GetMinimumStorageLeftRequiredForIngestion(PersistenceSettings settings)
+        //{
+        //    int threshold = MinimumStorageLeftRequiredForIngestionDefault;
 
-            if (settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
-            {
-                threshold = int.Parse(thresholdValue);
-            }
+        //    if (settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
+        //    {
+        //        threshold = int.Parse(thresholdValue);
+        //    }
 
-            string message;
-            if (threshold < 0)
-            {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
-                Logger.Fatal(message);
-                throw new Exception(message);
-            }
+        //    string message;
+        //    if (threshold < 0)
+        //    {
+        //        message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+        //        Logger.Fatal(message);
+        //        throw new Exception(message);
+        //    }
 
-            if (threshold > 100)
-            {
-                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
-                Logger.Fatal(message);
-                throw new Exception(message);
-            }
+        //    if (threshold > 100)
+        //    {
+        //        message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+        //        Logger.Fatal(message);
+        //        throw new Exception(message);
+        //    }
 
-            return threshold;
-        }
+        //    return threshold;
+        //}
 
-        const int MinimumStorageLeftRequiredForIngestionDefault = 5;
+        //const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         readonly MinimumRequiredStorageState stateHolder;
-        readonly PersistenceSettings settings;
+        readonly RavenDBPersisterSettings settings;
         readonly string dataPathRoot;
 
         decimal percentageThreshold;
 
-        static Task<CheckResult> successResult = Task.FromResult(CheckResult.Pass);
+        static readonly Task<CheckResult> SuccessResult = Task.FromResult(CheckResult.Pass);
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckMinimumStorageRequiredForIngestion));
     }
 }
