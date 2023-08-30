@@ -232,7 +232,7 @@
 
                         if (allowed == 1)
                         {
-                            await SendAuditMessage(dispatcher, destination, random).ConfigureAwait(false);
+                            await SendAuditMessage(dispatcher, destination, random);
                         }
                         else
                         {

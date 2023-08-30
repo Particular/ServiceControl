@@ -1,4 +1,4 @@
-namespace ServiceControl.AcceptanceTests.TestSupport
+﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Configuration;
@@ -21,18 +21,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using Recoverability.MessageFailures;
     using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.AcceptanceTests.Monitoring;
-    using ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
-            this.dataStoreToUse = dataStoreToUse;
+            this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.hostBuilderCustomization = hostBuilderCustomization;
             this.setSettings = setSettings;
@@ -69,28 +66,32 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             return startPort;
         }
 
+
         async Task InitializeServiceControl(ScenarioContext context)
         {
             var instancePort = FindAvailablePort(33333);
             var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-            ConfigurationManager.AppSettings.Set("ServiceControl/SqlStorageConnectionString", dataStoreToUse.ConnectionString);
 
-            var settings = new Settings(instanceName)
+            // TODO: ⬇️ This is required for the PERSISTER implementation to actually retrieve the DBPath settings are persister isn't using this type-safe settings class
+            var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            ConfigurationManager.AppSettings.Set("ServiceControl/DBPath", dbPath); // TODO: Tests should not use static ConfigurationManager.AppSettings
+            ConfigurationManager.AppSettings.Set("ServiceControl/DatabaseMaintenancePort", "33434");
+            ConfigurationManager.AppSettings.Set("ServiceControl/ExposeRavenDB", "False");
+            // TODO: ⬆️
+
+            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
             {
-                DataStoreType = (DataStoreType)Enum.Parse(typeof(DataStoreType), dataStoreToUse.DataStoreTypeName),
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
-                DbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                DbPath = dbPath,
                 ForwardErrorMessages = false,
-                TransportType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
                 TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
-                RunInMemory = true,
                 DisableHealthChecks = true,
                 ExposeApi = true,
                 MessageFilter = messageContext =>
@@ -128,6 +129,21 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
             setSettings(settings);
             Settings = settings;
+
+            var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
+
+            foreach (var persisterSpecificSetting in persisterSpecificSettings)
+            {
+                ConfigurationManager.AppSettings.Set($"ServiceControl/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
+            }
+
+            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            {
+
+                var setupBootstrapper = new SetupBootstrapper(settings);
+                await setupBootstrapper.Run(null);
+            }
+
             var configuration = new EndpointConfiguration(instanceName);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
@@ -169,20 +185,15 @@ namespace ServiceControl.AcceptanceTests.TestSupport
                     HttpClientFactory = HttpClientFactory
                 };
 
+                // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
+                // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
                 bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
-                    .ConfigureServices(serviceCollection =>
-                {
-                    serviceCollection.AddScoped<CriticalErrorTriggerController>();
-                    serviceCollection.AddScoped<KnownEndpointPersistenceQueryController>();
-                    serviceCollection.AddScoped<FailedErrorsController>();
-                    serviceCollection.AddScoped<FailedMessageRetriesController>();
-                });
+                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging());
 
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
-                await host.StartAsync().ConfigureAwait(false);
+                await host.StartAsync();
                 DomainEvents = host.Services.GetService<IDomainEvents>();
             }
 
@@ -190,7 +201,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             {
                 var app = new AppBuilder();
                 var startup = new Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app, typeof(FailedErrorsController).Assembly);
+                startup.Configuration(app, typeof(AcceptanceTest).Assembly);
                 var appFunc = app.Build();
 
                 Handler = new OwinHttpMessageHandler(appFunc)
@@ -209,7 +220,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync().ConfigureAwait(false);
+                await host.StopAsync();
                 HttpClient.Dispose();
                 Handler.Dispose();
                 DirectoryDeleter.Delete(Settings.DbPath);
@@ -222,6 +233,10 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 
         HttpClient HttpClientFactory()
         {
+            if (Handler == null)
+            {
+                throw new InvalidOperationException("Handler field not yet initialized"); // TODO: This method is invoked before `Initialize` completes which is strange and should be looked into as that seems like a race condition
+            }
             var httpClient = new HttpClient(Handler);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return httpClient;
@@ -230,7 +245,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         IHost host;
         Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreToUse;
+        AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IHostBuilder> hostBuilderCustomization;

@@ -5,33 +5,20 @@ namespace ServiceControl.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetSagaByIdApi : ScatterGatherApi<Guid, SagaHistory>
+    class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, Guid, SagaHistory>
     {
-        public GetSagaByIdApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public GetSagaByIdApi(ISagaAuditDataStore store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
         {
         }
 
         protected override async Task<QueryResult<SagaHistory>> LocalQuery(HttpRequestMessage request, Guid input)
         {
-            using (var session = Store.OpenAsyncSession())
-            {
-                var sagaHistory = await
-                    session.Query<SagaHistory, SagaDetailsIndex>()
-                        .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == input)
-                        .ConfigureAwait(false);
-
-                if (sagaHistory == null)
-                {
-                    return QueryResult<SagaHistory>.Empty();
-                }
-
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults));
-            }
+            var result = await DataStore.GetSagaById(input);
+            return result;
         }
 
         protected override SagaHistory ProcessResults(HttpRequestMessage request, QueryResult<SagaHistory>[] results)

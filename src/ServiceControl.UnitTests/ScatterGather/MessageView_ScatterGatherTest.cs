@@ -6,7 +6,6 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence.Infrastructure;
@@ -40,7 +39,7 @@
 
             return new QueryResult<IList<MessagesView>>(
                 pageOfResults,
-                new QueryStatsInfo(etag, allResults.Count))
+                new QueryStatsInfo(etag, allResults.Count, isStale: false))
             {
                 InstanceId = instanceId
             };
@@ -69,9 +68,9 @@
         protected const string RemoteETag = nameof(RemoteETag);
         protected const int PageSize = 50;
 
-        class TestApi : ScatterGatherApiMessageView<NoInput>
+        class TestApi : ScatterGatherApiMessageView<object, NoInput>
         {
-            public TestApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+            public TestApi(object documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
             {
             }
 

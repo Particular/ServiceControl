@@ -28,6 +28,7 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         };
 
         public static readonly SettingInfo TransportType = new SettingInfo { Name = "ServiceControl/TransportType" };
+        public static readonly SettingInfo PersistenceType = new SettingInfo { Name = "ServiceControl/PersistenceType" };
         public static readonly SettingInfo AuditQueue = new SettingInfo
         {
             Name = "ServiceBus/AuditQueue",

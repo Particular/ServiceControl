@@ -46,7 +46,7 @@
                 FailureReason = message.FailureReason
             };
 
-            await checkResultProcessor.ProcessResult(checkDetails).ConfigureAwait(false);
+            await checkResultProcessor.ProcessResult(checkDetails);
         }
 
         readonly CustomCheckResultProcessor checkResultProcessor;

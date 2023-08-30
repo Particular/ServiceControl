@@ -21,17 +21,6 @@
 
         public FailedMessageStatus Status { get; set; }
 
-        public static string MakeDocumentId(string messageUniqueId)
-        {
-            return $"{CollectionName}/{messageUniqueId}";
-        }
-
-        public static string GetMessageIdFromDocumentId(string failedMessageDocumentId)
-        {
-            return failedMessageDocumentId.Substring(CollectionName.Length + 1);
-        }
-
-        public const string CollectionName = "FailedMessages";
 
         public class ProcessingAttempt
         {

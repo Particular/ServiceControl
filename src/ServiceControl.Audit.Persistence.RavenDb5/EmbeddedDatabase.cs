@@ -100,13 +100,13 @@
                 {
                     try
                     {
-                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token).ConfigureAwait(false);
+                        await Task.Delay(delayBetweenRestarts, shutdownTokenSource.Token);
 
                         if (restartRequired)
                         {
                             logger.Info("Restarting RavenDB server process");
 
-                            await EmbeddedServer.Instance.RestartServerAsync().ConfigureAwait(false);
+                            await EmbeddedServer.Instance.RestartServerAsync();
                             restartRequired = false;
 
                             logger.Info("RavenDB server process restarted successfully.");
@@ -139,10 +139,10 @@
                 dbOptions.Conventions.FindClrType += configuration.FindClrType;
             }
 
-            var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken).ConfigureAwait(false);
+            var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
 
             var databaseSetup = new DatabaseSetup(configuration);
-            await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
+            await databaseSetup.Execute(store, cancellationToken);
 
             return store;
         }

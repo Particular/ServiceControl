@@ -13,7 +13,6 @@
         {
             hostBuilder.ConfigureServices((ctx, serviceCollection) =>
             {
-                serviceCollection.AddHostedService<CustomChecksHostedService>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
                 serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
                 serviceCollection.AddEventLogMapping<CustomCheckDeletedDefinition>();
@@ -22,16 +21,6 @@
                 serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
                 serviceCollection.AddSingleton<CustomCheckResultProcessor>();
             });
-        }
-
-        public override void Setup(Settings settings, IComponentInstallationContext context)
-        {
-            // TODO: Move this in the persister project
-            if (settings.DataStoreType == DataStoreType.SqlDb)
-            {
-                var connectionString = SettingsReader<string>.Read("SqlStorageConnectionString");
-                context.RegisterInstallationTask(() => Persistence.SetupSqlPersistence.SetupCustomChecks(connectionString));
-            }
         }
     }
 }

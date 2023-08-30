@@ -6,11 +6,11 @@
     using Infrastructure.DomainEvents;
     using InternalMessages;
     using NServiceBus;
-    using Raven.Client;
+    using Persistence;
 
     class UnArchiveMessagesHandler : IHandleMessages<UnArchiveMessages>
     {
-        public UnArchiveMessagesHandler(IDocumentStore store, IDomainEvents domainEvents)
+        public UnArchiveMessagesHandler(IErrorMessageDataStore store, IDomainEvents domainEvents)
         {
             this.store = store;
             this.domainEvents = domainEvents;
@@ -18,35 +18,16 @@
 
         public async Task Handle(UnArchiveMessages messages, IMessageHandlerContext context)
         {
-            FailedMessage[] failedMessages;
-
-            using (var session = store.OpenAsyncSession())
-            {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                failedMessages = await session.LoadAsync<FailedMessage>(messages.FailedMessageIds.Select(FailedMessage.MakeDocumentId))
-                    .ConfigureAwait(false);
-
-                foreach (var failedMessage in failedMessages)
-                {
-                    if (failedMessage.Status == FailedMessageStatus.Archived)
-                    {
-                        failedMessage.Status = FailedMessageStatus.Unresolved;
-                    }
-                }
-
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
-            }
+            var (ids, count) = await store.UnArchiveMessages(messages.FailedMessageIds);
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
-                DocumentIds = failedMessages.Select(x => x.UniqueMessageId).ToArray(),
-                MessagesCount = failedMessages.Length
-            }).ConfigureAwait(false);
+                DocumentIds = ids,
+                MessagesCount = count
+            });
         }
 
-        IDocumentStore store;
+        IErrorMessageDataStore store;
         IDomainEvents domainEvents;
     }
 }

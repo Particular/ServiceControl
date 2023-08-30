@@ -34,8 +34,7 @@
 
             settings = Settings.FromConfiguration(arguments.ServiceName);
 
-            await new CommandRunner(arguments.Commands).Execute(arguments, settings)
-                .ConfigureAwait(false);
+            await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
 
         static void LogException(Exception ex)

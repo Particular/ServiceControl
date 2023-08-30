@@ -12,7 +12,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
     using TestSupport.EndpointTemplates;
@@ -89,7 +88,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 return null;
             }
 
-            public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts, IAsyncDocumentSession session)
+            public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts)
             {
                 if (!failed)
                 {

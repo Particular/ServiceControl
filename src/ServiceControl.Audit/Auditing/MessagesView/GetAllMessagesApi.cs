@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             var pagingInfo = request.GetPagingInfo();
             var sortInfo = request.GetSortInfo();
             var includeSystemMessages = request.GetIncludeSystemMessages();
-            return await DataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo).ConfigureAwait(false);
+            return await DataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo);
         }
     }
 }

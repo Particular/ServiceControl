@@ -82,7 +82,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
 
-            var manifests = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath);
+            var manifests = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath);
 
             var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
 

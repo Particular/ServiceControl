@@ -4,7 +4,7 @@
     using Raven.Client.Indexes;
     using ServiceControl.Contracts.CustomChecks;
 
-    public class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
+    class CustomChecksIndex : AbstractIndexCreationTask<CustomCheck>
     {
         public CustomChecksIndex()
         {

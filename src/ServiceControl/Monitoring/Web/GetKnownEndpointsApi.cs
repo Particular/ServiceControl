@@ -6,23 +6,24 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
-    using Raven.Client;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetKnownEndpointsApi : ScatterGatherApi<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
+    class GetKnownEndpointsApi : ScatterGatherApiNoInput<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {
-        public GetKnownEndpointsApi(IDocumentStore documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+        public GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
         {
         }
 
-        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request, IEndpointInstanceMonitoring input)
+        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request)
         {
+            var knownEndpoints = DataStore.GetKnownEndpoints();
+
             return Task.FromResult(
                 new QueryResult<IList<KnownEndpointsView>>(
-                    input.GetKnownEndpoints(),
-                    new QueryStatsInfo(string.Empty, input.GetKnownEndpoints().Count)
+                    knownEndpoints,
+                    new QueryStatsInfo(string.Empty, knownEndpoints.Count, isStale: false)
                 )
             );
         }

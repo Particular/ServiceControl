@@ -30,15 +30,13 @@
 
             await IngestProcessedMessagesAudits(
                 message
-                ).ConfigureAwait(false);
+                );
 
-            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
-                .ConfigureAwait(false);
+            var queryResultBeforeExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
-            await Task.Delay(4000).ConfigureAwait(false);
+            await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
-                .ConfigureAwait(false);
+            var queryResultAfterExpiration = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
             Assert.That(queryResultBeforeExpiration.Results.Count, Is.EqualTo(1));
             Assert.That(queryResultBeforeExpiration.Results[0].MessageId, Is.EqualTo("MyMessageId"));
@@ -60,15 +58,13 @@
 
             await IngestKnownEndpoints(
                 knownEndpoint
-            ).ConfigureAwait(false);
+            );
 
-            var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints()
-                .ConfigureAwait(false);
+            var queryResultBeforeExpiration = await DataStore.QueryKnownEndpoints();
 
-            await Task.Delay(4000).ConfigureAwait(false);
+            await Task.Delay(4000);
 
-            var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints()
-                .ConfigureAwait(false);
+            var queryResultAfterExpiration = await DataStore.QueryKnownEndpoints();
 
             Assert.That(queryResultBeforeExpiration.Results.Count, Is.EqualTo(1));
             Assert.That(queryResultBeforeExpiration.Results[0].EndpointDetails.Name, Is.EqualTo("Wazowsky"));
@@ -90,7 +86,7 @@
 
             var queryResultBeforeExpiration = await DataStore.QuerySagaHistoryById(sagaId);
 
-            await Task.Delay(4000).ConfigureAwait(false);
+            await Task.Delay(4000);
 
             var queryResultAfterExpiration = await DataStore.QuerySagaHistoryById(sagaId);
 
@@ -140,11 +136,10 @@
             var unitOfWork = StartAuditUnitOfWork(processedMessages.Length);
             foreach (var processedMessage in processedMessages)
             {
-                await unitOfWork.RecordProcessedMessage(processedMessage)
-                    .ConfigureAwait(false);
+                await unitOfWork.RecordProcessedMessage(processedMessage);
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
+            await configuration.CompleteDBOperation();
         }
 
         async Task IngestKnownEndpoints(params KnownEndpoint[] knownEndpoints)
@@ -152,11 +147,10 @@
             var unitOfWork = StartAuditUnitOfWork(knownEndpoints.Length);
             foreach (var knownEndpoint in knownEndpoints)
             {
-                await unitOfWork.RecordKnownEndpoint(knownEndpoint)
-                    .ConfigureAwait(false);
+                await unitOfWork.RecordKnownEndpoint(knownEndpoint);
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
-            await configuration.CompleteDBOperation().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
+            await configuration.CompleteDBOperation();
         }
 
         async Task IngestSagaAudits(params SagaSnapshot[] snapshots)
@@ -164,9 +158,9 @@
             var unitOfWork = StartAuditUnitOfWork(snapshots.Length);
             foreach (var snapshot in snapshots)
             {
-                await unitOfWork.RecordSagaSnapshot(snapshot).ConfigureAwait(false);
+                await unitOfWork.RecordSagaSnapshot(snapshot);
             }
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
             await configuration.CompleteDBOperation();
         }
     }

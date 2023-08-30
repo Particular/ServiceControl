@@ -61,7 +61,7 @@
             if (!c.RetryIssued)
             {
                 c.RetryIssued = true;
-                await retryAction().ConfigureAwait(false);
+                await retryAction();
             }
         }
 

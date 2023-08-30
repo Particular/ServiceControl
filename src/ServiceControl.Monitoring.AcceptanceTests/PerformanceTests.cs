@@ -101,7 +101,7 @@
             }
 
             source.Cancel();
-            await Task.WhenAll(reporters).ConfigureAwait(false);
+            await Task.WhenAll(reporters);
 
             var reportFinalHistogram = MergeHistograms(reporters);
 
@@ -156,11 +156,11 @@
                 var elapsed = Stopwatch.GetTimestamp() - start;
                 histogram.RecordValue(elapsed);
 
-                await Task.Delay(queryEveryInMilliseconds).ConfigureAwait(false);
+                await Task.Delay(queryEveryInMilliseconds);
             }
 
             source.Cancel();
-            await Task.WhenAll(reporters).ConfigureAwait(false);
+            await Task.WhenAll(reporters);
 
             var reportFinalHistogram = MergeHistograms(reporters);
 
@@ -197,7 +197,7 @@
                     var elapsed = Stopwatch.GetTimestamp() - start;
                     histogram.RecordValue(elapsed);
 
-                    await Task.Delay(sendReportEvery).ConfigureAwait(false);
+                    await Task.Delay(sendReportEvery);
                 }
 
                 return histogram;

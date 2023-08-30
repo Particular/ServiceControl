@@ -16,7 +16,7 @@
             foreach (var commandType in commands)
             {
                 var command = (AbstractCommand)Activator.CreateInstance(commandType);
-                await command.Execute(args, settings).ConfigureAwait(false);
+                await command.Execute(args, settings);
             }
         }
 

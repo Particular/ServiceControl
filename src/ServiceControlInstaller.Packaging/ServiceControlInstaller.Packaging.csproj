@@ -16,6 +16,10 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
+  <ItemGroup Label="Primary Instance persisters">
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+  </ItemGroup>
+
   <ItemGroup Label="Transports">
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.ASBS\ServiceControl.Transports.ASBS.csproj" />

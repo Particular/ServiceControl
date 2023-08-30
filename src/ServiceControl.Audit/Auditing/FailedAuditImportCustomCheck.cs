@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Auditing
 
         public override async Task<CheckResult> PerformCheck()
         {
-            var count = await store.GetFailedAuditsCount().ConfigureAwait(false);
+            var count = await store.GetFailedAuditsCount();
             if (count > 0)
             {
                 Logger.Warn(message);

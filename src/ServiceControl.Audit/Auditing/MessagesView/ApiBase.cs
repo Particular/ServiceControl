@@ -24,7 +24,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         {
             var currentRequest = controller.Request;
 
-            var queryResult = await Query(currentRequest, input).ConfigureAwait(false);
+            var queryResult = await Query(currentRequest, input);
             return Negotiator.FromQueryResult(currentRequest, queryResult);
         }
 

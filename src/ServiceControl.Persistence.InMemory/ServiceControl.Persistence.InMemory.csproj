@@ -8,4 +8,8 @@
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\InMemory" />
+  </ItemGroup>
+
 </Project>

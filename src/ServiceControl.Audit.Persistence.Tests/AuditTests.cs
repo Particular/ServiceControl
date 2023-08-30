@@ -30,8 +30,7 @@
                 message
                 );
 
-            var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"))
-                ;
+            var queryResult = await DataStore.QueryMessages("MyMessageId", new PagingInfo(), new SortInfo("Id", "asc"));
 
             Assert.That(queryResult.Results.Count, Is.EqualTo(1));
             Assert.That(queryResult.Results[0].MessageId, Is.EqualTo("MyMessageId"));
@@ -88,13 +87,13 @@
             new Random().NextBytes(body);
             var processedMessage = MakeMessage();
 
-            await unitOfWork.RecordProcessedMessage(processedMessage, body).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(processedMessage, body);
 
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
 
             var bodyId = GetBodyId(processedMessage);
 
-            var retrievedMessage = await DataStore.GetMessageBody(bodyId).ConfigureAwait(false);
+            var retrievedMessage = await DataStore.GetMessageBody(bodyId);
 
             Assert.That(retrievedMessage, Is.Not.Null);
             Assert.That(retrievedMessage.Found, Is.True);
@@ -106,8 +105,7 @@
             Assert.That(retrievedMessage.ContentType, Is.EqualTo(expectedContentType));
 
             var resultBody = new byte[body.Length];
-            var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length)
-                .ConfigureAwait(false);
+            var readBytes = await retrievedMessage.StreamContent.ReadAsync(resultBody, 0, body.Length);
             Assert.That(readBytes, Is.EqualTo(body.Length));
             Assert.That(resultBody, Is.EqualTo(body));
         }
@@ -121,13 +119,13 @@
             new Random().NextBytes(body);
             var processedMessage = MakeMessage();
 
-            await unitOfWork.RecordProcessedMessage(processedMessage, body).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(processedMessage, body);
 
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
 
             var bodyId = GetBodyId(processedMessage);
 
-            var retrievedMessage = await DataStore.GetMessageBody(bodyId).ConfigureAwait(false);
+            var retrievedMessage = await DataStore.GetMessageBody(bodyId);
 
             Assert.That(retrievedMessage, Is.Not.Null);
             Assert.That(retrievedMessage.Found, Is.True);
@@ -145,10 +143,10 @@
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
-            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
-            await unitOfWork.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(processedMessage);
+            await unitOfWork.RecordProcessedMessage(duplicatedMessage);
 
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
 
             await configuration.CompleteDBOperation();
 
@@ -166,13 +164,13 @@
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var unitOfWork1 = AuditIngestionUnitOfWorkFactory.StartNew(1);
-            await unitOfWork1.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
-            await unitOfWork1.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork1.RecordProcessedMessage(processedMessage);
+            await unitOfWork1.DisposeAsync();
 
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var unitOfWork2 = AuditIngestionUnitOfWorkFactory.StartNew(1);
-            await unitOfWork2.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
-            await unitOfWork2.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork2.RecordProcessedMessage(duplicatedMessage);
+            await unitOfWork2.DisposeAsync();
 
             await configuration.CompleteDBOperation();
 
@@ -192,10 +190,10 @@
 
             var processedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: processingStarted);
             var duplicatedMessage = MakeMessage(messageId: messageId, processingEndpoint: processingEndpoint, processingStarted: duplicatedProcessingStarted);
-            await unitOfWork.RecordProcessedMessage(processedMessage).ConfigureAwait(false);
-            await unitOfWork.RecordProcessedMessage(duplicatedMessage).ConfigureAwait(false);
+            await unitOfWork.RecordProcessedMessage(processedMessage);
+            await unitOfWork.RecordProcessedMessage(duplicatedMessage);
 
-            await unitOfWork.DisposeAsync().ConfigureAwait(false);
+            await unitOfWork.DisposeAsync();
 
             await configuration.CompleteDBOperation();
 

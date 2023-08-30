@@ -6,7 +6,6 @@ namespace ServiceControl.CustomChecks
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
     using ExternalIntegrations;
-    using Raven.Client;
 
     class CustomCheckFailedPublisher : EventPublisher<CustomCheckFailed, CustomCheckFailedPublisher.DispatchContext>
     {
@@ -24,7 +23,7 @@ namespace ServiceControl.CustomChecks
             };
         }
 
-        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts, IAsyncDocumentSession session)
+        protected override Task<IEnumerable<object>> PublishEvents(IEnumerable<DispatchContext> contexts)
         {
             return Task.FromResult(contexts.Select(r => (object)new Contracts.CustomCheckFailed
             {

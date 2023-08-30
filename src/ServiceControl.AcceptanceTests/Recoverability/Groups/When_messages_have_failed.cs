@@ -30,10 +30,8 @@
             var context = await Define<MyContext>()
                 .WithEndpoint<Receiver>(b => b.When(async bus =>
                 {
-                    await bus.SendLocal(new MyMessageA())
-                        .ConfigureAwait(false);
-                    await bus.SendLocal(new MyMessageB())
-                        .ConfigureAwait(false);
+                    await bus.SendLocal(new MyMessageA());
+                    await bus.SendLocal(new MyMessageB());
                 }).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {

@@ -50,11 +50,11 @@ namespace ServiceControl.Transports.ASBS
                     try
                     {
                         Logger.Debug("Waiting for next interval");
-                        await Task.Delay(queryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(queryDelayInterval, token);
 
                         Logger.DebugFormat("Querying management client.");
 
-                        var queueRuntimeInfos = await GetQueueList(token).ConfigureAwait(false);
+                        var queueRuntimeInfos = await GetQueueList(token);
 
                         Logger.DebugFormat("Retrieved details of {0} queues", queueRuntimeInfos.Count);
 
@@ -82,7 +82,7 @@ namespace ServiceControl.Transports.ASBS
             var enumerator = queuesRuntimeProperties.GetAsyncEnumerator(cancellationToken);
             try
             {
-                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                while (await enumerator.MoveNextAsync())
                 {
                     var queueRuntimeProperties = enumerator.Current;
                     queuePathToRuntimeInfo.Add(queueRuntimeProperties.Name, queueRuntimeProperties);
@@ -90,7 +90,7 @@ namespace ServiceControl.Transports.ASBS
             }
             finally
             {
-                await enumerator.DisposeAsync().ConfigureAwait(false);
+                await enumerator.DisposeAsync();
             }
 
             return queuePathToRuntimeInfo;
@@ -129,7 +129,7 @@ namespace ServiceControl.Transports.ASBS
         public async Task Stop()
         {
             stop.Cancel();
-            await poller.ConfigureAwait(false);
+            await poller;
         }
 
         ConcurrentDictionary<string, string> endpointQueueMappings = new ConcurrentDictionary<string, string>();

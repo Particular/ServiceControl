@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-2022 ]
-        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS ]
+        test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, Raven35Acceptance ]
         include:
           - os: windows-2022
             os-name: Windows
@@ -27,7 +27,7 @@ jobs:
         shell: pwsh
         run: exit $(If ($env:SECRETS_AVAILABLE -eq 'true') { 0 } Else { 1 })
       - name: Checkout
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v3.6.0
         with:
           fetch-depth: 0
       - name: Setup .NET SDK
@@ -53,7 +53,7 @@ jobs:
             assets/
           retention-days: 1
       - name: Azure login
-        uses: azure/login@v1.4.6
+        uses: azure/login@v1.4.7
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}

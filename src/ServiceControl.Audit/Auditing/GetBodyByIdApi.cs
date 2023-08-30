@@ -16,7 +16,7 @@
         {
             messageId = messageId?.Replace("/", @"\");
 
-            var result = await dataStore.GetMessageBody(messageId).ConfigureAwait(false);
+            var result = await dataStore.GetMessageBody(messageId);
 
             if (result.Found == false)
             {

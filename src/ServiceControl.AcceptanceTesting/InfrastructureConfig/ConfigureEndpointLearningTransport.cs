@@ -9,6 +9,14 @@
 
     public class ConfigureEndpointLearningTransport : ITransportIntegration
     {
+        public ConfigureEndpointLearningTransport()
+        {
+            var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport");
+            ConnectionString = Path.GetFullPath(relativePath);
+        }
+
+        public string ConnectionString { get; set; }
+
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
             Directory.CreateDirectory(ConnectionString);
@@ -24,7 +32,13 @@
         {
             if (Directory.Exists(ConnectionString))
             {
-                Directory.Delete(ConnectionString, true);
+                try
+                {
+                    Directory.Delete(ConnectionString, true);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                }
             }
 
             return Task.FromResult(0);
@@ -32,6 +46,5 @@
 
         public string Name => "Learning";
         public string TypeName => $"{typeof(LearningTransportCustomization).AssemblyQualifiedName}";
-        public string ConnectionString { get; set; } = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..\..\..\.transport");
     }
 }

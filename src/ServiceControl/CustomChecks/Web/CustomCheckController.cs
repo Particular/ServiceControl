@@ -24,7 +24,7 @@
         public async Task<HttpResponseMessage> CustomChecks(string status = null)
         {
             var paging = Request.GetPagingInfo();
-            var stats = await customChecksDataStore.GetStats(paging, status).ConfigureAwait(false);
+            var stats = await customChecksDataStore.GetStats(paging, status);
             return Negotiator
                 .FromModel(Request, stats.Results)
                 .WithPagingLinksAndTotalCount(stats.QueryStats.TotalCount, Request)
@@ -35,7 +35,7 @@
         [HttpDelete]
         public async Task<StatusCodeResult> Delete(Guid id)
         {
-            await messageSession.SendLocal(new DeleteCustomCheck { Id = id }).ConfigureAwait(false);
+            await messageSession.SendLocal(new DeleteCustomCheck { Id = id });
 
             return StatusCode(HttpStatusCode.Accepted);
         }

@@ -2,30 +2,27 @@ namespace ServiceControl.Persistence
 {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Raven.Client;
-    using Raven.Client.Embedded;
-    using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CustomChecks;
-    using ServiceControl.Infrastructure.RavenDB;
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, Settings settings)
+        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, PersistenceSettings persistenceSettings, IPersistenceConfiguration persistenceConfiguration)
         {
-            var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, settings);
+            var persistence = persistenceConfiguration.Create(persistenceSettings);
 
             hostBuilder.ConfigureServices(serviceCollection =>
             {
-                serviceCollection.AddSingleton<IDocumentStore>(documentStore);
-                serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
-                serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
-                serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
-
-                serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
+                CreatePersisterLifecyle(serviceCollection, persistence);
             });
 
             return hostBuilder;
+        }
+
+        public static void CreatePersisterLifecyle(IServiceCollection serviceCollection, IPersistence persistence)
+        {
+            var lifecycle = persistence.CreateLifecycle();
+            // lifecycle needs to be started before any other hosted service
+            serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
+            persistence.Configure(serviceCollection);
         }
     }
 }

@@ -56,6 +56,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public TransportInfo TransportPackage { get; set; }
 
+            public PersistenceManifest PersistenceManifest { get; set; }
+
             public string ConnectionString { get; set; }
 
             public string Url { get; set; }
@@ -140,12 +142,11 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreUniqueShouldSucceed()
         {
-            var newInstance = new ServiceControlNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ErrorLogQueue = "errorlog",
-                ErrorQueue = "error"
-            };
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            newInstance.ErrorLogQueue = "errorlog";
+            newInstance.ErrorQueue = "error";
 
             var p = new QueueNameValidator(newInstance)
             {
@@ -179,13 +180,12 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreUniqueShouldThrow()
         {
-            var newInstance = new ServiceControlNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ErrorLogQueue = "error",
-                ErrorQueue = "error",
-                ForwardErrorMessages = true
-            };
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            newInstance.ErrorLogQueue = "error";
+            newInstance.ErrorQueue = "error";
+            newInstance.ForwardErrorMessages = true;
 
             var p = new QueueNameValidator(newInstance)
             {
@@ -199,12 +199,11 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldSucceed()
         {
-            var newInstance = new ServiceControlNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ErrorLogQueue = "errorlog2",
-                ErrorQueue = "error2"
-            };
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            newInstance.ErrorLogQueue = "errorlog2";
+            newInstance.ErrorQueue = "error2";
 
             var p = new QueueNameValidator(newInstance)
             {
@@ -217,12 +216,12 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldThrow()
         {
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
-            var newInstance = new ServiceControlNewInstance
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
-                ErrorLogQueue = "errorlog",
-                ErrorQueue = "error",
-                ForwardErrorMessages = true
+                newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+                newInstance.ErrorLogQueue = "errorlog";
+                newInstance.ErrorQueue = "error";
+                newInstance.ForwardErrorMessages = true;
             };
 
             var p = new QueueNameValidator(newInstance)
@@ -235,10 +234,8 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
 
             // with default names
-            var defaultInstance = new ServiceControlNewInstance
-            {
-                ErrorQueue = "Error"
-            };
+            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            defaultInstance.ErrorQueue = "Error";
 
             p = new QueueNameValidator(defaultInstance)
             {
@@ -254,13 +251,12 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
 
-            var newInstance = new ServiceControlNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
-                ErrorLogQueue = "errorlog",
-                ErrorQueue = "error",
-                ForwardErrorMessages = true
-            };
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
+            newInstance.ErrorLogQueue = "errorlog";
+            newInstance.ErrorQueue = "error";
+            newInstance.ForwardErrorMessages = true;
 
             var p = new QueueNameValidator(newInstance)
             {
@@ -272,10 +268,10 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
 
             // with default names
-            var defaultInstance = new ServiceControlNewInstance
-            {
-                ErrorQueue = "Error"
-            };
+            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            defaultInstance.ErrorQueue = "Error";
+
             p = new QueueNameValidator(defaultInstance)
             {
                 SCInstances = instances
@@ -288,14 +284,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void EnsureDuplicateQueueNamesAreAllowedOnSameTransportWithDifferentConnectionString()
         {
-            var newInstance = new ServiceControlNewInstance
-            {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
-                ErrorQueue = "RMQerror",
-                ErrorLogQueue = "RMQerrorlog",
-                ConnectionString = "afakeconnectionstring",
-                ForwardErrorMessages = true
-            };
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+
+            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
+            newInstance.ErrorQueue = "RMQerror";
+            newInstance.ErrorLogQueue = "RMQerrorlog";
+            newInstance.ConnectionString = "afakeconnectionstring";
+            newInstance.ForwardErrorMessages = true;
 
             var p = new QueueNameValidator(newInstance)
             {

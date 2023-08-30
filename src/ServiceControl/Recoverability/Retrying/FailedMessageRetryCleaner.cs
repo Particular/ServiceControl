@@ -3,21 +3,22 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
     using Infrastructure.DomainEvents;
+    using Persistence;
 
     class FailedMessageRetryCleaner : IDomainHandler<MessageFailed>
     {
-        readonly RetryDocumentManager retryDocumentManager;
+        readonly IErrorMessageDataStore dataStore;
 
-        public FailedMessageRetryCleaner(RetryDocumentManager retryDocumentManager)
+        public FailedMessageRetryCleaner(IErrorMessageDataStore dataStore)
         {
-            this.retryDocumentManager = retryDocumentManager;
+            this.dataStore = dataStore;
         }
 
         public Task Handle(MessageFailed message)
         {
             if (message.RepeatedFailure)
             {
-                return retryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 
             return Task.FromResult(0);

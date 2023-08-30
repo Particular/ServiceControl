@@ -41,11 +41,11 @@
                 {
                     try
                     {
-                        await FetchQueueLengths(token).ConfigureAwait(false);
+                        await FetchQueueLengths(token);
 
                         UpdateQueueLengths();
 
-                        await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                        await Task.Delay(QueryDelayInterval, token);
                     }
                     catch (OperationCanceledException)
                     {
@@ -101,7 +101,7 @@
                     {
                         Logger.Warn($"Error querying queue length for {queueName}", e);
                     }
-                }, cancellationToken).ConfigureAwait(false);
+                }, cancellationToken);
             }
         }
 
@@ -109,7 +109,7 @@
         {
             stoppedTokenSource.Cancel();
 
-            await poller.ConfigureAwait(false);
+            await poller;
 
             queryExecutor.Dispose();
         }
@@ -165,7 +165,7 @@
                     //Connection implements reconnection logic
                     while (connection.IsOpen == false)
                     {
-                        await Task.Delay(ReconnectionDelay, cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(ReconnectionDelay, cancellationToken);
                     }
 
                     if (model == null || model.IsClosed)

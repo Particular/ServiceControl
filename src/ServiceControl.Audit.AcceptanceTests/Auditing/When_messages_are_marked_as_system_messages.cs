@@ -80,6 +80,9 @@
                         return false;
                     }
 
+                    // Wait for other parts of the system to work
+                    await Task.Delay(250);
+
                     var result = await this.TryGet<List<MessagesView>>("/api/messages");
                     List<MessagesView> messages = result;
                     if (!result)

@@ -25,6 +25,9 @@
                 .WithEndpoint<Failing>(b => b.When(session => session.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Done(async c =>
                 {
+                    // Give the other parts of the system a chance to work
+                    await Task.Delay(500);
+
                     var result = await GetFailedMessage(c);
                     failure = result;
                     if (!result)

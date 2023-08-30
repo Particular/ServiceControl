@@ -1,10 +1,7 @@
 namespace ServiceControl.Recoverability
 {
-    using System;
     using System.Threading.Tasks;
     using Contracts.MessageFailures;
-    using MessageFailures;
-    using MessageFailures.Api;
     using MessageFailures.InternalMessages;
     using NServiceBus;
     using ServiceControl.Persistence;
@@ -16,13 +13,14 @@ namespace ServiceControl.Recoverability
         IHandleMessages<RetryMessagesByQueueAddress>
     {
         readonly RetriesGateway retries;
-        readonly RetryDocumentManager retryDocumentManager;
+        readonly IErrorMessageDataStore dataStore;
 
-        public RetriesHandler(RetriesGateway retries, RetryDocumentManager retryDocumentManager)
+        public RetriesHandler(RetriesGateway retries, IErrorMessageDataStore dataStore)
         {
             this.retries = retries;
-            this.retryDocumentManager = retryDocumentManager;
+            this.dataStore = dataStore;
         }
+
         /// <summary>
         /// For handling leftover messages. MessageFailed are no longer published on the bus and the code is moved to
         /// <see cref="FailedMessageRetryCleaner" />.
@@ -31,7 +29,7 @@ namespace ServiceControl.Recoverability
         {
             if (message.RepeatedFailure)
             {
-                return retryDocumentManager.RemoveFailedMessageRetryDocument(message.FailedMessageId);
+                return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 
             return Task.FromResult(0);
@@ -41,11 +39,11 @@ namespace ServiceControl.Recoverability
         {
             if (!string.IsNullOrWhiteSpace(message.Endpoint))
             {
-                retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(message.Endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == message.Endpoint, "all messages for endpoint " + message.Endpoint);
+                retries.StartRetryForEndpoint(message.Endpoint);
             }
             else
             {
-                retries.StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
+                retries.StartRetryForAllMessages();
             }
 
             return Task.FromResult(0);
@@ -65,7 +63,7 @@ namespace ServiceControl.Recoverability
         {
             var failedQueueAddress = message.QueueAddress;
 
-            retries.StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == message.Status, $"all messages for failed queue address '{message.QueueAddress}'");
+            retries.StartRetryForFailedQueueAddress(failedQueueAddress, message.Status);
 
             return Task.FromResult(0);
         }

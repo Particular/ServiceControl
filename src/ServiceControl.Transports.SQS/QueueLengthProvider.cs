@@ -66,11 +66,11 @@
                     {
                         try
                         {
-                            await FetchQueueSizes(cache, client, token).ConfigureAwait(false);
+                            await FetchQueueSizes(cache, client, token);
 
                             UpdateQueueLengthStore();
 
-                            await Task.Delay(QueryDelayInterval, token).ConfigureAwait(false);
+                            await Task.Delay(QueryDelayInterval, token);
                         }
                         catch (OperationCanceledException)
                         {
@@ -119,8 +119,8 @@
         {
             try
             {
-                var attReq = await cache.GetQueueAttributesRequest(queue, cancellationToken).ConfigureAwait(false);
-                var response = await client.GetQueueAttributesAsync(attReq, cancellationToken).ConfigureAwait(false);
+                var attReq = await cache.GetQueueAttributesRequest(queue, cancellationToken);
+                var response = await client.GetQueueAttributesAsync(attReq, cancellationToken);
                 sizes[queue] = response.ApproximateNumberOfMessages;
             }
             catch (OperationCanceledException)

@@ -27,7 +27,7 @@
         public static ServiceControlAuditNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
         {
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
-            var persistenceManifest = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath)
+            var persistenceManifest = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath)
                 .Single(manifest => manifest.Name == persistence);
 
             return new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest);

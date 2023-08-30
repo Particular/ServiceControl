@@ -4,7 +4,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.ExternalIntegrations;
-    using ServiceControl.Infrastructure.RavenDB.Subscriptions;
+    using ServiceControl.Infrastructure.Subscriptions;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
     using ServiceControl.Transports;
@@ -40,7 +40,7 @@ namespace ServiceBus.Management.Infrastructure
 
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
 
-            configuration.UsePersistence<CachedRavenDBPersistence, StorageType.Subscriptions>();
+            configuration.UsePersistence<ServiceControlSubscriptionPersistence, StorageType.Subscriptions>();
             configuration.UseSerialization<NewtonsoftJsonSerializer>();
 
             configuration.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);

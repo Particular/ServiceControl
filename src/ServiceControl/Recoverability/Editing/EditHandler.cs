@@ -4,21 +4,21 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
-    using MessageRedirects;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.MessageRedirects;
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IDocumentStore store, IDispatchMessages dispatcher)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IDispatchMessages dispatcher)
         {
             this.store = store;
+            this.redirectsStore = redirectsStore;
             this.dispatcher = dispatcher;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
@@ -26,11 +26,9 @@
         public async Task Handle(EditAndSend message, IMessageHandlerContext context)
         {
             FailedMessage failedMessage;
-            MessageRedirectsCollection redirects;
-            using (var session = store.OpenAsyncSession())
+            using (var session = await store.CreateEditFailedMessageManager())
             {
-                failedMessage = await session.LoadAsync<FailedMessage>(FailedMessage.MakeDocumentId(message.FailedMessageId))
-                    .ConfigureAwait(false);
+                failedMessage = await session.GetFailedMessage(message.FailedMessageId);
 
                 if (failedMessage == null)
                 {
@@ -38,9 +36,8 @@
                     return;
                 }
 
-                var edit = await session.LoadAsync<FailedMessageEdit>(FailedMessageEdit.MakeDocumentId(message.FailedMessageId))
-                    .ConfigureAwait(false);
-                if (edit == null)
+                var editId = await session.GetCurrentEditingMessageId(message.FailedMessageId);
+                if (editId == null)
                 {
                     if (failedMessage.Status != FailedMessageStatus.Unresolved)
                     {
@@ -49,27 +46,22 @@
                     }
 
                     // create a retries document to prevent concurrent edits
-                    await session.StoreAsync(new FailedMessageEdit
-                    {
-                        Id = FailedMessageEdit.MakeDocumentId(message.FailedMessageId),
-                        FailedMessageId = message.FailedMessageId,
-                        EditId = context.MessageId
-                    }, Etag.Empty).ConfigureAwait(false);
+                    await session.SetCurrentEditingMessageId(context.MessageId);
                 }
-                else if (edit.EditId != context.MessageId)
+                else if (editId != context.MessageId)
                 {
-                    log.WarnFormat($"Discarding edit & retry request because the failure ({FailedMessage.MakeDocumentId(message.FailedMessageId)}) has already been edited by {FailedMessageEdit.MakeDocumentId(message.FailedMessageId)}");
+                    log.WarnFormat($"Discarding edit & retry request because the failed message id {message.FailedMessageId} has already been edited by Message ID {editId}");
                     return;
                 }
 
                 // the original failure is marked as resolved as any failures of the edited message are treated as a new message failure.
-                failedMessage.Status = FailedMessageStatus.Resolved;
+                await session.SetFailedMessageAsResolved();
 
-                redirects = await MessageRedirectsCollection.GetOrCreate(session)
-                    .ConfigureAwait(false);
 
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChanges();
             }
+
+            var redirects = await redirectsStore.GetOrCreate();
 
             var attempt = failedMessage.ProcessingAttempts.Last();
 
@@ -77,8 +69,7 @@
             // mark the new message with a link to the original message id
             outgoingMessage.Headers.Add("ServiceControl.EditOf", message.FailedMessageId);
             var address = ApplyRedirect(attempt.FailureDetails.AddressOfFailingEndpoint, redirects);
-            await DispatchEditedMessage(outgoingMessage, address, context)
-                .ConfigureAwait(false);
+            await DispatchEditedMessage(outgoingMessage, address, context);
         }
 
         OutgoingMessage BuildMessage(EditAndSend message)
@@ -115,9 +106,10 @@
                 new ContextBag());
         }
 
-        CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
-        IDocumentStore store;
-        IDispatchMessages dispatcher;
-        static ILog log = LogManager.GetLogger<EditHandler>();
+        readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
+        readonly IErrorMessageDataStore store;
+        readonly IMessageRedirectsDataStore redirectsStore;
+        readonly IDispatchMessages dispatcher;
+        static readonly ILog log = LogManager.GetLogger<EditHandler>();
     }
 }

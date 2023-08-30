@@ -6,7 +6,7 @@
     using Raven.Database;
     using Raven.Json.Linq;
 
-    public static class Extensions
+    static class Extensions
     {
         public static void Query<TState>(this DocumentDatabase db, string index, IndexQuery query, Action<RavenJObject, TState> onItem, TState state, CancellationToken cancellationToken = default)
         {

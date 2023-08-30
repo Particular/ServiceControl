@@ -4,169 +4,100 @@ namespace ServiceControl.Recoverability
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Threading.Tasks;
     using Infrastructure;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
-    using Raven.Client.Indexes;
-    using Raven.Client.Linq;
     using ServiceControl.Persistence;
 
     class RetriesGateway
     {
-        public RetriesGateway(IDocumentStore store, RetryDocumentManager documentManager, RetryingManager operationManager)
+        public RetriesGateway(IRetryDocumentDataStore store, RetryingManager operationManager)
         {
             this.store = store;
-            retryDocumentManager = documentManager;
             this.operationManager = operationManager;
-        }
-
-        async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IBulkRetryRequest request)
-        {
-            var response = new List<string[]>();
-            var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var latestAttempt = DateTime.MinValue;
-
-            using (var session = store.OpenAsyncSession())
-            using (var stream = await request.GetDocuments(session).ConfigureAwait(false))
-            {
-                while (await stream.MoveNextAsync().ConfigureAwait(false))
-                {
-                    var current = stream.Current.Document;
-                    currentBatch.Add(current.UniqueMessageId);
-
-                    if (currentBatch.Count == BatchSize)
-                    {
-                        response.Add(currentBatch.ToArray());
-
-                        currentBatch.Clear();
-                    }
-
-                    var lastDocumentAttempt = current.LatestTimeOfFailure;
-                    if (lastDocumentAttempt > latestAttempt)
-                    {
-                        latestAttempt = lastDocumentAttempt;
-                    }
-                }
-
-                if (currentBatch.Count > 0)
-                {
-                    response.Add(currentBatch.ToArray());
-                }
-            }
-
-            return Tuple.Create(response, latestAttempt);
-        }
-
-        public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
-            where TIndex : AbstractIndexCreationTask, new()
-            where TType : IHaveStatus
-        {
-            log.Info($"Enqueuing index based bulk retry '{originator}'");
-
-            var request = new IndexBasedBulkRetryRequest<TType, TIndex>(requestId, retryType, originator, classifier, startTime, filter);
-
-            bulkRequests.Enqueue(request);
         }
 
         public async Task StartRetryForSingleMessage(string uniqueMessageId)
         {
-            log.Info($"Retrying a single message {uniqueMessageId}");
+            Log.Info($"Retrying a single message {uniqueMessageId}");
 
             var requestId = uniqueMessageId;
             var retryType = RetryType.SingleMessage;
             var numberOfMessages = 1;
 
-            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow)
-                .ConfigureAwait(false);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages);
+            await StageRetryByUniqueMessageIds(requestId, retryType, new[] { uniqueMessageId }, DateTime.UtcNow);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
         public async Task StartRetryForMessageSelection(string[] uniqueMessageIds)
         {
-            log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
+            Log.Info($"Retrying a selection of {uniqueMessageIds.Length} messages");
 
             var requestId = DeterministicGuid.MakeId(string.Join(string.Empty, uniqueMessageIds)).ToString();
             var retryType = RetryType.MultipleMessages;
             var numberOfMessages = uniqueMessageIds.Length;
 
-            await operationManager.Prepairing(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
-            await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow)
-                .ConfigureAwait(false);
-            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages)
-                .ConfigureAwait(false);
+            await operationManager.Preparing(requestId, retryType, numberOfMessages);
+            await StageRetryByUniqueMessageIds(requestId, retryType, uniqueMessageIds, DateTime.UtcNow);
+            await operationManager.PreparedBatch(requestId, retryType, numberOfMessages);
         }
 
         async Task StageRetryByUniqueMessageIds(string requestId, RetryType retryType, string[] messageIds, DateTime startTime, DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
         {
             if (messageIds == null || !messageIds.Any())
             {
-                log.Info($"Batch '{batchName}' contains no messages");
+                Log.Info($"Batch '{batchName}' contains no messages");
                 return;
             }
 
             var failedMessageRetryIds = messageIds.Select(FailedMessageRetry.MakeDocumentId).ToArray();
 
-            var batchDocumentId = await retryDocumentManager.CreateBatchDocument(requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier)
-                .ConfigureAwait(false);
+            var batchDocumentId = await store.CreateBatchDocument(RetryDocumentManager.RetrySessionId, requestId, retryType, failedMessageRetryIds, originator, startTime, last, batchName, classifier);
 
-            log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
+            Log.Info($"Created Batch '{batchDocumentId}' with {messageIds.Length} messages for '{batchName}'.");
 
-            var commands = new ICommandData[messageIds.Length];
-            for (var i = 0; i < messageIds.Length; i++)
-            {
-                commands[i] = RetryDocumentManager.CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
-            }
+            await store.StageRetryByUniqueMessageIds(batchDocumentId, requestId, retryType, messageIds, startTime, last,
+                originator, batchName, classifier);
 
-            await store.AsyncDatabaseCommands.BatchAsync(commands)
-                .ConfigureAwait(false);
+            await MoveBatchToStaging(batchDocumentId);
 
-            await retryDocumentManager.MoveBatchToStaging(batchDocumentId).ConfigureAwait(false);
-
-            log.Info($"Moved Batch '{batchDocumentId}' to Staging");
+            Log.Info($"Moved Batch '{batchDocumentId}' to Staging");
         }
 
-        internal async Task<bool> ProcessNextBulkRetry()
+        // Needs to be overridable by a test
+        protected virtual Task MoveBatchToStaging(string batchDocumentId) => store.MoveBatchToStaging(batchDocumentId);
+
+
+        public async Task<bool> ProcessNextBulkRetry()  // Invoked from BulkRetryBatchCreationHostedService in schedule
         {
             if (!bulkRequests.TryDequeue(out var request))
             {
                 return false;
             }
 
-            await ProcessRequest(request).ConfigureAwait(false);
+            await ProcessRequest(request);
             return true;
         }
 
-        async Task ProcessRequest(IBulkRetryRequest request)
+        async Task ProcessRequest(BulkRetryRequest request)
         {
-            var batchesWithLastAttempt = await GetRequestedBatches(request).ConfigureAwait(false);
-            var batches = batchesWithLastAttempt.Item1;
-            var latestAttempt = batchesWithLastAttempt.Item2;
+            var (batches, latestAttempt) = await request.GetRequestedBatches(store);
             var totalMessages = batches.Sum(b => b.Length);
 
             if (!operationManager.IsOperationInProgressFor(request.RequestId, request.RetryType) && totalMessages > 0)
             {
                 var numberOfMessagesAdded = 0;
 
-                await operationManager.Prepairing(request.RequestId, request.RetryType, totalMessages)
-                    .ConfigureAwait(false);
+                await operationManager.Preparing(request.RequestId, request.RetryType, totalMessages);
 
                 for (var i = 0; i < batches.Count; i++)
                 {
-                    await StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier)
-                        .ConfigureAwait(false);
+                    await StageRetryByUniqueMessageIds(request.RequestId, request.RetryType, batches[i], request.StartTime, latestAttempt, request.Originator, GetBatchName(i + 1, batches.Count, request.Originator), request.Classifier);
                     numberOfMessagesAdded += batches[i].Length;
 
-                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded)
-                        .ConfigureAwait(false);
+                    await operationManager.PreparedBatch(request.RequestId, request.RetryType, numberOfMessagesAdded);
                 }
             }
         }
@@ -181,79 +112,172 @@ namespace ServiceControl.Recoverability
             return $"'{context}' batch {pageNum} of {totalPages}";
         }
 
-        IDocumentStore store;
-        RetryDocumentManager retryDocumentManager;
-        RetryingManager operationManager;
-        ConcurrentQueue<IBulkRetryRequest> bulkRequests = new ConcurrentQueue<IBulkRetryRequest>();
-        const int BatchSize = 1000;
-
-        static ILog log = LogManager.GetLogger(typeof(RetriesGateway));
-
-        interface IBulkRetryRequest
+        public void StartRetryForAllMessages()
         {
-            string RequestId { get; }
-            RetryType RetryType { get; }
-            string Originator { get; set; }
-            string Classifier { get; set; }
-            DateTime StartTime { get; set; }
-            Task<Raven.Abstractions.Util.IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session);
+            var item = new RetryForAllMessages();
+            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            bulkRequests.Enqueue(item);
         }
 
-        class IndexBasedBulkRetryRequest<TType, TIndex> : IBulkRetryRequest
-            where TIndex : AbstractIndexCreationTask, new()
-            where TType : IHaveStatus
+        public void StartRetryForEndpoint(string endpoint)
         {
-            public IndexBasedBulkRetryRequest(string requestId, RetryType retryType, string originator, string classifier, DateTime startTime, Expression<Func<TType, bool>> filter)
+            var item = new RetryForEndpoint(endpoint);
+            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            bulkRequests.Enqueue(item);
+        }
+
+        public void StartRetryForFailedQueueAddress(string failedQueueAddress, FailedMessageStatus status)
+        {
+            var item = new RetryForFailedQueueAddress(failedQueueAddress, status);
+            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            bulkRequests.Enqueue(item);
+        }
+
+        public void EnqueueRetryForFailureGroup(RetryForFailureGroup item)
+        {
+            Log.Info($"Enqueuing index based bulk retry '{item}'");
+            bulkRequests.Enqueue(item);
+        }
+
+        readonly IRetryDocumentDataStore store;
+        readonly RetryingManager operationManager;
+        readonly ConcurrentQueue<BulkRetryRequest> bulkRequests = new ConcurrentQueue<BulkRetryRequest>();
+        const int BatchSize = 1000;
+
+        static readonly ILog Log = LogManager.GetLogger(typeof(RetriesGateway));
+
+        public abstract class BulkRetryRequest
+        {
+            public string RequestId { get; }
+            public RetryType RetryType { get; }
+            public string Originator { get; }
+            public string Classifier { get; }
+            public DateTime StartTime { get; }
+
+            public BulkRetryRequest(
+                string requestId,
+                RetryType retryType,
+                DateTime startTime,
+                string originator
+                )
             {
                 RequestId = requestId;
                 RetryType = retryType;
                 Originator = originator;
-                this.filter = filter;
                 StartTime = startTime;
-                Classifier = classifier;
             }
 
-            public string RequestId { get; set; }
-            public RetryType RetryType { get; set; }
-            public string Originator { get; set; }
-            public string Classifier { get; set; }
-            public DateTime StartTime { get; set; }
+            protected abstract Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback);
 
-            public Task<Raven.Abstractions.Util.IAsyncEnumerator<StreamResult<FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>>> GetDocuments(IAsyncDocumentSession session)
+            public async Task<Tuple<List<string[]>, DateTime>> GetRequestedBatches(IRetryDocumentDataStore store)
             {
-                var query = session.Query<TType, TIndex>();
+                var response = new List<string[]>();
+                var currentBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var latestAttempt = DateTime.MinValue;
 
-                query = query.Where(d => d.Status == FailedMessageStatus.Unresolved);
-
-                if (filter != null)
+                Task Process(string uniqueMessageId, DateTime latestTimeOfFailure)
                 {
-                    query = query.Where(filter);
+                    currentBatch.Add(uniqueMessageId);
+
+                    if (currentBatch.Count == BatchSize)
+                    {
+                        response.Add(currentBatch.ToArray());
+
+                        currentBatch.Clear();
+                    }
+
+                    var lastDocumentAttempt = latestTimeOfFailure;
+                    if (lastDocumentAttempt > latestAttempt)
+                    {
+                        latestAttempt = lastDocumentAttempt;
+                    }
+
+                    return Task.FromResult(response);
                 }
 
-                return session.Advanced.StreamAsync(query.TransformWith<FailedMessages_UniqueMessageIdAndTimeOfFailures, FailedMessages_UniqueMessageIdAndTimeOfFailures.Result>());
+                await Invoke(store, Process);
+
+                if (currentBatch.Count > 0)
+                {
+                    response.Add(currentBatch.ToArray());
+                }
+
+
+                return Tuple.Create(response, latestAttempt);
+            }
+        }
+
+        class RetryForAllMessages : BulkRetryRequest
+        {
+            public RetryForAllMessages() : base(requestId: "All", RetryType.All, DateTime.UtcNow, "all messages")
+            {
             }
 
-            Expression<Func<TType, bool>> filter;
-        }
-    }
-
-    public class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage>
-    {
-        public FailedMessages_UniqueMessageIdAndTimeOfFailures()
-        {
-            TransformResults = failedMessages => from failedMessage in failedMessages
-                                                 select new
-                                                 {
-                                                     failedMessage.UniqueMessageId,
-                                                     LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
-                                                 };
+            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            {
+                return store.GetBatchesForAll(StartTime, callback);
+            }
         }
 
-        public struct Result
+        class RetryForEndpoint : BulkRetryRequest
         {
-            public string UniqueMessageId { get; set; }
+            public string Endpoint { get; }
 
-            public DateTime LatestTimeOfFailure { get; set; }
+            public RetryForEndpoint(string endpoint) : base(requestId: endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, originator: $"all messages for endpoint {endpoint}")
+            {
+                Endpoint = endpoint;
+            }
+
+            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            {
+                return store.GetBatchesForEndpoint(StartTime, Endpoint, callback);
+            }
+        }
+
+        public sealed class RetryForFailureGroup : BulkRetryRequest
+        {
+            public string GroupId { get; }
+            public string GroupTitle { get; }
+            public string GroupType { get; }
+
+            public RetryForFailureGroup(string groupId, string groupTitle, string groupType, DateTime started) : base(requestId: groupId, RetryType.FailureGroup, started, originator: groupTitle)
+            {
+                GroupId = groupId;
+                GroupType = groupType;
+                GroupTitle = groupTitle;
+            }
+
+            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            {
+                return store.GetBatchesForFailureGroup(
+                    groupId: GroupId,
+                    groupTitle: GroupTitle,
+                    groupType: GroupType,
+                    cutoff: StartTime,
+                    callback
+                    );
+            }
+        }
+
+        class RetryForFailedQueueAddress : BulkRetryRequest
+        {
+            public string FailedQueueAddress { get; }
+            public FailedMessageStatus Status { get; }
+
+
+            public RetryForFailedQueueAddress(
+                string failedQueueAddress,
+                FailedMessageStatus status
+                ) : base(requestId: failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, originator: $"all messages for failed queue address '{failedQueueAddress}'")
+            {
+                FailedQueueAddress = failedQueueAddress;
+                Status = status;
+            }
+
+            protected override Task Invoke(IRetryDocumentDataStore store, Func<string, DateTime, Task> callback)
+            {
+                return store.GetBatchesForFailedQueueAddress(StartTime, FailedQueueAddress, Status, callback);
+            }
         }
     }
 }

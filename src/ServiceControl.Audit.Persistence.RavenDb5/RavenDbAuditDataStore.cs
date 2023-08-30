@@ -31,8 +31,7 @@
                 var sagaHistory = await
                     session.Query<SagaHistory, SagaDetailsIndex>()
                         .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == input)
-                        .ConfigureAwait(false);
+                        .SingleOrDefaultAsync(x => x.SagaId == input);
 
                 if (sagaHistory == null)
                 {
@@ -53,8 +52,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .ToMessagesView()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -70,8 +68,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .ToMessagesView()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -88,8 +85,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .ToMessagesView()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -106,8 +102,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .ToMessagesView()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -123,8 +118,7 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .ToMessagesView()
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                    .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -134,7 +128,7 @@
         {
             using (var session = sessionProvider.OpenSession())
             {
-                var result = await session.Advanced.Attachments.GetAsync(messageId, "body").ConfigureAwait(false);
+                var result = await session.Advanced.Attachments.GetAsync(messageId, "body");
 
                 if (result == null)
                 {
@@ -154,8 +148,7 @@
         {
             using (var session = sessionProvider.OpenSession())
             {
-                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024)
-                    .ConfigureAwait(false);
+                var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024);
 
                 var knownEndpoints = endpoints
                     .Select(x => new KnownEndpointsView
@@ -189,8 +182,7 @@
                 var oldestMsg = await session.Query<MessagesViewIndex.SortAndFilterOptions>(indexName)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .OrderBy(m => m.ProcessedAt)
-                    .FirstOrDefaultAsync()
-                    .ConfigureAwait(false);
+                    .FirstOrDefaultAsync();
 
                 if (oldestMsg != null)
                 {
@@ -208,8 +200,7 @@
                             .Statistics(out var stats)
                             .Where(m => m.ReceivingEndpointName == endpointName && !m.IsSystemMessage && m.ProcessedAt >= date && m.ProcessedAt < nextDate)
                             .Take(0)
-                            .ToArrayAsync()
-                            .ConfigureAwait(false);
+                            .ToArrayAsync();
 
                         if (stats.LongTotalResults > 0)
                         {

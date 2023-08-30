@@ -21,8 +21,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
-                    .ConfigureAwait(false);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
 
                 if (knownEndpoint != null)
                 {
@@ -37,10 +36,9 @@
                     Monitored = false
                 };
 
-                await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
+                await session.StoreAsync(knownEndpoint);
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -50,8 +48,7 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
-                    .ConfigureAwait(false);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
 
                 if (knownEndpoint == null)
                 {
@@ -63,15 +60,14 @@
                         Monitored = true
                     };
 
-                    await session.StoreAsync(knownEndpoint).ConfigureAwait(false);
+                    await session.StoreAsync(knownEndpoint);
                 }
                 else
                 {
                     knownEndpoint.Monitored = endpointInstanceMonitoring.IsMonitored(id);
                 }
 
-                await session.SaveChangesAsync()
-                    .ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
 
@@ -81,15 +77,13 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id)
-                    .ConfigureAwait(false);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
 
                 if (knownEndpoint != null)
                 {
                     knownEndpoint.Monitored = isMonitored;
 
-                    await session.SaveChangesAsync()
-                        .ConfigureAwait(false);
+                    await session.SaveChangesAsync();
                 }
             }
         }
@@ -99,9 +93,9 @@
             using (var session = store.OpenAsyncSession())
             {
                 using (var endpointsEnumerator = await session.Advanced.StreamAsync(session.Query<KnownEndpoint, KnownEndpointIndex>())
-                    .ConfigureAwait(false))
+                    )
                 {
-                    while (await endpointsEnumerator.MoveNextAsync().ConfigureAwait(false))
+                    while (await endpointsEnumerator.MoveNextAsync())
                     {
                         var endpoint = endpointsEnumerator.Current.Document;
 
@@ -116,7 +110,7 @@
             using (var session = store.OpenAsyncSession())
             {
                 session.Delete<KnownEndpoint>(endpointId);
-                await session.SaveChangesAsync().ConfigureAwait(false);
+                await session.SaveChangesAsync();
             }
         }
         public async Task<IReadOnlyList<KnownEndpoint>> GetAllKnownEndpoints()
@@ -124,7 +118,7 @@
             using (var session = store.OpenAsyncSession())
             {
                 var knownEndpoints = await session.Query<KnownEndpoint, KnownEndpointIndex>()
-                    .ToListAsync().ConfigureAwait(false);
+                    .ToListAsync();
 
                 return knownEndpoints.ToArray();
             }

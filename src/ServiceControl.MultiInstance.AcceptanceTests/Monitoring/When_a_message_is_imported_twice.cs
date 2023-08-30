@@ -64,8 +64,8 @@
             {
                 public override async Task Invoke(IAuditContext context, Func<Task> next)
                 {
-                    await next().ConfigureAwait(false);
-                    await next().ConfigureAwait(false);
+                    await next();
+                    await next();
                 }
             }
 

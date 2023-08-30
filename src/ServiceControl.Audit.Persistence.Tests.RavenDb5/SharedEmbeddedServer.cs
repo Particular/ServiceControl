@@ -13,7 +13,7 @@
     {
         public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
-            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await semaphoreSlim.WaitAsync(cancellationToken);
 
             try
             {
@@ -34,7 +34,7 @@
                 {
                     try
                     {
-                        using (await embeddedDatabase.Connect(cancellationToken).ConfigureAwait(false))
+                        using (await embeddedDatabase.Connect(cancellationToken))
                         {
                             //no-op
                         }
@@ -43,7 +43,7 @@
                     }
                     catch (Exception)
                     {
-                        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(500, cancellationToken);
                     }
                 }
             }
@@ -55,7 +55,7 @@
 
         public static async Task Stop(CancellationToken cancellationToken = default)
         {
-            await semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await semaphoreSlim.WaitAsync(cancellationToken);
             try
             {
                 embeddedDatabase?.Dispose();

@@ -109,13 +109,13 @@
                     {
                         while (!tokenSource.IsCancellationRequested)
                         {
-                            if (await isDone(scenarioContext).ConfigureAwait(false))
+                            if (await isDone(scenarioContext))
                             {
                                 setDone();
                                 return;
                             }
 
-                            await Task.Delay(100, tokenSource.Token).ConfigureAwait(false);
+                            await Task.Delay(100, tokenSource.Token);
                         }
                     }
                     catch (Exception e)
@@ -136,7 +136,7 @@
                 tokenSource.Cancel();
                 try
                 {
-                    await checkTask.ConfigureAwait(false);
+                    await checkTask;
                 }
                 catch (OperationCanceledException)
                 {

@@ -37,7 +37,7 @@
                 tasks.Add(ProcessMessage(context, unitOfWork));
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
 
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
@@ -63,7 +63,7 @@
                     Logger.Debug($"Adding known endpoint '{endpoint.EndpointDetails.Name}' for bulk storage");
                 }
 
-                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint).ConfigureAwait(false);
+                await unitOfWork.Monitoring.RecordKnownEndpoint(endpoint);
             }
 
             return storedContexts;
@@ -106,37 +106,25 @@
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"Ingesting error message {context.MessageId} (original message id: {(isOriginalMessageId ? messageId : string.Empty)})");
+                Logger.DebugFormat("Ingesting error message {0} (original message id: {1})", context.MessageId, isOriginalMessageId ? messageId : string.Empty);
             }
 
             try
             {
-                var metadata = new Dictionary<string, object>
-                {
-                    ["MessageId"] = messageId,
-                    ["MessageIntent"] = context.Headers.MessageIntent()
-                };
-
-                var enricherContext = new ErrorEnricherContext(context.Headers, metadata);
-                foreach (var enricher in enrichers)
-                {
-                    enricher.Enrich(enricherContext);
-                }
+                var (metadata, enricherContext) = ExecuteEnrichRoutinesAndCreateMetaData(context, messageId);
 
                 var failureDetails = failedMessageFactory.ParseFailureDetails(context.Headers);
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,
-                    new Dictionary<string, object>(metadata),
+                    new Dictionary<string, object>(metadata), // TODO: metadata is already a dictionary, it this really needed?
                     failureDetails);
 
-                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt)
-                    .ConfigureAwait(false);
+                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt);
 
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups)
-                    .ConfigureAwait(false);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);
@@ -145,11 +133,27 @@
             {
                 if (Logger.IsWarnEnabled)
                 {
-                    Logger.Warn($"Processing of message '{context.MessageId}' failed.", e);
+                    Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.MessageId, e);
                 }
 
                 context.GetTaskCompletionSource().TrySetException(e);
             }
+        }
+
+        (Dictionary<string, object> metadata, ErrorEnricherContext enricherContext) ExecuteEnrichRoutinesAndCreateMetaData(MessageContext context, string messageId)
+        {
+            var metadata = new Dictionary<string, object>
+            {
+                ["MessageId"] = messageId,
+                ["MessageIntent"] = context.Headers.MessageIntent()
+            };
+            var enricherContext = new ErrorEnricherContext(context.Headers, metadata);
+            foreach (var enricher in enrichers)
+            {
+                enricher.Enrich(enricherContext);
+            }
+
+            return (metadata, enricherContext);
         }
 
         static void RecordKnownEndpoints(EndpointDetails observedEndpoint, Dictionary<string, KnownEndpoint> observedEndpoints)
@@ -170,8 +174,8 @@
         readonly IEnrichImportedErrorMessages[] enrichers;
         readonly IDomainEvents domainEvents;
         readonly Counter ingestedCounter;
-        BodyStorageEnricher bodyStorageEnricher;
-        FailedMessageFactory failedMessageFactory;
+        readonly BodyStorageEnricher bodyStorageEnricher;
+        readonly FailedMessageFactory failedMessageFactory;
         static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
     }
 }

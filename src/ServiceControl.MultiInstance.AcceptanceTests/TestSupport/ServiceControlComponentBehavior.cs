@@ -29,7 +29,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
             runner = new ServiceControlComponentRunner(transportIntegration, dataStoreConfiguration, customEndpointConfiguration, customAuditEndpointConfiguration, customServiceControlSettings, customServiceControlAuditSettings);
-            await runner.Initialize(run).ConfigureAwait(false);
+            await runner.Initialize(run);
             return runner;
         }
 

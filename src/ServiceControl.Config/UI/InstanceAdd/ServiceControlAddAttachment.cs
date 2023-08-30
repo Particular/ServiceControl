@@ -51,28 +51,30 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             viewModel.InProgress = true;
 
-            var serviceControlNewInstance = viewModel.InstallErrorInstance ? new ServiceControlNewInstance
+            var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithDefaultPersistence() : null;
+
+            if (viewModel.InstallAuditInstance)
             {
-                DisplayName = viewModel.ServiceControl.InstanceName,
-                Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.'),
-                ServiceDescription = viewModel.ServiceControl.Description,
-                DBPath = viewModel.ServiceControl.DatabasePath,
-                LogPath = viewModel.ServiceControl.LogPath,
-                InstallPath = viewModel.ServiceControl.DestinationPath,
-                HostName = viewModel.ServiceControl.HostName,
-                Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber),
-                DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber),
-                VirtualDirectory = null,
-                ErrorQueue = viewModel.ServiceControl.ErrorQueueName,
-                ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null,
-                ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value,
-                TransportPackage = viewModel.SelectedTransport,
-                ConnectionString = viewModel.ConnectionString,
-                ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod,
-                ServiceAccount = viewModel.ServiceControl.ServiceAccount,
-                ServiceAccountPwd = viewModel.ServiceControl.Password,
-                EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value
-            } : null;
+                serviceControlNewInstance.DisplayName = viewModel.ServiceControl.InstanceName;
+                serviceControlNewInstance.Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.');
+                serviceControlNewInstance.ServiceDescription = viewModel.ServiceControl.Description;
+                serviceControlNewInstance.DBPath = viewModel.ServiceControl.DatabasePath;
+                serviceControlNewInstance.LogPath = viewModel.ServiceControl.LogPath;
+                serviceControlNewInstance.InstallPath = viewModel.ServiceControl.DestinationPath;
+                serviceControlNewInstance.HostName = viewModel.ServiceControl.HostName;
+                serviceControlNewInstance.Port = Convert.ToInt32(viewModel.ServiceControl.PortNumber);
+                serviceControlNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControl.DatabaseMaintenancePortNumber);
+                serviceControlNewInstance.VirtualDirectory = null;
+                serviceControlNewInstance.ErrorQueue = viewModel.ServiceControl.ErrorQueueName;
+                serviceControlNewInstance.ErrorLogQueue = viewModel.ServiceControl.ErrorForwarding.Value ? viewModel.ServiceControl.ErrorForwardingQueueName : null;
+                serviceControlNewInstance.ForwardErrorMessages = viewModel.ServiceControl.ErrorForwarding.Value;
+                serviceControlNewInstance.TransportPackage = viewModel.SelectedTransport;
+                serviceControlNewInstance.ConnectionString = viewModel.ConnectionString;
+                serviceControlNewInstance.ErrorRetentionPeriod = viewModel.ServiceControl.ErrorRetentionPeriod;
+                serviceControlNewInstance.ServiceAccount = viewModel.ServiceControl.ServiceAccount;
+                serviceControlNewInstance.ServiceAccountPwd = viewModel.ServiceControl.Password;
+                serviceControlNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControl.EnableFullTextSearchOnBodies.Value;
+            }
 
             var auditNewInstance = viewModel.InstallAuditInstance ? ServiceControlAuditNewInstance.CreateWithDefaultPersistence() : null;
             if (viewModel.InstallAuditInstance)
