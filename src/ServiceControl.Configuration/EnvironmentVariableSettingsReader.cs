@@ -6,12 +6,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
     {
         public object Read(string root, string name, Type type, object defaultValue = default)
         {
-            if (TryRead(root, name, type, out var value))
-            {
-                return value;
-            }
-
-            return defaultValue;
+            return TryRead(root, name, type, out var value)
+                ? value
+                : defaultValue;
         }
 
         public bool TryRead(string root, string name, Type type, out object value)

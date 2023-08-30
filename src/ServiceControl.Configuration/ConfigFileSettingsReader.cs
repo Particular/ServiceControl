@@ -12,12 +12,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public object Read(string root, string name, Type type, object defaultValue = default)
         {
-            if (TryRead(root, name, type, out var value))
-            {
-                return value;
-            }
-
-            return defaultValue;
+            return TryRead(root, name, type, out var value)
+                ? value
+                : defaultValue;
         }
 
         public bool TryRead(string root, string name, Type type, out object value)
@@ -27,7 +24,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             var appSettingValue = ConfigurationManager.AppSettings[fullKey];
             if (appSettingValue != null)
             {
-                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue); // TODO: Just added this to have expansing on appsettings to not have hardcoded "temp" paths which are different for everyone.
+                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
                 value = Convert.ChangeType(appSettingValue, type);
                 return true;
             }

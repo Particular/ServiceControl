@@ -2,11 +2,11 @@
 {
     using System;
 
-    class SettingsReader
+    static class SettingsReader
     {
-        public static readonly EnvironmentVariableSettingsReader EnvironmentVariable = new EnvironmentVariableSettingsReader();
-        public static readonly ConfigFileSettingsReader ConfigFile = new ConfigFileSettingsReader();
-        public static readonly RegistryReader Registry = new RegistryReader();
+        static readonly ISettingsReader EnvironmentVariable = new EnvironmentVariableSettingsReader();
+        static readonly ISettingsReader Registry = new RegistryReader();
+        public static readonly ISettingsReader ConfigFile = new ConfigFileSettingsReader();
 
         public static T Read<T>(string name, T defaultValue = default)
         {
@@ -18,12 +18,7 @@
             return (T)Read(root, name, typeof(T), defaultValue);
         }
 
-        //public static object Read(string name, Type type, object defaultValue = default)
-        //{
-        //    return Read("ServiceControl", name, type, defaultValue);
-        //}
-
-        public static object Read(string root, string name, Type type, object defaultValue = default)
+        static object Read(string root, string name, Type type, object defaultValue = default)
         {
             if (EnvironmentVariable.TryRead(root, name, type, out var envValue))
             {
@@ -38,5 +33,9 @@
             return Registry.Read(root, name, type, defaultValue);
         }
 
+        public static T Read<T>(this ISettingsReader instance, string name, T defaultValue = default)
+        {
+            return (T)instance.Read("ServiceControl", name, typeof(T), defaultValue);
+        }
     }
 }
