@@ -41,7 +41,7 @@
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"Free space: {availableFreeSpace} | Total: {totalSpace} | Percent remaining {percentRemaining:P0}");
+                Logger.Debug($"Free space: {availableFreeSpace:N0}B | Total: {totalSpace:N0}B | Percent remaining {percentRemaining:P1}");
             }
 
             if (percentRemaining > percentageThreshold)
