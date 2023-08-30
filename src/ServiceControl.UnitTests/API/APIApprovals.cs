@@ -17,7 +17,6 @@
     using PublicApiGenerator;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
-    using ServiceControl.Persistence;
     using ServiceControlInstaller.Engine.Instances;
 
     [TestFixture]
@@ -29,8 +28,13 @@
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
             request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
 
-            var persistenceSettings = new PersistenceSettings(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, 1, false);
-            var controller = new RootController(new ActiveLicense { IsValid = true }, new LoggingSettings("testEndpoint"), new Settings(), persistenceSettings, httpClientFactory: null)
+            var controller = new RootController(
+                new ActiveLicense { IsValid = true },
+                new LoggingSettings("testEndpoint"),
+                new Settings(),
+                null, // TODO: Previously was PersistenceSettings, now persister registers persister specific settings in DI using marker interface to settings can be serialized in API
+                httpClientFactory: null
+                )
             {
                 Url = new UrlHelper(request)
             };

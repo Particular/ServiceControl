@@ -11,7 +11,6 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
 
@@ -30,9 +29,9 @@
 
         class PersisterSettingsRetriever : IHostedService
         {
-            static PersistenceSettings _persistenceSettings;
+            static RavenDBPersisterSettings _persistenceSettings;
 
-            public PersisterSettingsRetriever(PersistenceSettings persistenceSettings, int value)
+            public PersisterSettingsRetriever(RavenDBPersisterSettings persistenceSettings, int value)
             {
                 _persistenceSettings = persistenceSettings;
                 SetMinimumStorageLeftForIngestion(value);
@@ -41,13 +40,13 @@
             public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
             public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-            public static void SetMinimumStorageLeftForIngestion(int value) => _persistenceSettings.PersisterSpecificSettings["MinimumStorageLeftRequiredForIngestion"] = value.ToString();
+            public static void SetMinimumStorageLeftForIngestion(int value) => _persistenceSettings.MinimumStorageLeftRequiredForIngestion = value; // TODO: Although this is already better we should not need to host trick to access RavenDBPersisterSettings
         }
 
         [Test]
         public async Task Should_stop_ingestion()
         {
-            CustomizeHostBuilder = hostBuilder => hostBuilder.ConfigureServices(services => services.AddHostedService(b => new PersisterSettingsRetriever(b.GetRequiredService<PersistenceSettings>(), 0)));
+            CustomizeHostBuilder = hostBuilder => hostBuilder.ConfigureServices(services => services.AddHostedService(b => new PersisterSettingsRetriever(b.GetRequiredService<RavenDBPersisterSettings>(), 0)));
 
             await Define<ScenarioContext>()
                 .WithEndpoint<Sender>(b => b
@@ -74,7 +73,7 @@
         [Test]
         public async Task Should_stop_ingestion_and_resume_when_more_space_is_available()
         {
-            CustomizeHostBuilder = hostBuilder => hostBuilder.ConfigureServices(services => services.AddHostedService(b => new PersisterSettingsRetriever(b.GetRequiredService<PersistenceSettings>(), 0)));
+            CustomizeHostBuilder = hostBuilder => hostBuilder.ConfigureServices(services => services.AddHostedService(b => new PersisterSettingsRetriever(b.GetRequiredService<RavenDBPersisterSettings>(), 0)));
             var ingestionShutdown = false;
 
             await Define<ScenarioContext>()

@@ -1,7 +1,8 @@
 ﻿using System;
 using ServiceControl.Operations;
+using ServiceControl.Persistence;
 
-class RavenDBPersisterSettings
+class RavenDBPersisterSettings : IPersistenceSettings
 {
     public string DatabasePath { get; set; }
     public string HostName { get; set; } = "localhost";
