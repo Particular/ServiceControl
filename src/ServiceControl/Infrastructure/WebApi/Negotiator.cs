@@ -169,14 +169,6 @@ namespace ServiceControl.Infrastructure.WebApi
                 .WithEtag(queryStatsInfo.ETag);
         }
 
-        public static HttpResponseMessage FromQueryResult<T>(HttpRequestMessage request, QueryResult<T> queryResult)
-            where T : class
-        {
-            return FromModel(request, queryResult.Results)
-                .WithPagingLinksAndTotalCount(queryResult.QueryStats.TotalCount, request)
-                .WithEtag(queryResult.QueryStats.ETag);
-        }
-
         static HttpResponseMessage WithHeader(this HttpResponseMessage response, string header, string value)
         {
             response.Headers.Add(header, value);
