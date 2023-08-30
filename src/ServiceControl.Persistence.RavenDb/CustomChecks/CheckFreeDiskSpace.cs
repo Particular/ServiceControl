@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
+    using Persistence.RavenDb;
 
     class CheckFreeDiskSpace : CustomCheck
     {
@@ -41,37 +42,31 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        //int GetDataSpaceRemainingThreshold(PersistenceSettings settings)
-        //{
-        //    var threshold = DataSpaceRemainingThresholdDefault;
+        public static void Validate(RavenDBPersisterSettings settings)
+        {
+            var threshold = settings.DataSpaceRemainingThreshold;
 
-        //    if (settings.PersisterSpecificSettings.TryGetValue(RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
-        //    {
-        //        threshold = int.Parse(thresholdValue);
-        //    }
-        //    string message;
+            string message;
 
-        //    if (threshold < 0)
-        //    {
-        //        message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
-        //        Logger.Fatal(message);
-        //        throw new Exception(message);
-        //    }
+            if (threshold < 0)
+            {
+                message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
 
-        //    if (threshold > 100)
-        //    {
-        //        message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
-        //        Logger.Fatal(message);
-        //        throw new Exception(message);
-        //    }
-
-        //    return threshold;
-        //}
+            if (threshold > 100)
+            {
+                message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+        }
 
         readonly string dataPath;
         readonly decimal percentageThreshold;
 
-        //const int DataSpaceRemainingThresholdDefault = 20;
+        public const int DataSpaceRemainingThresholdDefault = 20;
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }

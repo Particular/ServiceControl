@@ -2,10 +2,11 @@
 {
     using System;
     using Raven.Client.Embedded;
+    using ServiceControl.Operations;
 
     class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
-        const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
+        public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
         const string ErrorRetentionPeriodKey = "ErrorRetentionPeriod";
         const string EventsRetentionPeriodKey = "EventsRetentionPeriod";
@@ -53,6 +54,9 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting<int>(ExternalIntegrationsDispatchingBatchSizeKey),
                 MaintenanceMode = GetSetting<bool>(MaintenanceModeKey),
             };
+
+            CheckFreeDiskSpace.Validate(settings);
+            CheckMinimumStorageRequiredForIngestion.Validate(settings);
 
             return Create(settings);
         }

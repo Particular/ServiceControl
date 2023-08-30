@@ -1,4 +1,5 @@
 ﻿using System;
+using ServiceControl.Operations;
 
 class RavenDBPersisterSettings
 {
@@ -10,8 +11,8 @@ class RavenDBPersisterSettings
     public int ExpirationProcessBatchSize { get; set; }
     public bool RunCleanupBundle { get; set; }
     public bool RunInMemory { get; set; }
-    public int MinimumStorageLeftRequiredForIngestion { get; set; }
-    public int DataSpaceRemainingThreshold { get; set; }
+    public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
+    public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;
     public TimeSpan ErrorRetentionPeriod { get; set; }
     public TimeSpan EventsRetentionPeriod { get; set; }
     public TimeSpan? AuditRetentionPeriod { get; set; }

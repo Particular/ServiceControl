@@ -56,34 +56,27 @@
             return CheckResult.Failed(message);
         }
 
-        //int GetMinimumStorageLeftRequiredForIngestion(PersistenceSettings settings)
-        //{
-        //    int threshold = MinimumStorageLeftRequiredForIngestionDefault;
+        public static void Validate(RavenDBPersisterSettings settings)
+        {
+            int threshold = settings.MinimumStorageLeftRequiredForIngestion;
 
-        //    if (settings.PersisterSpecificSettings.TryGetValue(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, out var thresholdValue))
-        //    {
-        //        threshold = int.Parse(thresholdValue);
-        //    }
+            string message;
+            if (threshold < 0)
+            {
+                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
 
-        //    string message;
-        //    if (threshold < 0)
-        //    {
-        //        message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, minimum value is 0.";
-        //        Logger.Fatal(message);
-        //        throw new Exception(message);
-        //    }
+            if (threshold > 100)
+            {
+                message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
+                Logger.Fatal(message);
+                throw new Exception(message);
+            }
+        }
 
-        //    if (threshold > 100)
-        //    {
-        //        message = $"{RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey} is invalid, maximum value is 100.";
-        //        Logger.Fatal(message);
-        //        throw new Exception(message);
-        //    }
-
-        //    return threshold;
-        //}
-
-        //const int MinimumStorageLeftRequiredForIngestionDefault = 5;
+        public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         readonly MinimumRequiredStorageState stateHolder;
         readonly RavenDBPersisterSettings settings;
