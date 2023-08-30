@@ -34,7 +34,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             if (environmentValue != null)
             {
                 environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-                value = Convert.ChangeType(environmentValue, type);
+                value = SettingsReader.ConvertFrom(environmentValue, type);
                 return true;
             }
 

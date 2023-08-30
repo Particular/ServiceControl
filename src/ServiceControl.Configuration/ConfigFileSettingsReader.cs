@@ -5,11 +5,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     class ConfigFileSettingsReader : ISettingsReader
     {
-        public object Read(string name, Type type, object defaultValue = default)
-        {
-            return Read("ServiceControl", name, type, defaultValue);
-        }
-
         public object Read(string root, string name, Type type, object defaultValue = default)
         {
             return TryRead(root, name, type, out var value)
@@ -25,7 +20,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
             if (appSettingValue != null)
             {
                 appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
-                value = Convert.ChangeType(appSettingValue, type);
+
+                var underlyingType = Nullable.GetUnderlyingType(type);
+
+                var destinationType = underlyingType ?? type;
+
+                value = SettingsReader.ConvertFrom(appSettingValue, destinationType);
+
                 return true;
             }
 

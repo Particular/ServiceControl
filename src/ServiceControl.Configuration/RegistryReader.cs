@@ -34,7 +34,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
                         if (value != null)
                         {
-                            return Convert.ChangeType(value, type);
+                            return SettingsReader.ConvertFrom(value, type);
                         }
                     }
 
@@ -44,7 +44,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     {
                         if (registryKey != null)
                         {
-                            return Convert.ChangeType(registryKey.GetValue(name, defaultValue), type);
+                            return SettingsReader.ConvertFrom(registryKey.GetValue(name, defaultValue), type);
                         }
                     }
                 }
@@ -56,20 +56,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     {
                         if (registryKey != null)
                         {
-                            return Convert.ChangeType(registryKey.GetValue(name, defaultValue), type);
+                            return SettingsReader.ConvertFrom(registryKey.GetValue(name, defaultValue), type);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Warn($"We couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
+                Logger.Warn($"Couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
             }
 
             return defaultValue;
         }
 
-        public bool TryRead(string root, string name, Type type, out object value) => throw new NotImplementedException();
+        public bool TryRead(string root, string name, Type type, out object value)
+        {
+            value = Read(root, name, type);
+            return value != null;
+        }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RegistryReader));
     }
