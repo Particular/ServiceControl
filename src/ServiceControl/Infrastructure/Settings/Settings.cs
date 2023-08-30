@@ -10,6 +10,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
     public class Settings
@@ -102,9 +103,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string LicenseFileText { get; set; }
 
-        public Dictionary<string, string> PersisterSpecificSettings { get; set; } = new Dictionary<string, string>();
+        public IPersistenceSettings PersisterSpecificSettings { get; set; }
 
-        public bool ExposeRavenDB => SettingsReader.Read<bool>("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
         public bool PrintMetrics => SettingsReader.Read<bool>("PrintMetrics");
         public string Hostname => SettingsReader.Read("Hostname", "localhost");
         public string VirtualDirectory => SettingsReader.Read("VirtualDirectory", string.Empty);

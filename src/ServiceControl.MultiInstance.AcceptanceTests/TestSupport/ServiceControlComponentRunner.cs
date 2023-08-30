@@ -84,11 +84,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var settings = new Settings(instanceName, transportToUse.TypeName, dataStoreConfiguration.DataStoreTypeName)
             {
                 Port = instancePort,
-                PersisterSpecificSettings = new Dictionary<string, string>()
+                PersisterSpecificSettings = new RavenDBPersisterSettings
                 {
-                    { "HostName", "localhost" },
-                    { "RavenDB35/RunInMemory", "true" },
-                    { "DatabaseMaintenancePort", maintenancePort.ToString() }
+                    RunInMemory = true,
+                    DatabaseMaintenancePort = maintenancePort
                 },
                 ForwardErrorMessages = false,
                 TransportType = transportToUse.TypeName,

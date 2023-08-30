@@ -112,7 +112,7 @@ namespace Particular.ServiceControl
                     services.AddSingleton(sp => HttpClientFactory);
                 })
                 .UseLicenseCheck()
-                .SetupPersistence(settings.PersistenceType)
+                .SetupPersistence(settings)
                 .UseMetrics(settings.PrintMetrics)
                 .UseNServiceBus(context =>
                 {

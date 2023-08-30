@@ -4,6 +4,7 @@
 
     public interface IPersistenceConfiguration
     {
-        IPersistence Create(Func<string, Type, object> readSetting);
+        IPersistenceSettings CreateSettings(Func<string, Type, (bool exists, object value)> tryReadSetting);
+        IPersistence Create(IPersistenceSettings settings);
     }
 }

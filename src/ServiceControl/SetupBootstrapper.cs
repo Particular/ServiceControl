@@ -35,7 +35,7 @@ namespace Particular.ServiceControl
                 await installationTask();
             }
 
-            var persistence = PersistenceFactory.Create(settings.PersistenceType);
+            var persistence = PersistenceFactory.Create(settings);
 
             var installer = persistence.CreateInstaller();
 

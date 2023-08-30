@@ -115,8 +115,8 @@
             }
         }
 
-        const int ExpirationProcessTimerInSecondsDefault = 600;
-        const int ExpirationProcessBatchSizeDefault = 65512;
+        public const int ExpirationProcessTimerInSecondsDefault = 600;
+        public const int ExpirationProcessBatchSizeDefault = 65512;
         const int ExpirationProcessBatchSizeMinimum = 10240;
 
         readonly RavenDBPersisterSettings settings = RavenBootstrapper.Settings;
