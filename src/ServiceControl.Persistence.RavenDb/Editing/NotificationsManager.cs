@@ -7,7 +7,7 @@
 
     class NotificationsManager : AbstractSessionManager, INotificationsManager
     {
-        static readonly TimeSpan CacheTimeoutDefault = TimeSpan.FromMinutes(5); // TODO: Copied value from SendEmailNotificationHandler.cacheTimeout, Raven requires this to be at least 1 second
+        static readonly TimeSpan CacheTimeoutDefault = TimeSpan.FromMinutes(5); // Raven requires this to be at least 1 second
 
         public NotificationsManager(IAsyncDocumentSession session) : base(session)
         {

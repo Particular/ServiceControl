@@ -85,7 +85,7 @@
                 classifierFilter = null;
             }
 
-            var results = await groupFetcher.GetGroups(classifier, classifierFilter); // TODO: Analyze what to do with the GroupFetcher dependency
+            var results = await groupFetcher.GetGroups(classifier, classifierFilter);
 
             return Negotiator.FromModel(Request, results)
                 .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
@@ -137,7 +137,6 @@
             string status = Request.GetStatus();
             string modified = Request.GetModified();
 
-            // TODO: Migrated as previous behavior but can be optimized as http api will return at most 1 item
             var result = await dataStore.GetGroup(groupId, status, modified);
 
             return Negotiator

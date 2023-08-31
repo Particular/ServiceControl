@@ -9,7 +9,7 @@
     using Persistence;
     using Raven.Client;
 
-    class FailedMessageViewIndexNotifications  // TODO: Must be registered as single and as hosted service
+    class FailedMessageViewIndexNotifications
         : IFailedMessageViewIndexNotifications
         , IDisposable
         , IHostedService

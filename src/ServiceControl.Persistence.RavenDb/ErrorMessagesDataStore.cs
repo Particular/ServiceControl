@@ -217,7 +217,7 @@
                     .WhereEquals(group => group.Id, groupId)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
-                    .FirstOrDefaultAsync(); // TODO: Was previously a to list with a linq to object FirstOrDefault, not sure if this works;
+                    .FirstOrDefaultAsync();
 
                 return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
             }
@@ -342,8 +342,6 @@
                         x => x.Key,
                         x => (object)x.Value
                         );
-
-                Guard.Assert(false, "TODO: Check how to convert dictionary item VALUES, currently return object which must be typed");
 
                 return results;
             }
@@ -667,7 +665,8 @@ if(this.Status === archivedStatus) {
             return documentStore.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
         }
 
-        public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) // TODO: Could we use IAsyncEnumerable here as this is an unbounded query?
+        // TODO: Once using .NET, consider using IAsyncEnumerable here as this is an unbounded query
+        public async Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress)
         {
             var ids = new List<string>();
 
@@ -692,10 +691,9 @@ if(this.Status === archivedStatus) {
                 }
             }
 
-            return ids.ToArray(); // TODO: Currently returning array as all other API's return arrays and not IEnumerable<T>
+            return ids.ToArray();
         }
 
-        // TODO: How is this different than what RavenAttachmentBodyStorage.TryFetch is doing? Is this implemented twice?
         public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
             string documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
@@ -722,7 +720,7 @@ if(this.Status === archivedStatus) {
             }
         }
 
-        public async Task StoreFailedMessages(params FailedMessage[] failedMessages)
+        public async Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages)
         {
             using (var session = documentStore.OpenAsyncSession())
             {

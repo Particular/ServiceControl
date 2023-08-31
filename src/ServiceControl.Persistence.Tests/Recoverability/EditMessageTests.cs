@@ -241,7 +241,7 @@
                         }
                     }
             };
-            await ErrorMessageDataStore.StoreFailedMessages(new[] { failedMessage });
+            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(new[] { failedMessage });
             return failedMessage;
         }
     }

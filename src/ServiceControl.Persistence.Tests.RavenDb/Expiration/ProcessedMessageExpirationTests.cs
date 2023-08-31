@@ -18,7 +18,7 @@
 
     sealed class ProcessedMessageExpirationTests : PersistenceTestBase
     {
-        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>(); // TODO: Should primary use abstractions and only have native code for triggering the cleanup
+        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
         [Test]
         public void Old_documents_are_being_expired()

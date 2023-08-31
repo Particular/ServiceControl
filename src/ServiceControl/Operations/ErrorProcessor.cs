@@ -117,7 +117,7 @@
 
                 var processingAttempt = failedMessageFactory.CreateProcessingAttempt(
                     context.Headers,
-                    new Dictionary<string, object>(metadata), // TODO: metadata is already a dictionary, it this really needed?
+                    new Dictionary<string, object>(metadata),
                     failureDetails);
 
                 await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt);

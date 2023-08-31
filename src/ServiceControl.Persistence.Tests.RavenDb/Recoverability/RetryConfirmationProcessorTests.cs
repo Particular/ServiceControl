@@ -11,10 +11,9 @@
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Operations;
     using PersistenceTests;
+    using ServiceControl.Operations;
 
-    // TODO: Moved by Ramon to RavenDB specific tests, has a lot of RavenDB dependencies
     class RetryConfirmationProcessorTests : PersistenceTestBase
     {
         RetryConfirmationProcessor Processor { get; set; }
@@ -28,7 +27,7 @@
 
             Handler = new LegacyMessageFailureResolvedHandler(ErrorMessageDataStore, domainEvents);
 
-            await ErrorMessageDataStore.StoreFailedMessages(
+            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(
                 new FailedMessage
                 {
                     Id = MessageId,

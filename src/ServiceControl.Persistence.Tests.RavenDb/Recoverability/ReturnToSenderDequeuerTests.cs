@@ -101,7 +101,7 @@
                 }
             };
 
-            await ErrorMessageDataStore.StoreFailedMessages(failedMessage);
+            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(failedMessage);
 
             var transformer = new MessagesBodyTransformer();
             await transformer.ExecuteAsync(documentStore);

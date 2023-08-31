@@ -76,7 +76,6 @@
 
         Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo);
 
-        // TODO: So far only used in a persistence test: RetryStateTests
-        Task StoreFailedMessages(params FailedMessage[] failedMessages);
+        Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages);
     }
 }
