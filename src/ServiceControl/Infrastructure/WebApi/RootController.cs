@@ -15,7 +15,7 @@
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, IPersistenceSettings persistenceSettings, Func<HttpClient> httpClientFactory)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, PersistenceSettings persistenceSettings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
             this.persistenceSettings = persistenceSettings;
@@ -157,7 +157,7 @@
         readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
-        readonly IPersistenceSettings persistenceSettings;
+        readonly PersistenceSettings persistenceSettings;
         readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());

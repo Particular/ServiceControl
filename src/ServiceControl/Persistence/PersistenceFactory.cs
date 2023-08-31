@@ -5,7 +5,7 @@ namespace ServiceControl.Persistence
 
     static class PersistenceFactory
     {
-        public static IPersistence Create(Settings settings)
+        public static IPersistence Create(Settings settings, bool maintenanceMode = false)
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType);
 
@@ -20,6 +20,8 @@ namespace ServiceControl.Persistence
 
                 settings.PersisterSpecificSettings = persistenceConfiguration.CreateSettings(TryRead);
             }
+
+            settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;

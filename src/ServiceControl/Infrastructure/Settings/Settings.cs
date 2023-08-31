@@ -109,7 +109,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string LicenseFileText { get; set; }
 
-        public IPersistenceSettings PersisterSpecificSettings { get; set; }
+        public PersistenceSettings PersisterSpecificSettings { get; set; }
 
         public bool PrintMetrics => SettingsReader.Read<bool>("PrintMetrics");
         public string Hostname => SettingsReader.Read("Hostname", "localhost");

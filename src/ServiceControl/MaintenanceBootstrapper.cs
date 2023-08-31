@@ -12,7 +12,7 @@ namespace Particular.ServiceControl
         public static async Task Run(HostArguments args, Settings settings)
         {
             var hostBuilder = new HostBuilder()
-                .SetupPersistence(settings);
+                .SetupPersistence(settings, maintenanceMode: true);
 
             if (args.RunAsWindowsService)
             {

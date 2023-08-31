@@ -3,7 +3,7 @@ using ServiceControl.Infrastructure.RavenDB.Expiration;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 
-class RavenDBPersisterSettings : IPersistenceSettings
+class RavenDBPersisterSettings : PersistenceSettings
 {
     public string DatabasePath { get; set; }
     public string HostName { get; set; } = "localhost";
@@ -19,5 +19,4 @@ class RavenDBPersisterSettings : IPersistenceSettings
     public TimeSpan EventsRetentionPeriod { get; set; }
     public TimeSpan? AuditRetentionPeriod { get; set; }
     public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
-    public bool MaintenanceMode { get; set; }
 }

@@ -28,8 +28,13 @@
 
         public void Configure(IServiceCollection serviceCollection)
         {
+            if (settings.MaintenanceMode)
+            {
+                return;
+            }
+
             serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<IPersistenceSettings>(settings);
+            serviceCollection.AddSingleton<PersistenceSettings>(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();

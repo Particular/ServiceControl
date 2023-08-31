@@ -14,7 +14,7 @@
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
 
-        public IPersistenceSettings CreateSettings(Func<string, Type, (bool exists, object value)> tryReadSetting)
+        public PersistenceSettings CreateSettings(Func<string, Type, (bool exists, object value)> tryReadSetting)
         {
             T GetRequiredSetting<T>(string key)
             {
@@ -95,7 +95,7 @@
         //    return Create(settings);
         //}
 
-        public IPersistence Create(IPersistenceSettings settings)
+        public IPersistence Create(PersistenceSettings settings)
         {
             var specificSettings = (RavenDBPersisterSettings)settings;
 
