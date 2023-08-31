@@ -23,7 +23,6 @@
             var busConfiguration = new EndpointConfiguration(settings.ServiceName);
             var assemblyScanner = busConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            var tokenSource = new CancellationTokenSource();
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
@@ -31,6 +30,8 @@
             await host.StartAsync(CancellationToken.None);
 
             var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
+
+            var tokenSource = new CancellationTokenSource();
 
             Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 

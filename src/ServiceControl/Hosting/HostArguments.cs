@@ -41,7 +41,7 @@ namespace Particular.ServiceControl.Hosting
                     {
                         Commands = new List<Type>
                         {
-                            typeof(MaintCommand)
+                            typeof(MaintenanceModeCommand)
                         };
                         executionMode = ExecutionMode.Maintenance;
                     }
