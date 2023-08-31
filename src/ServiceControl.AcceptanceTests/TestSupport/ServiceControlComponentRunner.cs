@@ -76,13 +76,10 @@
 
             // TODO: ⬇️ This is required for the PERSISTER implementation to actually retrieve the DBPath settings are persister isn't using this type-safe settings class
             var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            ConfigurationManager.AppSettings.Set("ServiceControl/DBPath", dbPath); // TODO: Tests should not use static ConfigurationManager.AppSettings
-            ConfigurationManager.AppSettings.Set("ServiceControl/DatabaseMaintenancePort", "33434");
-            ConfigurationManager.AppSettings.Set("ServiceControl/ExposeRavenDB", "False");
-            // TODO: ⬆️
 
-            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
+            var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
+                AllowMessageEditing = true,
                 Port = instancePort,
                 DatabaseMaintenancePort = maintenancePort,
                 DbPath = dbPath,
@@ -124,18 +121,13 @@
                     }
 
                     return false;
-                }
+                },
             };
+
+            persistenceToUse.CustomizeSettings(settings);
 
             setSettings(settings);
             Settings = settings;
-
-            var persisterSpecificSettings = await persistenceToUse.CustomizeSettings();
-
-            foreach (var persisterSpecificSetting in persisterSpecificSettings)
-            {
-                ConfigurationManager.AppSettings.Set($"ServiceControl/{persisterSpecificSetting.Key}", persisterSpecificSetting.Value);
-            }
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {

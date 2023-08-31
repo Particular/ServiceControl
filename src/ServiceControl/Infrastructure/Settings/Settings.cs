@@ -15,7 +15,13 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
     public class Settings
     {
-        public Settings(string serviceName = null, string transportType = null, string persisterType = null)
+        public Settings(
+            string serviceName = null,
+            string transportType = null,
+            string persisterType = null,
+            bool? forwardErrorMessages = default,
+            TimeSpan? errorRetentionPeriod = default
+            )
         {
             ServiceName = serviceName;
 
@@ -36,8 +42,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TransportType = transportType ?? SettingsReader.Read<string>("TransportType");
             PersistenceType = persisterType ?? SettingsReader.Read<string>("PersistenceType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ForwardErrorMessages = GetForwardErrorMessages();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
+            ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
+            ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader.Read("Port", 33333);
             DatabaseMaintenancePort = SettingsReader.Read("DatabaseMaintenancePort", 33334);  // TODO: Should not be in Core but in the persister implementation

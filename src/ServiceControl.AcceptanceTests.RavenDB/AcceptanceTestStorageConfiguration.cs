@@ -1,23 +1,25 @@
 ﻿namespace ServiceControl.AcceptanceTests
 {
-    using System.Collections.Generic;
+    using System;
     using System.Linq;
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using Persistence.RavenDb;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class AcceptanceTestStorageConfiguration
     {
         public string PersistenceType { get; protected set; }
 
-        public Task<IDictionary<string, string>> CustomizeSettings()
+        public void CustomizeSettings(Settings settings)
         {
-            return Task.FromResult<IDictionary<string, string>>(new Dictionary<string, string>
+            settings.PersisterSpecificSettings = new RavenDBPersisterSettings
             {
-                { "RavenDB35/RunInMemory", bool.TrueString},
-                { "DatabaseMaintenancePort", FindAvailablePort(33334).ToString()},
-                { "HostName", "localhost" }
-            });
+                RunInMemory = true,
+                DatabaseMaintenancePort = FindAvailablePort(33334),
+                DatabasePath = settings.DbPath,
+                ErrorRetentionPeriod = TimeSpan.FromDays(10),
+            };
         }
 
         public Task Configure()
