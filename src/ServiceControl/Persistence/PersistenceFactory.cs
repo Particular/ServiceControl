@@ -9,21 +9,19 @@ namespace ServiceControl.Persistence
         {
             var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType);
 
-            (bool, object) TryRead(string name, Type type)
+            //HINT: This is false when executed from acceptance tests
+            if (settings.PersisterSpecificSettings == null)
             {
-                var exists = SettingsReader.TryRead(name, type: type, out object value);
-                return (exists, value);
-            };
+                (bool, object) TryRead(string name, Type type)
+                {
+                    var exists = SettingsReader.TryRead(name, type: type, out object value);
+                    return (exists, value);
+                };
 
-            var persistenceSettings = settings.PersisterSpecificSettings;
-
-            if (persistenceSettings == null)
-            {
-                persistenceSettings = persistenceConfiguration.CreateSettings(TryRead);
-                settings.PersisterSpecificSettings = persistenceSettings;
+                settings.PersisterSpecificSettings = persistenceConfiguration.CreateSettings(TryRead);
             }
 
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;
         }
 
