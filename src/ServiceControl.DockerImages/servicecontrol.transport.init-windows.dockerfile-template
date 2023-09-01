@@ -5,11 +5,13 @@ WORKDIR /servicecontrol
 ARG TRANSPORT
 ADD /deploy/Particular.ServiceControl/ServiceControl .
 ADD /deploy/Particular.ServiceControl/Transports/${TRANSPORT} .
+ADD /deploy/Particular.ServiceControl/Persisters/RavenDB35 .
 
 ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
 ARG TRANSPORT_CUSTOMIZATION_TYPE
 ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}"
+ENV "ServiceControl/PersistenceType"="ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDb"
 ENV "ServiceControl/Hostname"="*"
 
 ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
