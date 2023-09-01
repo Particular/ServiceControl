@@ -80,7 +80,6 @@
             {
                 AllowMessageEditing = true,
                 Port = instancePort,
-                DatabaseMaintenancePort = maintenancePort,
                 DbPath = dbPath,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,

@@ -46,7 +46,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
             Port = SettingsReader.Read("Port", 33333);
-            DatabaseMaintenancePort = SettingsReader.Read("DatabaseMaintenancePort", 33334);  // TODO: Should not be in Core but in the persister implementation
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
             MaximumConcurrencyLevel = SettingsReader.Read("MaximumConcurrencyLevel", 10);
             RetryHistoryDepth = SettingsReader.Read("RetryHistoryDepth", 10);
@@ -96,8 +95,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
-
         public string ApiUrl => $"{RootUrl}api";
 
         public string StorageUrl => $"{RootUrl}storage";
@@ -105,7 +102,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string StagingQueue => $"{ServiceName}.staging";
 
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; } // TODO: Should not be in Core but in the persister implementation
 
         public string LicenseFileText { get; set; }
 

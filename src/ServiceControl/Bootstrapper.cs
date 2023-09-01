@@ -221,7 +221,6 @@ Selected Transport Customization:   {settings.TransportType}
                 Settings = new
                 {
                     settings.ApiUrl,
-                    settings.DatabaseMaintenancePort,
                     settings.ErrorLogQueue,
                     settings.DataSpaceRemainingThreshold,
                     settings.DbPath,
@@ -239,7 +238,7 @@ Selected Transport Customization:   {settings.TransportType}
                     settings.SkipQueueCreation,
                     settings.EnableFullTextSearchOnBodies,
                     settings.TransportType,
-                    settings.AllowMessageEditing
+                    settings.AllowMessageEditing,
                 },
                 LoggingSettings = loggingSettings
             });

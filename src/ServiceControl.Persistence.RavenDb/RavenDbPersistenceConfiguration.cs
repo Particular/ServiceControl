@@ -46,7 +46,7 @@
             {
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
-                DatabaseMaintenancePort = GetSetting<int>(RavenBootstrapper.DatabaseMaintenancePortKey, default),
+                DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
                 ExposeRavenDB = GetSetting(RavenBootstrapper.ExposeRavenDBKey, false),
                 ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, ExpiredDocumentsCleanerBundle.ExpirationProcessTimerInSecondsDefault),
                 ExpirationProcessBatchSize = GetSetting(RavenBootstrapper.ExpirationProcessBatchSizeKey, ExpiredDocumentsCleanerBundle.ExpirationProcessBatchSizeDefault),

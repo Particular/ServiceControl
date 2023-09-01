@@ -124,6 +124,11 @@
 
                 return clrtype;
             };
+
+            if (settings.MaintenanceMode)
+            {
+                Logger.InfoFormat($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}");
+            }
         }
 
         public static string ReadLicense()

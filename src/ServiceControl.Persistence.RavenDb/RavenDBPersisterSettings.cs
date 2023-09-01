@@ -7,7 +7,8 @@ class RavenDBPersisterSettings : PersistenceSettings
 {
     public string DatabasePath { get; set; }
     public string HostName { get; set; } = "localhost";
-    public int DatabaseMaintenancePort { get; set; } = 55554;
+    public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
+    public string DatabaseMaintenanceUrl => $"http://{HostName}:{DatabaseMaintenancePort}";
     public bool ExposeRavenDB { get; set; }
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpiredDocumentsCleanerBundle.ExpirationProcessTimerInSecondsDefault;
     public int ExpirationProcessBatchSize { get; set; } = ExpiredDocumentsCleanerBundle.ExpirationProcessBatchSizeDefault;
@@ -19,4 +20,6 @@ class RavenDBPersisterSettings : PersistenceSettings
     public TimeSpan EventsRetentionPeriod { get; set; }
     public TimeSpan? AuditRetentionPeriod { get; set; }
     public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
+
+    public const int DatabaseMaintenancePortDefault = 33334;
 }
