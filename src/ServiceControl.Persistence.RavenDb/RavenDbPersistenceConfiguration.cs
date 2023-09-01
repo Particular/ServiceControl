@@ -42,29 +42,6 @@
                 }
             }
 
-            /*
-
-            <add key="ServiceControl/MaintenanceMode" value="false" />
-            <add key="ServiceControl/RavenDB35/MaintenanceMode" value="false" />
-
-             */
-
-            //TODO: In core previously this happened with the settings:
-
-            //    foreach (var keyPair in settings.PersisterSpecificSettings)
-            //    {
-            //        persistenceSettings.PersisterSpecificSettings[keyPair.Key] = keyPair.Value;
-            //    }
-
-            //    foreach (var key in persistenceConfiguration.ConfigurationKeys)
-            //    {
-            //        var value = SettingsReader.Read<string>("ServiceControl", key, null);
-            //        if (!string.IsNullOrWhiteSpace(value))
-            //        {
-            //            persistenceSettings.PersisterSpecificSettings[key] = value;
-            //        }
-            //    }
-
             var settings = new RavenDBPersisterSettings
             {
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
@@ -88,12 +65,6 @@
             CheckMinimumStorageRequiredForIngestion.Validate(settings);
             return settings;
         }
-
-        //public IPersistenceSettingstence Create(Func<string, Type, (bool, object)> tryReadSetting)
-        //{
-        //    var settings = CreateSettings(tryReadSetting);
-        //    return Create(settings);
-        //}
 
         public IPersistence Create(PersistenceSettings settings)
         {
