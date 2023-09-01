@@ -29,21 +29,22 @@
 
             var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
 
-            var tokenSource = new CancellationTokenSource();
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
-            Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
-
-            try
-            {
-                await importFailedErrors.Run(tokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // no-op
-            }
-            finally
-            {
-                await host.StopAsync(CancellationToken.None);
+                try
+                {
+                    await importFailedErrors.Run(tokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                finally
+                {
+                    await host.StopAsync(CancellationToken.None);
+                }
             }
         }
 

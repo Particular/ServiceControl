@@ -10,7 +10,6 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
