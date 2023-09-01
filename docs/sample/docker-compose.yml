@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+
+  primary-init:
+    image: particular/servicecontrol.rabbitmq.quorum.conventional.init-windows:dev
+    #restart: always
+    ports:
+      - 33333:33333
+    volumes:
+      - primary-db:c:/data/
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+  audit-init:
+    image: particular/servicecontrol.rabbitmq.quorum.conventional.audit.init-windows:dev
+    #restart: always
+    ports:
+      - 44444:44444
+    volumes:
+      - audit-db:c:/data/
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+  monitoring-init:
+    image: particular/servicecontrol.rabbitmq.quorum.conventional.monitoring.init-windows:dev
+    #restart: always
+    ports:
+      - 33633:33633
+    volumes:
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+  primary:
+    depends_on:
+      primary-init:
+        condition: service_completed_successfully # Let the init container create the config file first
+    image: particular/servicecontrol.rabbitmq.quorum.conventional-windows:dev
+    #restart: always
+    ports:
+      - 33333:33333
+    volumes:
+      - primary-db:c:/data/
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+  audit:
+    depends_on:
+      audit-init:
+        condition: service_completed_successfully # Let the init container create the config file first
+    image: particular/servicecontrol.rabbitmq.quorum.conventional.audit-windows:dev
+    #restart: always
+    ports:
+      - 44444:44444
+    volumes:
+      - audit-db:c:/data/
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+  monitoring:
+    depends_on:
+      monitoring-init:
+        condition: service_completed_successfully # Let the init container create the config file first
+    image: particular/servicecontrol.rabbitmq.quorum.conventional.monitoring-windows:dev
+    #restart: always
+    ports:
+      - 33633:33633
+    volumes:
+      - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
+    env_file: .env
+
+volumes:
+  primary-db:
+  audit-db:
