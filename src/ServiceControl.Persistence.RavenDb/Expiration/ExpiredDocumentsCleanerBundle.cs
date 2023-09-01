@@ -95,7 +95,6 @@
         {
             get
             {
-                //var expirationProcessBatchSize = ExpirationProcessBatchSizeDefault;
                 var expirationProcessBatchSize = settings.ExpirationProcessBatchSize;
 
                 if (expirationProcessBatchSize < 1)
