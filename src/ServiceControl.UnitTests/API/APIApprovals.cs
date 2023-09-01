@@ -32,7 +32,6 @@
                 new ActiveLicense { IsValid = true },
                 new LoggingSettings("testEndpoint"),
                 new Settings(),
-                null, // TODO: Previously was PersistenceSettings, now persister registers persister specific settings in DI using marker interface to settings can be serialized in API
                 httpClientFactory: null
                 )
             {
