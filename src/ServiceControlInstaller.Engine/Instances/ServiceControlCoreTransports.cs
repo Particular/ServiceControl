@@ -188,7 +188,7 @@
                 Name = TransportNames.LearningTransport,
                 TypeName = "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
                 ZipName = "LearningTransport",
-                SampleConnectionString = "C:\\tmp\\",
+                SampleConnectionString = "%TEMP%\\.learningtransport",
                 AvailableInSCMU = IncludeLearningTransport(),
                 Matches = name => name.Equals(TransportNames.LearningTransport, StringComparison.OrdinalIgnoreCase)
                 || name.Equals("ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning", StringComparison.OrdinalIgnoreCase)
