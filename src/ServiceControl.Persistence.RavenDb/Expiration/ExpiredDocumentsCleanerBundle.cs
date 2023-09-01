@@ -73,7 +73,6 @@
         {
             get
             {
-                //var expirationProcessTimerInSeconds = ExpirationProcessTimerInSecondsDefault;
                 var expirationProcessTimerInSeconds = settings.ExpirationProcessTimerInSeconds;
 
                 if (expirationProcessTimerInSeconds < 0)

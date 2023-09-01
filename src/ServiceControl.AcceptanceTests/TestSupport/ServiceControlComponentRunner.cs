@@ -74,7 +74,6 @@
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
 
-            // TODO: ⬇️ This is required for the PERSISTER implementation to actually retrieve the DBPath settings are persister isn't using this type-safe settings class
             var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
