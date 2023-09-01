@@ -20,9 +20,7 @@
             settings.RunRetryProcessor = false;
             settings.DisableHealthChecks = true;
 
-            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = busConfiguration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+            EndpointConfiguration busConfiguration = CreateEndpointConfiguration(settings);
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
@@ -47,6 +45,15 @@
             {
                 await host.StopAsync(CancellationToken.None);
             }
+        }
+
+        protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
+        {
+            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = busConfiguration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
+            return busConfiguration;
         }
     }
 }
