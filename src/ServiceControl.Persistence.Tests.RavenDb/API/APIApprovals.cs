@@ -40,7 +40,7 @@
                 new Settings(),
                 new RavenDBPersisterSettings
                 {
-                    DatabasePath = "c:/"
+                    DatabasePath = "%TEMP%"
                 }
             };
 
