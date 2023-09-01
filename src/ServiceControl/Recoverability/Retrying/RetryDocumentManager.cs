@@ -71,7 +71,8 @@ namespace ServiceControl.Recoverability
         readonly RetryingManager operationManager;
         readonly IRetryDocumentDataStore store;
         bool abort;
-        public static string RetrySessionId = Guid.NewGuid().ToString(); // TODO: Uplift this into DI?
+        // TODO: Uplift this into DI? Meant to differentiate between ServiceControl.exe process runs, so likely doesn't matter.
+        public static string RetrySessionId = Guid.NewGuid().ToString();
 
         static readonly ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));
     }

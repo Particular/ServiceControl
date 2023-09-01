@@ -6,11 +6,9 @@
     using System.Net.Http;
     using System.Reflection;
     using System.Text;
-    using System.Text.Json;
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
     using System.Web.Http.Routing;
-    using Newtonsoft.Json.Linq;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -134,7 +132,7 @@
             Approver.Verify(publicTransportNames);
         }
 
-        [Test, Ignore("TODO: Deal with this once persister settings are properly managed")] // 
+        [Test, Ignore("TODO: Deal with this once persister settings are properly managed")]
         public void PlatformSampleSettings()
         {
             //HINT: Particular.PlatformSample includes a parameterized version of the ServiceControl.exe.config file.

@@ -5,6 +5,6 @@
 
     class UnArchiveMessages : ICommand
     {
-        public List<string> FailedMessageIds { get; set; } // TODO: 
+        public List<string> FailedMessageIds { get; set; }
     }
 }

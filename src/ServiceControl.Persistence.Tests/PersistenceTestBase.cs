@@ -39,7 +39,6 @@
             return testPersistence.CompleteDatabaseOperation();
         }
 
-        // TODO: Evaluate if BlockToInspectDatabase() concept should stay in codebase long-term
         [Conditional("DEBUG")]
         protected void BlockToInspectDatabase() => testPersistence.BlockToInspectDatabase();
 

@@ -8,6 +8,7 @@ namespace ServiceControl.Persistence
 
         // [Raven.Imports.Newtonsoft.Json.JsonProperty(NullValueHandling = NullValueHandling.Ignore)] //default to RetryType.Unknown for backwards compatability
         // TODO: Need to fix ethe JsonProperty, maybe RavenDB has a method to specify metatdata or use a mapper/transformation
+        // THEORY: RetryType.Unknown is value 0 so it should default to that anyway
         public RetryType RetryType { get; set; }
 
         public bool HasStagingBatches { get; set; }

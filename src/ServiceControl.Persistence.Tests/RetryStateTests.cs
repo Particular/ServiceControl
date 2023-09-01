@@ -203,7 +203,7 @@
                 }
             }).ToArray();
 
-            await ErrorStore.StoreFailedMessages(messages);
+            await ErrorStore.StoreFailedMessagesForTestsOnly(messages);
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
@@ -212,7 +212,6 @@
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
-            // TODO: groupType appears to be the same as classifier, which was null in the previous StartRetryForIndex call - make sure that's true
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
 
             await CompleteDatabaseOperation();

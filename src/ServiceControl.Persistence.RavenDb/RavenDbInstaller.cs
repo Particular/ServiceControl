@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using Raven.Client.Embedded;
+    using ServiceControl.Infrastructure.RavenDB;
 
     class RavenDbInstaller : IPersistenceInstaller
     {
@@ -19,22 +20,13 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
+            Logger.Info("Index creation started");
             await ravenStartup.CreateIndexesAsync(documentStore);
+            Logger.Info("Index creation complete");
 
-            Logger.Info("Data migrations starting **TODO NOT IMPLEMENTED YET**");
-
-            // TODO: Figure out migrations
-            // This was copied from audit code:
-            ////var endpointMigrations = new MigrateKnownEndpoints(documentStore);
-            ////await endpointMigrations.Migrate(cancellationToken: cancellationToken)
-            ////    ;
-            // While this was copied from EmbeddedRavenDbHostedService in main ServiceControl project, but list was injected
-            ////foreach (var migration in dataMigrations)
-            ////{
-            ////    await migration.Migrate(documentStore)
-            ////        ;
-            ////}
-
+            Logger.Info("Data migrations starting");
+            var purgeTempIdKnownEndpoints = new PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration();
+            await purgeTempIdKnownEndpoints.Migrate(documentStore);
             Logger.Info("Data migrations complete");
 
         }

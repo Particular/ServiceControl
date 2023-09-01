@@ -78,21 +78,6 @@
             return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
         }
 
-        // TODO: Make sure this stuff from PersistenceHostBuilderExtensions is accounted for here
-
-        //var documentStore = new EmbeddableDocumentStore();
-        //RavenBootstrapper.Configure(documentStore, settings);
-
-        //hostBuilder.ConfigureServices(serviceCollection =>
-        //{
-        //    serviceCollection.AddSingleton<IDocumentStore>(documentStore);
-        //    serviceCollection.AddHostedService<EmbeddedRavenDbHostedService>();
-        //    serviceCollection.AddCustomCheck<CheckRavenDBIndexErrors>();
-        //    serviceCollection.AddCustomCheck<CheckRavenDBIndexLag>();
-
-        //    serviceCollection.AddServiceControlPersistence(settings.DataStoreType);
-        //});
-
         public IPersistenceInstaller CreateInstaller()
         {
             return new RavenDbInstaller(documentStore, ravenStartup);
