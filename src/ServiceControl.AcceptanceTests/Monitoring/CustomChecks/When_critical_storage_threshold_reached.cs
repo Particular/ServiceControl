@@ -1,4 +1,4 @@
-namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
+﻿namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
 {
     using System;
     using System.Linq;
@@ -47,7 +47,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.CustomChecks
                     }, (bus, c) => bus.SendLocal(new MyMessage())
                     )
                     .DoNotFailOnErrorMessages())
-                //.Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors") == false)
+                .Done(async c => await this.TryGetSingle<FailedMessageView>("/api/errors") == false)
                 .Run();
         }
 
