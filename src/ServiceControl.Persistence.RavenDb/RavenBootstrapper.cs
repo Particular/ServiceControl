@@ -2,8 +2,10 @@
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
+    using System.Globalization;
     using System.IO;
     using System.Runtime.Serialization;
+    using ByteSizeLib;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client.Document;
@@ -129,6 +131,25 @@
             {
                 Logger.InfoFormat($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}");
             }
+
+            if (settings.RunInMemory == false)
+            {
+                RecordStartup();
+            }
+        }
+
+        static void RecordStartup()
+        {
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
+
+            var startupMessage = $@"
+-------------------------------------------------------------
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
+-------------------------------------------------------------";
+
+            Logger.Info(startupMessage);
         }
 
         public static string ReadLicense()
@@ -147,6 +168,60 @@
             {
                 return textReader.ReadToEnd();
             }
+        }
+
+        static long DataSize()
+        {
+            var datafilePath = Path.Combine(Settings.DatabasePath, "data");
+
+            try
+            {
+                var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
+                return info.Length;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(Settings.DatabasePath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            if (d.Exists)
+            {
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di);
+                }
+            }
+
+            return size;
         }
 
         static readonly SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();

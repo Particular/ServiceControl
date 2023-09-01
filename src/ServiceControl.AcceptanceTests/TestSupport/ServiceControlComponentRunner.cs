@@ -70,17 +70,13 @@
         async Task InitializeServiceControl(ScenarioContext context)
         {
             var instancePort = FindAvailablePort(33333);
-            var maintenancePort = FindAvailablePort(instancePort + 1);
 
             ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-
-            var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 AllowMessageEditing = true,
                 Port = instancePort,
-                DbPath = dbPath,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
@@ -213,7 +209,7 @@
                 await host.StopAsync();
                 HttpClient.Dispose();
                 Handler.Dispose();
-                DirectoryDeleter.Delete(Settings.DbPath);
+                DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
 
             bootstrapper = null;

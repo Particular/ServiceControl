@@ -3,13 +3,10 @@ namespace Particular.ServiceControl
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using ByteSizeLib;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
@@ -141,65 +138,10 @@ namespace Particular.ServiceControl
             return transportSettings;
         }
 
-        long DataSize()
-        {
-            var datafilePath = Path.Combine(settings.DbPath, "data");
-
-            try
-            {
-                var info = new FileInfo(datafilePath);
-                if (!info.Exists)
-                {
-                    return -1;
-                }
-                return info.Length;
-            }
-            catch
-            {
-                return -1;
-            }
-        }
-
-        long FolderSize()
-        {
-            try
-            {
-                var dir = new DirectoryInfo(settings.DbPath);
-                var dirSize = DirSize(dir);
-                return dirSize;
-            }
-            catch
-            {
-                return -1;
-            }
-        }
-
-        static long DirSize(DirectoryInfo d)
-        {
-            long size = 0;
-            if (d.Exists)
-            {
-                FileInfo[] fis = d.GetFiles();
-                foreach (FileInfo fi in fis)
-                {
-                    size += fi.Length;
-                }
-
-                DirectoryInfo[] dis = d.GetDirectories();
-                foreach (DirectoryInfo di in dis)
-                {
-                    size += DirSize(di);
-                }
-            }
-
-            return size;
-        }
-
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
-            var dataSize = DataSize();
-            var folderSize = FolderSize();
+
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Version:             {version}
@@ -207,8 +149,6 @@ Audit Retention Period (optional):  {settings.AuditRetentionPeriod}
 Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
-Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
-Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportType}
@@ -223,7 +163,6 @@ Selected Transport Customization:   {settings.TransportType}
                     settings.ApiUrl,
                     settings.ErrorLogQueue,
                     settings.DataSpaceRemainingThreshold,
-                    settings.DbPath,
                     settings.ErrorQueue,
                     settings.ForwardErrorMessages,
                     settings.HttpDefaultConnectionLimit,

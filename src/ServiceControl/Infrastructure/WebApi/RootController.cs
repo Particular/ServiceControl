@@ -67,7 +67,6 @@
                 Host = new
                 {
                     settings.ServiceName,
-                    RavenDBPath = settings.DbPath,
                     Logging = new
                     {
                         loggingSettings.LogPath,

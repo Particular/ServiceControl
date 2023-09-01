@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ByteSize" />
     <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="Rx-Linq" />

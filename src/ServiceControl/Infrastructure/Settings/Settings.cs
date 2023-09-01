@@ -54,7 +54,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             NotificationsFilter = SettingsReader.Read<string>("NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
-            DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader.Read("EnableFullTextSearchOnBodies", true);
@@ -129,7 +128,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
-        public string DbPath { get; set; } // TODO: Should not be in Core but in the persister implementation
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 
@@ -229,26 +227,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return value;
         }
 
-        string GetDbPath()
-        {
-            var host = Hostname;
-            if (host == "*")
-            {
-                host = "%";
-            }
-
-            var dbFolder = $"{host}-{Port}";
-
-            if (!string.IsNullOrEmpty(VirtualDirectory))
-            {
-                dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
-            }
-
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
-
-            return SettingsReader.Read("DbPath", defaultPath);
-        }
-
         static bool GetForwardErrorMessages()
         {
             var forwardErrorMessages = SettingsReader.Read<bool?>("ForwardErrorMessages");
@@ -258,11 +236,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
-        }
-
-        static string SanitiseFolderName(string folderName)
-        {
-            return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
         }
 
         TimeSpan GetEventRetentionPeriod()

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
@@ -16,8 +17,8 @@
             settings.PersisterSpecificSettings = new RavenDBPersisterSettings
             {
                 RunInMemory = true,
-                DatabaseMaintenancePort = FindAvailablePort(33334),
-                DatabasePath = settings.DbPath,
+                DatabaseMaintenancePort = FindAvailablePort(settings.Port + 1),
+                DatabasePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 ErrorRetentionPeriod = TimeSpan.FromDays(10),
             };
         }

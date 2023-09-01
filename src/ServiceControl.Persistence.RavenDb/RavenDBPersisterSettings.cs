@@ -5,7 +5,6 @@ using ServiceControl.Persistence;
 
 class RavenDBPersisterSettings : PersistenceSettings
 {
-    public string DatabasePath { get; set; }
     public string HostName { get; set; } = "localhost";
     public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public string DatabaseMaintenanceUrl => $"http://{HostName}:{DatabaseMaintenancePort}";
