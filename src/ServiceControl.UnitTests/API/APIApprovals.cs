@@ -135,7 +135,7 @@
             Approver.Verify(publicTransportNames);
         }
 
-        [Test, Ignore("TODO: Deal with this once persister settings are properly managed")]
+        [Test]
         public void PlatformSampleSettings()
         {
             //HINT: Particular.PlatformSample includes a parameterized version of the ServiceControl.exe.config file.
