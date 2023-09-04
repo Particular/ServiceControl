@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.RabbitMQ
 {
+    using System;
     using NServiceBus;
     using NServiceBus.Raw;
 
@@ -61,6 +62,10 @@
 
         static void ConfigureTransport(TransportExtensions<RabbitMQTransport> transport, TransportSettings transportSettings, QueueType queueType)
         {
+            if (transportSettings.ConnectionString == null)
+            {
+                throw new InvalidOperationException("Connection string not configured");
+            }
             transport.UseConventionalRoutingTopology(queueType);
             transport.Transactions(TransportTransactionMode.ReceiveOnly);
             transport.ApplyConnectionString(transportSettings.ConnectionString);
