@@ -30,6 +30,11 @@ namespace ServiceControl.Monitoring.Infrastructure.Settings
             {
                 return true;
             }
+            // container images and env files compatibility:
+            if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_').Replace('/', '_')))
+            {
+                return true;
+            }
 
             value = default;
             return false;
