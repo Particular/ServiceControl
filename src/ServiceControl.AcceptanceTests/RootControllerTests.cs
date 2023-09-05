@@ -24,7 +24,7 @@
             {
                 hostBuilder.ConfigureServices((hostBuilderContext, services) =>
                 {
-                    services.AddSingleton(new Settings(serviceName)
+                    services.AddSingleton(new Settings(serviceName, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
                     {
                         RemoteInstances = new[]
                         {

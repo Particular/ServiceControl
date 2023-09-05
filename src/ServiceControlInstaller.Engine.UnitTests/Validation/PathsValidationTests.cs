@@ -9,14 +9,16 @@
     [TestFixture]
     public class PathsValidationTests
     {
+        static readonly string BasePath = Path.Combine(Path.GetTempPath(), "PathsValidationTests");
+
         [Test]
         public void CheckPathsAreUnique_ShouldThrow()
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1\bin";
-            newInstance.LogPath = @"c:\test\1\bin";
-            newInstance.DBPath = @"c:\test\1\bin";
+            newInstance.InstallPath = Path.Combine(BasePath, "bin");
+            newInstance.LogPath = Path.Combine(BasePath, "bin");
+            newInstance.DBPath = Path.Combine(BasePath, "bin");
 
             var p = new PathsValidator(newInstance);
 
@@ -29,9 +31,9 @@
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1\bin";
-            newInstance.LogPath = @"c:\test\1\log";
-            newInstance.DBPath = @"c:\test\1\db";
+            newInstance.InstallPath = Path.Combine(BasePath, "bin");
+            newInstance.LogPath = Path.Combine(BasePath, "log");
+            newInstance.DBPath = Path.Combine(BasePath, "db");
 
             var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckPathsAreUnique());
@@ -43,9 +45,9 @@
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1\bin";
-            newInstance.LogPath = @"c:\test\1\bin";
-            newInstance.DBPath = @"c:\test\1\bin";
+            newInstance.InstallPath = Path.Combine(BasePath, "bin");
+            newInstance.LogPath = Path.Combine(BasePath, "bin");
+            newInstance.DBPath = Path.Combine(BasePath, "bin");
 
             var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckPathsAreValid());
@@ -56,7 +58,7 @@
         {
             //Invalid path
             var instance = ServiceControlNewInstance.CreateWithDefaultPersistence();
-            instance.InstallPath = @"?>c:\test\1\bin";
+            instance.InstallPath = @"?>" + Path.Combine(BasePath, "bin");
             var p = new PathsValidator(instance);
 
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckPathsAreValid());
@@ -82,9 +84,9 @@
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1";
-            newInstance.LogPath = @"c:\test\1\log";
-            newInstance.DBPath = @"c:\test\1\db";
+            newInstance.InstallPath = BasePath;
+            newInstance.LogPath = Path.Combine(BasePath, "log");
+            newInstance.DBPath = Path.Combine(BasePath, "db");
 
             var p = new PathsValidator(newInstance);
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckNoNestedPaths());
@@ -96,9 +98,9 @@
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1\servicecontrol";
-            newInstance.LogPath = @"c:\test\1\servicecontrollog";
-            newInstance.DBPath = @"c:\test\1\servicecontroldb";
+            newInstance.InstallPath = Path.Combine(BasePath, "servicecontrol");
+            newInstance.LogPath = Path.Combine(BasePath, "servicecontrollog");
+            newInstance.DBPath = Path.Combine(BasePath, "servicecontroldb");
 
             var p = new PathsValidator(newInstance);
             Assert.DoesNotThrow(() => p.CheckNoNestedPaths());
@@ -109,9 +111,9 @@
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.InstallPath = @"c:\test\1\bin";
-            newInstance.LogPath = @"c:\test\1\log";
-            newInstance.DBPath = @"c:\test\1\db";
+            newInstance.InstallPath = Path.Combine(BasePath, "bin");
+            newInstance.LogPath = Path.Combine(BasePath, "log");
+            newInstance.DBPath = Path.Combine(BasePath, "db");
 
             var p = new PathsValidator(newInstance);
 

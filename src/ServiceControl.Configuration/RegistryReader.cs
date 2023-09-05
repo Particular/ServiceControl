@@ -7,8 +7,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     /// <summary>
     /// Wrapper to read registry keys.
     /// </summary>
-    /// <typeparam name="T">The type of the key to retrieve</typeparam>
-    class RegistryReader<T>
+    class RegistryReader : ISettingsReader
     {
         /// <summary>
         /// Attempts to read the key from the registry.
@@ -20,7 +19,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         /// The value associated with <paramref name="name" />, with any embedded environment variables left unexpanded, or
         /// <paramref name="defaultValue" /> if <paramref name="name" /> is not found.
         /// </returns>
-        public static T Read(string subKey, string name, T defaultValue = default)
+        public object Read(string subKey, string name, Type type, object defaultValue = default)
         {
             var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
@@ -35,7 +34,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
                         if (value != null)
                         {
-                            return (T)Convert.ChangeType(value, typeof(T));
+                            return SettingsReader.ConvertFrom(value, type);
                         }
                     }
 
@@ -45,7 +44,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     {
                         if (registryKey != null)
                         {
-                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                            return SettingsReader.ConvertFrom(registryKey.GetValue(name, defaultValue), type);
                         }
                     }
                 }
@@ -57,20 +56,25 @@ namespace ServiceBus.Management.Infrastructure.Settings
                     {
                         if (registryKey != null)
                         {
-                            return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                            return SettingsReader.ConvertFrom(registryKey.GetValue(name, defaultValue), type);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Warn(
-                    $@"We couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
+                Logger.Warn($"Couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
             }
 
             return defaultValue;
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RegistryReader<T>));
+        public bool TryRead(string root, string name, Type type, out object value)
+        {
+            value = Read(root, name, type);
+            return value != null;
+        }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RegistryReader));
     }
 }

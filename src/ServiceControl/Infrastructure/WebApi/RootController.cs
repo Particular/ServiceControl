@@ -10,15 +10,13 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RootController : ApiController
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, PersistenceSettings persistenceSettings, Func<HttpClient> httpClientFactory)
+        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
         {
             this.settings = settings;
-            this.persistenceSettings = persistenceSettings;
             this.license = license;
             this.loggingSettings = loggingSettings;
             this.httpClientFactory = httpClientFactory;
@@ -45,8 +43,8 @@
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
                 AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
-                Name = SettingsReader<string>.Read("Name", "ServiceControl"),
-                Description = SettingsReader<string>.Read("Description", "The management backend for the Particular Service Platform"),
+                Name = SettingsReader.Read("Name", "ServiceControl"),
+                Description = SettingsReader.Read("Description", "The management backend for the Particular Service Platform"),
                 LicenseStatus = license.IsValid ? "valid" : "invalid",
                 LicenseDetails = baseUrl + "license",
                 Configuration = baseUrl + "configuration",
@@ -69,7 +67,6 @@
                 Host = new
                 {
                     settings.ServiceName,
-                    RavenDBPath = settings.DbPath,
                     Logging = new
                     {
                         loggingSettings.LogPath,
@@ -87,7 +84,7 @@
                     settings.HttpDefaultConnectionLimit,
                     settings.ExternalIntegrationsDispatchingBatchSize
                 },
-                PersistenceSettings = persistenceSettings,
+                PersistenceSettings = settings.PersisterSpecificSettings,
                 Transport = new
                 {
                     settings.TransportType,
@@ -157,7 +154,6 @@
         readonly LoggingSettings loggingSettings;
         readonly ActiveLicense license;
         readonly Settings settings;
-        readonly PersistenceSettings persistenceSettings;
         readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());

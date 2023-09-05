@@ -2,8 +2,10 @@
 {
     using System;
     using System.ComponentModel.Composition.Hosting;
+    using System.Globalization;
     using System.IO;
     using System.Runtime.Serialization;
+    using ByteSizeLib;
     using NServiceBus.Logging;
     using Raven.Abstractions.Data;
     using Raven.Client.Document;
@@ -24,17 +26,13 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
 
-        public static PersistenceSettings Settings { get; private set; }
+        public static RavenDBPersisterSettings Settings { get; private set; }
 
-        public static void Configure(EmbeddableDocumentStore documentStore, PersistenceSettings settings)
+        public static void Configure(EmbeddableDocumentStore documentStore, RavenDBPersisterSettings settings)
         {
             Settings = settings;
 
-            var runInMemory = false;
-            if (settings.PersisterSpecificSettings.TryGetValue(RunInMemoryKey, out var runInMemoryString))
-            {
-                runInMemory = bool.Parse(runInMemoryString);
-            }
+            var runInMemory = settings.RunInMemory;
 
             if (runInMemory)
             {
@@ -42,7 +40,9 @@
             }
             else
             {
-                if (!settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out string dbPath))
+                var dbPath = settings.DatabasePath;
+
+                if (string.IsNullOrEmpty(dbPath))
                 {
                     throw new InvalidOperationException($"{DatabasePathKey} is mandatory");
                 }
@@ -54,11 +54,7 @@
                 documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
             }
 
-            var exposeRavenDB = false;
-            if (settings.PersisterSpecificSettings.TryGetValue(ExposeRavenDBKey, out var exposeRavenDBString))
-            {
-                exposeRavenDB = bool.Parse(exposeRavenDBString);
-            }
+            var exposeRavenDB = settings.ExposeRavenDB;
 
             documentStore.UseEmbeddedHttpServer = settings.MaintenanceMode || exposeRavenDB;
             documentStore.EnlistInDistributedTransactions = false;
@@ -79,11 +75,7 @@
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
 
-            var runCleanupBundle = true;
-            if (settings.PersisterSpecificSettings.TryGetValue(RunCleanupBundleKey, out var runCleanupBundleString))
-            {
-                runCleanupBundle = bool.Parse(runCleanupBundleString);
-            }
+            var runCleanupBundle = settings.RunCleanupBundle;
 
             if (runCleanupBundle)
             {
@@ -93,17 +85,19 @@
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePort))
+            if (settings.DatabaseMaintenancePort == 0)
             {
                 throw new Exception($"{DatabaseMaintenancePortKey} is mandatory.");
             }
 
-            documentStore.Configuration.Port = int.Parse(databaseMaintenancePort);
+            documentStore.Configuration.Port = settings.DatabaseMaintenancePort;
 
-            if (!settings.PersisterSpecificSettings.TryGetValue(HostNameKey, out var hostName))
+            if (string.IsNullOrEmpty(settings.HostName))
             {
                 throw new Exception($"{HostNameKey} is mandatory.");
             }
+
+            var hostName = settings.HostName;
 
             documentStore.Configuration.HostName = hostName == "*" || hostName == "+"
                 ? "localhost"
@@ -132,6 +126,30 @@
 
                 return clrtype;
             };
+
+            if (settings.MaintenanceMode)
+            {
+                Logger.InfoFormat($"RavenDB is now accepting requests on {settings.DatabaseMaintenanceUrl}");
+            }
+
+            if (settings.RunInMemory == false)
+            {
+                RecordStartup();
+            }
+        }
+
+        static void RecordStartup()
+        {
+            var dataSize = DataSize();
+            var folderSize = FolderSize();
+
+            var startupMessage = $@"
+-------------------------------------------------------------
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
+-------------------------------------------------------------";
+
+            Logger.Info(startupMessage);
         }
 
         public static string ReadLicense()
@@ -152,7 +170,61 @@
             }
         }
 
-        static SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
+        static long DataSize()
+        {
+            var datafilePath = Path.Combine(Settings.DatabasePath, "data");
+
+            try
+            {
+                var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
+                return info.Length;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long FolderSize()
+        {
+            try
+            {
+                var dir = new DirectoryInfo(Settings.DatabasePath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            if (d.Exists)
+            {
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di);
+                }
+            }
+
+            return size;
+        }
+
+        static readonly SerializationBinder MigratedTypeAwareBinder = new MigratedTypeAwareBinder();
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenBootstrapper));
 

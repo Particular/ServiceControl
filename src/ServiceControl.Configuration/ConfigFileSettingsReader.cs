@@ -3,32 +3,30 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System;
     using System.Configuration;
 
-    static class ConfigFileSettingsReader<T>
+    class ConfigFileSettingsReader : ISettingsReader
     {
-        public static T Read(string name, T defaultValue = default)
+        public object Read(string root, string name, Type type, object defaultValue = default)
         {
-            return Read("ServiceControl", name, defaultValue);
+            return TryRead(root, name, type, out var value)
+                ? value
+                : defaultValue;
         }
 
-        public static T Read(string root, string name, T defaultValue = default)
-        {
-            if (TryRead(root, name, out var value))
-            {
-                return value;
-            }
-
-            return defaultValue;
-        }
-
-        public static bool TryRead(string root, string name, out T value)
+        public bool TryRead(string root, string name, Type type, out object value)
         {
             var fullKey = $"{root}/{name}";
 
             var appSettingValue = ConfigurationManager.AppSettings[fullKey];
             if (appSettingValue != null)
             {
-                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue); // TODO: Just added this to have expansing on appsettings to not have hardcoded "temp" paths which are different for everyone.
-                value = (T)Convert.ChangeType(appSettingValue, typeof(T));
+                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
+
+                var underlyingType = Nullable.GetUnderlyingType(type);
+
+                var destinationType = underlyingType ?? type;
+
+                value = SettingsReader.ConvertFrom(appSettingValue, destinationType);
+
                 return true;
             }
 

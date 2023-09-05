@@ -7,7 +7,6 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
-    using Persistence;
     using Persistence.RavenDb;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -36,18 +35,18 @@
 
             var customCheckTypes = serviceControlTypes.Where(t => typeof(ICustomCheck).IsAssignableFrom(t));
 
-            var objects = new List<object>()
+            var supportedConstructorArguments = new List<object>()
             {
                 new Settings(),
-                new PersistenceSettings(TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero, 1, false)
+                new RavenDBPersisterSettings
                 {
-                    PersisterSpecificSettings = { [RavenDbPersistenceConfiguration.DbPathKey] = "c:/" }
+                    DatabasePath = "%TEMP%"
                 }
             };
 
-            object MapParam(ParameterInfo pi)
+            object MapConstructorParameter(ParameterInfo pi)
             {
-                foreach (var obj in objects)
+                foreach (var obj in supportedConstructorArguments)
                 {
                     if (obj.GetType() == pi.ParameterType)
                     {
@@ -63,7 +62,7 @@
             {
                 var constructor = customCheckType.GetConstructors().Single();
                 var constructorParameters = constructor.GetParameters()
-                    .Select(MapParam)
+                    .Select(MapConstructorParameter)
                     .ToArray();
                 var instance = (ICustomCheck)constructor.Invoke(constructorParameters);
                 yield return instance;

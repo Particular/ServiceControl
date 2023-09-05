@@ -5,15 +5,14 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence;
     using Persistence.RavenDb;
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        public CheckFreeDiskSpace(PersistenceSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(RavenDBPersisterSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
         {
-            dataPath = settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DbPathKey];
-            percentageThreshold = GetDataSpaceRemainingThreshold(settings) / 100m;
+            dataPath = settings.DatabasePath;
+            percentageThreshold = settings.DataSpaceRemainingThreshold;
 
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }
@@ -35,7 +34,7 @@
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"Free space: {availableFreeSpace} | Total: {totalSpace} | Percent remaining {percentRemaining:P0}");
+                Logger.Debug($"Free space: {availableFreeSpace:N0}B | Total: {totalSpace:N0}B | Percent remaining {percentRemaining:P1}");
             }
 
             return percentRemaining > percentageThreshold
@@ -43,14 +42,10 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        int GetDataSpaceRemainingThreshold(PersistenceSettings settings)
+        public static void Validate(RavenDBPersisterSettings settings)
         {
-            var threshold = DataSpaceRemainingThresholdDefault;
+            var threshold = settings.DataSpaceRemainingThreshold;
 
-            if (settings.PersisterSpecificSettings.TryGetValue(RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey, out var thresholdValue))
-            {
-                threshold = int.Parse(thresholdValue);
-            }
             string message;
 
             if (threshold < 0)
@@ -66,14 +61,12 @@
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
-
-            return threshold;
         }
 
         readonly string dataPath;
         readonly decimal percentageThreshold;
 
-        const int DataSpaceRemainingThresholdDefault = 20;
+        public const int DataSpaceRemainingThresholdDefault = 20;
         static readonly ILog Logger = LogManager.GetLogger(typeof(CheckFreeDiskSpace));
     }
 }

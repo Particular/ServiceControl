@@ -72,7 +72,16 @@ namespace ServiceControl.AcceptanceTests
 
             await StorageConfiguration.Configure();
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), hb => CustomizeHostBuilder(hb));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
+                TransportIntegration,
+                StorageConfiguration,
+                s =>
+                {
+                    SetSettings(s);
+                },
+                s => CustomConfiguration(s),
+                hb => CustomizeHostBuilder(hb)
+                );
         }
 
         [TearDown]

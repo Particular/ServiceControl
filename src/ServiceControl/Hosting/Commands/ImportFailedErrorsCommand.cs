@@ -20,10 +20,7 @@
             settings.RunRetryProcessor = false;
             settings.DisableHealthChecks = true;
 
-            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = busConfiguration.AssemblyScanner();
-            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
-            var tokenSource = new CancellationTokenSource();
+            EndpointConfiguration busConfiguration = CreateEndpointConfiguration(settings);
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
@@ -32,20 +29,32 @@
 
             var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
 
-            Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
+            using (var tokenSource = new CancellationTokenSource())
+            {
+                Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
 
-            try
-            {
-                await importFailedErrors.Run(tokenSource.Token);
+                try
+                {
+                    await importFailedErrors.Run(tokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // no-op
+                }
+                finally
+                {
+                    await host.StopAsync(CancellationToken.None);
+                }
             }
-            catch (OperationCanceledException)
-            {
-                // no-op
-            }
-            finally
-            {
-                await host.StopAsync(CancellationToken.None);
-            }
+        }
+
+        protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
+        {
+            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = busConfiguration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
+
+            return busConfiguration;
         }
     }
 }

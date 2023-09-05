@@ -1,31 +1,12 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System;
-    using System.Collections.Generic;
-
-    public class PersistenceSettings
+    /// <summary>
+    /// Marker interface used to serialize persister settings in REST API
+    /// </summary>
+    public abstract class PersistenceSettings
     {
-        public PersistenceSettings(
-            TimeSpan errorRetentionPeriod,
-            TimeSpan eventsRetentionPeriod,
-            TimeSpan? auditRetentionPeriod,
-            int externalIntegrationsDispatchingBatchSize,
-            bool maintenanceMode
-            )
-        {
-            ErrorRetentionPeriod = errorRetentionPeriod;
-            EventsRetentionPeriod = eventsRetentionPeriod;
-            AuditRetentionPeriod = auditRetentionPeriod;
-            MaintenanceMode = maintenanceMode;
-            ExternalIntegrationsDispatchingBatchSize = externalIntegrationsDispatchingBatchSize;
-        }
-
-        public IDictionary<string, string> PersisterSpecificSettings { get; } = new Dictionary<string, string>();
-
-        public bool MaintenanceMode { get; }
-        public TimeSpan ErrorRetentionPeriod { get; }
-        public TimeSpan EventsRetentionPeriod { get; }
-        public TimeSpan? AuditRetentionPeriod { get; }
-        public int ExternalIntegrationsDispatchingBatchSize { get; }
+        public bool MaintenanceMode { get; set; }
+        //HINT: This needs to be here so that ServerControl instance can add an instance specific metadata to tweak the DatabasePath value
+        public string DatabasePath { get; set; }
     }
 }

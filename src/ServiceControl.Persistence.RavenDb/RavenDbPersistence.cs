@@ -19,7 +19,7 @@
 
     class RavenDbPersistence : IPersistence
     {
-        public RavenDbPersistence(PersistenceSettings settings, EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
+        public RavenDbPersistence(RavenDBPersisterSettings settings, EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
         {
             this.settings = settings;
             this.documentStore = documentStore;
@@ -28,6 +28,11 @@
 
         public void Configure(IServiceCollection serviceCollection)
         {
+            if (settings.MaintenanceMode)
+            {
+                return;
+            }
+
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
@@ -84,7 +89,7 @@
         }
 
         readonly RavenStartup ravenStartup;
-        readonly PersistenceSettings settings;
+        readonly RavenDBPersisterSettings settings;
         readonly EmbeddableDocumentStore documentStore;
     }
 }

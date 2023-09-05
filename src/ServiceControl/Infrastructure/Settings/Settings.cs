@@ -10,11 +10,18 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using ServiceControl.Infrastructure.WebApi;
+    using ServiceControl.Persistence;
     using ServiceControl.Transports;
 
     public class Settings
     {
-        public Settings(string serviceName = null, string transportType = null, string persisterType = null)
+        public Settings(
+            string serviceName = null,
+            string transportType = null,
+            string persisterType = null,
+            bool? forwardErrorMessages = default,
+            TimeSpan? errorRetentionPeriod = default
+            )
         {
             ServiceName = serviceName;
 
@@ -24,7 +31,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
 
             // Overwrite the service name if it is specified in ENVVAR, reg, or config file
-            ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
+            ServiceName = SettingsReader.Read("InternalQueueName", ServiceName);
 
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue(ErrorQueue);
@@ -32,26 +39,24 @@ namespace ServiceBus.Management.Infrastructure.Settings
             TryLoadLicenseFromConfig();
 
             TransportConnectionString = GetConnectionString();
-            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
-            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType");
+            TransportType = transportType ?? SettingsReader.Read<string>("TransportType");
+            PersistenceType = persisterType ?? SettingsReader.Read<string>("PersistenceType");
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            ForwardErrorMessages = GetForwardErrorMessages();
-            ErrorRetentionPeriod = GetErrorRetentionPeriod();
+            ForwardErrorMessages = forwardErrorMessages ?? GetForwardErrorMessages();
+            ErrorRetentionPeriod = errorRetentionPeriod ?? GetErrorRetentionPeriod();
             EventsRetentionPeriod = GetEventRetentionPeriod();
-            Port = SettingsReader<int>.Read("Port", 33333);
-            DatabaseMaintenancePort = SettingsReader<int>.Read("DatabaseMaintenancePort", 33334);  // TODO: Should not be in Core but in the persister implementation
+            Port = SettingsReader.Read("Port", 33333);
             ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(30);
-            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 10);
-            RetryHistoryDepth = SettingsReader<int>.Read("RetryHistoryDepth", 10);
-            HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
-            AllowMessageEditing = SettingsReader<bool>.Read("AllowMessageEditing");
-            NotificationsFilter = SettingsReader<string>.Read("NotificationsFilter");
+            MaximumConcurrencyLevel = SettingsReader.Read("MaximumConcurrencyLevel", 10);
+            RetryHistoryDepth = SettingsReader.Read("RetryHistoryDepth", 10);
+            HttpDefaultConnectionLimit = SettingsReader.Read("HttpDefaultConnectionLimit", 100);
+            AllowMessageEditing = SettingsReader.Read<bool>("AllowMessageEditing");
+            NotificationsFilter = SettingsReader.Read<string>("NotificationsFilter");
             RemoteInstances = GetRemoteInstances().ToArray();
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
-            DbPath = GetDbPath();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
-            DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
-            EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+            DisableExternalIntegrationsPublishing = SettingsReader.Read("DisableExternalIntegrationsPublishing", false);
+            EnableFullTextSearchOnBodies = SettingsReader.Read("EnableFullTextSearchOnBodies", true);
         }
 
         public string NotificationsFilter { get; set; }
@@ -64,9 +69,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
         //HINT: acceptance tests only
         public string EmailDropFolder { get; set; }
 
-        public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
+        public bool ValidateConfiguration => SettingsReader.Read("ValidateConfig", true);
 
-        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader<int>.Read("ExternalIntegrationsDispatchingBatchSize", 100);
+        public int ExternalIntegrationsDispatchingBatchSize => SettingsReader.Read("ExternalIntegrationsDispatchingBatchSize", 100);
 
         public bool DisableExternalIntegrationsPublishing { get; set; }
 
@@ -89,8 +94,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             }
         }
 
-        public string DatabaseMaintenanceUrl => $"http://{Hostname}:{DatabaseMaintenancePort}";
-
         public string ApiUrl => $"{RootUrl}api";
 
         public string StorageUrl => $"{RootUrl}storage";
@@ -98,16 +101,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public string StagingQueue => $"{ServiceName}.staging";
 
         public int Port { get; set; }
-        public int DatabaseMaintenancePort { get; set; } // TODO: Should not be in Core but in the persister implementation
 
         public string LicenseFileText { get; set; }
 
-        public Dictionary<string, string> PersisterSpecificSettings { get; set; } = new Dictionary<string, string>();
+        public PersistenceSettings PersisterSpecificSettings { get; set; }
 
-        public bool ExposeRavenDB => SettingsReader<bool>.Read("ExposeRavenDB"); // TODO: Should not be in Core but in the persister implementation
-        public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
-        public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
-        public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
+        public bool PrintMetrics => SettingsReader.Read<bool>("PrintMetrics");
+        public string Hostname => SettingsReader.Read("Hostname", "localhost");
+        public string VirtualDirectory => SettingsReader.Read("VirtualDirectory", string.Empty);
 
         public TimeSpan HeartbeatGracePeriod
         {
@@ -115,7 +116,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 try
                 {
-                    return TimeSpan.Parse(SettingsReader<string>.Read("HeartbeatGracePeriod", "00:00:40"));
+                    return TimeSpan.Parse(SettingsReader.Read("HeartbeatGracePeriod", "00:00:40"));
                 }
                 catch (Exception ex)
                 {
@@ -127,7 +128,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string TransportType { get; set; }
         public string PersistenceType { get; private set; }
-        public string DbPath { get; set; } // TODO: Should not be in Core but in the persister implementation
         public string ErrorLogQueue { get; set; }
         public string ErrorQueue { get; set; }
 
@@ -178,7 +178,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public string GetConnectionString()
         {
-            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            var settingsValue = SettingsReader.Read<string>("ConnectionString");
             if (settingsValue != null)
             {
                 return settingsValue;
@@ -190,7 +190,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         string GetErrorQueue()
         {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
+            var value = SettingsReader.Read("ServiceBus", "ErrorQueue", "error");
 
             if (value == null)
             {
@@ -216,7 +216,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 return null;
             }
 
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
+            var value = SettingsReader.Read<string>("ServiceBus", "ErrorLogQueue", null);
 
             if (value == null)
             {
@@ -227,29 +227,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return value;
         }
 
-        string GetDbPath()
-        {
-            var host = Hostname;
-            if (host == "*")
-            {
-                host = "%";
-            }
-
-            var dbFolder = $"{host}-{Port}";
-
-            if (!string.IsNullOrEmpty(VirtualDirectory))
-            {
-                dbFolder += $"-{SanitiseFolderName(VirtualDirectory)}";
-            }
-
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
-
-            return SettingsReader<string>.Read("DbPath", defaultPath);
-        }
-
         static bool GetForwardErrorMessages()
         {
-            var forwardErrorMessages = NullableSettingsReader<bool>.Read("ForwardErrorMessages");
+            var forwardErrorMessages = SettingsReader.Read<bool?>("ForwardErrorMessages");
             if (forwardErrorMessages.HasValue)
             {
                 return forwardErrorMessages.Value;
@@ -258,14 +238,9 @@ namespace ServiceBus.Management.Infrastructure.Settings
             throw new Exception("ForwardErrorMessages settings is missing, please make sure it is included.");
         }
 
-        static string SanitiseFolderName(string folderName)
-        {
-            return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
-        }
-
         TimeSpan GetEventRetentionPeriod()
         {
-            var valueRead = SettingsReader<string>.Read("EventRetentionPeriod");
+            var valueRead = SettingsReader.Read<string>("EventRetentionPeriod");
             if (valueRead != null)
             {
                 if (TimeSpan.TryParse(valueRead, out var result))
@@ -295,7 +270,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         TimeSpan GetErrorRetentionPeriod()
         {
             string message;
-            var valueRead = SettingsReader<string>.Read("ErrorRetentionPeriod");
+            var valueRead = SettingsReader.Read<string>("ErrorRetentionPeriod");
             if (valueRead == null)
             {
                 message = "ErrorRetentionPeriod settings is missing, please make sure it is included.";
@@ -332,7 +307,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         TimeSpan? GetAuditRetentionPeriod()
         {
             string message;
-            var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
+            var valueRead = SettingsReader.Read<string>("AuditRetentionPeriod");
             if (valueRead == null)
             {
                 return null;
@@ -367,7 +342,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         TimeSpan GetTimeToRestartErrorIngestionAfterFailure()
         {
             string message;
-            var valueRead = SettingsReader<string>.Read("TimeToRestartErrorIngestionAfterFailure");
+            var valueRead = SettingsReader.Read<string>("TimeToRestartErrorIngestionAfterFailure");
             if (valueRead == null)
             {
                 return TimeSpan.FromSeconds(60);
@@ -401,7 +376,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         static IList<RemoteInstanceSetting> GetRemoteInstances()
         {
-            var valueRead = SettingsReader<string>.Read("RemoteInstances");
+            var valueRead = SettingsReader.Read<string>("RemoteInstances");
             if (!string.IsNullOrEmpty(valueRead))
             {
                 return ParseRemoteInstances(valueRead);
@@ -436,7 +411,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         int GetDataSpaceRemainingThreshold()
         {
             string message;
-            var threshold = SettingsReader<int>.Read("DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
+            var threshold = SettingsReader.Read("DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
             if (threshold < 0)
             {
                 message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, minimum value is 0.";
@@ -456,7 +431,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         void TryLoadLicenseFromConfig()
         {
-            LicenseFileText = SettingsReader<string>.Read("LicenseText");
+            LicenseFileText = SettingsReader.Read<string>("LicenseText");
         }
 
         ILog logger = LogManager.GetLogger(typeof(Settings));

@@ -2,31 +2,28 @@ namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
 
-    static class EnvironmentVariableSettingsReader<T>
+    class EnvironmentVariableSettingsReader : ISettingsReader
     {
-        public static T Read(string name, T defaultValue = default)
+        public object Read(string root, string name, Type type, object defaultValue = default)
         {
-            return Read("ServiceControl", name, defaultValue);
+            return TryRead(root, name, type, out var value)
+                ? value
+                : defaultValue;
         }
 
-        public static T Read(string root, string name, T defaultValue = default)
+        public bool TryRead(string root, string name, Type type, out object value)
         {
-            if (TryRead(root, name, out var value))
-            {
-                return value;
-            }
-
-            return defaultValue;
-        }
-
-        public static bool TryRead(string root, string name, out T value)
-        {
-            if (TryReadVariable(out value, $"{root}/{name}"))
+            if (TryReadVariable(type, out value, $"{root}/{name}"))
             {
                 return true;
             }
             // Azure container instance compatibility:
-            if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_')))
+            if (TryReadVariable(type, out value, $"{root}_{name}".Replace('.', '_')))
+            {
+                return true;
+            }
+            // container images and env files compatibility:
+            if (TryReadVariable(type, out value, $"{root}_{name}".Replace('.', '_').Replace('/', '_')))
             {
                 return true;
             }
@@ -35,14 +32,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return false;
         }
 
-        static bool TryReadVariable(out T value, string fullKey)
+        static bool TryReadVariable(Type type, out object value, string fullKey)
         {
             var environmentValue = Environment.GetEnvironmentVariable(fullKey);
 
             if (environmentValue != null)
             {
                 environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-                value = (T)Convert.ChangeType(environmentValue, typeof(T));
+                value = SettingsReader.ConvertFrom(environmentValue, type);
                 return true;
             }
 

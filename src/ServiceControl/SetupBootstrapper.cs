@@ -35,9 +35,8 @@ namespace Particular.ServiceControl
                 await installationTask();
             }
 
-            var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
-            var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
-            var persistence = persistenceConfiguration.Create(persistenceSettings);
+            var persistence = PersistenceFactory.Create(settings);
+
             var installer = persistence.CreateInstaller();
 
             await installer.Install();

@@ -71,7 +71,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
                 DataStoreTypeName = "RavenDB35"
             };
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, DataStoreConfiguration, c => CustomEndpointConfiguration(c), c => CustomAuditEndpointConfiguration(c), s => CustomServiceControlSettings(s), s => CustomServiceControlAuditSettings(s));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
+                TransportIntegration,
+                DataStoreConfiguration,
+                c => CustomEndpointConfiguration(c),
+                c => CustomAuditEndpointConfiguration(c),
+                s => CustomServiceControlSettings(s),
+                s => CustomServiceControlAuditSettings(s)
+                );
         }
 
         [TearDown]

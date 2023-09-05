@@ -48,7 +48,7 @@
         {
             var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
             var instanceName = "Test.ServiceControl.Msmq";
-            var root = Path.Combine(@"c:\Test", instanceName);
+            var root = Path.Combine(Path.GetTempPath(), instanceName);
             var details = ServiceControlNewInstance.CreateWithDefaultPersistence(DeploymentCache);
 
             details.DisplayName = instanceName.Replace(".", " ");
@@ -108,7 +108,7 @@
 
             logger.Info("Changing LogPath");
             msmqTestInstance = InstanceFinder.ServiceControlInstances().First(p => p.Name.Equals("Test.ServiceControl.MSMQ", StringComparison.OrdinalIgnoreCase));
-            msmqTestInstance.LogPath = @"c:\temp\testloggingchange";
+            msmqTestInstance.LogPath = Path.Combine(Path.GetTempPath(), "testloggingchange");
             await installer.Update(msmqTestInstance, true).ConfigureAwait(false);
             Assert.IsTrue(msmqTestInstance.Service.Status == ServiceControllerStatus.Running, "Update Logging changed failed");
 
@@ -139,6 +139,6 @@
             }
         }
 
-        const string DeploymentCache = @"..\..\..\..\Zip";
+        const string DeploymentCache = @"..\..\..\..\..\Zip";
     }
 }

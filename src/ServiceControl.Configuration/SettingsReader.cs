@@ -1,25 +1,77 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
-    class SettingsReader<T>
+    using System;
+    using System.ComponentModel;
+
+    static class SettingsReader
     {
-        public static T Read(string name, T defaultValue = default)
+        const string Namespace = "ServiceControl";
+        static readonly ISettingsReader EnvironmentVariable = new EnvironmentVariableSettingsReader();
+        static readonly ISettingsReader Registry = new RegistryReader();
+        public static readonly ISettingsReader ConfigFile = new ConfigFileSettingsReader();
+
+        public static T Read<T>(string name, T defaultValue = default)
         {
-            return Read("ServiceControl", name, defaultValue);
+            return Read(Namespace, name, defaultValue);
         }
 
-        public static T Read(string root, string name, T defaultValue = default)
+        public static T Read<T>(string root, string name, T defaultValue = default)
         {
-            if (EnvironmentVariableSettingsReader<T>.TryRead(root, name, out var envValue))
+            return (T)Read(root, name, typeof(T), defaultValue);
+        }
+
+        static object Read(string root, string name, Type type, object defaultValue = default)
+        {
+            if (EnvironmentVariable.TryRead(root, name, type, out var envValue))
             {
                 return envValue;
             }
 
-            if (ConfigFileSettingsReader<T>.TryRead(root, name, out var value))
+            if (ConfigFile.TryRead(root, name, type, out var value))
             {
                 return value;
             }
 
-            return RegistryReader<T>.Read(root, name, defaultValue);
+            return Registry.Read(root, name, type, defaultValue);
         }
+
+        public static bool TryRead(string name, Type type, out object value)
+        {
+            var root = Namespace;
+
+            if (EnvironmentVariable.TryRead(root, name, type, out var envValue))
+            {
+                value = envValue;
+                return true;
+            }
+
+            if (ConfigFile.TryRead(root, name, type, out var configValue))
+            {
+                value = configValue;
+                return true;
+            }
+
+            if (Registry.TryRead(root, name, type, out var regValue))
+            {
+                value = regValue;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public static T Read<T>(this ISettingsReader instance, string name, T defaultValue = default)
+        {
+            return (T)instance.Read(Namespace, name, typeof(T), defaultValue);
+        }
+
+        public static object ConvertFrom(object sourceValue, Type destinationType)
+        {
+            var converter = TypeDescriptor.GetConverter(destinationType);
+            object value = converter.ConvertFrom(sourceValue);
+            return value;
+        }
+
     }
 }

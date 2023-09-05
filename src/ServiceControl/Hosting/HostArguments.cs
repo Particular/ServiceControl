@@ -13,7 +13,7 @@ namespace Particular.ServiceControl.Hosting
     {
         public HostArguments(string[] args)
         {
-            if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
+            if (SettingsReader.ConfigFile.Read<bool>("MaintenanceMode"))
             {
                 args = args.Concat(new[]
                 {
@@ -41,7 +41,7 @@ namespace Particular.ServiceControl.Hosting
                     {
                         Commands = new List<Type>
                         {
-                            typeof(MaintCommand)
+                            typeof(MaintenanceModeCommand)
                         };
                         executionMode = ExecutionMode.Maintenance;
                     }

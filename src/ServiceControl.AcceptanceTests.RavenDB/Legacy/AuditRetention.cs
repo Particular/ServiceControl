@@ -14,7 +14,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTests;
     using ServiceControl.AcceptanceTests.TestSupport.EndpointTemplates;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.RavenDb.SagaAudit;
     using ServiceControl.SagaAudit;
 
@@ -34,7 +33,7 @@
 
             //Override the configuration of the check in the container in order to make it run more frequently for testing purposes.
             CustomizeHostBuilder = hostBuilder => hostBuilder.ConfigureServices((ctx, services) =>
-                services.AddTransient<ICustomCheck, AuditRetentionCustomCheck>(provider => new AuditRetentionCustomCheck(provider.GetRequiredService<IDocumentStore>(), provider.GetRequiredService<PersistenceSettings>(), TimeSpan.FromSeconds(10))));
+                services.AddTransient<ICustomCheck, AuditRetentionCustomCheck>(provider => new AuditRetentionCustomCheck(provider.GetRequiredService<IDocumentStore>(), provider.GetRequiredService<RavenDBPersisterSettings>(), TimeSpan.FromSeconds(10))));
 
             SingleResult<EventLogItem> customCheckEventEntry = default;
             bool sagaAudiDataInMainInstanceIsAvailableForQuery = false;
