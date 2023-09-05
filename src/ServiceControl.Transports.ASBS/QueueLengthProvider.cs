@@ -85,7 +85,7 @@ namespace ServiceControl.Transports.ASBS
                 while (await enumerator.MoveNextAsync())
                 {
                     var queueRuntimeProperties = enumerator.Current;
-                    queuePathToRuntimeInfo.Add(queueRuntimeProperties.Name, queueRuntimeProperties);
+                    queuePathToRuntimeInfo[queueRuntimeProperties.Name] = queueRuntimeProperties; // Assuming last write is most up to date
                 }
             }
             finally
