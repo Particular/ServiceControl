@@ -139,6 +139,6 @@
             }
         }
 
-        const string DeploymentCache = @"..\..\..\..\Zip";
+        const string DeploymentCache = @"..\..\..\..\..\Zip";
     }
 }
