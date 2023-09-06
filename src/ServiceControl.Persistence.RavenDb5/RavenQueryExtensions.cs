@@ -228,7 +228,7 @@ namespace ServiceControl.Persistence
                 var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
                 source.AndAlso();
-                source.WhereBetweenOrEqual("LastModified", from.Ticks, to.Ticks);
+                source.WhereBetween("LastModified", from.Ticks, to.Ticks);
             }
             catch (Exception)
             {

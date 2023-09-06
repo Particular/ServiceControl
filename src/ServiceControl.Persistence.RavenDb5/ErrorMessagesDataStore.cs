@@ -546,7 +546,7 @@
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                 .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                 .AndAlso()
-                .WhereBetweenOrEqual("LastModified", periodFrom.Ticks, periodTo.Ticks);
+                .WhereBetween("LastModified", periodFrom.Ticks, periodTo.Ticks);
 
                 if (!string.IsNullOrWhiteSpace(queueAddress))
                 {
@@ -676,7 +676,7 @@ if(this.Status === archivedStatus) {
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                 .AndAlso()
-                .WhereBetweenOrEqual(options => options.LastModified, from.Ticks, to.Ticks)
+                .WhereBetween(options => options.LastModified, from.Ticks, to.Ticks)
                 .AndAlso()
                     .WhereEquals(o => o.QueueAddress, queueAddress)
                     .SetResultTransformer(FailedMessageViewTransformer.Name)
