@@ -57,7 +57,7 @@
 
                 var totalMessagesReclassified = 0;
 
-                using (var stream = await session.Advanced.StreamAsync(query.As<FailedMessage>())
+                using (var stream = await session.Advanced.StreamAsync(query.OfType<FailedMessage>())
                     )
                 {
                     while (!abort && await stream.MoveNextAsync())
