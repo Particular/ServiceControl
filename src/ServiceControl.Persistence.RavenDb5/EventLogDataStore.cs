@@ -6,7 +6,6 @@
     using Persistence.Infrastructure;
     using Raven.Client;
     using Raven.Client.Documents;
-    using Raven.Client.Linq;
 
     class EventLogDataStore : IEventLogDataStore
     {
