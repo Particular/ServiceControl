@@ -100,5 +100,3 @@ src/scaffolding.config
 
 # Visual Studio Code
 .vscode
-
-dockerfiles/
