@@ -20,6 +20,7 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Session;
+    using Raven.Client.Documents.Queries.Facets;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
