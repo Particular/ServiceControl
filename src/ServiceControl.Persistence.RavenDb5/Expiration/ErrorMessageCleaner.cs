@@ -121,9 +121,7 @@
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
-#pragma warning disable 618
                         accessor.Attachments.DeleteAttachment("messagebodies/" + attachments[idx], null);
-#pragma warning restore 618
                         deleted++;
                     }
                 });

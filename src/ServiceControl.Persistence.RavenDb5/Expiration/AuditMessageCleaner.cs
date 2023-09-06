@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Queries;
@@ -110,9 +111,7 @@
                     for (var idx = s; idx <= e; idx++)
                     {
                         //We want to continue using attachments for now
-#pragma warning disable 618
                         accessor.Attachments.DeleteAttachment(att[idx], null);
-#pragma warning restore 618
                         deleted++;
                     }
                 });
@@ -140,7 +139,7 @@
             }
         }
 
-        static bool TryGetBodyId(RavenJObject doc, out string bodyId)
+        static bool TryGetBodyId(JObject doc, out string bodyId)
         {
             bodyId = null;
             if (doc.Value<bool>("MessageMetadata.BodyNotStored"))

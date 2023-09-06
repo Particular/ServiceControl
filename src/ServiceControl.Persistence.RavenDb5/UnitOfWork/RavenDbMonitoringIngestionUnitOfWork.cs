@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using ServiceControl.Persistence.UnitOfWork;
     using Raven.Abstractions.Commands;
     using Raven.Client.Documents.Commands.Batches;
-    using Raven.Json.Linq;
 
     class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {
@@ -23,7 +23,7 @@
 
         static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) => new PutCommandData
         {
-            Document = RavenJObject.FromObject(endpoint),
+            Document = JObject.FromObject(endpoint),
             Etag = null,
             Key = endpoint.Id.ToString(),
             Metadata = KnownEndpointMetadata
@@ -31,13 +31,13 @@
 
         static RavenDbMonitoringIngestionUnitOfWork()
         {
-            KnownEndpointMetadata = RavenJObject.Parse($@"
+            KnownEndpointMetadata = JObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{KnownEndpoint.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(KnownEndpoint).AssemblyQualifiedName}""
                                     }}");
         }
 
-        static readonly RavenJObject KnownEndpointMetadata;
+        static readonly JObject KnownEndpointMetadata;
     }
 }

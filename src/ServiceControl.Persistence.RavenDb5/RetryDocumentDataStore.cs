@@ -6,6 +6,7 @@
     using System.Linq.Expressions;
     using System.Threading.Tasks;
     using MessageFailures;
+    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using Raven.Abstractions.Commands;
@@ -19,9 +20,7 @@
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
-    using Raven.Client.Indexes;
     using Raven.Client.Linq;
-    using Raven.Json.Linq;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
@@ -148,7 +147,7 @@
             };
         }
 
-        static RavenJObject DefaultMetadata = RavenJObject.Parse($@"
+        static JObject DefaultMetadata = JObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""

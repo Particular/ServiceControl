@@ -3,11 +3,11 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
     using Raven.Client;
     using Raven.Client.Documents;
-    using Raven.Json.Linq;
 
     // For Raven5, look at how the Audit instance is implementing this, as Attachments won't exist
     // and there will be no need for a fallback method on a new persistence
@@ -26,7 +26,7 @@
             //We want to continue using attachments for now
 #pragma warning disable 618
             return documentStore.AsyncDatabaseCommands.PutAttachmentAsync(id, null, bodyStream,
-                new RavenJObject
+                new JObject
 #pragma warning restore 618
                 {
                     {"ContentType", contentType},

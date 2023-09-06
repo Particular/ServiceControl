@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
+    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -17,7 +18,6 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
-    using Raven.Json.Linq;
 
     class FailedMessageReclassifier : IReclassifyFailedMessages
     {
@@ -103,7 +103,7 @@
 
             Parallel.ForEach(docs, doc =>
             {
-                var failureGroups = GetClassificationGroups(doc.Item2, classifiers).Select(RavenJObject.FromObject);
+                var failureGroups = GetClassificationGroups(doc.Item2, classifiers).Select(JObject.FromObject);
 
                 try
                 {

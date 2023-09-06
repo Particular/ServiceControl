@@ -2,7 +2,7 @@
 {
     using System;
     using System.Linq;
-    using Raven.Imports.Newtonsoft.Json.Serialization;
+    using Newtonsoft.Json.Serialization;
     using SagaAudit;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Contracts.Operations;

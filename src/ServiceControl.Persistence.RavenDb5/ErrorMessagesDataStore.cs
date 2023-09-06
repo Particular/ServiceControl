@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
+    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -22,7 +23,6 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Session;
     using Raven.Client.Linq;
-    using Raven.Json.Linq;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -703,7 +703,7 @@ if(this.Status === archivedStatus) {
             var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
                 transformer: MessagesBodyTransformer.Name);
 
-            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as RavenJArray)?.SingleOrDefault() as RavenJObject)
+            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as JArray)?.SingleOrDefault() as JObject)
                 ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
 
             if (resultBody != null)

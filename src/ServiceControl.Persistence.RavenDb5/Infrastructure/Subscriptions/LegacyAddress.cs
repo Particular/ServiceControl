@@ -2,8 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using Raven.Imports.Newtonsoft.Json.Linq;
-    using Raven.Json.Linq;
+    using Newtonsoft.Json.Linq;
 
     class LegacyAddress
     {
@@ -54,7 +53,7 @@
             };
         }
 
-        public static string ParseToString(Func<RavenJToken> tokenSelector)
+        public static string ParseToString(Func<JToken> tokenSelector)
         {
             var token = tokenSelector();
 

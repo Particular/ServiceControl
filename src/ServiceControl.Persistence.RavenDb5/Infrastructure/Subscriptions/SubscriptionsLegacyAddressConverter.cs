@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB.Subscriptions
 {
     using System.Linq;
+    using Newtonsoft.Json.Linq;
     using Raven.Client.Listeners;
-    using Raven.Json.Linq;
 
     class SubscriptionsLegacyAddressConverter : IDocumentConversionListener
     {
-        public void BeforeConversionToDocument(string key, object entity, RavenJObject metadata)
+        public void BeforeConversionToDocument(string key, object entity, JObject metadata)
         {
             if (!(entity is Subscription subscription))
             {
@@ -18,15 +18,15 @@
             subscription.LegacySubscriptions.AddRange(converted);
         }
 
-        public void AfterConversionToDocument(string key, object entity, RavenJObject document, RavenJObject metadata)
+        public void AfterConversionToDocument(string key, object entity, JObject document, JObject metadata)
         {
         }
 
-        public void BeforeConversionToEntity(string key, RavenJObject document, RavenJObject metadata)
+        public void BeforeConversionToEntity(string key, JObject document, JObject metadata)
         {
         }
 
-        public void AfterConversionToEntity(string key, RavenJObject document, RavenJObject metadata, object entity)
+        public void AfterConversionToEntity(string key, JObject document, JObject metadata, object entity)
         {
             if (!(entity is Subscription subscription))
             {

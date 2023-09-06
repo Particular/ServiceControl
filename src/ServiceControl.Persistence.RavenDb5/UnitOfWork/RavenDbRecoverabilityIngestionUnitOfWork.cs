@@ -2,6 +2,8 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
@@ -10,8 +12,6 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
-    using Raven.Imports.Newtonsoft.Json;
-    using Raven.Json.Linq;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
@@ -125,7 +125,7 @@
             Serializer = JsonExtensions.CreateDefaultJsonSerializer();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
 
-            FailedMessageMetadata = RavenJObject.Parse($@"
+            FailedMessageMetadata = JObject.Parse($@"
                                     {{
                                         ""Raven-Entity-Name"": ""{FailedMessageIdGenerator.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
@@ -133,7 +133,7 @@
         }
 
         static int MaxProcessingAttempts = 10;
-        static readonly RavenJObject FailedMessageMetadata;
+        static readonly JObject FailedMessageMetadata;
         static readonly JsonSerializer Serializer;
     }
 }
