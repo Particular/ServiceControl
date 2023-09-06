@@ -3,9 +3,7 @@
     using System;
     using System.Threading;
     using Newtonsoft.Json.Linq;
-    using Raven.Abstractions.Data;
     using Raven.Client.Documents.Queries;
-    using Raven.Database;
 
     static class Extensions
     {

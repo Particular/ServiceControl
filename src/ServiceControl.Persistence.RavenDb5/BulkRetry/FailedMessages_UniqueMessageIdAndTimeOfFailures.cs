@@ -3,7 +3,6 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Linq;
     using MessageFailures;
-    using Raven.Client.Indexes;
 
     class FailedMessages_UniqueMessageIdAndTimeOfFailures : AbstractTransformerCreationTask<FailedMessage> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {

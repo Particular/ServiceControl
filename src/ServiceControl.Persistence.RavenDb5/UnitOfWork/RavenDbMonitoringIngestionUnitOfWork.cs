@@ -3,7 +3,6 @@
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Abstractions.Commands;
     using Raven.Client.Documents.Commands.Batches;
 
     class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork

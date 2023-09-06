@@ -2,8 +2,8 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Persistence;
 
     class PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration : IDataMigration

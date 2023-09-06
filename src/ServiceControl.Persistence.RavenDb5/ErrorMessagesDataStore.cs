@@ -16,13 +16,10 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Session;
-    using Raven.Client.Linq;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {

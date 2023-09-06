@@ -4,7 +4,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using MessageFailures;
-    using Raven.Client.Indexes;
     using ServiceControl.Persistence;
 
     class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Input> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers

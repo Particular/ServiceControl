@@ -5,8 +5,7 @@
     using System.Threading.Tasks;
     using BackgroundTasks;
     using NServiceBus.Logging;
-    using Raven.Abstractions;
-    using Raven.Database;
+    using Raven.Client.Util;
     using SagaAudit;
 
     class ExpiredDocumentsCleaner

@@ -11,11 +11,8 @@
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Extensions;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Changes;
-    using Raven.Client.Linq;
 
     class ExternalIntegrationRequestsDataStore
         : IExternalIntegrationRequestsDataStore

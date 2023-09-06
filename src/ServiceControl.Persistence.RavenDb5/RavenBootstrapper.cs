@@ -7,9 +7,6 @@
     using System.Runtime.Serialization;
     using ByteSizeLib;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Client.Document;
-    using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 

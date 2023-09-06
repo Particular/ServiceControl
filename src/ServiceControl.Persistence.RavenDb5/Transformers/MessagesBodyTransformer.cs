@@ -2,7 +2,6 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Raven.Client.Indexes;
     using ServiceControl.MessageFailures;
 
     class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesBodyTransformer.Input> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers

@@ -3,7 +3,6 @@
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Abstractions.Commands;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;

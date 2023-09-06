@@ -9,9 +9,6 @@
     using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
@@ -20,7 +17,6 @@
     using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Session;
     using Raven.Client.Exceptions;
-    using Raven.Client.Linq;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 

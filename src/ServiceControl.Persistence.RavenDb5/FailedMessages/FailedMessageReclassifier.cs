@@ -12,8 +12,6 @@
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
@@ -114,7 +112,7 @@
                             {
                                 Type = PatchCommandType.Set,
                                 Name = "FailureGroups",
-                                Value = new RavenJArray(failureGroups)
+                                Value = new JArray(failureGroups)
                             }
                         });
 

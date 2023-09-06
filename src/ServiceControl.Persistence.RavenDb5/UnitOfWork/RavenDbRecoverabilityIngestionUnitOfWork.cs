@@ -7,9 +7,6 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
 

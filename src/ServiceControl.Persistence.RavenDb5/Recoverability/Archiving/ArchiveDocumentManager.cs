@@ -6,9 +6,10 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Documents.Session;
 
     class ArchiveDocumentManager
     {
