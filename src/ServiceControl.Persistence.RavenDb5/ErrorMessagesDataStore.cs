@@ -9,17 +9,20 @@
     using CompositeViews.Messages;
     using Editing;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Client;
-    using Raven.Client.Linq;
-    using Raven.Json.Linq;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Queries;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Linq;
+    using Raven.Json.Linq;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {

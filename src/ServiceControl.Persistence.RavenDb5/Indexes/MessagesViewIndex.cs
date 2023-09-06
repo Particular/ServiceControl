@@ -3,11 +3,10 @@ namespace ServiceControl.Persistence
     using System;
     using System.Linq;
     using Lucene.Net.Analysis.Standard;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
     using ServiceControl.MessageAuditing;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
+    using Raven.Client.Documents.Indexes;
 
     class MessagesViewIndex : AbstractMultiMapIndexCreationTask<MessagesViewIndex.SortAndFilterOptions>
     {
@@ -54,11 +53,9 @@ namespace ServiceControl.Persistence
                                                   ConversationId = (string)last.MessageMetadata["ConversationId"]
                                               });
 
-            Index(x => x.Query, FieldIndexing.Analyzed);
+            Index(x => x.Query, FieldIndexing.Search);
 
             Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions

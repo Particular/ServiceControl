@@ -3,8 +3,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB;
+    using Raven.Client.Embedded;
 
     class RavenDbInstaller : IPersistenceInstaller
     {

@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
     using ServiceControl.Recoverability;
 
     class FailedMessageRetries_ByBatch : AbstractIndexCreationTask<FailedMessageRetry>
@@ -13,8 +13,6 @@ namespace ServiceControl.Persistence
                           {
                               doc.RetryBatchId
                           };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

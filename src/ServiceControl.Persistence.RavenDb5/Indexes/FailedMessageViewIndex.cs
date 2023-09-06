@@ -2,8 +2,8 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Linq;
-    using Raven.Client.Indexes;
     using ServiceControl.Operations;
+    using Raven.Client.Documents.Indexes;
 
     class FailedMessageViewIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -22,8 +22,6 @@ namespace ServiceControl.MessageFailures.Api
                                   processingAttemptsLast.FailureDetails.TimeOfFailure,
                                   LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                               };
-
-            DisableInMemoryIndexing = true;
         }
 
         public class SortAndFilterOptions : IHaveStatus

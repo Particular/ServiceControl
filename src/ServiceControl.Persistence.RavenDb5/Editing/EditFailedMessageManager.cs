@@ -2,10 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Data;
-    using Raven.Client;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
+    using Raven.Client.Documents.Session;
 
     class EditFailedMessageManager : AbstractSessionManager, IEditFailedMessagesManager
     {

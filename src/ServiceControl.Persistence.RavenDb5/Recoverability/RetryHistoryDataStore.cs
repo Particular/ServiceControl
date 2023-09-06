@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Raven.Client;
     using ServiceControl.Recoverability;
+    using Raven.Client.Documents;
 
     class RetryHistoryDataStore : IRetryHistoryDataStore
     {

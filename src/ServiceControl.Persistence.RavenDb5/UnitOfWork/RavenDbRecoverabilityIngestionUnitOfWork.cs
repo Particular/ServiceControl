@@ -2,14 +2,16 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Raven.Abstractions.Commands;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Extensions;
-    using Raven.Imports.Newtonsoft.Json;
-    using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
+    using Raven.Abstractions.Commands;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Extensions;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
+    using Raven.Imports.Newtonsoft.Json;
+    using Raven.Json.Linq;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {

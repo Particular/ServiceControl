@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Notifications;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class NotificationsManager : AbstractSessionManager, INotificationsManager
     {

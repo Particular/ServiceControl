@@ -6,8 +6,9 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Abstractions.Data;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
     class CheckRavenDBIndexLag : CustomCheck

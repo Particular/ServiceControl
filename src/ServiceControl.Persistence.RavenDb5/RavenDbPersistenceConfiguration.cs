@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
-    using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations;
+    using Raven.Client.Embedded;
 
     class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {

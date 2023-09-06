@@ -4,8 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client;
     using ServiceControl.Operations;
+    using Raven.Client;
+    using Raven.Client.Documents;
 
     class FailedErrorImportDataStore : IFailedErrorImportDataStore
     {

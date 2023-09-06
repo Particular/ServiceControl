@@ -5,7 +5,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Raven.Client.Indexes;
     using ServiceControl.MessageFailures;
 
-    class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesBodyTransformer.Input>
+    class MessagesBodyTransformer : AbstractTransformerCreationTask<MessagesBodyTransformer.Input> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {
         public MessagesBodyTransformer()
         {

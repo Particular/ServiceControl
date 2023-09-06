@@ -1,9 +1,8 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System.Linq;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
     using ServiceControl.Operations;
+    using Raven.Client.Documents.Indexes;
 
     class FailedMessageFacetsIndex : AbstractIndexCreationTask<FailedMessage>
     {
@@ -19,11 +18,9 @@
                                   MessageType = failure.ProcessingAttempts.Last().MessageMetadata["MessageType"]
                               };
 
-            Index("Name", FieldIndexing.NotAnalyzed); //to avoid lower casing
-            Index("Host", FieldIndexing.NotAnalyzed); //to avoid lower casing
-            Index("MessageType", FieldIndexing.NotAnalyzed); //to avoid lower casing
-
-            DisableInMemoryIndexing = true;
+            Index("Name", FieldIndexing.Exact); //to avoid lower casing
+            Index("Host", FieldIndexing.Exact); //to avoid lower casing
+            Index("MessageType", FieldIndexing.Exact); //to avoid lower casing
         }
     }
 }

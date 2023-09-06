@@ -6,8 +6,9 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.MessageRedirects;
-    using Raven.Client;
     using ServiceControl.Recoverability;
+    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     class RetryBatchesManager : AbstractSessionManager, IRetryBatchesManager
     {

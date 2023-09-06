@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     class RetryBatches_ByStatus_ReduceInitialBatchSize : AbstractIndexCreationTask<RetryBatch, RetryBatchGroup>
     {
@@ -40,8 +40,6 @@ namespace ServiceControl.Persistence
                                     Last = g.Max(x => x.Last),
                                     g.First().Classifier
                                 };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

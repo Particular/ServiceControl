@@ -10,6 +10,9 @@
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Queries;
+    using Raven.Client.Util;
     using Raven.Database;
     using ServiceControl.Infrastructure.RavenDB;
 

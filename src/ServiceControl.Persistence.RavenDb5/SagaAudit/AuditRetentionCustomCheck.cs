@@ -4,8 +4,8 @@ namespace ServiceControl.Persistence.RavenDb.SagaAudit
     using System;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
-    using Raven.Client;
     using ServiceControl.SagaAudit;
+    using Raven.Client.Documents;
 
     // This custom check stays in the Raven3.5 persister becuase the Raven5 persister will not store audit data
     class AuditRetentionCustomCheck : CustomCheck

@@ -3,7 +3,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     using System;
     using System.Linq;
     using EventLog;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     class ExpiryEventLogItemsIndex : AbstractIndexCreationTask<EventLogItem>
     {
@@ -14,8 +14,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                               {
                                   LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
                               };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

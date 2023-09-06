@@ -2,7 +2,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
 {
     using System.Linq;
     using MessageAuditing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     class ExpiryProcessedMessageIndex : AbstractIndexCreationTask<ProcessedMessage>
     {
@@ -13,8 +13,6 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                               {
                                   ProcessedAt = message.ProcessedAt.Ticks
                               };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

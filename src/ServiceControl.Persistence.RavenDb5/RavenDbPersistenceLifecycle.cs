@@ -4,9 +4,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Client.Embedded;
     using ServiceControl.Persistence;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Embedded;
 
     class RavenDbPersistenceLifecycle : IPersistenceLifecycle
     {

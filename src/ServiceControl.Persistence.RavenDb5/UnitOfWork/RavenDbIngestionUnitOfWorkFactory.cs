@@ -1,8 +1,9 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
-    using Raven.Client;
     using ServiceControl.Persistence.UnitOfWork;
+    using Raven.Client;
+    using Raven.Client.Documents;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {

@@ -7,14 +7,17 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using Raven.Abstractions.Data;
-    using Raven.Abstractions.Exceptions;
-    using Raven.Client;
-    using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
+    using Raven.Abstractions.Data;
+    using Raven.Abstractions.Exceptions;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Exceptions;
+    using Raven.Json.Linq;
 
     class FailedMessageReclassifier : IReclassifyFailedMessages
     {

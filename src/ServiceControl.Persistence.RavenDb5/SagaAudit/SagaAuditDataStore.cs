@@ -2,9 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Raven.Client;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.SagaAudit;
+    using Raven.Client;
+    using Raven.Client.Documents;
 
     class SagaAuditDataStore : ISagaAuditDataStore
     {

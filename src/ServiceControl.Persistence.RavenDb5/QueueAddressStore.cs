@@ -3,11 +3,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Linq;
 
     class QueueAddressStore : IQueueAddressStore
     {

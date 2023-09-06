@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     class CheckRavenDBIndexErrors : CustomCheck
     {

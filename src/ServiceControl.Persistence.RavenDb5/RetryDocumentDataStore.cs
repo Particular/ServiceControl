@@ -12,6 +12,13 @@
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Indexes;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Documents.Session;
+    using Raven.Client.Exceptions;
     using Raven.Client.Indexes;
     using Raven.Client.Linq;
     using Raven.Json.Linq;

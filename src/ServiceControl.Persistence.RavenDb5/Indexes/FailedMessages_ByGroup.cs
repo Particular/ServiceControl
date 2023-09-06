@@ -3,8 +3,7 @@ namespace ServiceControl.Recoverability
     using System;
     using System.Linq;
     using MessageFailures;
-    using Raven.Abstractions.Indexing;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     class FailedMessages_ByGroup : AbstractIndexCreationTask<FailedMessage, FailureGroupMessageView>
     {
@@ -27,8 +26,6 @@ namespace ServiceControl.Recoverability
                           };
 
             StoreAllFields(FieldStorage.Yes);
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

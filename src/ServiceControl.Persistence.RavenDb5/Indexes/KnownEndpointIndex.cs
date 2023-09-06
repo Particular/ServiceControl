@@ -1,7 +1,7 @@
 namespace ServiceControl.Persistence
 {
     using System.Linq;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
 
     class KnownEndpointIndex : AbstractIndexCreationTask<KnownEndpoint>
     {
@@ -16,8 +16,6 @@ namespace ServiceControl.Persistence
                                   message.Monitored,
                                   message.HasTemporaryId
                               };
-
-            DisableInMemoryIndexing = true;
         }
     }
 }

@@ -4,11 +4,13 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Linq;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {

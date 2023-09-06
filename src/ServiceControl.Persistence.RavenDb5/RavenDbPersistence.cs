@@ -3,8 +3,6 @@
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.Recoverability;
-    using Raven.Client;
-    using Raven.Client.Embedded;
     using Recoverability;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
@@ -16,6 +14,9 @@
     using ServiceControl.Persistence.RavenDb.SagaAudit;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Embedded;
 
     class RavenDbPersistence : IPersistence
     {

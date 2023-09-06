@@ -4,10 +4,12 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Raven.Client;
-    using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
+    using Raven.Client;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Linq;
 
     class GroupsDataStore : IGroupsDataStore
     {

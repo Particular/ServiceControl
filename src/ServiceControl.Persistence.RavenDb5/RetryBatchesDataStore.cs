@@ -5,11 +5,15 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
+    using ServiceControl.Recoverability;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Client;
-    using ServiceControl.Recoverability;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Exceptions;
 
     class RetryBatchesDataStore : IRetryBatchesDataStore
     {

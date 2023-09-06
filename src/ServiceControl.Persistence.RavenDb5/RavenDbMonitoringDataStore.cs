@@ -4,9 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
+    using Raven.Client;
+    using Raven.Client.Documents;
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
