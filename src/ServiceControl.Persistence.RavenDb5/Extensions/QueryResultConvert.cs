@@ -2,11 +2,11 @@
 {
     using System.Collections.Generic;
     using Persistence.Infrastructure;
-    using Raven.Client;
+    using Raven.Client.Documents.Session;
 
     static class QueryResultConvert
     {
-        public static QueryResult<IList<T>> ToQueryResult<T>(this IList<T> result, RavenQueryStatistics stats)
+        public static QueryResult<IList<T>> ToQueryResult<T>(this IList<T> result, QueryStatistics stats)
             where T : class
         {
             return new QueryResult<IList<T>>(result, stats.ToQueryStatsInfo());
