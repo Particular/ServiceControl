@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
-    <PackageReference Include="RavenDB.Database" GeneratePathProperty="true" />
+    <PackageReference Include="RavenDB.Embedded" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="Rx-Linq" />
   </ItemGroup>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB35" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB5" />
   </ItemGroup>
 
 </Project>
