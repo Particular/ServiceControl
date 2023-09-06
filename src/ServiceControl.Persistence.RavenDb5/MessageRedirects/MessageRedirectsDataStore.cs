@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Persistence.MessageRedirects;
 
     class MessageRedirectsDataStore : IMessageRedirectsDataStore
@@ -22,8 +22,8 @@
 
                 if (redirects != null)
                 {
-                    redirects.ETag = session.Advanced.GetEtagFor(redirects);
-                    redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("Last-Modified");
+                    redirects.ETag = session.Advanced.GetChangeVectorFor(redirects).;
+                    redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("@last-modified");
 
                     return redirects;
                 }

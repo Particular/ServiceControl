@@ -24,7 +24,7 @@
                                                NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
                                                failure.Status,
                                                rec.FailureDetails.TimeOfFailure,
-                                               LastModified = MetadataFor(failure)["Last-Modified"].Value<DateTime>(),
+                                               LastModified = MetadataFor(failure)["@last-modified"].Value<DateTime>(),
                                                Edited = edited,
                                                EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : ""
                                            };

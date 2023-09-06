@@ -145,7 +145,7 @@
 
         static JObject DefaultMetadata = JObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageRetry.CollectionName}"",
+                                        ""@collection"": ""{FailedMessageRetry.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
                                     }}");
 

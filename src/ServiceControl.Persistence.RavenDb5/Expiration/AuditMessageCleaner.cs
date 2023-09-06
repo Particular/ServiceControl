@@ -32,7 +32,7 @@
                     Query = $"ProcessedAt:[* TO {expiryThreshold.Ticks}]",
                     FieldsToFetch = new[]
                     {
-                        "__document_id",
+                        "@id",
                         "MessageMetadata.MessageId",
                         "MessageMetadata.BodyNotStored"
                     },
@@ -48,7 +48,7 @@
 
                 database.Query(indexName, query, (doc, state) =>
                     {
-                        var id = doc.Value<string>("__document_id");
+                        var id = doc.Value<string>("@id");
                         if (string.IsNullOrEmpty(id))
                         {
                             return;

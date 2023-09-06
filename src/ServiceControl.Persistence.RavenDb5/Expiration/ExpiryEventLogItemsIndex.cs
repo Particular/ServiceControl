@@ -12,7 +12,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
             Map = messages => from message in messages
                               select new
                               {
-                                  LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                                  LastModified = MetadataFor(message).Value<DateTime>("@last-modified").Ticks
                               };
         }
     }

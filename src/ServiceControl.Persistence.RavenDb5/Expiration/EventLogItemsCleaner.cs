@@ -29,7 +29,7 @@
                     Query = $"LastModified:[* TO {expiryThreshold.Ticks}]",
                     FieldsToFetch = new[]
                     {
-                        "__document_id"
+                        "@id"
                     },
                     SortedFields = new[]
                     {
@@ -43,7 +43,7 @@
 
                 database.Query(indexName, query, (doc, commands) =>
                     {
-                        var id = doc.Value<string>("__document_id");
+                        var id = doc.Value<string>("@id");
                         if (string.IsNullOrEmpty(id))
                         {
                             return;

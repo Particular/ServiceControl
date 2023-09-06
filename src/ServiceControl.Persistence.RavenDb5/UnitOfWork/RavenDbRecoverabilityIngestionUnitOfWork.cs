@@ -124,7 +124,7 @@
 
             FailedMessageMetadata = JObject.Parse($@"
                                     {{
-                                        ""Raven-Entity-Name"": ""{FailedMessageIdGenerator.CollectionName}"",
+                                        ""@collection"": ""{FailedMessageIdGenerator.CollectionName}"",
                                         ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
                                     }}");
         }

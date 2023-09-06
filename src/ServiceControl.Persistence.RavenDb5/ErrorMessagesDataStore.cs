@@ -408,7 +408,7 @@
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetMetadataFor(message)["Last-Modified"].Value<DateTime>(),
+                LastModified = session.Advanced.GetMetadataFor(message)["@last-modified"].Value<DateTime>(),
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };

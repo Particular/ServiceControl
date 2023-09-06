@@ -14,7 +14,7 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
                               select new
                               {
                                   message.Status,
-                                  LastModified = MetadataFor(message).Value<DateTime>("Last-Modified").Ticks
+                                  LastModified = MetadataFor(message).Value<DateTime>("@last-modified").Ticks
                               };
         }
     }
