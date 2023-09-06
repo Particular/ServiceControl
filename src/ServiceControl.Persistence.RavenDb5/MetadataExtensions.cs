@@ -25,7 +25,7 @@
             return null;
         }
 
-        public static DateTime? GetAsNullableDatetime(this IDictionary<string, object> metadata, string key)
+        public static DateTime? GetAsNullableDateTime(this IDictionary<string, object> metadata, string key)
         {
             var datetimeAsString = metadata.GetAsStringOrNull(key);
 
@@ -36,5 +36,16 @@
 
             return null;
         }
+
+        public static DateTime GetAsDateTime(this IDictionary<string, object> metadata, string key)
+        {
+            var datetimeAsString = metadata.GetAsStringOrNull(key);
+
+            if (datetimeAsString != null)
+            {
+                return DateTime.Parse(datetimeAsString);
+            }
+        }
+
     }
 }

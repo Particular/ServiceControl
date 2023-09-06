@@ -401,7 +401,7 @@
                 Id = message.UniqueMessageId,
                 MessageType = metadata.GetAsStringOrNull("MessageType"),
                 IsSystemMessage = metadata.GetOrDefault<bool>("IsSystemMessage"),
-                TimeSent = metadata.GetAsNullableDatetime("TimeSent"),
+                TimeSent = metadata.GetAsNullableDateTime("TimeSent"),
                 MessageId = metadata.GetAsStringOrNull("MessageId"),
                 Exception = failureDetails.Exception,
                 QueueAddress = failureDetails.AddressOfFailingEndpoint,

@@ -22,8 +22,8 @@
 
                 if (redirects != null)
                 {
-                    redirects.ETag = session.Advanced.GetChangeVectorFor(redirects).;
-                    redirects.LastModified = session.Advanced.GetMetadataFor(redirects).Value<DateTime>("@last-modified");
+                    redirects.ETag = session.Advanced.GetChangeVectorFor(redirects);
+                    redirects.LastModified = session.Advanced.GetMetadataFor(redirects).GetAsDateTime("@last-modified");
 
                     return redirects;
                 }
