@@ -4,6 +4,9 @@ services:
 
   primary-init:
     image: particular/servicecontrol.rabbitmq.quorum.conventional.init-windows:dev
+    platform: windows
+    hostname: scprimary
+    #network_mode: "host"
     #restart: always
     ports:
       - 33333:33333
@@ -11,9 +14,13 @@ services:
       - primary-db:c:/data/
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
   audit-init:
     image: particular/servicecontrol.rabbitmq.quorum.conventional.audit.init-windows:dev
+    platform: windows
+    hostname: scaudit
+    #network_mode: "bridge"
     #restart: always
     ports:
       - 44444:44444
@@ -21,21 +28,29 @@ services:
       - audit-db:c:/data/
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
   monitoring-init:
     image: particular/servicecontrol.rabbitmq.quorum.conventional.monitoring.init-windows:dev
+    platform: windows
+    hostname: scmonitoring
+    #network_mode: "bridge"
     #restart: always
     ports:
       - 33633:33633
     volumes:
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
   primary:
     depends_on:
       primary-init:
         condition: service_completed_successfully # Let the init container create the config file first
     image: particular/servicecontrol.rabbitmq.quorum.conventional-windows:dev
+    platform: windows
+    hostname: scprimary
+    #network_mode: "bridge"
     #restart: always
     ports:
       - 33333:33333
@@ -43,12 +58,16 @@ services:
       - primary-db:c:/data/
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
   audit:
     depends_on:
       audit-init:
         condition: service_completed_successfully # Let the init container create the config file first
     image: particular/servicecontrol.rabbitmq.quorum.conventional.audit-windows:dev
+    platform: windows
+    hostname: scaudit
+    #network_mode: "bridge"
     #restart: always
     ports:
       - 44444:44444
@@ -56,18 +75,23 @@ services:
       - audit-db:c:/data/
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
   monitoring:
     depends_on:
       monitoring-init:
         condition: service_completed_successfully # Let the init container create the config file first
     image: particular/servicecontrol.rabbitmq.quorum.conventional.monitoring-windows:dev
+    platform: windows
+    hostname: scmon
+    #network_mode: "bridge"
     #restart: always
     ports:
       - 33633:33633
     volumes:
       - c:/ProgramData/ParticularSoftware/:c:/ProgramData/ParticularSoftware/:ro
     env_file: .env
+#    dns: 192.162.168.149
 
 volumes:
   primary-db:
