@@ -5,7 +5,7 @@
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.SagaAudit;
 
-    class SagaAuditDataStore : ISagaAuditDataStore
+    class NoImplementationSagaAuditDataStore : ISagaAuditDataStore
     {
         public Task StoreSnapshot(SagaSnapshot sagaSnapshot) => throw new NotImplementedException();
 

@@ -72,7 +72,7 @@
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-            serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDataStore>();
+            serviceCollection.AddSingleton<ISagaAuditDataStore, NoImplementationSagaAuditDataStore>();
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
         }
 

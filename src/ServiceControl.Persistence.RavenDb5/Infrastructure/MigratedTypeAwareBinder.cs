@@ -3,7 +3,6 @@
     using System;
     using System.Linq;
     using Newtonsoft.Json.Serialization;
-    using SagaAudit;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Contracts.Operations;
     using ServiceControl.MessageAuditing;
@@ -17,11 +16,6 @@
     {
         public override Type BindToType(string assemblyName, string typeName)
         {
-            if (typeName == "ServiceControl.SagaAudit.SagaInfo" && assemblyName == "ServiceControl")
-            {
-                return typeof(SagaInfo);
-            }
-
             var className = GetClassName(typeName);
             switch (className)
             {
@@ -53,8 +47,6 @@
                     return typeof(RetryBatch);
                 case nameof(RetryBatchNowForwarding):
                     return typeof(RetryBatchNowForwarding);
-                case nameof(SagaInfo):
-                    return typeof(SagaInfo);
                 default:
                     return base.BindToType(assemblyName, typeName);
             }
