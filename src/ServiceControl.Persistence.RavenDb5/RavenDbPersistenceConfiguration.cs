@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
+    using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations;
-    using Raven.Client.Embedded;
 
     class RavenDbPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -48,9 +48,6 @@
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
                 DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
                 ExposeRavenDB = GetSetting(RavenBootstrapper.ExposeRavenDBKey, false),
-                ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, ExpiredDocumentsCleanerBundle.ExpirationProcessTimerInSecondsDefault),
-                ExpirationProcessBatchSize = GetSetting(RavenBootstrapper.ExpirationProcessBatchSizeKey, ExpiredDocumentsCleanerBundle.ExpirationProcessBatchSizeDefault),
-                RunCleanupBundle = GetSetting(RavenBootstrapper.RunCleanupBundleKey, true),
                 RunInMemory = GetSetting(RavenBootstrapper.RunInMemoryKey, false),
                 MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
                 DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),

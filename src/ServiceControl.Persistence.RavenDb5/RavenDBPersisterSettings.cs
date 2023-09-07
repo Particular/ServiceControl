@@ -1,5 +1,4 @@
 ﻿using System;
-using ServiceControl.Infrastructure.RavenDB.Expiration;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 
@@ -9,9 +8,6 @@ class RavenDBPersisterSettings : PersistenceSettings
     public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public string DatabaseMaintenanceUrl => $"http://{HostName}:{DatabaseMaintenancePort}";
     public bool ExposeRavenDB { get; set; }
-    public int ExpirationProcessTimerInSeconds { get; set; } = ExpiredDocumentsCleanerBundle.ExpirationProcessTimerInSecondsDefault;
-    public int ExpirationProcessBatchSize { get; set; } = ExpiredDocumentsCleanerBundle.ExpirationProcessBatchSizeDefault;
-    public bool RunCleanupBundle { get; set; }
     public bool RunInMemory { get; set; }
     public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
     public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;

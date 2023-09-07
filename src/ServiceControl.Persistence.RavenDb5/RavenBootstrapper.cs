@@ -18,7 +18,6 @@
         public const string ExposeRavenDBKey = "ExposeRavenDB";
         public const string ExpirationProcessTimerInSecondsKey = "ExpirationProcessTimerInSeconds";
         public const string ExpirationProcessBatchSizeKey = "ExpirationProcessBatchSize";
-        public const string RunCleanupBundleKey = "RavenDB35/RunCleanupBundle";
         public const string RunInMemoryKey = "RavenDB35/RunInMemory";
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
@@ -71,13 +70,6 @@
             //This is affects only remote access to the database in maintenance mode and enables access without authentication
             documentStore.Configuration.Settings["Raven/AnonymousAccess"] = "Admin";
             documentStore.Configuration.Settings["Raven/Licensing/AllowAdminAnonymousAccessForCommercialUse"] = "true";
-
-            var runCleanupBundle = settings.RunCleanupBundle;
-
-            if (runCleanupBundle)
-            {
-                documentStore.Configuration.Settings.Add("Raven/ActiveBundles", "CustomDocumentExpiration");
-            }
 
             documentStore.Configuration.DisableClusterDiscovery = true;
             documentStore.Configuration.ResetIndexOnUncleanShutdown = true;
