@@ -43,7 +43,7 @@ jobs:
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         if: matrix.test-category == 'MSMQ' && matrix.os-name == 'Windows'
         with:
           name: assets

@@ -81,19 +81,19 @@ jobs:
         shell: pwsh
         run: docker images
       - name: Publish assets
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: assets
           path: assets/*
           retention-days: 1
       - name: Publish NuGet packages
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: nugets
           path: nugets/*
           retention-days: 1
       - name: Publish zips
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: zips
           path: zip/*
