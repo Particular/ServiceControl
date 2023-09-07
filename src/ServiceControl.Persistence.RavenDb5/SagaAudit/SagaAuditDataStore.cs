@@ -4,43 +4,11 @@
     using System.Threading.Tasks;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.SagaAudit;
-    using Raven.Client;
-    using Raven.Client.Documents;
 
     class SagaAuditDataStore : ISagaAuditDataStore
     {
-        public SagaAuditDataStore(IDocumentStore store)
-        {
-            this.store = store;
-        }
+        public Task StoreSnapshot(SagaSnapshot sagaSnapshot) => throw new NotImplementedException();
 
-        public async Task StoreSnapshot(SagaSnapshot sagaSnapshot)
-        {
-            using (var session = store.OpenAsyncSession())
-            {
-                await session.StoreAsync(sagaSnapshot);
-                await session.SaveChangesAsync();
-            }
-        }
-
-        public async Task<QueryResult<SagaHistory>> GetSagaById(Guid sagaId)
-        {
-            using (var session = store.OpenAsyncSession())
-            {
-                var sagaHistory = await
-                    session.Query<SagaHistory, SagaDetailsIndex>()
-                        .Statistics(out var stats)
-                        .SingleOrDefaultAsync(x => x.SagaId == sagaId);
-
-                if (sagaHistory == null)
-                {
-                    return QueryResult<SagaHistory>.Empty();
-                }
-
-                return new QueryResult<SagaHistory>(sagaHistory, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale));
-            }
-        }
-
-        readonly IDocumentStore store;
+        public Task<QueryResult<SagaHistory>> GetSagaById(Guid sagaId) => Task.FromResult(QueryResult<SagaHistory>.Empty());
     }
 }
