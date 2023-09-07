@@ -48,6 +48,7 @@
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
                 DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
                 ExposeRavenDB = GetSetting(RavenBootstrapper.ExposeRavenDBKey, false),
+                ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, ExpiredDocumentsCleanerBundle.ExpirationProcessTimerInSecondsDefault),
                 RunInMemory = GetSetting(RavenBootstrapper.RunInMemoryKey, false),
                 MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
                 DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
