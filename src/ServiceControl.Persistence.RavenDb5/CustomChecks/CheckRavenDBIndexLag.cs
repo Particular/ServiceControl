@@ -7,7 +7,6 @@
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations;
     using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
 
@@ -19,9 +18,9 @@
             this.store = store;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck()
         {
-            var statistics = store.DatabaseCommands.GetStatistics();
+            var statistics = await store.Maintenance.SendAsync(new GetStatisticsOperation());
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
             CreateDiagnosticsLogEntry(statistics, indexes);
@@ -36,32 +35,33 @@
             return CheckResult.Pass;
         }
 
-        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexStats[] indexes)
+        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes)
         {
             int indexCountWithTooMuchLag = 0;
 
             foreach (var indexStats in indexes)
             {
-                // IndexingLag is the number of documents that the index is behind, it is not a time unit.
-                var indexLag = indexStats.IndexingLag.GetValueOrDefault();
-                indexLag = Math.Abs(indexLag);
+                if (indexStats.LastIndexingTime.HasValue)
+                {
+                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
 
-                if (indexLag > IndexLagThresholdError)
-                {
-                    indexCountWithTooMuchLag++;
-                    Log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above error threshold ({IndexLagThresholdError:n0}). Launch in maintenance mode to let indexes catch up.");
-                }
-                else if (indexLag > IndexLagThresholdWarning)
-                {
-                    indexCountWithTooMuchLag++;
-                    Log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above warning threshold ({IndexLagThresholdWarning:n0}). Launch in maintenance mode to let indexes catch up.");
+                    if (indexLag > IndexLagThresholdError)
+                    {
+                        indexCountWithTooMuchLag++;
+                        Log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above error threshold ({IndexLagThresholdError:n0}). Launch in maintenance mode to let indexes catch up.");
+                    }
+                    else if (indexLag > IndexLagThresholdWarning)
+                    {
+                        indexCountWithTooMuchLag++;
+                        Log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag:n0} is above warning threshold ({IndexLagThresholdWarning:n0}). Launch in maintenance mode to let indexes catch up.");
+                    }
                 }
             }
 
             return indexCountWithTooMuchLag;
         }
 
-        static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexStats[] indexes)
+        static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
         {
             if (!Log.IsDebugEnabled)
             {
@@ -70,19 +70,20 @@
 
             var report = new StringBuilder();
             report.AppendLine("Internal RavenDB index health report:");
+            report.AppendLine($"- DB Size: {statistics.SizeOnDisk.HumaneSize}");
+            report.AppendLine($"- LastIndexingTime {statistics.LastIndexingTime:u}");
 
             foreach (var indexStats in indexes)
             {
-                // IndexingLag is the number of documents that the index is behind, it is not a time unit.
-                var indexLag = indexStats.IndexingLag.GetValueOrDefault();
-                indexLag = Math.Abs(indexLag);
-                report.AppendLine($"- Index [{indexStats.Name,-44}] Stale: {statistics.StaleIndexes.Contains(indexStats.Name),-5}, Lag: {indexLag,9:n0}, Valid: {indexStats.IsInvalidIndex,-5}, LastIndexed: {indexStats.LastIndexedTimestamp:u}, LastIndexing: {indexStats.LastIndexingTime:u}");
+                report.AppendLine($"- Index [{indexStats.Name,-44}] State: {indexStats.State}, Stale: {indexStats.IsStale,-5}, Priority: {indexStats.Priority,-6}, LastIndexingTime: {indexStats.LastIndexingTime:u}");
             }
             Log.Debug(report.ToString());
         }
 
-        const int IndexLagThresholdWarning = 10000;
-        const int IndexLagThresholdError = 100000;
+        // TODO: RavenDB 3.5 had IndexLag thresholds that were number of document writes, and I converted to times. Revisit these numbers before shipping
+        // For IndexLag as document writes, 10k was a warning, 100k was an error. These TimeSpans assume same # of writes / 250 writes/sec
+        static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromSeconds(40); // Assuming 10_000 writes at 250 writes/sec
+        static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromSeconds(400);   // Assuming 100_000 writes at 250 writes/sec
         static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
         readonly IDocumentStore store;
