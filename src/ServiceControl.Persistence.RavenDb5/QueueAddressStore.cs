@@ -3,12 +3,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.Persistence.Infrastructure;
     using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Linq;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
+    using ServiceControl.Persistence.Infrastructure;
 
     class QueueAddressStore : IQueueAddressStore
     {
@@ -41,9 +41,9 @@
                 var failedMessageQueues = await session
                         .Query<QueueAddress, QueueAddressIndex>()
                         .Statistics(out var stats)
+                        .Paging(pagingInfo)
                         .Where(q => q.PhysicalAddress.StartsWith(search))
                         .OrderBy(q => q.PhysicalAddress)
-                        .Paging(pagingInfo)
                         .ToListAsync();
 
                 var result = new QueryResult<IList<QueueAddress>>(failedMessageQueues, stats.ToQueryStatsInfo());

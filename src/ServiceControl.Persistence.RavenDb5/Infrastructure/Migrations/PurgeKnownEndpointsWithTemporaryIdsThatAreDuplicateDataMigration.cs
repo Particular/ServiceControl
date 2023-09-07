@@ -2,10 +2,11 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using Raven.Client;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
     using ServiceControl.Persistence;
 
+    // TODO: I don't know if we can delete this because no prior Raven5 database will exist, or if it's an ongoing need to purge these things on every startup
     class PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration : IDataMigration
     {
         public Task Migrate(IDocumentStore store)
@@ -21,7 +22,11 @@
                     //If we have knowEndpoints with non temp ids, we should delete all temp ids ones.
                     if (fixedIdsCount > 0)
                     {
-                        knownEndpoints.Where(e => e.HasTemporaryId).ForEach(k => { store.DatabaseCommands.Delete(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(k.Id, typeof(KnownEndpoint), false), null); });
+                        foreach (var key in knownEndpoints.Where(e => e.HasTemporaryId))
+                        {
+                            var documentId = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(key.Id, typeof(KnownEndpoint), false);
+                            session.Advanced.RequestExecutor.Execute(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
+                        }
                     }
                 }
             }

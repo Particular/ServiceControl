@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System.Threading.Tasks;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     interface IDataMigration
     {
