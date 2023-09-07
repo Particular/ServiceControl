@@ -105,7 +105,7 @@
     <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../deploy/" />
     <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) ./../../deploy/" />
 
-    <!-- Tag for local use -->
+    <!-- Tag as "dev" for easier local testing of containers -->
 
     <Exec Command="docker tag particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows:$(MinVerVersion) particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows:dev" />
     <Exec Command="docker tag particular/servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows:$(MinVerVersion) particular/servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows:dev" />
