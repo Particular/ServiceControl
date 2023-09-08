@@ -3,9 +3,8 @@
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.Recoverability;
-    using Raven.Client;
     using Raven.Client.Documents;
-    using Raven.Client.Embedded;
+    using RavenDb5;
     using Recoverability;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
@@ -19,11 +18,9 @@
 
     class RavenDbPersistence : IPersistence
     {
-        public RavenDbPersistence(RavenDBPersisterSettings settings, EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
+        public RavenDbPersistence(RavenDBPersisterSettings settings)
         {
             this.settings = settings;
-            this.documentStore = documentStore;
-            this.ravenStartup = ravenStartup;
         }
 
         public void Configure(IServiceCollection serviceCollection)
@@ -78,16 +75,19 @@
 
         public IPersistenceLifecycle CreateLifecycle()
         {
-            return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
+            if (settings.UseEmbeddedServer)
+            {
+                return new RavenDbEmbeddedPersistenceLifecycle(settings);
+            }
+
+            return new RavenDbExternalPersistenceLifecycle(settings);
         }
 
         public IPersistenceInstaller CreateInstaller()
         {
-            return new RavenDbInstaller(documentStore, ravenStartup);
+            return new RavenDbInstaller(CreateLifecycle());
         }
 
-        readonly RavenStartup ravenStartup;
         readonly RavenDBPersisterSettings settings;
-        readonly EmbeddableDocumentStore documentStore;
     }
 }

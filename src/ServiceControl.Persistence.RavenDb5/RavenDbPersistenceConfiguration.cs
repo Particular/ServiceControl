@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System;
-    using Raven.Client.Embedded;
     using ServiceControl.Operations;
 
     class RavenDbPersistenceConfiguration : IPersistenceConfiguration
@@ -43,6 +42,8 @@
 
             var settings = new RavenDBPersisterSettings
             {
+                ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
+                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenDBPersisterSettings.DatabaseNameDefault),
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
                 DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
@@ -67,11 +68,12 @@
         {
             var specificSettings = (RavenDBPersisterSettings)settings;
 
-            var documentStore = new EmbeddableDocumentStore();
-            RavenBootstrapper.Configure(documentStore, specificSettings);
+            //var documentStore = new EmbeddableDocumentStore();
+            //RavenBootstrapper.Configure(documentStore, specificSettings);
 
-            var ravenStartup = new RavenStartup();
-            return new RavenDbPersistence(specificSettings, documentStore, ravenStartup);
+            //var ravenStartup = new RavenStartup();
+
+            return new RavenDbPersistence(specificSettings);
         }
     }
 }

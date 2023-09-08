@@ -1,40 +1,22 @@
-﻿namespace ServiceControl.Persistence.RavenDb
+﻿namespace ServiceControl.Persistence.RavenDb5
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
-    using ServiceControl.Infrastructure.RavenDB;
-    using Raven.Client.Embedded;
+    using ServiceControl.Persistence;
 
     class RavenDbInstaller : IPersistenceInstaller
     {
-        public RavenDbInstaller(EmbeddableDocumentStore documentStore, RavenStartup ravenStartup)
+        public RavenDbInstaller(IPersistenceLifecycle lifecycle)
         {
-            this.documentStore = documentStore;
-            this.ravenStartup = ravenStartup;
+            this.lifecycle = lifecycle;
         }
 
-        public async Task Install(CancellationToken cancellationToken = default)
+        public async Task Install(CancellationToken cancellationToken)
         {
-            Logger.Info("Database initialization starting");
-            documentStore.Initialize();
-            Logger.Info("Database initialization complete");
-
-            Logger.Info("Index creation started");
-            await ravenStartup.CreateIndexesAsync(documentStore);
-            Logger.Info("Index creation complete");
-
-            Logger.Info("Data migrations starting");
-            var purgeTempIdKnownEndpoints = new PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration();
-            await purgeTempIdKnownEndpoints.Migrate(documentStore);
-            Logger.Info("Data migrations complete");
-
+            await lifecycle.Start(cancellationToken);
+            await lifecycle.Stop(cancellationToken);
         }
 
-        readonly EmbeddableDocumentStore documentStore;
-        readonly RavenStartup ravenStartup;
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenDbPersistenceLifecycle));
-
+        readonly IPersistenceLifecycle lifecycle;
     }
 }
