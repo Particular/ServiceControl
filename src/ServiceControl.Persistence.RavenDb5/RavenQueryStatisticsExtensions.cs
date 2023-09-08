@@ -8,11 +8,13 @@
     {
         public static QueryStatsInfo ToQueryStatsInfo(this QueryStatistics stats)
         {
-            return new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale);
+            return new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale);
         }
-        public static QueryStatsInfo ToQueryStatsInfo(this Raven.Abstractions.Data.QueryResult queryResult)
-        {
-            return new QueryStatsInfo(queryResult.IndexEtag, queryResult.TotalResults, queryResult.IsStale);
-        }
+
+        //TODO: This method can likely be removed
+        //public static QueryStatsInfo ToQueryStatsInfo(this Raven.Abstractions.Data.QueryResult queryResult)
+        //{
+        //    return new QueryStatsInfo(queryResult.IndexEtag, queryResult.TotalResults, queryResult.IsStale);
+        //}
     }
 }
