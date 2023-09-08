@@ -47,7 +47,6 @@
 
                 documentStore.DataDirectory = dbPath;
                 documentStore.Configuration.CompiledIndexCacheDirectory = dbPath;
-                documentStore.Listeners.RegisterListener(new SubscriptionsLegacyAddressConverter());
             }
 
             var exposeRavenDB = settings.ExposeRavenDB;
