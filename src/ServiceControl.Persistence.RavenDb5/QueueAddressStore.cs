@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using Raven.Client;
     using Raven.Client.Documents;
-    using Raven.Client.Linq;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;

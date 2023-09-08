@@ -2,15 +2,16 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
     using Raven.Client;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents.Session;
+    using ServiceControl.Infrastructure.RavenDB;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
@@ -69,13 +70,17 @@
                     .Paging(paging)
                     .ToListAsync();
 
-                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo(stats.IndexEtag, stats.TotalResults, stats.IsStale));
+                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale));
             }
         }
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false), null);
+            var documentId = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
+            using (var session = store.OpenAsyncSession(new SessionOptions {NoTracking = true, NoCaching = true}))
+            {
+                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
+            }
         }
 
         public async Task<int> GetNumberOfFailedChecks()
