@@ -12,7 +12,6 @@ namespace ServiceControl.Persistence
     using Raven.Client;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
-    using Raven.Client.Linq;
 
     static class RavenQueryExtensions
     {

@@ -138,8 +138,8 @@
 
                 if (awaitingDispatching.Count == 0)
                 {
-                    // If the index hasn't caught up, try again
-                    return stats.IndexEtag.CompareTo(latestEtag) < 0;
+                    //TODO: this should ensure we query again if the result is potentially stale
+                    return stats.IsStale;
                 }
 
                 var allContexts = awaitingDispatching.Select(r => r.DispatchContext).ToArray();
@@ -169,7 +169,6 @@
                 .Where(c => c.Type == DocumentChangeTypes.Put)
                 .Subscribe(d =>
                 {
-                    latestEtag = Etag.Max(d.Etag, latestEtag);
                     signal.Set();
                 });
 
@@ -207,7 +206,6 @@
         readonly RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
 
         IDisposable subscription;
-        Etag latestEtag = Etag.Empty;
         Task task;
         ManualResetEventSlim signal = new ManualResetEventSlim();
         Func<object[], Task> callback;
