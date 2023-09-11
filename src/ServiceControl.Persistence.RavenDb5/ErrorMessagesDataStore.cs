@@ -695,21 +695,9 @@ if(this.Status === archivedStatus) {
             return ids.ToArray();
         }
 
-        public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
+        public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
-            string documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
-            var results = await documentStore.AsyncDatabaseCommands.GetAsync(new[] { documentId }, null,
-                transformer: MessagesBodyTransformer.Name);
-
-            string resultBody = ((results.Results?.SingleOrDefault()?["$values"] as JArray)?.SingleOrDefault() as JObject)
-                ?.ToObject<MessagesBodyTransformer.Result>()?.Body;
-
-            if (resultBody != null)
-            {
-                return Encoding.UTF8.GetBytes(resultBody);
-            }
-
-            return null;
+            throw new NotSupportedException("Body not stored embedded");
         }
 
         public async Task StoreEventLogItem(EventLogItem logItem)
