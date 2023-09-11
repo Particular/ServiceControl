@@ -4,7 +4,7 @@ WORKDIR /servicecontrol.audit
 
 ARG TRANSPORT
 
-ADD /Particular.ServiceControl.Audit/ServiceControl.Audit /Particular.ServiceControl.Audit/Transports/${TRANSPORT} /Particular.ServiceControl.Audit/Persisters/RavenDB35 ./
+ADD /Particular.ServiceControl.Audit/ServiceControl.Audit /Transports/${TRANSPORT} /Particular.ServiceControl.Audit/Persisters/RavenDB35 ./
 
 ARG TRANSPORT_CUSTOMIZATION_TYPE
 

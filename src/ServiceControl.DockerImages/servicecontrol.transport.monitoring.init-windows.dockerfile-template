@@ -4,7 +4,7 @@ WORKDIR /servicecontrol.monitoring
 
 ARG TRANSPORT
 
-ADD /Particular.ServiceControl.Monitoring/ServiceControl.Monitoring /Particular.ServiceControl.Monitoring/Transports/${TRANSPORT} ./
+ADD /Particular.ServiceControl.Monitoring/ServiceControl.Monitoring /Transports/${TRANSPORT} ./
 
 ARG TRANSPORT_CUSTOMIZATION_TYPE
 

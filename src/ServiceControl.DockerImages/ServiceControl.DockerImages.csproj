@@ -76,7 +76,7 @@
 
 
   <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
-    
+
     <PropertyGroup>
       <DockerfilesFolder>$(OutputPath)/dockerfiles/</DockerfilesFolder>
     </PropertyGroup>
@@ -94,29 +94,31 @@
     <Copy SourceFiles="servicecontrol.transport.monitoring-windows.dockerfile-template" DestinationFiles="$(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile" />
 
     <ItemGroup>
-      <ERROR Include="..\..\deploy\Particular.ServiceControl\**\*.*" />
-      <AUDIT Include="..\..\deploy\Particular.ServiceControl.Audit\**\*.*" />
-      <MONITORING Include="..\..\deploy\Particular.ServiceControl.Monitoring\**\*.*" />
+      <ERROR Include="..\..\deploy\Particular.ServiceControl\**\*.*" Exclude="**\Transports\**" />
+      <AUDIT Include="..\..\deploy\Particular.ServiceControl.Audit\**\*.*" Exclude="**\Transports\**" />
+      <MONITORING Include="..\..\deploy\Particular.ServiceControl.Monitoring\**\*.*" Exclude="**\Transports\**" />
+      <TRANSPORTS Include="..\..\deploy\Particular.ServiceControl.Monitoring\Transports\**\*.*" />
     </ItemGroup>
 
     <Copy SourceFiles="@(ERROR)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(AUDIT)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Audit\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(MONITORING)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Monitoring\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(TRANSPORTS)" DestinationFolder="$(OutputPath)\docker\Transports\%(RecursiveDir)" SkipUnchangedFiles="true" />
 
   </Target>
 
   <Target Name="BuildDockerImages" AfterTargets="ExpandDockerfileTemplates">
     <!-- Build primary instance and sidecar images -->
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
 
     <!-- Build audit instance and sidecar images -->
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit.init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).audit-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
 
     <!-- Build monitoring instance and sidecar images -->
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
-    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(TargetDir)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring.init-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
+    <Exec Command="docker build -f $(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile -t particular/servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows:$(MinVerVersion) --build-arg TRANSPORT=%(SupportedTransport.TransportName) --build-arg TRANSPORT_CUSTOMIZATION_TYPE=%(SupportedTransport.TransportCustomizationType) $(OutputPath)/docker" />
 
     <!-- Tag as "dev" for easier local testing of containers -->
 
