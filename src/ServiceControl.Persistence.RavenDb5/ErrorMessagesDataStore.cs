@@ -91,7 +91,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                return await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
+                return await session.LoadAsync<FailedMessage>(failedMessageId);
             }
         }
 
@@ -99,7 +99,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
+                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId);
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
@@ -114,8 +114,8 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.LoadAsync<FailedMessage>(ids.Cast<ValueType>());
-                return results.Where(x => x != null).ToArray();
+                var results = await session.LoadAsync<FailedMessage>(ids.Select(g => g.ToString()));
+                return results.Values.Where(x => x != null).ToArray();
             }
         }
 
@@ -246,27 +246,26 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                    .ToFacetsAsync(new List<Facet>
+                    .AggregateBy(new List<Facet>
                     {
                         new Facet
                         {
-                            Name = "Name",
-                            DisplayName = "Endpoints"
+                            FieldName = "Name",
+                            DisplayFieldName = "Endpoints"
                         },
                         new Facet
                         {
-                            Name = "Host",
-                            DisplayName = "Hosts"
+                            FieldName = "Host",
+                            DisplayFieldName = "Hosts"
                         },
                         new Facet
                         {
-                            Name = "MessageType",
-                            DisplayName = "Message types"
+                            FieldName = "MessageType",
+                            DisplayFieldName = "Message types"
                         }
-                    });
+                    }).ExecuteAsync();
 
                 var results = facetResults
-                    .Results
                     .ToDictionary(
                         x => x.Key,
                         x => (object)x.Value
@@ -280,7 +279,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId.ToString());
                 return message;
             }
         }
@@ -306,7 +305,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId);
+                var message = await session.LoadAsync<FailedMessage>(failedMessageId.ToString());
                 if (message == null)
                 {
                     return null;
@@ -452,7 +451,7 @@
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(new Guid(failedMessageId));
+                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId);
 
                 if (failedMessage == null)
                 {
