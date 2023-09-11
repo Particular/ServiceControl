@@ -18,6 +18,7 @@
     using ServiceControl.Recoverability;
     using Raven.Client;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Session;
     using Raven.Client.Documents.Queries.Facets;
@@ -40,13 +41,14 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
+                    .ProjectInto<MessagesViewTransformer.Input>()
+
+                var results = await MessagesViewTransformer.Transform<MessagesView>(query).ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
