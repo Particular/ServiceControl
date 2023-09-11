@@ -208,7 +208,7 @@
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
                     .FilterByQueueAddress(queueAddress)
-                    .QueryResultAsync();
+                    .GetQueryResultAsync();
 
                 return stats.ToQueryStatsInfo();
             }
@@ -423,7 +423,7 @@
                     .WhereEquals(view => view.FailureGroupId, groupId)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
-                    .QueryResultAsync();
+                    .GetQueryResultAsync();
 
                 return queryResult.ToQueryStatsInfo();
             }

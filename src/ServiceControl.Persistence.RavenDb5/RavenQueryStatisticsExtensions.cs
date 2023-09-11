@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using Raven.Client;
     using Raven.Client.Documents.Session;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -11,10 +10,9 @@
             return new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale);
         }
 
-        //TODO: This method can likely be removed
-        //public static QueryStatsInfo ToQueryStatsInfo(this Raven.Abstractions.Data.QueryResult queryResult)
-        //{
-        //    return new QueryStatsInfo(queryResult.IndexEtag, queryResult.TotalResults, queryResult.IsStale);
-        //}
+        public static QueryStatsInfo ToQueryStatsInfo(this Raven.Client.Documents.Queries.QueryResult queryResult)
+        {
+            return new QueryStatsInfo(queryResult.ResultEtag.ToString(), queryResult.TotalResults, queryResult.IsStale);
+        }
     }
 }

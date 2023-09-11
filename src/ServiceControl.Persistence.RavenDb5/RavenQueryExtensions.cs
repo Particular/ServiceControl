@@ -7,11 +7,10 @@ namespace ServiceControl.Persistence
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
-    using ServiceControl.MessageFailures;
-    using ServiceControl.Persistence.Infrastructure;
-    using Raven.Client;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.Persistence.Infrastructure;
 
     static class RavenQueryExtensions
     {
