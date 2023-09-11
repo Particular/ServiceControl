@@ -94,16 +94,16 @@
     <Copy SourceFiles="servicecontrol.transport.monitoring-windows.dockerfile-template" DestinationFiles="$(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).monitoring-windows.dockerfile" />
 
     <ItemGroup>
-      <ERROR Include="..\..\deploy\Particular.ServiceControl\**\*.*" Exclude="**\Transports\**" />
-      <AUDIT Include="..\..\deploy\Particular.ServiceControl.Audit\**\*.*" Exclude="**\Transports\**" />
-      <MONITORING Include="..\..\deploy\Particular.ServiceControl.Monitoring\**\*.*" Exclude="**\Transports\**" />
-      <TRANSPORTS Include="..\..\deploy\Particular.ServiceControl.Monitoring\Transports\**\*.*" />
+      <DeployErrorFiles Include="..\..\deploy\Particular.ServiceControl\**\*.*" Exclude="**\Transports\**" />
+      <DeployAuditFiles Include="..\..\deploy\Particular.ServiceControl.Audit\**\*.*" Exclude="**\Transports\**" />
+      <DeployMonitoringFiles Include="..\..\deploy\Particular.ServiceControl.Monitoring\**\*.*" Exclude="**\Transports\**" />
+      <DeployTransportFilesInclude="..\..\deploy\Particular.ServiceControl.Monitoring\Transports\**\*.*" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(ERROR)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(AUDIT)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Audit\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(MONITORING)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Monitoring\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(TRANSPORTS)" DestinationFolder="$(OutputPath)\docker\Transports\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployErrorFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployAuditFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Audit\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployMonitoringFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Monitoring\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployTransportFilesInclude)" DestinationFolder="$(OutputPath)\docker\Transports\%(RecursiveDir)" SkipUnchangedFiles="true" />
 
   </Target>
 
