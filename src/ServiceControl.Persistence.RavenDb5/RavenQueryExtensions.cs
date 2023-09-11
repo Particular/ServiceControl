@@ -7,11 +7,14 @@ namespace ServiceControl.Persistence
     using System.Linq.Expressions;
     using System.Net.Http;
     using System.Text;
+    using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
 
+    // TODO: Probably remove the DocumentQuery versions of these extensions providing the Query-based versions in ErrorMessagesDataStore work
     static class RavenQueryExtensions
     {
         public static IRavenQueryable<MessagesViewIndex.SortAndFilterOptions> IncludeSystemMessagesWhere(
@@ -96,6 +99,43 @@ namespace ServiceControl.Persistence
                 .Take(maxResultsPerPage);
         }
 
+        public static IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> Sort(this IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> source, SortInfo sortInfo)
+        {
+            IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> AddSort<T>(Expression<Func<FailedMessageViewIndex.SortAndFilterOptions, T>> expression)
+            {
+                if (sortInfo.Direction == "asc")
+                {
+                    return source.OrderBy(expression);
+                }
+                else
+                {
+                    return source.OrderByDescending(expression);
+                }
+            }
+
+            switch (sortInfo.Sort)
+            {
+                case "id":
+                case "message_id":
+                    return AddSort(f => f.MessageId);
+
+                case "message_type":
+                    return AddSort(f => f.MessageType);
+
+                case "status":
+                    return AddSort(f => f.Status);
+
+                case "modified":
+                    return AddSort(f => f.LastModified);
+
+                case "time_of_failure":
+                    return AddSort(f => f.TimeOfFailure);
+
+                default:
+                    return AddSort(f => f.TimeSent);
+            }
+        }
+
         public static IAsyncDocumentQuery<TSource> Sort<TSource>(this IAsyncDocumentQuery<TSource> source, SortInfo sortInfo)
         {
             var descending = true;
@@ -143,6 +183,40 @@ namespace ServiceControl.Persistence
             }
 
             return source.AddOrder(keySelector, descending);
+        }
+
+        public static IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> FilterByStatusWhere(this IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> source, string status)
+        {
+            if (status == null)
+            {
+                return source;
+            }
+
+            var filters = status.Replace(" ", string.Empty).Split(',');
+            var excludes = new List<int>();
+            var includes = new List<int>();
+
+            foreach (var filter in filters)
+            {
+                FailedMessageStatus failedMessageStatus;
+
+                if (filter.StartsWith("-"))
+                {
+                    if (Enum.TryParse(filter.Substring(1), true, out failedMessageStatus))
+                    {
+                        source = source.Where(f => f.Status != failedMessageStatus);
+                    }
+
+                    continue;
+                }
+
+                if (Enum.TryParse(filter, true, out failedMessageStatus))
+                {
+                    source = source.Where(f => f.Status == failedMessageStatus);
+                }
+            }
+
+            return source;
         }
 
 
@@ -206,6 +280,31 @@ namespace ServiceControl.Persistence
             return source;
         }
 
+        public static IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> FilterByLastModifiedRange(this IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> source, string modified)
+        {
+            if (modified == null)
+            {
+                return source;
+            }
+
+            var filters = modified.Split(SplitChars, StringSplitOptions.None);
+            if (filters.Length != 2)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
+            }
+
+            try
+            {
+                var from = DateTime.Parse(filters[0], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                var to = DateTime.Parse(filters[1], CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                return source.Where(f => f.LastModified >= from.Ticks && f.LastModified <= to.Ticks)
+            }
+            catch (Exception)
+            {
+                throw new Exception("Invalid modified date range, dates need to be in ISO8601 format and it needs to be a range eg. 2016-03-11T00:27:15.474Z...2016-03-16T03:27:15.474Z");
+            }
+        }
 
         public static IAsyncDocumentQuery<T> FilterByLastModifiedRange<T>(this IAsyncDocumentQuery<T> source, string modified)
         {
@@ -234,6 +333,16 @@ namespace ServiceControl.Persistence
             }
 
             return source;
+        }
+
+        public static IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> FilterByQueueAddress(this IRavenQueryable<FailedMessageViewIndex.SortAndFilterOptions> source, string queueAddress)
+        {
+            if (string.IsNullOrWhiteSpace(queueAddress))
+            {
+                return source;
+            }
+
+            return source.Where(f => f.QueueAddress == queueAddress.ToLowerInvariant());
         }
 
         public static IAsyncDocumentQuery<T> FilterByQueueAddress<T>(this IAsyncDocumentQuery<T> source, string queueAddress)

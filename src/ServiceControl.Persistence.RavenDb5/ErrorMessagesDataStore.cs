@@ -179,16 +179,15 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                var results = await session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Statistics(out var stats)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
                     .FilterByQueueAddress(queueAddress)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .OfType<FailedMessage>()
+                    .ToFailedMessageViews(session)
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -203,12 +202,12 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var stats = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                _ = await session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .Statistics(out var stats)
                     .FilterByStatusWhere(status)
                     .FilterByLastModifiedRange(modified)
                     .FilterByQueueAddress(queueAddress)
-                    .GetQueryResultAsync();
+                    .ToListAsync();
 
                 return stats.ToQueryStatsInfo();
             }
@@ -224,17 +223,15 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                var results = await session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Statistics(out var stats)
                     .FilterByStatusWhere(status)
-                    .AndAlso()
-                    .WhereEquals("ReceivingEndpointName", endpointName)
+                    .Where(f => f.ReceivingEndpointName == endpointName)
                     .FilterByLastModifiedRange(modified)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .OfType<FailedMessage>()
+                    .ToFailedMessageViews(session)
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());

@@ -2,47 +2,39 @@
 {
     using System;
     using System.Linq;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Session;
+    using ServiceControl.Operations;
 
-    class FailedMessageViewTransformer : AbstractTransformerCreationTask<FailedMessage> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
+    public static class FailedMessageTransformerExtensions
     {
-        public FailedMessageViewTransformer()
+        public static IQueryable<FailedMessageView> ToFailedMessageViews(this IQueryable<FailedMessage> query, IAsyncDocumentSession session)
         {
-            TransformResults = failures => from failure in failures
-                                           let rec = failure.ProcessingAttempts.Last()
-                                           let edited = rec.Headers["ServiceControl.EditOf"] != null
-                                           select new
-                                           {
-                                               Id = failure.UniqueMessageId,
-                                               MessageType = rec.MessageMetadata["MessageType"],
-                                               IsSystemMessage = (bool)rec.MessageMetadata["IsSystemMessage"],
-                                               SendingEndpoint = rec.MessageMetadata["SendingEndpoint"],
-                                               ReceivingEndpoint = rec.MessageMetadata["ReceivingEndpoint"],
-                                               TimeSent = (DateTime?)rec.MessageMetadata["TimeSent"],
-                                               MessageId = rec.MessageMetadata["MessageId"],
-                                               rec.FailureDetails.Exception,
-                                               QueueAddress = rec.FailureDetails.AddressOfFailingEndpoint,
-                                               NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
-                                               failure.Status,
-                                               rec.FailureDetails.TimeOfFailure,
-                                               LastModified = MetadataFor(failure)["@last-modified"].Value<DateTime>(),
-                                               Edited = edited,
-                                               EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : ""
-                                           };
+            var transformed = from failure in query
+                              let rec = failure.ProcessingAttempts.Last()
+                              let edited = rec.Headers["ServiceControl.EditOf"] != null
+                              let metadata = session.Advanced.GetMetadataFor(failure)
+                              let lastModified = (DateTime)metadata["@last-modified"]
+                              select new FailedMessageView
+                              {
+                                  Id = failure.UniqueMessageId,
+                                  MessageType = (string)rec.MessageMetadata["MessageType"],
+                                  IsSystemMessage = (bool)rec.MessageMetadata["IsSystemMessage"],
+                                  SendingEndpoint = (EndpointDetails)rec.MessageMetadata["SendingEndpoint"],
+                                  ReceivingEndpoint = (EndpointDetails)rec.MessageMetadata["ReceivingEndpoint"],
+                                  TimeSent = (DateTime?)rec.MessageMetadata["TimeSent"],
+                                  MessageId = (string)rec.MessageMetadata["MessageId"],
+                                  Exception = rec.FailureDetails.Exception,
+                                  QueueAddress = rec.FailureDetails.AddressOfFailingEndpoint,
+                                  NumberOfProcessingAttempts = failure.ProcessingAttempts.Count,
+                                  Status = failure.Status,
+                                  TimeOfFailure = rec.FailureDetails.TimeOfFailure,
+                                  LastModified = lastModified,
+                                  Edited = edited,
+                                  EditOf = edited ? rec.Headers["ServiceControl.EditOf"] : ""
+                              };
+
+            return transformed;
         }
-
-        public static string Name
-        {
-            get
-            {
-                if (transformerName == null)
-                {
-                    transformerName = new FailedMessageViewTransformer().TransformerName;
-                }
-
-                return transformerName;
-            }
-        }
-
-        static string transformerName;
     }
 }
