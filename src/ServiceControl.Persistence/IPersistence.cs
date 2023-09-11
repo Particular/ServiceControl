@@ -6,6 +6,6 @@
     {
         void Configure(IServiceCollection serviceCollection);
         IPersistenceInstaller CreateInstaller();
-        IPersistenceLifecycle CreateLifecycle();
+        void ConfigureLifecycle(IServiceCollection serviceCollection);
     }
 }

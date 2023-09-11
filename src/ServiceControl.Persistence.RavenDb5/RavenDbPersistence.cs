@@ -31,7 +31,8 @@
             }
 
             serviceCollection.AddSingleton(settings);
-            serviceCollection.AddSingleton<IDocumentStore>(documentStore);
+
+            ConfigureLifecycle(serviceCollection);
 
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
@@ -73,19 +74,32 @@
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
         }
 
-        public IPersistenceLifecycle CreateLifecycle()
+        public void ConfigureLifecycle(IServiceCollection serviceCollection)
         {
             if (settings.UseEmbeddedServer)
             {
-                return new RavenDbEmbeddedPersistenceLifecycle(settings);
+                serviceCollection.AddSingleton<IPersistenceLifecycle, RavenDbEmbeddedPersistenceLifecycle>();
+                serviceCollection.AddSingleton(_ => new RavenDbEmbeddedPersistenceLifecycle(settings).GetDocumentStore());
+
+                return;
             }
 
-            return new RavenDbExternalPersistenceLifecycle(settings);
+            var external = new RavenDbExternalPersistenceLifecycle(settings);
+
+            serviceCollection.AddSingleton<IPersistenceLifecycle>(external);
+            serviceCollection.AddSingleton(_ => external.GetDocumentStore());
         }
 
         public IPersistenceInstaller CreateInstaller()
         {
-            return new RavenDbInstaller(CreateLifecycle());
+            var serviceCollection = new ServiceCollection();
+            
+            serviceCollection.AddSingleton(settings);
+            ConfigureLifecycle(serviceCollection);
+
+            var lifecycle = serviceCollection.BuildServiceProvider().GetRequiredService<IPersistenceLifecycle>();
+            
+            return new RavenDbInstaller(lifecycle);
         }
 
         readonly RavenDBPersisterSettings settings;
