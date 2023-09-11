@@ -4,23 +4,23 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
     using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Queries;
+    using Raven.Client.Documents.Queries.Facets;
+    using Raven.Client.Documents.Session;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
+    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using Raven.Client;
-    using Raven.Client.Documents;
-    using Raven.Client.Documents.Queries;
-    using Raven.Client.Documents.Session;
-    using Raven.Client.Documents.Queries.Facets;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
@@ -32,131 +32,59 @@
 
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
+        static Task<QueryResult<IList<T>>> EmptyQueryResult<T>() => Task.FromResult(new QueryResult<IList<T>>(new List<T>(), new QueryStatsInfo()));
+
+        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Statistics(out var stats)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return EmptyQueryResult<MessagesView>();
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
+        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
             string endpointName,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .Statistics(out var stats)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return EmptyQueryResult<MessagesView>();
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
+        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
+        public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
             string endpointName,
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchKeyword)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return EmptyQueryResult<MessagesView>();
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
+        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
             string conversationId,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Where(m => m.ConversationId == conversationId)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return EmptyQueryResult<MessagesView>();
         }
 
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
+        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
+        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchTerms)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
-        }
-
-        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
-            string searchTerms,
-            string receivingEndpointName,
-            PagingInfo pagingInfo,
-            SortInfo sortInfo
-            )
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchTerms)
-                    .Where(m => m.ReceivingEndpointName == receivingEndpointName)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
-                    .ToListAsync();
-
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return EmptyQueryResult<MessagesView>();
         }
 
         public async Task<FailedMessage> FailedMessageFetch(string failedMessageId)
