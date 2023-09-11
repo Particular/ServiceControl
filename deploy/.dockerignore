@@ -1,5 +1,0 @@
-# Builds with .NET 8+ SDK build artifacts here
-bin
-obj
-# Don't want to push this content into the Docker daemon
-PowerShellModules
