@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using ByteSizeLib;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
@@ -76,6 +78,8 @@
             var embeddedDatabase = new EmbeddedDatabase(settings);
 
             embeddedDatabase.Start(serverOptions);
+
+            RecordStartup(settings);
 
             return embeddedDatabase;
         }
@@ -154,6 +158,73 @@
             EmbeddedServer.Instance?.Dispose();
         }
 
+        static void RecordStartup(RavenDBPersisterSettings settings)
+        {
+            var dataSize = DataSize(settings);
+            var folderSize = FolderSize(settings);
+
+            var startupMessage = $@"
+-------------------------------------------------------------
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
+-------------------------------------------------------------";
+
+            logger.Info(startupMessage);
+        }
+
+        static long DataSize(RavenDBPersisterSettings settings)
+        {
+            var datafilePath = Path.Combine(settings.DatabasePath, "data");
+
+            try
+            {
+                var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
+                return info.Length;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long FolderSize(RavenDBPersisterSettings settings)
+        {
+            try
+            {
+                var dir = new DirectoryInfo(settings.DatabasePath);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            if (d.Exists)
+            {
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di);
+                }
+            }
+
+            return size;
+        }
         CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
         bool restartRequired;
         readonly RavenDBPersisterSettings configuration;
