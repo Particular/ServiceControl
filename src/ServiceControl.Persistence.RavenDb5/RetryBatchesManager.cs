@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
-    using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.MessageRedirects;
     using ServiceControl.Recoverability;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
 
     class RetryBatchesManager : AbstractSessionManager, IRetryBatchesManager
@@ -20,11 +20,19 @@
 
         public void Delete(RetryBatchNowForwarding forwardingBatch) => Session.Delete(forwardingBatch);
 
-        public Task<FailedMessageRetry[]> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries) => Session.LoadAsync<FailedMessageRetry>(stagingBatchFailureRetries);
+        public async Task<FailedMessageRetry[]> GetFailedMessageRetries(IList<string> stagingBatchFailureRetries)
+        {
+            var result = await Session.LoadAsync<FailedMessageRetry>(stagingBatchFailureRetries);
+            return result.Values.ToArray();
+        }
 
         public void Evict(FailedMessageRetry failedMessageRetry) => Session.Advanced.Evict(failedMessageRetry);
 
-        public Task<FailedMessage[]> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys) => Session.LoadAsync<FailedMessage>(keys);
+        public async Task<FailedMessage[]> GetFailedMessages(Dictionary<string, FailedMessageRetry>.KeyCollection keys)
+        {
+            var result = await Session.LoadAsync<FailedMessage>(keys);
+            return result.Values.ToArray();
+        }
 
         public async Task<RetryBatchNowForwarding> GetRetryBatchNowForwarding() =>
             await Session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
@@ -47,9 +55,8 @@
 
             if (redirects != null)
             {
-                redirects.ETag = Session.Advanced.GetEtagFor(redirects);
-                redirects.LastModified = Session.Advanced.GetMetadataFor(redirects).Value<DateTime>("@last-modified");
-
+                redirects.ETag = Session.Advanced.GetChangeVectorFor(redirects);
+                redirects.LastModified = Session.Advanced.GetLastModifiedFor(redirects)!.Value;
                 return redirects;
             }
 

@@ -55,8 +55,8 @@
             //HINT: RavenDB 3.5 is using Lodash v4.13.1 to provide javascript utility functions
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new PatchCommandData(documentId, null, new PatchRequest
-                {
-                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
+            {
+                Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
                                 
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
@@ -84,13 +84,13 @@
 
                                 this.{nameof(FailedMessage.ProcessingAttempts)} = newAttempts;
                                 ",
-                    Values = new Dictionary<string, object>
+                Values = new Dictionary<string, object>
                     {
                         {"status", (int)FailedMessageStatus.Unresolved},
                         {"failureGroups", serializedGroups},
                         {"attempt", serializedAttempt}
                     },
-                },
+            },
                 patchIfMissing: new PatchRequest
                 {
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;

@@ -99,7 +99,7 @@
 
             if (patchCommands != null)
             {
-                session.Advanced.Defer(patchCommands.ToArray<ICommandData>());;
+                session.Advanced.Defer(patchCommands.ToArray<ICommandData>());
                 session.Advanced.Defer(new DeleteCommandData(batch.Id, null));
             }
         }
@@ -144,7 +144,7 @@
             }
         }
 
-        static PatchRequest patchRequest = new PatchRequest {Script = @$"this.Status = {(int)FailedMessageStatus.Archived}"};
+        static PatchRequest patchRequest = new PatchRequest { Script = @$"this.Status = {(int)FailedMessageStatus.Archived}" };
 
         public class GroupDetails
         {

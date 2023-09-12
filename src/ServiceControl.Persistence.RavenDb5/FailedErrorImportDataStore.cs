@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using ServiceControl.Operations;
-    using Raven.Client;
     using Raven.Client.Documents;
 
     class FailedErrorImportDataStore : IFailedErrorImportDataStore
@@ -26,33 +25,30 @@
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var stream = await session.Advanced.StreamAsync(query, cancellationToken)
-                    )
+                await using var stream = await session.Advanced.StreamAsync(query, cancellationToken);
+                while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync())
                 {
-                    while (!cancellationToken.IsCancellationRequested && await stream.MoveNextAsync())
+                    var transportMessage = stream.Current.Document.Message;
+                    try
                     {
-                        var transportMessage = stream.Current.Document.Message;
-                        try
-                        {
-                            await processMessage(transportMessage);
+                        await processMessage(transportMessage);
 
-                            await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken);
-                            succeeded++;
+                        await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken);
+                        succeeded++;
 
-                            if (Logger.IsDebugEnabled)
-                            {
-                                Logger.Debug($"Successfully re-imported failed error message {transportMessage.Id}.");
-                            }
-                        }
-                        catch (OperationCanceledException)
+                        if (Logger.IsDebugEnabled)
                         {
-                            //  no-op
+                            Logger.Debug($"Successfully re-imported failed error message {transportMessage.Id}.");
                         }
-                        catch (Exception e)
-                        {
-                            Logger.Error($"Error while attempting to re-import failed error message {transportMessage.Id}.", e);
-                            failed++;
-                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        //  no-op
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error($"Error while attempting to re-import failed error message {transportMessage.Id}.", e);
+                        failed++;
                     }
                 }
             }
@@ -67,14 +63,10 @@
 
         public async Task<bool> QueryContainsFailedImports()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
-                using (var ie = await session.Advanced.StreamAsync(query))
-                {
-                    return await ie.MoveNextAsync();
-                }
-            }
+            using var session = store.OpenAsyncSession();
+            var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
+            await using var ie = await session.Advanced.StreamAsync(query);
+            return await ie.MoveNextAsync();
         }
     }
 }

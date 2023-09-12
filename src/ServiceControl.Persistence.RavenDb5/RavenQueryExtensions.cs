@@ -25,8 +25,10 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        public static IRavenQueryable<TSource> Paging<TSource>(this IRavenQueryable<TSource> source, PagingInfo pagingInfo)
-            => source.Skip(pagingInfo.Offset).Take(pagingInfo.PageSize);
+        public static IQueryable<TSource> Paging<TSource>(this IOrderedQueryable<TSource> source, PagingInfo pagingInfo)
+            => source
+                .Skip(pagingInfo.Offset)
+                .Take(pagingInfo.PageSize);
 
         public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, SortInfo sortInfo)
             where TSource : MessagesViewIndex.SortAndFilterOptions

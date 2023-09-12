@@ -6,7 +6,6 @@
     using MessageFailures;
     using NServiceBus.Logging;
     using ServiceControl.Recoverability;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
@@ -16,7 +15,7 @@
     {
         readonly IDocumentStore documentStore;
 
-        static ILog Log = LogManager.GetLogger(typeof(RetryBatchesDataStore));
+        static readonly ILog Log = LogManager.GetLogger(typeof(RetryBatchesDataStore));
 
         public RetryBatchesDataStore(IDocumentStore documentStore)
         {

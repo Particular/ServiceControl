@@ -6,7 +6,6 @@
     using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
@@ -27,19 +26,13 @@
 
             using (var session = store.OpenAsyncSession())
             {
-                var customCheck = await session.LoadAsync<CustomCheck>(id);
+                var customCheck = await session.LoadAsync<CustomCheck>(id.ToString());
 
                 if (customCheck == null ||
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||
                     (customCheck.Status == Status.Pass && detail.HasFailed))
                 {
-                    if (customCheck == null)
-                    {
-                        customCheck = new CustomCheck
-                        {
-                            Id = id
-                        };
-                    }
+                    customCheck ??= new CustomCheck { Id = id };
 
                     status = CheckStateChange.Changed;
                 }
@@ -59,38 +52,32 @@
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var query =
-                    session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
+            using var session = store.OpenAsyncSession();
+            var query =
+                session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
-                query = AddStatusFilter(query, status);
+            query = AddStatusFilter(query, status);
 
-                var results = await query
-                    .Paging(paging)
-                    .ToListAsync();
+            var results = await query
+                .Paging(paging)
+                .ToListAsync();
 
-                return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale));
-            }
+            return new QueryResult<IList<CustomCheck>>(results, new QueryStatsInfo($"{stats.ResultEtag}", stats.TotalResults, stats.IsStale));
         }
 
         public async Task DeleteCustomCheck(Guid id)
         {
             var documentId = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
-            using (var session = store.OpenAsyncSession(new SessionOptions {NoTracking = true, NoCaching = true}))
-            {
-                await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
-            }
+            using var session = store.OpenAsyncSession(new SessionOptions { NoTracking = true, NoCaching = true });
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
         }
 
         public async Task<int> GetNumberOfFailedChecks()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
+            using var session = store.OpenAsyncSession();
+            var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
 
-                return failedCustomCheckCount;
-            }
+            return failedCustomCheckCount;
         }
 
         static IRavenQueryable<CustomCheck> AddStatusFilter(IRavenQueryable<CustomCheck> query, string status)
@@ -113,8 +100,6 @@
             return query;
         }
 
-        public Task Setup() => Task.CompletedTask;
-
-        IDocumentStore store;
+        readonly IDocumentStore store;
     }
 }

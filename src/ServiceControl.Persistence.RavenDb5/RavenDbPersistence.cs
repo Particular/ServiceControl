@@ -3,7 +3,6 @@
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.Recoverability;
-    using Raven.Client.Documents;
     using RavenDb5;
     using Recoverability;
     using ServiceControl.CustomChecks;
@@ -98,7 +97,7 @@
             ConfigureLifecycle(serviceCollection);
 
             var lifecycle = serviceCollection.BuildServiceProvider().GetRequiredService<IPersistenceLifecycle>();
-            
+
             return new RavenDbInstaller(lifecycle);
         }
 

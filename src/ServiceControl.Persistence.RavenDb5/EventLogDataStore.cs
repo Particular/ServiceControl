@@ -4,8 +4,8 @@
     using System.Threading.Tasks;
     using EventLog;
     using Persistence.Infrastructure;
-    using Raven.Client;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     class EventLogDataStore : IEventLogDataStore
     {
@@ -29,8 +29,10 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<EventLogItem>().Statistics(out var stats)
-                    .OrderByDescending(p => p.RaisedAt)
+                var results = await session
+                    .Query<EventLogItem>()
+                    .Statistics(out var stats)
+                    .OrderByDescending(p => p.RaisedAt, OrderingType.Double)
                     .Paging(pagingInfo)
                     .ToListAsync();
 

@@ -127,21 +127,19 @@
             }
         }
 
-        public Task UpdateUnarchiveOperation(IAsyncDocumentSession session, UnarchiveOperation unarchiveOperation)
+        public async Task UpdateUnarchiveOperation(IAsyncDocumentSession session, UnarchiveOperation unarchiveOperation)
         {
-            return session.StoreAsync(unarchiveOperation);
+            await session.StoreAsync(unarchiveOperation);
         }
 
         public async Task RemoveUnarchiveOperation(IDocumentStore store, UnarchiveOperation unarchiveOperation)
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                session.Advanced.Defer(new DeleteCommandData(unarchiveOperation.Id, null));
-                await session.SaveChangesAsync();
-            }
+            using var session = store.OpenAsyncSession();
+            session.Advanced.Defer(new DeleteCommandData(unarchiveOperation.Id, null));
+            await session.SaveChangesAsync();
         }
 
-        static PatchRequest patchRequest = new PatchRequest {Script = $@"this.Status = {(int)FailedMessageStatus.Unresolved}"};
+        static PatchRequest patchRequest = new PatchRequest { Script = $@"this.Status = {(int)FailedMessageStatus.Unresolved}" };
 
         public class GroupDetails
         {
