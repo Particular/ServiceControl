@@ -35,16 +35,12 @@
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
-            parentUnitOfWork.AddCommand(new PatchCommandData
+            parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
             {
-                Key = failedMessageDocumentId,
-                Patches = new[]
-                {
-                    new PatchRequest {Type = PatchCommandType.Set, Name = nameof(FailedMessage.Status), Value = (int)FailedMessageStatus.Resolved}
-                }
-            });
+                Script = $@"this.nameof(FailedMessage.Status) = {(int)FailedMessageStatus.Resolved};"
+            }));
 
-            parentUnitOfWork.AddCommand(new DeleteCommandData { Key = failedMessageRetryDocumentId });
+            parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
             return Task.CompletedTask;
         }
 
@@ -53,15 +49,12 @@
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
-            var serializedGroups = RavenJToken.FromObject(groups);
-            var serializedAttempt = RavenJToken.FromObject(processingAttempt, Serializer);
+            var serializedGroups = JToken.FromObject(groups);
+            var serializedAttempt = JToken.FromObject(processingAttempt, Serializer);
 
             //HINT: RavenDB 3.5 is using Lodash v4.13.1 to provide javascript utility functions
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
-            return new ScriptedPatchCommandData
-            {
-                Key = documentId,
-                Patch = new ScriptedPatchRequest
+            return new PatchCommandData(documentId, null, new PatchRequest
                 {
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
@@ -98,12 +91,13 @@
                         {"attempt", serializedAttempt}
                     },
                 },
-                PatchIfMissing = new ScriptedPatchRequest
+                patchIfMissing: new PatchRequest
                 {
                     Script = $@"this.{nameof(FailedMessage.Status)} = status;
                                 this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
                                 this.{nameof(FailedMessage.ProcessingAttempts)} = [attempt];
                                 this.{nameof(FailedMessage.UniqueMessageId)} = uniqueMessageId;
+                                this.@metadata = {FailedMessageMetadata}
                              ",
                     Values = new Dictionary<string, object>
                     {
@@ -112,14 +106,13 @@
                         {"attempt", serializedAttempt},
                         {"uniqueMessageId", uniqueMessageId}
                     }
-                },
-                Metadata = FailedMessageMetadata
-            };
+                });
         }
 
         static RavenDbRecoverabilityIngestionUnitOfWork()
         {
-            Serializer = JsonExtensions.CreateDefaultJsonSerializer();
+            //TODO: check if this actually works
+            Serializer = JsonSerializer.CreateDefault();
             Serializer.TypeNameHandling = TypeNameHandling.Auto;
 
             FailedMessageMetadata = JObject.Parse($@"

@@ -3,7 +3,6 @@
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
 
@@ -22,8 +21,15 @@
 
         internal void AddCommand(ICommandData command) => commands.Add(command);
 
-        public override Task Complete() =>
-            // not really interested in the batch results since a batch is atomic
-            store.AsyncDatabaseCommands.BatchAsync(commands);
+        public override async Task Complete()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                // not really interested in the batch results since a batch is atomic
+                session.Advanced.Defer(commands.ToArray());
+
+                await session.SaveChangesAsync();
+            }
+        }
     }
 }
