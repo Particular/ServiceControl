@@ -97,7 +97,7 @@
       <DeployErrorFiles Include="..\..\deploy\Particular.ServiceControl\**\*.*" Exclude="**\Transports\**" />
       <DeployAuditFiles Include="..\..\deploy\Particular.ServiceControl.Audit\**\*.*" Exclude="**\Transports\**" />
       <DeployMonitoringFiles Include="..\..\deploy\Particular.ServiceControl.Monitoring\**\*.*" Exclude="**\Transports\**" />
-      <DeployTransportFilesInclude="..\..\deploy\Particular.ServiceControl.Monitoring\Transports\**\*.*" />
+      <DeployTransportFiles Include="..\..\deploy\Particular.ServiceControl.Monitoring\Transports\**\*.*" />
     </ItemGroup>
 
     <Copy SourceFiles="@(DeployErrorFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl\%(RecursiveDir)" SkipUnchangedFiles="true" />
