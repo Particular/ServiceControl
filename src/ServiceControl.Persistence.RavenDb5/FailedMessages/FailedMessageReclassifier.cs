@@ -100,16 +100,14 @@
 
                 try
                 {
-                    store.DatabaseCommands.Patch(doc.Item1,
-                        new[]
+                    store.Operations.Send(new PatchOperation(doc.Item1, null, new PatchRequest
+                    {
+                        Script = @"this.FailureGroups = args.Value",
+                        Values =
                         {
-                            new PatchRequest
-                            {
-                                Type = PatchCommandType.Set,
-                                Name = "FailureGroups",
-                                Value = new JArray(failureGroups)
-                            }
-                        });
+                            { "Value", new JArray(failureGroups) }
+                        }
+                    }));
 
                     Interlocked.Increment(ref failedMessagesReclassified);
                 }

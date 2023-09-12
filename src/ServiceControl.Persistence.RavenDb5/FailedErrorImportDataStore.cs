@@ -4,8 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using ServiceControl.Operations;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
+    using ServiceControl.Operations;
 
     class FailedErrorImportDataStore : IFailedErrorImportDataStore
     {
@@ -33,7 +34,8 @@
                     {
                         await processMessage(transportMessage);
 
-                        await store.AsyncDatabaseCommands.DeleteAsync(stream.Current.Key, null, cancellationToken);
+                        await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(stream.Current.Id, null), session.Advanced.Context, token: cancellationToken);
+
                         succeeded++;
 
                         if (Logger.IsDebugEnabled)
