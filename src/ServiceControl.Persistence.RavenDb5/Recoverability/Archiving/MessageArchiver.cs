@@ -71,7 +71,7 @@
                         logger.Info($"Archiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
                     }
 
-                    await archiveDocumentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
+                    archiveDocumentManager.ArchiveMessageGroupBatch(batchSession, nextBatch);
 
                     await archivingManager.BatchArchived(archiveOperation.RequestId, archiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
@@ -164,7 +164,7 @@
                         logger.Info($"Unarchiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
                     }
 
-                    await unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch);
+                    unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch);
 
                     await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 

@@ -4,6 +4,7 @@
     using Newtonsoft.Json.Linq;
     using ServiceControl.Persistence.UnitOfWork;
     using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
 
     class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {
@@ -20,13 +21,17 @@
             return Task.CompletedTask;
         }
 
-        static PutCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint) => new PutCommandData
+        static PatchCommandData CreateKnownEndpointsPutCommand(KnownEndpoint endpoint)
         {
-            Document = JObject.FromObject(endpoint),
-            Etag = null,
-            Key = endpoint.Id.ToString(),
-            Metadata = KnownEndpointMetadata
-        };
+            var document = JObject.FromObject(endpoint);
+            document["@metadata"] = KnownEndpointMetadata;
+
+            return new PatchCommandData(endpoint.Id.ToString(), null, new PatchRequest
+            {
+                //TODO: check if this works
+                Script = $"put('{KnownEndpoint.CollectionName}/', {document}"
+            });
+        }
 
         static RavenDbMonitoringIngestionUnitOfWork()
         {

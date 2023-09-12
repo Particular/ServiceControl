@@ -64,7 +64,7 @@
         async Task<IEnumerable<string>> StreamResults(IAsyncDocumentSession session, IQueryable<string> query)
         {
             var results = new List<string>();
-            using (var enumerator = await session.Advanced.StreamAsync(query))
+            await using (var enumerator = await session.Advanced.StreamAsync(query))
             {
                 while (await enumerator.MoveNextAsync())
                 {
@@ -92,7 +92,7 @@
             };
         }
 
-        public async Task UnarchiveMessageGroupBatch(IAsyncDocumentSession session, UnarchiveBatch batch)
+        public void UnarchiveMessageGroupBatch(IAsyncDocumentSession session, UnarchiveBatch batch)
         {
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 
