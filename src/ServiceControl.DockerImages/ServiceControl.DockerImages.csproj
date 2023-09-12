@@ -70,17 +70,18 @@
   </ItemGroup>
 
   <Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">
+
+    <!-- Cannot be moved underneath <Project> as $(OutputPath) will not get expanded resulting in the files to be created in the root of the current drive -->
+    <PropertyGroup>
+      <DockerfilesFolder>$(OutputPath)/dockerfiles/</DockerfilesFolder>
+    </PropertyGroup>
+
     <RemoveDir Directories="$(DockerfilesFolder)" />
     <MakeDir Directories="$(DockerfilesFolder)" />
   </Target>
 
 
   <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
-
-    <!-- Cannot be moved underneath <Project> as $(OutputPath) will not get expanded resulting in the files to be created in the root of the current drive -->
-    <PropertyGroup>
-      <DockerfilesFolder>$(OutputPath)/dockerfiles/</DockerfilesFolder>
-    </PropertyGroup>
 
     <!-- primary instance and sidecar dockerfiles -->
     <Copy SourceFiles="servicecontrol.transport.init-windows.dockerfile-template" DestinationFiles="$(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile" />
