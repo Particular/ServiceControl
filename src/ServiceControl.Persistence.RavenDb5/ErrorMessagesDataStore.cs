@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
-    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;

@@ -8,14 +8,13 @@
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
+    using Raven.Client.Exceptions;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
-    using Raven.Client;
-    using Raven.Client.Documents;
-    using Raven.Client.Documents.Operations;
-    using Raven.Client.Exceptions;
 
     class FailedMessageReclassifier : IReclassifyFailedMessages
     {
@@ -81,10 +80,7 @@
 
                 logger.Info($"Reclassification of failures ended. Reclassified {failedMessagesReclassified} messages");
 
-                if (settings == null)
-                {
-                    settings = new ReclassifyErrorSettings();
-                }
+                settings ??= new ReclassifyErrorSettings();
 
                 settings.ReclassificationDone = true;
                 await session.StoreAsync(settings);
