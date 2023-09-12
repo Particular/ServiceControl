@@ -186,7 +186,8 @@
                     .FilterByQueueAddress(queueAddress)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    // TODO: Fix SetResultTransformer
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync();
 
@@ -232,7 +233,8 @@
                     .FilterByLastModifiedRange(modified)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    // TODO: Fix SetResultTransformer
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync();
 
@@ -405,7 +407,8 @@
                     .FilterByLastModifiedRange(modified)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    // TODO: Fix SetResultTransformer
+                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>()
                     .ToListAsync();
 
@@ -482,7 +485,8 @@
                 }
 
                 var query = prequery
-                    .SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
+                    // TODO: Fix SetResultTransformer
+                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
                 using (var ie = await session.Advanced.StreamAsync(query))
@@ -606,7 +610,8 @@ if(this.Status === archivedStatus) {
                 .WhereBetween(options => options.LastModified, from.Ticks, to.Ticks)
                 .AndAlso()
                     .WhereEquals(o => o.QueueAddress, queueAddress)
-                    .SetResultTransformer(FailedMessageViewTransformer.Name)
+                    // TODO: Fix SetResultTransformer
+                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(new[] { "Id" });
 
                 using (var ie = await session.Advanced.StreamAsync(query))
