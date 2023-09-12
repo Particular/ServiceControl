@@ -36,16 +36,5 @@
 
             return null;
         }
-
-        public static DateTime GetAsDateTime(this IDictionary<string, object> metadata, string key)
-        {
-            var datetimeAsString = metadata.GetAsStringOrNull(key);
-
-            if (datetimeAsString != null)
-            {
-                return DateTime.Parse(datetimeAsString);
-            }
-        }
-
     }
 }

@@ -93,7 +93,7 @@
         public IPersistenceInstaller CreateInstaller()
         {
             var serviceCollection = new ServiceCollection();
-            
+
             serviceCollection.AddSingleton(settings);
             ConfigureLifecycle(serviceCollection);
 
