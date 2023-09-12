@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
-    using Newtonsoft.Json.Linq;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using Raven.Client.Documents;
@@ -36,24 +35,25 @@
                 commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
-            await store.AsyncDatabaseCommands.BatchAsync(commands);
+            using (var session = store.OpenAsyncSession())
+            {
+                var batch = new SingleNodeBatchCommand(store.Conventions, session.Advanced.Context, commands);
+                await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
+            }
         }
 
         public async Task MoveBatchToStaging(string batchDocumentId)
         {
             try
             {
-                await store.AsyncDatabaseCommands.PatchAsync(batchDocumentId,
-                    new[]
+                await store.Operations.SendAsync(new PatchOperation(batchDocumentId, null, new PatchRequest
+                {
+                    Script = @"this.Status = args.Status",
+                    Values =
                     {
-                        new PatchRequest
-                        {
-                            Type = PatchCommandType.Set,
-                            Name = "Status",
-                            Value = (int)RetryBatchStatus.Staging,
-                            PrevVal = (int)RetryBatchStatus.MarkingDocuments
-                        }
-                    });
+                        {"Status", (int)RetryBatchStatus.Staging }
+                    }
+                }));
             }
             catch (ConcurrencyException)
             {
@@ -124,36 +124,17 @@
 
         static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            return new PatchCommandData
+            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: null, patchIfMissing: new PatchRequest
             {
-                Patches = PatchRequestsEmpty,
-                PatchesIfMissing = new[]
+                Script = @"this.FailedMessageId = args.MessageId
+                           this.RetryBatchId = args.BatchDocumentId",
+                Values =
                 {
-                    new PatchRequest
-                    {
-                        Name = "FailedMessageId",
-                        Type = PatchCommandType.Set,
-                        Value = FailedMessageIdGenerator.MakeDocumentId(messageId)
-                    },
-                    new PatchRequest
-                    {
-                        Name = "RetryBatchId",
-                        Type = PatchCommandType.Set,
-                        Value = batchDocumentId
-                    }
-                },
-                Key = FailedMessageRetry.MakeDocumentId(messageId),
-                Metadata = DefaultMetadata
-            };
+                    { "MessageId", FailedMessageIdGenerator.MakeDocumentId(messageId) },
+                    { "BatchDocumentId", batchDocumentId }
+                }
+            });
         }
-
-        static JObject DefaultMetadata = JObject.Parse($@"
-                                    {{
-                                        ""@collection"": ""{FailedMessageRetry.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessageRetry).AssemblyQualifiedName}""
-                                    }}");
-
-        static PatchRequest[] PatchRequestsEmpty = Array.Empty<PatchRequest>();
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentDataStore));
 
