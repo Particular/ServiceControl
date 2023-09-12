@@ -27,7 +27,6 @@
             {
                 // not really interested in the batch results since a batch is atomic
                 session.Advanced.Defer(commands.ToArray());
-
                 await session.SaveChangesAsync();
             }
         }
