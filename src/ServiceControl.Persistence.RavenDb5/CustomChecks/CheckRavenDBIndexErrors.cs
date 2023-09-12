@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl
 {
     using System;
-    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations.Indexes;
 
     class CheckRavenDBIndexErrors : CustomCheck
     {
@@ -18,10 +18,9 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            var statistics = store.DatabaseCommands.GetStatistics();
-            var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
-
-            if (statistics.Errors.Length == 0)
+            var indexErrors = store.Maintenance.Send(new GetIndexErrorsOperation());
+            
+            if (indexErrors.Length == 0)
             {
                 return CheckResult.Pass;
             }
@@ -29,9 +28,12 @@
             var text = new StringBuilder();
             text.AppendLine("Detected RavenDB index errors, please start maintenance mode and resolve the following issues:");
 
-            foreach (var indexError in statistics.Errors)
+            foreach (var indexError in indexErrors)
             {
-                text.AppendLine($"- Index [{indexError.IndexName}] error: {indexError.Error} (Action: {indexError.Action},  Doc: {indexError.Document}, At: {indexError.Timestamp})");
+                foreach (var indexingError in indexError.Errors)
+                {
+                    text.AppendLine($"- Index [{indexError.Name}] error: {indexError.Name} (Action: {indexingError.Action},  Doc: {indexingError.Document}, At: {indexingError.Timestamp})");
+                }
             }
 
             text.AppendLine().AppendLine("See: https://docs.particular.net/search?q=servicecontrol+troubleshooting");
