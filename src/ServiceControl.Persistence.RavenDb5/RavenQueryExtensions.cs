@@ -6,7 +6,6 @@ namespace ServiceControl.Persistence
     using System.Linq;
     using System.Linq.Expressions;
     using System.Net.Http;
-    using System.Text;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
     using ServiceControl.MessageFailures;
@@ -179,31 +178,15 @@ namespace ServiceControl.Persistence
                 }
             }
 
-            var sb = new StringBuilder();
-
-            sb.Append("((");
-            if (includes.Count == 0)
+            if (includes.Any())
             {
-                sb.Append("*");
-            }
-            else
-            {
-                sb.Append(string.Join(" OR ", includes.ToArray()));
+                source.WhereIn("Status", includes.Cast<object>());
             }
 
-            sb.Append(")");
-
-            if (excludes.Count > 0)
+            foreach (var exclude in excludes)
             {
-                sb.Append(" AND NOT (");
-                sb.Append(string.Join(" OR ", excludes.ToArray()));
-                sb.Append(")");
+                source.WhereNotEquals("Status", exclude);
             }
-
-            sb.Append(")");
-
-            source.AndAlso();
-            source.Where($"Status: {sb}");
 
             return source;
         }
