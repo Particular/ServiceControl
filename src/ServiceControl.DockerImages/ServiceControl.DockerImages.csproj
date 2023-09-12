@@ -77,6 +77,7 @@
 
   <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
 
+    <!-- Cannot be moved underneath <Project> as $(OutputPath) will not get expanded resulting in the files to be created in the root of the current drive -->
     <PropertyGroup>
       <DockerfilesFolder>$(OutputPath)/dockerfiles/</DockerfilesFolder>
     </PropertyGroup>
