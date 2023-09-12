@@ -95,12 +95,12 @@
 
         public async Task ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData { Key = documentId, Patches = patchRequest });
+            var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest);
 
             if (patchCommands != null)
             {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.BatchAsync(patchCommands);
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(batch.Id, null);
+                session.Advanced.Defer(patchCommands.ToArray<ICommandData>());;
+                session.Advanced.Defer(new DeleteCommandData(batch.Id, null));
             }
         }
 
@@ -109,7 +109,7 @@
             using (var session = store.OpenAsyncSession())
             {
                 var indexQuery = session.Query<FailureGroupMessageView>(new FailedMessages_ByGroup().IndexName)
-                    .Customize(x => x.WaitForNonStaleResultsAsOfNow(timeToWait));
+                    .Customize(x => x.WaitForNonStaleResults(timeToWait));
 
                 var docQuery = indexQuery
                     .Where(failure => failure.FailureGroupId == requestId)
@@ -137,22 +137,14 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                await session.Advanced.DocumentStore.AsyncDatabaseCommands.DeleteAsync(archiveOperation.Id, null);
+                session.Advanced.Defer(new DeleteCommandData(archiveOperation.Id, null));
                 await session.SaveChangesAsync();
 
                 logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
             }
         }
 
-        static PatchRequest[] patchRequest =
-        {
-            new PatchRequest
-            {
-                Type = PatchCommandType.Set,
-                Name = "Status",
-                Value = (int)FailedMessageStatus.Archived
-            }
-        };
+        static PatchRequest patchRequest = new PatchRequest {Script = @$"this.Status = {(int)FailedMessageStatus.Archived}"};
 
         public class GroupDetails
         {
