@@ -19,7 +19,7 @@
         public override Task<CheckResult> PerformCheck()
         {
             var indexErrors = store.Maintenance.Send(new GetIndexErrorsOperation());
-            
+
             if (indexErrors.Length == 0)
             {
                 return CheckResult.Pass;
@@ -43,8 +43,8 @@
             return CheckResult.Failed(message);
         }
 
-        static ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
+        static readonly ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
-        IDocumentStore store;
+        readonly IDocumentStore store;
     }
 }
