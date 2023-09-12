@@ -335,7 +335,7 @@
                 NumberOfProcessingAttempts = message.ProcessingAttempts.Count,
                 Status = message.Status,
                 TimeOfFailure = failureDetails.TimeOfFailure,
-                LastModified = session.Advanced.GetMetadataFor(message)["@last-modified"].Value<DateTime>(),
+                LastModified = session.Advanced.GetLastModifiedFor(message).Value,
                 Edited = wasEdited,
                 EditOf = wasEdited ? message.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"] : ""
             };
@@ -539,7 +539,7 @@ if(this.Status === archivedStatus) {
 
         public async Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds)
         {
-            FailedMessage[] failedMessages;
+            Dictionary<string, FailedMessage> failedMessages;
 
             using (var session = documentStore.OpenAsyncSession())
             {
@@ -549,7 +549,7 @@ if(this.Status === archivedStatus) {
 
                 failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
 
-                foreach (var failedMessage in failedMessages)
+                foreach (var failedMessage in failedMessages.Values)
                 {
                     if (failedMessage.Status == FailedMessageStatus.Archived)
                     {
@@ -561,8 +561,8 @@ if(this.Status === archivedStatus) {
             }
 
             return (
-                failedMessages.Select(x => x.UniqueMessageId).ToArray(),
-                failedMessages.Length
+                failedMessages.Values.Select(x => x.UniqueMessageId).ToArray(), // TODO: (ramon) I don't think we can use Keys here as UniqueMessageId is something different than failedMessageId right?
+                failedMessages.Count
                 );
         }
 
