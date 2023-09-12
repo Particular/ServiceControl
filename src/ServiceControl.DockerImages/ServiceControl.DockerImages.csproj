@@ -103,7 +103,7 @@
     <Copy SourceFiles="@(DeployErrorFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(DeployAuditFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Audit\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(DeployMonitoringFiles)" DestinationFolder="$(OutputPath)\docker\Particular.ServiceControl.Monitoring\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(DeployTransportFilesInclude)" DestinationFolder="$(OutputPath)\docker\Transports\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployTransportFiles)" DestinationFolder="$(OutputPath)\docker\Transports\%(RecursiveDir)" SkipUnchangedFiles="true" />
 
   </Target>
 
