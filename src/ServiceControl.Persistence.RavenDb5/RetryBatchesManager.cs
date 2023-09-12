@@ -6,9 +6,9 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.MessageRedirects;
-    using ServiceControl.Recoverability;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
+    using ServiceControl.Recoverability;
 
     class RetryBatchesManager : AbstractSessionManager, IRetryBatchesManager
     {
@@ -41,10 +41,12 @@
         public async Task<RetryBatch> GetRetryBatch(string retryBatchId, CancellationToken cancellationToken) =>
             await Session.LoadAsync<RetryBatch>(retryBatchId, cancellationToken);
 
-        public async Task<RetryBatch> GetStagingBatch() =>
-            await Session.Query<RetryBatch>()
-                .Customize(q => q.Include<RetryBatch, FailedMessageRetry>(b => b.FailureRetries))
+        public async Task<RetryBatch> GetStagingBatch()
+        {
+            return await Session.Query<RetryBatch>()
+                .Include(b => b.FailureRetries)
                 .FirstOrDefaultAsync(b => b.Status == RetryBatchStatus.Staging);
+        }
 
         public async Task Store(RetryBatchNowForwarding retryBatchNowForwarding) =>
             await Session.StoreAsync(retryBatchNowForwarding, RetryBatchNowForwarding.Id);
