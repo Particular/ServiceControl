@@ -40,7 +40,7 @@
                 Id = FailedMessageEdit.MakeDocumentId(failedMessage.UniqueMessageId),
                 FailedMessageId = failedMessage.Id,
                 EditId = editingMessageId
-            }, Etag.Empty);
+            });
         }
 
         public Task SetFailedMessageAsResolved()
