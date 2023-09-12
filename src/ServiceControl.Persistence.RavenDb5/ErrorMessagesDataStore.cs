@@ -2,14 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Editing;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
+    using Raven.Client.Documents.Operations;
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
@@ -489,7 +490,7 @@
                     //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
                     .SelectFields<FailedMessageView>();
 
-                using (var ie = await session.Advanced.StreamAsync(query))
+                await using (var ie = await session.Advanced.StreamAsync(query))
                 {
                     while (await ie.MoveNextAsync())
                     {
@@ -506,38 +507,72 @@
 
         public async Task<(string[] ids, int count)> UnArchiveMessagesByRange(DateTime from, DateTime to, DateTime cutOff)
         {
-            var options = new BulkOperationOptions
+            // TODO: Make sure this new implementation actually works, not going to delete the old implementation (commented below) until then
+            var patch = new PatchByQueryOperation(new IndexQuery
             {
-                AllowStale = true
-            };
-
-            var result = await documentStore.AsyncDatabaseCommands.UpdateByIndexAsync(
-                new FailedMessageViewIndex().IndexName,
-                new IndexQuery
+                Query = $@"from index '{new FailedMessageViewIndex().IndexName} as msg
+                           where msg.LastModified >= args.From and msg.LastModified <= args.To
+                           where msg.Status == args.Archived
+                           update
+                           {{
+                                msg.Status = args.Unresolved
+                           }}",
+                QueryParameters =
                 {
-                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", from.Ticks, to.Ticks, (int)FailedMessageStatus.Archived),
-                    Cutoff = cutOff
-                }, new ScriptedPatchRequest
-                {
-                    Script = @"
-if(this.Status === archivedStatus) {
-    this.Status = unresolvedStatus;
-}
-",
-                    Values =
-                    {
-                        {"archivedStatus", (int)FailedMessageStatus.Archived},
-                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
-                    }
-                }, options);
+                    { "From", from },
+                    { "To", to },
+                    { "Unresolved", (int)FailedMessageStatus.Unresolved },
+                    { "Archived", (int)FailedMessageStatus.Archived },
+                }
+            }, new QueryOperationOptions
+            {
+                AllowStale = true,
+                RetrieveDetails = true
+            });
 
-            var patchedDocumentIds = (await result.WaitForCompletionAsync())
-                .JsonDeserialization<DocumentPatchResult[]>();
+            var operation = await documentStore.Operations.SendAsync(patch);
 
-            return (
-                patchedDocumentIds.Select(x => FailedMessageIdGenerator.GetMessageIdFromDocumentId(x.Document)).ToArray(),
-                patchedDocumentIds.Length
-                );
+            var result = await operation.WaitForCompletionAsync<BulkOperationResult>();
+
+            var ids = result.Details.OfType<BulkOperationResult.PatchDetails>()
+                .Select(d => d.Id)
+                .ToArray();
+
+            // TODO: Are we *really* returning an array AND the length of the same array?
+            return (ids, ids.Length);
+
+            //            var options = new BulkOperationOptions
+            //            {
+            //                AllowStale = true
+            //            };
+
+            //            var result = await documentStore.AsyncDatabaseCommands.UpdateByIndexAsync(
+            //                new FailedMessageViewIndex().IndexName,
+            //                new IndexQuery
+            //                {
+            //                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", from.Ticks, to.Ticks, (int)FailedMessageStatus.Archived),
+            //                    Cutoff = cutOff
+            //                }, new ScriptedPatchRequest
+            //                {
+            //                    Script = @"
+            //if(this.Status === archivedStatus) {
+            //    this.Status = unresolvedStatus;
+            //}
+            //",
+            //                    Values =
+            //                    {
+            //                        {"archivedStatus", (int)FailedMessageStatus.Archived},
+            //                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
+            //                    }
+            //                }, options);
+
+            //            var patchedDocumentIds = (await result.WaitForCompletionAsync())
+            //                .JsonDeserialization<DocumentPatchResult[]>();
+
+            //            return (
+            //                patchedDocumentIds.Select(x => FailedMessageIdGenerator.GetMessageIdFromDocumentId(x.Document)).ToArray(),
+            //                patchedDocumentIds.Length
+            //                );
         }
 
         public async Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds)
@@ -591,9 +626,10 @@ if(this.Status === archivedStatus) {
             }
         }
 
-        public Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
+        public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
         {
-            return documentStore.AsyncDatabaseCommands.DeleteAsync(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null);
+            using var session = documentStore.OpenAsyncSession();
+            await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(FailedMessageRetry.MakeDocumentId(uniqueMessageId), null), session.Advanced.Context);
         }
 
         // TODO: Once using .NET, consider using IAsyncEnumerable here as this is an unbounded query
@@ -614,7 +650,7 @@ if(this.Status === archivedStatus) {
                     //.SetResultTransformer(FailedMessageViewTransformer.Name)
                     .SelectFields<FailedMessageView>(new[] { "Id" });
 
-                using (var ie = await session.Advanced.StreamAsync(query))
+                await using (var ie = await session.Advanced.StreamAsync(query))
                 {
                     while (await ie.MoveNextAsync())
                     {
