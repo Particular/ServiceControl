@@ -16,6 +16,11 @@
     <ProjectReference Include="..\ServiceControlInstaller.Packaging\ServiceControlInstaller.Packaging.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <PropertyGroup>
+  	<!-- Location used by release CI to push each docker image to docker hub -->
+    <DockerfilesFolder>..\..\dockerfiles\</DockerfilesFolder>
+  </PropertyGroup>
+
   <ItemGroup Label="Supported transports">
     <!-- property values containing spaces or any command line special character must be quoted -->
 
@@ -70,12 +75,6 @@
   </ItemGroup>
 
   <Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">
-
-    <!-- Cannot be moved underneath <Project> as $(OutputPath) will not get expanded resulting in the files to be created in the root of the current drive -->
-    <PropertyGroup>
-      <DockerfilesFolder>$(OutputPath)/dockerfiles/</DockerfilesFolder>
-    </PropertyGroup>
-
     <RemoveDir Directories="$(DockerfilesFolder)" />
     <MakeDir Directories="$(DockerfilesFolder)" />
   </Target>
