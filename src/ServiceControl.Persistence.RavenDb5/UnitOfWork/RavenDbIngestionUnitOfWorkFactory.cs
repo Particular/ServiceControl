@@ -2,22 +2,21 @@
 {
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Client;
-    using Raven.Client.Documents;
+    using RavenDb5;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
         readonly MinimumRequiredStorageState customCheckState;
 
-        public RavenDbIngestionUnitOfWorkFactory(IDocumentStore store, MinimumRequiredStorageState customCheckState)
+        public RavenDbIngestionUnitOfWorkFactory(DocumentStoreProvider storeProvider, MinimumRequiredStorageState customCheckState)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
             this.customCheckState = customCheckState;
         }
 
         public ValueTask<IIngestionUnitOfWork> StartNew()
-            => new ValueTask<IIngestionUnitOfWork>(new RavenDbIngestionUnitOfWork(store));
+            => new ValueTask<IIngestionUnitOfWork>(new RavenDbIngestionUnitOfWork(storeProvider));
 
         public bool CanIngestMore()
         {

@@ -2,7 +2,7 @@
 {
     using System.IO;
     using System.Threading.Tasks;
-    using Raven.Client.Documents;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents.Operations.Attachments;
 
     // TODO: For Raven5, look at how the Audit instance is implementing this, as Attachments won't exist
@@ -11,23 +11,23 @@
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
         const string AttachmentName = "body";
-        readonly IDocumentStore documentStore;
+        readonly DocumentStoreProvider storeProvider;
 
-        public RavenAttachmentsBodyStorage(IDocumentStore documentStore)
+        public RavenAttachmentsBodyStorage(DocumentStoreProvider storeProvider)
         {
-            this.documentStore = documentStore;
+            this.storeProvider = storeProvider;
         }
 
         public async Task Store(string messageId, string contentType, int bodySize, Stream bodyStream)
         {
             // var id = MessageBodyIdGenerator.MakeDocumentId(messageId); // TODO: Not needed? Not used by audit
 
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
 
             // Following is possible to but not documented in the Raven docs.
             //session.Advanced.Attachments.Store(messageId,"body",bodyStream,contentType);
             // https://ravendb.net/docs/article-page/5.4/csharp/client-api/operations/attachments/get-attachment
-            _ = await documentStore.Operations.SendAsync(
+            _ = await storeProvider.Store.Operations.SendAsync(
                     new PutAttachmentOperation(messageId,
                         AttachmentName,
                         bodyStream,
@@ -38,7 +38,7 @@
         {
             //var messageId = MessageBodyIdGenerator.MakeDocumentId(bodyId); // TODO: Not needed? Not used by audit
 
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
 
             var result = await session.Advanced.Attachments.GetAsync(messageId, AttachmentName);
 

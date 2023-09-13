@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb
+namespace ServiceControl.Persistence.RavenDb
 {
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
@@ -86,7 +86,7 @@
             var external = new RavenDbExternalPersistenceLifecycle(settings);
 
             serviceCollection.AddSingleton<IPersistenceLifecycle>(external);
-            serviceCollection.AddSingleton(_ => external.GetDocumentStore());
+            serviceCollection.AddSingleton(_ => external.StoreProvider);
         }
 
         public IPersistenceInstaller CreateInstaller()

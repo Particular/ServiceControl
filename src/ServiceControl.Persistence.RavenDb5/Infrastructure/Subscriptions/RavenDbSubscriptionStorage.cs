@@ -13,8 +13,7 @@
     using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
-    using Raven.Client;
-    using Raven.Client.Documents;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Session;
     using ServiceControl.Persistence;
@@ -22,14 +21,14 @@
 
     class RavenDbSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public RavenDbSubscriptionStorage(IDocumentStore store, ReadOnlySettings settings) :
-            this(store, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+        public RavenDbSubscriptionStorage(DocumentStoreProvider storeProvider, ReadOnlySettings settings) :
+            this(storeProvider, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
-        public RavenDbSubscriptionStorage(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public RavenDbSubscriptionStorage(DocumentStoreProvider storeProvider, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
             localClient = new SubscriptionClient
             {
                 Endpoint = endpointName,
@@ -44,7 +43,7 @@
 
         public async Task Initialize()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var primeSubscriptions = await LoadSubscriptions(session) ?? await MigrateSubscriptions(session, localClient);
 
@@ -151,7 +150,7 @@
 
         async Task SaveSubscriptions()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 await session.StoreAsync(subscriptions, Subscriptions.SingleDocumentId);
                 UpdateLookup();
@@ -229,7 +228,7 @@
             return subscriptions;
         }
 
-        IDocumentStore store;
+        DocumentStoreProvider storeProvider;
         SubscriptionClient localClient;
         Subscriptions subscriptions;
         ILookup<MessageType, Subscriber> subscriptionsLookup;

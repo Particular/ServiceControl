@@ -5,17 +5,16 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client;
-    using Raven.Client.Documents;
+    using RavenDb5;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Persistence.Recoverability;
     using ServiceControl.Recoverability;
 
     class MessageArchiver : IArchiveMessages
     {
-        public MessageArchiver(IDocumentStore store, OperationsManager operationsManager, IDomainEvents domainEvents)
+        public MessageArchiver(DocumentStoreProvider storeProvider, OperationsManager operationsManager, IDomainEvents domainEvents)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
             this.domainEvents = domainEvents;
             this.operationsManager = operationsManager;
 
@@ -31,7 +30,7 @@
             logger.Info($"Archiving of {groupId} started");
             ArchiveOperation archiveOperation;
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -58,7 +57,7 @@
 
             while (archiveOperation.CurrentBatch < archiveOperation.NumberOfBatches)
             {
-                using (var batchSession = store.OpenAsyncSession())
+                using (var batchSession = storeProvider.Store.OpenAsyncSession())
                 {
                     var nextBatch = await archiveDocumentManager.GetArchiveBatch(batchSession, archiveOperation.Id, archiveOperation.CurrentBatch);
                     if (nextBatch == null)
@@ -99,14 +98,14 @@
 
             logger.Info($"Archiving of group {groupId} is complete. Waiting for index updates.");
             await archivingManager.ArchiveOperationFinalizing(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await archiveDocumentManager.WaitForIndexUpdateOfArchiveOperation(storeProvider.Store, archiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
                 logger.Warn($"Archiving group {groupId} completed but index not updated.");
             }
 
             await archivingManager.ArchiveOperationCompleted(archiveOperation.RequestId, archiveOperation.ArchiveType);
-            await archiveDocumentManager.RemoveArchiveOperation(store, archiveOperation);
+            await archiveDocumentManager.RemoveArchiveOperation(storeProvider.Store, archiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupArchived
             {
@@ -123,7 +122,7 @@
             logger.Info($"Unarchiving of {groupId} started");
             UnarchiveOperation unarchiveOperation;
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true; // Ensure 2 messages don't split the same operation into batches at once
 
@@ -151,7 +150,7 @@
 
             while (unarchiveOperation.CurrentBatch < unarchiveOperation.NumberOfBatches)
             {
-                using (var batchSession = store.OpenAsyncSession())
+                using (var batchSession = storeProvider.Store.OpenAsyncSession())
                 {
                     var nextBatch = await unarchiveDocumentManager.GetUnarchiveBatch(batchSession, unarchiveOperation.Id, unarchiveOperation.CurrentBatch);
                     if (nextBatch == null)
@@ -192,7 +191,7 @@
 
             logger.Info($"Unarchiving of group {groupId} is complete. Waiting for index updates.");
             await unarchivingManager.UnarchiveOperationFinalizing(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType);
-            if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(store, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
+            if (!await unarchiveDocumentManager.WaitForIndexUpdateOfUnarchiveOperation(storeProvider.Store, unarchiveOperation.RequestId, TimeSpan.FromMinutes(5))
                 )
             {
                 logger.Warn($"Unarchiving group {groupId} completed but index not updated.");
@@ -200,7 +199,7 @@
 
             logger.Info($"Unarchiving of group {groupId} completed");
             await unarchivingManager.UnarchiveOperationCompleted(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType);
-            await unarchiveDocumentManager.RemoveUnarchiveOperation(store, unarchiveOperation);
+            await unarchiveDocumentManager.RemoveUnarchiveOperation(storeProvider.Store, unarchiveOperation);
 
             await domainEvents.Raise(new FailedMessageGroupUnarchived
             {
@@ -230,7 +229,7 @@
         public IEnumerable<InMemoryArchive> GetArchivalOperations()
             => archivingManager.GetArchivalOperations();
 
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
         readonly OperationsManager operationsManager;
         readonly IDomainEvents domainEvents;
         readonly ArchiveDocumentManager archiveDocumentManager;

@@ -4,26 +4,26 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
+    using RavenDb5;
     using ServiceControl.Operations;
 
     class FailedErrorImportDataStore : IFailedErrorImportDataStore
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(FailedErrorImportDataStore));
 
-        public FailedErrorImportDataStore(IDocumentStore store)
+        public FailedErrorImportDataStore(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public async Task ProcessFailedErrorImports(Func<FailedTransportMessage, Task> processMessage, CancellationToken cancellationToken)
         {
             var succeeded = 0;
             var failed = 0;
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
                 await using var stream = await session.Advanced.StreamAsync(query, cancellationToken);
@@ -65,7 +65,7 @@
 
         public async Task<bool> QueryContainsFailedImports()
         {
-            using var session = store.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var query = session.Query<FailedErrorImport, FailedErrorImportIndex>();
             await using var ie = await session.Advanced.StreamAsync(query);
             return await ie.MoveNextAsync();

@@ -10,13 +10,14 @@
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
+    using RavenDb5;
     using ServiceControl.Infrastructure.RavenDB;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
-        public RavenDbCustomCheckDataStore(IDocumentStore store)
+        public RavenDbCustomCheckDataStore(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
@@ -24,7 +25,7 @@
             var status = CheckStateChange.Unchanged;
             var id = detail.GetDeterministicId();
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var customCheck = await session.LoadAsync<CustomCheck>(id.ToString());
 
@@ -52,7 +53,7 @@
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
         {
-            using var session = store.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var query =
                 session.Query<CustomCheck, CustomChecksIndex>().Statistics(out var stats);
 
@@ -67,14 +68,14 @@
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            var documentId = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
-            using var session = store.OpenAsyncSession(new SessionOptions { NoTracking = true, NoCaching = true });
+            var documentId = storeProvider.Store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
+            using var session = storeProvider.Store.OpenAsyncSession(new SessionOptions { NoTracking = true, NoCaching = true });
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
         }
 
         public async Task<int> GetNumberOfFailedChecks()
         {
-            using var session = store.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var failedCustomCheckCount = await session.Query<CustomCheck, CustomChecksIndex>().CountAsync(p => p.Status == Status.Fail);
 
             return failedCustomCheckCount;
@@ -100,6 +101,6 @@
             return query;
         }
 
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
     }
 }

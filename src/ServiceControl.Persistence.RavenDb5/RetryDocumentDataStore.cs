@@ -12,16 +12,17 @@
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
+    using RavenDb5;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Recoverability;
 
     class RetryDocumentDataStore : IRetryDocumentDataStore
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
 
-        public RetryDocumentDataStore(IDocumentStore store)
+        public RetryDocumentDataStore(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string requestId, RetryType retryType, string[] messageIds,
@@ -35,9 +36,9 @@
                 commands[i] = CreateFailedMessageRetryDocument(batchDocumentId, messageIds[i]);
             }
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
-                var batch = new SingleNodeBatchCommand(store.Conventions, session.Advanced.Context, commands);
+                var batch = new SingleNodeBatchCommand(storeProvider.Store.Conventions, session.Advanced.Context, commands);
                 await session.Advanced.RequestExecutor.ExecuteAsync(batch, session.Advanced.Context);
             }
         }
@@ -46,7 +47,7 @@
         {
             try
             {
-                await store.Operations.SendAsync(new PatchOperation(batchDocumentId, null, new PatchRequest
+                await storeProvider.Store.Operations.SendAsync(new PatchOperation(batchDocumentId, null, new PatchRequest
                 {
                     Script = @"this.Status = args.Status",
                     Values =
@@ -66,7 +67,7 @@
             DateTime startTime, DateTime? last = null, string batchName = null, string classifier = null)
         {
             var batchDocumentId = RetryBatch.MakeDocumentId(Guid.NewGuid().ToString());
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 await session.StoreAsync(new RetryBatch
                 {
@@ -91,7 +92,7 @@
 
         public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var orphanedBatches = await session
                     .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
@@ -113,7 +114,7 @@
 
         public async Task<IList<RetryBatchGroup>> QueryAvailableBatches()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var results = await session.Query<RetryBatchGroup, RetryBatches_ByStatus_ReduceInitialBatchSize>()
                     .Where(b => b.HasStagingBatches || b.HasForwardingBatches)
@@ -150,7 +151,7 @@
             //public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
             //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Where(d => d.Status == FailedMessageStatus.Unresolved)
@@ -176,7 +177,7 @@
             //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
             //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Where(d => d.Status == FailedMessageStatus.Unresolved)
@@ -203,7 +204,7 @@
             //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
             //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == status, );
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Where(d => d.Status == FailedMessageStatus.Unresolved)
@@ -229,7 +230,7 @@
         {
             //retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Where(d => d.Status == FailedMessageStatus.Unresolved)
@@ -253,7 +254,7 @@
 
         public async Task<FailureGroupView> QueryFailureGroupViewOnGroupId(string groupId)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var group = await session.Query<FailureGroupView, FailureGroupsViewIndex>()
                         .FirstOrDefaultAsync(x => x.Id == groupId);

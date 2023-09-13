@@ -11,6 +11,7 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
+    using RavenDb5;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
@@ -18,12 +19,12 @@
 
     class FailedMessageReclassifier : IReclassifyFailedMessages
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
         readonly IEnumerable<IFailureClassifier> classifiers;
 
-        public FailedMessageReclassifier(IDocumentStore store, IHostApplicationLifetime applicationLifetime, IEnumerable<IFailureClassifier> classifiers)
+        public FailedMessageReclassifier(DocumentStoreProvider storeProvider, IHostApplicationLifetime applicationLifetime, IEnumerable<IFailureClassifier> classifiers)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
             this.classifiers = classifiers;
 
             applicationLifetime?.ApplicationStopping.Register(() => { abort = true; });
@@ -36,7 +37,7 @@
             var failedMessagesReclassified = 0;
             var currentBatch = new List<Tuple<string, ClassifiableMessageDetails>>();
 
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 ReclassifyErrorSettings settings = null;
 
@@ -64,7 +65,7 @@
 
                         if (currentBatch.Count == BatchSize)
                         {
-                            failedMessagesReclassified += ReclassifyBatch(store, currentBatch, classifiers);
+                            failedMessagesReclassified += ReclassifyBatch(storeProvider.Store, currentBatch, classifiers);
                             currentBatch.Clear();
 
                             totalMessagesReclassified += BatchSize;
@@ -75,7 +76,7 @@
 
                 if (currentBatch.Any())
                 {
-                    ReclassifyBatch(store, currentBatch, classifiers);
+                    ReclassifyBatch(storeProvider.Store, currentBatch, classifiers);
                 }
 
                 logger.Info($"Reclassification of failures ended. Reclassified {failedMessagesReclassified} messages");

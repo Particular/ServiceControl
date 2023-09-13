@@ -8,19 +8,22 @@
 
     class RavenDbEmbeddedPersistenceLifecycle : IPersistenceLifecycle
     {
+        public DocumentStoreProvider StoreProvider { get; }
+
         public RavenDbEmbeddedPersistenceLifecycle(RavenDBPersisterSettings databaseConfiguration)
         {
             this.databaseConfiguration = databaseConfiguration;
-        }
 
-        public IDocumentStore GetDocumentStore()
-        {
-            if (documentStore == null)
+            StoreProvider = new DocumentStoreProvider(() =>
             {
-                throw new InvalidOperationException("Document store is not available until the persistence have been started");
-            }
+                if (documentStore == null)
+                {
+                    throw new InvalidOperationException(
+                        "Document store is not available until the persistence have been started");
+                }
 
-            return documentStore;
+                return documentStore;
+            });
         }
 
         public async Task Start(CancellationToken cancellationToken)

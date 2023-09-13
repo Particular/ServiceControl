@@ -3,17 +3,17 @@
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
+    using RavenDb5;
 
     class RavenDbIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
         readonly ConcurrentBag<ICommandData> commands;
 
-        public RavenDbIngestionUnitOfWork(IDocumentStore store)
+        public RavenDbIngestionUnitOfWork(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
             commands = new ConcurrentBag<ICommandData>();
             Monitoring = new RavenDbMonitoringIngestionUnitOfWork(this);
             Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this);
@@ -23,7 +23,7 @@
 
         public override async Task Complete()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 // not really interested in the batch results since a batch is atomic
                 session.Advanced.Defer(commands.ToArray());

@@ -7,7 +7,7 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Persistence;
-    using Raven.Client;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents;
 
     class FailedMessageViewIndexNotifications
@@ -15,9 +15,9 @@
         , IDisposable
         , IHostedService
     {
-        public FailedMessageViewIndexNotifications(IDocumentStore store)
+        public FailedMessageViewIndexNotifications(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         void OnNext()
@@ -34,7 +34,7 @@
 
         async Task UpdatedCount()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var failedUnresolvedMessageCount = await session
                     .Query<FailedMessage, FailedMessageViewIndex>()
@@ -87,7 +87,7 @@
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            subscription = store
+            subscription = storeProvider.Store
                 .Changes()
                 .ForIndex(new FailedMessageViewIndex().IndexName)
                 .Subscribe(d => OnNext());
@@ -100,7 +100,7 @@
             return Task.CompletedTask;
         }
 
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
         readonly ILog logging = LogManager.GetLogger(typeof(FailedMessageViewIndexNotifications));
 
         Func<FailedMessageTotals, Task> subscriber;

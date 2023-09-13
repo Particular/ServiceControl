@@ -13,16 +13,17 @@
     using ServiceBus.Management.Infrastructure.Extensions;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Changes;
+    using RavenDb5;
 
     class ExternalIntegrationRequestsDataStore
         : IExternalIntegrationRequestsDataStore
         , IHostedService
         , IAsyncDisposable
     {
-        public ExternalIntegrationRequestsDataStore(RavenDBPersisterSettings settings, IDocumentStore documentStore, CriticalError criticalError)
+        public ExternalIntegrationRequestsDataStore(RavenDBPersisterSettings settings, DocumentStoreProvider storeProvider, CriticalError criticalError)
         {
             this.settings = settings;
-            this.documentStore = documentStore;
+            this.storeProvider = storeProvider;
 
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
                 "EventDispatcher",
@@ -36,7 +37,7 @@
 
         public async Task StoreDispatchRequest(IEnumerable<ExternalIntegrationDispatchRequest> dispatchRequests)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 foreach (var dispatchRequest in dispatchRequests)
                 {
@@ -128,7 +129,7 @@
 
         async Task<bool> TryDispatchEventBatch()
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var awaitingDispatching = await session
                     .Query<ExternalIntegrationDispatchRequest>()
@@ -164,7 +165,7 @@
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            subscription = documentStore
+            subscription = storeProvider.Store
                 .Changes()
                 .ForDocumentsStartingWith(KeyPrefix)
                 .Where(c => c.Type == DocumentChangeTypes.Put)
@@ -202,7 +203,7 @@
         }
 
         readonly RavenDBPersisterSettings settings;
-        readonly IDocumentStore documentStore;
+        readonly DocumentStoreProvider storeProvider;
         readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
         readonly RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;
 

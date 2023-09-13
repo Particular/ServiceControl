@@ -6,21 +6,22 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
+    using RavenDb5;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
     class GroupsDataStore : IGroupsDataStore
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
 
-        public GroupsDataStore(IDocumentStore store)
+        public GroupsDataStore(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier, string classifierFilter)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var query = Queryable.Where(session.Query<FailureGroupView, FailureGroupsViewIndex>(), v => v.Type == classifier);
 
@@ -48,7 +49,7 @@
 
         public async Task<RetryBatch> GetCurrentForwardingBatch()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var nowForwarding = await session.Include<RetryBatchNowForwarding, RetryBatch>(r => r.RetryBatchId)
                     .LoadAsync<RetryBatchNowForwarding>(RetryBatchNowForwarding.Id);

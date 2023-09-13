@@ -5,20 +5,20 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Raven.Client.Documents;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents.Operations.Indexes;
 
     class CheckRavenDBIndexErrors : CustomCheck
     {
-        public CheckRavenDBIndexErrors(IDocumentStore store)
+        public CheckRavenDBIndexErrors(DocumentStoreProvider storeProvider)
             : base("Error Database Index Errors", "ServiceControl Health", TimeSpan.FromMinutes(5))
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public override Task<CheckResult> PerformCheck()
         {
-            var indexErrors = store.Maintenance.Send(new GetIndexErrorsOperation());
+            var indexErrors = storeProvider.Store.Maintenance.Send(new GetIndexErrorsOperation());
 
             if (indexErrors.Length == 0)
             {
@@ -45,6 +45,6 @@
 
         static readonly ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
     }
 }

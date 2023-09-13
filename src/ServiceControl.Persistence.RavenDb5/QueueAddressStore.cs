@@ -4,22 +4,23 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
+    using RavenDb5;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence.Infrastructure;
 
     class QueueAddressStore : IQueueAddressStore
     {
-        readonly IDocumentStore documentStore;
+        readonly DocumentStoreProvider storeProvider;
 
-        public QueueAddressStore(IDocumentStore documentStore)
+        public QueueAddressStore(DocumentStoreProvider storeProvider)
         {
-            this.documentStore = documentStore;
+            this.storeProvider = storeProvider;
         }
 
         public async Task<QueryResult<IList<QueueAddress>>> GetAddresses(PagingInfo pagingInfo)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var addresses = await session
                 .Query<QueueAddress, QueueAddressIndex>()
                 .Statistics(out var stats)
@@ -32,7 +33,7 @@
 
         public async Task<QueryResult<IList<QueueAddress>>> GetAddressesBySearchTerm(string search, PagingInfo pagingInfo)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var failedMessageQueues = await session
                     .Query<QueueAddress, QueueAddressIndex>()
                     .Statistics(out var stats)

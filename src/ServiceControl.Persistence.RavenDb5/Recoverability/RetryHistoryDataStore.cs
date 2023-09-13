@@ -3,18 +3,18 @@
     using System;
     using System.Threading.Tasks;
     using ServiceControl.Recoverability;
-    using Raven.Client.Documents;
+    using RavenDb5;
 
     class RetryHistoryDataStore : IRetryHistoryDataStore
     {
-        public RetryHistoryDataStore(IDocumentStore documentStore)
+        public RetryHistoryDataStore(DocumentStoreProvider storeProvider)
         {
-            this.documentStore = documentStore;
+            this.storeProvider = storeProvider;
         }
 
         public async Task<RetryHistory> GetRetryHistory()
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var id = RetryHistory.MakeId();
             var retryHistory = await session.LoadAsync<RetryHistory>(id);
 
@@ -26,7 +26,7 @@
         public async Task RecordRetryOperationCompleted(string requestId, RetryType retryType, DateTime startTime, DateTime completionTime,
             string originator, string classifier, bool messageFailed, int numberOfMessagesProcessed, DateTime lastProcessed, int retryHistoryDepth)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId()) ?? RetryHistory.CreateNew();
 
             retryHistory.AddToUnacknowledged(new UnacknowledgedRetryOperation
@@ -59,7 +59,7 @@
 
         public async Task<bool> AcknowledgeRetryGroup(string groupId)
         {
-            using var session = documentStore.OpenAsyncSession();
+            using var session = storeProvider.Store.OpenAsyncSession();
             var retryHistory = await session.LoadAsync<RetryHistory>(RetryHistory.MakeId());
             if (retryHistory != null)
             {
@@ -75,6 +75,6 @@
             return false;
         }
 
-        readonly IDocumentStore documentStore;
+        readonly DocumentStoreProvider storeProvider;
     }
 }

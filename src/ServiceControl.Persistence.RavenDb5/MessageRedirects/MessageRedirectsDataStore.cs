@@ -1,23 +1,22 @@
 ﻿namespace ServiceControl.Persistence.RavenDb.MessageRedirects
 {
-    using System;
     using System.Threading.Tasks;
-    using Raven.Client.Documents;
     using Raven.Client.Documents.Queries;
+    using RavenDb5;
     using ServiceControl.Persistence.MessageRedirects;
 
     class MessageRedirectsDataStore : IMessageRedirectsDataStore
     {
-        readonly IDocumentStore store;
+        readonly DocumentStoreProvider storeProvider;
 
-        public MessageRedirectsDataStore(IDocumentStore store)
+        public MessageRedirectsDataStore(DocumentStoreProvider storeProvider)
         {
-            this.store = store;
+            this.storeProvider = storeProvider;
         }
 
         public async Task<MessageRedirectsCollection> GetOrCreate()
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 var redirects = await session.LoadAsync<MessageRedirectsCollection>(DefaultId);
 
@@ -35,7 +34,7 @@
 
         public async Task Save(MessageRedirectsCollection redirects)
         {
-            using (var session = store.OpenAsyncSession())
+            using (var session = storeProvider.Store.OpenAsyncSession())
             {
                 await session.StoreAsync(redirects, redirects.ETag, DefaultId);
                 await session.SaveChangesAsync();
