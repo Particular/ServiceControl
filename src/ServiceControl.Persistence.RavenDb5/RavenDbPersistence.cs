@@ -31,8 +31,6 @@
 
             serviceCollection.AddSingleton(settings);
 
-            ConfigureLifecycle(serviceCollection);
-
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
