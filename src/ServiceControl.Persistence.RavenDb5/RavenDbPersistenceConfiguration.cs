@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb
+namespace ServiceControl.Persistence.RavenDb
 {
     using System;
     using ServiceControl.Operations;
@@ -43,8 +43,6 @@
             var settings = new RavenDBPersisterSettings
             {
                 ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
-                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenDBPersisterSettings.DatabaseNameDefault),
-                DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
                 DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
                 ExposeRavenDB = GetSetting(RavenBootstrapper.ExposeRavenDBKey, false),
@@ -57,6 +55,7 @@
                 AuditRetentionPeriod = GetSetting(AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
+                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenDBPersisterSettings.DatabaseNameDefault),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
                 LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault)
             };
