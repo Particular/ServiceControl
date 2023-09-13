@@ -5,9 +5,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.UnitTests", "ServiceControl.UnitTests\ServiceControl.UnitTests.csproj", "{4F65FAE1-4C51-4BEF-956E-97C6A96807F9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl", "ServiceControl\ServiceControl.csproj", "{4C6B71B2-74EF-4B9E-88FF-C56532727C6D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{84627DC0-7B43-480D-80CF-A4DDA514A4EE} = {84627DC0-7B43-480D-80CF-A4DDA514A4EE}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{55C388DD-2B39-4C2F-AEBD-AFD3444815F1}"
 EndProject
