@@ -79,9 +79,7 @@
     <MakeDir Directories="$(DockerfilesFolder)" />
   </Target>
 
-
   <Target Name="ExpandDockerfileTemplates" AfterTargets="CleanGeneratedDockerfiles">
-
     <!-- primary instance and sidecar dockerfiles -->
     <Copy SourceFiles="servicecontrol.transport.init-windows.dockerfile-template" DestinationFiles="$(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization).init-windows.dockerfile" />
     <Copy SourceFiles="servicecontrol.transport-windows.dockerfile-template" DestinationFiles="$(DockerfilesFolder)servicecontrol.%(SupportedTransport.DockerfileCustomization)-windows.dockerfile" />
