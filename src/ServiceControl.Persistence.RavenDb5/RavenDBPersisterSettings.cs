@@ -20,7 +20,7 @@ class RavenDBPersisterSettings : PersistenceSettings
     //TODO: these are newly added settings, we should remove any duplication
     public string ServerUrl { get; set; }
     public string ConnectionString { get; set; }
-    public bool UseEmbeddedServer => !string.IsNullOrWhiteSpace(ConnectionString);
+    public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
     public string LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
