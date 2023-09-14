@@ -50,7 +50,7 @@
 
         public void Dispose()
         {
-            documentStore.Dispose();
+            documentStore?.Dispose();
         }
 
         readonly RavenStartup ravenStartup;

@@ -17,7 +17,7 @@
         {
             if (documentStore == null)
             {
-                throw new InvalidOperationException("Document store is not available until the persistence have been started, ensure lifecycle.Start is invoked before IHost.Start/Run ");
+                throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
             }
 
             return documentStore;
