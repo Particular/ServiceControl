@@ -10,6 +10,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ImportFailedErrorsCommand : AbstractCommand
@@ -25,6 +26,10 @@
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             var host = bootstrapper.HostBuilder.Build();
+
+            var lifeCycle = host.Services.GetRequiredService<IPersistenceLifecycle>();
+            await lifeCycle.Start(); // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+
             await host.StartAsync(CancellationToken.None);
 
             var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
@@ -44,6 +49,7 @@
                 finally
                 {
                     await host.StopAsync(CancellationToken.None);
+                    await lifeCycle.Stop();
                 }
             }
         }
