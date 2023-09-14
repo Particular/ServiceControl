@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NUnit.Framework;
-using Raven.Client;
+using Raven.Client.Documents;
 
 public static class RavenIndexAwaiter
 {

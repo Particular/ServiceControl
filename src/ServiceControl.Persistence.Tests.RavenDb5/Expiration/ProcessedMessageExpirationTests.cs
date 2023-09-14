@@ -11,7 +11,7 @@
     using MessageFailures;
     using NUnit.Framework;
     using PersistenceTests;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Client.Embedded;
     using ServiceControl.Infrastructure.RavenDB.Expiration;
     using ServiceControl.Operations.BodyStorage.RavenAttachments;

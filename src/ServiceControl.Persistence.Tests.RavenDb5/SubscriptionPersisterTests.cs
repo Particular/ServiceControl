@@ -7,7 +7,7 @@
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
 
     [TestFixture]

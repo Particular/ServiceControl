@@ -1,6 +1,6 @@
 ﻿using System.IO;
+using Newtonsoft.Json;
 using NUnit.Framework;
-using Raven.Imports.Newtonsoft.Json;
 using ServiceControl.Infrastructure.RavenDB;
 
 [TestFixture]
@@ -18,7 +18,7 @@ class MigrationTests
         var serializer = new JsonSerializer
         {
             TypeNameHandling = TypeNameHandling.All,
-            Binder = new MigratedTypeAwareBinder()
+            SerializationBinder = new MigratedTypeAwareBinder()
         };
 
         serializer.Deserialize(new JsonTextReader(new StringReader(serializedForm)));

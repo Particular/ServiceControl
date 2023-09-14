@@ -5,7 +5,7 @@
     using NUnit.Framework;
     using Particular.Approvals;
     using Particular.ServiceControl;
-    using Raven.Client.Indexes;
+    using Raven.Client.Documents.Indexes;
     using ServiceControl.Persistence;
 
     class RavenPersistedTypes

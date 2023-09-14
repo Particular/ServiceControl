@@ -13,7 +13,7 @@
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations.BodyStorage;
     using ServiceControl.PersistenceTests;

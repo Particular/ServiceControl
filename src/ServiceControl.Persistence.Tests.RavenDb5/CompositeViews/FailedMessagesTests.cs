@@ -8,7 +8,7 @@
     using MessageFailures;
     using MessageFailures.Api;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
 
     [TestFixture]
     public class FailedMessagesTests

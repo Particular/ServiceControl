@@ -7,7 +7,7 @@
     using NServiceBus.Testing;
     using NUnit.Framework;
     using PersistenceTests;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Recoverability;
 
     [TestFixture]

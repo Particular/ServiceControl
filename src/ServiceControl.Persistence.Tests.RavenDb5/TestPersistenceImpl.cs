@@ -9,7 +9,7 @@
     using Microsoft.Extensions.Hosting;
     using NUnit.Framework;
     using Persistence;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Persistence.RavenDb;
 
     sealed class TestPersistenceImpl : TestPersistence

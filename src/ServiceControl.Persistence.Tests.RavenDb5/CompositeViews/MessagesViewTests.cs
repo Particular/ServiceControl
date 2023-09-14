@@ -6,8 +6,8 @@
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client;
-    using Raven.Client.Linq;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Linq;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
 

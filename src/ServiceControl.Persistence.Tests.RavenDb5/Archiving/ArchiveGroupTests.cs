@@ -6,7 +6,7 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
 

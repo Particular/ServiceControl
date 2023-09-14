@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.UnitTests.Expiration
 {
     using System;
-    using Raven.Abstractions;
+    using Raven.Client.Util;
 
     public class RavenLastModifiedScope : IDisposable
     {
