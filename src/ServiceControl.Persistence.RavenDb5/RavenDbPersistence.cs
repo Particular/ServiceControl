@@ -75,8 +75,10 @@
         {
             if (settings.UseEmbeddedServer)
             {
-                serviceCollection.AddSingleton<IPersistenceLifecycle, RavenDbEmbeddedPersistenceLifecycle>();
-                serviceCollection.AddSingleton(_ => new RavenDbEmbeddedPersistenceLifecycle(settings).GetDocumentStore());
+                var embedded = new RavenDbEmbeddedPersistenceLifecycle(settings);
+
+                serviceCollection.AddSingleton<IPersistenceLifecycle>(embedded);
+                serviceCollection.AddSingleton(_ => embedded.GetDocumentStore());
 
                 return;
             }
