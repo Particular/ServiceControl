@@ -57,6 +57,7 @@
                 AuditRetentionPeriod = GetSetting(AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
+                LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
                 LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault)
             };
 
