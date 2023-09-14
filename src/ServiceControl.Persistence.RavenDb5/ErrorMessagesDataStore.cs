@@ -18,7 +18,6 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
-    using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
@@ -32,59 +31,109 @@
 
         }
 
-        static Task<QueryResult<IList<T>>> EmptyQueryResult<T>() => Task.FromResult(new QueryResult<IList<T>>(new List<T>(), new QueryStatsInfo()));
-
-        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessages(
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            return EmptyQueryResult<MessagesView>();
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
         }
 
-        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
             string endpointName,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            return EmptyQueryResult<MessagesView>();
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
         }
 
-        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
-        public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
+        public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
             string endpointName,
             string searchKeyword,
             PagingInfo pagingInfo,
             SortInfo sortInfo
             )
         {
-            return EmptyQueryResult<MessagesView>();
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchKeyword)
+                    .Where(m => m.ReceivingEndpointName == endpointName)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
         }
 
-        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
             string conversationId,
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            return EmptyQueryResult<MessagesView>();
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Where(m => m.ConversationId == conversationId)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
         }
 
-        // TODO: This is for audit messages, should probably not be on IErrorMessageDataStore
-        public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
+        public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
             string searchTerms,
             PagingInfo pagingInfo,
             SortInfo sortInfo
             )
         {
-            return EmptyQueryResult<MessagesView>();
+            using (var session = documentStore.OpenAsyncSession())
+            {
+                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .Statistics(out var stats)
+                    .Search(x => x.Query, searchTerms)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
         }
 
         public async Task<FailedMessage> FailedMessageFetch(string failedMessageId)
