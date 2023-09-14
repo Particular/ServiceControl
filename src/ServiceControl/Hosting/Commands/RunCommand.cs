@@ -32,17 +32,11 @@
                 hostBuilder.UseConsoleLifetime();
             }
 
-            var host = hostBuilder.Build();
-
-            var lifeCycle = host.Services.GetRequiredService<IPersistenceLifecycle>();
-            await lifeCycle.Start(); // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
-            try
+            using (var host = hostBuilder.Build())
             {
+                // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
                 await host.RunAsync();
-            }
-            finally
-            {
-                await lifeCycle.Stop();
             }
         }
     }

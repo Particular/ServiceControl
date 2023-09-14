@@ -8,7 +8,7 @@
     using Raven.Client.Embedded;
     using ServiceControl.Persistence;
 
-    class RavenDbPersistenceLifecycle : IPersistenceLifecycle
+    class RavenDbPersistenceLifecycle : IPersistenceLifecycle, IDisposable
     {
         public RavenDbPersistenceLifecycle(RavenStartup ravenStartup, EmbeddableDocumentStore documentStore)
         {
@@ -16,7 +16,7 @@
             this.documentStore = documentStore;
         }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken)
         {
             Logger.Info("Database initialization starting");
             documentStore.Initialize();
@@ -26,12 +26,6 @@
 
             Logger.Info("Testing indexes");
             await TestAllIndexesAndResetIfException(documentStore);
-        }
-
-        public Task Stop(CancellationToken cancellationToken)
-        {
-            documentStore.Dispose();
-            return Task.CompletedTask;
         }
 
         static async Task TestAllIndexesAndResetIfException(IDocumentStore store)
@@ -52,6 +46,11 @@
                     store.DatabaseCommands.ResetIndex(index.Name);
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            documentStore.Dispose();
         }
 
         readonly RavenStartup ravenStartup;

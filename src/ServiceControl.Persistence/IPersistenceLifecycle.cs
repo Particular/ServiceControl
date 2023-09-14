@@ -3,9 +3,8 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IPersistenceLifecycle // TODO: We don't need this, implementations should just implement IHostedService
+    public interface IPersistenceLifecycle
     {
-        Task Start(CancellationToken cancellationToken = default);
-        Task Stop(CancellationToken cancellationToken = default);
+        Task Initialize(CancellationToken cancellationToken = default);
     }
 }

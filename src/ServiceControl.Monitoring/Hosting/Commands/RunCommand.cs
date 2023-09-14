@@ -7,25 +7,28 @@ namespace ServiceControl.Monitoring
 
     class RunCommand : AbstractCommand
     {
-        public override Task Execute(Settings settings)
+        public override async Task Execute(Settings settings)
         {
             //RunAsWindowsService can't be a property on Settings class because it
             //would be exposed as app.config configurable option and break ATT approvals
             var runAsWindowsService = !Environment.UserInteractive && !settings.Portable;
             var configuration = new EndpointConfiguration(settings.ServiceName);
 
-            var host = new Bootstrapper(_ => { }, settings, configuration).HostBuilder;
+            var hostBuilder = new Bootstrapper(_ => { }, settings, configuration).HostBuilder;
 
             if (runAsWindowsService)
             {
-                host.UseWindowsService();
+                hostBuilder.UseWindowsService();
             }
             else
             {
-                host.UseConsoleLifetime();
+                hostBuilder.UseConsoleLifetime();
             }
 
-            return host.Build().RunAsync();
+            using (var host = hostBuilder.Build())
+            {
+                await host.RunAsync();
+            }
         }
     }
 }

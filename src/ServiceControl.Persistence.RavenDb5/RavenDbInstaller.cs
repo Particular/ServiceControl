@@ -13,8 +13,7 @@
 
         public async Task Install(CancellationToken cancellationToken)
         {
-            await lifecycle.Start(cancellationToken);
-            await lifecycle.Stop(cancellationToken);
+            await lifecycle.Initialize(cancellationToken);
         }
 
         readonly IPersistenceLifecycle lifecycle;

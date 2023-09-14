@@ -6,7 +6,7 @@
     using Raven.Client.Documents;
     using ServiceControl.Persistence;
 
-    class RavenDbEmbeddedPersistenceLifecycle : IPersistenceLifecycle
+    class RavenDbEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
     {
         public RavenDbEmbeddedPersistenceLifecycle(RavenDBPersisterSettings databaseConfiguration)
         {
@@ -23,19 +23,16 @@
             return documentStore;
         }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public async Task Initialize(CancellationToken cancellationToken)
         {
             database = EmbeddedDatabase.Start(databaseConfiguration);
-
             documentStore = await database.Connect(cancellationToken);
         }
 
-        public Task Stop(CancellationToken cancellationToken)
+        public void Dispose()
         {
             documentStore?.Dispose();
             database?.Dispose();
-
-            return Task.CompletedTask;
         }
 
         IDocumentStore documentStore;
