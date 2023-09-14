@@ -22,10 +22,11 @@ class RavenDBPersisterSettings : PersistenceSettings
     public string ConnectionString { get; set; }
     public bool UseEmbeddedServer => !string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
-    public string LogsMode { get; set; }
+    public string LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
 
     public const string DatabaseNameDefault = "audit";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
+    public const string LogsModeDefault = "Information";
 }

@@ -57,6 +57,7 @@
                 AuditRetentionPeriod = GetSetting(AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
+                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault)
             };
 
             CheckFreeDiskSpace.Validate(settings);
