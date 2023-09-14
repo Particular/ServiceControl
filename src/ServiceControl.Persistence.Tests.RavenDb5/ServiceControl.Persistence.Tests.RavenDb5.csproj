@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
   <ItemGroup>
