@@ -20,7 +20,7 @@
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = detail.GetDeterministicId();
+            var id = detail.GetDeterministicId().ToString();
 
             using (var session = store.OpenAsyncSession())
             {

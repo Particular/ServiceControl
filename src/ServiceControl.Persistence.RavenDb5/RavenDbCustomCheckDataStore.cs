@@ -22,11 +22,11 @@
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = detail.GetDeterministicId();
+            var id = detail.GetDeterministicId().ToString();
 
             using (var session = store.OpenAsyncSession())
             {
-                var customCheck = await session.LoadAsync<CustomCheck>(id.ToString());
+                var customCheck = await session.LoadAsync<CustomCheck>(id);
 
                 if (customCheck == null ||
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||

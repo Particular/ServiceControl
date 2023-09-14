@@ -117,7 +117,7 @@ namespace ServiceControl.PersistenceTests
             await CompleteDatabaseOperation();
 
             var storedChecks = await CustomChecks.GetStats(new PagingInfo());
-            var check = storedChecks.Results.Where(c => c.Id == checkId).ToList();
+            var check = storedChecks.Results.Where(c => c.Id == checkId.ToString()).ToList();
 
             Assert.AreEqual(0, check.Count);
         }
