@@ -1,12 +1,21 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Linq.Expressions;
     using MessageFailures;
+    using Raven.Client.Documents.Linq;
     using ServiceControl.Persistence;
 
-    class MessagesViewTransformer : AbstractTransformerCreationTask<MessagesViewTransformer.Input> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
+    class FakeAbstractTransformerCreationTask<TFrom>
+    {
+        public Expression<Func<IEnumerable<TFrom>, IEnumerable>> TransformResults;
+        public string TransformerName;
+    }
+
+    class MessagesViewTransformer : FakeAbstractTransformerCreationTask<MessagesViewTransformer.Input> // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {
         public MessagesViewTransformer()
         {
@@ -72,4 +81,13 @@ namespace ServiceControl.CompositeViews.Messages
             public FailedMessageStatus Status { get; set; }
         }
     }
+
+    public static class MessageViewTransformerExtension
+    {
+        public static IQueryable<MessagesView> TransformToMessagesView(this IQueryable<MessagesViewIndex.SortAndFilterOptions> source)
+        {
+            return source.Select(m => new MessagesView());
+        }
+    }
 }
+

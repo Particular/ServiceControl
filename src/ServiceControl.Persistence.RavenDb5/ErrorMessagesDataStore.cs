@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using CompositeViews.Messages;
     using Editing;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
@@ -14,6 +13,7 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
@@ -44,7 +44,8 @@
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .TransformToMessagesView()
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -66,7 +67,8 @@
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .TransformToMessagesView()
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -88,7 +90,8 @@
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .TransformToMessagesView()
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -109,7 +112,8 @@
                     .Where(m => m.ConversationId == conversationId)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .TransformToMessagesView()
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -129,7 +133,8 @@
                     .Search(x => x.Query, searchTerms)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
+                    .TransformToMessagesView()
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());

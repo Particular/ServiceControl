@@ -8,7 +8,7 @@ namespace ServiceControl.Persistence
     using ServiceControl.Operations;
 
     // TODO: Consider renaming to FailedMessageIndex
-    class MessagesViewIndex : AbstractIndexCreationTask<FailedMessage, MessagesViewIndex.SortAndFilterOptions>
+    public class MessagesViewIndex : AbstractIndexCreationTask<FailedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
         {
