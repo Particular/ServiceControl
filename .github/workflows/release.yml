@@ -74,6 +74,7 @@ jobs:
           AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
         run: dotnet build src/Setup --configuration Release
       - name: Build Docker images
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         run: dotnet build src/ServiceControl.DockerImages --configuration Release
       - name: List Docker images
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
