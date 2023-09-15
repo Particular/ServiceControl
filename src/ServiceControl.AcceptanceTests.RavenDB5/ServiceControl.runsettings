@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+    <RunConfiguration>
+		<!-- The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown. -->
+        <TargetPlatform>x64</TargetPlatform>
+    </RunConfiguration>
+</RunSettings>
