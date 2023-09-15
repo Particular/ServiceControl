@@ -20,7 +20,7 @@
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = detail.GetDeterministicId().ToString();
+            var id = detail.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -34,7 +34,7 @@
                     {
                         customCheck = new CustomCheck
                         {
-                            Id = id
+                            Id = MakeId(id)
                         };
                     }
 
@@ -52,6 +52,11 @@
             }
 
             return status;
+        }
+
+        static string MakeId(Guid id)
+        {
+            return $"CustomChecks/{id}";
         }
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
@@ -73,7 +78,7 @@
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false), null);
+            await store.AsyncDatabaseCommands.DeleteAsync(MakeId(id), null);
         }
 
         public async Task<int> GetNumberOfFailedChecks()
