@@ -2,6 +2,7 @@
 using System.Threading;
 using NUnit.Framework;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Operations;
 
 public static class RavenIndexAwaiter
 {
@@ -12,7 +13,12 @@ public static class RavenIndexAwaiter
 
     static void WaitForIndexing(this IDocumentStore store, int secondsToWait)
     {
-        var databaseCommands = store.DatabaseCommands;
-        Assert.True(SpinWait.SpinUntil(() => databaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(secondsToWait)));
+        var getStatisticsCommand = new GetStatisticsOperation();
+        Assert.True(SpinWait.SpinUntil(() =>
+        {
+            var stats = store.Maintenance.Send(getStatisticsCommand);
+
+            return stats.StaleIndexes.Length == 0;
+        }, TimeSpan.FromSeconds(secondsToWait)));
     }
 }
