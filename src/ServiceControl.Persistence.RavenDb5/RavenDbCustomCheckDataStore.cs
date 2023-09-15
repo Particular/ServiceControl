@@ -8,7 +8,6 @@
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
     using ServiceControl.Contracts.CustomChecks;
-    using ServiceControl.Infrastructure.RavenDB;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -22,7 +21,7 @@
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = detail.GetDeterministicId();
+            var id = MakeId(detail.GetDeterministicId());
 
             using (var session = store.OpenAsyncSession())
             {
@@ -32,7 +31,7 @@
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||
                     (customCheck.Status == Status.Pass && detail.HasFailed))
                 {
-                    customCheck ??= new CustomCheck { Id = MakeId(id) };
+                    customCheck ??= new CustomCheck { Id = id };
 
                     status = CheckStateChange.Changed;
                 }
