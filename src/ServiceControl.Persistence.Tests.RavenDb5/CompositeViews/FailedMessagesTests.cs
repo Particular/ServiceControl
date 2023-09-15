@@ -8,10 +8,12 @@
     using MessageFailures;
     using MessageFailures.Api;
     using NUnit.Framework;
+    using PersistenceTests;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Session;
 
     [TestFixture]
-    public class FailedMessagesTests
+    class FailedMessagesTests : PersistenceTestBase
     {
         [Test]
         public void Should_allow_errors_with_no_metadata()
@@ -39,14 +41,14 @@
                 session.SaveChanges();
             }
 
-            RavenQueryStatistics stats;
+            QueryStatistics stats;
 
             do
             {
                 using (var session = documentStore.OpenSession())
                 {
                     var results = session.Advanced.DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                        .SetResultTransformer(FailedMessageViewTransformer.Name)
+                        //.SetResultTransformer(FailedMessageViewTransformer.Name)
                         .Statistics(out stats)
                         .SelectFields<FailedMessageView>()
                         .ToList();
@@ -72,20 +74,21 @@
 
 
         [SetUp]
-        public void SetUp()
+        public new void SetUp()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            documentStore = GetRequiredService<IDocumentStore>();
 
             var customIndex = new FailedMessageViewIndex();
             customIndex.Execute(documentStore);
 
-            var transformer = new FailedMessageViewTransformer();
+            //var transformer = new FailedMessageViewTransformer();
 
-            transformer.Execute(documentStore);
+            //TODO: we need to bring this back
+            //transformer.Execute(documentStore);
         }
 
         [TearDown]
-        public void TearDown()
+        public new void TearDown()
         {
             documentStore.Dispose();
         }
