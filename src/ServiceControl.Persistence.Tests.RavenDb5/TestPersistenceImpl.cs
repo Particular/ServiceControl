@@ -2,6 +2,9 @@
 {
     using System;
     using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+    using System.Net.NetworkInformation;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,6 +30,10 @@
                 ErrorRetentionPeriod = retentionPeriod,
                 EventsRetentionPeriod = retentionPeriod,
                 RunInMemory = true,
+                DatabasePath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "ErrorData"),
+                LogPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs"),
+                LogsMode = "Operations",
+                ServerUrl = $"http://localhost:{FindAvailablePort(33334)}"
             };
 
             if (Debugger.IsAttached)
@@ -55,6 +62,24 @@
             return Task.CompletedTask;
         }
 
+        //TODO: this method is duplicated at least 3 times in the test project
+        static int FindAvailablePort(int startPort)
+        {
+            var activeTcpListeners = IPGlobalProperties
+                .GetIPGlobalProperties()
+                .GetActiveTcpListeners();
+
+            for (var port = startPort; port < startPort + 1024; port++)
+            {
+                var portCopy = port;
+                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
+                {
+                    return port;
+                }
+            }
+
+            return startPort;
+        }
         class Wrapper : IHostedService
         {
             public Wrapper(TestPersistenceImpl instance, IDocumentStore store)
