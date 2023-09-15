@@ -9,7 +9,7 @@
     using Infrastructure.RavenDB.Expiration;
     using Infrastructure.WebApi;
     using Operations;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using Raven.Client.Embedded;
 
     public class FailedErrorsCountReponse

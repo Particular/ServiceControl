@@ -10,7 +10,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTests;
     using ServiceControl.AcceptanceTests.TestSupport.EndpointTemplates;

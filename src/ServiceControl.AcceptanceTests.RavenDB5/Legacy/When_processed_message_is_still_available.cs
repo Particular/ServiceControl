@@ -15,7 +15,7 @@
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Operations.BodyStorage;
-    using Raven.Client;
+    using Raven.Client.Documents;
     using ServiceControl.Persistence;
     using TestSupport.EndpointTemplates;
 
