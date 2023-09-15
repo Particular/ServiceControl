@@ -32,7 +32,7 @@
                 {
                     Count = stats.TotalResults
                 })
-                    .WithEtag(stats.IndexEtag);
+                    .WithEtag(stats.ResultEtag.ToString());
             }
         }
 

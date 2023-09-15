@@ -6,11 +6,10 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Infrastructure.RavenDB.Expiration;
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client.Documents;
-    using Raven.Client.Embedded;
+    using Raven.Client.Documents.Operations;
 
     public class FailedErrorsCountReponse
     {
@@ -40,7 +39,7 @@
                 {
                     Count = count
                 })
-                    .WithEtag(stats.IndexEtag);
+                    .WithEtag(stats.ResultEtag.ToString());
             }
         }
 
@@ -55,12 +54,11 @@
 
         [Route("failederrors/forcecleanerrors")]
         [HttpPost]
-        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun(CancellationToken cancellationToken = default)
+        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun()
         {
-            new ExpiryErrorMessageIndex().Execute(store);
-            WaitForIndexes(store);
+            // TODO: Is there a way to force the Raven5 expiration to happen? Or does it just happen? Won't be able to tell until we redesign that.
 
-            ErrorMessageCleaner.Clean(1000, ((EmbeddableDocumentStore)store).DocumentDatabase, DateTime.Now, cancellationToken);
+            // May not even need WaitForIndexes given Raven5 implementation isn't index-based
             WaitForIndexes(store);
 
             return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
@@ -68,7 +66,7 @@
 
         static void WaitForIndexes(IDocumentStore store)
         {
-            SpinWait.SpinUntil(() => store.DatabaseCommands.GetStatistics().StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
+            SpinWait.SpinUntil(() => store.Maintenance.Send(new GetStatisticsOperation()).StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
         }
 
         readonly IDocumentStore store;
