@@ -3,14 +3,14 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using ServiceControl.Contracts.CustomChecks;
-    using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Infrastructure;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Session;
+    using ServiceControl.Contracts.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     class RavenDbCustomCheckDataStore : ICustomChecksDataStore
     {
@@ -22,7 +22,7 @@
         public async Task<CheckStateChange> UpdateCustomCheckStatus(CustomCheckDetail detail)
         {
             var status = CheckStateChange.Unchanged;
-            var id = detail.GetDeterministicId().ToString();
+            var id = detail.GetDeterministicId();
 
             using (var session = store.OpenAsyncSession())
             {
@@ -32,7 +32,7 @@
                     (customCheck.Status == Status.Fail && !detail.HasFailed) ||
                     (customCheck.Status == Status.Pass && detail.HasFailed))
                 {
-                    customCheck ??= new CustomCheck { Id = id };
+                    customCheck ??= new CustomCheck { Id = MakeId(id) };
 
                     status = CheckStateChange.Changed;
                 }
@@ -48,6 +48,11 @@
             }
 
             return status;
+        }
+
+        static string MakeId(Guid id)
+        {
+            return $"CustomChecks/{id}";
         }
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
@@ -67,7 +72,7 @@
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            var documentId = store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
+            var documentId = MakeId(id);
             using var session = store.OpenAsyncSession(new SessionOptions { NoTracking = true, NoCaching = true });
             await session.Advanced.RequestExecutor.ExecuteAsync(new DeleteDocumentCommand(documentId, null), session.Advanced.Context);
         }
