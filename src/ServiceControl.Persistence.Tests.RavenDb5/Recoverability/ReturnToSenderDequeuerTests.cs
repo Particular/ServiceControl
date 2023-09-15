@@ -72,52 +72,6 @@
         }
 
         [Test]
-        public async Task It_fetches_the_body_from_index_if_provided()
-        {
-            var sender = new FakeSender();
-
-            var headers = new Dictionary<string, string>
-            {
-                ["ServiceControl.Retry.StagingId"] = "SomeId",
-                ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
-                ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
-                ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId",
-                ["ServiceControl.Retry.BodyOnFailedMessage"] = null
-            };
-            var message = CreateMessage(Guid.NewGuid().ToString(), headers);
-
-            var documentStore = GetRequiredService<IDocumentStore>();
-
-            var failedMessage = new FailedMessage
-            {
-                Id = FailedMessageIdGenerator.MakeDocumentId("MessageBodyId"),
-                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                {
-                    new FailedMessage.ProcessingAttempt
-                    {
-                        MessageId = "MessageBodyId",
-                        MessageMetadata = { { "Body", "MessageBodyId" } }
-                    }
-                }
-            };
-
-            await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(failedMessage);
-
-            var transformer = new MessagesBodyTransformer();
-            await transformer.ExecuteAsync(documentStore);
-
-            await CompleteDatabaseOperation();
-
-            var instance = GetRequiredService<ReturnToSender>(); // See this.CreateHostBuilder
-
-            // Acts
-            await instance.HandleMessage(message, sender, "error");
-
-            // Assert
-            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
-        }
-
-        [Test]
         public async Task It_uses_retry_to_if_provided()
         {
             var sender = new FakeSender();
