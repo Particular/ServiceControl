@@ -3,16 +3,17 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
+    using PersistenceTests;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
 
     [TestFixture]
-    public class MessagesViewTests
+    class MessagesViewTests : PersistenceTestBase
     {
         [Test]
         public void Filter_out_system_messages()
@@ -93,7 +94,7 @@
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
                     .Where(x => x.CriticalTime.HasValue)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>() //https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/basics#projectfromindexfieldsinto
                     .First();
 
                 Assert.AreEqual("1", firstByCriticalTime.Id);
@@ -101,7 +102,7 @@
                 var firstByCriticalTimeDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.CriticalTime)
                     .Where(x => x.CriticalTime.HasValue)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("2", firstByCriticalTimeDescription.Id);
             }
@@ -137,13 +138,13 @@
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("3", firstByTimeSent.Id);
 
                 var firstByTimeSentDescription = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderByDescending(x => x.TimeSent)
-                    .ProjectFromIndexFieldsInto<ProcessedMessage>()
+                    .ProjectInto<ProcessedMessage>()
                     .First();
                 Assert.AreEqual("1", firstByTimeSentDescription.Id);
             }
@@ -195,7 +196,7 @@
             using (var session = documentStore.OpenSession())
             {
                 var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .ToArray();
                 Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
@@ -233,7 +234,7 @@
             using (var session = documentStore.OpenSession())
             {
                 var message = session.Query<FailedMessage>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Single();
 
@@ -272,7 +273,7 @@
             using (var session = documentStore.OpenSession())
             {
                 var message = session.Query<FailedMessage>()
-                    .TransformWith<MessagesViewTransformer, MessagesView>()
+                    //.TransformWith<MessagesViewTransformer, MessagesView>()
                     .Customize(x => x.WaitForNonStaleResults())
                     .Single();
 
@@ -281,21 +282,23 @@
         }
 
         [SetUp]
-        public void SetUp()
+        public new async Task SetUp()
         {
-            documentStore = InMemoryStoreBuilder.GetInMemoryStore();
+            await base.SetUp();
+            documentStore = GetRequiredService<IDocumentStore>();
 
             var customIndex = new MessagesViewIndex();
             customIndex.Execute(documentStore);
 
-            var transformer = new MessagesViewTransformer();
+            //var transformer = new MessagesViewTransformer();
 
-            transformer.Execute(documentStore);
+            //transformer.Execute(documentStore);
         }
 
         [TearDown]
-        public void TearDown()
+        public new async Task TearDown()
         {
+            await base.TearDown();
             documentStore.Dispose();
         }
 
