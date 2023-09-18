@@ -434,7 +434,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             LicenseFileText = SettingsReader.Read<string>("LicenseText");
         }
 
-        ILog logger = LogManager.GetLogger(typeof(Settings));
+        static readonly ILog logger = LogManager.GetLogger(typeof(Settings));
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
         public const string Disabled = "!disable";
 
