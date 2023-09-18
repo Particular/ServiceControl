@@ -16,18 +16,9 @@
         public Task Handle(TaggedLongValueOccurrence message, IMessageHandlerContext context)
         {
             var instanceId = EndpointInstanceId.From(context.MessageHeaders);
+            var messageType = new EndpointMessageType(instanceId.EndpointName, enclosedMessageTypes: message.TagValue);
 
             var metricType = context.MessageHeaders[MetricHeaders.MetricType];
-
-            var enclosedMessageTypes = message.TagValue;
-
-            var index = enclosedMessageTypes.IndexOf(';');
-
-            var firstType = index != -1
-                ? enclosedMessageTypes.Substring(0, index)
-                : enclosedMessageTypes;
-
-            var messageType = new EndpointMessageType(instanceId.EndpointName, firstType);
 
             switch (metricType)
             {

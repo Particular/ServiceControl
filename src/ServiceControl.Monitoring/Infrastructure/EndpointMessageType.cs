@@ -4,10 +4,16 @@
 
     public readonly struct EndpointMessageType
     {
-        public EndpointMessageType(string endpointName, string messageType)
+        public EndpointMessageType(string endpointName, string enclosedMessageTypes)
         {
+            var index = enclosedMessageTypes.IndexOf(';');
+
+            var firstType = index != -1
+                ? enclosedMessageTypes.Substring(0, index)
+                : enclosedMessageTypes;
+
             EndpointName = endpointName;
-            MessageType = messageType;
+            MessageType = firstType;
         }
 
         public string EndpointName { get; }
