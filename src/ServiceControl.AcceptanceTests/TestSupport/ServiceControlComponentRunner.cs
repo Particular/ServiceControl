@@ -179,6 +179,7 @@
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
+                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
                 await host.StartAsync();
                 DomainEvents = host.Services.GetService<IDomainEvents>();
             }

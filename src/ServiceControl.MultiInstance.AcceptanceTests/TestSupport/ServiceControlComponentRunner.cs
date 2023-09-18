@@ -13,6 +13,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Infrastructure.OWIN;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
@@ -193,6 +194,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 };
 
                 host = bootstrapper.HostBuilder.Build();
+                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
                 await host.StartAsync();
                 hosts[instanceName] = host;
             }
