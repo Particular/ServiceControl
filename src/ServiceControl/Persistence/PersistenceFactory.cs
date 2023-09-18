@@ -3,7 +3,6 @@ namespace ServiceControl.Persistence
     using System;
     using System.IO;
     using System.Linq;
-    using System.Web.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class PersistenceFactory

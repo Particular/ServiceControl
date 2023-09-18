@@ -41,8 +41,8 @@
             return CheckResult.Failed(message);
         }
 
-        static ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
+        static readonly ILog Logger = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
-        IDocumentStore store;
+        readonly IDocumentStore store;
     }
 }

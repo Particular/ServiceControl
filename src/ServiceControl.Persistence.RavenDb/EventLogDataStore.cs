@@ -29,7 +29,9 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<EventLogItem>().Statistics(out var stats)
+                var results = await session
+                    .Query<EventLogItem>()
+                    .Statistics(out var stats)
                     .OrderByDescending(p => p.RaisedAt)
                     .Paging(pagingInfo)
                     .ToListAsync();

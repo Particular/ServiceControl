@@ -20,9 +20,10 @@ namespace ServiceControl.Persistence
 
         public static void CreatePersisterLifecyle(IServiceCollection serviceCollection, IPersistence persistence)
         {
-            var lifecycle = persistence.CreateLifecycle();
+            persistence.ConfigureLifecycle(serviceCollection);
+
             // lifecycle needs to be started before any other hosted service
-            serviceCollection.AddHostedService(_ => new PersistenceLifecycleHostedService(lifecycle));
+            serviceCollection.AddHostedService<PersistenceLifecycleHostedService>();
             persistence.Configure(serviceCollection);
         }
     }

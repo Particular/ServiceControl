@@ -78,10 +78,7 @@
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
         }
 
-        public IPersistenceLifecycle CreateLifecycle()
-        {
-            return new RavenDbPersistenceLifecycle(ravenStartup, documentStore);
-        }
+        public void ConfigureLifecycle(IServiceCollection serviceCollection) => serviceCollection.AddSingleton<IPersistenceLifecycle>(new RavenDbPersistenceLifecycle(ravenStartup, documentStore));
 
         public IPersistenceInstaller CreateInstaller()
         {

@@ -1,0 +1,91 @@
+﻿namespace ServiceControl
+{
+    using System;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using NServiceBus.CustomChecks;
+    using NServiceBus.Logging;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Operations;
+    using CustomCheck = NServiceBus.CustomChecks.CustomCheck;
+
+    class CheckRavenDBIndexLag : CustomCheck
+    {
+        public CheckRavenDBIndexLag(IDocumentStore store)
+            : base("Error Database Index Lag", "ServiceControl Health", TimeSpan.FromMinutes(5))
+        {
+            this.store = store;
+        }
+
+        public override async Task<CheckResult> PerformCheck()
+        {
+            var statistics = await store.Maintenance.SendAsync(new GetStatisticsOperation());
+            var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
+
+            CreateDiagnosticsLogEntry(statistics, indexes);
+
+            var indexCountWithTooMuchLag = CheckAndReportIndexesWithTooMuchIndexLag(indexes);
+
+            if (indexCountWithTooMuchLag > 0)
+            {
+                return CheckResult.Failed($"At least one index significantly stale. Please run maintenance mode if this custom check persists to ensure index(es) can recover. See log file for more details. Visit https://docs.particular.net/search?q=servicecontrol+troubleshooting for more information.");
+            }
+
+            return CheckResult.Pass;
+        }
+
+        static int CheckAndReportIndexesWithTooMuchIndexLag(IndexInformation[] indexes)
+        {
+            int indexCountWithTooMuchLag = 0;
+
+            foreach (var indexStats in indexes)
+            {
+                if (indexStats.LastIndexingTime.HasValue)
+                {
+                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value; // TODO: Ensure audit ravendb5 persistence uses the same index lag behavior based on time
+
+                    if (indexLag > IndexLagThresholdError)
+                    {
+                        indexCountWithTooMuchLag++;
+                        Log.Error($"Index [{indexStats.Name}] IndexingLag {indexLag} is above error threshold ({IndexLagThresholdError}). Launch in maintenance mode to let indexes catch up.");
+                    }
+                    else if (indexLag > IndexLagThresholdWarning)
+                    {
+                        indexCountWithTooMuchLag++;
+                        Log.Warn($"Index [{indexStats.Name}] IndexingLag {indexLag} is above warning threshold ({IndexLagThresholdWarning}). Launch in maintenance mode to let indexes catch up.");
+                    }
+                }
+            }
+
+            return indexCountWithTooMuchLag;
+        }
+
+        static void CreateDiagnosticsLogEntry(DatabaseStatistics statistics, IndexInformation[] indexes)
+        {
+            if (!Log.IsDebugEnabled)
+            {
+                return;
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("Internal RavenDB index health report:");
+            report.AppendLine($"- DB Size: {statistics.SizeOnDisk.HumaneSize}");
+            report.AppendLine($"- LastIndexingTime {statistics.LastIndexingTime:u}");
+
+            foreach (var indexStats in indexes)
+            {
+                report.AppendLine($"- Index [{indexStats.Name,-44}] State: {indexStats.State}, Stale: {indexStats.IsStale,-5}, Priority: {indexStats.Priority,-6}, LastIndexingTime: {indexStats.LastIndexingTime:u}");
+            }
+            Log.Debug(report.ToString());
+        }
+
+        // TODO: RavenDB 3.5 had IndexLag thresholds that were number of document writes, and I converted to times. Revisit these numbers before shipping
+        // For IndexLag as document writes, 10k was a warning, 100k was an error. These TimeSpans assume same # of writes / 250 writes/sec
+        static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromSeconds(40); // Assuming 10_000 writes at 250 writes/sec
+        static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromSeconds(400);   // Assuming 100_000 writes at 250 writes/sec
+        static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
+
+        readonly IDocumentStore store;
+    }
+}
