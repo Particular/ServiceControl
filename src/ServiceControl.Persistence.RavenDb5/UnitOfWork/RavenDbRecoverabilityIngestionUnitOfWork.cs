@@ -56,19 +56,19 @@
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new PatchCommandData(documentId, null, new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
+                Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
+                                this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
                                 
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
                                 //De-duplicate attempts by AttemptedAt value
 
                                 var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
-                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
+                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === args.attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
                                 }});
 
                                 if(duplicateIndex === -1){{
-                                    newAttempts = _.union(newAttempts, [attempt]);
+                                    newAttempts = _.union(newAttempts, [args.attempt]);
                                 }}
 
                                 //Trim to the latest MaxProcessingAttempts 
@@ -93,11 +93,11 @@
             },
                 patchIfMissing: new PatchRequest
                 {
-                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
-                                this.{nameof(FailedMessage.ProcessingAttempts)} = [attempt];
-                                this.{nameof(FailedMessage.UniqueMessageId)} = uniqueMessageId;
-                                this.@metadata = {FailedMessageMetadata}
+                    Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
+                                this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
+                                this.{nameof(FailedMessage.ProcessingAttempts)} = [args.attempt];
+                                this.{nameof(FailedMessage.UniqueMessageId)} = args.uniqueMessageId;
+                                this['@metadata'] = {FailedMessageMetadata}
                              ",
                     Values = new Dictionary<string, object>
                     {

@@ -163,7 +163,7 @@
             {
                 observedEndpoints.Add(uniqueEndpointId, new KnownEndpoint
                 {
-                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
+                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()).ToString(),
                     EndpointDetails = observedEndpoint,
                     HostDisplayName = observedEndpoint.Host,
                     Monitored = false

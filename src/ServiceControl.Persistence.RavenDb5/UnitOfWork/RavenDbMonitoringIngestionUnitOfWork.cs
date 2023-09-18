@@ -29,7 +29,7 @@
             return new PatchCommandData(endpoint.Id.ToString(), null, new PatchRequest
             {
                 //TODO: check if this works
-                Script = $"put('{KnownEndpoint.CollectionName}/', {document}"
+                Script = $"put('{KnownEndpoint.CollectionName}/', {document});"
             });
         }
 

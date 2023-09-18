@@ -16,11 +16,11 @@
 
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
-            var id = endpoint.GetDeterministicId();
+            var id = endpoint.GetDeterministicId().ToString();
 
             using var session = store.OpenAsyncSession();
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id.ToString());
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
 
             if (knownEndpoint != null)
             {
@@ -43,16 +43,17 @@
         public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
+            var documentId = id.ToString();
 
             using var session = store.OpenAsyncSession();
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id.ToString());
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(documentId);
 
             if (knownEndpoint == null)
             {
                 knownEndpoint = new KnownEndpoint
                 {
-                    Id = id,
+                    Id = documentId,
                     EndpointDetails = endpoint,
                     HostDisplayName = endpoint.Host,
                     Monitored = true

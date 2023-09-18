@@ -130,7 +130,7 @@
                 EndpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" }
             };
 
-            knownEndpoint.Id = knownEndpoint.EndpointDetails.GetDeterministicId();
+            knownEndpoint.Id = knownEndpoint.EndpointDetails.GetDeterministicId().ToString();
 
             using (var unitOfWork = await UnitOfWorkFactory.StartNew())
             {
