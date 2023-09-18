@@ -94,11 +94,7 @@
             var serviceCollection = new ServiceCollection();
 
             serviceCollection.AddSingleton(settings);
-            ConfigureLifecycle(serviceCollection);
-
-            var lifecycle = serviceCollection.BuildServiceProvider().GetRequiredService<IPersistenceLifecycle>();
-
-            return new RavenDbInstaller(lifecycle);
+            return new RavenDbInstaller(serviceCollection);
         }
 
         readonly RavenDBPersisterSettings settings;

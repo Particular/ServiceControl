@@ -2,20 +2,24 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Persistence;
 
     class RavenDbInstaller : IPersistenceInstaller
     {
-        public RavenDbInstaller(IPersistenceLifecycle lifecycle)
+        public RavenDbInstaller(ServiceCollection services)
         {
-            this.lifecycle = lifecycle;
+            this.services = services;
         }
 
         public async Task Install(CancellationToken cancellationToken)
         {
+            using var serviceProvider = services.BuildServiceProvider();
+
+            var lifecycle = serviceProvider.GetRequiredService<IPersistenceLifecycle>();
             await lifecycle.Initialize(cancellationToken);
         }
 
-        readonly IPersistenceLifecycle lifecycle;
+        readonly ServiceCollection services;
     }
 }
