@@ -39,7 +39,7 @@
         {
             var bootstrapper = new MaintenanceBootstrapper(settings);
 
-            var host = bootstrapper.HostBuilder.Build();
+            using var host = bootstrapper.HostBuilder.Build();
 
             await host.StartAsync();
             await host.StopAsync();

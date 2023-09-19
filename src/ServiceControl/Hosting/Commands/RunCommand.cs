@@ -1,14 +1,16 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using System.Threading.Tasks;
+    using global::ServiceControl.Persistence;
     using Hosting;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class RunCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args, Settings settings)
+        public override async Task Execute(HostArguments args, Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(args.ServiceName);
             var assemblyScanner = endpointConfiguration.AssemblyScanner();
@@ -30,7 +32,12 @@
                 hostBuilder.UseConsoleLifetime();
             }
 
-            return hostBuilder.Build().RunAsync();
+            using (var host = hostBuilder.Build())
+            {
+                // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+                await host.RunAsync();
+            }
         }
     }
 }

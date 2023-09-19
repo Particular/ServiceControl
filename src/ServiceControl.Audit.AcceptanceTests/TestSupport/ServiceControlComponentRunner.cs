@@ -218,6 +218,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await host.StopAsync();
                 HttpClient.Dispose();
                 handler.Dispose();
+                host.Dispose();
             }
 
             bootstrapper = null;

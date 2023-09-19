@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using ServiceControl.Persistence;
 
 [Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
@@ -13,10 +14,18 @@ public abstract class BaseHostTest
     protected BaseHostTest() => testHost = CreateHostBuilder().Build();
 
     [SetUp]
-    public async Task SetUp() => await testHost.StartAsync();
+    public async Task SetUp()
+    {
+        await GetRequiredService<IPersistenceLifecycle>().Initialize();
+        await testHost.StartAsync();
+    }
 
     [TearDown]
-    public async Task TearDown() => await testHost.StopAsync();
+    public async Task TearDown()
+    {
+        await testHost.StopAsync();
+        testHost.Dispose();
+    }
 
     protected T GetRequiredService<T>() => testHost.Services.GetRequiredService<T>();
 

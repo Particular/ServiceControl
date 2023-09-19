@@ -10,6 +10,7 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ImportFailedErrorsCommand : AbstractCommand
@@ -24,26 +25,31 @@
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
-            var host = bootstrapper.HostBuilder.Build();
-            await host.StartAsync(CancellationToken.None);
-
-            var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
-
-            using (var tokenSource = new CancellationTokenSource())
+            using (var host = bootstrapper.HostBuilder.Build())
             {
-                Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
+                var lifeCycle = host.Services.GetRequiredService<IPersistenceLifecycle>();
+                await lifeCycle.Initialize(); // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
 
-                try
+                await host.StartAsync(CancellationToken.None);
+
+                var importFailedErrors = host.Services.GetRequiredService<ImportFailedErrors>();
+
+                using (var tokenSource = new CancellationTokenSource())
                 {
-                    await importFailedErrors.Run(tokenSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    // no-op
-                }
-                finally
-                {
-                    await host.StopAsync(CancellationToken.None);
+                    Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
+
+                    try
+                    {
+                        await importFailedErrors.Run(tokenSource.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // no-op
+                    }
+                    finally
+                    {
+                        await host.StopAsync(CancellationToken.None);
+                    }
                 }
             }
         }

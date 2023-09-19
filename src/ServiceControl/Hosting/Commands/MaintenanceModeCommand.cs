@@ -2,10 +2,12 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class MaintenanceModeCommand : AbstractCommand
@@ -26,8 +28,12 @@
                 hostBuilder.UseConsoleLifetime();
             }
 
-            await hostBuilder.Build().RunAsync();
-
+            using (var host = hostBuilder.Build())
+            {
+                // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+                await host.RunAsync();
+            }
         }
     }
 }
