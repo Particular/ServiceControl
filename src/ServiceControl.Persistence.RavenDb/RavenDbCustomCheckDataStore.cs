@@ -21,6 +21,7 @@
         {
             var status = CheckStateChange.Unchanged;
             var id = detail.GetDeterministicId();
+            var key = MakeId(id);
 
             using (var session = store.OpenAsyncSession())
             {
@@ -34,7 +35,7 @@
                     {
                         customCheck = new CustomCheck
                         {
-                            Id = MakeId(id)
+                            Id = id.ToString(), // No prefix for backward compatibility
                         };
                     }
 
@@ -47,16 +48,16 @@
                 customCheck.ReportedAt = detail.ReportedAt;
                 customCheck.FailureReason = detail.FailureReason;
                 customCheck.OriginatingEndpoint = detail.OriginatingEndpoint;
-                await session.StoreAsync(customCheck);
+                await session.StoreAsync(customCheck, key); // TODO: @ramonsmits Not passing key here results in the DELETE operation not working. Other option was passing this full key with prefix as the ID but that likely breaks compatibility with previous schema
                 await session.SaveChangesAsync();
             }
 
             return status;
         }
 
-        static string MakeId(Guid id)
+        string MakeId(Guid id)
         {
-            return $"CustomChecks/{id}";
+            return store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(id, typeof(CustomCheck), false);
         }
 
         public async Task<QueryResult<IList<CustomCheck>>> GetStats(PagingInfo paging, string status = null)
@@ -78,7 +79,8 @@
 
         public async Task DeleteCustomCheck(Guid id)
         {
-            await store.AsyncDatabaseCommands.DeleteAsync(MakeId(id), null);
+            var key = MakeId(id);
+            await store.AsyncDatabaseCommands.DeleteAsync(key, etag: null);
         }
 
         public async Task<int> GetNumberOfFailedChecks()
