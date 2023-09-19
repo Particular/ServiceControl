@@ -125,7 +125,11 @@
             }
         }
 
-        class SampleMessage : IMessage
+        class SampleMessage : SampleBaseMessage
+        {
+        }
+
+        class SampleBaseMessage : IMessage
         {
         }
 

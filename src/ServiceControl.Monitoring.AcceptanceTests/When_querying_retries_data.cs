@@ -77,7 +77,11 @@
             public bool ShuttingDown { get; set; }
         }
 
-        class SampleMessage : IMessage
+        class SampleMessage : SampleBaseMessage
+        {
+        }
+
+        class SampleBaseMessage : IMessage
         {
         }
     }

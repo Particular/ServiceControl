@@ -15,7 +15,7 @@
         {
             var endpointName = context.MessageHeaders[Headers.OriginatingEndpoint];
 
-            registry.Record(new EndpointMessageType(endpointName, message.TagValue));
+            registry.Record(new EndpointMessageType(endpointName, enclosedMessageTypes: message.TagValue));
 
             return Task.CompletedTask;
         }
