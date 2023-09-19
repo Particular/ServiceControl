@@ -369,7 +369,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     if (hosts.ContainsKey(instanceName))
                     {
-                        await hosts[instanceName].StopAsync();
+                        var host = hosts[instanceName];
+                        await host.StopAsync();
+                        host.Dispose();
                     }
                     HttpClients[instanceName].Dispose();
                     handlers[instanceName].Dispose();

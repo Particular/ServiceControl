@@ -21,7 +21,11 @@ public abstract class BaseHostTest
     }
 
     [TearDown]
-    public async Task TearDown() => await testHost.StopAsync();
+    public async Task TearDown()
+    {
+        await testHost.StopAsync();
+        testHost.Dispose();
+    }
 
     protected T GetRequiredService<T>() => testHost.Services.GetRequiredService<T>();
 

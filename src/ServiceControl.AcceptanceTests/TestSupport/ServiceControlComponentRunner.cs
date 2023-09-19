@@ -210,6 +210,7 @@
                 await host.StopAsync();
                 HttpClient.Dispose();
                 Handler.Dispose();
+                host.Dispose();
                 DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
 
