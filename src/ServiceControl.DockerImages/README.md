@@ -6,4 +6,4 @@ To build Docker images explicitly build this project.
 
 ## Notes
 
-* Each `ADD` or `ENV` statement creates an additional layer in the Docker container, so these statements should be combined into one and not split out.
+* Each `ADD`, `ENV` or `EXPOSE` statement creates an additional layer in the Docker container, so these statements should be combined into one and not split out.
