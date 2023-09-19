@@ -1,29 +1,24 @@
-FROM mcr.microsoft.com/dotnet/framework/runtime:4.7.2-windowsservercore-ltsc2016
+FROM mcr.microsoft.com/dotnet/framework/runtime:4.8-windowsservercore-ltsc2022
 
 WORKDIR /servicecontrol
 
 ARG TRANSPORT
-ADD /deploy/Particular.ServiceControl/ServiceControl .
-ADD /deploy/Particular.ServiceControl/Transports/${TRANSPORT} .
-ADD /deploy/Particular.ServiceControl/Persisters/RavenDB35 .
 
-ENV "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
+ADD /Particular.ServiceControl/ServiceControl /Transports/${TRANSPORT} /Particular.ServiceControl/Persisters/RavenDB35 ./
 
 ARG TRANSPORT_CUSTOMIZATION_TYPE
-ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}"
-ENV "ServiceControl/PersistenceType"="ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDb"
-ENV "ServiceControl/Hostname"="*"
 
-ENV "ServiceControl/DBPath"="C:\\Data\\DB\\"
-ENV "ServiceControl/LogPath"="C:\\Data\\Logs\\"
-
-# Defaults
-ENV "ServiceControl/ForwardErrorMessages"="False"
-ENV "ServiceControl/ErrorRetentionPeriod"="15"
-
-EXPOSE 33333
-EXPOSE 33334
+ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}" \
+    "ServiceControl/PersistenceType"="ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDb" \
+    "ServiceControl/Hostname"="*" \
+    "ServiceControl/DBPath"="C:\\Data\\DB\\" \
+    "ServiceControl/LogPath"="C:\\Data\\Logs\\" \
+    "ServiceControl/ForwardErrorMessages"="False" \
+    "ServiceControl/ErrorRetentionPeriod"="15" \
+    "SERVICECONTROL_RUNNING_IN_DOCKER"="true"
 
 VOLUME [ "C:/Data" ]
+
+EXPOSE 33333 33334
 
 ENTRYPOINT ["ServiceControl.exe", "--portable"]
