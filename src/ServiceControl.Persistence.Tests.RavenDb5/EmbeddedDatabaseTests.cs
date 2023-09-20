@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.Persistence.Infrastructure;
@@ -11,7 +13,13 @@ class EmbeddedDatabaseTests
     [Test]
     public async Task CanStart()
     {
-        using (var embeddedDatabase = EmbeddedDatabase.Start(new RavenDBPersisterSettings { }))
+        var settings = new RavenDBPersisterSettings
+        {
+            DatabasePath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded"),
+            LogPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())
+        };
+
+        using (var embeddedDatabase = EmbeddedDatabase.Start(settings))
         {
 
             using (var documentStore = await embeddedDatabase.Connect(CancellationToken.None))
