@@ -10,10 +10,10 @@ class MigrationTests
     public void VerifyMigration()
     {
         var serializedForm = @"{
-""$type"":""ServiceControl.SagaAudit.SagaInfo, ServiceControl"",
-""ChangeStatus"":null,
-""SagaType"":null,
-""SagaId"":""00000000-0000-0000-0000-000000000000""}";
+""$type"":""ServiceControl.WhateverNamespace.CustomCheck, ServiceControl"",
+""Id"":""SomeId"",
+""CustomCheckId"":""CustomCheckId"",
+""Category"":""SomeCategory""}";
 
         var serializer = new JsonSerializer
         {
