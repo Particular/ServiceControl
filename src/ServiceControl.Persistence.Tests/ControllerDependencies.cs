@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Web.Http.Controllers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -24,7 +25,7 @@
         /// instantiate each of the WebAPI controllers present in the ServiceControl app.
         /// </summary>
         [Test]
-        public void EnsurePersistenceProvidesAllControllerDependencies()
+        public async Task EnsurePersistenceProvidesAllControllerDependencies()
         {
             // Arrange
             var testPersistence = new TestPersistenceImpl();
@@ -59,6 +60,13 @@
 
             // Assert
             Assert.That(host, Is.Not.Null);
+
+            // TODO: Kind of a hack, but gets the job done, since Raven35/5 have different startup requirements
+            // Could come up with a more cohesive way of doing this or just remove the IF when Raven35 goes away
+            if (testPersistence.GetType().Assembly.FullName.Contains("RavenDb5"))
+            {
+                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            }
 
             // Make sure the list isn't suddenly empty
             Assert.That(controllerTypes.Length, Is.GreaterThan(10));
