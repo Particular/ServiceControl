@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceControl.Persistence;
 
-[Parallelizable(ParallelScope.All)]
+[Parallelizable(ParallelScope.None)] // RavenDB5 Cannot do in memory so tests need to run sequentially
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class BaseHostTest
 {
