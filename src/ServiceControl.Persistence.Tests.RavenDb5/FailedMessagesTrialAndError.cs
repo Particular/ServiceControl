@@ -8,11 +8,15 @@
     using MessageFailures;
     using MessageFailures.Api;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using NUnit.Framework;
     using PersistenceTests;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Queries;
+    using Raven.Client.Documents.Queries.Explanation;
+    using Raven.Client.Documents.Queries.Timings;
     using Raven.Client.Documents.Session;
+    using Raven.Client.Documents.Session.Tokens;
     using ServiceControl.Operations;
 
     [TestFixture]
@@ -21,38 +25,44 @@
         [Test]
         public async Task RqlTransformWorksButUgly()
         {
-            // Instead of "let" and ".Last" we must repeatedly do "f.ProcessingAttempts[f.ProcessingAttempts.length-1]"
-            string rqlTransform = @"
-{
-    Id: f.UniqueMessageId,
-    MessageType: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['MessageType'],
-    IsSystemMessage: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['IsSystemMessage'],
-    SendingEndpoint: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['SendingEndpoint'],
-    ReceivingEndpoint: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['ReceivingEndpoint'],
-    TimeSent: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['TimeSent'],
-    MessageId: f.ProcessingAttempts[f.ProcessingAttempts.length-1].MessageMetadata['MessageId'],
-    Exception: f.ProcessingAttempts[f.ProcessingAttempts.length-1].FailureDetails.Exception,
-    QueueAddress: f.ProcessingAttempts[f.ProcessingAttempts.length-1].FailureDetails.AddressOfFailingEndpoint,
-    NumberOfProcessingAttempts: f.ProcessingAttempts.length,
-    Status: f.Status,
-    TimeOfFailure: f.ProcessingAttempts[f.ProcessingAttempts.length-1].FailureDetails.TimeOfFailure,
-    LastModified: getMetadata(f)['@last-modified'],
-    Edited: !!f.ProcessingAttempts[f.ProcessingAttempts.length-1].Headers['ServiceControl.EditOf'],
-    EditOf: !!f.ProcessingAttempts[f.ProcessingAttempts.length-1].Headers['ServiceControl.EditOf'] ? f.ProcessingAttempts[f.ProcessingAttempts.length-1].Headers['ServiceControl.EditOf'] : ''
-}
-";
-
-            var queryData = QueryData.CustomFunction("f", rqlTransform);
-            // I gather this wouldn't be necessary given Default is to look at Index then Document,
-            // but since we know it's all in the document, this seems like a good optimization?
-            queryData.ProjectionBehavior = ProjectionBehavior.FromDocument;
-
             using (var session = documentStore.OpenAsyncSession())
             {
+                var selectFunc = DeclareToken.CreateFunction("createResult", @"
+                    var lastAttempt = f.ProcessingAttempts[f.ProcessingAttempts.length-1];
+
+                    return {
+                        Id: f.UniqueMessageId,
+                        MessageType: lastAttempt.MessageMetadata['MessageType'],
+                        IsSystemMessage: lastAttempt.MessageMetadata['IsSystemMessage'],
+                        SendingEndpoint: lastAttempt.MessageMetadata['SendingEndpoint'],
+                        ReceivingEndpoint: lastAttempt.MessageMetadata['ReceivingEndpoint'],
+                        TimeSent: lastAttempt.MessageMetadata['TimeSent'],
+                        MessageId: lastAttempt.MessageMetadata['MessageId'],
+                        Exception: lastAttempt.FailureDetails.Exception,
+                        QueueAddress: lastAttempt.FailureDetails.AddressOfFailingEndpoint,
+                        NumberOfProcessingAttempts: f.ProcessingAttempts.length,
+                        Status: f.Status,
+                        TimeOfFailure: lastAttempt.FailureDetails.TimeOfFailure,
+                        LastModified: getMetadata(f)['@last-modified'],
+                        Edited: !!lastAttempt.Headers['ServiceControl.EditOf'],
+                        EditOf: !!lastAttempt.Headers['ServiceControl.EditOf'] ? lastAttempt.Headers['ServiceControl.EditOf'] : ''
+                    }
+                    ", "f");
+
+                var query = new QueryData(
+                    new[] { "createResult(i)" },
+                    new List<string>(),
+                    "i",
+                    new[] { selectFunc },
+                    new List<LoadToken>(),
+                    true);
+
                 var results = await session.Advanced.AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                    .Timings(out QueryTimings timings)
+                    .IncludeExplanations(out Explanations explanations)
                     .Statistics(out QueryStatistics stats)
                     .WhereEquals("MessageId", "MessageId")
-                    .SelectFields<FailedMessageView>(queryData)
+                    .SelectFields<FailedMessageView>(query)
                     .ToListAsync();
 
                 Assert.IsFalse(stats.IsStale, "Stale results");
