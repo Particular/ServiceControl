@@ -37,15 +37,19 @@
             bool includeSystemMessages
             )
         {
+            await Task.Yield();
+
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Statistics(out var stats)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .TransformToMessagesView()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                        .IncludeSystemMessagesWhere(includeSystemMessages)
+                        .Statistics(out var stats)
+                        .Sort(sortInfo)
+                        .Paging(pagingInfo)
+                        .ProjectInto<MessagesViewTransformer.Input>();
+
+                var results = await MessagesViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -61,14 +65,16 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .IncludeSystemMessagesWhere(includeSystemMessages)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .TransformToMessagesView()
+                    .ProjectInto<MessagesViewTransformer.Input>();
+
+                var results = await MessagesViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -84,14 +90,16 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Search(x => x.Query, searchKeyword)
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .TransformToMessagesView()
+                    .ProjectInto<MessagesViewTransformer.Input>();
+
+                var results = await MessagesViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -107,13 +115,15 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Where(m => m.ConversationId == conversationId)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .TransformToMessagesView()
+                    .ProjectInto<MessagesViewTransformer.Input>();
+
+                var results = await MessagesViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -128,13 +138,15 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Statistics(out var stats)
                     .Search(x => x.Query, searchTerms)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .TransformToMessagesView()
+                    .ProjectInto<MessagesViewTransformer.Input>();
+
+                var results = await MessagesViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -233,7 +245,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Advanced
+                var query = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Statistics(out var stats)
                     .FilterByStatusWhere(status)
@@ -241,9 +253,11 @@
                     .FilterByQueueAddress(queueAddress)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    // TODO: Fix SetResultTransformer
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .SelectFields<FailedMessage>()
+                    .ToQueryable();
+
+                var results = await FailedMessageViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -279,7 +293,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Advanced
+                var query = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                     .Statistics(out var stats)
                     .FilterByStatusWhere(status)
@@ -288,9 +302,11 @@
                     .FilterByLastModifiedRange(modified)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    // TODO: Fix SetResultTransformer
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>()
+                    .SelectFields<FailedMessage>()
+                    .ToQueryable();
+
+                var results = await FailedMessageViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -454,7 +470,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.Advanced
+                var query = session.Advanced
                     .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
                     .Statistics(out var stats)
                     .WhereEquals(view => view.FailureGroupId, groupId)
@@ -462,9 +478,11 @@
                     .FilterByLastModifiedRange(modified)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    // TODO: Fix SetResultTransformer
-                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>()
+                    .SelectFields<FailedMessage>()
+                    .ToQueryable();
+
+                var results = await FailedMessageViewTransformer.Transform(query)
+                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return results.ToQueryResult(stats);
