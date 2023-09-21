@@ -7,7 +7,6 @@
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
-    using PersistenceTests;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
     using ServiceControl.Persistence;

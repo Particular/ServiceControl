@@ -8,11 +8,13 @@
     {
         public abstract void Configure(IServiceCollection services);
 
-        public abstract Task CompleteDatabaseOperation();
+        public abstract void CompleteDatabaseOperation();
 
         public override string ToString() => GetType().Name;
 
         [Conditional("DEBUG")]
-        public virtual void BlockToInspectDatabase() { }
+        public abstract void BlockToInspectDatabase();
+
+        public abstract Task TearDown();
     }
 }

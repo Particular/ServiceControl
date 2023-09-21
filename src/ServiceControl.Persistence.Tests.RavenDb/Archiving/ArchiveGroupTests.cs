@@ -3,11 +3,9 @@
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.Testing;
     using NUnit.Framework;
     using Raven.Client;
-    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -15,11 +13,14 @@
     {
         IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
-        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services =>
+        public ArchiveGroupTests()
         {
-            services.AddSingleton<ArchiveAllInGroupHandler>();
-            services.AddSingleton<RetryingManager>();
-        });
+            RegisterServices = services =>
+            {
+                services.AddSingleton<ArchiveAllInGroupHandler>();
+                services.AddSingleton<RetryingManager>();
+            };
+        }
 
         [Test]
         public async Task ArchiveGroup_skips_over_empty_batches_but_still_completes()

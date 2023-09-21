@@ -14,10 +14,11 @@
     {
         IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
-        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services =>
-        {
-            services.AddSingleton<FailedErrorImportCustomCheck>();
-        });
+        public FailedErrorImportCustomCheckTests() =>
+            RegisterServices = services =>
+            {
+                services.AddSingleton<FailedErrorImportCustomCheck>();
+            };
 
         [Test]
         public async Task Pass_if_no_failed_imports()

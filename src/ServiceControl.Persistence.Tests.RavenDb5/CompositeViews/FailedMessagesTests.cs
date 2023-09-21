@@ -8,7 +8,6 @@
     using MessageFailures;
     using MessageFailures.Api;
     using NUnit.Framework;
-    using PersistenceTests;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
 

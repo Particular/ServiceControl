@@ -20,7 +20,7 @@
         LegacyMessageFailureResolvedHandler Handler { get; set; }
 
         [SetUp]
-        public new async Task Setup()
+        public async Task Setup()
         {
             var domainEvents = new FakeDomainEvents();
             Processor = new RetryConfirmationProcessor(domainEvents);

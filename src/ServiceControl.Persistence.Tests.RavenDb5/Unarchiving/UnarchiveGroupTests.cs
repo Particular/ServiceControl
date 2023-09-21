@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Testing;
     using NUnit.Framework;
-    using PersistenceTests;
     using Raven.Client.Documents;
     using ServiceControl.Recoverability;
 
@@ -15,11 +14,12 @@
     {
         IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
-        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services =>
-        {
-            services.AddSingleton<UnarchiveAllInGroupHandler>();
-            services.AddSingleton<RetryingManager>();
-        });
+        public UnarchiveGroupTests() =>
+            RegisterServices = services =>
+            {
+                services.AddSingleton<UnarchiveAllInGroupHandler>();
+                services.AddSingleton<RetryingManager>();
+            };
 
         [Test]
         public async Task UnarchiveGroup_skips_over_empty_batches_but_still_completes()

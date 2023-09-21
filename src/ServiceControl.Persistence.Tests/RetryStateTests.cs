@@ -44,7 +44,7 @@
 
             var orphanage = new RecoverabilityComponent.AdoptOrphanBatchesFromPreviousSessionHostedService(documentManager, new AsyncTimer());
             await orphanage.AdoptOrphanedBatchesAsync();
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.True(status.Failed);
@@ -62,7 +62,7 @@
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             await processor.ProcessBatches(sender); // mark ready
 
@@ -161,7 +161,7 @@
 
             var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             await processor.ProcessBatches(sender); // mark ready
             await processor.ProcessBatches(sender);
@@ -207,19 +207,19 @@
 
             // Needs index FailedMessages_ByGroup
             // Needs index FailedMessages_UniqueMessageIdAndTimeOfFailures
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             var documentManager = new CustomRetryDocumentManager(progressToStaged, RetryStore, retryManager);
             var gateway = new CustomRetriesGateway(progressToStaged, RetryStore, retryManager);
 
             gateway.EnqueueRetryForFailureGroup(new RetriesGateway.RetryForFailureGroup(groupId, "Test-Context", groupType: null, DateTime.UtcNow));
 
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             await gateway.ProcessNextBulkRetry();
 
             // Wait for indexes to catch up
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
         }
 
         class CustomRetriesGateway : RetriesGateway

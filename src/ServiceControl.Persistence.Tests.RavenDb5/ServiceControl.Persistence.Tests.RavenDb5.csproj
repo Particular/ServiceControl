@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" Link="Shared\%(RecursiveDir)\%(Filename).%(Extension)" />
+    <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" Link="Shared\%(RecursiveDir)\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

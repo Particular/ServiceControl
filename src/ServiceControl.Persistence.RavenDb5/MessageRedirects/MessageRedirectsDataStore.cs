@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Persistence.RavenDb.MessageRedirects
 {
-    using System;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Queries;

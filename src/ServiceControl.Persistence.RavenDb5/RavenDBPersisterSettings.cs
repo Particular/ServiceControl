@@ -18,7 +18,7 @@ class RavenDBPersisterSettings : PersistenceSettings
     public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
 
     //TODO: these are newly added settings, we should remove any duplication
-    public string ServerUrl { get; set; }
+    public string ServerUrl { get; set; } // TODO: This name is SUPER confusing
     public string ConnectionString { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }

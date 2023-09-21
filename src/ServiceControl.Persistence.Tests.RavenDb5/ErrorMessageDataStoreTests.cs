@@ -8,7 +8,6 @@ using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
-using ServiceControl.PersistenceTests;
 using ServiceControl.SagaAudit;
 
 [TestFixture]
@@ -59,7 +58,8 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
         await Task.Yield();
         await SetupDocumentStore();
         await GenerateAndSaveFailedMessage();
-        await CompleteDatabaseOperation();
+
+        CompleteDatabaseOperation();
 
         store = GetRequiredService<IErrorMessageDataStore>();
     }

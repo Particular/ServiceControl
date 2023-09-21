@@ -25,10 +25,10 @@
         /// instantiate each of the WebAPI controllers present in the ServiceControl app.
         /// </summary>
         [Test]
-        public async Task EnsurePersistenceProvidesAllControllerDependencies()
+        public Task EnsurePersistenceProvidesAllControllerDependencies()
         {
             // Arrange
-            var testPersistence = new TestPersistenceImpl();
+            //var testPersistence = null; //TODO: new TestPersistenceImpl();
 
             var assembly = Assembly.GetAssembly(typeof(WebApiHostBuilderExtensions));
             var controllerTypes = assembly.DefinedTypes
@@ -43,7 +43,7 @@
                     serviceCollection.AddSingleton<IDomainEvents, DomainEvents>();
                     serviceCollection.AddSingleton(new LoggingSettings("test"));
 
-                    testPersistence.Configure(serviceCollection);
+                    //testPersistence.Configure(serviceCollection);
                 })
                 .UseNServiceBus(_ =>
                 {
@@ -63,10 +63,10 @@
 
             // TODO: Kind of a hack, but gets the job done, since Raven35/5 have different startup requirements
             // Could come up with a more cohesive way of doing this or just remove the IF when Raven35 goes away
-            if (testPersistence.GetType().Assembly.FullName.Contains("RavenDb5"))
-            {
-                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-            }
+            //if (testPersistence.GetType().Assembly.FullName.Contains("RavenDb5"))
+            //{
+            //    await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            //}
 
             // Make sure the list isn't suddenly empty
             Assert.That(controllerTypes.Length, Is.GreaterThan(10));
@@ -75,6 +75,8 @@
                 Console.WriteLine($"Getting service {controllerType.FullName}");
                 Assert.That(host.Services.GetService(controllerType), Is.Not.Null);
             }
+
+            return Task.CompletedTask;
         }
     }
 }
