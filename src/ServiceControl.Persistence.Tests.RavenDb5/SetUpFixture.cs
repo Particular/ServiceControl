@@ -11,7 +11,7 @@ public class SetUpFixture
     public static async Task SetupSharedEmbeddedServer() => SharedInstance = await SharedEmbeddedServer.GetInstance();
 
     [OneTimeTearDown]
-    public static async Task TearDown()
+    public static void TearDown()
     {
         SharedInstance.Dispose();
     }
