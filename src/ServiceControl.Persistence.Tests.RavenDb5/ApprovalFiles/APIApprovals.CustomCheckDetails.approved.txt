@@ -1,6 +1,4 @@
-ServiceControl Health: Audit Message Ingestion
 ServiceControl Health: Error Database Index Errors
 ServiceControl Health: Error Database Index Lag
 ServiceControl Health: Message Ingestion Process
-ServiceControl Health: Saga Audit Data Retention
 Storage space: ServiceControl database
