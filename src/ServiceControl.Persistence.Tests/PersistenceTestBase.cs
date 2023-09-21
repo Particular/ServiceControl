@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using NUnit.Framework;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using ServiceControl.Persistence;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NServiceBus;
+using NUnit.Framework;
 using ServiceControl.Infrastructure.DomainEvents;
-using ServiceControl.PersistenceTests;
 using ServiceControl.Operations.BodyStorage;
+using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
 using ServiceControl.Persistence.Recoverability;
 using ServiceControl.Persistence.UnitOfWork;
+using ServiceControl.PersistenceTests;
 
 //[Parallelizable(ParallelScope.All)]
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
@@ -49,7 +49,9 @@ public abstract class PersistenceTestBase
     [TearDown]
     public async Task TearDown()
     {
+        // Needs to go first or database will be disposed
         await testPersistence.TearDown();
+
         await host.StopAsync();
         host.Dispose();
     }

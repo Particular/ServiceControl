@@ -15,7 +15,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
-    using ServiceControl.PersistenceTests;
 
     [TestFixture]
     class ControllerDependencies
