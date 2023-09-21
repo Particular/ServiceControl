@@ -2,7 +2,6 @@
 {
     using System;
     using NUnit.Framework;
-    using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
     [TestFixture]

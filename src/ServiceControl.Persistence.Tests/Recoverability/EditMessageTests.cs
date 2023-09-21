@@ -88,8 +88,6 @@
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            BlockToInspectDatabase();
-
             using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {
                 var failedMessage = await editFailedMessagesManagerAssert.GetFailedMessage(failedMessageId);
