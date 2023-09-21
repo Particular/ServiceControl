@@ -19,8 +19,6 @@ static class SharedEmbeddedServer
             ServerUrl = $"http://localhost:{FindAvailablePort(33334)}"
         };
 
-        Directory.Delete(settings.DatabasePath, true);
-
         var instance = EmbeddedDatabase.Start(settings);
 
         //make sure that the database is up
