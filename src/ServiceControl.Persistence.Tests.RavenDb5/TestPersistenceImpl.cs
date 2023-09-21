@@ -2,7 +2,6 @@
 {
     using System;
     using System.Diagnostics;
-    using System.Linq;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -16,15 +15,17 @@
 
     sealed class TestPersistenceImpl : TestPersistence
     {
-        // Deterministic database name make diagnosing easier
-        readonly string databaseName = new string(TestContext.CurrentContext.Test.FullName.Where(c => char.IsLetterOrDigit(c) || c == '_' || c == '-').ToArray());
+        readonly string databaseName;
 
         readonly RavenDBPersisterSettings settings;
         IDocumentStore documentStore;
 
         public TestPersistenceImpl()
         {
+            databaseName = Guid.NewGuid().ToString("n");
             var retentionPeriod = TimeSpan.FromMinutes(1);
+
+            TestContext.Out.WriteLine($"Test Database Name: {databaseName}");
 
             settings = new RavenDBPersisterSettings
             {
@@ -49,6 +50,7 @@
             documentStore.WaitForIndexing();
         }
 
+        // TODO: Doesn't appear to be doing anything in the Start/Stop, do we need this?
         class Wrapper : IHostedService
         {
             public Wrapper(TestPersistenceImpl instance, IDocumentStore store)
@@ -88,6 +90,7 @@
 
         public override async Task TearDown()
         {
+            // Comment this out temporarily to be able to inspect a database after the test has completed
             var deleteDatabasesOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = new[] { databaseName }, HardDelete = true });
             await documentStore.Maintenance.Server.SendAsync(deleteDatabasesOperation);
         }
