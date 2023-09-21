@@ -7,9 +7,7 @@ class RavenDBPersisterSettings : PersistenceSettings
     public string HostName { get; set; } = "localhost";
     public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public string DatabaseMaintenanceUrl => $"http://{HostName}:{DatabaseMaintenancePort}";
-    public bool ExposeRavenDB { get; set; }
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;
-    public bool RunInMemory { get; set; }
     public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
     public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;
     public TimeSpan ErrorRetentionPeriod { get; set; }

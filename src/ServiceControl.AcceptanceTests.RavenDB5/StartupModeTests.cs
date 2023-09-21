@@ -27,7 +27,6 @@
                 PersisterSpecificSettings = new RavenDBPersisterSettings
                 {
                     ErrorRetentionPeriod = TimeSpan.FromDays(1),
-                    RunInMemory = true
                 },
                 TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString

@@ -16,7 +16,6 @@
         {
             settings.PersisterSpecificSettings = new RavenDBPersisterSettings
             {
-                RunInMemory = true,
                 DatabaseMaintenancePort = FindAvailablePort(settings.Port + 1),
                 DatabasePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 ErrorRetentionPeriod = TimeSpan.FromDays(10),
