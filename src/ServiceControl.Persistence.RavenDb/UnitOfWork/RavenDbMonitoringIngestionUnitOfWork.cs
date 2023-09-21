@@ -24,7 +24,7 @@
         {
             Document = RavenJObject.FromObject(endpoint),
             Etag = null,
-            Key = endpoint.Id.ToString(),
+            Key = RavenDbMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId()),
             Metadata = KnownEndpointMetadata
         };
 

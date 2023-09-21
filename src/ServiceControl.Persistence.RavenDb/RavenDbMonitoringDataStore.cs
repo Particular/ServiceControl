@@ -15,13 +15,16 @@
             this.store = store;
         }
 
+        public static string MakeDocumentId(Guid id) => $"{KnownEndpoint.CollectionName}/{id}";
+
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
                 if (knownEndpoint != null)
                 {
@@ -30,13 +33,12 @@
 
                 knownEndpoint = new KnownEndpoint
                 {
-                    Id = id,
                     EndpointDetails = endpoint,
                     HostDisplayName = endpoint.Host,
                     Monitored = false
                 };
 
-                await session.StoreAsync(knownEndpoint);
+                await session.StoreAsync(knownEndpoint, docId);
 
                 await session.SaveChangesAsync();
             }
@@ -45,22 +47,22 @@
         public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
                 if (knownEndpoint == null)
                 {
                     knownEndpoint = new KnownEndpoint
                     {
-                        Id = id,
                         EndpointDetails = endpoint,
                         HostDisplayName = endpoint.Host,
                         Monitored = true
                     };
 
-                    await session.StoreAsync(knownEndpoint);
+                    await session.StoreAsync(knownEndpoint, docId);
                 }
                 else
                 {
@@ -74,10 +76,11 @@
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using (var session = store.OpenAsyncSession())
             {
-                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id);
+                var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
                 if (knownEndpoint != null)
                 {
@@ -109,7 +112,7 @@
         {
             using (var session = store.OpenAsyncSession())
             {
-                session.Delete<KnownEndpoint>(endpointId);
+                session.Delete(MakeDocumentId(endpointId));
                 await session.SaveChangesAsync();
             }
         }

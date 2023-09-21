@@ -130,8 +130,6 @@
                 EndpointDetails = new EndpointDetails { Host = "Host1", HostId = Guid.NewGuid(), Name = "Endpoint" }
             };
 
-            knownEndpoint.Id = knownEndpoint.EndpointDetails.GetDeterministicId();
-
             using (var unitOfWork = await UnitOfWorkFactory.StartNew())
             {
                 await unitOfWork.Monitoring.RecordKnownEndpoint(knownEndpoint);
@@ -146,7 +144,6 @@
             Assert.AreEqual(1, knownEndpoints.Count);
             var fromStorage = knownEndpoints[0];
 
-            Assert.AreEqual(knownEndpoint.Id, fromStorage.Id, "Id should match");
             Assert.AreEqual(knownEndpoint.EndpointDetails.Host, fromStorage.EndpointDetails.Host, "EndpointDetails.Host should match");
             Assert.AreEqual(knownEndpoint.EndpointDetails.HostId, fromStorage.EndpointDetails.HostId, "EndpointDetails.HostId should match");
             Assert.AreEqual(knownEndpoint.EndpointDetails.Name, fromStorage.EndpointDetails.Name, "EndpointDetails.Name should match");

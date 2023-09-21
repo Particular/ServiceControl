@@ -3,9 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Raven.Client.Documents;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
-    using Raven.Client.Documents;
 
     class RavenDbMonitoringDataStore : IMonitoringDataStore
     {
@@ -14,13 +14,16 @@
             this.store = store;
         }
 
+        public static string MakeDocumentId(Guid id) => $"{KnownEndpoint.CollectionName}/{id}";
+
         public async Task CreateIfNotExists(EndpointDetails endpoint)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using var session = store.OpenAsyncSession();
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id.ToString());
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
             if (knownEndpoint != null)
             {
@@ -29,13 +32,12 @@
 
             knownEndpoint = new KnownEndpoint
             {
-                Id = id,
                 EndpointDetails = endpoint,
                 HostDisplayName = endpoint.Host,
                 Monitored = false
             };
 
-            await session.StoreAsync(knownEndpoint);
+            await session.StoreAsync(knownEndpoint, docId);
 
             await session.SaveChangesAsync();
         }
@@ -43,22 +45,22 @@
         public async Task CreateOrUpdate(EndpointDetails endpoint, IEndpointInstanceMonitoring endpointInstanceMonitoring)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using var session = store.OpenAsyncSession();
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id.ToString());
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
             if (knownEndpoint == null)
             {
                 knownEndpoint = new KnownEndpoint
                 {
-                    Id = id,
                     EndpointDetails = endpoint,
                     HostDisplayName = endpoint.Host,
                     Monitored = true
                 };
 
-                await session.StoreAsync(knownEndpoint);
+                await session.StoreAsync(knownEndpoint, docId);
             }
             else
             {
@@ -71,10 +73,11 @@
         public async Task UpdateEndpointMonitoring(EndpointDetails endpoint, bool isMonitored)
         {
             var id = endpoint.GetDeterministicId();
+            var docId = MakeDocumentId(id);
 
             using var session = store.OpenAsyncSession();
 
-            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(id.ToString());
+            var knownEndpoint = await session.LoadAsync<KnownEndpoint>(docId);
 
             if (knownEndpoint != null)
             {
@@ -100,7 +103,7 @@
         public async Task Delete(Guid endpointId)
         {
             using var session = store.OpenAsyncSession();
-            session.Delete(KnownEndpointIdGenerator.MakeDocumentId(endpointId));
+            session.Delete(MakeDocumentId(endpointId));
             await session.SaveChangesAsync();
         }
 
