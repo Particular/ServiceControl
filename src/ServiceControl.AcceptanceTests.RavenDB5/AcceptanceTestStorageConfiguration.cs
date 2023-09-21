@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net.NetworkInformation;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Persistence.RavenDb;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -18,6 +19,7 @@
             {
                 DatabaseMaintenancePort = FindAvailablePort(settings.Port + 1),
                 DatabasePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
+                LogPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs"),
                 ErrorRetentionPeriod = TimeSpan.FromDays(10),
             };
         }

@@ -90,6 +90,7 @@
         public IPersistenceInstaller CreateInstaller()
         {
             var serviceCollection = new ServiceCollection();
+            ConfigureLifecycle(serviceCollection);
 
             serviceCollection.AddSingleton(settings);
             return new RavenDbInstaller(serviceCollection);
