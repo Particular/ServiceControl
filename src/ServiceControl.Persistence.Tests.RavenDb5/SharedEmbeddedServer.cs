@@ -4,17 +4,18 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using ServiceControl.Persistence.RavenDb5;
 
 static class SharedEmbeddedServer
 {
     public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
     {
+        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary");
+
         var settings = new RavenDBPersisterSettings
         {
-            DatabasePath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "ErrorData"),
-            LogPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs"),
+            DatabasePath = Path.Combine(basePath, "DB"),
+            LogPath = Path.Combine(basePath, "Logs"),
             LogsMode = "Operations",
             ServerUrl = $"http://localhost:{FindAvailablePort(33334)}"
         };
