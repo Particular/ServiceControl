@@ -9,4 +9,10 @@ public class SetUpFixture
     // Needs to be in a SetUpFixture otherwise the OneTimeSetUp is invoked for each inherited test fixture
     [OneTimeSetUp]
     public static async Task SetupSharedEmbeddedServer() => SharedInstance = await SharedEmbeddedServer.GetInstance();
+
+    [OneTimeTearDown]
+    public static async Task TearDown()
+    {
+        SharedInstance.Dispose();
+    }
 }
