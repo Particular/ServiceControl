@@ -153,11 +153,12 @@
             }
         }
 
+        // TODO: There seem to be several copies of this operation in here
         public async Task<FailedMessage> FailedMessageFetch(string failedMessageId)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                return await session.LoadAsync<FailedMessage>(failedMessageId);
+                return await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
             }
         }
 
@@ -165,7 +166,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId);
+                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
@@ -180,7 +181,8 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var results = await session.LoadAsync<FailedMessage>(ids.Select(g => g.ToString()));
+                var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
+                var results = await session.LoadAsync<FailedMessage>(docIds);
                 return results.Values.Where(x => x != null).ToArray();
             }
         }
@@ -351,7 +353,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId.ToString());
+                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
                 return message;
             }
         }
@@ -377,7 +379,7 @@
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(failedMessageId.ToString());
+                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
                 if (message == null)
                 {
                     return null;

@@ -2,13 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Raven.Client.Documents.Commands.Batches;
+    using Raven.Client.Documents.Operations;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using Raven.Client.Documents.Commands.Batches;
-    using Raven.Client.Documents.Operations;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
@@ -37,7 +35,7 @@
 
             parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
             {
-                Script = $@"this.nameof(FailedMessage.Status) = {(int)FailedMessageStatus.Resolved};"
+                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
             }));
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
@@ -49,15 +47,12 @@
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
-            var serializedGroups = JToken.FromObject(groups);
-            var serializedAttempt = JToken.FromObject(processingAttempt, Serializer);
-
             //HINT: RavenDB 3.5 is using Lodash v4.13.1 to provide javascript utility functions
             //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
             return new PatchCommandData(documentId, null, new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
+                Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
+                                this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
                                 
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
@@ -68,7 +63,7 @@
                                 }});
 
                                 if(duplicateIndex === -1){{
-                                    newAttempts = _.union(newAttempts, [attempt]);
+                                    newAttempts = _.union(newAttempts, [args.attempt]);
                                 }}
 
                                 //Trim to the latest MaxProcessingAttempts 
@@ -87,43 +82,31 @@
                 Values = new Dictionary<string, object>
                     {
                         {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", serializedGroups},
-                        {"attempt", serializedAttempt}
+                        {"failureGroups", groups},
+                        {"attempt", processingAttempt}
                     },
             },
                 patchIfMissing: new PatchRequest
                 {
-                    Script = $@"this.{nameof(FailedMessage.Status)} = status;
-                                this.{nameof(FailedMessage.FailureGroups)} = failureGroups;
-                                this.{nameof(FailedMessage.ProcessingAttempts)} = [attempt];
-                                this.{nameof(FailedMessage.UniqueMessageId)} = uniqueMessageId;
-                                this.@metadata = {FailedMessageMetadata}
+                    Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
+                                this.{nameof(FailedMessage.FailureGroups)} = args.failureGroups;
+                                this.{nameof(FailedMessage.ProcessingAttempts)} = [args.attempt];
+                                this.{nameof(FailedMessage.UniqueMessageId)} = args.uniqueMessageId;
+                                this['@metadata'] = {{
+                                    '@collection': '{FailedMessageIdGenerator.CollectionName}',
+                                    'Raven-Clr-Type': '{typeof(FailedMessage).AssemblyQualifiedName}'
+                                }}
                              ",
                     Values = new Dictionary<string, object>
                     {
                         {"status", (int)FailedMessageStatus.Unresolved},
-                        {"failureGroups", serializedGroups},
-                        {"attempt", serializedAttempt},
+                        {"failureGroups", groups},
+                        {"attempt", processingAttempt},
                         {"uniqueMessageId", uniqueMessageId}
                     }
                 });
         }
 
-        static RavenDbRecoverabilityIngestionUnitOfWork()
-        {
-            //TODO: check if this actually works
-            Serializer = JsonSerializer.CreateDefault();
-            Serializer.TypeNameHandling = TypeNameHandling.Auto;
-
-            FailedMessageMetadata = JObject.Parse($@"
-                                    {{
-                                        ""@collection"": ""{FailedMessageIdGenerator.CollectionName}"",
-                                        ""Raven-Clr-Type"": ""{typeof(FailedMessage).AssemblyQualifiedName}""
-                                    }}");
-        }
-
         static int MaxProcessingAttempts = 10;
-        static readonly JObject FailedMessageMetadata;
-        static readonly JsonSerializer Serializer;
     }
 }
