@@ -45,10 +45,10 @@ namespace ServiceControl.CompositeViews.Messages
                     ReceivingEndpoint = metadata["ReceivingEndpoint"],
                     TimeSent = metadata["TimeSent"],
                     ProcessedAt = processedAt,
-                    CriticalTime = metadata["CriticalTime"],
-                    ProcessingTime = metadata["ProcessingTime"],
-                    DeliveryTime = metadata["DeliveryTime"],
-                    IsSystemMessage = metadata["IsSystemMessage"],
+                    CriticalTime = metadata["CriticalTime"] ?? "00:00:00",
+                    ProcessingTime = metadata["ProcessingTime"] ?? "00:00:00",
+                    DeliveryTime = metadata["DeliveryTime"] ?? "00:00:00",
+                    IsSystemMessage = metadata["IsSystemMessage"] ?? false,
                     ConversationId = metadata["ConversationId"],
                     //the reason the we need to use a KeyValuePair<string, object> is that raven seems to interpret the values and convert them
                     // to real types. In this case it was the NServiceBus.Temporary.DelayDeliveryWith header to was converted to a timespan
@@ -56,7 +56,7 @@ namespace ServiceControl.CompositeViews.Messages
                     Status = status,
                     MessageIntent = metadata["MessageIntent"],
                     BodyUrl = metadata["BodyUrl"],
-                    BodySize = metadata["ContentLength"],
+                    BodySize = metadata["ContentLength"] ?? 0,
                     InvokedSagas = metadata["InvokedSagas"],
                     OriginatesFromSaga = metadata["OriginatesFromSaga"]
                 };
