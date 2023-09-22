@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Raven.Client.Documents;
 using ServiceControl.MessageFailures;
-using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
@@ -14,9 +13,9 @@ using ServiceControl.Persistence.Tests.RavenDb5.ObjectExtensions;
 [TestFixture]
 class ErrorMessageDataStoreTests : PersistenceTestBase
 {
-    IDocumentStore documentStore;
     IErrorMessageDataStore store;
     FailedMessage processedMessage1, processedMessage2;
+    IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
     [Test]
     public async Task GetAllMessages()
@@ -57,7 +56,6 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
     public async Task GetStore()
     {
         await Task.Yield();
-        await SetupDocumentStore();
         await GenerateAndSaveFailedMessage();
 
         CompleteDatabaseOperation();
@@ -67,9 +65,9 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
 
     async Task GenerateAndSaveFailedMessage()
     {
-        using (var session = documentStore.OpenAsyncSession())
+        using (var session = DocumentStore.OpenAsyncSession())
         {
-            processedMessage1 = FailedMessageBuilder.Build(m =>
+            processedMessage1 = FailedMessageBuilder.Default(m =>
             {
                 m.Id = "1";
                 m.UniqueMessageId = "a";
@@ -79,7 +77,7 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
 
             await session.StoreAsync(processedMessage1);
 
-            processedMessage2 = FailedMessageBuilder.Build(m =>
+            processedMessage2 = FailedMessageBuilder.Default(m =>
             {
                 m.Id = "2";
                 m.UniqueMessageId = "b";
@@ -91,15 +89,5 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
 
             await session.SaveChangesAsync();
         }
-    }
-
-    async Task SetupDocumentStore()
-    {
-        documentStore = GetRequiredService<IDocumentStore>();
-        var customIndex = new FailedMessageViewIndex();
-        await customIndex.ExecuteAsync(documentStore);
-        //var transformer = new FailedMessageViewTransformer();
-        //TODO: we need to bring this back
-        //transformer.Execute(documentStore);
     }
 }
