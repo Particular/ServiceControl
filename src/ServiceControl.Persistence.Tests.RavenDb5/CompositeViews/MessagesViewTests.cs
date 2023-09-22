@@ -18,7 +18,7 @@
         [Test]
         public void Filter_out_system_messages()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var processedMessage = new ProcessedMessage
                 {
@@ -38,9 +38,9 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var results = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .Customize(x => x.WaitForNonStaleResults())
@@ -55,7 +55,7 @@
         [Test]
         public void Order_by_critical_time()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(new ProcessedMessage
                 {
@@ -87,9 +87,9 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var firstByCriticalTime = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.CriticalTime)
@@ -111,7 +111,7 @@
         [Test]
         public void Order_by_time_sent()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(new ProcessedMessage
                 {
@@ -132,9 +132,9 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var firstByTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     .OrderBy(x => x.TimeSent)
@@ -153,7 +153,7 @@
         [Test]
         public void TimeSent_is_not_cast_to_DateTimeMin_if_null()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(new ProcessedMessage
                 {
@@ -191,9 +191,9 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
                     //.TransformWith<MessagesViewTransformer, MessagesView>()
@@ -210,7 +210,7 @@
         [TestCase(FailedMessageStatus.Unresolved, MessageStatus.Failed)]
         public async Task Correct_status_for_failed_messages(FailedMessageStatus failedMessageStatus, MessageStatus expecteMessageStatus)
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(new FailedMessage
                 {
@@ -233,16 +233,15 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenAsyncSession())
+            using (var session = DocumentStore.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessage>()
                     .ProjectInto<MessagesViewTransformer.Input>()
                     .Customize(x => x.WaitForNonStaleResults());
 
-                var result = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var result = await MessagesViewTransformer.Transform(query).ToListAsync();
 
                 var message = result.Single();
 
@@ -251,9 +250,9 @@
         }
 
         [Test]
-        public void Correct_status_for_repeated_errors()
+        public async Task Correct_status_for_repeated_errors()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 session.Store(new FailedMessage
                 {
@@ -276,40 +275,23 @@
                 session.SaveChanges();
             }
 
-            documentStore.WaitForIndexing();
+            DocumentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenAsyncSession())
             {
-                var message = session.Query<FailedMessage>()
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .Customize(x => x.WaitForNonStaleResults())
-                    .Single();
+                var query = session
+                    .Query<FailedMessage>()
+                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .Customize(x => x.WaitForNonStaleResults());
+
+                var result = await MessagesViewTransformer.Transform(query).ToListAsync();
+
+                var message = result.Single();
 
                 Assert.AreEqual(MessageStatus.RepeatedFailure, message.Status);
             }
         }
 
-        [SetUp]
-        public new async Task SetUp()
-        {
-            await base.SetUp();
-            documentStore = GetRequiredService<IDocumentStore>();
-
-            var customIndex = new MessagesViewIndex();
-            customIndex.Execute(documentStore);
-
-            //var transformer = new MessagesViewTransformer();
-
-            //transformer.Execute(documentStore);
-        }
-
-        [TearDown]
-        public new async Task TearDown()
-        {
-            await base.TearDown();
-            documentStore.Dispose();
-        }
-
-        IDocumentStore documentStore;
+        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
     }
 }
