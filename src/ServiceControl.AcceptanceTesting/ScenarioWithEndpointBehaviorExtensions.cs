@@ -53,7 +53,24 @@
         public IScenarioWithEndpointBehavior<TContext> Done(Func<TContext, bool> doneCriteria = null)
         {
             var behavior = new ServiceControlClient<TContext>(context => sequence.Continue(context));
-            return endpointBehavior.WithComponent(behavior).Done(ctx => sequence.IsFinished(ctx) && (doneCriteria == null || doneCriteria(ctx)));
+            return endpointBehavior.WithComponent(behavior).Done(async ctx =>
+            {
+                if (sequence.IsFinished(ctx))
+                {
+                    if (doneCriteria == null || doneCriteria(ctx))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        // If sequence is done but test is not finished, small delay to avoid tight loop check
+                        await Task.Delay(250);
+                    }
+                }
+
+                // If sequence is not finished immediately return false, since each step will enforce delays 
+                return false;
+            });
         }
 
         IScenarioWithEndpointBehavior<TContext> endpointBehavior;

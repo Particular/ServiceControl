@@ -56,6 +56,10 @@
                 context.Step = nextStep;
                 return finished;
             }
+            else
+            {
+                await Task.Delay(250);
+            }
 
             return false;
         }
