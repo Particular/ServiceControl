@@ -50,7 +50,7 @@
             return new MessageBodyStreamResult
             {
                 HasResult = true,
-                Stream = (MemoryStream)result.Stream,
+                Stream = result.Stream,
                 ContentType = result.Details.ContentType,
                 BodySize = (int)result.Details.Size,
                 Etag = result.Details.ChangeVector
