@@ -7,6 +7,7 @@
     using MessageAuditing;
     using MessageFailures;
     using NUnit.Framework;
+    using Persistence.Tests.RavenDb5;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
     using ServiceControl.CompositeViews.Messages;
@@ -20,19 +21,20 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                var processedMessage = new ProcessedMessage
+                var processedMessage = FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "1"
-                };
+                    m.Id = "1";
+                    m.ProcessingAttempts.First().MessageMetadata["IsSystemMessage"] = true;
+                });
 
-                processedMessage.MakeSystemMessage();
                 session.Store(processedMessage);
 
-                var processedMessage2 = new ProcessedMessage
+                var processedMessage2 = FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "2"
-                };
-                processedMessage2.MakeSystemMessage(false);
+                    m.Id = "2";
+                    m.ProcessingAttempts.First().MessageMetadata["IsSystemMessage"] = false;
+                });
+
                 session.Store(processedMessage2);
 
                 session.SaveChanges();
@@ -57,33 +59,31 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(10) } }
-                });
+                    m.Id = "1";
+                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(10);
+                }));
 
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(20) } }
-                });
+                    m.Id = "2";
+                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(20);
+                }));
 
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "CriticalTime", TimeSpan.FromSeconds(15) } }
-                });
+                    m.Id = "3";
+                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
+                }));
 
-                session.Store(new FailedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "4",
-                    Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
-                        new FailedMessage.ProcessingAttempt {MessageMetadata = new Dictionary<string, object> {{"CriticalTime", TimeSpan.FromSeconds(15)}}}
-                    }
-                });
+                    m.Id = "4";
+                    m.Status = FailedMessageStatus.Unresolved;
+                    m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
+                }));
+
                 session.SaveChanges();
             }
 
@@ -113,22 +113,24 @@
         {
             using (var session = DocumentStore.OpenSession())
             {
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "1",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(20) } }
-                });
+                    m.Id = "1";
+                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Today.AddSeconds(20);
+                }));
 
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "2",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddSeconds(10) } }
-                });
-                session.Store(new ProcessedMessage
+                    m.Id = "2";
+                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Today.AddSeconds(10);
+                }));
+
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    Id = "3",
-                    MessageMetadata = new Dictionary<string, object> { { "TimeSent", DateTime.Today.AddDays(-1) } }
-                });
+                    m.Id = "3";
+                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Today.AddDays(-1);
+                }));
+
                 session.SaveChanges();
             }
 
@@ -151,56 +153,49 @@
         }
 
         [Test]
-        public void TimeSent_is_not_cast_to_DateTimeMin_if_null()
+        public async Task TimeSent_is_not_cast_to_DateTimeMin_if_null()
         {
             using (var session = DocumentStore.OpenSession())
             {
-                session.Store(new ProcessedMessage
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    MessageMetadata = new Dictionary<string, object>
-                    {
-                        {"MessageIntent", "1"},
-                        {"TimeSent", null}
-                    }
-                });
-                session.Store(new FailedMessage
+                    m.Id = "1";
+                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = null;
+                }));
+
+                session.Store(FailedMessageBuilder.Minimal(m =>
                 {
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                    m.Id = "2";
+
+                    m.ProcessingAttempts.First().AttemptedAt = DateTime.Today;
+                    m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = null;
+
+                    m.ProcessingAttempts.Add(new FailedMessage.ProcessingAttempt
                     {
-                        new FailedMessage.ProcessingAttempt
+                        AttemptedAt = DateTime.Today,
+                        MessageMetadata =
                         {
-                            AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object>
-                            {
-                                {"MessageIntent", "1"},
-                                {"TimeSent", null}
-                            }
-                        },
-                        new FailedMessage.ProcessingAttempt
-                        {
-                            AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object>
-                            {
-                                {"MessageIntent", "1"},
-                                {"TimeSent", null}
-                            }
+                            ["MessageIntent"] = "Send",
+                            ["TimeSent"] = null
                         }
-                    }
-                });
+                    });
+                }));
 
                 session.SaveChanges();
             }
 
             DocumentStore.WaitForIndexing();
 
-            using (var session = DocumentStore.OpenSession())
+            using (var session = DocumentStore.OpenAsyncSession())
             {
-                var messageWithNoTimeSent = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .Customize(x => x.WaitForNonStaleResults())
-                    .ToArray();
-                Assert.AreEqual(null, messageWithNoTimeSent[0].TimeSent);
-                Assert.AreEqual(null, messageWithNoTimeSent[1].TimeSent);
+                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .Customize(x => x.WaitForNonStaleResults());
+
+                var messagesWithNoTimestamp = await MessagesViewTransformer.Transform(query).ToArrayAsync();
+
+                Assert.AreEqual(null, messagesWithNoTimestamp[0].TimeSent);
+                Assert.AreEqual(null, messagesWithNoTimestamp[1].TimeSent);
             }
         }
 

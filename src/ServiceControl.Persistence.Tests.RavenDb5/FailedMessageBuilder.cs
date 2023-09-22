@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.Tests.RavenDb5
 {
     using System;
+    using System.Collections.Generic;
     using Contracts.Operations;
     using MessageFailures;
     using Operations;
@@ -8,7 +9,31 @@
 
     static class FailedMessageBuilder
     {
-        public static FailedMessage Build(Action<FailedMessage> customize)
+        public static FailedMessage Minimal(Action<FailedMessage> customize)
+        {
+            var message = new FailedMessage
+            {
+                Id = "1",
+                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
+                {
+                    new FailedMessage.ProcessingAttempt
+                    {
+                        AttemptedAt = DateTime.Today,
+                        MessageMetadata =
+                        {
+                            ["MessageIntent"] = "Send", ["CriticalTime"] = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                },
+                Status = FailedMessageStatus.Unresolved
+            };
+
+            customize(message);
+
+            return message;
+        }
+
+        public static FailedMessage Default(Action<FailedMessage> customize)
         {
             var result = new FailedMessage
             {

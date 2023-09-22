@@ -17,7 +17,7 @@
         [Test]
         public void Should_allow_errors_with_no_metadata()
         {
-            using (var session = documentStore.OpenSession())
+            using (var session = DocumentStore.OpenSession())
             {
                 var processedMessage = new FailedMessage
                 {
@@ -44,7 +44,7 @@
 
             do
             {
-                using (var session = documentStore.OpenSession())
+                using (var session = DocumentStore.OpenSession())
                 {
                     var results = session.Advanced.DocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
                         //.SetResultTransformer(FailedMessageViewTransformer.Name)
@@ -71,27 +71,6 @@
             while (stats.IsStale);
         }
 
-
-        [SetUp]
-        public new void SetUp()
-        {
-            documentStore = GetRequiredService<IDocumentStore>();
-
-            var customIndex = new FailedMessageViewIndex();
-            customIndex.Execute(documentStore);
-
-            //var transformer = new FailedMessageViewTransformer();
-
-            //TODO: we need to bring this back
-            //transformer.Execute(documentStore);
-        }
-
-        [TearDown]
-        public new void TearDown()
-        {
-            documentStore.Dispose();
-        }
-
-        IDocumentStore documentStore;
+        IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
     }
 }
