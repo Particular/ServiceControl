@@ -12,7 +12,7 @@ public class SharedDatabaseSetup
     [OneTimeSetUp]
     public static async Task SetupSharedEmbeddedServer()
     {
-        using (var cancellationSource = new CancellationTokenSource(10_000))
+        using (var cancellationSource = new CancellationTokenSource(30_000))
         {
             SharedInstance = await SharedEmbeddedServer.GetInstance();
         }

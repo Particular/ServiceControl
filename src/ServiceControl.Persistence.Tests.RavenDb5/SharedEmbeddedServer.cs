@@ -1,7 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Raven.Client.ServerWide.Operations;
 using ServiceControl.Persistence.RavenDb5;
 using TestHelper;
 
@@ -10,10 +11,12 @@ static class SharedEmbeddedServer
     public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
     {
         var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.Raven5Persistence");
+        var dbPath = Path.Combine(basePath, "DB");
+        var databasesPath = Path.Combine(dbPath, "Databases");
 
         var settings = new RavenDBPersisterSettings
         {
-            DatabasePath = Path.Combine(basePath, "DB"),
+            DatabasePath = dbPath,
             LogPath = Path.Combine(basePath, "Logs"),
             LogsMode = "Operations",
             ServerUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}"
@@ -21,22 +24,22 @@ static class SharedEmbeddedServer
 
         var instance = EmbeddedDatabase.Start(settings);
 
-        //make sure that the database is up
-        while (true)
+        // Make sure that the database is up - this blocks until the cancellation token times out
+        using (var docStore = await instance.Connect(cancellationToken))
         {
-            try
-            {
-                using (await instance.Connect(cancellationToken))
-                {
-                    //no-op
-                }
+            var cleanupDatabases = new DirectoryInfo(databasesPath)
+                .GetDirectories()
+                .Select(di => di.Name)
+                .Where(name => name.Length == 32)
+                .ToArray();
 
-                return instance;
-            }
-            catch (Exception)
+            if (cleanupDatabases.Any())
             {
-                await Task.Delay(500, cancellationToken);
+                var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
+                await docStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
             }
         }
+
+        return instance;
     }
 }
