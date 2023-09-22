@@ -32,7 +32,7 @@
                 AuditRetentionPeriod = retentionPeriod,
                 ErrorRetentionPeriod = retentionPeriod,
                 EventsRetentionPeriod = retentionPeriod,
-                ConnectionString = SetUpFixture.SharedInstance.ServerUrl,
+                ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,
                 DatabaseName = databaseName
             };
         }
@@ -41,7 +41,7 @@
         {
             var persistence = new RavenDbPersistenceConfiguration().Create(settings);
             PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, persistence);
-            services.AddHostedService(p => new Wrapper(this, p.GetRequiredService<IDocumentStore>()));
+            services.AddHostedService(p => new FakeServiceToExtractDocumentStore(this, p.GetRequiredService<IDocumentStore>()));
         }
 
         public override void CompleteDatabaseOperation()
@@ -50,10 +50,9 @@
             documentStore.WaitForIndexing();
         }
 
-        // TODO: Doesn't appear to be doing anything in the Start/Stop, do we need this?
-        class Wrapper : IHostedService
+        class FakeServiceToExtractDocumentStore : IHostedService
         {
-            public Wrapper(TestPersistenceImpl instance, IDocumentStore store)
+            public FakeServiceToExtractDocumentStore(TestPersistenceImpl instance, IDocumentStore store)
             {
                 instance.documentStore = store;
             }
@@ -69,7 +68,7 @@
                 return;
             }
 
-            var url = SetUpFixture.SharedInstance.ServerUrl + "/studio/index.html#databases/documents?&database=" + databaseName;
+            var url = SharedDatabaseSetup.SharedInstance.ServerUrl + "/studio/index.html#databases/documents?&database=" + databaseName;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

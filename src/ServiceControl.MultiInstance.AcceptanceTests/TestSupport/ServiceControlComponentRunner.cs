@@ -4,10 +4,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Collections.Generic;
     using System.Configuration;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Net.NetworkInformation;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
@@ -25,6 +23,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
+    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
@@ -49,30 +48,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             var startPort = 33334;
 
-            var mainInstancePort = FindAvailablePort(startPort);
-            var mainInstanceDbPort = FindAvailablePort(mainInstancePort + 1);
-            var auditInstancePort = FindAvailablePort(mainInstanceDbPort + 1);
+            var mainInstancePort = PortUtility.FindAvailablePort(startPort);
+            var mainInstanceDbPort = PortUtility.FindAvailablePort(mainInstancePort + 1);
+            var auditInstancePort = PortUtility.FindAvailablePort(mainInstanceDbPort + 1);
 
             await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort);
             await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort);
-        }
-
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
         }
 
         async Task InitializeServiceControl(ScenarioContext context, int instancePort, int maintenancePort, int auditInstanceApiPort)

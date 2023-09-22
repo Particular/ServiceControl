@@ -1,26 +1,24 @@
 ﻿namespace ServiceControl.AcceptanceTests
 {
     using System;
-    using System.IO;
-    using System.Linq;
-    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
-    using NUnit.Framework;
     using Persistence.RavenDb;
+    using Raven.Client.ServerWide.Operations;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class AcceptanceTestStorageConfiguration
     {
+        readonly string databaseName = Guid.NewGuid().ToString("n");
+
         public string PersistenceType { get; protected set; }
 
         public void CustomizeSettings(Settings settings)
         {
             settings.PersisterSpecificSettings = new RavenDBPersisterSettings
             {
-                DatabaseMaintenancePort = FindAvailablePort(settings.Port + 1),
-                DatabasePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
-                LogPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs"),
                 ErrorRetentionPeriod = TimeSpan.FromDays(10),
+                ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,
+                DatabaseName = databaseName
             };
         }
 
@@ -31,24 +29,13 @@
             return Task.CompletedTask;
         }
 
-        static int FindAvailablePort(int startPort)
+        public async Task Cleanup()
         {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
+            var documentStore = await SharedDatabaseSetup.SharedInstance.Connect();
 
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
+            // Comment this out temporarily to be able to inspect a database after the test has completed
+            var deleteDatabasesOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = new[] { databaseName }, HardDelete = true });
+            await documentStore.Maintenance.Server.SendAsync(deleteDatabasesOperation);
         }
-
-        public Task Cleanup() => Task.CompletedTask;
     }
 }

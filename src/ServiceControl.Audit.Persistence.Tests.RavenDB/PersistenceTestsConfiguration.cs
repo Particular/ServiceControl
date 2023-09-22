@@ -1,13 +1,12 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
-    using System.Linq;
-    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using global::Raven.Client;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Audit.Auditing.BodyStorage;
     using ServiceControl.Audit.Persistence.RavenDb;
+    using TestHelper;
     using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
@@ -26,7 +25,7 @@
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             settings.PersisterSpecificSettings["RavenDB35/RunInMemory"] = bool.TrueString;
-            settings.PersisterSpecificSettings["DatabaseMaintenancePort"] = FindAvailablePort(33334).ToString();
+            settings.PersisterSpecificSettings["DatabaseMaintenancePort"] = PortUtility.FindAvailablePort(33334).ToString();
             settings.PersisterSpecificSettings["HostName"] = "localhost";
 
             setSettings(settings);
@@ -63,23 +62,5 @@
         public IDocumentStore DocumentStore { get; private set; }
 
         public string Name => "RavenDB";
-
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
-        }
     }
 }

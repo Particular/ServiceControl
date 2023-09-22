@@ -128,7 +128,7 @@
             });
         }
 
-        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
+        public async Task<IDocumentStore> Connect(CancellationToken cancellationToken = default)
         {
             var dbOptions = new DatabaseOptions(configuration.DatabaseName)
             {
