@@ -13,7 +13,6 @@
     using NServiceBus.Settings;
     using NServiceBus.Unicast.Subscriptions;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Session;

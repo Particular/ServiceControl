@@ -7,7 +7,6 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using Persistence;
-    using Raven.Client;
     using Raven.Client.Documents;
 
     class FailedMessageViewIndexNotifications

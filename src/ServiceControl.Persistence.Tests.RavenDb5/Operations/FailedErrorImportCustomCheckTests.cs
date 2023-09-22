@@ -2,10 +2,8 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using PersistenceTests;
     using Raven.Client.Documents;
     using ServiceControl.Operations;
 

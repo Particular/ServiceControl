@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using ServiceControl.Persistence.UnitOfWork;
-    using Raven.Client;
     using Raven.Client.Documents;
 
     class RavenDbIngestionUnitOfWorkFactory : IIngestionUnitOfWorkFactory

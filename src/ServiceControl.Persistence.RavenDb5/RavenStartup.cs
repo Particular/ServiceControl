@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using NServiceBus.Logging;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Indexes;
 

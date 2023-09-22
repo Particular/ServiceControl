@@ -3,7 +3,6 @@ namespace ServiceControl.CustomChecks
     using System;
     using System.Threading.Tasks;
     using Contracts.CustomChecks;
-    using Infrastructure;
     using Infrastructure.DomainEvents;
     using NServiceBus.Logging;
     using ServiceControl.Persistence;

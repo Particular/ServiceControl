@@ -3,7 +3,6 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Monitoring;
     using Raven.Client.Indexes;
     using ServiceControl.Audit.Monitoring;
 

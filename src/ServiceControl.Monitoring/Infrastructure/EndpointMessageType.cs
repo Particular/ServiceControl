@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure
 {
-    using System;
-
     public readonly struct EndpointMessageType
     {
         public EndpointMessageType(string endpointName, string enclosedMessageTypes)

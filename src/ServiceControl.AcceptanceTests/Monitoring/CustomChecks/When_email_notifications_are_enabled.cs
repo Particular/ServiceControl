@@ -9,7 +9,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.RavenDb.Editing;
     using System;
     using System.IO;
     using System.Linq;
