@@ -9,6 +9,7 @@
     using NUnit.Framework;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Linq;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
 
     [TestFixture]
@@ -207,7 +208,7 @@
         [TestCase(FailedMessageStatus.Resolved, MessageStatus.ResolvedSuccessfully)]
         [TestCase(FailedMessageStatus.RetryIssued, MessageStatus.RetryIssued)]
         [TestCase(FailedMessageStatus.Unresolved, MessageStatus.Failed)]
-        public void Correct_status_for_failed_messages(FailedMessageStatus failedMessageStatus, MessageStatus expecteMessageStatus)
+        public async Task Correct_status_for_failed_messages(FailedMessageStatus failedMessageStatus, MessageStatus expecteMessageStatus)
         {
             using (var session = documentStore.OpenSession())
             {
@@ -219,7 +220,11 @@
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata =
+                            {
+                                ["MessageIntent"] = "Send",
+                                ["CriticalTime"] = TimeSpan.FromSeconds(1)
+                            }
                         }
                     },
                     Status = failedMessageStatus
@@ -230,12 +235,16 @@
 
             documentStore.WaitForIndexing();
 
-            using (var session = documentStore.OpenSession())
+            using (var session = documentStore.OpenAsyncSession())
             {
-                var message = session.Query<FailedMessage>()
-                    //.TransformWith<MessagesViewTransformer, MessagesView>()
-                    .Customize(x => x.WaitForNonStaleResults())
-                    .Single();
+                var query = session.Query<FailedMessage>()
+                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .Customize(x => x.WaitForNonStaleResults());
+
+                var result = await MessagesViewTransformer.Transform(query)
+                    .ToListAsync();
+
+                var message = result.Single();
 
                 Assert.AreEqual(expecteMessageStatus, message.Status);
             }

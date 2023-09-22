@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Raven.Client.Documents;
-using ServiceControl.Contracts.Operations;
 using ServiceControl.MessageFailures;
 using ServiceControl.MessageFailures.Api;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
-using ServiceControl.SagaAudit;
+using ServiceControl.Persistence.Tests.RavenDb5;
+using ServiceControl.Persistence.Tests.RavenDb5.ObjectExtensions;
 
 [TestFixture]
 class ErrorMessageDataStoreTests : PersistenceTestBase
@@ -68,82 +69,24 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
     {
         using (var session = documentStore.OpenAsyncSession())
         {
-            processedMessage1 = new FailedMessage
+            processedMessage1 = FailedMessageBuilder.Build(m =>
             {
-                Id = "1",
-                UniqueMessageId = "a",
-                Status = FailedMessageStatus.Unresolved,
-                ProcessingAttempts =
-                    {
-                        new FailedMessage.ProcessingAttempt
-                        {
-                            Headers =
-                            {
-                                ["Tomek"]="Wizard",
-                                ["Ramon"]="Cool",
-                            },
-                            AttemptedAt = DateTime.UtcNow,
-                            MessageMetadata =
-                            {
-                                ["TimeSent"]="2023-09-20T12:00:00",
-                                ["MessageId"]="x",
-                                ["MessageType"]="MyType",
-                                ["SendingEndpoint"]=new EndpointDetails{Host="host", HostId = Guid.NewGuid(), Name="RamonAndTomek"},
-                                ["ReceivingEndpoint"]=new EndpointDetails{Host="host", HostId = Guid.NewGuid(), Name="RamonAndTomek"},
-                                ["ConversationId"]="abc",
-                                ["MessageIntent"]="Send",
-                                ["BodyUrl"]="https://particular.net",
-                                ["ContentLength"]=11111,
-                                ["InvokedSagas"]=new[]{new SagaInfo{ChangeStatus = "YES!",SagaId = Guid.NewGuid(), SagaType = "XXX.YYY, RamonAndTomek"}},
-                                ["OriginatesFromSaga"]=new SagaInfo{ChangeStatus = "YES!",SagaId = Guid.NewGuid(), SagaType = "XXX.YYY, RamonAndTomek"},
-                                ["CriticalTime"]=TimeSpan.FromSeconds(5),
-                                ["ProcessingTime"]=TimeSpan.FromSeconds(5),
-                                ["DeliveryTime"]=TimeSpan.FromSeconds(5),
-                                ["IsSystemMessage"]=false,
-                            },
-                            FailureDetails = new FailureDetails()
-                        }
-                    }
-            };
+                m.Id = "1";
+                m.UniqueMessageId = "a";
+                m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
+                m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(5);
+            });
+
             await session.StoreAsync(processedMessage1);
 
-            processedMessage2 = new FailedMessage
+            processedMessage2 = FailedMessageBuilder.Build(m =>
             {
-                Id = "2",
-                UniqueMessageId = "b",
-                Status = FailedMessageStatus.Unresolved,
-                ProcessingAttempts =
-                    {
-                        new FailedMessage.ProcessingAttempt
-                        {
-                            Headers =
-                            {
-                                ["Tomek"]="Wizard",
-                                ["Ramon"]="Cool",
-                            },
-                            AttemptedAt = DateTime.UtcNow,
-                            MessageMetadata =
-                            {
-                                ["TimeSent"]="2023-09-20T12:00:05",
-                                ["MessageId"]="y",
-                                ["MessageType"]="MyType",
-                                ["SendingEndpoint"]=new EndpointDetails{Host="host", HostId = Guid.NewGuid(), Name="RamonAndTomek"},
-                                ["ReceivingEndpoint"]=new EndpointDetails{Host="host", HostId = Guid.NewGuid(), Name="RamonAndTomek"},
-                                ["ConversationId"]="abc",
-                                ["MessageIntent"]="Send",
-                                ["BodyUrl"]="https://particular.net",
-                                ["ContentLength"]=22222,
-                                ["InvokedSagas"]=new[]{new SagaInfo{ChangeStatus = "YES!",SagaId = Guid.NewGuid(), SagaType = "XXX.YYY, RamonAndTomek"}},
-                                ["OriginatesFromSaga"]=new SagaInfo{ChangeStatus = "YES!",SagaId = Guid.NewGuid(), SagaType = "XXX.YYY, RamonAndTomek"},
-                                ["CriticalTime"]=TimeSpan.FromSeconds(15),
-                                ["ProcessingTime"]=TimeSpan.FromSeconds(15),
-                                ["DeliveryTime"]=TimeSpan.FromSeconds(15),
-                                ["IsSystemMessage"]=false,
-                            },
-                            FailureDetails = new FailureDetails()
-                        }
-                    }
-            };
+                m.Id = "2";
+                m.UniqueMessageId = "b";
+                m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
+                m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
+            });
+
             await session.StoreAsync(processedMessage2);
 
             await session.SaveChangesAsync();
