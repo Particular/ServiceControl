@@ -26,7 +26,8 @@
             using (var session = store.OpenAsyncSession())
             {
                 // not really interested in the batch results since a batch is atomic
-                session.Advanced.Defer(commands.ToArray());
+                var commands = this.commands.ToArray();
+                session.Advanced.Defer(commands);
                 await session.SaveChangesAsync();
             }
         }

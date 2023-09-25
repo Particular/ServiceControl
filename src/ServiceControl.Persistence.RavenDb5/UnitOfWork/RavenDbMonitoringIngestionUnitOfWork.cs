@@ -31,7 +31,7 @@
             return new PatchCommandData(docId, null, new PatchRequest
             {
                 //TODO: check if this works
-                Script = $"put('{KnownEndpoint.CollectionName}/', {document}"
+                Script = $"put('{KnownEndpoint.CollectionName}/', {document})"
             });
         }
 
