@@ -89,9 +89,16 @@
 
         public override async Task TearDown()
         {
-            // Comment this out temporarily to be able to inspect a database after the test has completed
-            var deleteDatabasesOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = new[] { databaseName }, HardDelete = true });
-            await documentStore.Maintenance.Server.SendAsync(deleteDatabasesOperation);
+            try
+            {
+                // Comment this out temporarily to be able to inspect a database after the test has completed
+                var deleteDatabasesOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = new[] { databaseName }, HardDelete = true });
+                await documentStore.Maintenance.Server.SendAsync(deleteDatabasesOperation);
+            }
+            catch (OperationCanceledException ex)
+            {
+                throw new Exception("OCE during database deletion, review if the document store is accidentally disposed too early in the test", ex);
+            }
         }
     }
 }

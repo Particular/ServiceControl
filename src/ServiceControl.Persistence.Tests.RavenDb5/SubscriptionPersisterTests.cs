@@ -56,13 +56,6 @@
             documentStore = GetRequiredService<IDocumentStore>();
         }
 
-        [TearDown]
-        public new async Task TearDown()
-        {
-            await base.TearDown();
-            documentStore.Dispose();
-        }
-
         IDocumentStore documentStore;
     }
 
