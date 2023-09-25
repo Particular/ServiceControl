@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using BodyStorage;
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
@@ -25,7 +24,6 @@
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
-            IBodyStorage bodyStorage,
             IIngestionUnitOfWorkFactory unitOfWorkFactory, Settings settings)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
@@ -42,8 +40,7 @@
 
             }.Concat(errorEnrichers).ToArray();
 
-            var bodyStorageEnricher = new BodyStorageEnricher(bodyStorage, settings);
-            errorProcessor = new ErrorProcessor(bodyStorageEnricher, enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
+            errorProcessor = new ErrorProcessor(enrichers, failedMessageEnrichers.ToArray(), domainEvents, ingestedMeter);
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 

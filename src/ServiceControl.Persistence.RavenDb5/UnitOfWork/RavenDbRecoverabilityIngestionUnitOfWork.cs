@@ -2,9 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
 
@@ -18,13 +20,13 @@
         }
 
         public Task RecordFailedProcessingAttempt(
-            string uniqueMessageId,
+            MessageContext context,
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
-            parentUnitOfWork.AddCommand(
-                CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups)
-            );
+            var uniqueMessageId = context.Headers.UniqueId();
+            var storeMessageCmd = CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups);
+            parentUnitOfWork.AddCommand(storeMessageCmd);
             return Task.CompletedTask;
         }
 

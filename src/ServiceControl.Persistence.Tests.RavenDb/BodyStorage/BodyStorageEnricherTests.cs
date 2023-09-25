@@ -8,7 +8,6 @@ namespace ServiceControl.UnitTests.BodyStorage
     using MessageFailures;
     using NServiceBus;
     using NUnit.Framework;
-    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations.BodyStorage;
 
     [TestFixture]
@@ -21,7 +20,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         public async Task Should_store_body_in_storage_when_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
-            var settings = new Settings();
+            var settings = new RavenDBPersisterSettings();
 
             var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MinBodySizeAboveLOHThreshold;
@@ -42,7 +41,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         public async Task Should_store_body_in_metadata_when_not_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
-            var settings = new Settings();
+            var settings = new RavenDBPersisterSettings();
 
             var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MaxBodySizeBelowLOHThreshold;
@@ -63,7 +62,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         public async Task Should_store_body_in_non_indexed_metadata_when_full_text_disabled_and_not_binary_and_below_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
-            var settings = new Settings
+            var settings = new RavenDBPersisterSettings
             {
                 EnableFullTextSearchOnBodies = false,
             };
@@ -86,7 +85,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         public async Task Should_store_body_in_storage_when_not_binary_and_above_LOH_threshold()
         {
             var fakeStorage = new FakeBodyStorage();
-            var settings = new Settings();
+            var settings = new RavenDBPersisterSettings();
 
             var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var expectedBodySize = MinBodySizeAboveLOHThreshold;
@@ -106,7 +105,7 @@ namespace ServiceControl.UnitTests.BodyStorage
         public async Task Should_store_body_in_storage_when_encoding_fails()
         {
             var fakeStorage = new FakeBodyStorage();
-            var settings = new Settings();
+            var settings = new RavenDBPersisterSettings();
 
             var enricher = new BodyStorageEnricher(fakeStorage, settings);
             var body = new byte[] { 0x00, 0xDE };

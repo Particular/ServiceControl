@@ -5,9 +5,6 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Attachments;
 
-    // TODO: For Raven5, look at how the Audit instance is implementing this, as Attachments won't exist
-    //       and there will be no need for a fallback method on a new persistence
-    // Ramon: Don't understand the comment, audit RavenDB 5 is using attachments....
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
         const string AttachmentName = "body";

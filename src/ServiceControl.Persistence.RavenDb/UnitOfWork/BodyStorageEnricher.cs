@@ -1,17 +1,18 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
-    using Infrastructure;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ProcessingAttempt = MessageFailures.FailedMessage.ProcessingAttempt;
 
     class BodyStorageEnricher
     {
-        public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+        public BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
         {
             this.settings = settings;
             this.bodyStorage = bodyStorage;
@@ -58,6 +59,7 @@
             {
                 try
                 {
+                    // TODO: Make sure this is set, I just added the property to PersistenceSettings because I didn't have access to the root Settings
                     if (settings.EnableFullTextSearchOnBodies)
                     {
                         processingAttempt.MessageMetadata.Add("Body", enc.GetString(body));
@@ -93,7 +95,7 @@
         static readonly Encoding enc = new UTF8Encoding(true, true);
         static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
         readonly IBodyStorage bodyStorage;
-        readonly Settings settings;
+        readonly PersistenceSettings settings;
 
         // large object heap starts above 85000 bytes and not above 85 KB!
         internal const int LargeObjectHeapThreshold = 85 * 1000;
