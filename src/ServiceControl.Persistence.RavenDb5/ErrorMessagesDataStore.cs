@@ -37,8 +37,6 @@
             bool includeSystemMessages
             )
         {
-            await Task.Yield();
-
             using (var session = documentStore.OpenAsyncSession())
             {
                 var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
