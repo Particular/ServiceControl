@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Reflection;
@@ -12,6 +13,7 @@
     using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl;
+    using PersistenceTests;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
@@ -24,10 +26,10 @@
         /// instantiate each of the WebAPI controllers present in the ServiceControl app.
         /// </summary>
         [Test]
-        public Task EnsurePersistenceProvidesAllControllerDependencies()
+        public async Task EnsurePersistenceProvidesAllControllerDependencies()
         {
             // Arrange
-            //var testPersistence = null; //TODO: new TestPersistenceImpl();
+            var testPersistence = new TestPersistenceImpl();
 
             var assembly = Assembly.GetAssembly(typeof(WebApiHostBuilderExtensions));
             var controllerTypes = assembly.DefinedTypes
@@ -42,12 +44,12 @@
                     serviceCollection.AddSingleton<IDomainEvents, DomainEvents>();
                     serviceCollection.AddSingleton(new LoggingSettings("test"));
 
-                    //testPersistence.Configure(serviceCollection);
+                    testPersistence.Configure(serviceCollection);
                 })
                 .UseNServiceBus(_ =>
                 {
                     var config = new EndpointConfiguration("test");
-                    config.UseTransport<LearningTransport>();
+                    config.UseTransport<LearningTransport>().StorageDirectory(Path.Combine(TestContext.CurrentContext.WorkDirectory, "DependencyTest"));
                     return config;
                 })
                 .UseServiceControlComponents(new Settings(), ServiceControlMainInstance.Components);
@@ -57,15 +59,10 @@
                 .UseWebApi(new List<Assembly> { assembly }, string.Empty, false)
                 .Build();
 
+            await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+
             // Assert
             Assert.That(host, Is.Not.Null);
-
-            // TODO: Kind of a hack, but gets the job done, since Raven35/5 have different startup requirements
-            // Could come up with a more cohesive way of doing this or just remove the IF when Raven35 goes away
-            //if (testPersistence.GetType().Assembly.FullName.Contains("RavenDb5"))
-            //{
-            //    await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-            //}
 
             // Make sure the list isn't suddenly empty
             Assert.That(controllerTypes.Length, Is.GreaterThan(10));
@@ -74,8 +71,6 @@
                 Console.WriteLine($"Getting service {controllerType.FullName}");
                 Assert.That(host.Services.GetService(controllerType), Is.Not.Null);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
