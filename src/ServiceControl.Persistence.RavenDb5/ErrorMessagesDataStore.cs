@@ -28,7 +28,6 @@
         public ErrorMessagesDataStore(IDocumentStore documentStore)
         {
             this.documentStore = documentStore;
-
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -47,7 +46,6 @@
                         .ProjectInto<MessagesViewTransformer.Input>();
 
                 var results = await MessagesViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -72,7 +70,6 @@
                     .ProjectInto<MessagesViewTransformer.Input>();
 
                 var results = await MessagesViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -97,7 +94,6 @@
                     .ProjectInto<MessagesViewTransformer.Input>();
 
                 var results = await MessagesViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -121,7 +117,6 @@
                     .ProjectInto<MessagesViewTransformer.Input>();
 
                 var results = await MessagesViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -144,7 +139,6 @@
                     .ProjectInto<MessagesViewTransformer.Input>();
 
                 var results = await MessagesViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
@@ -257,7 +251,6 @@
                     .ToQueryable();
 
                 var results = await FailedMessageViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -306,7 +299,6 @@
                     .ToQueryable();
 
                 var results = await FailedMessageViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -482,7 +474,6 @@
                     .ToQueryable();
 
                 var results = await FailedMessageViewTransformer.Transform(query)
-                    // TODO: Sort not working, seems to work if OrderBy is done here
                     .ToListAsync();
 
                 return results.ToQueryResult(stats);

@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using MessageFailures;
@@ -13,21 +12,10 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var results =
                 from message in query
-                let metadata = message.ProcessingAttempts != null
-                    ? message.ProcessingAttempts.Last().MessageMetadata
-                    : message.MessageMetadata
-                let headers =
-                    message.ProcessingAttempts != null ? message.ProcessingAttempts.Last().Headers : message.Headers
-                let processedAt =
-                    message.ProcessingAttempts != null
-                        ? message.ProcessingAttempts.Last().AttemptedAt
-                        : message.ProcessedAt
-                let status =
-                    message.ProcessingAttempts == null
-                        ? !(bool)message.MessageMetadata["IsRetried"]
-                            ? MessageStatus.Successful
-                            : MessageStatus.ResolvedSuccessfully
-                        : message.Status == FailedMessageStatus.Resolved
+                let metadata = message.ProcessingAttempts.Last().MessageMetadata
+                let headers = message.ProcessingAttempts.Last().Headers
+                let processedAt = message.ProcessingAttempts.Last().AttemptedAt
+                let status = message.Status == FailedMessageStatus.Resolved
                             ? MessageStatus.ResolvedSuccessfully
                             : message.Status == FailedMessageStatus.RetryIssued
                                 ? MessageStatus.RetryIssued
@@ -39,7 +27,7 @@ namespace ServiceControl.CompositeViews.Messages
                 select new // Cannot use type here as this is projected server-side
                 {
                     Id = message.UniqueMessageId,
-                    MessageId = metadata["MessageId"],
+                    message.MessageId,
                     MessageType = metadata["MessageType"],
                     SendingEndpoint = metadata["SendingEndpoint"],
                     ReceivingEndpoint = metadata["ReceivingEndpoint"],
@@ -64,15 +52,11 @@ namespace ServiceControl.CompositeViews.Messages
             return results.OfType<MessagesView>();
         }
 
-        public class Input
+        public class Input : MessagesViewIndex.SortAndFilterOptions
         {
-            public string Id { get; set; }
-            public string UniqueMessageId { get; set; }
-            public DateTime ProcessedAt { get; set; }
-            public Dictionary<string, string> Headers { get; set; }
-            public Dictionary<string, object> MessageMetadata { get; set; }
-            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; set; }
-            public FailedMessageStatus Status { get; set; }
+            public new FailedMessageStatus Status { get; }
+            public string UniqueMessageId { get; }
+            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; }
         }
     }
 

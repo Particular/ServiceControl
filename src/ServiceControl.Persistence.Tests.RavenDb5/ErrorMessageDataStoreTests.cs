@@ -73,6 +73,8 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
                 m.UniqueMessageId = "a";
                 m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
                 m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(5);
+                m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:00:00");
+                m.ProcessingAttempts.First().MessageId = "MessageId-1";
             });
 
             await session.StoreAsync(processedMessage1);
@@ -83,6 +85,8 @@ class ErrorMessageDataStoreTests : PersistenceTestBase
                 m.UniqueMessageId = "b";
                 m.ProcessingAttempts.First().MessageMetadata["ReceivingEndpoint"].CastTo<EndpointDetails>().Name = "RamonAndTomek";
                 m.ProcessingAttempts.First().MessageMetadata["CriticalTime"] = TimeSpan.FromSeconds(15);
+                m.ProcessingAttempts.First().MessageMetadata["TimeSent"] = DateTime.Parse("2023-09-23 00:01:00");
+                m.ProcessingAttempts.First().MessageId = "MessageId-2";
             });
 
             await session.StoreAsync(processedMessage2);
