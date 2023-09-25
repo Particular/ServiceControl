@@ -67,7 +67,7 @@
 
         async Task DoLogging(Exception exception, FailedErrorImport failure)
         {
-            failure.Id = Guid.NewGuid();
+            failure.Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid());
 
             // Write to data store
             await store.StoreFailedErrorImport(failure);

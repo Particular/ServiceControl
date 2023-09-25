@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.Operations
 {
+    using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.CustomChecks;
@@ -37,7 +38,12 @@
 
             using (var session = DocumentStore.OpenAsyncSession())
             {
-                await session.StoreAsync(new FailedErrorImport());
+                await session.StoreAsync(new FailedErrorImport
+                {
+                    Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid())
+                });
+
+                BlockToInspectDatabase();
                 await session.SaveChangesAsync();
             }
 

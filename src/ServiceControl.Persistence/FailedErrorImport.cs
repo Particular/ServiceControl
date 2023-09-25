@@ -4,7 +4,9 @@ namespace ServiceControl.Operations
 
     public class FailedErrorImport
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
         public FailedTransportMessage Message { get; set; }
+
+        public static string MakeDocumentId(Guid id) => $"FailedErrorImports/{id}";
     }
 }
