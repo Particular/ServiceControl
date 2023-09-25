@@ -16,6 +16,7 @@
     using ServiceControl.Audit.Persistence.Infrastructure;
     using ServiceControl.Audit.Persistence.Monitoring;
     using ServiceControl.EndpointPlugin.Messages.SagaState;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Metrics;
     using ServiceControl.SagaAudit;
     using JsonSerializer = Newtonsoft.Json.JsonSerializer;

@@ -10,7 +10,6 @@
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
-    using ServiceControl.Audit.Persistence.RavenDb.Infrastructure;
     using ServiceControl.SagaAudit;
 
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
@@ -43,7 +42,7 @@
 
             if (body != null)
             {
-                using (var stream = Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length))
+                using (var stream = ServiceControl.Infrastructure.Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length))
                 {
                     if (!processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType))
                     {
