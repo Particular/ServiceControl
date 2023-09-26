@@ -11,6 +11,6 @@
 
 
         // TODO: This isn't set yet, but body storage, index creation will all need to know this
-        public bool EnableFullTextSearchOnBodies { get; set; }
+        public bool EnableFullTextSearchOnBodies { get; set; } = true;
     }
 }
