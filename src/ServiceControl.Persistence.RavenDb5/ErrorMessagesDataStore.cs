@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Editing;
     using NServiceBus.Logging;
+    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Linq;
@@ -24,10 +25,12 @@
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
         readonly IDocumentStore documentStore;
+        readonly TimeSpan eventsRetentionPeriod;
 
-        public ErrorMessagesDataStore(IDocumentStore documentStore)
+        public ErrorMessagesDataStore(IDocumentStore documentStore, RavenDBPersisterSettings settings)
         {
             this.documentStore = documentStore;
+            eventsRetentionPeriod = settings.EventsRetentionPeriod;
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -732,9 +735,14 @@
 
         public async Task StoreEventLogItem(EventLogItem logItem)
         {
+            var expiration = DateTime.UtcNow + eventsRetentionPeriod;
+
             using (var session = documentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(logItem);
+
+                session.Advanced.GetMetadataFor(logItem)[Constants.Documents.Metadata.Expires] = expiration;
+
                 await session.SaveChangesAsync();
             }
         }
