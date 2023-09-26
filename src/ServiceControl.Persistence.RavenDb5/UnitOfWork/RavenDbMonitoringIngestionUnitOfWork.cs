@@ -28,11 +28,19 @@
 
             var docId = RavenDbMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId());
 
-            return new PatchCommandData(docId, null, new PatchRequest
+            var request = new PatchRequest
             {
-                //TODO: check if this works
-                Script = $"put('{KnownEndpoint.CollectionName}/', {document})"
-            });
+                Script = @$"
+                    var insert = {document};
+                    
+                    for(var key in insert) {{
+                        if(insert.hasOwnProperty(key)) {{
+                            this[key] = insert[key];
+                        }}
+                    }}"
+            };
+
+            return new PatchCommandData(docId, null, request, request);
         }
 
         static RavenDbMonitoringIngestionUnitOfWork()
