@@ -60,8 +60,10 @@
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueMessageId);
 
-            //HINT: RavenDB 3.5 is using Lodash v4.13.1 to provide javascript utility functions
-            //      https://ravendb.net/docs/article-page/3.5/csharp/client-api/commands/patches/how-to-use-javascript-to-patch-your-documents#methods-objects-and-variables
+            const string ProcessingAttempts = nameof(FailedMessage.ProcessingAttempts);
+            const string AttemptedAt = nameof(FailedMessage.ProcessingAttempt.AttemptedAt);
+
+            //HINT: RavenDB 4.2 removed Lodash utility functions, but supports ECMAScript 5.1 and some 6.0 features like arrow functions and array primitive functions
             return new PatchCommandData(documentId, null, new PatchRequest
             {
                 Script = $@"this.{nameof(FailedMessage.Status)} = args.status;
@@ -70,27 +72,21 @@
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
                                 //De-duplicate attempts by AttemptedAt value
+                                var duplicateIndex = this.{ProcessingAttempts}.findIndex(a => a.{AttemptedAt} === attempt.{AttemptedAt});
 
-                                var duplicateIndex = _.findIndex(this.{nameof(FailedMessage.ProcessingAttempts)}, function(a){{
-                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)} === attempt.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
-                                }});
-
-                                if(duplicateIndex === -1){{
-                                    newAttempts = _.union(newAttempts, [args.attempt]);
+                                if(duplicateIndex < 0){{
+                                    newAttempts.push(args.attempt);
                                 }}
 
-                                //Trim to the latest MaxProcessingAttempts 
-                                
-                                newAttempts = _.sortBy(newAttempts, function(a) {{
-                                    return a.{nameof(FailedMessage.ProcessingAttempt.AttemptedAt)};
-                                }});
+                                //Trim to the latest MaxProcessingAttempts
+                                newAttempts.sort((a, b) => a.{AttemptedAt} > b.{AttemptedAt} ? 1 : -1);
                                 
                                 if(newAttempts.length > {MaxProcessingAttempts})
                                 {{
-                                    newAttempts = _.slice(newAttempts, newAttempts.length - {MaxProcessingAttempts}, newAttempts.length); 
+                                    newAttempts = newAttempts.slice(newAttempts.length - {MaxProcessingAttempts}, newAttempts.length);
                                 }}
 
-                                this.{nameof(FailedMessage.ProcessingAttempts)} = newAttempts;
+                                this.{ProcessingAttempts} = newAttempts;
                                 ",
                 Values = new Dictionary<string, object>
                     {
