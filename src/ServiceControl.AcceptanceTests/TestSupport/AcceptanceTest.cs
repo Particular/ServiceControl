@@ -21,6 +21,7 @@ namespace ServiceControl.AcceptanceTests
     using TestSupport;
 
     [TestFixture]
+    [Parallelizable(ParallelScope.All)]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
     {
         protected AcceptanceTest()

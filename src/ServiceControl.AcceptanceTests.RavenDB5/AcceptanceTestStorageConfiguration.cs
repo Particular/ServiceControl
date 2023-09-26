@@ -10,7 +10,11 @@
 
         public string PersistenceType { get; protected set; }
 
-        public void CustomizeSettings(Settings settings) => databaseLease.CustomizeSettings(settings);
+        public void CustomizeSettings(Settings settings)
+        {
+            databaseLease.CustomizeSettings(settings);
+            settings.Port = databaseLease.LeasePort();
+        }
 
         public Task Configure()
         {

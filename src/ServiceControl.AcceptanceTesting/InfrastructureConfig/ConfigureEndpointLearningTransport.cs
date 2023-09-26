@@ -11,8 +11,7 @@
     {
         public ConfigureEndpointLearningTransport()
         {
-            var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport");
-            ConnectionString = Path.GetFullPath(relativePath);
+            ConnectionString = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "TestTransport", TestContext.CurrentContext.Test.ID);
         }
 
         public string ConnectionString { get; set; }
