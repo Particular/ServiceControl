@@ -2,13 +2,16 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
+    using Sparrow.Json.Parsing;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
@@ -25,8 +28,16 @@
             List<FailedMessage.FailureGroup> groups)
         {
             var uniqueMessageId = context.Headers.UniqueId();
+            var bodyId = processingAttempt.Headers.MessageId();
+            var contentType = GetContentType(context.Headers, "text/xml");
+            processingAttempt.MessageMetadata.Add("ContentType", contentType);
+            processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{bodyId}/body");
+
             var storeMessageCmd = CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups);
             parentUnitOfWork.AddCommand(storeMessageCmd);
+
+            AddStoreBodyCommands(context, contentType);
+
             return Task.CompletedTask;
         }
 
@@ -107,6 +118,31 @@
                         {"uniqueMessageId", uniqueMessageId}
                     }
                 });
+        }
+
+        void AddStoreBodyCommands(MessageContext context, string contentType)
+        {
+            var messageId = context.Headers.MessageId();
+            var documentId = $"MessageBodies/{messageId}";
+
+            var emptyDoc = new DynamicJsonValue();
+            var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
+
+            var stream = Memory.Manager.GetStream(context.Body);
+            var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
+
+            parentUnitOfWork.AddCommand(putOwnerDocumentCmd);
+            parentUnitOfWork.AddCommand(putAttachmentCmd);
+        }
+
+        static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
+        {
+            if (!headers.TryGetValue(Headers.ContentType, out var contentType))
+            {
+                contentType = defaultContentType;
+            }
+
+            return contentType;
         }
 
         static int MaxProcessingAttempts = 10;

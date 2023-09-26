@@ -516,11 +516,13 @@
 
         public async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
+
             using (var session = documentStore.OpenAsyncSession())
             {
                 session.Advanced.UseOptimisticConcurrency = true;
 
-                var failedMessage = await session.LoadAsync<FailedMessage>(failedMessageId);
+                var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
 
                 if (failedMessage == null)
                 {

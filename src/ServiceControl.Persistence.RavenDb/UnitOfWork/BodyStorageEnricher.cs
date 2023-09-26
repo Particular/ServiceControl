@@ -12,7 +12,7 @@
 
     class BodyStorageEnricher
     {
-        public BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
+        public BodyStorageEnricher(IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
         {
             this.settings = settings;
             this.bodyStorage = bodyStorage;

@@ -33,11 +33,11 @@
 
         public async Task<MessageBodyStreamResult> TryFetch(string messageId)
         {
-            //var messageId = MessageBodyIdGenerator.MakeDocumentId(bodyId); // TODO: Not needed? Not used by audit
+            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
 
             using var session = documentStore.OpenAsyncSession();
 
-            var result = await session.Advanced.Attachments.GetAsync(messageId, AttachmentName);
+            var result = await session.Advanced.Attachments.GetAsync(documentId, AttachmentName);
 
             if (result == null)
             {

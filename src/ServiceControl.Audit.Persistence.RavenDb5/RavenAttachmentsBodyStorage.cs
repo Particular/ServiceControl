@@ -29,7 +29,7 @@
         {
             using (var session = sessionProvider.OpenSession())
             {
-                var result = await session.Advanced.Attachments.GetAsync($"message/{bodyId}", "body");
+                var result = await session.Advanced.Attachments.GetAsync($"MessageBodies/{bodyId}", "body");
 
                 if (result == null)
                 {

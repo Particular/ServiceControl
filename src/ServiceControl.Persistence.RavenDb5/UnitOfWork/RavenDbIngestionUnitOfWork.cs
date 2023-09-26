@@ -2,24 +2,25 @@
 {
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
-    using ServiceControl.Persistence.UnitOfWork;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbIngestionUnitOfWork : IngestionUnitOfWorkBase
     {
         readonly IDocumentStore store;
-        readonly ConcurrentBag<ICommandData> commands;
+        // Must be ordered - can't put attachments until after document exists
+        readonly ConcurrentQueue<ICommandData> commands;
 
         public RavenDbIngestionUnitOfWork(IDocumentStore store)
         {
             this.store = store;
-            commands = new ConcurrentBag<ICommandData>();
+            commands = new ConcurrentQueue<ICommandData>();
             Monitoring = new RavenDbMonitoringIngestionUnitOfWork(this);
             Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this);
         }
 
-        internal void AddCommand(ICommandData command) => commands.Add(command);
+        internal void AddCommand(ICommandData command) => commands.Enqueue(command);
 
         public override async Task Complete()
         {
