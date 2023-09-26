@@ -11,14 +11,19 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
+
     class StartupModeTests : AcceptanceTest
     {
         Settings settings;
+        DatabaseLease database;
 
         [SetUp]
         public void InitializeSettings()
         {
             var transportIntegration = new ConfigureEndpointLearningTransport();
+
+            database = SharedDatabaseSetup.LeaseDatabase();
+
             settings = new Settings(
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
@@ -27,10 +32,19 @@
                 PersisterSpecificSettings = new RavenDBPersisterSettings
                 {
                     ErrorRetentionPeriod = TimeSpan.FromDays(1),
+                    ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,
+                    DatabaseName = database.DatabaseName
                 },
                 TransportType = transportIntegration.TypeName,
-                TransportConnectionString = transportIntegration.ConnectionString
+                TransportConnectionString = transportIntegration.ConnectionString,
+
             };
+        }
+
+        [TearDown]
+        public async Task Cleanup()
+        {
+            await database.DisposeAsync();
         }
 
         [Test]
