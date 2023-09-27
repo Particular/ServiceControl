@@ -18,6 +18,11 @@
         [Test]
         public async Task Should_capture_all_outgoing_message_intents()
         {
+            if (typeof(AcceptanceTest).Assembly.FullName.Contains("RavenDB5"))
+            {
+                Assert.Ignore("SagaAudit data is not stored in RavenDB 5");
+            }
+
             SagaHistory sagaHistory = null;
 
             var context = await Define<MyContext>()
