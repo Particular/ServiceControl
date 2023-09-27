@@ -47,7 +47,7 @@
                     try
                     {
                         var bodyString = utf8.GetString(context.Body);
-                        processingAttempt.MessageMetadata.Add("Body", bodyString);
+                        processingAttempt.MessageMetadata.Add("MsgFullText", bodyString);
                     }
                     catch (ArgumentException)
                     {
