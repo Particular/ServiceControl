@@ -56,7 +56,8 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
-                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault)
+                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault),
+                EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
 
             CheckFreeDiskSpace.Validate(settings);

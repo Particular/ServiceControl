@@ -12,12 +12,12 @@
         // Must be ordered - can't put attachments until after document exists
         readonly ConcurrentQueue<ICommandData> commands;
 
-        public RavenDbIngestionUnitOfWork(IDocumentStore store)
+        public RavenDbIngestionUnitOfWork(IDocumentStore store, RavenDBPersisterSettings settings)
         {
             this.store = store;
             commands = new ConcurrentQueue<ICommandData>();
             Monitoring = new RavenDbMonitoringIngestionUnitOfWork(this);
-            Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this);
+            Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this, settings.EnableFullTextSearchOnBodies);
         }
 
         internal void AddCommand(ICommandData command) => commands.Enqueue(command);

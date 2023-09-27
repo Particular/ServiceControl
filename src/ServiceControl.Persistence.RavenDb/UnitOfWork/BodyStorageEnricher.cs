@@ -59,7 +59,6 @@
             {
                 try
                 {
-                    // TODO: Make sure this is set, I just added the property to PersistenceSettings because I didn't have access to the root Settings
                     if (settings.EnableFullTextSearchOnBodies)
                     {
                         processingAttempt.MessageMetadata.Add("Body", enc.GetString(body));

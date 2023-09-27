@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
+    using System;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Transport;
@@ -15,11 +17,13 @@
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
-        RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly bool doFullTextIndexing;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork)
+        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, bool doFullTextIndexing)
         {
             this.parentUnitOfWork = parentUnitOfWork;
+            this.doFullTextIndexing = doFullTextIndexing;
         }
 
         public Task RecordFailedProcessingAttempt(
@@ -32,6 +36,25 @@
             var contentType = GetContentType(context.Headers, "text/xml");
             processingAttempt.MessageMetadata.Add("ContentType", contentType);
             processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{bodyId}/body");
+
+            if (doFullTextIndexing)
+            {
+                var bodySize = context.Body?.Length ?? 0;
+                var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
+                var isBinary = processingAttempt.Headers.IsBinary();
+                if (avoidsLargeObjectHeap && !isBinary)
+                {
+                    try
+                    {
+                        var bodyString = utf8.GetString(context.Body);
+                        processingAttempt.MessageMetadata.Add("Body", bodyString);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // If it won't decode to text, don't index it
+                    }
+                }
+            }
 
             var storeMessageCmd = CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups);
             parentUnitOfWork.AddCommand(storeMessageCmd);
@@ -142,5 +165,9 @@
         }
 
         static int MaxProcessingAttempts = 10;
+        // large object heap starts above 85000 bytes and not above 85 KB!
+        internal const int LargeObjectHeapThreshold = 85_000;
+        static readonly Encoding utf8 = new UTF8Encoding(true, true);
+
     }
 }
