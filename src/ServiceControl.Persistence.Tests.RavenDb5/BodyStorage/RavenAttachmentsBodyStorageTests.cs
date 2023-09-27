@@ -3,9 +3,7 @@
     using System;
     using System.IO;
     using System.Threading.Tasks;
-    using MessageFailures;
     using NUnit.Framework;
-    using Raven.Client.Documents;
 
     [TestFixture]
     sealed class RavenAttachmentsBodyStorageTests : PersistenceTestBase
@@ -16,12 +14,6 @@
             var messageId = "3f0240a7-9b2e-4e2a-ab39-6114932adad1\\2055783";
             var contentType = "NotImportant";
             var body = BitConverter.GetBytes(0xDEADBEEF);
-
-            using (var session = GetRequiredService<IDocumentStore>().OpenAsyncSession())
-            {
-                await session.StoreAsync(new FailedMessage { Id = messageId });
-                await session.SaveChangesAsync();
-            }
 
             await BodyStorage.Store(messageId, contentType, body.Length, new MemoryStream(body));
 

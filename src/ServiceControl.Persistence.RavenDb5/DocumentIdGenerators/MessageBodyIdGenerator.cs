@@ -1,6 +1,6 @@
 ﻿static class MessageBodyIdGenerator
 {
-    const string CollectionName = "messagebodies";
+    const string CollectionName = "MessageBodies";
 
     public static string MakeDocumentId(string messageUniqueId)
     {

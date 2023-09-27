@@ -1,9 +1,13 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
     using System.IO;
+    using System.Runtime.Remoting.Contexts;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations.Attachments;
+    using ServiceControl.Infrastructure;
+    using Sparrow.Json.Parsing;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
@@ -15,20 +19,21 @@
             this.documentStore = documentStore;
         }
 
+        // TODO: This method is only used in tests and not by ServiceControl itself! But in the Raven3.5 persister, it IS used!
+        // It should probably be removed and tests should use the RavenDbRecoverabilityIngestionUnitOfWork
         public async Task Store(string messageId, string contentType, int bodySize, Stream bodyStream)
         {
-            // var id = MessageBodyIdGenerator.MakeDocumentId(messageId); // TODO: Not needed? Not used by audit
+            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
+
+            var emptyDoc = new DynamicJsonValue();
+            var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
+
+            var stream = bodyStream;
+            var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
             using var session = documentStore.OpenAsyncSession();
-
-            // Following is possible to but not documented in the Raven docs.
-            //session.Advanced.Attachments.Store(messageId,"body",bodyStream,contentType);
-            // https://ravendb.net/docs/article-page/5.4/csharp/client-api/operations/attachments/get-attachment
-            _ = await documentStore.Operations.SendAsync(
-                    new PutAttachmentOperation(messageId,
-                        AttachmentName,
-                        bodyStream,
-                        contentType));
+            session.Advanced.Defer(new ICommandData[] { putOwnerDocumentCmd, putAttachmentCmd });
+            await session.SaveChangesAsync();
         }
 
         public async Task<MessageBodyStreamResult> TryFetch(string messageId)

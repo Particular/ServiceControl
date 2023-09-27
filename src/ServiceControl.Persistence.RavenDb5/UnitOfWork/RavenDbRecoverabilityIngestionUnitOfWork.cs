@@ -142,7 +142,7 @@
         void AddStoreBodyCommands(MessageContext context, string contentType)
         {
             var messageId = context.Headers.MessageId();
-            var documentId = $"MessageBodies/{messageId}";
+            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
 
             var emptyDoc = new DynamicJsonValue();
             var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
