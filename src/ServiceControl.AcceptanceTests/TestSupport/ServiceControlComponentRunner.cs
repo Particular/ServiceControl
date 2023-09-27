@@ -51,8 +51,6 @@
         {
             var instancePort = PortUtility.FindAvailablePort(33333);
 
-            ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 AllowMessageEditing = true,
