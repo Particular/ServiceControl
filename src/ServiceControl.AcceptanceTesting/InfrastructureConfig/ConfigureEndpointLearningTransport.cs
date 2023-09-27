@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System;
     using System.IO;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -18,6 +19,7 @@
 
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
+            Console.WriteLine($"Transport Directory: {ConnectionString}");
             Directory.CreateDirectory(ConnectionString);
 
             var transportConfig = configuration.UseTransport<LearningTransport>();

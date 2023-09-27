@@ -1,12 +1,9 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
     using System.IO;
-    using System.Runtime.Remoting.Contexts;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
-    using Raven.Client.Documents.Operations.Attachments;
-    using ServiceControl.Infrastructure;
     using Sparrow.Json.Parsing;
 
     class RavenAttachmentsBodyStorage : IBodyStorage

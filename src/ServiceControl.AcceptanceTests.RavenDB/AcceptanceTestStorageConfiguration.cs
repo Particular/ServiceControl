@@ -5,18 +5,23 @@
     using System.Threading.Tasks;
     using Persistence.RavenDb;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestHelper;
+    using ServiceControl.AcceptanceTesting;
 
     class AcceptanceTestStorageConfiguration
     {
+        static readonly PortPool portPool = new PortPool(33334);
+        readonly PortLease portLease = portPool.GetLease();
+
         public string PersistenceType { get; protected set; }
 
         public void CustomizeSettings(Settings settings)
         {
+            settings.Port = portLease.GetPort();
+
             settings.PersisterSpecificSettings = new RavenDBPersisterSettings
             {
                 RunInMemory = true,
-                DatabaseMaintenancePort = PortUtility.FindAvailablePort(settings.Port + 1),
+                DatabaseMaintenancePort = portLease.GetPort(),
                 DatabasePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()),
                 ErrorRetentionPeriod = TimeSpan.FromDays(10),
             };
@@ -29,6 +34,10 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup() => Task.CompletedTask;
+        public Task Cleanup()
+        {
+            portLease.Dispose();
+            return Task.CompletedTask;
+        }
     }
 }
