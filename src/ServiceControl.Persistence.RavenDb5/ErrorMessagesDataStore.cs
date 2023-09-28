@@ -547,9 +547,9 @@
             {
                 var prequery = session.Advanced
                     .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                .AndAlso()
-                .WhereBetween("LastModified", periodFrom.Ticks, periodTo.Ticks);
+                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+                    .AndAlso()
+                    .WhereBetween("LastModified", periodFrom.Ticks, periodTo.Ticks);
 
                 if (!string.IsNullOrWhiteSpace(queueAddress))
                 {
@@ -558,9 +558,9 @@
                 }
 
                 var query = prequery
-                    // TODO: Fix SetResultTransformer
-                    //.SetResultTransformer(new FailedMessageViewTransformer().TransformerName)
-                    .SelectFields<FailedMessageView>();
+                    .SelectFields<FailedMessage>()
+                    .ToQueryable()
+                    .TransformToFailedMessageView();
 
                 await using (var ie = await session.Advanced.StreamAsync(query))
                 {
