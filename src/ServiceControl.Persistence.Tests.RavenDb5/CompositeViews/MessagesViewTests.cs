@@ -189,10 +189,10 @@
             using (var session = DocumentStore.OpenAsyncSession())
             {
                 var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .ProjectInto<FailedMessage>()
                     .Customize(x => x.WaitForNonStaleResults());
 
-                var messagesWithNoTimestamp = await MessagesViewTransformer.Transform(query).ToArrayAsync();
+                var messagesWithNoTimestamp = await MessagesViewTransformer.TransformToMessageView(query).ToArrayAsync();
 
                 Assert.AreEqual(null, messagesWithNoTimestamp[0].TimeSent);
                 Assert.AreEqual(null, messagesWithNoTimestamp[1].TimeSent);
@@ -233,10 +233,10 @@
             using (var session = DocumentStore.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessage>()
-                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .ProjectInto<FailedMessage>()
                     .Customize(x => x.WaitForNonStaleResults());
 
-                var result = await MessagesViewTransformer.Transform(query).ToListAsync();
+                var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
 
                 var message = result.Single();
 
@@ -276,10 +276,10 @@
             {
                 var query = session
                     .Query<FailedMessage>()
-                    .ProjectInto<MessagesViewTransformer.Input>()
+                    .ProjectInto<FailedMessage>()
                     .Customize(x => x.WaitForNonStaleResults());
 
-                var result = await MessagesViewTransformer.Transform(query).ToListAsync();
+                var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
 
                 var message = result.Single();
 

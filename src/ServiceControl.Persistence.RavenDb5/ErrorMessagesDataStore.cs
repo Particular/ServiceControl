@@ -42,14 +42,14 @@
             using (var session = documentStore.OpenAsyncSession())
             {
                 var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                        .IncludeSystemMessagesWhere(includeSystemMessages)
-                        .Statistics(out var stats)
-                        .Sort(sortInfo)
-                        .Paging(pagingInfo)
-                        .ProjectInto<MessagesViewTransformer.Input>();
+                    .IncludeSystemMessagesWhere(includeSystemMessages)
+                    .Statistics(out var stats)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ProjectInto<FailedMessage>()
+                    .TransformToMessageView();
 
-                var results = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var results = await query.ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -70,10 +70,11 @@
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<MessagesViewTransformer.Input>();
+                    .ProjectInto<FailedMessage>()
+                    .TransformToMessageView();
 
-                var results = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var results = await query.ToListAsync();
+
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -94,10 +95,10 @@
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<MessagesViewTransformer.Input>();
+                    .ProjectInto<FailedMessage>()
+                    .TransformToMessageView();
 
-                var results = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var results = await query.ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -117,10 +118,10 @@
                     .Where(m => m.ConversationId == conversationId)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<MessagesViewTransformer.Input>();
+                    .ProjectInto<FailedMessage>()
+                    .TransformToMessageView();
 
-                var results = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var results = await query.ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }
@@ -139,10 +140,10 @@
                     .Search(x => x.Query, searchTerms)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<MessagesViewTransformer.Input>();
+                    .ProjectInto<FailedMessage>()
+                    .TransformToMessageView();
 
-                var results = await MessagesViewTransformer.Transform(query)
-                    .ToListAsync();
+                var results = await query.ToListAsync();
 
                 return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
             }

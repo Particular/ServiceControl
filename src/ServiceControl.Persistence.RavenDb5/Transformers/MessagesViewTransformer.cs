@@ -1,33 +1,34 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Collections.Generic;
     using System.Linq;
     using MessageFailures;
     using Raven.Client.Documents.Linq;
     using ServiceControl.Persistence;
 
-    class MessagesViewTransformer //https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
+    static class MessagesViewTransformer //https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {
-        public static IQueryable<MessagesView> Transform(IRavenQueryable<Input> query)
+        public static IQueryable<MessagesView> TransformToMessageView(this IRavenQueryable<FailedMessage> query)
         {
             var results =
                 from message in query
-                let metadata = message.ProcessingAttempts.Last().MessageMetadata
-                let headers = message.ProcessingAttempts.Last().Headers
-                let processedAt = message.ProcessingAttempts.Last().AttemptedAt
                 let status = message.Status == FailedMessageStatus.Resolved
-                            ? MessageStatus.ResolvedSuccessfully
-                            : message.Status == FailedMessageStatus.RetryIssued
-                                ? MessageStatus.RetryIssued
-                                : message.Status == FailedMessageStatus.Archived
-                                    ? MessageStatus.ArchivedFailure
-                                    : message.ProcessingAttempts.Count == 1
-                                        ? MessageStatus.Failed
-                                        : MessageStatus.RepeatedFailure
+                    ? MessageStatus.ResolvedSuccessfully
+                    : message.Status == FailedMessageStatus.RetryIssued
+                        ? MessageStatus.RetryIssued
+                        : message.Status == FailedMessageStatus.Archived
+                            ? MessageStatus.ArchivedFailure
+                            : message.ProcessingAttempts.Count == 1
+                                ? MessageStatus.Failed
+                                : MessageStatus.RepeatedFailure
+                let last = message.ProcessingAttempts.Last()
+                let metadata = last.MessageMetadata
+                let headers = last.Headers
+                let processedAt = last.AttemptedAt
+
                 select new // Cannot use type here as this is projected server-side
                 {
                     Id = message.UniqueMessageId,
-                    message.MessageId,
+                    MessageId = metadata["MessageId"],
                     MessageType = metadata["MessageType"],
                     SendingEndpoint = metadata["SendingEndpoint"],
                     ReceivingEndpoint = metadata["ReceivingEndpoint"],
@@ -50,21 +51,6 @@ namespace ServiceControl.CompositeViews.Messages
                 };
 
             return results.OfType<MessagesView>();
-        }
-
-        public class Input : MessagesViewIndex.SortAndFilterOptions
-        {
-            public new FailedMessageStatus Status { get; }
-            public string UniqueMessageId { get; }
-            public List<FailedMessage.ProcessingAttempt> ProcessingAttempts { get; }
-        }
-    }
-
-    public static class MessageViewTransformerExtension
-    {
-        public static IQueryable<MessagesView> TransformToMessagesView(this IQueryable<MessagesViewIndex.SortAndFilterOptions> source)
-        {
-            return source.Select(m => new MessagesView());
         }
     }
 }
