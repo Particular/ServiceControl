@@ -95,7 +95,7 @@
                                 var newAttempts = this.{nameof(FailedMessage.ProcessingAttempts)};
 
                                 //De-duplicate attempts by AttemptedAt value
-                                var duplicateIndex = this.{ProcessingAttempts}.findIndex(a => a.{AttemptedAt} === attempt.{AttemptedAt});
+                                var duplicateIndex = this.{ProcessingAttempts}.findIndex(a => a.{AttemptedAt} === args.attempt.{AttemptedAt});
 
                                 if(duplicateIndex < 0){{
                                     newAttempts.push(args.attempt);
