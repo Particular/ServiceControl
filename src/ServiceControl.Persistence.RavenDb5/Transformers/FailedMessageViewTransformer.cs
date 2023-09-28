@@ -5,9 +5,9 @@
     using Raven.Client.Documents.Linq;
     using Raven.Client.Documents.Queries;
 
-    class FailedMessageViewTransformer // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
+    static class FailedMessageViewTransformer // https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {
-        public static IQueryable<FailedMessageView> Transform(IRavenQueryable<FailedMessage> query)
+        public static IQueryable<FailedMessageView> TransformToFailedMessageView(this IRavenQueryable<FailedMessage> query)
         {
             var failures =
             from failure in query

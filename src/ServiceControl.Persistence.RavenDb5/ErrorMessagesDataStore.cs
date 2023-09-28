@@ -252,9 +252,10 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .SelectFields<FailedMessage>()
-                    .ToQueryable();
+                    .ToQueryable()
+                    .TransformToFailedMessageView();
 
-                var results = await FailedMessageViewTransformer.Transform(query)
+                var results = await query
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -300,9 +301,10 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .SelectFields<FailedMessage>()
-                    .ToQueryable();
+                    .ToQueryable()
+                    .TransformToFailedMessageView();
 
-                var results = await FailedMessageViewTransformer.Transform(query)
+                var results = await query
                     .ToListAsync();
 
                 return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
@@ -475,9 +477,10 @@
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
                     .SelectFields<FailedMessage>()
-                    .ToQueryable();
+                    .ToQueryable()
+                    .TransformToFailedMessageView();
 
-                var results = await FailedMessageViewTransformer.Transform(query)
+                var results = await query
                     .ToListAsync();
 
                 return results.ToQueryResult(stats);
