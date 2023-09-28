@@ -146,7 +146,13 @@
             var messageId = context.Headers.MessageId();
             var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
 
-            var emptyDoc = new DynamicJsonValue();
+            var emptyDoc = new DynamicJsonValue
+            {
+                ["@metadata"] = new DynamicJsonValue
+                {
+                    ["@collection"] = "MessageBodies"
+                }
+            };
             var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
 
             var stream = Memory.Manager.GetStream(context.Body);
