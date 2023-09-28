@@ -34,12 +34,14 @@
             var uniqueMessageId = context.Headers.UniqueId();
             var bodyId = processingAttempt.Headers.MessageId();
             var contentType = GetContentType(context.Headers, "text/xml");
+            var bodySize = context.Body?.Length ?? 0;
+
             processingAttempt.MessageMetadata.Add("ContentType", contentType);
+            processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
             processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{bodyId}/body");
 
             if (doFullTextIndexing)
             {
-                var bodySize = context.Body?.Length ?? 0;
                 var avoidsLargeObjectHeap = bodySize < LargeObjectHeapThreshold;
                 var isBinary = processingAttempt.Headers.IsBinary();
                 if (avoidsLargeObjectHeap && !isBinary)
