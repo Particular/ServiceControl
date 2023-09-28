@@ -718,9 +718,9 @@
                 .WhereBetween(options => options.LastModified, from.Ticks, to.Ticks)
                 .AndAlso()
                     .WhereEquals(o => o.QueueAddress, queueAddress)
-                    // TODO: Fix SetResultTransformer
-                    //.SetResultTransformer(FailedMessageViewTransformer.Name)
-                    .SelectFields<FailedMessageView>(new[] { "Id" });
+                    .SelectFields<FailedMessage>()
+                    .ToQueryable()
+                    .TransformToFailedMessageView();
 
                 await using (var ie = await session.Advanced.StreamAsync(query))
                 {
