@@ -1,5 +1,8 @@
 namespace ServiceControl.Persistence.Infrastructure
 {
+    using System.Diagnostics;
+
+    [DebuggerDisplay("{Page}/{PageSize}")]
     public class PagingInfo
     {
         public const int DefaultPageSize = 50;
