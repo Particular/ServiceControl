@@ -2,21 +2,33 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Runtime.Remoting.Contexts;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations;
     using ServiceControl.Persistence.UnitOfWork;
 
     [TestFixture]
     sealed class RavenAttachmentsBodyStorageTests : PersistenceTestBase
     {
         [Test]
-        public async Task Attachments_with_ids_that_contain_backslash_should_be_readable()
+        public async Task QueryByUniqueId()
         {
+            await RunTest(headers => headers.UniqueId());
+        }
+
+        [Test]
+        public async Task QueryByMessageId()
+        {
+            await RunTest(headers => headers.MessageId());
+        }
+
+        async Task RunTest(Func<Dictionary<string, string>, string> getIdToQuery)
+        {
+            // Contains a backslash, like an old MSMQ message id, to ensure that message ids like this are usable
             var messageId = "3f0240a7-9b2e-4e2a-ab39-6114932adad1\\2055783";
             var contentType = "NotImportant";
             var endpointName = "EndpointName";
@@ -37,6 +49,17 @@
                 var processingAttempt = new FailedMessage.ProcessingAttempt
                 {
                     MessageId = messageId,
+                    MessageMetadata = new Dictionary<string, object>
+                    {
+                        ["MessageId"] = messageId,
+                        ["TimeSent"] = DateTime.UtcNow,
+                        ["ReceivingEndpoint"] = new EndpointDetails
+                        {
+                            Name = endpointName,
+                            Host = "Host",
+                            HostId = Guid.NewGuid()
+                        }
+                    },
                     FailureDetails = new Contracts.Operations.FailureDetails
                     {
                         AddressOfFailingEndpoint = endpointName
@@ -49,9 +72,11 @@
                 await uow.Complete();
             }
 
-            var uniqueMessageId = headers.UniqueId();
+            CompleteDatabaseOperation();
 
-            var retrieved = await BodyStorage.TryFetch(uniqueMessageId);
+            var fetchById = getIdToQuery(headers);
+
+            var retrieved = await BodyStorage.TryFetch(fetchById);
             Assert.IsNotNull(retrieved);
             Assert.True(retrieved.HasResult);
             Assert.AreEqual(contentType, retrieved.ContentType);
