@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
-    using Sparrow.Json.Parsing;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
@@ -18,24 +17,25 @@
 
         // TODO: This method is only used in tests and not by ServiceControl itself! But in the Raven3.5 persister, it IS used!
         // It should probably be removed and tests should use the RavenDbRecoverabilityIngestionUnitOfWork
-        public async Task Store(string messageId, string contentType, int bodySize, Stream bodyStream)
+        public async Task Store(string uniqueId, string contentType, int bodySize, Stream bodyStream)
         {
-            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
-
-            var emptyDoc = new DynamicJsonValue();
-            var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
+            // In RavenDB 5 persistence, the ID must be the UniqueID representing MessageID+Endpoint so that we can
+            // load the body from the FailedMessage/{UniqueId} document.
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
             var stream = bodyStream;
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
             using var session = documentStore.OpenAsyncSession();
-            session.Advanced.Defer(new ICommandData[] { putOwnerDocumentCmd, putAttachmentCmd });
+            session.Advanced.Defer(putAttachmentCmd);
             await session.SaveChangesAsync();
         }
 
-        public async Task<MessageBodyStreamResult> TryFetch(string messageId)
+        public async Task<MessageBodyStreamResult> TryFetch(string uniqueId)
         {
-            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
+            // In RavenDB 5 persistence, the ID must be the UniqueID representing MessageID+Endpoint so that we can
+            // load the body from the FailedMessage/{UniqueId} document.
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
             using var session = documentStore.OpenAsyncSession();
 
