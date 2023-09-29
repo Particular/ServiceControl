@@ -1,5 +1,8 @@
 ﻿namespace ServiceControl.Persistence.Infrastructure
 {
+    using System.Diagnostics;
+
+    [DebuggerDisplay("{Sort} {Direction}")]
     public class SortInfo
     {
         public string Direction { get; }

@@ -5,6 +5,7 @@
     using Raven.Abstractions.Extensions;
     using Raven.Client;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.RavenDb;
 
     class PurgeKnownEndpointsWithTemporaryIdsThatAreDuplicateDataMigration : IDataMigration
     {
@@ -21,7 +22,12 @@
                     //If we have knowEndpoints with non temp ids, we should delete all temp ids ones.
                     if (fixedIdsCount > 0)
                     {
-                        knownEndpoints.Where(e => e.HasTemporaryId).ForEach(k => { store.DatabaseCommands.Delete(store.Conventions.DefaultFindFullDocumentKeyFromNonStringIdentifier(k.Id, typeof(KnownEndpoint), false), null); });
+                        knownEndpoints.Where(e => e.HasTemporaryId)
+                            .ForEach(k =>
+                            {
+                                string documentId = RavenDbMonitoringDataStore.MakeDocumentId(k.EndpointDetails.GetDeterministicId());
+                                store.DatabaseCommands.Delete(documentId, null);
+                            });
                     }
                 }
             }

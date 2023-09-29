@@ -21,6 +21,7 @@ namespace ServiceControl.AcceptanceTests
     using TestSupport;
 
     [TestFixture]
+    //[Parallelizable(ParallelScope.All)]
     abstract class AcceptanceTest : NServiceBusAcceptanceTest, IAcceptanceTestInfrastructureProvider
     {
         protected AcceptanceTest()
@@ -85,14 +86,14 @@ namespace ServiceControl.AcceptanceTests
         }
 
         [TearDown]
-        public Task Teardown()
+        public async Task Teardown()
         {
             TransportIntegration = null;
             Trace.Flush();
             Trace.Close();
             Trace.Listeners.Remove(textWriterTraceListener);
 
-            return StorageConfiguration.Cleanup();
+            await StorageConfiguration.Cleanup();
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter

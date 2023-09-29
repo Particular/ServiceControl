@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Config.Framework.Modules
 {
-    using System;
-    using System.Diagnostics;
     using System.Linq;
     using Autofac;
     using Autofac.Core;
@@ -9,8 +7,6 @@
     using Autofac.Core.Resolving.Pipeline;
     using Caliburn.Micro;
     using Rx;
-    using UI.InstanceDetails;
-    using Action = Caliburn.Micro.Action;
 
     public class EventAggregationAutoSubscriptionModule : Module
     {

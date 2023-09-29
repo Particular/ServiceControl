@@ -8,13 +8,11 @@
     using Contracts.Operations;
     using MessageFailures;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.Persistence.MessageRedirects;
-    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
     using ServiceControl.Recoverability.Editing;
 
@@ -23,15 +21,15 @@
         EditHandler handler;
         readonly TestableUnicastDispatcher dispatcher = new TestableUnicastDispatcher();
 
-        protected override IHostBuilder CreateHostBuilder() => base
-            .CreateHostBuilder()
-            .ConfigureServices(services => services
+        public EditMessageTests()
+        {
+            RegisterServices = services => services
                 .AddSingleton<IDispatchMessages>(dispatcher)
-                .AddTransient<EditHandler>()
-            );
+                .AddTransient<EditHandler>();
+        }
 
         [SetUp]
-        public new void Setup()
+        public void Setup()
         {
             handler = GetRequiredService<EditHandler>();
         }
@@ -87,8 +85,6 @@
 
             // Act
             await handler.Handle(message, new TestableMessageHandlerContext());
-
-            BlockToInspectDatabase();
 
             using (var editFailedMessagesManagerAssert = await ErrorMessageDataStore.CreateEditFailedMessageManager())
             {

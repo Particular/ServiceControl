@@ -11,7 +11,6 @@
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Exceptions;
     using Raven.Database;
-    using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
 
     static class ErrorMessageCleaner

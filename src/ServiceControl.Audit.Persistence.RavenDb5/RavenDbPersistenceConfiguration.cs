@@ -39,7 +39,7 @@
         {
             if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseNameKey, out var databaseName))
             {
-                databaseName = "audit";
+                databaseName = "primary";
             }
 
             ServerConfiguration serverConfiguration;

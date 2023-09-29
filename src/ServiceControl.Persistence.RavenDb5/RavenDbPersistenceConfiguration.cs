@@ -47,9 +47,7 @@
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
                 HostName = GetSetting(RavenBootstrapper.HostNameKey, "localhost"),
                 DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabaseMaintenancePortDefault),
-                ExposeRavenDB = GetSetting(RavenBootstrapper.ExposeRavenDBKey, false),
                 ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
-                RunInMemory = GetSetting(RavenBootstrapper.RunInMemoryKey, false),
                 MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
                 DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
                 ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(ErrorRetentionPeriodKey),
@@ -58,7 +56,8 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
-                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault)
+                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault),
+                EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
 
             CheckFreeDiskSpace.Validate(settings);

@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using BodyStorage;
     using Contracts.MessageFailures;
     using Contracts.Operations;
     using Infrastructure;
@@ -18,10 +17,9 @@
 
     class ErrorProcessor
     {
-        public ErrorProcessor(BodyStorageEnricher bodyStorageEnricher, IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
+        public ErrorProcessor(IEnrichImportedErrorMessages[] enrichers, IFailedMessageEnricher[] failedMessageEnrichers, IDomainEvents domainEvents,
             Counter ingestedCounter)
         {
-            this.bodyStorageEnricher = bodyStorageEnricher;
             this.enrichers = enrichers;
             this.domainEvents = domainEvents;
             this.ingestedCounter = ingestedCounter;
@@ -120,11 +118,9 @@
                     new Dictionary<string, object>(metadata),
                     failureDetails);
 
-                await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt);
-
                 var groups = failedMessageFactory.GetGroups((string)metadata["MessageType"], failureDetails, processingAttempt);
 
-                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context.Headers.UniqueId(), processingAttempt, groups);
+                await unitOfWork.Recoverability.RecordFailedProcessingAttempt(context, processingAttempt, groups);
 
                 context.Extensions.Set(failureDetails);
                 context.Extensions.Set(enricherContext.NewEndpoints);
@@ -163,7 +159,6 @@
             {
                 observedEndpoints.Add(uniqueEndpointId, new KnownEndpoint
                 {
-                    Id = DeterministicGuid.MakeId(observedEndpoint.Name, observedEndpoint.HostId.ToString()),
                     EndpointDetails = observedEndpoint,
                     HostDisplayName = observedEndpoint.Host,
                     Monitored = false
@@ -174,7 +169,6 @@
         readonly IEnrichImportedErrorMessages[] enrichers;
         readonly IDomainEvents domainEvents;
         readonly Counter ingestedCounter;
-        readonly BodyStorageEnricher bodyStorageEnricher;
         readonly FailedMessageFactory failedMessageFactory;
         static readonly ILog Logger = LogManager.GetLogger<ErrorProcessor>();
     }

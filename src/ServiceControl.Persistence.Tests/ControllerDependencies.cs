@@ -2,19 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Reflection;
+    using System.Threading.Tasks;
     using System.Web.Http.Controllers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl;
+    using PersistenceTests;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Infrastructure.WebApi;
-    using ServiceControl.PersistenceTests;
 
     [TestFixture]
     class ControllerDependencies
@@ -24,7 +26,7 @@
         /// instantiate each of the WebAPI controllers present in the ServiceControl app.
         /// </summary>
         [Test]
-        public void EnsurePersistenceProvidesAllControllerDependencies()
+        public async Task EnsurePersistenceProvidesAllControllerDependencies()
         {
             // Arrange
             var testPersistence = new TestPersistenceImpl();
@@ -47,7 +49,7 @@
                 .UseNServiceBus(_ =>
                 {
                     var config = new EndpointConfiguration("test");
-                    config.UseTransport<LearningTransport>();
+                    config.UseTransport<LearningTransport>().StorageDirectory(Path.Combine(TestContext.CurrentContext.WorkDirectory, "DependencyTest"));
                     return config;
                 })
                 .UseServiceControlComponents(new Settings(), ServiceControlMainInstance.Components);
@@ -56,6 +58,8 @@
             var host = hostBuilder
                 .UseWebApi(new List<Assembly> { assembly }, string.Empty, false)
                 .Build();
+
+            await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
 
             // Assert
             Assert.That(host, Is.Not.Null);

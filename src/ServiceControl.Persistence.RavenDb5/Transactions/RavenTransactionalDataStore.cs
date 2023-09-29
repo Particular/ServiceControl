@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDb
 {
     using System.Threading.Tasks;
-    using Raven.Client;
     using Raven.Client.Documents.Session;
 
     abstract class AbstractSessionManager : IDataSessionManager

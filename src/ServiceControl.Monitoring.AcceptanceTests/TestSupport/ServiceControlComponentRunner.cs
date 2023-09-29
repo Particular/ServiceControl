@@ -3,10 +3,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System;
     using System.Configuration;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -21,6 +19,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.OWIN;
+    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -43,27 +42,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             return InitializeServiceControl(run.ScenarioContext);
         }
 
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
-        }
-
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var instancePort = FindAvailablePort(33333);
+            var instancePort = PortUtility.FindAvailablePort(33333);
 
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 

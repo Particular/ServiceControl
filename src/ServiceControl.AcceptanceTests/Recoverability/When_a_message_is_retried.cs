@@ -46,7 +46,7 @@
         {
             SetSettings = settings =>
             {
-                settings.EnableFullTextSearchOnBodies = enableFullTextSearch;
+                settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = enableFullTextSearch;
             };
 
             string content = $"{{\"Content\":\"{(largeMessageBodies ? new string('a', 86 * 1024) : "Small")}\"}}";

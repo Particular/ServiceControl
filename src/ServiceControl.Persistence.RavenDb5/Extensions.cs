@@ -1,10 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure.RavenDB
 {
     using System;
-    using System.Threading;
-    using Newtonsoft.Json.Linq;
     using Raven.Client.Documents.Conventions;
-    using Raven.Client.Documents.Queries;
 
     static class Extensions
     {

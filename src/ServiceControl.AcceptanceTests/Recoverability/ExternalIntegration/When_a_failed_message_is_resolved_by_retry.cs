@@ -3,14 +3,14 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Contracts;
+    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Contracts;
-    using ServiceControl.MessageFailures;
-    using Newtonsoft.Json;
-    using TestSupport.EndpointTemplates;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.MessageFailures;
+    using TestSupport.EndpointTemplates;
 
     class When_a_failed_message_is_resolved_by_retry : ExternalIntegrationAcceptanceTest
     {

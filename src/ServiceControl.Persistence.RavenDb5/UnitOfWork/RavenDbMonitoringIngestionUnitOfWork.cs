@@ -2,9 +2,9 @@
 {
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
-    using ServiceControl.Persistence.UnitOfWork;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
+    using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {
@@ -26,11 +26,21 @@
             var document = JObject.FromObject(endpoint);
             document["@metadata"] = KnownEndpointMetadata;
 
-            return new PatchCommandData(endpoint.Id.ToString(), null, new PatchRequest
+            var docId = RavenDbMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId());
+
+            var request = new PatchRequest
             {
-                //TODO: check if this works
-                Script = $"put('{KnownEndpoint.CollectionName}/', {document}"
-            });
+                Script = @$"
+                    var insert = {document};
+                    
+                    for(var key in insert) {{
+                        if(insert.hasOwnProperty(key)) {{
+                            this[key] = insert[key];
+                        }}
+                    }}"
+            };
+
+            return new PatchCommandData(docId, null, request, request);
         }
 
         static RavenDbMonitoringIngestionUnitOfWork()

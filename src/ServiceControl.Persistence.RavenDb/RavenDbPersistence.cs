@@ -43,6 +43,8 @@
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 
+            serviceCollection.AddSingleton<BodyStorageEnricher>();
+
             serviceCollection.AddSingleton<FailedMessageViewIndexNotifications>();
             serviceCollection.AddSingleton<IFailedMessageViewIndexNotifications>(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());
             serviceCollection.AddHostedService(p => p.GetRequiredService<FailedMessageViewIndexNotifications>());

@@ -2,33 +2,41 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NServiceBus.Transport;
     using Raven.Abstractions.Commands;
     using Raven.Abstractions.Data;
     using Raven.Abstractions.Extensions;
     using Raven.Imports.Newtonsoft.Json;
     using Raven.Json.Linq;
     using ServiceControl.MessageFailures;
+    using ServiceControl.Operations.BodyStorage;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
-        RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly BodyStorageEnricher bodyStorageEnricher;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork)
+        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, BodyStorageEnricher bodyStorageEnricher)
         {
             this.parentUnitOfWork = parentUnitOfWork;
+            this.bodyStorageEnricher = bodyStorageEnricher;
         }
 
-        public Task RecordFailedProcessingAttempt(
-            string uniqueMessageId,
+        public async Task RecordFailedProcessingAttempt(
+            MessageContext context,
             FailedMessage.ProcessingAttempt processingAttempt,
             List<FailedMessage.FailureGroup> groups)
         {
-            parentUnitOfWork.AddCommand(
-                CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups)
-            );
-            return Task.CompletedTask;
+            // Store body - out of band of the Unit of Work in Raven 3.5
+            await bodyStorageEnricher.StoreErrorMessageBody(context.Body, processingAttempt);
+
+            // Add command to unit of work to store metadata
+            var uniqueMessageId = context.Headers.UniqueId();
+            var storeMessageCmd = CreateFailedMessagesPatchCommand(uniqueMessageId, processingAttempt, groups);
+            parentUnitOfWork.AddCommand(storeMessageCmd);
         }
 
         public Task RecordSuccessfulRetry(string retriedMessageUniqueId)

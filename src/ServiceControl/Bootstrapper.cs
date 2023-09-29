@@ -175,7 +175,7 @@ Selected Transport Customization:   {settings.TransportType}
                     settings.RetryHistoryDepth,
                     settings.PersisterSpecificSettings,
                     settings.SkipQueueCreation,
-                    settings.EnableFullTextSearchOnBodies,
+                    settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies,
                     settings.TransportType,
                     settings.AllowMessageEditing,
                 },

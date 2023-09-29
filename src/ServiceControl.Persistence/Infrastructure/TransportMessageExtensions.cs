@@ -5,7 +5,7 @@
     using NServiceBus;
     using NServiceBus.Faults;
 
-    static class HeaderExtensions
+    public static class HeaderExtensions
     {
         public static string ProcessingEndpointName(this IReadOnlyDictionary<string, string> headers)
         {

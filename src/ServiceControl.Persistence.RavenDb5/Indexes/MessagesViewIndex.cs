@@ -29,9 +29,9 @@ namespace ServiceControl.Persistence
                                   TimeSent = (DateTime)last.MessageMetadata["TimeSent"],
                                   ProcessedAt = last.AttemptedAt,
                                   ReceivingEndpointName = ((EndpointDetails)last.MessageMetadata["ReceivingEndpoint"]).Name,
-                                  CriticalTime = null,
-                                  ProcessingTime = null,
-                                  DeliveryTime = null,
+                                  CriticalTime = (TimeSpan?)last.MessageMetadata["CriticalTime"],
+                                  ProcessingTime = (TimeSpan?)last.MessageMetadata["ProcessingTime"],
+                                  DeliveryTime = (TimeSpan?)last.MessageMetadata["DeliveryTime"],
                                   Query = last.MessageMetadata.Select(_ => _.Value.ToString()).Union(new[] { string.Join(" ", last.Headers.Select(x => x.Value)) }).ToArray(),
                                   ConversationId = (string)last.MessageMetadata["ConversationId"]
                               };

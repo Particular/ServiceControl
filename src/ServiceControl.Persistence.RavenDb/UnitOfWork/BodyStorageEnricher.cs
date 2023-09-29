@@ -1,17 +1,18 @@
 ﻿namespace ServiceControl.Operations.BodyStorage
 {
-    using Infrastructure;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
     using ProcessingAttempt = MessageFailures.FailedMessage.ProcessingAttempt;
 
     class BodyStorageEnricher
     {
-        public BodyStorageEnricher(IBodyStorage bodyStorage, Settings settings)
+        public BodyStorageEnricher(IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
         {
             this.settings = settings;
             this.bodyStorage = bodyStorage;
@@ -93,7 +94,7 @@
         static readonly Encoding enc = new UTF8Encoding(true, true);
         static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
         readonly IBodyStorage bodyStorage;
-        readonly Settings settings;
+        readonly PersistenceSettings settings;
 
         // large object heap starts above 85000 bytes and not above 85 KB!
         internal const int LargeObjectHeapThreshold = 85 * 1000;

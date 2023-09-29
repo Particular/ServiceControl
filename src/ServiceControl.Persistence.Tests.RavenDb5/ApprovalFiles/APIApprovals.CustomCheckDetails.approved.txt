@@ -1,0 +1,4 @@
+ServiceControl Health: Error Database Index Errors
+ServiceControl Health: Error Database Index Lag
+ServiceControl Health: Message Ingestion Process
+Storage space: ServiceControl database

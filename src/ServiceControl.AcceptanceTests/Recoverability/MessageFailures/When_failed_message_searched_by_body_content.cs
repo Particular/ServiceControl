@@ -16,7 +16,7 @@
         public async Task Should_be_found_when_fulltext_search_enabled()
         {
             // setting it even if it is the default
-            SetSettings = settings => settings.EnableFullTextSearchOnBodies = true;
+            SetSettings = settings => settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = true;
 
             var searchString = "forty-two";
 
@@ -48,7 +48,7 @@
         [Test]
         public async Task Should_not_be_found_when_fulltext_search_disabled()
         {
-            SetSettings = settings => settings.EnableFullTextSearchOnBodies = false;
+            SetSettings = settings => settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies = false;
 
             var searchString = "forty-two";
 

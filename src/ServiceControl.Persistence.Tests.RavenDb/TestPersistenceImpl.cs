@@ -42,17 +42,14 @@
         public override void Configure(IServiceCollection services)
         {
             var persistence = new RavenDbPersistenceConfiguration().Create(CreateSettings());
-
             PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, persistence);
-
             services.AddHostedService(p => new Wrapper(this, p.GetRequiredService<IDocumentStore>()));
         }
 
-        public override Task CompleteDatabaseOperation()
+        public override void CompleteDatabaseOperation()
         {
             Assert.IsNotNull(documentStore);
             documentStore.WaitForIndexing();
-            return Task.CompletedTask;
         }
 
         class Wrapper : IHostedService
@@ -94,6 +91,12 @@
                 Thread.Sleep(5000);
                 Trace.Write("Waiting for debugger pause");
             }
+        }
+
+        public override Task TearDown()
+        {
+            // Nothing to teardown
+            return Task.CompletedTask;
         }
     }
 }

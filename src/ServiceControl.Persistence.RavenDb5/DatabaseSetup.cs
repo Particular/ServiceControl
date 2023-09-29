@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb5
 {
-    using System.Collections.Generic;
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -11,10 +12,6 @@
     using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
-    using ServiceControl.MessageFailures.Api;
-    using ServiceControl.Operations;
-    using ServiceControl.Persistence;
-    using ServiceControl.Recoverability;
 
     class DatabaseSetup
     {
@@ -42,24 +39,11 @@
                 }
             }
 
-            var indexList = new List<AbstractIndexCreationTask> {
-                new ArchivedGroupsViewIndex(),
-                new CustomChecksIndex(),
-                new FailedErrorImportIndex(),
-                new FailedMessageFacetsIndex(),
-                new FailedMessageRetries_ByBatch(),
-                new FailedMessageViewIndex(),
-                new FailureGroupsViewIndex(),
-                new GroupCommentIndex(),
-                new KnownEndpointIndex(),
-                new MessagesViewIndex(),
-                new QueueAddressIndex(),
-                new RetryBatches_ByStatusAndSession(),
-                new RetryBatches_ByStatus_ReduceInitialBatchSize()
+            var indexTypes = typeof(DatabaseSetup).Assembly.GetTypes()
+                .Where(t => typeof(IAbstractIndexCreationTask).IsAssignableFrom(t))
+                .ToList();
 
-            };
-
-            //TODO: Handle full text search
+            //TODO: Handle full text search - if necessary add Where clause to query above to remove the two variants
             //if (settings.EnableFullTextSearch)
             //{
             //    indexList.Add(new MessagesViewIndexWithFullTextSearch());
@@ -72,6 +56,12 @@
             //        .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
             //}
 
+            var indexList = indexTypes
+                .Select(t => Activator.CreateInstance(t))
+                .OfType<IAbstractIndexCreationTask>();
+
+            // If no full-text vs not full-text index is required, this can all be simplified using the assembly-based override
+            // await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
             await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
 
             var expirationConfig = new ExpirationConfiguration

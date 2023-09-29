@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.InfrastructureConfig
 {
+    using System;
     using System.IO;
     using System.Threading.Tasks;
     using NServiceBus;
@@ -11,14 +12,14 @@
     {
         public ConfigureEndpointLearningTransport()
         {
-            var relativePath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"..", "..", "..", ".transport");
-            ConnectionString = Path.GetFullPath(relativePath);
+            ConnectionString = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "TestTransport", TestContext.CurrentContext.Test.ID);
         }
 
         public string ConnectionString { get; set; }
 
         public Task Configure(string endpointName, EndpointConfiguration configuration, RunSettings settings, PublisherMetadata publisherMetadata)
         {
+            Console.WriteLine($"Transport Directory: {ConnectionString}");
             Directory.CreateDirectory(ConnectionString);
 
             var transportConfig = configuration.UseTransport<LearningTransport>();

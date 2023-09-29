@@ -124,7 +124,7 @@
 
         static ICommandData CreateFailedMessageRetryDocument(string batchDocumentId, string messageId)
         {
-            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: null, patchIfMissing: new PatchRequest
+            var patchRequest = new PatchRequest
             {
                 Script = @"this.FailedMessageId = args.MessageId
                            this.RetryBatchId = args.BatchDocumentId",
@@ -133,7 +133,9 @@
                     { "MessageId", FailedMessageIdGenerator.MakeDocumentId(messageId) },
                     { "BatchDocumentId", batchDocumentId }
                 }
-            });
+            };
+
+            return new PatchCommandData(FailedMessageRetry.MakeDocumentId(messageId), null, patch: patchRequest, patchIfMissing: patchRequest);
         }
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentDataStore));

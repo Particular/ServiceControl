@@ -9,14 +9,12 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Raven.Client;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Operations.BodyStorage;
-    using ServiceControl.PersistenceTests;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -34,7 +32,10 @@
             );
         }
 
-        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services => services.AddSingleton<ReturnToSender>());
+        public ReturnToSenderDequeuerTests()
+        {
+            RegisterServices = services => services.AddSingleton<ReturnToSender>();
+        }
 
         [Test]
         public async Task It_removes_staging_id_header()
@@ -106,7 +107,7 @@
             var transformer = new MessagesBodyTransformer();
             await transformer.ExecuteAsync(documentStore);
 
-            await CompleteDatabaseOperation();
+            CompleteDatabaseOperation();
 
             var instance = GetRequiredService<ReturnToSender>(); // See this.CreateHostBuilder
 

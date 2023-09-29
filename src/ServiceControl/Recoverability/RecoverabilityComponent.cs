@@ -15,7 +15,6 @@
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Operations;
-    using Operations.BodyStorage;
     using Particular.ServiceControl;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -75,9 +74,6 @@
 
                 //Failed messages
                 collection.AddHostedService<FailedMessageNotificationsHostedService>();
-
-                //Body storage
-                collection.AddSingleton<BodyStorageEnricher>();
 
                 //Health checks
                 collection.AddCustomCheck<ErrorIngestionCustomCheck>();

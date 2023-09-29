@@ -2,11 +2,10 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
-    using System.Net.NetworkInformation;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDb;
+    using TestHelper;
 
     [TestFixture]
     class EmbeddedLifecycleTests : PersistenceTestFixture
@@ -20,7 +19,7 @@
             {
                 dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "Embedded");
                 logPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-                var databaseMaintenancePort = FindAvailablePort(33335);
+                var databaseMaintenancePort = PortUtility.FindAvailablePort(33335);
 
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dbPath;
                 s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = logPath;
@@ -40,24 +39,6 @@
 
             DirectoryAssert.Exists(dbPath);
             DirectoryAssert.Exists(logPath);
-        }
-
-        static int FindAvailablePort(int startPort)
-        {
-            var activeTcpListeners = IPGlobalProperties
-                .GetIPGlobalProperties()
-                .GetActiveTcpListeners();
-
-            for (var port = startPort; port < startPort + 1024; port++)
-            {
-                var portCopy = port;
-                if (activeTcpListeners.All(endPoint => endPoint.Port != portCopy))
-                {
-                    return port;
-                }
-            }
-
-            return startPort;
         }
     }
 }

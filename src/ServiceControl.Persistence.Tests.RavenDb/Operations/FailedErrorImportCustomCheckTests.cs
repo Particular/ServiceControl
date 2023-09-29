@@ -2,10 +2,8 @@
 {
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
-    using PersistenceTests;
     using Raven.Client;
     using ServiceControl.Operations;
 
@@ -14,10 +12,10 @@
     {
         IDocumentStore DocumentStore => GetRequiredService<IDocumentStore>();
 
-        protected override IHostBuilder CreateHostBuilder() => base.CreateHostBuilder().ConfigureServices(services =>
+        public FailedErrorImportCustomCheckTests()
         {
-            services.AddSingleton<FailedErrorImportCustomCheck>();
-        });
+            RegisterServices = services => services.AddSingleton<FailedErrorImportCustomCheck>();
+        }
 
         [Test]
         public async Task Pass_if_no_failed_imports()

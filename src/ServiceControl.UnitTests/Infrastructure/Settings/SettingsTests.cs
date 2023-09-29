@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.Infrastructure.Settings
 {
     using System.Collections.Generic;
-    using System.Configuration;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
 

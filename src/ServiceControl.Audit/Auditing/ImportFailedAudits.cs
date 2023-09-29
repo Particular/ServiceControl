@@ -4,10 +4,8 @@ namespace ServiceControl.Audit.Auditing
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Infrastructure;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using ServiceControl.Audit.Persistence;
     using ServiceControl.Transports;

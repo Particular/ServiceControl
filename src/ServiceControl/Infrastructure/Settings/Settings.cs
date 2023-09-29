@@ -56,7 +56,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read("DisableExternalIntegrationsPublishing", false);
-            EnableFullTextSearchOnBodies = SettingsReader.Read("EnableFullTextSearchOnBodies", true);
         }
 
         public string NotificationsFilter { get; set; }
@@ -154,8 +153,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
         public RemoteInstanceSetting[] RemoteInstances { get; set; }
 
         public int DataSpaceRemainingThreshold { get; set; }
-
-        public bool EnableFullTextSearchOnBodies { get; set; }
 
         public bool DisableHealthChecks { get; set; }
 

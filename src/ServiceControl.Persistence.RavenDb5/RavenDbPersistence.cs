@@ -75,23 +75,22 @@
         {
             if (settings.UseEmbeddedServer)
             {
-                var embedded = new RavenDbEmbeddedPersistenceLifecycle(settings);
-
-                serviceCollection.AddSingleton<IPersistenceLifecycle>(embedded);
-                serviceCollection.AddSingleton(_ => embedded.GetDocumentStore());
-
+                serviceCollection.AddSingleton<RavenDbEmbeddedPersistenceLifecycle>();
+                serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenDbEmbeddedPersistenceLifecycle>());
+                serviceCollection.AddSingleton(b => b.GetService<RavenDbEmbeddedPersistenceLifecycle>().GetDocumentStore());
                 return;
             }
 
-            var external = new RavenDbExternalPersistenceLifecycle(settings);
 
-            serviceCollection.AddSingleton<IPersistenceLifecycle>(external);
-            serviceCollection.AddSingleton(_ => external.GetDocumentStore());
+            serviceCollection.AddSingleton<RavenDbExternalPersistenceLifecycle>();
+            serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenDbExternalPersistenceLifecycle>());
+            serviceCollection.AddSingleton(b => b.GetService<RavenDbExternalPersistenceLifecycle>().GetDocumentStore());
         }
 
         public IPersistenceInstaller CreateInstaller()
         {
             var serviceCollection = new ServiceCollection();
+            ConfigureLifecycle(serviceCollection);
 
             serviceCollection.AddSingleton(settings);
             return new RavenDbInstaller(serviceCollection);

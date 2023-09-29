@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDb5
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -33,11 +34,17 @@
         {
             documentStore?.Dispose();
             database?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         IDocumentStore documentStore;
         EmbeddedDatabase database;
 
         readonly RavenDBPersisterSettings databaseConfiguration;
+
+        ~RavenDbEmbeddedPersistenceLifecycle()
+        {
+            Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
+        }
     }
 }

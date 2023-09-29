@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Infrastructure
 {
     using Microsoft.IO;
 
-    static class Memory
+    public static class Memory
     {
         public static readonly RecyclableMemoryStreamManager Manager = new RecyclableMemoryStreamManager();
     }
