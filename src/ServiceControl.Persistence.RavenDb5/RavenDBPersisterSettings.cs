@@ -27,4 +27,6 @@ class RavenDBPersisterSettings : PersistenceSettings
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
     public const string LogsModeDefault = "Information";
+
+    public override bool MessageBodiesAlwaysStoredInFailedMessage => true;
 }

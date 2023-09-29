@@ -20,5 +20,7 @@ class RavenDBPersisterSettings : PersistenceSettings
     public TimeSpan? AuditRetentionPeriod { get; set; }
     public int ExternalIntegrationsDispatchingBatchSize { get; set; } = 100;
 
+    public override bool MessageBodiesAlwaysStoredInFailedMessage => false;
+
     public const int DatabaseMaintenancePortDefault = 33334;
 }

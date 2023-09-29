@@ -7,7 +7,7 @@
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        const string AttachmentName = "body";
+        public const string AttachmentName = "body";
         readonly IDocumentStore documentStore;
 
         public RavenAttachmentsBodyStorage(IDocumentStore documentStore)

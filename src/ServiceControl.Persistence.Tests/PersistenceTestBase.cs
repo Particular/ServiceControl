@@ -56,7 +56,10 @@ public abstract class PersistenceTestBase
         host.Dispose();
     }
 
+    protected PersistenceSettings PersistenceSettings => testPersistence.Settings;
+
     protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
+    protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
 
     protected Action<IServiceCollection> RegisterServices { get; set; }
 

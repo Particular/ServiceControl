@@ -33,6 +33,7 @@
                 return;
             }
 
+            serviceCollection.AddSingleton<PersistenceSettings>(settings);
             serviceCollection.AddSingleton(settings);
             serviceCollection.AddSingleton<IDocumentStore>(documentStore);
 
