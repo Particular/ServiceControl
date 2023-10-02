@@ -8,6 +8,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
+    using ServiceControl.EventLog;
     using ServiceControl.SagaAudit;
     using TestSupport;
     using TestSupport.EndpointTemplates;
@@ -55,10 +56,11 @@
         public async Task Saga_history_can_be_fetched_from_main_instance()
         {
             SagaHistory sagaHistory = null;
+            EventLogItem eventLog = null;
 
             var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
-                .Done(async c =>
+                .Do("GetSagaHistory", async c =>
                 {
                     if (!c.SagaId.HasValue)
                     {
@@ -69,9 +71,17 @@
                     sagaHistory = result;
                     return result;
                 })
+                .Do("GetEventLog", async c =>
+                {
+                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(EndpointReportingSagaAuditToPrimary));
+                    eventLog = result;
+                    return result;
+                })
+                .Done(c => eventLog != null)
                 .Run();
 
             Assert.NotNull(sagaHistory);
+            Assert.NotNull(eventLog);
 
             Assert.AreEqual(context.SagaId, sagaHistory.SagaId);
             Assert.AreEqual(typeof(SagaEndpoint.MySaga).FullName, sagaHistory.SagaType);
@@ -119,9 +129,10 @@
         }
 
 
-        public class MyContext : ScenarioContext
+        public class MyContext : ScenarioContext, ISequenceContext
         {
             public Guid? SagaId { get; set; }
+            public int Step { get; set; }
         }
     }
 }
