@@ -20,7 +20,7 @@
 
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
-            await WarnOncePerEnpointPerDay(message);
+            await WarnOncePerEndpointPerDay(message);
 
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
@@ -62,7 +62,7 @@
             }
         }
 
-        async Task WarnOncePerEnpointPerDay(SagaUpdatedMessage message)
+        async Task WarnOncePerEndpointPerDay(SagaUpdatedMessage message)
         {
             if (nextWarningDates.TryGetValue(message.Endpoint, out var nextWarning) && nextWarning > DateTime.UtcNow)
             {
@@ -94,7 +94,7 @@
         readonly IDomainEvents domainEvents;
         readonly IPlatformConnectionBuilder connectionBuilder;
 
-        static ConcurrentDictionary<string, DateTime> nextWarningDates = new ConcurrentDictionary<string, DateTime>();
+        static readonly ConcurrentDictionary<string, DateTime> nextWarningDates = new ConcurrentDictionary<string, DateTime>();
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
         static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
