@@ -1,4 +1,3 @@
-Health: Saga Audit Destination
 Health: ServiceControl Primary Instance
 Health: ServiceControl Remotes
 ServiceControl Health: Error Message Ingestion

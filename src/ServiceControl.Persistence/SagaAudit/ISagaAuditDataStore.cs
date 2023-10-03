@@ -7,7 +7,7 @@
 
     public interface ISagaAuditDataStore
     {
-        Task StoreSnapshot(SagaSnapshot sagaSnapshot);
+        Task<bool> StoreSnapshot(SagaSnapshot sagaSnapshot);
         Task<QueryResult<SagaHistory>> GetSagaById(Guid sagaId);
     }
 }

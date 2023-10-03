@@ -13,12 +13,13 @@
             this.store = store;
         }
 
-        public async Task StoreSnapshot(SagaSnapshot sagaSnapshot)
+        public async Task<bool> StoreSnapshot(SagaSnapshot sagaSnapshot)
         {
             using (var session = store.OpenAsyncSession())
             {
                 await session.StoreAsync(sagaSnapshot);
                 await session.SaveChangesAsync();
+                return true;
             }
         }
 

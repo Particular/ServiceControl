@@ -5,15 +5,14 @@
     using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
-    using ServiceBus.Management.Infrastructure.Settings;
 
     class SagaAuditDestinationCustomCheck : CustomCheck
     {
         readonly State stateHolder;
         static readonly TimeSpan retentionTime = TimeSpan.FromHours(24);
 
-        public SagaAuditDestinationCustomCheck(State stateHolder, Settings settings)
-            : base("Saga Audit Destination", "Health", settings.OverrideCustomCheckRepeatTime ?? TimeSpan.FromMinutes(15))
+        public SagaAuditDestinationCustomCheck(State stateHolder)
+            : base("Saga Audit Destination", "Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
         }

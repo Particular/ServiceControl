@@ -14,6 +14,7 @@
     using ServiceControl.Persistence.MessageRedirects;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
+    using ServiceControl.SagaAudit;
 
     class RavenDbPersistence : IPersistence
     {
@@ -67,8 +68,12 @@
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-            serviceCollection.AddSingleton<ISagaAuditDataStore, NoImplementationSagaAuditDataStore>();
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
+
+            // Forward saga audit messages and warn in ServiceControl 5, remove in 6
+            serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
+            serviceCollection.AddCustomCheck<SagaAuditDestinationCustomCheck>();
+            serviceCollection.AddSingleton<SagaAuditDestinationCustomCheck.State>();
         }
 
         public void ConfigureLifecycle(IServiceCollection serviceCollection)
