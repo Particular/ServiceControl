@@ -58,6 +58,12 @@
             SagaHistory sagaHistory = null;
             EventLogItem eventLog = null;
 
+            CustomServiceControlSettings = settings =>
+            {
+                settings.DisableHealthChecks = false;
+                settings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
+            };
+
             var context = await Define<MyContext>()
                 .WithEndpoint<SagaEndpoint>(b => b.When((bus, c) => bus.SendLocal(new MessageInitiatingSaga { Id = "Id" })))
                 .Do("GetSagaHistory", async c =>
@@ -73,9 +79,9 @@
                 })
                 .Do("GetEventLog", async c =>
                 {
-                    var result = await this.TryGetSingle<EventLogItem>("/api/eventlogitems/", e => e.EventType == nameof(EndpointReportingSagaAuditToPrimary));
-                    eventLog = result;
-                    return result;
+                    var result = await this.TryGetMany<EventLogItem>("/api/eventlogitems/");
+                    eventLog = result.Items.FirstOrDefault(e => e.Description.Contains("Saga Audit Destination") && e.Description.Contains("endpoints have reported saga audit data to the ServiceControl Primary instance"));
+                    return eventLog != null;
                 })
                 .Done(c => eventLog != null)
                 .Run();

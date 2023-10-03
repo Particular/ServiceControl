@@ -156,6 +156,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableHealthChecks { get; set; }
 
+        public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
+
         public bool ExposeApi { get; set; } = true;
 
         public TransportCustomization LoadTransportCustomization()

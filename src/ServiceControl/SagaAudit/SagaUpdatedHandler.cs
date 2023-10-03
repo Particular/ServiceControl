@@ -1,26 +1,25 @@
 ﻿namespace ServiceControl.SagaAudit
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
     using EndpointPlugin.Messages.SagaState;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
     using ServiceControl.Connection;
-    using ServiceControl.Infrastructure.DomainEvents;
+    using ServiceControl.Infrastructure;
 
     class SagaUpdatedHandler : IHandleMessages<SagaUpdatedMessage>
     {
-        public SagaUpdatedHandler(IDomainEvents domainEvents, IPlatformConnectionBuilder connectionBuilder)
+        public SagaUpdatedHandler(IPlatformConnectionBuilder connectionBuilder, SagaAuditDestinationCustomCheck.State customCheckState)
         {
-            this.domainEvents = domainEvents;
             this.connectionBuilder = connectionBuilder;
+            this.customCheckState = customCheckState;
         }
 
         public async Task Handle(SagaUpdatedMessage message, IMessageHandlerContext context)
         {
-            await WarnOncePerEndpointPerDay(message);
+            customCheckState.Fail(message.Endpoint);
 
             if (auditQueueName is null || nextAuditQueueNameRefresh < DateTime.UtcNow)
             {
@@ -29,7 +28,7 @@
 
             if (auditQueueName is null)
             {
-                throw new Exception("Could not determine audit queue name to forward saga update message. The ServiceControl remote audit instance ");
+                throw new UnrecoverableException("Could not determine audit queue name to forward saga update message. This message can be replayed after the ServiceControl Audit remote instance is running and accessible.");
             }
 
             await context.ForwardCurrentMessageTo(auditQueueName);
@@ -62,39 +61,9 @@
             }
         }
 
-        async Task WarnOncePerEndpointPerDay(SagaUpdatedMessage message)
-        {
-            if (nextWarningDates.TryGetValue(message.Endpoint, out var nextWarning) && nextWarning > DateTime.UtcNow)
-            {
-                return;
-            }
-
-            await semaphore.WaitAsync();
-            try
-            {
-                if (nextWarningDates.TryGetValue(message.Endpoint, out nextWarning) && nextWarning > DateTime.UtcNow)
-                {
-                    return;
-                }
-
-                await domainEvents.Raise(new EndpointReportingSagaAuditToPrimary
-                {
-                    DetectedAt = DateTime.UtcNow,
-                    EndpointName = message.Endpoint
-                });
-
-                nextWarningDates[message.Endpoint] = DateTime.UtcNow.AddDays(1);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        }
-
-        readonly IDomainEvents domainEvents;
         readonly IPlatformConnectionBuilder connectionBuilder;
+        readonly SagaAuditDestinationCustomCheck.State customCheckState;
 
-        static readonly ConcurrentDictionary<string, DateTime> nextWarningDates = new ConcurrentDictionary<string, DateTime>();
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
         static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);

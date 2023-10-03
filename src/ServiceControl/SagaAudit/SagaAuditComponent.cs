@@ -1,9 +1,10 @@
 ﻿namespace ServiceControl.SagaAudit
 {
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.ExternalIntegrations;
+    using ServiceControl.CustomChecks;
 
     class SagaAuditComponent : ServiceControlComponent
     {
@@ -12,12 +13,11 @@
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
             hostBuilder.ConfigureServices(collection =>
             {
-                collection.AddEventLogMapping<EndpointReportingSagaAuditToPrimaryDefinition>();
+                collection.AddCustomCheck<SagaAuditDestinationCustomCheck>();
+                collection.AddSingleton<SagaAuditDestinationCustomCheck.State>();
             });
         }
 
-        public override void Setup(Settings settings, IComponentInstallationContext context)
-        {
-        }
+        public override void Setup(Settings settings, IComponentInstallationContext context) { }
     }
 }
