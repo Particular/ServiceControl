@@ -61,7 +61,7 @@
             CustomServiceControlSettings = settings =>
             {
                 settings.DisableHealthChecks = false;
-                settings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
+                settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
             };
 
             var context = await Define<MyContext>()

@@ -38,6 +38,5 @@
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
   "DisableHealthChecks": false,
-  "OverrideCustomCheckRepeatTime": null,
   "ExposeApi": true
 }

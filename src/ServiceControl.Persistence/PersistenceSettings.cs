@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Persistence
 {
+    using System;
+
     /// <summary>
     /// Marker interface used to serialize persister settings in REST API
     /// </summary>
@@ -10,5 +12,8 @@
         public string DatabasePath { get; set; }
 
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
+
+        public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
+
     }
 }
