@@ -174,7 +174,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
 
         static long DataSize(RavenDBPersisterSettings settings)
         {
-            var datafilePath = Path.Combine(settings.DatabasePath, "data");
+            var datafilePath = Path.Combine(settings.DatabasePath, "Databases", settings.DatabaseName, "Raven.voron");
 
             try
             {
