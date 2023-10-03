@@ -6,6 +6,7 @@
     using EndpointPlugin.Messages.SagaState;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
+    using NServiceBus.Logging;
     using ServiceControl.Connection;
     using ServiceControl.Infrastructure;
 
@@ -39,7 +40,7 @@
             await semaphore.WaitAsync();
             try
             {
-                if (auditQueueName != null && nextAuditQueueNameRefresh > DateTime.UtcNow)
+                if (nextAuditQueueNameRefresh > DateTime.UtcNow)
                 {
                     return;
                 }
@@ -50,10 +51,13 @@
                 {
                     auditQueueName = sagaAudit["SagaAuditQueue"].Value<string>();
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
+                    log.InfoFormat("Refreshed audit queue name '{0}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes.", auditQueueName);
                 }
             }
-            catch (Exception)
+            catch (Exception x)
             {
+                log.WarnFormat("Unable to refresh audit queue name from ServiceControl Audit instance. Will continue to check at most every 15 seconds. Exception message: {0}", x.Message);
+                nextAuditQueueNameRefresh = DateTime.UtcNow.AddSeconds(15);
             }
             finally
             {
@@ -67,5 +71,6 @@
         static string auditQueueName;
         static DateTime nextAuditQueueNameRefresh;
         static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        static readonly ILog log = LogManager.GetLogger<SagaUpdatedHandler>();
     }
 }
