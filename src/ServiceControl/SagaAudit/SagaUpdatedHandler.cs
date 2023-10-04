@@ -53,10 +53,10 @@
 
                 var connectionDetails = await connectionBuilder.BuildPlatformConnection();
 
-				// First instance is named `SagaAudit`, following instance `SagaAudit1`..`SagaAuditN`
+                // First instance is named `SagaAudit`, following instance `SagaAudit1`..`SagaAuditN`
                 if (connectionDetails.ToDictionary().TryGetValue("SagaAudit", out var sagaAuditObj) && sagaAuditObj is JObject sagaAudit)
                 {
-					// Pick any audit queue, assume all instance are based on competing consumer
+                    // Pick any audit queue, assume all instance are based on competing consumer
                     auditQueueName = sagaAudit["SagaAuditQueue"].Value<string>();
                     nextAuditQueueNameRefresh = DateTime.UtcNow.AddMinutes(5);
                     log.InfoFormat("Refreshed audit queue name '{0}' from ServiceControl Audit instance. Will continue to use this value for forwarding saga update messages for the next 5 minutes.", auditQueueName);
