@@ -30,5 +30,5 @@ class RavenDBPersisterSettings : PersistenceSettings
     public const string DatabaseNameDefault = "primary";
     public const int DatabasePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
-    public const string LogsModeDefault = "Information";
+    public const string LogsModeDefault = "Operations";
 }
