@@ -69,7 +69,7 @@
                 return;
             }
 
-            var databaseMaintenanceUrl = ((RavenDBPersisterSettings)Settings).DatabaseMaintenanceUrl
+            var databaseMaintenanceUrl = ((RavenDBPersisterSettings)Settings).DatabaseMaintenanceUrl;
             var url = databaseMaintenanceUrl + $"/studio/index.html#databases/documents?&database=%3Csystem%3E";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
