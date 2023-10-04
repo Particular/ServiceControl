@@ -68,7 +68,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             DataStoreConfiguration = new DataStoreConfiguration
             {
-                DataStoreTypeName = "RavenDB35"
+                DataStoreTypeName = "RavenDB5"
             };
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(

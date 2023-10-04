@@ -4,6 +4,7 @@ namespace ServiceBus.Management.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using ServiceControl.ExternalIntegrations;
+    using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Subscriptions;
     using ServiceControl.Notifications.Email;
     using ServiceControl.Operations;
@@ -36,6 +37,7 @@ namespace ServiceBus.Management.Infrastructure
             var recoverability = configuration.Recoverability();
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
+            recoverability.AddUnrecoverableException<UnrecoverableException>();
             configuration.SendFailedMessagesTo(transportSettings.ErrorQueue);
 
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);
