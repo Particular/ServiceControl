@@ -15,5 +15,6 @@
 
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
 
+        public abstract bool MessageBodiesAlwaysStoredInFailedMessage { get; }
     }
 }

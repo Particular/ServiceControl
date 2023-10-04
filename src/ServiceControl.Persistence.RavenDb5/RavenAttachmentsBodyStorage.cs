@@ -1,14 +1,17 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
+    using System;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Commands.Batches;
-    using Sparrow.Json.Parsing;
+    using Raven.Client.Documents.Session;
+    using ServiceControl.MessageFailures;
+    using ServiceControl.MessageFailures.Api;
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        const string AttachmentName = "body";
+        public const string AttachmentName = "body";
         readonly IDocumentStore documentStore;
 
         public RavenAttachmentsBodyStorage(IDocumentStore documentStore)
@@ -16,28 +19,43 @@
             this.documentStore = documentStore;
         }
 
-        // TODO: This method is only used in tests and not by ServiceControl itself! But in the Raven3.5 persister, it IS used!
-        // It should probably be removed and tests should use the RavenDbRecoverabilityIngestionUnitOfWork
-        public async Task Store(string messageId, string contentType, int bodySize, Stream bodyStream)
+        public Task Store(string uniqueId, string contentType, int bodySize, Stream bodyStream)
+            => throw new NotImplementedException("Only included for interface compatibility with Raven3.5 persister implementation. Raven5 tests should use IIngestionUnitOfWorkFactory to store failed messages/bodies.");
+
+        public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
         {
-            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
-
-            var emptyDoc = new DynamicJsonValue();
-            var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
-
-            var stream = bodyStream;
-            var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
-
             using var session = documentStore.OpenAsyncSession();
-            session.Advanced.Defer(new ICommandData[] { putOwnerDocumentCmd, putAttachmentCmd });
-            await session.SaveChangesAsync();
+
+            // BodyId could be a MessageID or a UniqueID, but if a UniqueID then it will be a DeterministicGuid of MessageID and endpoint name and be Guid-parseable
+            // This is preferred, then we know we're getting the correct message body that is attached to the FailedMessage document
+            if (Guid.TryParse(bodyId, out _))
+            {
+                var result = await ResultForUniqueId(session, bodyId);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            // See if we can look up a FailedMessage by MessageID
+            var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .Where(msg => msg.MessageId == bodyId, true)
+                .OfType<FailedMessage>()
+                .Select(msg => msg.UniqueMessageId);
+
+            var uniqueId = await query.FirstOrDefaultAsync();
+
+            if (uniqueId != null)
+            {
+                return await ResultForUniqueId(session, uniqueId);
+            }
+
+            return null;
         }
 
-        public async Task<MessageBodyStreamResult> TryFetch(string messageId)
+        async Task<MessageBodyStreamResult> ResultForUniqueId(IAsyncDocumentSession session, string uniqueId)
         {
-            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
-
-            using var session = documentStore.OpenAsyncSession();
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
             var result = await session.Advanced.Attachments.GetAsync(documentId, AttachmentName);
 

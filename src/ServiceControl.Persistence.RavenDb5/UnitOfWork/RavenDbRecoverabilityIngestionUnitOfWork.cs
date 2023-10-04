@@ -13,7 +13,6 @@
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
-    using Sparrow.Json.Parsing;
 
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
@@ -32,13 +31,12 @@
             List<FailedMessage.FailureGroup> groups)
         {
             var uniqueMessageId = context.Headers.UniqueId();
-            var bodyId = processingAttempt.Headers.MessageId();
             var contentType = GetContentType(context.Headers, "text/xml");
             var bodySize = context.Body?.Length ?? 0;
 
             processingAttempt.MessageMetadata.Add("ContentType", contentType);
             processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
-            processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{bodyId}/body");
+            processingAttempt.MessageMetadata.Add("BodyUrl", $"/messages/{uniqueMessageId}/body");
 
             if (doFullTextIndexing)
             {
@@ -143,22 +141,12 @@
 
         void AddStoreBodyCommands(MessageContext context, string contentType)
         {
-            var messageId = context.Headers.MessageId();
-            var documentId = MessageBodyIdGenerator.MakeDocumentId(messageId);
-
-            var emptyDoc = new DynamicJsonValue
-            {
-                ["@metadata"] = new DynamicJsonValue
-                {
-                    ["@collection"] = "MessageBodies"
-                }
-            };
-            var putOwnerDocumentCmd = new PutCommandData(documentId, null, emptyDoc);
+            var uniqueId = context.Headers.UniqueId();
+            var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
             var stream = Memory.Manager.GetStream(context.Body);
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
-            parentUnitOfWork.AddCommand(putOwnerDocumentCmd);
             parentUnitOfWork.AddCommand(putAttachmentCmd);
         }
 

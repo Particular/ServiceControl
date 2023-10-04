@@ -59,7 +59,7 @@
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
             var sender = new TestSender();
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
             CompleteDatabaseOperation();
@@ -73,7 +73,7 @@
 
             await documentManager.RebuildRetryOperationState();
 
-            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
 
             await processor.ProcessBatches(sender);
 
@@ -92,7 +92,7 @@
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, PersistenceSettings);
 
             await processor.ProcessBatches(sender); // mark ready
             await processor.ProcessBatches(sender);
@@ -122,7 +122,7 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, PersistenceSettings);
 
             bool c;
             do
@@ -159,7 +159,7 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
 
             CompleteDatabaseOperation();
 
