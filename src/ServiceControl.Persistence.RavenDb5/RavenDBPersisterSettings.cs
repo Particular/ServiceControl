@@ -4,7 +4,6 @@ using ServiceControl.Persistence;
 
 class RavenDBPersisterSettings : PersistenceSettings
 {
-    public string HostName { get; set; } = HostNameDefault; // TODO: (Ramon) I think thus must be 🔥 I don't think we should ever allow remote access by using a value different than `localhost` as Raven Studio might then be always be accessible!
     public int DatabasePort { get; set; } = DatabasePortDefault;
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;
     public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
@@ -17,7 +16,7 @@ class RavenDBPersisterSettings : PersistenceSettings
     /// <summary>
     /// Computed connection string to access embedded RavenDB API and RavenDB Studio
     /// </summary>
-    public string ServerUrl => $"http://{HostName}:{DatabasePort}";
+    public string ServerUrl => $"http://localhost:{DatabasePort}";
 
     /// <summary>
     /// User provided external RavenDB instance connection string
@@ -32,5 +31,4 @@ class RavenDBPersisterSettings : PersistenceSettings
     public const int DatabasePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
     public const string LogsModeDefault = "Information";
-    public const string HostNameDefault = "localhost";
 }
