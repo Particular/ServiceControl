@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Editing;
@@ -19,17 +20,20 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Operations;
+    using ServiceControl.Operations.BodyStorage;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
     class ErrorMessagesDataStore : IErrorMessageDataStore
     {
         readonly IDocumentStore documentStore;
+        readonly IBodyStorage bodyStorage;
         readonly TimeSpan eventsRetentionPeriod;
 
-        public ErrorMessagesDataStore(IDocumentStore documentStore, RavenDBPersisterSettings settings)
+        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
         {
             this.documentStore = documentStore;
+            this.bodyStorage = bodyStorage;
             eventsRetentionPeriod = settings.EventsRetentionPeriod;
         }
 
@@ -730,13 +734,37 @@
                     }
                 }
             }
-
             return ids.ToArray();
         }
 
-        public Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
+        public async Task<byte[]> FetchFromFailedMessage(string uniqueMessageId)
         {
-            throw new NotSupportedException("Body not stored embedded");
+            byte[] body = null;
+            var result = await bodyStorage.TryFetch(uniqueMessageId);
+
+            if (result == null)
+            {
+                throw new InvalidOperationException("IBodyStorage.TryFetch result cannot be null");
+            }
+
+            if (result.HasResult)
+            {
+                using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
+                {
+                    // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
+                    // furthermore call ToArray would neglect many of the benefits of the recyclable stream
+                    // RavenDB always returns a memory stream in ver. 3.5 so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
+                    // this assumption might change when we stop supporting RavenDB 3.5 but right now this is the most memory efficient way to do things
+                    // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await result.Stream.CopyToAsync(memoryStream);
+
+                        body = memoryStream.ToArray();
+                    }
+                }
+            }
+            return body;
         }
 
         public async Task StoreEventLogItem(EventLogItem logItem)

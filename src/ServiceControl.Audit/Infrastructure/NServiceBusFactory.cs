@@ -7,6 +7,7 @@ namespace ServiceControl.Audit.Infrastructure
     using Contracts.MessageFailures;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
+    using ServiceControl.Infrastructure;
     using Settings;
     using Transports;
 
@@ -63,6 +64,8 @@ namespace ServiceControl.Audit.Infrastructure
             {
                 configuration.EnableInstallers();
             }
+
+            configuration.Recoverability().AddUnrecoverableException<UnrecoverableException>();
         }
 
         static bool IsExternalContract(Type t)

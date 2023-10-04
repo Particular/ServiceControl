@@ -14,10 +14,9 @@
 
     sealed class TestPersistenceImpl : TestPersistence
     {
-        readonly RavenDBPersisterSettings settings = CreateSettings();
         IDocumentStore documentStore;
 
-        static RavenDBPersisterSettings CreateSettings()
+        public TestPersistenceImpl()
         {
             var retentionPeriod = TimeSpan.FromMinutes(1);
 
@@ -36,12 +35,12 @@
                 settings.ExposeRavenDB = true;
             }
 
-            return settings;
+            Settings = settings;
         }
 
         public override void Configure(IServiceCollection services)
         {
-            var persistence = new RavenDbPersistenceConfiguration().Create(CreateSettings());
+            var persistence = new RavenDbPersistenceConfiguration().Create(Settings);
             PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, persistence);
             services.AddHostedService(p => new Wrapper(this, p.GetRequiredService<IDocumentStore>()));
         }
@@ -70,7 +69,8 @@
                 return;
             }
 
-            var url = $"http://localhost:{settings.DatabaseMaintenancePort}/studio/index.html#databases/documents?&database=%3Csystem%3E";
+            var databaseMaintenanceUrl = ((RavenDBPersisterSettings)Settings).DatabaseMaintenanceUrl;
+            var url = databaseMaintenanceUrl + $"/studio/index.html#databases/documents?&database=%3Csystem%3E";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

@@ -23,7 +23,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
-    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
@@ -46,17 +45,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         {
             SettingsPerInstance.Clear();
 
-            var startPort = 33334;
-
-            var mainInstancePort = PortUtility.FindAvailablePort(startPort);
-            var mainInstanceDbPort = PortUtility.FindAvailablePort(mainInstancePort + 1);
-            var auditInstancePort = PortUtility.FindAvailablePort(mainInstanceDbPort + 1);
+            var mainInstancePort = portLeases.GetPort();
+            var auditInstancePort = portLeases.GetPort();
 
             await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort);
-            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, mainInstanceDbPort, auditInstancePort);
+            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, auditInstancePort);
         }
 
-        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int maintenancePort, int auditInstanceApiPort)
+        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int auditInstanceApiPort)
         {
             var instanceName = Settings.DEFAULT_SERVICE_NAME;
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
@@ -66,11 +62,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var settings = new Settings(instanceName, transportToUse.TypeName, dataStoreConfiguration.DataStoreTypeName)
             {
                 Port = instancePort,
-                PersisterSpecificSettings = new RavenDBPersisterSettings
-                {
-                    RunInMemory = true,
-                    DatabaseMaintenancePort = maintenancePort
-                },
                 ForwardErrorMessages = false,
                 TransportType = transportToUse.TypeName,
                 TransportConnectionString = transportToUse.ConnectionString,
@@ -119,6 +110,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     return false;
                 }
             };
+
+            databaseLease.CustomizeSettings(settings);
 
             customServiceControlSettings(settings);
             SettingsPerInstance[instanceName] = settings;
@@ -250,7 +243,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var excludedAssemblies = new[]
             {
                 Path.GetFileName(typeof(Settings).Assembly.CodeBase), // ServiceControl.exe
-                "ServiceControl.Persistence.RavenDb.dll",
+                "ServiceControl.Persistence.RavenDb5.dll",
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name // This project
             };
 
@@ -366,6 +359,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 }
             }
 
+            await databaseLease.DisposeAsync();
+            portLeases?.Dispose();
+
             hosts.Clear();
             HttpClients.Clear();
             portToHandler.Clear();
@@ -389,6 +385,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
+
+        static readonly PortPool portPool = new PortPool(33335);
+        DatabaseLease databaseLease = SharedDatabaseSetup.LeaseDatabase();
+        PortLease portLeases = portPool.GetLease();
 
         class ForwardingHandler : DelegatingHandler
         {
