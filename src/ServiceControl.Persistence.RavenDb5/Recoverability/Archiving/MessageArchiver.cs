@@ -12,13 +12,18 @@
 
     class MessageArchiver : IArchiveMessages
     {
-        public MessageArchiver(IDocumentStore store, OperationsManager operationsManager, IDomainEvents domainEvents)
+        public MessageArchiver(
+            IDocumentStore store,
+            OperationsManager operationsManager,
+            IDomainEvents domainEvents,
+            RavenDBPersisterSettings settings
+            )
         {
             this.store = store;
             this.domainEvents = domainEvents;
             this.operationsManager = operationsManager;
 
-            archiveDocumentManager = new ArchiveDocumentManager();
+            archiveDocumentManager = new ArchiveDocumentManager(settings);
             archivingManager = new ArchivingManager(domainEvents, operationsManager);
 
             unarchiveDocumentManager = new UnarchiveDocumentManager();

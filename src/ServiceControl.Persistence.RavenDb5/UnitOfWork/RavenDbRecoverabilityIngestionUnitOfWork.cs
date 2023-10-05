@@ -18,11 +18,16 @@
     {
         readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
         readonly bool doFullTextIndexing;
+        readonly TimeSpan errorRetentionPeriod;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, bool doFullTextIndexing)
+        public RavenDbRecoverabilityIngestionUnitOfWork(
+            RavenDbIngestionUnitOfWork parentUnitOfWork,
+            RavenDBPersisterSettings settings
+            )
         {
             this.parentUnitOfWork = parentUnitOfWork;
-            this.doFullTextIndexing = doFullTextIndexing;
+            doFullTextIndexing = settings.EnableFullTextSearchOnBodies;
+            errorRetentionPeriod = settings.ErrorRetentionPeriod;
         }
 
         public Task RecordFailedProcessingAttempt(
@@ -69,9 +74,11 @@
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
+            var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
+
             parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
+                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved}; this.@expires = '{expiredAt:o}';"
             }));
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));

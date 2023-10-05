@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.MessageRedirects;
+    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
     using ServiceControl.Recoverability;
@@ -63,6 +64,12 @@
             }
 
             return new MessageRedirectsCollection();
+        }
+
+        public Task CancelExpiration(FailedMessage failedMessage)
+        {
+            Session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
+            return Task.CompletedTask;
         }
     }
 }

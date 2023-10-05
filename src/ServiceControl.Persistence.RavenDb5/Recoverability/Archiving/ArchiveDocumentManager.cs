@@ -13,6 +13,11 @@
 
     class ArchiveDocumentManager
     {
+        public ArchiveDocumentManager(RavenDBPersisterSettings settings)
+        {
+            errorRetentionPeriod = settings.ErrorRetentionPeriod;
+        }
+
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {
             return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
@@ -95,6 +100,13 @@
 
         public void ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
+            var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
+
+            var patchRequest = new PatchRequest
+            {
+                Script = @$"this.Status = {(int)FailedMessageStatus.Archived}; this.@expires = '{expiredAt:o}';"
+            };
+
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 
             if (patchCommands != null)
@@ -144,8 +156,6 @@
             }
         }
 
-        static PatchRequest patchRequest = new PatchRequest { Script = @$"this.Status = {(int)FailedMessageStatus.Archived}" };
-
         public class GroupDetails
         {
             public string GroupName { get; set; }
@@ -153,5 +163,6 @@
         }
 
         static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
+        readonly TimeSpan errorRetentionPeriod;
     }
 }

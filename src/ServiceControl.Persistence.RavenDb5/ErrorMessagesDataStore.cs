@@ -29,12 +29,14 @@
         readonly IDocumentStore documentStore;
         readonly IBodyStorage bodyStorage;
         readonly TimeSpan eventsRetentionPeriod;
+        readonly TimeSpan errorRetentionPeriod;
 
         public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
         {
             this.documentStore = documentStore;
             this.bodyStorage = bodyStorage;
             eventsRetentionPeriod = settings.EventsRetentionPeriod;
+            errorRetentionPeriod = settings.ErrorRetentionPeriod;
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -171,6 +173,7 @@
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
+                    session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
                 }
 
                 await session.SaveChangesAsync();
@@ -200,7 +203,7 @@
         public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
         {
             var session = documentStore.OpenAsyncSession();
-            var manager = new EditFailedMessageManager(session);
+            var manager = new EditFailedMessageManager(session, errorRetentionPeriod);
             return Task.FromResult((IEditFailedMessagesManager)manager);
         }
 
@@ -539,6 +542,9 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
+                var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
+                session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
+
                 await session.SaveChangesAsync();
 
                 return true;
@@ -586,12 +592,15 @@
             // TODO: Make sure this new implementation actually works, not going to delete the old implementation (commented below) until then
             var patch = new PatchByQueryOperation(new IndexQuery
             {
+                // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
+
                 Query = $@"from index '{new FailedMessageViewIndex().IndexName} as msg
                            where msg.LastModified >= args.From and msg.LastModified <= args.To
                            where msg.Status == args.Archived
                            update
                            {{
                                 msg.Status = args.Unresolved
+                                delete msg.@expires
                            }}",
                 QueryParameters =
                 {
@@ -668,6 +677,7 @@
                     if (failedMessage.Status == FailedMessageStatus.Archived)
                     {
                         failedMessage.Status = FailedMessageStatus.Unresolved;
+                        session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
                     }
                 }
 

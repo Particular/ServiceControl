@@ -17,7 +17,7 @@
             this.store = store;
             commands = new ConcurrentQueue<ICommandData>();
             Monitoring = new RavenDbMonitoringIngestionUnitOfWork(this);
-            Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this, settings.EnableFullTextSearchOnBodies);
+            Recoverability = new RavenDbRecoverabilityIngestionUnitOfWork(this, settings);
         }
 
         internal void AddCommand(ICommandData command) => commands.Enqueue(command);
