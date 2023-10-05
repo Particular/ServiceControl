@@ -95,7 +95,7 @@
         public void UnarchiveMessageGroupBatch(IAsyncDocumentSession session, UnarchiveBatch batch)
         {
             // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
-            var patchRequest = new PatchRequest { Script = $@"this.Status = {(int)FailedMessageStatus.Unresolved}; delete this.@expires;" };
+            var patchRequest = new PatchRequest { Script = $@"this.Status = {(int)FailedMessageStatus.Unresolved}; delete this['@metadata']['@expires']" };
 
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 

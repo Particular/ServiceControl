@@ -172,8 +172,9 @@
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
+                    var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
                     failedMessage.Status = FailedMessageStatus.Archived;
-                    session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
+                    session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
                 }
 
                 await session.SaveChangesAsync();
@@ -600,7 +601,7 @@
                            update
                            {{
                                 msg.Status = args.Unresolved
-                                delete msg.@expires
+                                delete msg['@metadata']['@expires']
                            }}",
                 QueryParameters =
                 {

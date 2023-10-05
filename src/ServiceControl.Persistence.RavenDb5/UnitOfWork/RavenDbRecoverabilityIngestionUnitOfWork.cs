@@ -78,7 +78,7 @@
 
             parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
             {
-                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved}; this['@expires'] = '{expiredAt:o}';"
+                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved}; this['@metadata']['@expires'] = '{expiredAt:o}';"
             }));
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
