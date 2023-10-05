@@ -98,13 +98,21 @@
             };
         }
 
+        static readonly string ArchiveMessageGroupPatchScript = @$"
+                    this.Status = {(int)FailedMessageStatus.Archived};
+                    this['@metadata']['@expires'] = args.Expires;";
+
         public void ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
             var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
 
             var patchRequest = new PatchRequest
             {
-                Script = @$"this.Status = {(int)FailedMessageStatus.Archived}; this['@metadata']['@expires'] = '{expiredAt:o}';"
+                Script = ArchiveMessageGroupPatchScript,
+                Values = new Dictionary<string, object>
+                {
+                    { "Expires", expiredAt}
+                }
             };
 
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
