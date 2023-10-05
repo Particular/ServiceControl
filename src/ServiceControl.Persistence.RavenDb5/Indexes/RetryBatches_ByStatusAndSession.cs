@@ -7,12 +7,14 @@ namespace ServiceControl.Persistence
     {
         public RetryBatches_ByStatusAndSession()
         {
-            Map = docs => from doc in docs
-                          select new
-                          {
-                              doc.RetrySessionId,
-                              doc.Status
-                          };
+            Map = docs =>
+
+                from doc in docs
+                select new
+                {
+                    doc.RetrySessionId,
+                    doc.Status
+                };
         }
     }
 }

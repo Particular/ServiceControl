@@ -9,21 +9,23 @@ namespace ServiceControl.CompositeViews.Messages
     {
         public MessagesBodyTransformer()
         {
-            TransformResults = messages => from message in messages
-                                           let metadata = message.ProcessingAttempts != null
-                                               ? message.ProcessingAttempts.Last().MessageMetadata
-                                               : message.MessageMetadata
-                                           let body = message.ProcessingAttempts != null
-                                               ? message.ProcessingAttempts.Last().Body ?? metadata["Body"]
-                                               : metadata["Body"]
-                                           select new
-                                           {
-                                               MessageId = metadata["MessageId"],
-                                               Body = body,
-                                               BodySize = (int)metadata["ContentLength"],
-                                               ContentType = metadata["ContentType"],
-                                               BodyNotStored = (bool)metadata["BodyNotStored"]
-                                           };
+            TransformResults = messages =>
+
+                from message in messages
+                let metadata = message.ProcessingAttempts != null
+                    ? message.ProcessingAttempts.Last().MessageMetadata
+                    : message.MessageMetadata
+                let body = message.ProcessingAttempts != null
+                    ? message.ProcessingAttempts.Last().Body ?? metadata["Body"]
+                    : metadata["Body"]
+                select new
+                {
+                    MessageId = metadata["MessageId"],
+                    Body = body,
+                    BodySize = (int)metadata["ContentLength"],
+                    ContentType = metadata["ContentType"],
+                    BodyNotStored = (bool)metadata["BodyNotStored"]
+                };
         }
 
         public static string Name

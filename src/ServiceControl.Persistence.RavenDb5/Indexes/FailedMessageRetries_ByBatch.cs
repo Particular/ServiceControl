@@ -8,11 +8,13 @@ namespace ServiceControl.Persistence
     {
         public FailedMessageRetries_ByBatch()
         {
-            Map = docs => from doc in docs
-                          select new
-                          {
-                              doc.RetryBatchId
-                          };
+            Map = docs =>
+
+                from doc in docs
+                select new
+                {
+                    doc.RetryBatchId
+                };
         }
     }
 }

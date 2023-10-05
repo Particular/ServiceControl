@@ -8,11 +8,12 @@ namespace ServiceControl.Infrastructure.RavenDB.Expiration
     {
         public ExpiryProcessedMessageIndex()
         {
-            Map = messages => from message in messages
-                              select new
-                              {
-                                  ProcessedAt = message.ProcessedAt.Ticks
-                              };
+            Map = messages =>
+                from message in messages
+                select new
+                {
+                    ProcessedAt = message.ProcessedAt.Ticks
+                };
 
             DisableInMemoryIndexing = true;
         }
