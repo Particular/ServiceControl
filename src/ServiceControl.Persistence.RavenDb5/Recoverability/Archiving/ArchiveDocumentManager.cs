@@ -104,7 +104,7 @@
 
             var patchRequest = new PatchRequest
             {
-                Script = @$"this.Status = {(int)FailedMessageStatus.Archived}; this.@expires = '{expiredAt:o}';"
+                Script = @$"this.Status = {(int)FailedMessageStatus.Archived}; this['@expires'] = '{expiredAt:o}';"
             };
 
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
