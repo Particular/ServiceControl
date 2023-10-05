@@ -9,12 +9,14 @@ namespace ServiceControl.Recoverability
     {
         public FailedMessages_UniqueMessageIdAndTimeOfFailures()
         {
-            TransformResults = failedMessages => from failedMessage in failedMessages
-                                                 select new
-                                                 {
-                                                     failedMessage.UniqueMessageId,
-                                                     LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
-                                                 };
+            TransformResults = failedMessages =>
+
+                from failedMessage in failedMessages
+                select new
+                {
+                    failedMessage.UniqueMessageId,
+                    LatestTimeOfFailure = failedMessage.ProcessingAttempts.Max(x => x.FailureDetails.TimeOfFailure)
+                };
         }
 
         public struct Result

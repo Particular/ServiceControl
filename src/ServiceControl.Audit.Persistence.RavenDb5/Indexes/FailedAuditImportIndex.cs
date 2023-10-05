@@ -8,12 +8,13 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
     {
         public FailedAuditImportIndex()
         {
-            Map = docs => from cc in docs
-                          select new FailedAuditImport
-                          {
-                              Id = cc.Id,
-                              Message = cc.Message
-                          };
+            Map = docs =>
+                from cc in docs
+                select new FailedAuditImport
+                {
+                    Id = cc.Id,
+                    Message = cc.Message
+                };
         }
     }
 }

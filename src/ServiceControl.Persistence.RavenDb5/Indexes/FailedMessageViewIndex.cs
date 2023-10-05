@@ -10,6 +10,7 @@ namespace ServiceControl.MessageFailures.Api
         public FailedMessageViewIndex()
         {
             Map = messages =>
+
                 from message in messages
                 let processingAttemptsLast = message.ProcessingAttempts.Last()
                 select new
