@@ -139,6 +139,8 @@
             }
             while (c);
 
+            CompleteDatabaseOperation();
+
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
 
             Assert.AreEqual(RetryState.Completed, status.RetryState);
