@@ -12,12 +12,11 @@
 
   <ItemGroup Label="Audit persisters">
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Primary Instance persisters">
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
+  <ItemGroup Label="Primary persisters">
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Transports">
