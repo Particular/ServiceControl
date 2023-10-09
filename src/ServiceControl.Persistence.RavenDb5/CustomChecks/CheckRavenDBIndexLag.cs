@@ -43,7 +43,7 @@
             {
                 if (indexStats.IsStale && indexStats.LastIndexingTime.HasValue)
                 {
-                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value; // TODO: Ensure audit ravendb5 persistence uses the same index lag behavior based on time
+                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
 
                     if (indexLag > IndexLagThresholdError)
                     {
