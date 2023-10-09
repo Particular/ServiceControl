@@ -69,7 +69,11 @@
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
             var appDirectory = Path.GetDirectoryName(assemblyLocation);
             PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
-            PersistenceManifestLibrary.PersistenceManifests.ForEach(p =>
+
+            var supportedManifests = PersistenceManifestLibrary.PersistenceManifests.Where(p => p.IsSupported).ToList();
+            Assert.True(supportedManifests.Count >= 1);
+
+            supportedManifests.ForEach(p =>
             {
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
                 var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);

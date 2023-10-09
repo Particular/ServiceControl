@@ -14,6 +14,7 @@
         public string DisplayName { get; set; }
         public string Description { get; set; }
         public string TypeName { get; set; }
+        public bool IsSupported { get; set; } = true;
 
         internal bool IsMatch(string persistenceType) =>
             string.Compare(TypeName, persistenceType, true) == 0
