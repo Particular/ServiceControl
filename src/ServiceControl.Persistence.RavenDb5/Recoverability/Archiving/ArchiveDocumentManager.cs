@@ -105,7 +105,11 @@
         {
             var patchRequest = new PatchRequest
             {
-                Script = "this.Status = {(int)FailedMessageStatus.Archived};",
+                Script = "this.Status = args.Status;",
+                Values =
+                {
+                    { "Status", (int)FailedMessageStatus.Archived }
+                }
             };
 
             expirationManager.EnableExpiration(patchRequest);
