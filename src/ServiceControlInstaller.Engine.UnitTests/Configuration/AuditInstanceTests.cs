@@ -13,6 +13,7 @@
     [TestFixture]
     class AuditInstanceTests : InstallationFixture
     {
+        // TODO: Revisit this test once installer work is done to make Raven35 instances non-upgradeable
         [Test]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
