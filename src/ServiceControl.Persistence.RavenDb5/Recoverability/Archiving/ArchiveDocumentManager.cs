@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
@@ -13,9 +14,11 @@
 
     class ArchiveDocumentManager
     {
-        public ArchiveDocumentManager(RavenDBPersisterSettings settings)
+        readonly ExpirationManager expirationManager;
+
+        public ArchiveDocumentManager(ExpirationManager expirationManager)
         {
-            errorRetentionPeriod = settings.ErrorRetentionPeriod;
+            this.expirationManager = expirationManager;
         }
 
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
@@ -98,22 +101,14 @@
             };
         }
 
-        static readonly string ArchiveMessageGroupPatchScript = @$"
-                    this.Status = {(int)FailedMessageStatus.Archived};
-                    this['@metadata']['@expires'] = args.Expires;";
-
         public void ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
-            var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
-
             var patchRequest = new PatchRequest
             {
-                Script = ArchiveMessageGroupPatchScript,
-                Values = new Dictionary<string, object>
-                {
-                    { "Expires", expiredAt}
-                }
+                Script = "this.Status = {(int)FailedMessageStatus.Archived};",
             };
+
+            expirationManager.EnableExpiration(patchRequest);
 
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 
@@ -171,6 +166,5 @@
         }
 
         static ILog logger = LogManager.GetLogger<ArchiveDocumentManager>();
-        readonly TimeSpan errorRetentionPeriod;
     }
 }

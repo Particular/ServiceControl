@@ -15,6 +15,7 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
+    using RavenDb5;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -28,15 +29,13 @@
     {
         readonly IDocumentStore documentStore;
         readonly IBodyStorage bodyStorage;
-        readonly TimeSpan eventsRetentionPeriod;
-        readonly TimeSpan errorRetentionPeriod;
+        readonly ExpirationManager expirationManager;
 
-        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
+        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, ExpirationManager expirationManager)
         {
             this.documentStore = documentStore;
             this.bodyStorage = bodyStorage;
-            eventsRetentionPeriod = settings.EventsRetentionPeriod;
-            errorRetentionPeriod = settings.ErrorRetentionPeriod;
+            this.expirationManager = expirationManager;
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -172,9 +171,9 @@
 
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
-                    var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
                     failedMessage.Status = FailedMessageStatus.Archived;
-                    session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
+
+                    expirationManager.EnableExpiration(session, failedMessage);
                 }
 
                 await session.SaveChangesAsync();
@@ -204,7 +203,7 @@
         public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
         {
             var session = documentStore.OpenAsyncSession();
-            var manager = new EditFailedMessageManager(session, errorRetentionPeriod);
+            var manager = new EditFailedMessageManager(session, expirationManager);
             return Task.FromResult((IEditFailedMessagesManager)manager);
         }
 
@@ -543,8 +542,7 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
-                var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
-                session.Advanced.GetMetadataFor(failedMessage)[Constants.Documents.Metadata.Expires] = expiresAt;
+                expirationManager.EnableExpiration(session, failedMessage);
 
                 await session.SaveChangesAsync();
 
@@ -601,7 +599,7 @@
                            update
                            {{
                                 msg.Status = args.Unresolved
-                                delete msg['@metadata']['@expires']
+                                {ExpirationManager.DeleteExpirationFieldScript}
                            }}",
                 QueryParameters =
                 {
@@ -780,13 +778,11 @@
 
         public async Task StoreEventLogItem(EventLogItem logItem)
         {
-            var expiration = DateTime.UtcNow + eventsRetentionPeriod;
-
             using (var session = documentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(logItem);
 
-                session.Advanced.GetMetadataFor(logItem)[Constants.Documents.Metadata.Expires] = expiration;
+                expirationManager.EnableExpiration(session, logItem);
 
                 await session.SaveChangesAsync();
             }

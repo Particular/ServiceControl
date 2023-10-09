@@ -8,6 +8,7 @@
     using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
+    using RavenDb5;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
@@ -17,17 +18,14 @@
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
         readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly ExpirationManager expirationManager;
         readonly bool doFullTextIndexing;
-        readonly TimeSpan errorRetentionPeriod;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(
-            RavenDbIngestionUnitOfWork parentUnitOfWork,
-            RavenDBPersisterSettings settings
-            )
+        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenDBPersisterSettings settings)
         {
             this.parentUnitOfWork = parentUnitOfWork;
+            this.expirationManager = expirationManager;
             doFullTextIndexing = settings.EnableFullTextSearchOnBodies;
-            errorRetentionPeriod = settings.ErrorRetentionPeriod;
         }
 
         public Task RecordFailedProcessingAttempt(
@@ -74,18 +72,14 @@
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
-            var expiredAt = DateTime.UtcNow + errorRetentionPeriod;
-
-            parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
+            var patchRequest = new PatchRequest
             {
-                Script = $@"
-                    this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};
-                    this['@metadata']['@expires'] = args.Expires;",
-                Values = new Dictionary<string, object>
-                {
-                    { "Expires", expiredAt }
-                }
-            }));
+                Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
+            };
+
+            expirationManager.EnableExpiration(patchRequest);
+
+            parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, patchRequest));
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
             return Task.CompletedTask;

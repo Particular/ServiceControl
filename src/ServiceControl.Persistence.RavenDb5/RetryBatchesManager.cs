@@ -6,15 +6,18 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using Persistence.MessageRedirects;
-    using Raven.Client;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
+    using RavenDb5;
     using ServiceControl.Recoverability;
 
     class RetryBatchesManager : AbstractSessionManager, IRetryBatchesManager
     {
-        public RetryBatchesManager(IAsyncDocumentSession session) : base(session)
+        readonly ExpirationManager expirationManager;
+
+        public RetryBatchesManager(IAsyncDocumentSession session, ExpirationManager expirationManager) : base(session)
         {
+            this.expirationManager = expirationManager;
         }
 
         public void Delete(RetryBatch retryBatch) => Session.Delete(retryBatch);
@@ -68,7 +71,7 @@
 
         public Task CancelExpiration(FailedMessage failedMessage)
         {
-            Session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
+            expirationManager.CancelExpiration(Session, failedMessage);
             return Task.CompletedTask;
         }
     }

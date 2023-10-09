@@ -10,23 +10,26 @@
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
+    using RavenDb5;
     using ServiceControl.Recoverability;
 
     class RetryBatchesDataStore : IRetryBatchesDataStore
     {
         readonly IDocumentStore documentStore;
+        readonly ExpirationManager expirationManager;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(RetryBatchesDataStore));
 
-        public RetryBatchesDataStore(IDocumentStore documentStore)
+        public RetryBatchesDataStore(IDocumentStore documentStore, ExpirationManager expirationManager)
         {
             this.documentStore = documentStore;
+            this.expirationManager = expirationManager;
         }
 
         public Task<IRetryBatchesManager> CreateRetryBatchesManager()
         {
             var session = documentStore.OpenAsyncSession();
-            var manager = new RetryBatchesManager(session);
+            var manager = new RetryBatchesManager(session, expirationManager);
 
             return Task.FromResult<IRetryBatchesManager>(manager);
         }
