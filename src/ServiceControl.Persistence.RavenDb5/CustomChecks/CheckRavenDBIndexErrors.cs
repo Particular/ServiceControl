@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl
 {
     using System;
+    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
@@ -18,7 +19,12 @@
 
         public override Task<CheckResult> PerformCheck()
         {
-            var indexErrors = store.Maintenance.Send(new GetIndexErrorsOperation());
+            var response = store.Maintenance.Send(new GetIndexErrorsOperation());
+
+            // Filter response as RavenDB5 will return entries without errors
+            var indexErrors = response
+                .Where(x => x.Errors.Any())
+                .ToArray();
 
             if (indexErrors.Length == 0)
             {
