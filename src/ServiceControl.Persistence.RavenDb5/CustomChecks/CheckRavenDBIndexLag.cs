@@ -41,9 +41,9 @@
 
             foreach (var indexStats in indexes)
             {
-                if (indexStats.LastIndexingTime.HasValue)
+                if (indexStats.IsStale && indexStats.LastIndexingTime.HasValue)
                 {
-                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value; // TODO: Ensure audit ravendb5 persistence uses the same index lag behavior based on time
+                    var indexLag = DateTime.UtcNow - indexStats.LastIndexingTime.Value;
 
                     if (indexLag > IndexLagThresholdError)
                     {
@@ -80,10 +80,8 @@
             Log.Debug(report.ToString());
         }
 
-        // TODO: RavenDB 3.5 had IndexLag thresholds that were number of document writes, and I converted to times. Revisit these numbers before shipping
-        // For IndexLag as document writes, 10k was a warning, 100k was an error. These TimeSpans assume same # of writes / 250 writes/sec
-        static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromSeconds(40); // Assuming 10_000 writes at 250 writes/sec
-        static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromSeconds(400);   // Assuming 100_000 writes at 250 writes/sec
+        static readonly TimeSpan IndexLagThresholdWarning = TimeSpan.FromMinutes(1);
+        static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
         static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
         readonly IDocumentStore store;
