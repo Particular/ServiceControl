@@ -7,7 +7,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />

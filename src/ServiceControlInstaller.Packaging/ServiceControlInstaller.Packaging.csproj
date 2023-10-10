@@ -16,7 +16,8 @@
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Primary Instance persisters">
+  <ItemGroup Label="Primary persisters">
+    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj" />
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
   </ItemGroup>
 
