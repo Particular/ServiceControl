@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -101,6 +102,19 @@
             Assert.AreEqual(RetryState.Completed, status.RetryState);
         }
 
+
+        void TraceWriteFirstChanceException(object x, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs ea)
+        {
+            var text = ea.Exception.ToString().Replace("\n", "\n    | ");
+            Trace.WriteLine("WARN| FirstChanceException: " + text);
+        }
+
+        [SetUp]
+        public void Register() => AppDomain.CurrentDomain.FirstChanceException += TraceWriteFirstChanceException;
+
+        [TearDown]
+        public void Unregister() => AppDomain.CurrentDomain.FirstChanceException -= TraceWriteFirstChanceException;
+
         [Test]
         public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete()
         {
@@ -131,9 +145,11 @@
                 {
                     c = await processor.ProcessBatches(sender);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     //Continue trying until there is no exception -> poison message is removed from the batch
+                    Trace.WriteLine("WARN| ProcessBatches failed: " + ex);
+                    await Task.Delay(100);
                     c = true;
                 }
             }
