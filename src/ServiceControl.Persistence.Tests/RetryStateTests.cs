@@ -146,7 +146,7 @@
         [TestCase(28)]
         [TestCase(29)]
         [TestCase(30)]
-        public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete(bool num)
+        public async Task When_there_is_one_poison_message_it_is_removed_from_batch_and_the_status_is_Complete(int num)
         {
             TestContext.Out.WriteLine($"Heisenbug Test Number {num}");
 
