@@ -22,6 +22,7 @@
         {
             this.store = store;
             this.domainEvents = domainEvents;
+            this.expirationManager = expirationManager;
             this.operationsManager = operationsManager;
 
             archiveDocumentManager = new ArchiveDocumentManager(expirationManager);
@@ -169,7 +170,7 @@
                         logger.Info($"Unarchiving {nextBatch.DocumentIds.Count} messages from group {groupId} starting");
                     }
 
-                    unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch);
+                    unarchiveDocumentManager.UnarchiveMessageGroupBatch(batchSession, nextBatch, expirationManager);
 
                     await unarchivingManager.BatchUnarchived(unarchiveOperation.RequestId, unarchiveOperation.ArchiveType, nextBatch?.DocumentIds.Count ?? 0);
 
@@ -238,6 +239,7 @@
         readonly IDocumentStore store;
         readonly OperationsManager operationsManager;
         readonly IDomainEvents domainEvents;
+        readonly ExpirationManager expirationManager;
         readonly ArchiveDocumentManager archiveDocumentManager;
         readonly ArchivingManager archivingManager;
         readonly UnarchiveDocumentManager unarchiveDocumentManager;

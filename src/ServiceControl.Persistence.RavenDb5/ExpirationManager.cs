@@ -9,7 +9,7 @@
 
     class ExpirationManager
     {
-        public const string DeleteExpirationFieldScript = "delete msg['@metadata']['@expires']";
+        public const string DeleteExpirationFieldScript = "; delete msg['@metadata']['@expires']";
 
         readonly TimeSpan errorRetentionPeriod;
         readonly TimeSpan eventsRetentionPeriod;
@@ -24,6 +24,7 @@
         {
             session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
         }
+
         public void EnableExpiration(IAsyncDocumentSession session, FailedMessage failedMessage)
         {
             var expiresAt = DateTime.UtcNow + errorRetentionPeriod;
@@ -45,5 +46,7 @@
             request.Script += "\nthis['@metadata']['@expires'] = args.Expires;";
             request.Values.Add("Expires", expiredAt);
         }
+
+        public void CancelExpiration(PatchRequest request) => request.Script += "delete this['@metadata']['@expires']";
     }
 }

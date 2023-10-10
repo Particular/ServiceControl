@@ -5,7 +5,6 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
     using Raven.Client.Documents.Session;
-    using Raven.Client;
     using RavenDb5;
 
     class EditFailedMessageManager : AbstractSessionManager, IEditFailedMessagesManager
