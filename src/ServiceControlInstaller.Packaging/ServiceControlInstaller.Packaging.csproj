@@ -12,13 +12,11 @@
 
   <ItemGroup Label="Audit persisters">
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.InMemory\ServiceControl.Audit.Persistence.InMemory.csproj" />
-    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb\ServiceControl.Audit.Persistence.RavenDb.csproj" />
     <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Primary persisters">
     <ProjectReference Include="..\ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb\ServiceControl.Persistence.RavenDb.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Transports">
@@ -30,6 +28,10 @@
     <ProjectReference Include="..\ServiceControl.Transports.RabbitMQ\ServiceControl.Transports.RabbitMQ.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SqlServer\ServiceControl.Transports.SqlServer.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Manifests for removed stuff">
+    <ProjectReference Include="..\LegacyArtifacts\LegacyArtifacts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
