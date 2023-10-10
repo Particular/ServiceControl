@@ -153,7 +153,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return instanceData;
         }
 
-        // TODO: Change after Raven5 introduced
-        public const string DefaultPersister = "RavenDB35";
+        public const string DefaultPersister = "RavenDB5";
     }
 }
