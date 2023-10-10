@@ -127,7 +127,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
             if (string.IsNullOrEmpty(persistenceType))
             {
-                PersistenceManifest = manifests.Single(m => m.Name == ServiceControlNewInstance.DefaultPersister);
+                // Must always remain RavenDB35 so that SCMU understands that an instance with no configured value is an old Raven 3.5 instance
+                PersistenceManifest = manifests.Single(m => m.Name == "RavenDB35");
             }
             else
             {
