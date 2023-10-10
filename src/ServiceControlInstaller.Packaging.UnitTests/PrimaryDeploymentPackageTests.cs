@@ -5,7 +5,7 @@ namespace Tests
     using NUnit.Framework;
 
     [TestFixture]
-    public class PrimaryDeploymentPackageTests
+    public class PrimaryDeploymentPackageTests // TODO: Remove?
     {
         public PrimaryDeploymentPackageTests()
         {

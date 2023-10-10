@@ -14,10 +14,11 @@ namespace Tests
         [Test]
         public void Should_package_storages_individually()
         {
-            var expectedPersisters = new string[] {
-                "RavenDB35",
+            var expectedPersisters = new[] {
+                //"RavenDB35", TODO: Remove?
                 "RavenDB5",
-                "InMemory"};
+                "InMemory"
+            };
 
             var persisters = deploymentPackage.DeploymentUnits.Where(u => u.Category == "Persisters");
 
