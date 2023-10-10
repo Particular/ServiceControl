@@ -21,7 +21,8 @@
 
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
         {
-            return CreateWithPersistence(deploymentCachePath, DefaultPersister);
+            const string persisterToUseForBrandNewInstances = "RavenDB5";
+            return CreateWithPersistence(deploymentCachePath, persisterToUseForBrandNewInstances);
         }
 
         public static ServiceControlAuditNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
@@ -98,7 +99,5 @@
 
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
-
-        const string DefaultPersister = "RavenDB5";
     }
 }
