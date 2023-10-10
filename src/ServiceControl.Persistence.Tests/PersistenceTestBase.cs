@@ -65,6 +65,25 @@ public abstract class PersistenceTestBase
 
     protected void CompleteDatabaseOperation() => testPersistence.CompleteDatabaseOperation();
 
+    protected async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
+    {
+        timeout = timeout == default ? TimeSpan.FromSeconds(10) : timeout;
+
+        var start = DateTime.UtcNow;
+
+        while (DateTime.UtcNow - start < timeout)
+        {
+            if (await conditionChecker())
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
+        }
+
+        throw new Exception($"{condition} has not been meet in defined timespan: {timeout})");
+    }
+
     [Conditional("DEBUG")]
     protected void BlockToInspectDatabase() => testPersistence.BlockToInspectDatabase();
 
@@ -78,4 +97,8 @@ public abstract class PersistenceTestBase
     protected IIngestionUnitOfWorkFactory UnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
     protected ICustomChecksDataStore CustomChecks => GetRequiredService<ICustomChecksDataStore>();
     protected IArchiveMessages ArchiveMessages => GetRequiredService<IArchiveMessages>();
+    protected IIngestionUnitOfWorkFactory IngestionUnitOfWorkFactory => GetRequiredService<IIngestionUnitOfWorkFactory>();
+    protected IEventLogDataStore EventLogDataStore => GetRequiredService<IEventLogDataStore>();
+    protected IRetryDocumentDataStore RetryDocumentDataStore => GetRequiredService<IRetryDocumentDataStore>();
+
 }
