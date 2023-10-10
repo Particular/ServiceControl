@@ -5,16 +5,19 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Recoverability.Editing;
     using Raven.Client.Documents.Session;
+    using RavenDb5;
 
     class EditFailedMessageManager : AbstractSessionManager, IEditFailedMessagesManager
     {
         readonly IAsyncDocumentSession session;
+        readonly ExpirationManager expirationManager;
         FailedMessage failedMessage;
 
-        public EditFailedMessageManager(IAsyncDocumentSession session)
+        public EditFailedMessageManager(IAsyncDocumentSession session, ExpirationManager expirationManager)
             : base(session)
         {
             this.session = session;
+            this.expirationManager = expirationManager;
         }
 
         public async Task<FailedMessage> GetFailedMessage(string failedMessageId)
@@ -47,6 +50,9 @@
         {
             // Instance is tracked by the document session
             failedMessage.Status = FailedMessageStatus.Resolved;
+
+            expirationManager.EnableExpiration(session, failedMessage);
+
             return Task.CompletedTask;
         }
     }

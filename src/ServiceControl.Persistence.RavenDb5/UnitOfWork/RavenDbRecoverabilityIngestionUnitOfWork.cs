@@ -8,6 +8,7 @@
     using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
+    using RavenDb5;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
@@ -17,12 +18,14 @@
     class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
         readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly ExpirationManager expirationManager;
         readonly bool doFullTextIndexing;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, bool doFullTextIndexing)
+        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenDBPersisterSettings settings)
         {
             this.parentUnitOfWork = parentUnitOfWork;
-            this.doFullTextIndexing = doFullTextIndexing;
+            this.expirationManager = expirationManager;
+            doFullTextIndexing = settings.EnableFullTextSearchOnBodies;
         }
 
         public Task RecordFailedProcessingAttempt(
@@ -69,10 +72,14 @@
             var failedMessageDocumentId = FailedMessageIdGenerator.MakeDocumentId(retriedMessageUniqueId);
             var failedMessageRetryDocumentId = FailedMessageRetry.MakeDocumentId(retriedMessageUniqueId);
 
-            parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, new PatchRequest
+            var patchRequest = new PatchRequest
             {
                 Script = $@"this.{nameof(FailedMessage.Status)} = {(int)FailedMessageStatus.Resolved};"
-            }));
+            };
+
+            expirationManager.EnableExpiration(patchRequest);
+
+            parentUnitOfWork.AddCommand(new PatchCommandData(failedMessageDocumentId, null, patchRequest));
 
             parentUnitOfWork.AddCommand(new DeleteCommandData(failedMessageRetryDocumentId, null));
             return Task.CompletedTask;

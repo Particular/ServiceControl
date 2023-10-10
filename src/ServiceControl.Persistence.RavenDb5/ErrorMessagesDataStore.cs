@@ -15,6 +15,7 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
+    using RavenDb5;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;
@@ -28,13 +29,13 @@
     {
         readonly IDocumentStore documentStore;
         readonly IBodyStorage bodyStorage;
-        readonly TimeSpan eventsRetentionPeriod;
+        readonly ExpirationManager expirationManager;
 
-        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, RavenDBPersisterSettings settings)
+        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, ExpirationManager expirationManager)
         {
             this.documentStore = documentStore;
             this.bodyStorage = bodyStorage;
-            eventsRetentionPeriod = settings.EventsRetentionPeriod;
+            this.expirationManager = expirationManager;
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
@@ -171,6 +172,8 @@
                 if (failedMessage.Status != FailedMessageStatus.Archived)
                 {
                     failedMessage.Status = FailedMessageStatus.Archived;
+
+                    expirationManager.EnableExpiration(session, failedMessage);
                 }
 
                 await session.SaveChangesAsync();
@@ -200,7 +203,7 @@
         public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
         {
             var session = documentStore.OpenAsyncSession();
-            var manager = new EditFailedMessageManager(session);
+            var manager = new EditFailedMessageManager(session, expirationManager);
             return Task.FromResult((IEditFailedMessagesManager)manager);
         }
 
@@ -539,6 +542,8 @@
 
                 failedMessage.Status = FailedMessageStatus.Resolved;
 
+                expirationManager.EnableExpiration(session, failedMessage);
+
                 await session.SaveChangesAsync();
 
                 return true;
@@ -586,12 +591,15 @@
             // TODO: Make sure this new implementation actually works, not going to delete the old implementation (commented below) until then
             var patch = new PatchByQueryOperation(new IndexQuery
             {
+                // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
+
                 Query = $@"from index '{new FailedMessageViewIndex().IndexName} as msg
                            where msg.LastModified >= args.From and msg.LastModified <= args.To
                            where msg.Status == args.Archived
                            update
                            {{
                                 msg.Status = args.Unresolved
+                                {ExpirationManager.DeleteExpirationFieldScript}
                            }}",
                 QueryParameters =
                 {
@@ -668,6 +676,7 @@
                     if (failedMessage.Status == FailedMessageStatus.Archived)
                     {
                         failedMessage.Status = FailedMessageStatus.Unresolved;
+                        session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
                     }
                 }
 
@@ -769,13 +778,11 @@
 
         public async Task StoreEventLogItem(EventLogItem logItem)
         {
-            var expiration = DateTime.UtcNow + eventsRetentionPeriod;
-
             using (var session = documentStore.OpenAsyncSession())
             {
                 await session.StoreAsync(logItem);
 
-                session.Advanced.GetMetadataFor(logItem)[Constants.Documents.Metadata.Expires] = expiration;
+                expirationManager.EnableExpiration(session, logItem);
 
                 await session.SaveChangesAsync();
             }

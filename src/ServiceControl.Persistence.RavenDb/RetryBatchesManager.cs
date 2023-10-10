@@ -54,5 +54,11 @@
 
             return new MessageRedirectsCollection();
         }
+
+        public Task CancelExpiration(FailedMessage failedMessage)
+        {
+            // Using expiration query/delete logic for RavenDB 3.5 implementation
+            return Task.CompletedTask;
+        }
     }
 }

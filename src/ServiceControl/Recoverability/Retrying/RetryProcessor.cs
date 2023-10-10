@@ -222,6 +222,7 @@ namespace ServiceControl.Recoverability
 
                 // should not be done concurrently due to sessions not being thread safe
                 failedMessage.Status = FailedMessageStatus.RetryIssued;
+                await manager.CancelExpiration(failedMessage);
             }
 
             await TryDispatch(sender, transportOperations, messages, failedMessageRetriesById, stagingId, previousAttemptFailed);

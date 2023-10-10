@@ -37,6 +37,7 @@
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
+            serviceCollection.AddSingleton<ExpirationManager>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
 

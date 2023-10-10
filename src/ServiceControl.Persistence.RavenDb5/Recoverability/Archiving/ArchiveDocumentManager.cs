@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
@@ -13,6 +14,13 @@
 
     class ArchiveDocumentManager
     {
+        readonly ExpirationManager expirationManager;
+
+        public ArchiveDocumentManager(ExpirationManager expirationManager)
+        {
+            this.expirationManager = expirationManager;
+        }
+
         public Task<ArchiveOperation> LoadArchiveOperation(IAsyncDocumentSession session, string groupId, ArchiveType archiveType)
         {
             return session.LoadAsync<ArchiveOperation>(ArchiveOperation.MakeId(groupId, archiveType));
@@ -95,6 +103,17 @@
 
         public void ArchiveMessageGroupBatch(IAsyncDocumentSession session, ArchiveBatch batch)
         {
+            var patchRequest = new PatchRequest
+            {
+                Script = "this.Status = args.Status;",
+                Values =
+                {
+                    { "Status", (int)FailedMessageStatus.Archived }
+                }
+            };
+
+            expirationManager.EnableExpiration(patchRequest);
+
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 
             if (patchCommands != null)
@@ -143,8 +162,6 @@
                 logger.Info($"Removing ArchiveOperation {archiveOperation.Id} completed");
             }
         }
-
-        static PatchRequest patchRequest = new PatchRequest { Script = @$"this.Status = {(int)FailedMessageStatus.Archived}" };
 
         public class GroupDetails
         {

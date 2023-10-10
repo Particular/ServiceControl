@@ -9,6 +9,8 @@
 
     static class FailedMessageBuilder
     {
+        public static FailedMessage Minimal() => Minimal(_ => { });
+
         public static FailedMessage Minimal(Action<FailedMessage> customize)
         {
             var message = new FailedMessage

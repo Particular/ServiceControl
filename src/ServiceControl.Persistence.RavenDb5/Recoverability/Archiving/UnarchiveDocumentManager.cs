@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using MessageFailures;
+    using Persistence.RavenDb5;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
@@ -92,8 +93,20 @@
             };
         }
 
-        public void UnarchiveMessageGroupBatch(IAsyncDocumentSession session, UnarchiveBatch batch)
+        public void UnarchiveMessageGroupBatch(IAsyncDocumentSession session, UnarchiveBatch batch, ExpirationManager expirationManager)
         {
+            // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
+            var patchRequest = new PatchRequest
+            {
+                Script = @"this.Status = args.Status;",
+                Values =
+                {
+                    { "Status", (int)FailedMessageStatus.Unresolved }
+                }
+            };
+
+            expirationManager.CancelExpiration(patchRequest);
+
             var patchCommands = batch?.DocumentIds.Select(documentId => new PatchCommandData(documentId, null, patchRequest));
 
             if (patchCommands != null)
@@ -138,8 +151,6 @@
             session.Advanced.Defer(new DeleteCommandData(unarchiveOperation.Id, null));
             await session.SaveChangesAsync();
         }
-
-        static PatchRequest patchRequest = new PatchRequest { Script = $@"this.Status = {(int)FailedMessageStatus.Unresolved}" };
 
         public class GroupDetails
         {
