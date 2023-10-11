@@ -158,27 +158,7 @@ Selected Transport Customization:   {settings.TransportType}
             logger.Info(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
-                Settings = new
-                {
-                    settings.ApiUrl,
-                    settings.ErrorLogQueue,
-                    settings.DataSpaceRemainingThreshold,
-                    settings.ErrorQueue,
-                    settings.ForwardErrorMessages,
-                    settings.HttpDefaultConnectionLimit,
-                    settings.IngestErrorMessages,
-                    settings.MaximumConcurrencyLevel,
-                    settings.Port,
-                    settings.ProcessRetryBatchesFrequency,
-                    settings.NotificationsFilter,
-                    settings.RemoteInstances,
-                    settings.RetryHistoryDepth,
-                    settings.PersisterSpecificSettings,
-                    settings.SkipQueueCreation,
-                    settings.PersisterSpecificSettings.EnableFullTextSearchOnBodies,
-                    settings.TransportType,
-                    settings.AllowMessageEditing,
-                },
+                Settings = settings,
                 LoggingSettings = loggingSettings
             });
         }
