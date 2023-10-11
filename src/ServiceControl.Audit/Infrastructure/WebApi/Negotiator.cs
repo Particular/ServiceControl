@@ -21,19 +21,19 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
                 .WithDeterministicEtag(queryStats.ETag);
         }
 
-        public static HttpResponseMessage WithPagingLinksAndTotalCount(this HttpResponseMessage response, int totalCount, int highestTotalCountOfAllInstances,
+        public static HttpResponseMessage WithPagingLinksAndTotalCount(this HttpResponseMessage response, long totalCount, long highestTotalCountOfAllInstances,
             HttpRequestMessage request)
         {
             return response.WithTotalCount(totalCount)
                 .WithPagingLinks(totalCount, highestTotalCountOfAllInstances, request);
         }
 
-        public static HttpResponseMessage WithTotalCount(this HttpResponseMessage response, int total)
+        public static HttpResponseMessage WithTotalCount(this HttpResponseMessage response, long total)
         {
             return response.WithHeader("Total-Count", total.ToString(CultureInfo.InvariantCulture));
         }
 
-        public static HttpResponseMessage WithPagingLinks(this HttpResponseMessage response, int totalResults, int highestTotalCountOfAllInstances, HttpRequestMessage request)
+        public static HttpResponseMessage WithPagingLinks(this HttpResponseMessage response, long totalResults, long highestTotalCountOfAllInstances, HttpRequestMessage request)
         {
             decimal maxResultsPerPage = 50;
 

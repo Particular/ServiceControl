@@ -3,11 +3,11 @@ namespace ServiceControl.Persistence.Infrastructure
     public struct QueryStatsInfo
     {
         public readonly string ETag;
-        public readonly int TotalCount;
-        public readonly int HighestTotalCountOfAllTheInstances;
+        public readonly long TotalCount;
+        public readonly long HighestTotalCountOfAllTheInstances;
         public readonly bool IsStale;
 
-        public QueryStatsInfo(string eTag, int totalCount, bool isStale, int? highestTotalCountOfAllTheInstances = null)
+        public QueryStatsInfo(string eTag, long totalCount, bool isStale, long? highestTotalCountOfAllTheInstances = null)
         {
             ETag = eTag;
             TotalCount = totalCount;
