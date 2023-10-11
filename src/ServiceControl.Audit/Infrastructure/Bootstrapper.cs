@@ -190,22 +190,7 @@ Persistence:                        {persistenceConfiguration.Name}
             logger.Info(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
-                Settings = new
-                {
-                    settings.ApiUrl,
-                    settings.AuditLogQueue,
-                    settings.AuditQueue,
-                    settings.DataSpaceRemainingThreshold,
-                    settings.ForwardAuditMessages,
-                    settings.HttpDefaultConnectionLimit,
-                    settings.IngestAuditMessages,
-                    settings.MaxBodySizeToStore,
-                    settings.MaximumConcurrencyLevel,
-                    settings.Port,
-                    settings.SkipQueueCreation,
-                    settings.EnableFullTextSearchOnBodies,
-                    settings.TransportType
-                },
+                Settings = settings,
                 LoggingSettings = loggingSettings
             });
         }
