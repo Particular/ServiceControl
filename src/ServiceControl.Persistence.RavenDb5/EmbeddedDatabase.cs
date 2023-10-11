@@ -66,7 +66,9 @@
                     $"--Logs.Mode={settings.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
-                    $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
+                    $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\"",
+                    "--Indexing.Auto.SearchEngineType=Corax",
+                    "--Indexing.Static.SearchEngineType=Corax"
                 },
                 AcceptEula = true,
                 DataDirectory = settings.DatabasePath,
