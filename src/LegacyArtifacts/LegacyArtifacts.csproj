@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.0">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+    Manifest files from legacy transports/persistence are copied directly to the deploy directory,
+    while mimicking the same folder structure that exists in this project.
+    -->
+    <Artifact Include="**\*.manifest" DestinationFolder="$(ArtifactsPath)%(RecursiveDir)" />
+  </ItemGroup>
+</Project>

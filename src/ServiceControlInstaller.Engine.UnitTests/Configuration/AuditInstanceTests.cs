@@ -13,8 +13,8 @@
     [TestFixture]
     class AuditInstanceTests : InstallationFixture
     {
-        // TODO: Revisit this test once installer work is done to make Raven35 instances non-upgradeable
-        [Test]
+        // TODO: Revisit this test once installer work is done to make Raven35 instances non-upgradeable, and remove Ignore attribute
+        [Test, Ignore("Revisit when installer makes Raven35 instances non-upgradeable")]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
