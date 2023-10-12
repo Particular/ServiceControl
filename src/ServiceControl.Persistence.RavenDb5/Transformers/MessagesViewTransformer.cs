@@ -7,7 +7,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     static class MessagesViewTransformer //https://ravendb.net/docs/article-page/4.2/csharp/migration/client-api/session/querying/transformers
     {
-        public static IQueryable<MessagesView> TransformToMessageView(this IRavenQueryable<FailedMessage> query)
+        public static IQueryable<MessagesView> TransformToMessageView(this IQueryable<FailedMessage> query)
         {
             var results =
                 from message in query

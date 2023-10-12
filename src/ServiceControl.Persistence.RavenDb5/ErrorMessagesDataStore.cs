@@ -51,7 +51,7 @@
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<FailedMessage>()
+                    .OfType<FailedMessage>()
                     .TransformToMessageView();
 
                 var results = await query.ToListAsync();
@@ -75,7 +75,7 @@
                     .Statistics(out var stats)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<FailedMessage>()
+                    .OfType<FailedMessage>()
                     .TransformToMessageView();
 
                 var results = await query.ToListAsync();
@@ -100,7 +100,7 @@
                     .Where(m => m.ReceivingEndpointName == endpointName)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<FailedMessage>()
+                    .OfType<FailedMessage>()
                     .TransformToMessageView();
 
                 var results = await query.ToListAsync();
@@ -123,7 +123,7 @@
                     .Where(m => m.ConversationId == conversationId)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<FailedMessage>()
+                    .OfType<FailedMessage>()
                     .TransformToMessageView();
 
                 var results = await query.ToListAsync();
@@ -145,7 +145,7 @@
                     .Search(x => x.Query, searchTerms)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)
-                    .ProjectInto<FailedMessage>()
+                    .OfType<FailedMessage>()
                     .TransformToMessageView();
 
                 var results = await query.ToListAsync();

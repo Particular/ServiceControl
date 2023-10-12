@@ -189,8 +189,8 @@
             using (var session = DocumentStore.OpenAsyncSession())
             {
                 var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .ProjectInto<FailedMessage>()
-                    .Customize(x => x.WaitForNonStaleResults());
+                    .Customize(x => x.WaitForNonStaleResults())
+                    .OfType<FailedMessage>();
 
                 var messagesWithNoTimestamp = await MessagesViewTransformer.TransformToMessageView(query).ToArrayAsync();
 
@@ -233,8 +233,8 @@
             using (var session = DocumentStore.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessage>()
-                    .ProjectInto<FailedMessage>()
-                    .Customize(x => x.WaitForNonStaleResults());
+                    .Customize(x => x.WaitForNonStaleResults())
+                    .OfType<FailedMessage>();
 
                 var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
 
@@ -276,8 +276,8 @@
             {
                 var query = session
                     .Query<FailedMessage>()
-                    .ProjectInto<FailedMessage>()
-                    .Customize(x => x.WaitForNonStaleResults());
+                    .Customize(x => x.WaitForNonStaleResults())
+                    .OfType<FailedMessage>();
 
                 var result = await MessagesViewTransformer.TransformToMessageView(query).ToListAsync();
 
