@@ -3,9 +3,11 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using ByteSizeLib;
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
@@ -122,6 +124,8 @@
                     }
                 }
             });
+
+            RecordStartup();
         }
 
         public async Task<IDocumentStore> Connect(CancellationToken cancellationToken)
@@ -151,6 +155,74 @@
         {
             shutdownTokenSource.Cancel();
             EmbeddedServer.Instance?.Dispose();
+        }
+
+        void RecordStartup()
+        {
+            var dataSize = DataSize();
+            var folderSize = FolderSize(configuration.ServerConfiguration.DbPath);
+
+            var startupMessage = $@"
+-------------------------------------------------------------
+Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
+Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
+-------------------------------------------------------------";
+
+            logger.Info(startupMessage);
+        }
+
+        long DataSize()
+        {
+            var datafilePath = Path.Combine(configuration.ServerConfiguration.DbPath, "Databases", configuration.Name, "Raven.voron");
+
+            try
+            {
+                var info = new FileInfo(datafilePath);
+                if (!info.Exists)
+                {
+                    return -1;
+                }
+                return info.Length;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        long FolderSize(string path)
+        {
+            try
+            {
+                var dir = new DirectoryInfo(path);
+                var dirSize = DirSize(dir);
+                return dirSize;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        static long DirSize(DirectoryInfo d)
+        {
+            long size = 0;
+            if (d.Exists)
+            {
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di);
+                }
+            }
+
+            return size;
         }
 
         CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
