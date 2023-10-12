@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ByteSize" />
     <PackageReference Include="Lucene.Net" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="RavenDB.Embedded" />

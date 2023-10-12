@@ -2,11 +2,8 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
     using System.Net;
     using Auditing;
-    using ByteSizeLib;
     using Metrics;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -109,76 +106,15 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        long DataSize(string dbPath)
-        {
-            if (string.IsNullOrEmpty(dbPath))
-            {
-                return 0;
-            }
-
-            var datafilePath = Path.Combine(dbPath, "data");
-
-            try
-            {
-                var info = new FileInfo(datafilePath);
-
-                return info.Length;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-
-        long FolderSize(string dbPath)
-        {
-            if (string.IsNullOrEmpty(dbPath))
-            {
-                return 0;
-            }
-
-            try
-            {
-                var dir = new DirectoryInfo(dbPath);
-                var dirSize = DirSize(dir);
-                return dirSize;
-            }
-            catch
-            {
-                return -1;
-            }
-        }
-
-        static long DirSize(DirectoryInfo d)
-        {
-            long size = 0;
-            FileInfo[] fis = d.GetFiles();
-            foreach (FileInfo fi in fis)
-            {
-                size += fi.Length;
-            }
-            DirectoryInfo[] dis = d.GetDirectories();
-            foreach (DirectoryInfo di in dis)
-            {
-                size += DirSize(di);
-            }
-            return size;
-        }
-
         void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration, IPersistenceConfiguration persistenceConfiguration)
         {
             var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
-            var dbPath = SettingsReader<string>.Read("DbPath", null);
-            var dataSize = DataSize(dbPath);
-            var folderSize = FolderSize(dbPath);
 
             var startupMessage = $@"
 -------------------------------------------------------------
 ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
-Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
-Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Transport Customization:            {settings.TransportType},
