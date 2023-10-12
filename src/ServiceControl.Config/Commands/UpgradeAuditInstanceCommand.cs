@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
+    using System.Diagnostics;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -50,14 +51,25 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
-            if (instance.PersistenceManifest.Name == "RavenDB35")
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == "RavenDB5";
+
+            if (!compatibleStorageEngine)
             {
-                var docsUrl = "https://docs.particular.net/servicecontrol/upgrades/zero-downtime";
+                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
 
-                await windowManager.ShowMessage("UPGRADE NOTE",
-$@"Please note that the storage format has changed and that upgrading existing instances using RavenDB 3.5 will only be supported for a limited period of time.
+                var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
+                    $@"Please note that the storage format has changed. Upgrading requires a manual side-by-side deployment of both versions. Guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
+                    "Open upgrade guide in system default browser?",
+                    "Yes",
+                    "No"
+                );
 
-See our zero downtime upgrade guidance, {docsUrl}, for instructions how migrate to the new storage format by adding a new audit instance.", hideCancel: true);
+                if (openUpgradeGuide)
+                {
+                    Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
+                }
+
+                return;
             }
 
             var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
