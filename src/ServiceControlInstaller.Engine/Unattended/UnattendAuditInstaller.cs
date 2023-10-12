@@ -104,8 +104,17 @@
             return true;
         }
 
-        public bool Upgrade(ServiceControlBaseService instance)
+        public bool Upgrade(ServiceControlAuditInstance instance)
         {
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB5;
+
+            if (!compatibleStorageEngine)
+            {
+                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
+                logger.Error($"Upgrade aborted. Please note that the storage format has changed and the {instance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}");
+                return false;
+            }
+
             ZipInfo.ValidateZip();
 
             var checkLicenseResult = CheckLicenseIsValid();

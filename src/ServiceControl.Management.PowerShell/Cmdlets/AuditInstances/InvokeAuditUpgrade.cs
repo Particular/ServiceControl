@@ -36,10 +36,9 @@ namespace ServiceControl.Management.PowerShell
 
             foreach (var name in Name)
             {
-                var instance = InstanceFinder.FindServiceControlInstance(name);
-                if (instance == null)
+                if (InstanceFinder.FindServiceControlInstance(name) is not ServiceControlAuditInstance instance)
                 {
-                    WriteWarning($"No action taken. An instance called {name} was not found");
+                    WriteWarning($"No action taken. An audit instance called {name} was not found");
                     break;
                 }
 
