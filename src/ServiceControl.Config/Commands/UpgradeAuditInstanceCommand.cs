@@ -51,7 +51,7 @@
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
 
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == "RavenDB5";
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB5;
 
             if (!compatibleStorageEngine)
             {

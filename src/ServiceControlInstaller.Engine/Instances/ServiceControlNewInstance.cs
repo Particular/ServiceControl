@@ -22,7 +22,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public static ServiceControlNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
         {
-            const string persisterUsedForBrandNewInstances = "RavenDB5";
+            const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB5;
             return CreateWithPersistence(deploymentCachePath, persisterUsedForBrandNewInstances);
         }
 
