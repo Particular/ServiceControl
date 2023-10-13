@@ -102,6 +102,15 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB5;
+
+            if (!compatibleStorageEngine)
+            {
+                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
+                logger.Error($"Upgrade aborted. Please note that the storage format has changed and the {instance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}");
+                return false;
+            }
+
             if (instance.Version < options.UpgradeInfo.CurrentMinimumVersion)
             {
                 logger.Error($"Upgrade aborted. An interim upgrade to version {options.UpgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{options.UpgradeInfo.RecommendedUpgradeVersion}");
