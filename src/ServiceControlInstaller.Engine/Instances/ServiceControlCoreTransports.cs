@@ -133,7 +133,7 @@
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
                 AvailableInSCMU = true,
-                Matches = name => name.Equals(TransportNames.RabbitMQClassicDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
+                Matches = name => name.Equals(TransportNames.RabbitMQQuorumDirectRoutingTopology, StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
                                   || name.Equals("ServiceControl.Transports.RabbitMQ.QuorumDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ", StringComparison.OrdinalIgnoreCase)
             },
