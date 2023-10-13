@@ -74,7 +74,9 @@
 
   </ItemGroup>
 
-  <Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">
+  <!-- NOTE: this should be re-enabled after ServiceControl can be run on Linux -->
+  <!--<Target Name="CleanGeneratedDockerfiles" AfterTargets="Build">-->
+  <Target Name="CleanGeneratedDockerfiles">
     <ItemGroup>
       <Dockerfiles Include="$(DockerfilesFolder)*.dockerfile" />
     </ItemGroup>
