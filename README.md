@@ -101,9 +101,9 @@ c:\Temp\ServiceControlTemp
 
 ## How to developer test the PowerShell Module
 
-The powershell module can be tested locally by downloading the "assets" file from the release worklfow and then importing the module. Once imported, the scripts can be run and tested out.
+The PowerShell module can be tested locally by downloading the "assets" file from the release worklfow and then importing the module. Once imported, the scripts can be run and tested out.
 
-- Donwload the "assests" zip file from the summary section of release workflow action.
+- Donwload the "assets" zip file from the summary section of release workflow action.
 - Extract or unzip the module from the zip file. 
 - Open PowerShell 7 and [Import the module](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.3#example-4-import-all-modules-specified-by-a-path) by specifying the path
  ```
@@ -114,7 +114,7 @@ The powershell module can be tested locally by downloading the "assets" file fro
 set-executionpolicy unrestricted
 ```
 
-- Now that the module has been successfully imported, enter any of the Servicecontrol powershell scripts to test them out. Eg: the following creates a new ServiceControl Instance
+- Now that the module has been successfully imported, enter any of the ServiceControl PowerShell scripts to test them out. Eg: the following creates a new ServiceControl Instance
 ```
 $serviceControlInstance = New-ServiceControlInstance `
    -Name 'Test.DEV.ServiceControl' `
