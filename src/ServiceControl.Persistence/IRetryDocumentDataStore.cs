@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System.Threading.Tasks;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -19,7 +19,7 @@
             string[] failedMessageRetryIds, string originator, DateTime startTime, DateTime? last = null,
             string batchName = null, string classifier = null);
 
-        Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff);
+        Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId);
         Task<IList<RetryBatchGroup>> QueryAvailableBatches();
 
         // RetriesGateway

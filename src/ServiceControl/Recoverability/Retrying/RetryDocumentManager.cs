@@ -16,9 +16,9 @@ namespace ServiceControl.Recoverability
             this.operationManager = operationManager;
         }
 
-        public async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
+        public async Task<bool> AdoptOrphanedBatches()
         {
-            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff);
+            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId);
 
             log.Info($"Found {orphanedBatches.Results.Count} orphaned retry batches from previous sessions.");
 

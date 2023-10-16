@@ -89,19 +89,12 @@
             return batchDocumentId;
         }
 
-        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff)
+        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId)
         {
             using (var session = store.OpenAsyncSession())
             {
                 var orphanedBatches = await session
                     .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-
-                    // TODO: Cutoff no longer exists but guidance isn't clear how to handle this:
-                    // https://ravendb.net/docs/article-page/5.4/Csharp/indexes/stale-indexes
-                    // https://ravendb.net/docs/article-page/5.4/csharp/client-api/session/querying/how-to-customize-query#waitfornonstaleresults
-
-                    //.Customize(c => c.BeforeQueryExecuted(index => index.Cutoff = cutoff))
-                    .Customize(c => c.WaitForNonStaleResults()) // (ramon) I think this is valid as at start orphaned batches should be retrieved based on non-stale results I would assume?
 
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
                     .Statistics(out var stats)

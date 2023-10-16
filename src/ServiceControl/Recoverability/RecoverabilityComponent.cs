@@ -220,12 +220,11 @@
             {
                 this.retryDocumentManager = retryDocumentManager;
                 this.scheduler = scheduler;
-                startTime = DateTime.UtcNow;
             }
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
-                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches(startTime);
+                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches();
 
                 return hasMoreWorkToDo;
             }
@@ -246,7 +245,6 @@
             }
 
             TimerJob timer;
-            readonly DateTime startTime;
             readonly IAsyncTimer scheduler;
             readonly RetryDocumentManager retryDocumentManager;
             static readonly ILog log = LogManager.GetLogger<AdoptOrphanBatchesFromPreviousSessionHostedService>();
