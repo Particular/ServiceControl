@@ -5,7 +5,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Monitoring;
     using global::ServiceControl.Recoverability;
-    using global::ServiceControl.SagaAudit;
 
     static class ServiceControlMainInstance
     {
@@ -14,7 +13,6 @@ namespace Particular.ServiceControl
             new EventLogComponent(),
             new ExternalIntegrationsComponent(),
             new RecoverabilityComponent(),
-            new SagaAuditComponent(),
             new HeartbeatMonitoringComponent(),
             new CustomChecksComponent()
         };
