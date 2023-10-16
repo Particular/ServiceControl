@@ -138,8 +138,8 @@
 
                 if (awaitingDispatching.Count == 0)
                 {
-                    //TODO: this should ensure we query again if the result is potentially stale
-                    //      if ☝️ is not true we will need to use/parse the ChangeVector when document is written and compare to ResultEtag
+                    // Should ensure we query again if the result is potentially stale
+                    // If ☝️ is not true we will need to use/parse the ChangeVector when document is written and compare to ResultEtag
                     return stats.IsStale;
                 }
 
