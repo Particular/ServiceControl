@@ -36,12 +36,6 @@
                 }
             };
 
-            //TODO: copied from Audit, not sure if needed (never assigned). Check and remove
-            //if (settings.FindClrType != null)
-            //{
-            //    store.Conventions.FindClrType += settings.FindClrType;
-            //}
-
             store.Initialize();
 
             documentStore = store;

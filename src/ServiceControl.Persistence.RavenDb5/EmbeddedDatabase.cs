@@ -142,12 +142,6 @@
                 }
             };
 
-            //TODO: copied from Audit. In Audit FindClrType so I guess this is not needed. Confirm and remove
-            //if (configuration.FindClrType != null)
-            //{
-            //    dbOptions.Conventions.FindClrType += configuration.FindClrType;
-            //}
-
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
 
             var databaseSetup = new DatabaseSetup(configuration);
