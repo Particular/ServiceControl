@@ -17,14 +17,13 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
-        public RetryProcessor(IRetryBatchesDataStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, PersistenceSettings settings)
+        public RetryProcessor(IRetryBatchesDataStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager)
         {
             this.store = store;
             this.returnToSender = returnToSender;
             this.retryingManager = retryingManager;
             this.domainEvents = domainEvents;
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
-            messageBodiesAlwaysStoredInFailedMessage = settings.MessageBodiesAlwaysStoredInFailedMessage;
         }
 
         Task Enqueue(IDispatchMessages sender, TransportOperations outgoingMessages)
@@ -334,10 +333,6 @@ namespace ServiceControl.Recoverability
             headersToRetryWith["ServiceControl.Retry.UniqueMessageId"] = message.UniqueMessageId;
             headersToRetryWith["ServiceControl.Retry.StagingId"] = stagingId;
             headersToRetryWith["ServiceControl.Retry.Attempt.MessageId"] = attempt.MessageId;
-            if (messageBodiesAlwaysStoredInFailedMessage || attempt.MessageMetadata.ContainsKey("Body") || attempt.Body != null)
-            {
-                headersToRetryWith["ServiceControl.Retry.BodyOnFailedMessage"] = null;
-            }
 
             corruptedReplyToHeaderStrategy.FixCorruptedReplyToHeader(headersToRetryWith);
 
@@ -349,7 +344,6 @@ namespace ServiceControl.Recoverability
         readonly IRetryBatchesDataStore store;
         readonly ReturnToSenderDequeuer returnToSender;
         readonly RetryingManager retryingManager;
-        readonly bool messageBodiesAlwaysStoredInFailedMessage;
 
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
