@@ -57,7 +57,7 @@
         Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback); // TODO: Passing a callback is there to not change behavior of original implementation.
 
         // UnArchiveMessagesByRangeHandler
-        Task<(string[] ids, int count)> UnArchiveMessagesByRange(DateTime from, DateTime to, DateTime cutOff);
+        Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to);
 
         // UnArchiveMessagesHandler
         Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds);

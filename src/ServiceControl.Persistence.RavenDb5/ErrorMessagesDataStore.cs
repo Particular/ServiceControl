@@ -586,29 +586,33 @@
             public string Document { get; set; }
         }
 
-        public async Task<(string[] ids, int count)> UnArchiveMessagesByRange(DateTime from, DateTime to, DateTime cutOff)
+        public async Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to)
         {
-            // TODO: Make sure this new implementation actually works, not going to delete the old implementation (commented below) until then
-            var patch = new PatchByQueryOperation(new IndexQuery
-            {
-                // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
+            const int Unresolved = (int)FailedMessageStatus.Unresolved;
+            const int Archived = (int)FailedMessageStatus.Archived;
 
-                Query = $@"from index '{new FailedMessageViewIndex().IndexName} as msg
-                           where msg.LastModified >= args.From and msg.LastModified <= args.To
-                           where msg.Status == args.Archived
+            var indexName = new FailedMessageViewIndex().IndexName;
+            var query = new IndexQuery
+            {
+                // Set based args are treated differently ($name) than other places (args.name)!
+                // https://ravendb.net/docs/article-page/5.4/csharp/client-api/operations/patching/set-based
+                // Removing a property in a patch
+                // https://ravendb.net/docs/article-page/5.4/Csharp/client-api/operations/patching/single-document#remove-property
+                Query = $@"from index '{indexName}' as msg
+                           where msg.Status == {Archived} and msg.LastModified >= $from and msg.LastModified <= $to
                            update
                            {{
-                                msg.Status = args.Unresolved
-                                {ExpirationManager.DeleteExpirationFieldScript}
+                                msg.Status = {Unresolved};
+                                {ExpirationManager.DeleteExpirationFieldExpression};
                            }}",
-                QueryParameters =
+                QueryParameters = new Parameters
                 {
-                    { "From", from },
-                    { "To", to },
-                    { "Unresolved", (int)FailedMessageStatus.Unresolved },
-                    { "Archived", (int)FailedMessageStatus.Archived },
+                    { "from", from.Ticks },
+                    { "to", to.Ticks }
                 }
-            }, new QueryOperationOptions
+            };
+
+            var patch = new PatchByQueryOperation(query, new QueryOperationOptions
             {
                 AllowStale = true,
                 RetrieveDetails = true
@@ -622,41 +626,7 @@
                 .Select(d => d.Id)
                 .ToArray();
 
-            // TODO: Are we *really* returning an array AND the length of the same array?
-            return (ids, ids.Length);
-
-            //            var options = new BulkOperationOptions
-            //            {
-            //                AllowStale = true
-            //            };
-
-            //            var result = await documentStore.AsyncDatabaseCommands.UpdateByIndexAsync(
-            //                new FailedMessageViewIndex().IndexName,
-            //                new IndexQuery
-            //                {
-            //                    Query = string.Format(CultureInfo.InvariantCulture, "LastModified:[{0} TO {1}] AND Status:{2}", from.Ticks, to.Ticks, (int)FailedMessageStatus.Archived),
-            //                    Cutoff = cutOff
-            //                }, new ScriptedPatchRequest
-            //                {
-            //                    Script = @"
-            //if(this.Status === archivedStatus) {
-            //    this.Status = unresolvedStatus;
-            //}
-            //",
-            //                    Values =
-            //                    {
-            //                        {"archivedStatus", (int)FailedMessageStatus.Archived},
-            //                        {"unresolvedStatus", (int)FailedMessageStatus.Unresolved}
-            //                    }
-            //                }, options);
-
-            //            var patchedDocumentIds = (await result.WaitForCompletionAsync())
-            //                .JsonDeserialization<DocumentPatchResult[]>();
-
-            //            return (
-            //                patchedDocumentIds.Select(x => FailedMessageIdGenerator.GetMessageIdFromDocumentId(x.Document)).ToArray(),
-            //                patchedDocumentIds.Length
-            //                );
+            return ids;
         }
 
         public async Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds)
