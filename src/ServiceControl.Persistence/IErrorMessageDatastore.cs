@@ -59,7 +59,7 @@
         Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to);
 
         // UnArchiveMessagesHandler
-        Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds);
+        Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds);
 
         // ReturnToSenderDequeuer.CaptureIfMessageSendingFails
         Task RevertRetry(string messageUniqueId);

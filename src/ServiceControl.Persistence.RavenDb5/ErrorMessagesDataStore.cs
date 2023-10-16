@@ -615,7 +615,7 @@
             return ids;
         }
 
-        public async Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds)
+        public async Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds)
         {
             Dictionary<string, FailedMessage> failedMessages;
 
@@ -639,10 +639,8 @@
                 await session.SaveChangesAsync();
             }
 
-            return (
-                failedMessages.Values.Select(x => x.UniqueMessageId).ToArray(), // TODO: (ramon) I don't think we can use Keys here as UniqueMessageId is something different than failedMessageId right?
-                failedMessages.Count
-                );
+            // Return the unique IDs - the dictionary keys are document ids with a prefix
+            return failedMessages.Values.Select(x => x.UniqueMessageId).ToArray();
         }
 
         public async Task RevertRetry(string messageUniqueId)
