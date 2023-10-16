@@ -62,7 +62,6 @@ POST /recoverability/groups/{groupId}/errors/archive => ServiceControl.Recoverab
 POST /recoverability/groups/{groupId}/errors/retry => ServiceControl.Recoverability.API.FailureGroupsRetryController:ArchiveGroupErrors(String groupId)
 POST /recoverability/groups/{groupId}/errors/unarchive => ServiceControl.Recoverability.API.FailureGroupsUnarchiveController:UnarchiveGroupErrors(String groupId)
 GET /recoverability/groups/id/{groupId} => ServiceControl.Recoverability.API.FailureGroupsController:GetGroup(String groupId)
-POST /recoverability/groups/reclassify => ServiceControl.Recoverability.API.FailureGroupsController:ReclassifyErrors()
 GET /recoverability/history => ServiceControl.Recoverability.API.FailureGroupsController:GetRetryHistory()
 DELETE /recoverability/unacknowledgedgroups/{groupId} => ServiceControl.Recoverability.API.UnacknowledgedGroupsController:AcknowledgeOperation(String groupId)
 HEAD /redirect => ServiceControl.MessageRedirects.Api.MessageRedirectsController:CountRedirects()

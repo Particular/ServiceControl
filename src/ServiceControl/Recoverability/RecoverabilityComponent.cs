@@ -103,7 +103,6 @@
                 collection.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
                 collection.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
                 collection.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
-                collection.AddEventLogMapping<ReclassificationOfErrorMessageCompleteDefinition>();
             });
         }
 

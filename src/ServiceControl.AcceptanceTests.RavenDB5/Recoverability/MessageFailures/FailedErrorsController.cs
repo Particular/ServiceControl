@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
@@ -9,7 +8,6 @@
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Operations;
 
     public class FailedErrorsCountReponse
     {
