@@ -7,7 +7,6 @@ namespace ServiceControl.Persistence
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
 
-    // TODO: Consider renaming to FailedMessageIndex
     public class MessagesViewIndex : AbstractIndexCreationTask<FailedMessage, MessagesViewIndex.SortAndFilterOptions>
     {
         public MessagesViewIndex()
