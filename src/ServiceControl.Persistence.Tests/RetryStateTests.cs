@@ -59,7 +59,7 @@
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
             var sender = new TestSender();
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
             CompleteDatabaseOperation();
@@ -73,7 +73,7 @@
 
             await documentManager.RebuildRetryOperationState();
 
-            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
+            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
             await processor.ProcessBatches(sender);
 
@@ -91,8 +91,8 @@
 
             var sender = new TestSender();
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, PersistenceSettings);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
 
             await processor.ProcessBatches(sender); // mark ready
             await processor.ProcessBatches(sender);
@@ -121,8 +121,8 @@
                 }
             };
 
-            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(BodyStorage, ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, PersistenceSettings);
+            var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
 
             bool c;
             do
@@ -155,11 +155,11 @@
 
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 1001);
 
-            var returnToSender = new ReturnToSender(BodyStorage, ErrorStore);
+            var returnToSender = new ReturnToSender(ErrorStore);
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager, PersistenceSettings);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager);
 
             CompleteDatabaseOperation();
 

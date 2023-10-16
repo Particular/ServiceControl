@@ -11,7 +11,6 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using Operations.BodyStorage;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence;
@@ -26,7 +25,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IBodyStorage>(), b.Build<IErrorMessageDataStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IErrorMessageDataStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
@@ -148,7 +147,7 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IBodyStorage bodyStorage, IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(bodyStorage, errorMessageStore)
+            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore)
             {
                 this.myContext = myContext;
             }
