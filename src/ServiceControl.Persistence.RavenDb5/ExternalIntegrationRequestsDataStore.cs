@@ -10,9 +10,9 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Changes;
+    using ServiceBus.Management.Infrastructure.Extensions;
 
     class ExternalIntegrationRequestsDataStore
         : IExternalIntegrationRequestsDataStore
@@ -45,7 +45,7 @@
                         throw new ArgumentException("Items cannot have their Id property set");
                     }
 
-                    dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();  // TODO: Key is generated to persistence
+                    dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();
                     await session.StoreAsync(dispatchRequest);
                 }
 
