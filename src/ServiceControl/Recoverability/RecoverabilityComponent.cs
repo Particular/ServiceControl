@@ -224,9 +224,9 @@
 
             internal async Task<bool> AdoptOrphanedBatchesAsync()
             {
-                var hasMoreWorkToDo = await retryDocumentManager.AdoptOrphanedBatches();
+                var moreWorkRemaining = await retryDocumentManager.AdoptOrphanedBatches();
 
-                return hasMoreWorkToDo;
+                return moreWorkRemaining;
             }
 
             public Task StartAsync(CancellationToken cancellationToken)
