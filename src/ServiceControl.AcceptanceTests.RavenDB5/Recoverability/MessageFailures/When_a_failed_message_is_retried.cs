@@ -180,14 +180,16 @@
                     await this.Post<object>($"/api/recoverability/groups/{ctx.FailureGroupId}/errors/retry");
                 })
                 .DoNotFailOnErrorMessages())
-                .Done(ctx =>
+                .Done(async ctx =>
                 {
                     if (ctx.Retried)
                     {
-                        // Note: In RavenDB 3.5 there was a call to /api/failedmessageretries/count implemented in test-only FailedErrorsController
+                        // Note: In RavenDB 3.5 there was a call to /api/failederrors/forcecleanerrors implemented in test-only FailedErrorsController
                         // that manually ran the Expiration bundle, but RavenDB 5 uses built-in expiration so you can't do that. The test still
                         // appears to pass, however.
-                        return true;
+                        failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
+
+                        return failedMessageRetries.Count == 0;
                     }
 
                     return false;
