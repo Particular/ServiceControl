@@ -19,7 +19,7 @@
         {
             var failedMessageId = message.FailedMessageId;
 
-            var failedMessage = await dataStore.FailedMessageFetch(failedMessageId);
+            var failedMessage = await dataStore.ErrorBy(failedMessageId);
 
             if (failedMessage.Status != FailedMessageStatus.Archived)
             {

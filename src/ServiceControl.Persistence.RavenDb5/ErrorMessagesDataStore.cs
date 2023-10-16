@@ -154,15 +154,6 @@
             }
         }
 
-        // TODO: There seem to be several copies of this operation in here
-        public async Task<FailedMessage> FailedMessageFetch(string failedMessageId)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                return await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
-            }
-        }
-
         public async Task FailedMessageMarkAsArchived(string failedMessageId)
         {
             using (var session = documentStore.OpenAsyncSession())
@@ -352,20 +343,15 @@
             }
         }
 
-        public async Task<FailedMessage> ErrorBy(Guid failedMessageId)
-        {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
-                return message;
-            }
-        }
+        public Task<FailedMessage> ErrorBy(Guid failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
 
-        public async Task<FailedMessage> ErrorBy(string failedMessageId)
+        public Task<FailedMessage> ErrorBy(string failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+
+        async Task<FailedMessage> ErrorByDocumentId(string documentId)
         {
             using (var session = documentStore.OpenAsyncSession())
             {
-                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+                var message = await session.LoadAsync<FailedMessage>(documentId);
                 return message;
             }
         }
