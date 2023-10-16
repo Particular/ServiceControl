@@ -36,6 +36,7 @@
             );
 
             // TODO: Strange... I just commented these lines and the tests are still green....
+            // David: I'm concerned by this, it suggests there's no data for the tests and the they succeed just because there's nothing to do
 
             //var retryDocumentCommands = RetryDocumentDataStore.CreateFailedMessageRetryDocument(Guid.NewGuid().ToString(), MessageId);
             //await GetRequiredService<Raven.Client.IDocumentStore>().AsyncDatabaseCommands.BatchAsync(new[] { retryDocumentCommands });
