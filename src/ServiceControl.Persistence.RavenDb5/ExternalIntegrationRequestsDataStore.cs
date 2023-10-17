@@ -19,16 +19,20 @@
         , IHostedService
         , IAsyncDisposable
     {
+
         public ExternalIntegrationRequestsDataStore(RavenDBPersisterSettings settings, IDocumentStore documentStore, CriticalError criticalError)
         {
             this.settings = settings;
             this.documentStore = documentStore;
 
+            var timeToWait = TimeSpan.FromMinutes(5);
+            var delayAfterFailure = TimeSpan.FromSeconds(20);
+
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
                 "EventDispatcher",
-                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
+                timeToWait,
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20) // TODO: Shouldn't be magic value but coming from settings
+                delayAfterFailure
             );
         }
 
