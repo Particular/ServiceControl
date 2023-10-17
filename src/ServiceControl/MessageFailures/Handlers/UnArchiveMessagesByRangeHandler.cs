@@ -17,16 +17,12 @@
 
         public async Task Handle(UnArchiveMessagesByRange message, IMessageHandlerContext context)
         {
-            var (ids, count) = await dataStore.UnArchiveMessagesByRange(
-                message.From,
-                message.To,
-                message.CutOff
-                );
+            var ids = await dataStore.UnArchiveMessagesByRange(message.From, message.To);
 
             await domainEvents.Raise(new FailedMessagesUnArchived
             {
                 DocumentIds = ids,
-                MessagesCount = count
+                MessagesCount = ids.Length
             });
 
         }

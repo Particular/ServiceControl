@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
-    using System.Configuration;
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -201,7 +200,7 @@
         {
             if (Handler == null)
             {
-                throw new InvalidOperationException("Handler field not yet initialized"); // TODO: This method is invoked before `Initialize` completes which is strange and should be looked into as that seems like a race condition
+                throw new InvalidOperationException("Handler field not yet initialized");
             }
             var httpClient = new HttpClient(Handler);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

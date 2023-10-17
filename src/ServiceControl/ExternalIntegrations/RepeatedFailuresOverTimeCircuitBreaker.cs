@@ -19,7 +19,8 @@ namespace NServiceBus
 
         public void Dispose()
         {
-            //Injected
+            timer.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public void Success()
@@ -63,12 +64,12 @@ namespace NServiceBus
         long failureCount;
         Exception lastException;
 
-        string name;
-        Timer timer;
-        TimeSpan timeToWaitBeforeTriggering;
-        Action<Exception> triggerAction;
+        readonly string name;
+        readonly Timer timer;
+        readonly TimeSpan timeToWaitBeforeTriggering;
+        readonly Action<Exception> triggerAction;
 
-        static TimeSpan NoPeriodicTriggering = TimeSpan.FromMilliseconds(-1);
-        static ILog Logger = LogManager.GetLogger<RepeatedFailuresOverTimeCircuitBreaker>();
+        static readonly TimeSpan NoPeriodicTriggering = TimeSpan.FromMilliseconds(-1);
+        static readonly ILog Logger = LogManager.GetLogger<RepeatedFailuresOverTimeCircuitBreaker>();
     }
 }

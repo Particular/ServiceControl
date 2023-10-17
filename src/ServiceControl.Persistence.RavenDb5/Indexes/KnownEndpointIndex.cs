@@ -16,7 +16,6 @@ namespace ServiceControl.Persistence
                     EndpointDetails_Host = message.EndpointDetails.Host,
                     message.HostDisplayName,
                     message.Monitored,
-                    message.HasTemporaryId
                 };
         }
     }

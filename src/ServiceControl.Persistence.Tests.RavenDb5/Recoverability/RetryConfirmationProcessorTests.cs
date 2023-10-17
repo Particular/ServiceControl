@@ -35,10 +35,8 @@
                 }
             );
 
-            // TODO: Strange... I just commented these lines and the tests are still green....
-
-            //var retryDocumentCommands = RetryDocumentDataStore.CreateFailedMessageRetryDocument(Guid.NewGuid().ToString(), MessageId);
-            //await GetRequiredService<Raven.Client.IDocumentStore>().AsyncDatabaseCommands.BatchAsync(new[] { retryDocumentCommands });
+            var batchDocumentId = Guid.NewGuid().ToString();
+            await RetryDocumentDataStore.StageRetryByUniqueMessageIds(batchDocumentId, new[] { MessageId });
         }
 
         [Test]

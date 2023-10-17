@@ -16,9 +16,9 @@ namespace ServiceControl.Recoverability
             this.operationManager = operationManager;
         }
 
-        public async Task<bool> AdoptOrphanedBatches(DateTime cutoff)
+        public async Task<bool> AdoptOrphanedBatches()
         {
-            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId, cutoff);
+            var orphanedBatches = await store.QueryOrphanedBatches(RetrySessionId);
 
             log.Info($"Found {orphanedBatches.Results.Count} orphaned retry batches from previous sessions.");
 
@@ -71,7 +71,6 @@ namespace ServiceControl.Recoverability
         readonly RetryingManager operationManager;
         readonly IRetryDocumentDataStore store;
         bool abort;
-        // TODO: Uplift this into DI? Meant to differentiate between ServiceControl.exe process runs, so likely doesn't matter.
         public static string RetrySessionId = Guid.NewGuid().ToString();
 
         static readonly ILog log = LogManager.GetLogger(typeof(RetryDocumentManager));

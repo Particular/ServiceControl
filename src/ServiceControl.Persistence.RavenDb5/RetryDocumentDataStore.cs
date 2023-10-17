@@ -24,9 +24,7 @@
             this.store = store;
         }
 
-        public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string requestId, RetryType retryType, string[] messageIds,
-            DateTime startTime,
-            DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
+        public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string[] messageIds)
         {
             var commands = new ICommandData[messageIds.Length];
 
@@ -89,19 +87,12 @@
             return batchDocumentId;
         }
 
-        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId, DateTime cutoff)
+        public async Task<QueryResult<IList<RetryBatch>>> QueryOrphanedBatches(string retrySessionId)
         {
             using (var session = store.OpenAsyncSession())
             {
                 var orphanedBatches = await session
                     .Query<RetryBatch, RetryBatches_ByStatusAndSession>()
-
-                    // TODO: Cutoff no longer exists but guidance isn't clear how to handle this:
-                    // https://ravendb.net/docs/article-page/5.4/Csharp/indexes/stale-indexes
-                    // https://ravendb.net/docs/article-page/5.4/csharp/client-api/session/querying/how-to-customize-query#waitfornonstaleresults
-
-                    //.Customize(c => c.BeforeQueryExecuted(index => index.Cutoff = cutoff))
-                    .Customize(c => c.WaitForNonStaleResults()) // (ramon) I think this is valid as at start orphaned batches should be retrieved based on non-stale results I would assume?
 
                     .Where(b => b.Status == RetryBatchStatus.MarkingDocuments && b.RetrySessionId != retrySessionId)
                     .Statistics(out var stats)
@@ -140,18 +131,8 @@
 
         static ILog log = LogManager.GetLogger(typeof(RetryDocumentDataStore));
 
-        // TODO: Verify Stream queries in this file, which were the result of joining overly-complex IndexBasedBulkRetryRequest
-        // which was in this file, as well as the FailedMessages_UniqueMessageIdAndTimeOfFailures transformer, since transformers
-        // are not supported in RavenDB 5. I don't know what all the other properties of IndexBasedBulkRetryRequest were ever for,
-        // since they weren't used in this class. I also don't know what the other comments that were in each streaming query method
-        // were for either.
-
         public async Task GetBatchesForAll(DateTime cutoff, Func<string, DateTime, Task> callback)
         {
-            // StartRetryForIndex<FailedMessage, FailedMessageViewIndex>("All", RetryType.All, DateTime.UtcNow, originator: "all messages");
-            //public void StartRetryForIndex<TType, TIndex>(string requestId, RetryType retryType, DateTime startTime, Expression<Func<TType, bool>> filter = null, string originator = null, string classifier = null)
-            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
-
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -175,9 +156,6 @@
 
         public async Task GetBatchesForEndpoint(DateTime cutoff, string endpoint, Func<string, DateTime, Task> callback)
         {
-            //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
-            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(endpoint, RetryType.AllForEndpoint, DateTime.UtcNow, m => m.ReceivingEndpointName == endpoint, $"all messages for endpoint {endpoint}");
-
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -202,9 +180,6 @@
 
         public async Task GetBatchesForFailedQueueAddress(DateTime cutoff, string failedQueueAddress, FailedMessageStatus status, Func<string, DateTime, Task> callback)
         {
-            //ForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>
-            //StartRetryForIndex<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>(failedQueueAddress, RetryType.ByQueueAddress, DateTime.UtcNow, m => m.QueueAddress == failedQueueAddress && m.Status == status, );
-
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
@@ -229,8 +204,6 @@
 
         public async Task GetBatchesForFailureGroup(string groupId, string groupTitle, string groupType, DateTime cutoff, Func<string, DateTime, Task> callback)
         {
-            //retries.StartRetryForIndex<FailureGroupMessageView, FailedMessages_ByGroup>(message.GroupId, RetryType.FailureGroup, started, x => x.FailureGroupId == message.GroupId, originator, group?.Type);
-
             using (var session = store.OpenAsyncSession())
             {
                 var query = session.Query<FailureGroupMessageView, FailedMessages_ByGroup>()

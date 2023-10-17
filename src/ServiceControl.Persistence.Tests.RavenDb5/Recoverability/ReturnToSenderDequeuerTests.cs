@@ -2,16 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using EventLog;
+    using MessageFailures;
+    using MessageFailures.Api;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Operations.BodyStorage;
+    using Persistence;
+    using Persistence.Infrastructure;
+    using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Operations;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -44,7 +49,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.Retry.StagingId"));
         }
@@ -59,10 +64,11 @@
                 ["ServiceControl.Retry.StagingId"] = "SomeId",
                 ["ServiceControl.TargetEndpointAddress"] = "TargetEndpoint",
                 ["ServiceControl.Retry.Attempt.MessageId"] = "MessageBodyId",
+                ["ServiceControl.Retry.UniqueMessageId"] = "MessageBodyId"
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
         }
@@ -80,7 +86,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("Proxy", sender.Destination);
             Assert.AreEqual("TargetEndpoint", sender.Message.Headers["ServiceControl.TargetEndpointAddress"]);
@@ -98,7 +104,7 @@
             };
             var message = CreateMessage(Guid.NewGuid().ToString(), headers);
 
-            await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
+            await new ReturnToSender(null).HandleMessage(message, sender, "error");
 
             Assert.AreEqual("TargetEndpoint", sender.Destination);
             Assert.IsFalse(sender.Message.Headers.ContainsKey("ServiceControl.TargetEndpointAddress"));
@@ -119,7 +125,7 @@
 
             try
             {
-                await new ReturnToSender(new FakeBodyStorage(), null).HandleMessage(message, sender, "error");
+                await new ReturnToSender(null).HandleMessage(message, sender, "error");
             }
             catch (Exception)
             {
@@ -153,22 +159,81 @@
             }
         }
 
-        class FakeBodyStorage : IBodyStorage
+        class FakeErrorMessageDataStore : IErrorMessageDataStore
         {
-            public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)
-            {
-                throw new NotImplementedException();
-            }
+            public Task<byte[]> FetchFromFailedMessage(string bodyId) => Task.FromResult(Encoding.UTF8.GetBytes(bodyId));
 
-            public Task<MessageBodyStreamResult> TryFetch(string bodyId)
-            {
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes(bodyId)); //Echo back the body ID.
-                return Task.FromResult(new MessageBodyStreamResult
-                {
-                    HasResult = true,
-                    Stream = stream
-                });
-            }
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessages(PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo,
+                bool includeSystemMessages) =>
+                throw new NotImplementedException();
+
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo,
+                bool includeSystemMessages) =>
+                throw new NotImplementedException();
+
+            public Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+
+            public Task FailedMessageMarkAsArchived(string failedMessageId) => throw new NotImplementedException();
+
+            public Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids) => throw new NotImplementedException();
+
+            public Task StoreFailedErrorImport(FailedErrorImport failure) => throw new NotImplementedException();
+
+            public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager() => throw new NotImplementedException();
+
+            public Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified) => throw new NotImplementedException();
+
+            public Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+
+            public Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo,
+                SortInfo sortInfo) =>
+                throw new NotImplementedException();
+
+            public Task<IDictionary<string, object>> ErrorsSummary() => throw new NotImplementedException();
+
+            public Task<FailedMessage> ErrorBy(Guid failedMessageId) => throw new NotImplementedException();
+
+            public Task<FailedMessageView> ErrorLastBy(Guid failedMessageId) => throw new NotImplementedException();
+
+            public Task<FailedMessage> ErrorBy(string failedMessageId) => throw new NotImplementedException();
+
+            public Task<INotificationsManager> CreateNotificationsManager() => throw new NotImplementedException();
+
+            public Task EditComment(string groupId, string comment) => throw new NotImplementedException();
+
+            public Task DeleteComment(string groupId) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo) => throw new NotImplementedException();
+
+            public Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified) => throw new NotImplementedException();
+
+            public Task<bool> MarkMessageAsResolved(string failedMessageId) => throw new NotImplementedException();
+
+            public Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback) => throw new NotImplementedException();
+
+            public Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to) => throw new NotImplementedException();
+
+            public Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds) => throw new NotImplementedException();
+
+            public Task RevertRetry(string messageUniqueId) => throw new NotImplementedException();
+
+            public Task RemoveFailedMessageRetryDocument(string uniqueMessageId) => throw new NotImplementedException();
+
+            public Task<string[]> GetRetryPendingMessages(DateTime from, DateTime to, string queueAddress) => throw new NotImplementedException();
+
+            public Task StoreEventLogItem(EventLogItem logItem) => throw new NotImplementedException();
+
+            public Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(string endpointName, string searchKeyword, PagingInfo pagingInfo, SortInfo sortInfo) => throw new NotImplementedException();
+
+            public Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages) => throw new NotImplementedException();
         }
     }
 }

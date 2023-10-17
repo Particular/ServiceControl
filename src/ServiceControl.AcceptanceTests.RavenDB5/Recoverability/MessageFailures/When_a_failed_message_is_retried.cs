@@ -184,10 +184,11 @@
                 {
                     if (ctx.Retried)
                     {
-                        // trigger cleanup
-                        await this.Post<object>("/api/failederrors/forcecleanerrors");
-
+                        // Note: In RavenDB 3.5 there was a call to /api/failederrors/forcecleanerrors implemented in test-only FailedErrorsController
+                        // that manually ran the Expiration bundle, but RavenDB 5 uses built-in expiration so you can't do that. The test still
+                        // appears to pass, however.
                         failedMessageRetries = await this.TryGet<FailedMessageRetriesCountReponse>("/api/failedmessageretries/count");
+
                         return failedMessageRetries.Count == 0;
                     }
 

@@ -55,7 +55,7 @@
             var message = CreateEditMessage(failedMessageId);
             await handler.Handle(message, new TestableMessageHandlerContext());
 
-            var failedMessage = await ErrorMessageDataStore.FailedMessageFetch(failedMessageId);
+            var failedMessage = await ErrorMessageDataStore.ErrorBy(failedMessageId);
 
             var editFailedMessagesManager = await ErrorMessageDataStore.CreateEditFailedMessageManager();
             var editOperation = await editFailedMessagesManager.GetCurrentEditingMessageId(failedMessageId);

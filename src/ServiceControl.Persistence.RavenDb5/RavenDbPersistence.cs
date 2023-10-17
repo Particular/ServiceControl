@@ -66,7 +66,6 @@
             serviceCollection.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<IQueueAddressStore, QueueAddressStore>();
-            serviceCollection.AddSingleton<IReclassifyFailedMessages, FailedMessageReclassifier>();
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();

@@ -32,12 +32,16 @@
                 return (localRavenLicense, null);
             }
 
-            //TODO: refactor this to extract the folder name to a constant
-            localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Persisters", "RavenDB5", licenseFileName);
+            const string Persisters = "Persisters";
+            const string RavenDB5 = "RavenDB5";
+
+            var persisterDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Persisters, RavenDB5);
+
+            localRavenLicense = Path.Combine(persisterDirectory, licenseFileName);
             if (!File.Exists(localRavenLicense))
             {
                 throw new Exception($"RavenDB license not found. Make sure the RavenDB license file, '{licenseFileName}', " +
-                    $"is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder or in the 'Persisters/RavenDB5' subfolder.");
+                    $"is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder or in the '{Persisters}/{RavenDB5}' subfolder.");
             }
 
             // By default RavenDB 5 searches its binaries in the RavenDBServer right below the BaseDirectory.
@@ -137,12 +141,6 @@
                     SaveEnumsAsIntegers = true
                 }
             };
-
-            //TODO: copied from Audit. In Audit FindClrType so I guess this is not needed. Confirm and remove
-            //if (configuration.FindClrType != null)
-            //{
-            //    dbOptions.Conventions.FindClrType += configuration.FindClrType;
-            //}
 
             var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(dbOptions, cancellationToken);
 

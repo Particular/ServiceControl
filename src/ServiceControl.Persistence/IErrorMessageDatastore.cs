@@ -17,7 +17,6 @@
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(string endpointName, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages);
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(string conversationId, PagingInfo pagingInfo, SortInfo sortInfo, bool includeSystemMessages);
         Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(string searchTerms, PagingInfo pagingInfo, SortInfo sortInfo);
-        Task<FailedMessage> FailedMessageFetch(string failedMessageId);
         Task FailedMessageMarkAsArchived(string failedMessageId);
         Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids);
         Task StoreFailedErrorImport(FailedErrorImport failure);
@@ -29,7 +28,7 @@
         Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress);
         Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo);
-        Task<IDictionary<string, object>> ErrorsSummary(); // TODO: Must not be object
+        Task<IDictionary<string, object>> ErrorsSummary();
 
         // GetErrorByIdController
         Task<FailedMessage> ErrorBy(Guid failedMessageId);
@@ -44,7 +43,6 @@
         // FailureGroupsController
         Task EditComment(string groupId, string comment);
         Task DeleteComment(string groupId);
-        // Task<GroupOperation[]> GetAllGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace"); TODO: Analyze what to do with the `GroupFetcher` dependency
         Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo);
         Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified);
 
@@ -54,13 +52,13 @@
         Task<bool> MarkMessageAsResolved(string failedMessageId);
 
         // MessageFailureResolvedHandler
-        Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback); // TODO: Passing a callback is there to not change behavior of original implementation.
+        Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback);
 
         // UnArchiveMessagesByRangeHandler
-        Task<(string[] ids, int count)> UnArchiveMessagesByRange(DateTime from, DateTime to, DateTime cutOff);
+        Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to);
 
         // UnArchiveMessagesHandler
-        Task<(string[] ids, int count)> UnArchiveMessages(IEnumerable<string> failedMessageIds);
+        Task<string[]> UnArchiveMessages(IEnumerable<string> failedMessageIds);
 
         // ReturnToSenderDequeuer.CaptureIfMessageSendingFails
         Task RevertRetry(string messageUniqueId);

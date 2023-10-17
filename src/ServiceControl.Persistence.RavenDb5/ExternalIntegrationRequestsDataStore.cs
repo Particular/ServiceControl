@@ -10,25 +10,29 @@
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.Extensions;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Changes;
+    using ServiceBus.Management.Infrastructure.Extensions;
 
     class ExternalIntegrationRequestsDataStore
         : IExternalIntegrationRequestsDataStore
         , IHostedService
         , IAsyncDisposable
     {
+
         public ExternalIntegrationRequestsDataStore(RavenDBPersisterSettings settings, IDocumentStore documentStore, CriticalError criticalError)
         {
             this.settings = settings;
             this.documentStore = documentStore;
 
+            var timeToWait = TimeSpan.FromMinutes(5);
+            var delayAfterFailure = TimeSpan.FromSeconds(20);
+
             circuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker(
                 "EventDispatcher",
-                TimeSpan.FromMinutes(5), // TODO: Shouldn't be magic value but coming from settings
+                timeToWait,
                 ex => criticalError.Raise("Repeated failures when dispatching external integration events.", ex),
-                TimeSpan.FromSeconds(20) // TODO: Shouldn't be magic value but coming from settings
+                delayAfterFailure
             );
         }
 
@@ -45,7 +49,7 @@
                         throw new ArgumentException("Items cannot have their Id property set");
                     }
 
-                    dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();  // TODO: Key is generated to persistence
+                    dispatchRequest.Id = KeyPrefix + "/" + Guid.NewGuid();
                     await session.StoreAsync(dispatchRequest);
                 }
 
@@ -138,8 +142,8 @@
 
                 if (awaitingDispatching.Count == 0)
                 {
-                    //TODO: this should ensure we query again if the result is potentially stale
-                    //      if ☝️ is not true we will need to use/parse the ChangeVector when document is written and compare to ResultEtag
+                    // Should ensure we query again if the result is potentially stale
+                    // If ☝️ is not true we will need to use/parse the ChangeVector when document is written and compare to ResultEtag
                     return stats.IsStale;
                 }
 

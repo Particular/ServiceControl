@@ -9,7 +9,7 @@
 
     class ExpirationManager
     {
-        public const string DeleteExpirationFieldScript = "; delete msg['@metadata']['@expires']";
+        public const string DeleteExpirationFieldExpression = "delete msg['@metadata']['@expires']";
 
         readonly TimeSpan errorRetentionPeriod;
         readonly TimeSpan eventsRetentionPeriod;

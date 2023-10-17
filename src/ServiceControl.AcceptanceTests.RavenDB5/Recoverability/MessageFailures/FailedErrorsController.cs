@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
@@ -9,7 +8,6 @@
     using Infrastructure.WebApi;
     using Operations;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Operations;
 
     public class FailedErrorsCountReponse
     {
@@ -50,23 +48,6 @@
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             await importFailedErrors.Run(tokenSource.Token);
             return Request.CreateResponse(HttpStatusCode.OK);
-        }
-
-        [Route("failederrors/forcecleanerrors")]
-        [HttpPost]
-        public Task<HttpResponseMessage> ForceErrorMessageCleanerRun()
-        {
-            // TODO: Is there a way to force the Raven5 expiration to happen? Or does it just happen? Won't be able to tell until we redesign that.
-
-            // May not even need WaitForIndexes given Raven5 implementation isn't index-based
-            WaitForIndexes(store);
-
-            return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
-        }
-
-        static void WaitForIndexes(IDocumentStore store)
-        {
-            SpinWait.SpinUntil(() => store.Maintenance.Send(new GetStatisticsOperation()).StaleIndexes.Length == 0, TimeSpan.FromSeconds(10));
         }
 
         readonly IDocumentStore store;

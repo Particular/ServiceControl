@@ -14,7 +14,5 @@
         public bool EnableFullTextSearchOnBodies { get; set; } = true;
 
         public TimeSpan? OverrideCustomCheckRepeatTime { get; set; }
-
-        public abstract bool MessageBodiesAlwaysStoredInFailedMessage { get; }
     }
 }

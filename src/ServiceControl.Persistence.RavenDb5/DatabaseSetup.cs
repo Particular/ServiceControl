@@ -1,7 +1,5 @@
 ﻿namespace ServiceControl.Persistence.RavenDb5
 {
-    using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -39,30 +37,7 @@
                 }
             }
 
-            var indexTypes = typeof(DatabaseSetup).Assembly.GetTypes()
-                .Where(t => typeof(IAbstractIndexCreationTask).IsAssignableFrom(t))
-                .ToList();
-
-            //TODO: Handle full text search - if necessary add Where clause to query above to remove the two variants
-            //if (settings.EnableFullTextSearch)
-            //{
-            //    indexList.Add(new MessagesViewIndexWithFullTextSearch());
-            //    await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("MessagesViewIndex"), cancellationToken);
-            //}
-            //else
-            //{
-            //    indexList.Add(new MessagesViewIndex());
-            //    await documentStore.Maintenance
-            //        .SendAsync(new DeleteIndexOperation("MessagesViewIndexWithFullTextSearch"), cancellationToken);
-            //}
-
-            var indexList = indexTypes
-                .Select(t => Activator.CreateInstance(t))
-                .OfType<IAbstractIndexCreationTask>();
-
-            // If no full-text vs not full-text index is required, this can all be simplified using the assembly-based override
-            // await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
-            await IndexCreation.CreateIndexesAsync(indexList, documentStore, null, null, cancellationToken);
+            await IndexCreation.CreateIndexesAsync(typeof(DatabaseSetup).Assembly, documentStore, null, null, cancellationToken);
 
             var expirationConfig = new ExpirationConfiguration
             {

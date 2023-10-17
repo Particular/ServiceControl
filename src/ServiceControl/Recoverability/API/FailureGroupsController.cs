@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -8,8 +7,6 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.WebApi;
-    using MessageFailures.InternalMessages;
-    using NServiceBus;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
@@ -17,14 +14,12 @@
     {
         public FailureGroupsController(
             IEnumerable<IFailureClassifier> classifiers,
-            IMessageSession bus,
             GroupFetcher groupFetcher,
             IErrorMessageDataStore dataStore,
             IRetryHistoryDataStore retryStore
             )
         {
             this.classifiers = classifiers;
-            this.bus = bus;
             this.groupFetcher = groupFetcher;
             this.dataStore = dataStore;
             this.retryStore = retryStore;
@@ -41,19 +36,6 @@
 
             return Negotiator.FromModel(Request, result)
                 .WithTotalCount(result.Length);
-        }
-
-        [Obsolete("Only used by legacy RavenDB35 storage engine")] // TODO: how to deal with this domain event
-        [Route("recoverability/groups/reclassify")]
-        [HttpPost]
-        public async Task<IHttpActionResult> ReclassifyErrors()
-        {
-            await bus.SendLocal(new ReclassifyErrors
-            {
-                Force = true
-            });
-
-            return Content(HttpStatusCode.Accepted, string.Empty);
         }
 
         [Route("recoverability/groups/{groupid}/comment")]
@@ -145,7 +127,6 @@
         }
 
         readonly IEnumerable<IFailureClassifier> classifiers;
-        readonly IMessageSession bus;
         readonly GroupFetcher groupFetcher;
         readonly IErrorMessageDataStore dataStore;
         readonly IRetryHistoryDataStore retryStore;
