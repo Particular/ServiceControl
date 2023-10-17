@@ -89,6 +89,7 @@
 
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.0.3" />
+    <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.273" />
     <GlobalPackageReference Include="Particular.Packaging" Version="3.0.0" />
   </ItemGroup>
 
