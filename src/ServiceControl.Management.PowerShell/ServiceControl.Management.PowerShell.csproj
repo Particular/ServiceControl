@@ -66,7 +66,7 @@
   </Target>
 
   <Target Name="CreateZipFilesForModule" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ModuleArtifactsPath)%(InstanceName.identity)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ModuleArtifactsPath)%(InstanceName.identity).zip" Overwrite="true" />
   </Target>
 
 </Project>
