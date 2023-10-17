@@ -28,7 +28,7 @@
         Task<QueryResult<IList<FailedMessageView>>> ErrorGet(string status, string modified, string queueAddress, PagingInfo pagingInfo, SortInfo sortInfo);
         Task<QueryStatsInfo> ErrorsHead(string status, string modified, string queueAddress);
         Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(string status, string endpointName, string modified, PagingInfo pagingInfo, SortInfo sortInfo);
-        Task<IDictionary<string, object>> ErrorsSummary(); // TODO: Must not be object
+        Task<IDictionary<string, object>> ErrorsSummary();
 
         // GetErrorByIdController
         Task<FailedMessage> ErrorBy(Guid failedMessageId);
