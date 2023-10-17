@@ -4,7 +4,6 @@
     using System.IO;
     using Extensions;
     using Mindscape.Raygun4Net;
-    using Mindscape.Raygun4Net.Messages;
 
     public class RaygunFeedback : RaygunReporter
     {
@@ -36,7 +35,7 @@
                 UUID = trackingId.BareString()
             };
 
-            var raygunMessage = RaygunMessageBuilder.New
+            var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
                 .SetUser(raygunClient.UserInfo)
                 .SetVersion(Version)
                 .SetExceptionDetails(new Feedback(message));
@@ -48,7 +47,7 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m);
+            raygunClient.Send(m).GetAwaiter().GetResult();
         }
 
         public void SendException(Exception ex, bool includeSystemInfo)
@@ -58,7 +57,7 @@
                 UUID = trackingId.BareString()
             };
 
-            var raygunMessage = RaygunMessageBuilder.New
+            var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
                 .SetUser(raygunClient.UserInfo)
                 .SetVersion(Version)
                 .SetExceptionDetails(ex);
@@ -70,10 +69,9 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m);
+            raygunClient.Send(m).GetAwaiter().GetResult();
         }
 
-        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
         Guid trackingId = Guid.NewGuid();
     }
 
