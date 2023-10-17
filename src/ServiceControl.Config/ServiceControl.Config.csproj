@@ -54,11 +54,4 @@
     <Resource Include="Resources\**\*.*" />
   </ItemGroup>
 
-  <Target Name="RemoveTranslationAssemblies" AfterTargets="Build">
-    <ItemGroup>
-      <FluentValidationExcludedCultures Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN" />
-    </ItemGroup>
-    <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)%(Filename)')" />
-  </Target>
-
 </Project>
