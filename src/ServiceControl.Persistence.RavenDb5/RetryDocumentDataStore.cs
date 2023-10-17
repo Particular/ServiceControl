@@ -24,9 +24,7 @@
             this.store = store;
         }
 
-        public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string requestId, RetryType retryType, string[] messageIds,
-            DateTime startTime,
-            DateTime? last = null, string originator = null, string batchName = null, string classifier = null)
+        public async Task StageRetryByUniqueMessageIds(string batchDocumentId, string[] messageIds)
         {
             var commands = new ICommandData[messageIds.Length];
 
