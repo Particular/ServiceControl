@@ -43,7 +43,6 @@
         // FailureGroupsController
         Task EditComment(string groupId, string comment);
         Task DeleteComment(string groupId);
-        // Task<GroupOperation[]> GetAllGroups([FromUri] string classifierFilter = null, string classifier = "Exception Type and Stack Trace"); TODO: Analyze what to do with the `GroupFetcher` dependency
         Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, string status, string modified, SortInfo sortInfo, PagingInfo pagingInfo);
         Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified);
 
@@ -53,7 +52,7 @@
         Task<bool> MarkMessageAsResolved(string failedMessageId);
 
         // MessageFailureResolvedHandler
-        Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback); // TODO: Passing a callback is there to not change behavior of original implementation.
+        Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback);
 
         // UnArchiveMessagesByRangeHandler
         Task<string[]> UnArchiveMessagesByRange(DateTime from, DateTime to);
