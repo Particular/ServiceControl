@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -21,9 +20,7 @@
     {
         public MonitoringNewInstance()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var zipInfo = MonitoringZipInfo.Find(appDirectory);
-            Version = zipInfo.Version;
+            Version = Constants.CurrentVersion;
         }
 
         public ReportCard ReportCard { get; set; }
@@ -83,7 +80,7 @@
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag 
+            // Mark these directories with a flag
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check

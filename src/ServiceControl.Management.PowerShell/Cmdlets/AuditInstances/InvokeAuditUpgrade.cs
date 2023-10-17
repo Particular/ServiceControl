@@ -31,8 +31,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendAuditInstaller(logger, zipFolder);
+            var installer = new UnattendAuditInstaller(logger);
 
             foreach (var name in Name)
             {

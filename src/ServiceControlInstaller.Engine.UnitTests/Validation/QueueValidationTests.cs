@@ -2,7 +2,6 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using Engine.Validation;
     using Instances;
@@ -142,7 +141,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreUniqueShouldSucceed()
         {
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
             newInstance.ErrorLogQueue = "errorlog";
@@ -164,7 +163,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 AuditQueue = @"audit"
             };
 
-            var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
             newInstance.AuditQueue = "audit";
@@ -180,7 +179,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreUniqueShouldThrow()
         {
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
             newInstance.ErrorLogQueue = "error";
@@ -199,7 +198,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldSucceed()
         {
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
             newInstance.ErrorLogQueue = "errorlog2";
@@ -216,7 +215,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void CheckQueueNamesAreNotTakenByAnotherInstance_ShouldThrow()
         {
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
             {
                 newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
                 newInstance.ErrorLogQueue = "errorlog";
@@ -234,7 +233,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
 
             // with default names
-            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
             defaultInstance.ErrorQueue = "Error";
 
             p = new QueueNameValidator(defaultInstance)
@@ -251,7 +250,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
 
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
             newInstance.ErrorLogQueue = "errorlog";
@@ -268,7 +267,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             expectedError = "The queue name for ErrorQueue is already assigned to another ServiceControl instance";
 
             // with default names
-            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var defaultInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             defaultInstance.ErrorQueue = "Error";
 
@@ -284,7 +283,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         [Test]
         public void EnsureDuplicateQueueNamesAreAllowedOnSameTransportWithDifferentConnectionString()
         {
-            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
+            var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
             newInstance.ErrorQueue = "RMQerror";
@@ -305,26 +304,6 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 SCInstances = instances
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreNotTakenByAnotherServiceControlInstance());
-        }
-
-        static DirectoryInfo GetZipFolder()
-        {
-            var currentFolder = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
-
-            while (currentFolder != null)
-            {
-                var file = currentFolder.EnumerateFiles("*.sln", SearchOption.TopDirectoryOnly)
-                    .SingleOrDefault();
-
-                if (file != null)
-                {
-                    return new DirectoryInfo(Path.Combine(file.Directory.Parent.FullName, "zip"));
-                }
-
-                currentFolder = currentFolder.Parent;
-            }
-
-            throw new Exception("Cannot find zip folder");
         }
 
         List<IServiceControlInstance> instances;

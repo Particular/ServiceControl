@@ -2,33 +2,46 @@
 {
     using System.Collections.Generic;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
+    using System.Reflection;
     using Newtonsoft.Json;
 
-    public class ServiceControlPersisters
+    public static class ServiceControlPersisters
     {
-        public static IReadOnlyList<PersistenceManifest> LoadAllManifests(string zipFilePath)
+        public static PersistenceManifest[] PrimaryPersistenceManifests { get; }
+        public static PersistenceManifest[] AuditPersistenceManifests { get; }
+
+        static ServiceControlPersisters()
         {
-            using (var zipArchive = ZipFile.OpenRead(zipFilePath))
+            var assembly = Assembly.GetExecutingAssembly();
+            var list = new List<PersistenceManifest>();
+
+            var resourceNames = assembly.GetManifestResourceNames()
+                .Where(name => name.EndsWith("persistence.manifest"))
+                .ToArray();
+
+            PrimaryPersistenceManifests = resourceNames
+                .Where(name => name.StartsWith(@"Particular.ServiceControl\Persisters"))
+                .Select(name => Load(assembly, name))
+                .OrderBy(m => m.Name)
+                .ToArray();
+
+            AuditPersistenceManifests = resourceNames
+                .Where(name => name.StartsWith(@"Particular.ServiceControl.Audit\Persisters"))
+                .Select(name => Load(assembly, name))
+                .OrderBy(m => m.Name)
+                .ToArray();
+        }
+
+        static PersistenceManifest Load(Assembly assembly, string resourceName)
+        {
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
+            using (var reader = new StreamReader(stream))
             {
-                var manifests = new List<PersistenceManifest>();
+                var manifestContent = reader.ReadToEnd();
+                var manifest = JsonConvert.DeserializeObject<PersistenceManifest>(manifestContent);
 
-                var persistenceManifests = zipArchive.Entries.Where(e => e.Name == "persistence.manifest");
-
-                foreach (var manifestEntry in persistenceManifests)
-                {
-                    using (var stream = manifestEntry.Open())
-                    using (var reader = new StreamReader(stream))
-                    {
-                        var manifestContent = reader.ReadToEnd();
-                        var manifest = JsonConvert.DeserializeObject<PersistenceManifest>(manifestContent);
-
-                        manifests.Add(manifest);
-                    }
-                }
-
-                return manifests;
+                return manifest;
             }
         }
     }

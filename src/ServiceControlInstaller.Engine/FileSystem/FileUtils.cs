@@ -3,6 +3,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Security.AccessControl;
     using Ionic.Zip;
 
@@ -78,7 +79,10 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
         public static void UnzipToSubdirectory(string zipFilePath, string targetPath, string zipFolderNameToExtract)
         {
-            using (var zip = ZipFile.Read(zipFilePath))
+            var assembly = Assembly.GetExecutingAssembly();
+            var zipStream = assembly.GetManifestResourceStream(zipFilePath);
+
+            using (var zip = ZipFile.Read(zipStream))
             {
                 foreach (var e in zip)
                 {

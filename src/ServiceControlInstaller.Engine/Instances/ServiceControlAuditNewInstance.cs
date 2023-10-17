@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
@@ -16,28 +15,22 @@
     {
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence()
         {
-            return CreateWithDefaultPersistence(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-        }
-
-        public static ServiceControlAuditNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
-        {
             const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB5;
-            return CreateWithPersistence(deploymentCachePath, persisterToUseForBrandNewInstances);
+            return CreateWithPersistence(persisterToUseForBrandNewInstances);
         }
 
-        public static ServiceControlAuditNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
+        public static ServiceControlAuditNewInstance CreateWithPersistence(string persistence)
         {
-            var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
-            var persistenceManifest = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath)
+            var persistenceManifest = ServiceControlPersisters.AuditPersistenceManifests
                 .Single(manifest => manifest.Name == persistence);
 
-            return new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest);
+            return new ServiceControlAuditNewInstance(persistenceManifest);
         }
 
 
-        public ServiceControlAuditNewInstance(Version version, PersistenceManifest persistenceManifest)
+        public ServiceControlAuditNewInstance(PersistenceManifest persistenceManifest)
         {
-            Version = version;
+            Version = Constants.CurrentVersion;
             PersistenceManifest = persistenceManifest;
         }
 

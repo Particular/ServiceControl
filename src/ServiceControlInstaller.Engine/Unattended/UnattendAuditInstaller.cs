@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
-    using System.IO;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using FileSystem;
@@ -15,15 +14,7 @@
         public UnattendAuditInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables("."));
-            ZipInfo = ServiceControlAuditZipInfo.Find(sourceroot);
-        }
-
-        public UnattendAuditInstaller(ILogging loggingInstance, string deploymentCachePath)
-        {
-            logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables(deploymentCachePath));
-            ZipInfo = ServiceControlAuditZipInfo.Find(sourceroot);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip", Constants.CurrentVersion);
         }
 
         public PlatformZipInfo ZipInfo { get; }

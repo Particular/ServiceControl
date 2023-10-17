@@ -126,10 +126,9 @@ namespace ServiceControl.Management.PowerShell
             };
             var details = monitoringNewInstance;
 
-            var zipfolder = ZipPath.Get(this);
             var logger = new PSLogger(Host);
 
-            var installer = new UnattendMonitoringInstaller(logger, zipfolder);
+            var installer = new UnattendMonitoringInstaller(logger);
 
             if (details.TransportPackage.IsLatestRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))

@@ -5,7 +5,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Configuration;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
@@ -14,14 +13,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class ServiceControlAuditInstance : ServiceControlBaseService, IServiceControlAuditInstance
     {
-        public ServiceControlAuditInstance(IWindowsServiceController service) : this(service, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
+        public ServiceControlAuditInstance(IWindowsServiceController service) : base(service)
         {
-        }
-
-        public ServiceControlAuditInstance(IWindowsServiceController service, string deploymentCachePath) : base(service)
-        {
-            this.deploymentCachePath = deploymentCachePath;
-
             Reload();
         }
 
@@ -80,9 +73,7 @@ namespace ServiceControlInstaller.Engine.Instances
             InMaintenanceMode = AppConfig.Read(AuditInstanceSettingsList.MaintenanceMode, false);
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
 
-            var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
-
-            var manifests = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath);
+            var manifests = ServiceControlPersisters.AuditPersistenceManifests;
 
             var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
 
@@ -138,7 +129,5 @@ namespace ServiceControlInstaller.Engine.Instances
                     : folderpath;
             }
         }
-
-        readonly string deploymentCachePath;
     }
 }

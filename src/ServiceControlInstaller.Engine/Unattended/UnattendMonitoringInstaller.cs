@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
-    using System.IO;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using FileSystem;
@@ -15,15 +14,7 @@
         public UnattendMonitoringInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables("."));
-            ZipInfo = MonitoringZipInfo.Find(sourceroot);
-        }
-
-        public UnattendMonitoringInstaller(ILogging loggingInstance, string deploymentCachePath)
-        {
-            logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables(deploymentCachePath));
-            ZipInfo = MonitoringZipInfo.Find(sourceroot);
+            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip", Constants.CurrentVersion);
         }
 
         public PlatformZipInfo ZipInfo { get; }

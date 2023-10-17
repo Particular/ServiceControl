@@ -171,10 +171,9 @@ namespace ServiceControl.Management.PowerShell
             details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
-            var zipfolder = ZipPath.Get(this);
 
             var logger = new PSLogger(Host);
-            var installer = new UnattendServiceControlInstaller(logger, zipfolder);
+            var installer = new UnattendServiceControlInstaller(logger);
             try
             {
                 if (details.TransportPackage.IsLatestRabbitMQTransport() &&
@@ -184,7 +183,6 @@ namespace ServiceControl.Management.PowerShell
                 }
 
                 logger.Info("Module root at " + modulePath);
-                logger.Info("Installer(s) path at " + zipfolder);
                 logger.Info("Installing Service Control instance...");
                 var result = installer.Add(details, PromptToProceed);
                 result.Wait();

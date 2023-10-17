@@ -13,11 +13,11 @@
         UnattendServiceControlInstaller serviceControlInstaller;
         UnattendAuditInstaller auditInstaller;
 
-        public UnattendServiceControlSplitter(ILogging loggingInstance, string deploymentCachePath)
+        public UnattendServiceControlSplitter(ILogging loggingInstance)
         {
             log = loggingInstance;
-            serviceControlInstaller = new UnattendServiceControlInstaller(loggingInstance, deploymentCachePath);
-            auditInstaller = new UnattendAuditInstaller(loggingInstance, deploymentCachePath);
+            serviceControlInstaller = new UnattendServiceControlInstaller(loggingInstance);
+            auditInstaller = new UnattendAuditInstaller(loggingInstance);
         }
 
         public async Task<Result> Split(ServiceControlInstance instance, Options options, Func<PathInfo, Task<bool>> pathToProceed)

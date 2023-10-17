@@ -40,7 +40,7 @@
                 return ActionResult.Success;
             }
 
-            var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
+            var unattendedInstaller = new UnattendServiceControlInstaller(logger);
             foreach (var instance in InstanceFinder.ServiceControlInstances())
             {
                 try

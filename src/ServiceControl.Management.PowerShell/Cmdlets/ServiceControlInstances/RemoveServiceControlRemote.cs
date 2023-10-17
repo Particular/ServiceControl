@@ -22,8 +22,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendServiceControlInstaller(logger, zipFolder);
+            var installer = new UnattendServiceControlInstaller(logger);
 
             var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
             if (instance == null)

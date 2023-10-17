@@ -4,9 +4,9 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
-    using Engine.FileSystem;
     using Engine.Instances;
     using Engine.Unattended;
     using ServiceControl.LicenseManagement;
@@ -19,22 +19,15 @@
         {
             var logger = new MSILogger(session);
 
-            var unattendedInstaller = new UnattendServiceControlInstaller(logger, session["APPDIR"]);
-            var zipInfo = ServiceControlZipInfo.Find(session["APPDIR"] ?? ".");
+            var unattendedInstaller = new UnattendServiceControlInstaller(logger);
 
-            if (!zipInfo.Present)
-            {
-                logger.Error("Zip file not found. Service Control service instances can not be upgraded or installed");
-                return ActionResult.Failure;
-            }
-
-            UpgradeInstances(session, zipInfo, logger, unattendedInstaller);
+            UpgradeInstances(session, logger, unattendedInstaller);
             UnattendedInstall(session, logger, unattendedInstaller).Wait();
             ImportLicenseInstall(session, logger);
             return ActionResult.Success;
         }
 
-        static void UpgradeInstances(Session session, PlatformZipInfo zipInfo, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
+        static void UpgradeInstances(Session session, MSILogger logger, UnattendServiceControlInstaller unattendedInstaller)
         {
             var options = new ServiceControlUpgradeOptions();
 
@@ -91,15 +84,15 @@
             // do upgrades
             foreach (var instance in instancesToUpgrade)
             {
-                if (zipInfo.Version > instance.Version)
+                if (Constants.CurrentVersion > instance.Version)
                 {
-                    var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(zipInfo.Version, instance.Version);
+                    var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(Constants.CurrentVersion, instance.Version);
 
                     options.UpgradeInfo = upgradeInfo;
 
                     if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name) & !options.OverrideEnableErrorForwarding.Value)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
+                        logger.Warn($"Unattend upgrade {instance.Name} to {Constants.CurrentVersion} not attempted. FORWARDERRORMESSAGES MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ForwardErrorMessages.Name}'");
                         continue;
                     }
 
@@ -118,7 +111,7 @@
                             }
                             else
                             {
-                                logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.AuditRetentionPeriod.Name}'");
+                                logger.Warn($"Unattend upgrade {instance.Name} to {Constants.CurrentVersion} not attempted. AUDITRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.AuditRetentionPeriod.Name}'");
                                 continue;
                             }
                         }
@@ -126,13 +119,13 @@
 
                     if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ErrorRetentionPeriod.Name) & !options.ErrorRetentionPeriod.HasValue)
                     {
-                        logger.Warn($"Unattend upgrade {instance.Name} to {zipInfo.Version} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ErrorRetentionPeriod.Name}'");
+                        logger.Warn($"Unattend upgrade {instance.Name} to {Constants.CurrentVersion} not attempted. ERRORRETENTIONPERIOD MSI parameter was required because appsettings needed a value for '{ServiceControlSettings.ErrorRetentionPeriod.Name}'");
                         continue;
                     }
 
                     if (!unattendedInstaller.Upgrade(instance, options))
                     {
-                        logger.Warn($"Failed to upgrade {instance.Name} to {zipInfo.Version}");
+                        logger.Warn($"Failed to upgrade {instance.Name} to {Constants.CurrentVersion}");
                     }
                 }
             }

@@ -27,13 +27,11 @@
     <PackageReference Include="System.Reflection.MetadataLoadContext" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
-
-  <Target Name="CreateZipFiles" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
-    <PropertyGroup>
-      <ZipFolder>..\..\zip\</ZipFolder>
-    </PropertyGroup>
-    <MakeDir Directories="$(ZipFolder)" />
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ZipFolder)%(InstanceName.identity)-$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).zip" Overwrite="true" />
-  </Target>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\zip\*.zip" Link="Zips\%(Filename)%(Extension)" LogicalName="%(Filename)%(Extension)" Visible="false" />
+    <EmbeddedResource Include="..\..\deploy\**\persistence.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+    <EmbeddedResource Include="..\..\deploy\Particular.ServiceControl\**\transport.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+  </ItemGroup>
 
 </Project>

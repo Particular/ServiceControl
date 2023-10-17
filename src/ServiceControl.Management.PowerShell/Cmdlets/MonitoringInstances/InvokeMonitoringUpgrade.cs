@@ -28,8 +28,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendMonitoringInstaller(logger, zipFolder);
+            var installer = new UnattendMonitoringInstaller(logger);
 
             foreach (var name in Name)
             {

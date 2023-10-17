@@ -16,7 +16,7 @@
         [Test]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -36,7 +36,7 @@
             entry.ParentNode.RemoveChild(entry);
             existingConfigFile.Save(configPath);
 
-            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")), ZipFileFolder.FullName);
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
 
             instance.Reload();
 
@@ -52,7 +52,7 @@
         [Test]
         public void Should_update_existing_persister()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB5");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB5");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -65,7 +65,7 @@
             newInstance.CopyFiles(ZipFilePath);
             newInstance.WriteConfigurationFile();
 
-            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")), ZipFileFolder.FullName);
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
 
             instance.Reload();
 
@@ -82,7 +82,7 @@
         public void Should_remove_log_and_db_folders_on_uninstall()
         {
 
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -101,7 +101,7 @@
                 DefaultValue = fakeRavenLogsPath
             });
 
-            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")), ZipFileFolder.FullName);
+            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
 
             instance.Reload();
 

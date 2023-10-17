@@ -156,10 +156,9 @@
             newAuditInstance.ServiceControlQueueAddress = ServiceControlQueueAddress;
             newAuditInstance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
-            var zipfolder = ZipPath.Get(this);
             var logger = new PSLogger(Host);
 
-            var installer = new UnattendAuditInstaller(logger, zipfolder);
+            var installer = new UnattendAuditInstaller(logger);
 
             if (newAuditInstance.TransportPackage.IsLatestRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
