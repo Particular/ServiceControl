@@ -6,17 +6,28 @@
   - [ ] Upgrade an existing instance of ServiceControl to the version being released using the Powershell Scripts
   - [ ] Create a new instance of ServiceControl using the Powershell Scripts
 - Functionality
+  - [ ] Install and run ServiceControl Primary, Adult i Monitoring instances
   - [ ] [Install the ServiceControl.SmokeTesting tool](https://github.com/Particular/ServiceControl.SmokeTest#installing)
-  - [ ] Audits
-     - [ ] Search with Full Text Search on and off
-     - [ ] Large and small messages
+  - [ ] Start the smoke testing tool e.g.: `dotnet servicecontrol.smoketest rabbitmq`
+  - [ ] Test Custom checks
+     - Run `check-fail 1` and verify in [ServicePulse->Custom Checks] that a warning appeared
+     - Run `check-pass 1` and verify in [ServicePulse->Custom Checks] that the warning is gone
+  - [ ] Test heartbeats
+     - With the tool running verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoints0` to `Endpoints5` and `Sender` endpoints are reported
+     - Run `stop 1` and verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoint1` has moved to [IntactiveEndpoints]
+  - [ ] Recoverability
+     - [ ] Retires 
+       - Run `throw 1` and `send 1 1` commands. Verify in [ServicePulse->Failed Messages] that a new failed message is visible. Verify that the mesasge headers, body and exception details are available
+       - In message details press [View in ServiceInsight] and verify that message loads in ServiceInsight search view
   - [ ] Recoverability
      - [ ] Retries
+        - Single message, message group, multiple failures
      - [ ] Message body editing
      - [ ] Queue redirection
      - [ ] Large and small messages
+  - [ ] Audits
+     - [ ] Search with Full Text Search on and off
+     - [ ] Large and small messages
   - [ ] Saga Auditing
-  - [ ] Heartbeats
-  - [ ] CustomChecks
   - [ ] External Integration
   - [ ] Monitoring
