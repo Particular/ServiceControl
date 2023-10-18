@@ -65,8 +65,4 @@
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Date}}" ReplacementText="$([System.DateTime]::UtcNow.ToString(yyyy))" />
   </Target>
 
-  <Target Name="CreateZipFilesForModule" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ModuleArtifactsPath)%(InstanceName.identity).zip" Overwrite="true" />
-  </Target>
-
 </Project>
