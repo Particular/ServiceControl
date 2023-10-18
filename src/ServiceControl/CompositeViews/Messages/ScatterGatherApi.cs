@@ -33,6 +33,7 @@ namespace ServiceControl.CompositeViews.Messages
             DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
+            Logger = LogManager.GetLogger(GetType());
         }
 
         protected TDataStore DataStore { get; }
@@ -124,12 +125,18 @@ namespace ServiceControl.CompositeViews.Messages
             catch (HttpRequestException httpRequestException)
             {
                 DisableRemoteInstance(remoteUri);
-                logger.Warn($"An HttpRequestException occurred when quering remote instance at {remoteUri}. The instance at uri: {remoteUri} will be temporarily disabled.", httpRequestException);
+                Logger.Warn($"An HttpRequestException occurred when quering remote instance at {remoteUri}. The instance at uri: {remoteUri} will be temporarily disabled.",
+                    httpRequestException);
+                return QueryResult<TOut>.Empty();
+            }
+            catch (OperationCanceledException oce)
+            {
+                Logger.Warn($"Failed to query remote instance at {remoteUri} due to a timeout");
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
             {
-                logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
+                Logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
                 return QueryResult<TOut>.Empty();
             }
         }
@@ -167,7 +174,7 @@ namespace ServiceControl.CompositeViews.Messages
             }
         }
 
-        static readonly ILog logger = LogManager.GetLogger(typeof(ScatterGatherApi<TDataStore, TIn, TOut>));
+        readonly ILog Logger;
     }
 
     abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
