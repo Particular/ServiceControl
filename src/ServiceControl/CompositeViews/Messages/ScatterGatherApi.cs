@@ -129,7 +129,7 @@ namespace ServiceControl.CompositeViews.Messages
                     httpRequestException);
                 return QueryResult<TOut>.Empty();
             }
-            catch (OperationCanceledException oce)
+            catch (OperationCanceledException)
             {
                 Logger.Warn($"Failed to query remote instance at {remoteUri} due to a timeout");
                 return QueryResult<TOut>.Empty();
