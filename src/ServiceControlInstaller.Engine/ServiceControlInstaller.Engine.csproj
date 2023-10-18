@@ -27,11 +27,13 @@
     <PackageReference Include="System.Reflection.MetadataLoadContext" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\zip\*.zip" Link="Zips\%(Filename)%(Extension)" LogicalName="%(Filename)%(Extension)" Visible="false" />
-    <EmbeddedResource Include="..\..\deploy\**\persistence.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
-    <EmbeddedResource Include="..\..\deploy\Particular.ServiceControl\**\transport.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
-  </ItemGroup>
+
+  <Target Name="EmbedResources" BeforeTargets="BeforeResGen">
+    <ItemGroup>
+      <EmbeddedResource Include="..\..\zip\*.zip" Link="Zips\%(Filename)%(Extension)" LogicalName="%(Filename)%(Extension)" Visible="false" />
+      <EmbeddedResource Include="..\..\deploy\**\persistence.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+      <EmbeddedResource Include="..\..\deploy\Particular.ServiceControl\**\transport.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>
