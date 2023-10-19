@@ -16,15 +16,19 @@
      - With the tool running verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoints0` to `Endpoints5` and `Sender` endpoints are reported
      - Run `stop 1` and verify in [ServicePulse->Heartbeats->Active Endpoints] that `Endpoint1` has moved to [IntactiveEndpoints]
   - [ ] Recoverability
-     - [ ] Retires 
-       - Run `throw 1` and `send 1 1` commands. Verify in [ServicePulse->Failed Messages] that a new failed message is visible. Verify that the mesasge headers, body and exception details are available
-       - In message details press [View in ServiceInsight] and verify that message loads in ServiceInsight search view
-  - [ ] Recoverability
-     - [ ] Retries
-        - Single message, message group, multiple failures
+     - [ ] Retry single message 
+       - Run `throw 1` and `send 1 1` commands
+       - Run `recover 1` and retry the message from ServicePulse
+     - [ ] Retry message group
+       - Run `throw 1` and `send 1 50` commands
+       - Run `recover 1` and retry the whole message group from ServicePulse
      - [ ] Message body editing
-     - [ ] Queue redirection
-     - [ ] Large and small messages
+       - Run `throw 1` and `send 1 1` commands
+       - Run `recover 1`, edit the message body, and retry the message from ServicePulse
+     - [ ] Failed queue redirection
+       - Run `throw 1` and `send 1 1` commands
+       - Go to [Service Pulse->Configuration->Create redirect] and add `Endpoint1` to `Endpoint2` redirect
+       - Retry the failed message
   - [ ] Audits
      - [ ] Search with Full Text Search on and off
      - [ ] Large and small messages
