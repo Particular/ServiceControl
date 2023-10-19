@@ -57,20 +57,6 @@ jobs:
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
-      - name: Setup Advanced Installer
-        run: |
-          $version = "20.2.1"
-          choco install advanced-installer --version=$version
-          & "C:\Program Files (x86)\Caphyon\Advanced Installer $version\bin\x86\AdvancedInstaller.com" /register ${{ secrets.ADVANCED_INSTALLER_LICENSE_KEY }}
-      - name: Prepare AIP file
-        run: |
-          $content = Get-Content -Raw -Path src/Setup/ServiceControl.aip
-          $content = $content -replace "replace-tenant-id", "${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}" -replace "replace-app-id", "${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}" -replace "replace-cert-name", "${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}"
-          Set-Content src/Setup/ServiceControl.aip $content
-      - name: Build Windows installer
-        env:
-          AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-        run: dotnet build src/Setup --configuration Release
       # - name: Build Docker images
       #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
       #   run: dotnet build src/ServiceControl.DockerImages --configuration Release
@@ -103,9 +89,9 @@ jobs:
           $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
           $zipCount = (Get-ChildItem -Recurse -File zip).Count
 
-          $expectedAssetsCount = 2
-          $expectedNugetsCount = 1
-          $expectedZipCount = 3
+          $expectedAssetsCount = 1 # PowerShell module
+          $expectedNugetsCount = 1 # PlatformSample
+          $expectedZipCount = 3    # ServiceControl, Audit, & Monitoring
 
           if ($assetsCount -ne $expectedAssetsCount)
           {
