@@ -8,6 +8,8 @@
         <add key="ServiceControl.Audit/TransportType" value="ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq" />
         <add key="ServiceControl.Audit/PersistenceType" value="ServiceControl.Audit.Persistence.InMemory.InMemoryPersistenceConfiguration, ServiceControl.Audit.Persistence.InMemory" />
         <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
+        <add key="ServiceControl.Audit/EnableFullTextSearchOnBodies"
+            value="false" />
     </appSettings>
     <runtime>
         <gcServer enabled="true" />
