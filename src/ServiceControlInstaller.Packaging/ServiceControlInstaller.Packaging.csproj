@@ -20,7 +20,7 @@
     <ProjectReference Update="..\**\*" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
-  <Target Name="CreateZipFiles" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
+  <Target Name="CreateZipFiles" AfterTargets="CopyArtifacts">
     <PropertyGroup>
       <ZipFolder>..\..\zip\</ZipFolder>
     </PropertyGroup>

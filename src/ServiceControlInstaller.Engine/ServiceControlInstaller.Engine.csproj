@@ -28,11 +28,13 @@
     <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
-  <Target Name="EmbedResources" BeforeTargets="BeforeResGen">
+  <Target Name="EmbedInstallerResources" AfterTargets="ResolveProjectReferences">
     <ItemGroup>
-      <EmbeddedResource Include="..\..\zip\*.zip" Link="Zips\%(Filename)%(Extension)" LogicalName="%(Filename)%(Extension)" Visible="false" />
-      <EmbeddedResource Include="..\..\deploy\**\persistence.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
-      <EmbeddedResource Include="..\..\deploy\Particular.ServiceControl\**\transport.manifest" Link="%(RecursiveDir)%(Filename)%(Extension)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" Visible="false" />
+      <Zip Include="..\..\zip\*.zip" />
+      <Manifest Include="..\..\deploy\**\persistence.manifest"  />
+      <Manifest Include="..\..\deploy\Particular.ServiceControl\**\transport.manifest" />
+      <EmbeddedResource Include="@(Zip)" LogicalName="%(Filename)%(Extension)" />
+      <EmbeddedResource Include="@(Manifest)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 
