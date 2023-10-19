@@ -12,6 +12,7 @@
     using NServiceBus.Logging;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
+    using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
 
     public class EmbeddedDatabase : IDisposable
@@ -146,6 +147,14 @@
             await databaseSetup.Execute(store, cancellationToken);
 
             return store;
+        }
+
+        public async Task DeleteDatabase(string dbName)
+        {
+            using (var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName) { SkipCreatingDatabase = true }))
+            {
+                await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
+            }
         }
 
         public void Dispose()

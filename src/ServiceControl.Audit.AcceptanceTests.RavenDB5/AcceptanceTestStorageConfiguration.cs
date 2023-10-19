@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.Audit.Persistence.Tests;
@@ -10,15 +11,17 @@
     {
         public string PersistenceType { get; protected set; }
 
+        EmbeddedDatabase databaseInstance;
+        string databaseName;
+
         public async Task<IDictionary<string, string>> CustomizeSettings()
         {
-            var databaseName = Guid.NewGuid().ToString();
-
-            var instance = await SharedEmbeddedServer.GetInstance();
+            databaseName = Guid.NewGuid().ToString();
+            databaseInstance = await SharedEmbeddedServer.GetInstance();
 
             return new Dictionary<string, string>
             {
-                { RavenDbPersistenceConfiguration.ConnectionStringKey,instance.ServerUrl },
+                { RavenDbPersistenceConfiguration.ConnectionStringKey,databaseInstance.ServerUrl },
                 { RavenDbPersistenceConfiguration.DatabaseNameKey,databaseName}
             };
         }
@@ -30,9 +33,9 @@
             return Task.CompletedTask;
         }
 
-        public Task Cleanup()
+        public async Task Cleanup()
         {
-            return Task.CompletedTask;
+            await databaseInstance.DeleteDatabase(databaseName);
         }
     }
 }
