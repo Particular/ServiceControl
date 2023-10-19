@@ -2,6 +2,7 @@
 {
     using MessageRedirects;
     using Microsoft.Extensions.DependencyInjection;
+    using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Persistence.Recoverability;
     using RavenDb5;
     using Recoverability;
@@ -34,6 +35,8 @@
             serviceCollection.AddSingleton(settings);
 
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
+            serviceCollection.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
+
             serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
             serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
             serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
