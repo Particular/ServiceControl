@@ -52,8 +52,14 @@
         {
             workingFolder.Delete(true);
             Directory.CreateDirectory(workingFolder.FullName);
-            FileUtils.UnzipToSubdirectory(zipFilePath, workingFolder.FullName, "B");
-            FileUtils.UnzipToSubdirectory(zipFilePath, workingFolder.FullName, @"A\AA");
+            using (var zipStream = File.OpenRead(zipFilePath))
+            {
+                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, "B");
+            }
+            using (var zipStream = File.OpenRead(zipFilePath))
+            {
+                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, @"A\AA");
+            }
             Assert.True(workingFolder.GetFiles().Count() == 2, "Should only be two file asub and broot");
             Assert.True(workingFolder.GetFiles("asub*.txt").Count() == 1, "subfolder did not unpack to root");
             Assert.True(workingFolder.GetDirectories().Count() == 1, "Should only be one directory after unpack");

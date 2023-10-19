@@ -82,6 +82,11 @@ namespace ServiceControlInstaller.Engine.FileSystem
             var assembly = Assembly.GetExecutingAssembly();
             var zipStream = assembly.GetManifestResourceStream(zipResourceName);
 
+            UnzipToSubdirectory(zipStream, targetPath, zipFolderNameToExtract);
+        }
+
+        internal static void UnzipToSubdirectory(Stream zipStream, string targetPath, string zipFolderNameToExtract)
+        {
             using (var zip = ZipFile.Read(zipStream))
             {
                 foreach (var e in zip)
