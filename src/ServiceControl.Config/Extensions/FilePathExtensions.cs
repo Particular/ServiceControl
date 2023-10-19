@@ -9,6 +9,12 @@
     {
         static bool TryGetPathRoot(string path, out string root)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                root = string.Empty;
+                return false;
+            }
+
             try
             {
                 root = Path.GetPathRoot(path);
