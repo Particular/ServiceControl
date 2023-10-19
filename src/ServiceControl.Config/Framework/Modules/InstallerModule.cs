@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.Framework.Modules
 {
     using System;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
     using ServiceControl.LicenseManagement;
@@ -58,7 +57,7 @@ namespace ServiceControl.Config.Framework.Modules
             }
 
             progress.Report(3, 9, "Copying files...");
-            instanceInstaller.CopyFiles(ZipInfo.FilePath);
+            instanceInstaller.CopyFiles(ZipInfo.ResourceName);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
 
@@ -122,7 +121,7 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 progress.Report(currentStep++, totalSteps, "Upgrading Files...");
-                instance.UpgradeFiles(ZipInfo.FilePath);
+                instance.UpgradeFiles(ZipInfo.ResourceName);
             }
             finally
             {
@@ -291,7 +290,7 @@ namespace ServiceControl.Config.Framework.Modules
             }
 
             progress.Report(3, 9, "Copying files...");
-            instanceInstaller.CopyFiles(ZipInfo.FilePath);
+            instanceInstaller.CopyFiles(ZipInfo.ResourceName);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
 
@@ -353,7 +352,7 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 progress.Report(2, 5, "Upgrading Files...");
-                instance.UpgradeFiles(ZipInfo.FilePath);
+                instance.UpgradeFiles(ZipInfo.ResourceName);
             }
             finally
             {

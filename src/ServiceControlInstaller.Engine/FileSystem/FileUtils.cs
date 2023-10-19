@@ -77,10 +77,10 @@ namespace ServiceControlInstaller.Engine.FileSystem
             destination.SetAccessControl(accessRules);
         }
 
-        public static void UnzipToSubdirectory(string zipFilePath, string targetPath, string zipFolderNameToExtract)
+        public static void UnzipToSubdirectory(string zipResourceName, string targetPath, string zipFolderNameToExtract)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var zipStream = assembly.GetManifestResourceStream(zipFilePath);
+            var zipStream = assembly.GetManifestResourceStream(zipResourceName);
 
             using (var zip = ZipFile.Read(zipStream))
             {

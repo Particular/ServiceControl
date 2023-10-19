@@ -9,6 +9,8 @@
     [TestFixture]
     class NewAuditInstanceTests : InstallationFixture
     {
+        const string zipResourceName = "Particular.ServiceControl.Audit.zip";
+
         [Test]
         public void Should_install_raven5_for_new_instances()
         {
@@ -22,7 +24,7 @@
             newInstance.HostName = "localhost";
             newInstance.DatabaseMaintenancePort = 33333;
 
-            newInstance.CopyFiles(ZipFilePath);
+            newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
             FileAssert.Exists(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));

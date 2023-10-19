@@ -86,11 +86,11 @@
             ConnectionStringValidator.Validate(this);
         }
 
-        public override void CopyFiles(string zipFilePath)
+        public override void CopyFiles(string zipResourceName)
         {
-            base.CopyFiles(zipFilePath);
+            base.CopyFiles(zipResourceName);
 
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
     }
 }

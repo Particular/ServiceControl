@@ -13,6 +13,8 @@
     [TestFixture]
     class AuditInstanceTests : InstallationFixture
     {
+        const string zipResourceName = "Particular.ServiceControl.Audit.zip";
+
         [Test]
         public void Should_default_to_raven35_when_no_config_entry_exists()
         {
@@ -25,7 +27,7 @@
             newInstance.HostName = "localhost";
             newInstance.DatabaseMaintenancePort = 33333;
 
-            newInstance.CopyFiles(ZipFilePath);
+            newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
             //delete the setting to simulate an existing older instance
@@ -40,7 +42,7 @@
 
             instance.Reload();
 
-            instance.UpgradeFiles(ZipFilePath);
+            instance.UpgradeFiles(zipResourceName);
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb.dll"));
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));
 
@@ -62,7 +64,7 @@
             newInstance.HostName = "localhost";
             newInstance.DatabaseMaintenancePort = 33333;
 
-            newInstance.CopyFiles(ZipFilePath);
+            newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
             var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
@@ -74,7 +76,7 @@
             //delete the persitence dll to make sure it gets re-installed
             File.Delete(persisterFilePath);
 
-            instance.UpgradeFiles(ZipFilePath);
+            instance.UpgradeFiles(zipResourceName);
             FileAssert.Exists(persisterFilePath);
         }
 
@@ -91,7 +93,7 @@
             newInstance.HostName = "localhost";
             newInstance.DatabaseMaintenancePort = 33333;
 
-            newInstance.CopyFiles(ZipFilePath);
+            newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
             var fakeRavenLogsPath = Path.Combine(InstallPath, "RavenLogs");

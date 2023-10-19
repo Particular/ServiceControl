@@ -49,7 +49,7 @@
 
                 try
                 {
-                    instanceInstaller.CopyFiles(ZipInfo.FilePath);
+                    instanceInstaller.CopyFiles(ZipInfo.ResourceName);
                     instanceInstaller.WriteConfigurationFile();
 
                     try
@@ -133,7 +133,7 @@
                 var backupFile = instance.BackupAppConfig();
                 try
                 {
-                    instance.UpgradeFiles(ZipInfo.FilePath);
+                    instance.UpgradeFiles(ZipInfo.ResourceName);
                 }
                 finally
                 {

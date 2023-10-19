@@ -105,12 +105,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             QueueCreation.RunQueueCreation(this);
         }
-        public override void UpgradeFiles(string zipFilePath)
+        public override void UpgradeFiles(string zipResourceName)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlAuditExe}.config");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, BaseServiceName);
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, BaseServiceName);
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()
