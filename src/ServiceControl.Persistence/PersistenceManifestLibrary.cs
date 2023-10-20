@@ -10,10 +10,15 @@
     public class PersistenceManifest
     {
         public string Version { get; set; }
+
         public string Name { get; set; }
+
         public string DisplayName { get; set; }
+
         public string Description { get; set; }
+
         public string TypeName { get; set; }
+
         public bool IsSupported { get; set; } = true;
 
         internal bool IsMatch(string persistenceType) =>
@@ -26,7 +31,10 @@
         public static List<PersistenceManifest> PersistenceManifests { get; set; }
 
         static bool initialized;
-        static void Initialize()
+
+        static bool usingDevelopmentLocation;
+
+        static void Initialize(string persistenceType)
         {
             if (PersistenceManifests == null)
             {
@@ -36,19 +44,28 @@
             if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = GetAssemblyDirectory();
+                var persistenceFolder = GetAssemblyDirectory();
+
                 try
                 {
                     PersistenceManifests.AddRange(
-                        Directory.EnumerateFiles(assemblyLocation, "persistence.manifest", SearchOption.AllDirectories)
+                        Directory.EnumerateFiles(persistenceFolder, "persistence.manifest", SearchOption.AllDirectories)
                         .Select(manifest => JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)))
-                        );
+                    );
+
+                    if (PersistenceManifests.Count == 0 && DevelopmentPersistenceLocations.TryGetPersistenceFolder(persistenceType, out persistenceFolder))
+                    {
+                        var manifest = Path.Combine(persistenceFolder, "persistence.manifest");
+                        PersistenceManifests.Add(JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
+
+                        usingDevelopmentLocation = true;
+                    }
 
                     PersistenceManifests.ForEach(m => logger.Info($"Found persistence manifest for {m.DisplayName}"));
                 }
                 catch (Exception ex)
                 {
-                    logger.Warn($"Failed to load persistence manifests from {assemblyLocation}", ex);
+                    logger.Warn($"Failed to load persistence manifests from {persistenceFolder}", ex);
                 }
             }
         }
@@ -66,7 +83,7 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            Initialize();
+            Initialize(persistenceType);
 
             var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
@@ -85,19 +102,30 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            Initialize();
+            Initialize(persistenceType);
 
             var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
+            string persistenceFolder = null;
+
             if (persistenceManifestDefinition != null)
             {
-                return persistenceManifestDefinition.Name.Split('.').FirstOrDefault();
+                if (usingDevelopmentLocation)
+                {
+                    _ = DevelopmentPersistenceLocations.TryGetPersistenceFolder(persistenceManifestDefinition.Name, out persistenceFolder);
+                }
+                else
+                {
+                    var appDirectory = GetAssemblyDirectory();
+                    var persistenceName = persistenceManifestDefinition.Name.Split('.').FirstOrDefault();
+                    persistenceFolder = Path.Combine(appDirectory, "Persisters", persistenceName);
+                }
             }
 
-            return null;
+            return persistenceFolder;
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
+        static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
     }
 }
 
