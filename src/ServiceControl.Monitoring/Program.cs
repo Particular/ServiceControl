@@ -47,13 +47,11 @@ namespace ServiceControl.Monitoring
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+
             if (assembly == null && settings != null)
             {
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                if (transportFolder != null)
-                {
-                    assembly = TryLoadTypeFromSubdirectory(transportFolder, requestingName);
-                }
+                assembly = TryLoadTypeFromSubdirectory(transportFolder, requestingName);
             }
 
             return assembly;
@@ -61,11 +59,14 @@ namespace ServiceControl.Monitoring
 
         static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
         {
-            var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
-
-            if (File.Exists(path))
+            if (subFolderPath != null)
             {
-                return Assembly.LoadFrom(path);
+                var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
+
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
             }
 
             return null;
