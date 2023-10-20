@@ -55,8 +55,7 @@
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
                 if (transportFolder != null)
                 {
-                    var subFolderPath = Path.Combine(appDirectory, "Transports", transportFolder);
-                    assembly = TryLoadTypeFromSubdirectory(subFolderPath, requestingName);
+                    assembly = TryLoadTypeFromSubdirectory(transportFolder, requestingName);
                 }
 
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);

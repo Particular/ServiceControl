@@ -17,7 +17,6 @@
 
   <ItemGroup Label="Copy artifacts for the F5 experience">
     <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Persisters" DestinationFolder="$(OutputPath)\Persisters\%(RecursiveDir)" />
-    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
   </ItemGroup>
 
   <ItemGroup>

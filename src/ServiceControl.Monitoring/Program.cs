@@ -49,13 +49,10 @@ namespace ServiceControl.Monitoring
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
             if (assembly == null && settings != null)
             {
-                //look into transport directory
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
                 if (transportFolder != null)
                 {
-                    var transportsPath = Path.Combine(appDirectory, "Transports", transportFolder);
-
-                    assembly = TryLoadTypeFromSubdirectory(transportsPath, requestingName);
+                    assembly = TryLoadTypeFromSubdirectory(transportFolder, requestingName);
                 }
             }
 

@@ -10,14 +10,18 @@
     public class TransportManifest
     {
         public string Version { get; set; }
+
         public TransportManifestDefinition[] Definitions { get; set; }
     }
 
     public class TransportManifestDefinition
     {
         public string Name { get; set; }
+
         public string DisplayName { get; set; }
+
         public string TypeName { get; set; }
+
         public string[] Aliases { get; set; }
 
         internal bool IsMatch(string transportType) =>
@@ -41,7 +45,10 @@
         public static List<TransportManifest> TransportManifests { get; set; }
 
         static bool initialized;
-        static void Initialize()
+
+        static bool usingDevelopmentLocation;
+
+        static void Initialize(string transportType)
         {
             if (TransportManifests == null)
             {
@@ -51,19 +58,28 @@
             if (!initialized)
             {
                 initialized = true;
-                var assemblyLocation = GetAssemblyDirectory();
+                var transportFolder = GetAssemblyDirectory();
+
                 try
                 {
                     TransportManifests.AddRange(
-                        Directory.EnumerateFiles(assemblyLocation, "transport.manifest", SearchOption.AllDirectories)
+                        Directory.EnumerateFiles(transportFolder, "transport.manifest", SearchOption.AllDirectories)
                         .Select(manifest => JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)))
                         );
+
+                    if (TransportManifests.Count == 0 && DevelopmentTransportLocations.TryGetTransportFolder(transportType, out transportFolder))
+                    {
+                        var manifest = Path.Combine(transportFolder, "transport.manifest");
+                        TransportManifests.Add(JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)));
+
+                        usingDevelopmentLocation = true;
+                    }
 
                     TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.Info($"Found transport manifest for {m.DisplayName}"));
                 }
                 catch (Exception ex)
                 {
-                    logger.Warn($"Failed to load transport manifests from {assemblyLocation}", ex);
+                    logger.Warn($"Failed to load transport manifests from {transportFolder}", ex);
                 }
             }
         }
@@ -81,7 +97,7 @@
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
 
-            Initialize();
+            Initialize(transportType);
 
             var transportManifestDefinition = TransportManifests
                 .SelectMany(t => t.Definitions)
@@ -102,21 +118,32 @@
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
 
-            Initialize();
+            Initialize(transportType);
 
             var transportManifestDefinition = TransportManifests
                 .SelectMany(t => t.Definitions)
                 .FirstOrDefault(w => w.IsMatch(transportType));
 
+            string transportFolder = null;
+
             if (transportManifestDefinition != null)
             {
-                return transportManifestDefinition.Name.Split('.').FirstOrDefault();
+                if (usingDevelopmentLocation)
+                {
+                    _ = DevelopmentTransportLocations.TryGetTransportFolder(transportManifestDefinition.Name, out transportFolder);
+                }
+                else
+                {
+                    var appDirectory = GetAssemblyDirectory();
+                    var transportName = transportManifestDefinition.Name.Split('.').FirstOrDefault();
+                    transportFolder = Path.Combine(appDirectory, "Transports", transportName);
+                }
             }
 
-            return null;
+            return transportFolder;
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
+        static readonly ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
     }
 }
 
