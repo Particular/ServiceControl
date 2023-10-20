@@ -6,7 +6,8 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <Import Project="..\Transports.Includes.props" />
+  <!-- Needed for build ordering -->
+  <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" />

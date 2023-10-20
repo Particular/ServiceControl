@@ -4,19 +4,10 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <Import Project="..\Transports.Includes.props" />
-
-  <ItemGroup Label="Transports">
-    <!--NOTE: We need a direct reference to Learning transport for test configuration -->
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" ReferenceOutputAssembly="true" Private="true" />
-  </ItemGroup>
-
-  <!-- NOTE: Not using Transports.Artifacts.Includes.props to avoid race conditions-->
   <ItemGroup>
-    <!-- The following assumes transports are the same for every instance type. Coping the transports binaries from the primary instance artifacts folder -->
-    <Artifact Include="$(ArtifactsPath)Particular.ServiceControl\Transports" DestinationFolder="$(OutputPath)\Transports\%(RecursiveDir)" />
+    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
-
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
@@ -26,12 +17,6 @@
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
-    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
 </Project>

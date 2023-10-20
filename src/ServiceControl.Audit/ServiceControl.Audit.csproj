@@ -6,8 +6,9 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <Import Project="..\Transports.Includes.props" />
-  <Import Project="..\Persisters.Audit.Includes.props" />
+  <!-- Needed for build ordering -->
+  <Import Project="..\ProjectReferences.Persisters.Audit.props"  />
+  <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj" />
