@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using ByteSizeLib;
@@ -25,30 +26,22 @@
 
         static (string LicenseFileName, string ServerDirectory) GetRavenLicenseFileNameAndServerDirectory()
         {
+            var assembly = Assembly.GetExecutingAssembly();
+            var assemblyDirectory = Path.GetDirectoryName(assembly.Location);
+
             var licenseFileName = "RavenLicense.json";
-            var localRavenLicense = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, licenseFileName);
-            if (File.Exists(localRavenLicense))
+            var ravenLicense = Path.Combine(assemblyDirectory, licenseFileName);
+            var serverDirectory = Path.Combine(assemblyDirectory, "RavenDBServer");
+
+            if (File.Exists(ravenLicense))
             {
-                return (localRavenLicense, null);
+                return (ravenLicense, serverDirectory);
             }
-
-            const string Persisters = "Persisters";
-            const string RavenDB5 = "RavenDB5";
-
-            var persisterDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Persisters, RavenDB5);
-
-            localRavenLicense = Path.Combine(persisterDirectory, licenseFileName);
-            if (!File.Exists(localRavenLicense))
+            else
             {
-                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file, '{licenseFileName}', " +
-                    $"is stored in the '{AppDomain.CurrentDomain.BaseDirectory}' folder or in the '{Persisters}/{RavenDB5}' subfolder.");
+                var assemblyName = Path.GetFileName(assembly.Location);
+                throw new Exception($"RavenDB license not found. Make sure the RavenDB license file '{licenseFileName}' is stored in the same directory as {assemblyName}.");
             }
-
-            // By default RavenDB 5 searches its binaries in the RavenDBServer right below the BaseDirectory.
-            // If we're loading from Persisters/RavenDB5 we also have to signal RavenDB where are binaries
-            var serverDirectory = Path.Combine(persisterDirectory, "RavenDBServer");
-
-            return (localRavenLicense, serverDirectory);
         }
 
         public static EmbeddedDatabase Start(DatabaseConfiguration databaseConfiguration)
