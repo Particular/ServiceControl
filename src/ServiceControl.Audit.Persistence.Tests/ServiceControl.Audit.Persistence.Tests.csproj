@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
-  
+
   <Import Project="..\Persisters.Audit.Includes.props" />
 
   <ItemGroup Label="Persisters">

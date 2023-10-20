@@ -9,11 +9,6 @@
 
   <Import Project="..\Transports.Includes.props" />
   <Import Project="..\Persisters.Primary.Includes.props" />
-  <ItemGroup>
-    <Compile Remove="Recoverability\Archiving\Raven\**" />
-    <EmbeddedResource Remove="Recoverability\Archiving\Raven\**" />
-    <None Remove="Recoverability\Archiving\Raven\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />

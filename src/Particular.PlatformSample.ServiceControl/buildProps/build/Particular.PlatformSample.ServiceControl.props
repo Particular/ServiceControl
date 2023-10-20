@@ -5,15 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\servicecontrol-instance\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-instance" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-audit-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\servicecontrol-audit-instance\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\servicecontrol-audit-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\servicecontrol-audit-instance" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\monitoring-instance\**\*" CopyToOutputDirectory="PreserveNewest" Link="platform\servicecontrol\monitoring-instance\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)\..\platform\servicecontrol\monitoring-instance\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="platform\servicecontrol\monitoring-instance" />
   </ItemGroup>
 
 </Project>

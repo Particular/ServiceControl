@@ -2,25 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports.SQS\ServiceControl.Transports.SQS.csproj" />
-    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.Transports.Tests\*.cs" Link="Shared\%(RecursiveDir)%(FileName)%(Extension)" />
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
     <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>

@@ -11,4 +11,5 @@
     -->
     <Artifact Include="**\*.manifest" DestinationFolder="$(ArtifactsPath)%(RecursiveDir)" />
   </ItemGroup>
+
 </Project>
