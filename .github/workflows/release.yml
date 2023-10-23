@@ -31,6 +31,8 @@ jobs:
           dotnet-version: 6.0.x
       - name: Build
         run: dotnet build src --configuration Release -graph
+      - name: Build ServiceControl Management
+        run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --configuration Release --runtime win-x64 --no-build --output assets
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:
@@ -89,7 +91,7 @@ jobs:
           $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
           $zipCount = (Get-ChildItem -Recurse -File zip).Count
 
-          $expectedAssetsCount = 1 # PowerShell module
+          $expectedAssetsCount = 2 # SCMU & PowerShell module
           $expectedNugetsCount = 1 # PlatformSample
           $expectedZipCount = 3    # ServiceControl, Audit, & Monitoring
 
