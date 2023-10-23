@@ -51,17 +51,17 @@ namespace ServiceControl.Monitoring
             if (assembly == null && settings != null)
             {
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                assembly = TryLoadTypeFromSubdirectory(transportFolder, requestingName);
+                assembly = TryLoadAssembly(transportFolder, requestingName);
             }
 
             return assembly;
         }
 
-        static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        static Assembly TryLoadAssembly(string folderPath, string requestingName)
         {
-            if (subFolderPath != null)
+            if (folderPath != null)
             {
-                var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
+                var path = Path.Combine(folderPath, $"{requestingName}.dll");
 
                 if (File.Exists(path))
                 {
