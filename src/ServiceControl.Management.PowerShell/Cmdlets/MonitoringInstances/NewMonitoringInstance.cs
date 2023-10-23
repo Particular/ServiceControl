@@ -130,6 +130,11 @@ namespace ServiceControl.Management.PowerShell
 
             var installer = new UnattendMonitoringInstaller(logger);
 
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
+            }
+
             if (details.TransportPackage.IsLatestRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
             {

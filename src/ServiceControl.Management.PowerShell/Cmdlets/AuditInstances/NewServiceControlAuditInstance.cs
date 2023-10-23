@@ -160,6 +160,11 @@
 
             var installer = new UnattendAuditInstaller(logger);
 
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
+            }
+
             if (newAuditInstance.TransportPackage.IsLatestRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
             {
