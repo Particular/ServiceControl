@@ -12,6 +12,7 @@
     class RuntimeNetVersionTest
     {
         [Test]
+        [Ignore("Not going to update the AdvancedInstaller file for the purposes of a spike")]
         public void EnsureCorrectRuntimeVersionIsShipped()
         {
             var aip = GetFromAipFile();

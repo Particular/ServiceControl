@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using NUnit.Framework;
     using Raven.Client.Documents;
+    using Raven.Client.Exceptions;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
@@ -27,17 +28,28 @@
 
             using (var session = configuration.DocumentStore.OpenAsyncSession())
             {
-                var sagaTypeResults = await session.Query<SagaHistory, SagaDetailsIndex>()
-                    .Search(s => s.SagaType, sagaType)
-                    .ToListAsync();
+                // This test is trying to query on 2 fields that are marked FieldIndexing.No in the index.
+                // In RavenDB 5 that would return 0 results, but in RavenDB 6 with Corax it throws an exception.
+                // (Not sure what RavenDB 6's behavior with Lucene indexes is.) It could also be argued that this
+                // is testing the infrastructure and the entire test should be discarded.
 
-                Assert.AreEqual(0, sagaTypeResults.Count);
+                Assert.ThrowsAsync<RavenException>(async () =>
+                {
+                    var sagaTypeResults = await session.Query<SagaHistory, SagaDetailsIndex>()
+                        .Search(s => s.SagaType, sagaType)
+                        .ToListAsync();
+                });
 
-                var sagaChangeResults = await session.Query<SagaHistory, SagaDetailsIndex>()
-                    .Search(s => s.Changes, sagaState)
-                    .ToListAsync();
+                //Assert.AreEqual(0, sagaTypeResults.Count);
 
-                Assert.AreEqual(0, sagaChangeResults.Count);
+                Assert.ThrowsAsync<RavenException>(async () =>
+                {
+                    var sagaChangeResults = await session.Query<SagaHistory, SagaDetailsIndex>()
+                        .Search(s => s.Changes, sagaState)
+                        .ToListAsync();
+                });
+
+                //Assert.AreEqual(0, sagaChangeResults.Count);
             }
         }
 
