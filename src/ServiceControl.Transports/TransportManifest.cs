@@ -11,6 +11,8 @@
     {
         public string Version { get; set; }
 
+        public string Location { get; set; }
+
         public TransportManifestDefinition[] Definitions { get; set; }
     }
 
@@ -42,46 +44,43 @@
 
     public static class TransportManifestLibrary
     {
-        public static List<TransportManifest> TransportManifests { get; set; }
+        public static List<TransportManifest> TransportManifests { get; } = new List<TransportManifest>();
 
-        static bool initialized;
-
-        static bool usingDevelopmentLocation;
-
-        static void Initialize(string transportType)
+        static TransportManifestLibrary()
         {
-            if (TransportManifests == null)
+            var assemblyDirectory = GetAssemblyDirectory();
+
+            try
             {
-                TransportManifests = new List<TransportManifest>();
-            }
-
-            if (!initialized)
-            {
-                initialized = true;
-                var transportFolder = GetAssemblyDirectory();
-
-                try
+                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "transport.manifest", SearchOption.AllDirectories))
                 {
-                    TransportManifests.AddRange(
-                        Directory.EnumerateFiles(transportFolder, "transport.manifest", SearchOption.AllDirectories)
-                        .Select(manifest => JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)))
-                        );
+                    var manifest = JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifestFile));
+                    manifest.Location = Path.GetDirectoryName(manifestFile);
 
-                    if (TransportManifests.Count == 0 && DevelopmentTransportLocations.TryGetTransportFolder(transportType, out transportFolder))
-                    {
-                        var manifest = Path.Combine(transportFolder, "transport.manifest");
-                        TransportManifests.Add(JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifest)));
-
-                        usingDevelopmentLocation = true;
-                    }
-
-                    TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.Info($"Found transport manifest for {m.DisplayName}"));
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn($"Failed to load transport manifests from {transportFolder}", ex);
+                    TransportManifests.Add(manifest);
                 }
             }
+            catch (Exception ex)
+            {
+                logger.Warn($"Failed to load transport manifests from {assemblyDirectory}", ex);
+            }
+
+            try
+            {
+                foreach (var manifestFile in DevelopmentTransportLocations.ManifestFiles)
+                {
+                    var manifest = JsonSerializer.Deserialize<TransportManifest>(File.ReadAllText(manifestFile));
+                    manifest.Location = Path.GetDirectoryName(manifestFile);
+
+                    TransportManifests.Add(manifest);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Warn($"Failed to load transport manifests from development locations", ex);
+            }
+
+            TransportManifests.SelectMany(t => t.Definitions).ToList().ForEach(m => logger.Info($"Found transport manifest for {m.DisplayName}"));
         }
 
         static string GetAssemblyDirectory()
@@ -97,18 +96,11 @@
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
 
-            Initialize(transportType);
-
             var transportManifestDefinition = TransportManifests
                 .SelectMany(t => t.Definitions)
                 .FirstOrDefault(w => w.IsMatch(transportType));
 
-            if (transportManifestDefinition != null)
-            {
-                return transportManifestDefinition.TypeName;
-            }
-
-            return transportType;
+            return transportManifestDefinition?.TypeName ?? transportType;
         }
 
         public static string GetTransportFolder(string transportType)
@@ -118,25 +110,25 @@
                 throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
             }
 
-            Initialize(transportType);
-
-            var transportManifestDefinition = TransportManifests
-                .SelectMany(t => t.Definitions)
-                .FirstOrDefault(w => w.IsMatch(transportType));
-
             string transportFolder = null;
 
-            if (transportManifestDefinition != null)
+            foreach (var manifest in TransportManifests)
             {
-                if (usingDevelopmentLocation)
+                var match = false;
+
+                foreach (var definition in manifest.Definitions)
                 {
-                    _ = DevelopmentTransportLocations.TryGetTransportFolder(transportManifestDefinition.Name, out transportFolder);
+                    if (definition.IsMatch(transportType))
+                    {
+                        match = true;
+                        break;
+                    }
                 }
-                else
+
+                if (match)
                 {
-                    var appDirectory = GetAssemblyDirectory();
-                    var transportName = transportManifestDefinition.Name.Split('.').FirstOrDefault();
-                    transportFolder = Path.Combine(appDirectory, "Transports", transportName);
+                    transportFolder = manifest.Location;
+                    break;
                 }
             }
 

@@ -11,6 +11,8 @@
     {
         public string Version { get; set; }
 
+        public string Location { get; set; }
+
         public string Name { get; set; }
 
         public string DisplayName { get; set; }
@@ -28,46 +30,43 @@
 
     public static class PersistenceManifestLibrary
     {
-        public static List<PersistenceManifest> PersistenceManifests { get; set; }
+        public static List<PersistenceManifest> PersistenceManifests { get; } = new List<PersistenceManifest>();
 
-        static bool initialized;
-
-        static bool usingDevelopmentLocation;
-
-        static void Initialize(string persistenceType)
+        static PersistenceManifestLibrary()
         {
-            if (PersistenceManifests == null)
+            var assemblyDirectory = GetAssemblyDirectory();
+
+            try
             {
-                PersistenceManifests = new List<PersistenceManifest>();
-            }
-
-            if (!initialized)
-            {
-                initialized = true;
-                var persistenceFolder = GetAssemblyDirectory();
-
-                try
+                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories))
                 {
-                    PersistenceManifests.AddRange(
-                        Directory.EnumerateFiles(persistenceFolder, "persistence.manifest", SearchOption.AllDirectories)
-                        .Select(manifest => JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)))
-                    );
+                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
+                    manifest.Location = Path.GetDirectoryName(manifestFile);
 
-                    if (PersistenceManifests.Count == 0 && DevelopmentPersistenceLocations.TryGetPersistenceFolder(persistenceType, out persistenceFolder))
-                    {
-                        var manifest = Path.Combine(persistenceFolder, "persistence.manifest");
-                        PersistenceManifests.Add(JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifest)));
-
-                        usingDevelopmentLocation = true;
-                    }
-
-                    PersistenceManifests.ForEach(m => logger.Info($"Found persistence manifest for {m.DisplayName}"));
-                }
-                catch (Exception ex)
-                {
-                    logger.Warn($"Failed to load persistence manifests from {persistenceFolder}", ex);
+                    PersistenceManifests.Add(manifest);
                 }
             }
+            catch (Exception ex)
+            {
+                logger.Warn($"Failed to load persistence manifests from {assemblyDirectory}", ex);
+            }
+
+            try
+            {
+                foreach (var manifestFile in DevelopmentPersistenceLocations.ManifestFiles)
+                {
+                    var manifest = JsonSerializer.Deserialize<PersistenceManifest>(File.ReadAllText(manifestFile));
+                    manifest.Location = Path.GetDirectoryName(manifestFile);
+
+                    PersistenceManifests.Add(manifest);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Warn($"Failed to load persistence manifests from development locations", ex);
+            }
+
+            PersistenceManifests.ForEach(m => logger.Info($"Found persistence manifest for {m.DisplayName}"));
         }
 
         static string GetAssemblyDirectory()
@@ -83,16 +82,9 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            Initialize(persistenceType);
-
             var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
-            if (persistenceManifestDefinition != null)
-            {
-                return persistenceManifestDefinition.TypeName;
-            }
-
-            return persistenceType;
+            return persistenceManifestDefinition?.TypeName ?? persistenceType;
         }
 
         public static string GetPersistenceFolder(string persistenceType)
@@ -102,27 +94,9 @@
                 throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
             }
 
-            Initialize(persistenceType);
-
             var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
 
-            string persistenceFolder = null;
-
-            if (persistenceManifestDefinition != null)
-            {
-                if (usingDevelopmentLocation)
-                {
-                    _ = DevelopmentPersistenceLocations.TryGetPersistenceFolder(persistenceManifestDefinition.Name, out persistenceFolder);
-                }
-                else
-                {
-                    var appDirectory = GetAssemblyDirectory();
-                    var persistenceName = persistenceManifestDefinition.Name.Split('.').FirstOrDefault();
-                    persistenceFolder = Path.Combine(appDirectory, "Persisters", persistenceName);
-                }
-            }
-
-            return persistenceFolder;
+            return persistenceManifestDefinition?.Location;
         }
 
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));

@@ -1,11 +1,27 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
 
     static class DevelopmentPersistenceLocations
     {
+        public static List<string> ManifestFiles { get; } = new List<string>();
+
+        static DevelopmentPersistenceLocations()
+        {
+            var assembly = typeof(DevelopmentPersistenceLocations).Assembly.Location;
+            var assemblyDirectory = Path.GetDirectoryName(assembly);
+
+            var srcFolder = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(assemblyDirectory))));
+
+            if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
+            {
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.RavenDb5"));
+            }
+        }
+
+        static string BuildManifestPath(string srcFolder, string projectName) => Path.Combine(srcFolder, projectName, "bin", configuration, framework, "persistence.manifest");
+
 #if DEBUG
         const string configuration = "Debug";
 #else
@@ -15,32 +31,5 @@
 #if NET472
         const string framework = "net472";
 #endif
-
-        public static bool TryGetPersistenceFolder(string transportName, out string persistenceFolder)
-        {
-            persistenceFolder = null;
-
-            if (transportName.Contains("."))
-            {
-                transportName = transportName.Split('.')[0];
-            }
-
-            var found = projects.TryGetValue(transportName, out var projectFolder);
-
-            if (found)
-            {
-                var assemblyPath = typeof(DevelopmentPersistenceLocations).Assembly.Location;
-                var assemblyFolder = Path.GetDirectoryName(assemblyPath);
-                var srcFolder = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(assemblyFolder))))));
-                persistenceFolder = Path.Combine(srcFolder, projectFolder, "bin", configuration, framework);
-            }
-
-            return found;
-        }
-
-        static readonly Dictionary<string, string> projects = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            {"RavenDB5", "ServiceControl.Persistence.RavenDb5" }
-        };
     }
 }

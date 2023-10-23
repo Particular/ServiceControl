@@ -11,7 +11,6 @@
     {
         const string persistenceName = "RavenDB5";
         const string persistenceType = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5";
-        const string persistenceFolder = "RavenDB5";
 
         [Test]
         public void Should_find_persistence_type_by_name()
@@ -22,7 +21,7 @@
         }
 
         [Test]
-        public void Should_find_tpersistence_type_by_type()
+        public void Should_find_persistence_type_by_type()
         {
             var _persistenceType = PersistenceManifestLibrary.Find(persistenceType);
 
@@ -43,15 +42,15 @@
         {
             var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceName);
 
-            Assert.AreEqual(persistenceFolder, _persistenceTypeFolder);
+            Assert.IsNotNull(_persistenceTypeFolder);
         }
 
         [Test]
-        public void Should_find_tpersistence_type_folder_by_type()
+        public void Should_find_persistence_type_folder_by_type()
         {
             var _persistenceTypeFolder = PersistenceManifestLibrary.GetPersistenceFolder(persistenceType);
 
-            Assert.AreEqual(persistenceFolder, _persistenceTypeFolder);
+            Assert.IsNotNull(_persistenceTypeFolder);
         }
 
         [Test]
@@ -66,38 +65,24 @@
         [Test]
         public void All_types_defined_in_manifest_files_exist_in_specified_assembly()
         {
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            PersistenceManifestLibrary.GetPersistenceFolder("dummy"); //to initialise the collection
+            var count = 0;
 
-            var supportedManifests = PersistenceManifestLibrary.PersistenceManifests.Where(p => p.IsSupported).ToList();
-            Assert.True(supportedManifests.Count >= 1);
-
-            supportedManifests.ForEach(p =>
+            foreach (var definition in PersistenceManifestLibrary.PersistenceManifests)
             {
-                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(p.Name);
-                var subFolderPath = Path.Combine(appDirectory, "Persisters", persistenceFolder);
-                var assemblyName = p.TypeName.Split(',')[1].Trim();
-                var assembly = TryLoadTypeFromSubdirectory(subFolderPath, assemblyName);
+                count++;
+                var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(definition.Name);
+                var assemblyName = definition.TypeName.Split(',')[1].Trim();
+                var assemblyFile = Path.Combine(persistenceFolder, assemblyName + ".dll");
+                var assembly = Assembly.LoadFrom(assemblyFile);
 
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
 
                 //NOTE not checking namespace here as it doesn't match for RavenDb5
-                //Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
-                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == p.TypeName.Split(',').FirstOrDefault()), $"Persistence type {p.TypeName} not found in assembly {assemblyName}");
-            });
-        }
-
-        Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
-        {
-            //look into any subdirectory
-            var file = Directory.EnumerateFiles(subFolderPath, requestingName + ".dll", SearchOption.AllDirectories).SingleOrDefault();
-            if (file != null)
-            {
-                return Assembly.LoadFrom(file);
+                //Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == definition.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
+                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == definition.TypeName.Split(',').FirstOrDefault()), $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
             }
 
-            return null;
+            Assert.NotZero(count, "No persistence manifests found.");
         }
     }
 }
