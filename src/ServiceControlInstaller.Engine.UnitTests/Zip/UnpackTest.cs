@@ -65,6 +65,21 @@
             Assert.True(workingFolder.GetDirectories().Count() == 1, "Should only be one directory after unpack");
         }
 
+        [TestCase("")]
+        [TestCase(null)]
+        public void UnzipAllTest(string filter)
+        {
+            workingFolder.Delete(true);
+            Directory.CreateDirectory(workingFolder.FullName);
+            using (var zipStream = File.OpenRead(zipFilePath))
+            {
+                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, filter);
+            }
+            Assert.True(workingFolder.GetDirectories().Count() == 3, "Should include all directories");
+            Assert.True(workingFolder.GetFiles("*.txt", SearchOption.TopDirectoryOnly).Count() == 0, "Should have no files extracted to the root install path");
+            Assert.True(workingFolder.GetFiles("*.txt", SearchOption.AllDirectories).Count() == 6, "Should include all 3 root and subfolder files");
+        }
+
         [TearDown]
         public void TearDown()
         {
