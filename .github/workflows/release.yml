@@ -54,9 +54,9 @@ jobs:
           --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
           --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
           --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
-          assets\ServiceControlConfig.exe
+          assets\Particular.ServiceControl.exe
       - name: Rename ServiceControl Management EXE
-        run: Rename-Item -Path assets\ServiceControlConfig.exe -NewName "Particular.ServiceControl-${{ env.MinVerVersion }}.exe"
+        run: Rename-Item -Path assets\Particular.ServiceControl.exe -NewName "Particular.ServiceControl-${{ env.MinVerVersion }}.exe"
         shell: pwsh
       - name: Sign PowerShell module
         run: |
