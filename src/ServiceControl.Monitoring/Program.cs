@@ -47,28 +47,26 @@ namespace ServiceControl.Monitoring
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
             var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+
             if (assembly == null && settings != null)
             {
-                //look into transport directory
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                if (transportFolder != null)
-                {
-                    var transportsPath = Path.Combine(appDirectory, "Transports", transportFolder);
-
-                    assembly = TryLoadTypeFromSubdirectory(transportsPath, requestingName);
-                }
+                assembly = TryLoadAssembly(transportFolder, requestingName);
             }
 
             return assembly;
         }
 
-        static Assembly TryLoadTypeFromSubdirectory(string subFolderPath, string requestingName)
+        static Assembly TryLoadAssembly(string folderPath, string requestingName)
         {
-            var path = Path.Combine(subFolderPath, $"{requestingName}.dll");
-
-            if (File.Exists(path))
+            if (folderPath != null)
             {
-                return Assembly.LoadFrom(path);
+                var path = Path.Combine(folderPath, $"{requestingName}.dll");
+
+                if (File.Exists(path))
+                {
+                    return Assembly.LoadFrom(path);
+                }
             }
 
             return null;

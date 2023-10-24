@@ -15,11 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\NetStandardAzureServiceBus')" />
+    <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="transport.manifest" CopyToOutputDirectory="PreserveNewest" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\NetStandardAzureServiceBus')" />
   </ItemGroup>
 
 </Project>

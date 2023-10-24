@@ -46,9 +46,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Custom.Build.props = Custom.Build.props
 		Directory.Build.targets = Directory.Build.targets
 		Directory.Packages.props = Directory.Packages.props
-		Persisters.Audit.Includes.props = Persisters.Audit.Includes.props
-		Persisters.Primary.Includes.props = Persisters.Primary.Includes.props
-		Transports.Includes.props = Transports.Includes.props
+		ProjectReferences.Persisters.Audit.props = ProjectReferences.Persisters.Audit.props
+		ProjectReferences.Persisters.Primary.props = ProjectReferences.Persisters.Primary.props
+		ProjectReferences.Transports.props = ProjectReferences.Transports.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports", "ServiceControl.Transports\ServiceControl.Transports.csproj", "{3D9E3A53-164F-4430-A6A4-D35551F5DC88}"
