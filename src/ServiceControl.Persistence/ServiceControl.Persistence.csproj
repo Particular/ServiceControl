@@ -10,11 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lucene.Net" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
-    <PackageReference Include="NServiceBus" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>

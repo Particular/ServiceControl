@@ -6,13 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
     <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence in each persister directory -->
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
     <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="RavenDB.Embedded" />
     <PackageReference Include="Rx-Linq" />

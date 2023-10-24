@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.Linq;
-    using Lucene.Net.Analysis.Standard;
     using Raven.Client.Documents.Indexes;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
@@ -39,7 +38,7 @@ namespace ServiceControl.Persistence
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
+            Analyze(x => x.Query, "StandardAnalyzer");
         }
 
         public class SortAndFilterOptions
