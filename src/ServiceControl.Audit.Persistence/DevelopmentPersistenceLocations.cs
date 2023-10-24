@@ -12,6 +12,7 @@
             var assembly = typeof(DevelopmentPersistenceLocations).Assembly.Location;
             var assemblyDirectory = Path.GetDirectoryName(assembly);
 
+            // Becomes null if it navigates past the root of a drive
             var srcFolder = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(assemblyDirectory))));
 
             if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
