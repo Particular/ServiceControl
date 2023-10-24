@@ -26,6 +26,8 @@
     </PropertyGroup>
     <MakeDir Directories="$(ZipFolder)" />
     <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ZipFolder)%(InstanceName.identity).zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)Transports" DestinationFile="$(ZipFolder)Transports.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)RavenDBServer" DestinationFile="$(ZipFolder)RavenDBServer.zip" Overwrite="true" />    
   </Target>
 
 </Project>
