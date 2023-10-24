@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\NetStandardAzureServiceBus')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)\Transports\NetStandardAzureServiceBus" />
   </ItemGroup>
 
 </Project>

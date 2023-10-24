@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\AmazonSQS')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)\Transports\AmazonSQS" />
   </ItemGroup>
 
 </Project>

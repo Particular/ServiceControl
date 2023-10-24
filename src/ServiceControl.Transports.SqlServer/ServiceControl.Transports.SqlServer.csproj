@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\SQLServer')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)\Transports\SQLServer" />
   </ItemGroup>
 
 </Project>
