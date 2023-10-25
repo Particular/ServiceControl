@@ -6,13 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" />
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Persistence in each persister directory -->
+    <ProjectReference Include="..\ServiceControl.Infrastructure\ServiceControl.Infrastructure.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ServiceControl.Persistence\ServiceControl.Persistence.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ByteSize" />
-    <PackageReference Include="NServiceBus.CustomChecks" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="RavenDB.Embedded" />
     <PackageReference Include="Rx-Linq" />
   </ItemGroup>
@@ -23,7 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB5" />
+    <!-- Artifact does not include RavenDBServer directory. -->
+    <Artifact Include="$(OutputPath)" DirExclude="RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB5" />
+    <!-- This instance copies RavenDBServer directory to artifacts for both Primary and Audit instances. -->
+    <Artifact Include="$(OutputPath)\RavenDBServer" DestinationFolder="$(ArtifactsPath)RavenDBServer" />
   </ItemGroup>
 
 </Project>

@@ -251,7 +251,8 @@
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+            FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
         }
 
         public void RestoreAppConfig(string sourcePath)

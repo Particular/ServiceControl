@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+    <!-- Private=false & ExcludeAssets=runtime prevent repeatedly including binary dependencies of ServiceControl.Transports in each transport directory -->
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="@(InstanceName->'$(ArtifactsPath)%(identity)\Transports\RabbitMQ')" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(ArtifactsPath)\Transports\RabbitMQ" />
   </ItemGroup>
 
 </Project>

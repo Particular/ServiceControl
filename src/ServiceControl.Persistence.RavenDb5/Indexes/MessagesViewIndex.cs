@@ -2,7 +2,6 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.Linq;
-    using Lucene.Net.Analysis.Standard;
     using Raven.Client.Documents.Indexes;
     using ServiceControl.MessageFailures;
     using ServiceControl.Operations;
@@ -37,9 +36,8 @@ namespace ServiceControl.Persistence
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 };
 
+            // StandardAnalyzer is the default analyzer, so no follow-up Analyze() call is needed here
             Index(x => x.Query, FieldIndexing.Search);
-
-            Analyze(x => x.Query, typeof(StandardAnalyzer).AssemblyQualifiedName);
         }
 
         public class SortAndFilterOptions

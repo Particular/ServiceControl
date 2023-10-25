@@ -1,5 +1,6 @@
 namespace Tests
 {
+    using System.IO;
     using System.Linq;
     using NUnit.Framework;
 
@@ -32,9 +33,12 @@ namespace Tests
         }
 
         [Test]
-        public void Raven5_should_include_raven_server()
+        public void Raven_server_should_be_included()
         {
-            DirectoryAssert.Exists($"{deploymentPackage.Directory.FullName}/Persisters/RavenDB5/RavenDBServer", "RavenDBServer should be bundled");
+            var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB5", "RavenDBServer");
+            var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
+            DirectoryAssert.DoesNotExist(inPersisterPath, "RavenDBServer should not be bundled inside the persister");
+            DirectoryAssert.Exists(separateAssetPath, "RavenDBServer should be bundled as its own resource");
         }
 
         readonly DeploymentPackage deploymentPackage;

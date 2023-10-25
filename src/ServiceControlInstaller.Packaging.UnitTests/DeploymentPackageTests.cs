@@ -19,7 +19,8 @@ namespace Tests
             var rootDirectory = deploymentPackage.Directory;
 
             DirectoryAssert.Exists($"{rootDirectory.FullName}/{deploymentPackage.ServiceName}", $"Expected a {deploymentPackage.ServiceName} folder");
-            DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports folder");
+            DirectoryAssert.DoesNotExist($"{rootDirectory.FullName}/Transports", $"Transports folder should be a separate asset");
+            DirectoryAssert.Exists($"{rootDirectory.FullName}/../Transports", $"Transports folder should be a separate asset");
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
@@ -99,11 +100,20 @@ namespace Tests
                 "LearningTransport"};
 
 
-            var transports = deploymentPackage.DeploymentUnits
+            var transportsIfBundledInAppZips = deploymentPackage.DeploymentUnits
                 .Where(u => u.Category == "Transports")
                 .Select(u => u.Name);
 
-            CollectionAssert.AreEquivalent(allTransports, transports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            CollectionAssert.IsEmpty(transportsIfBundledInAppZips, "Transports should not be bundled inside app zips to conserve space");
+
+            var trueTransportDirectories = deploymentPackage.Directory
+                .Parent
+                .GetDirectories("Transports")
+                .Single()
+                .GetDirectories()
+                .Select(di => di.Name);
+
+            CollectionAssert.AreEquivalent(allTransports, trueTransportDirectories, $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         readonly DeploymentPackage deploymentPackage;

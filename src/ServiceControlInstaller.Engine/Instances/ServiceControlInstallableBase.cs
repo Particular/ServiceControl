@@ -140,7 +140,8 @@
 
             // Copy the binaries from a zip
             FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, DirectoryName);
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+            FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
         }
 
         public virtual void WriteConfigurationFile()

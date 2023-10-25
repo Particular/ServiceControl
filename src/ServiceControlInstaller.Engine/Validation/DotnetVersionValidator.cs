@@ -53,14 +53,19 @@
                     missing.Add($".NET {dotnetMinVersion.Major} Runtime (x64), requires {dotnetMinVersion} or greater, found {dotnetClosest}: Download from https://dotnet.microsoft.com/download/dotnet/{majorMinor}");
                 }
 
+                var aspOk = false;
+                string aspClosest = null;
                 using var aspNetKey = registry.OpenSubKey($@"SOFTWARE\Microsoft\ASP.NET Core\Shared Framework");
-                var aspNetVersions = aspNetKey.GetSubKeyNames()
-                    .Where(key => key.StartsWith("v"))
-                    .SelectMany(key => aspNetKey.OpenSubKey(key).GetSubKeyNames())
-                    .ToArray();
+                if (aspNetKey != null)
+                {
+                    var aspNetVersions = aspNetKey.GetSubKeyNames()
+                        .Where(key => key.StartsWith("v"))
+                        .SelectMany(key => aspNetKey.OpenSubKey(key).GetSubKeyNames())
+                        .ToArray();
 
-                var aspClosest = HighestMatchingMajorMinor(dotnetMinVersion, aspNetVersions);
-                var aspOk = DotnetVersionOk(dotnetMinVersion, aspClosest);
+                    aspClosest = HighestMatchingMajorMinor(dotnetMinVersion, aspNetVersions);
+                    aspOk = DotnetVersionOk(dotnetMinVersion, aspClosest);
+                }
                 if (!aspOk)
                 {
                     var foundString = aspClosest != null ? $", found {aspClosest}" : string.Empty;

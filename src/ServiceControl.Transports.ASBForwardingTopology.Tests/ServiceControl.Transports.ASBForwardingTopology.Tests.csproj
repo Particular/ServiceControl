@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.Transports.ASB\ServiceControl.Transports.ASB.csproj" />
+    <!-- Needed to bring the dependencies that the transport plugin excludes -->
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 

@@ -94,7 +94,11 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 var dir = Path.GetDirectoryName(e.FileName);
                 string filename = null;
 
-                if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(zipFolderNameToExtract))
+                {
+                    filename = Path.Combine(targetPath, e.FileName);
+                }
+                else if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
                 {
                     filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
                 }
