@@ -62,7 +62,7 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.0.0" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.109" />
-    <PackageVersion Include="ReactiveUI.WPF" Version="19.4.1" />
+    <PackageVersion Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
