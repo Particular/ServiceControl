@@ -36,7 +36,7 @@ namespace ServiceControl.Persistence
                     ConversationId = (string)last.MessageMetadata["ConversationId"]
                 };
 
-            // StandardAnalyzer is the default
+            // StandardAnalyzer is the default analyzer, so no follow-up Analyze() call is needed here
             Index(x => x.Query, FieldIndexing.Search);
         }
 
