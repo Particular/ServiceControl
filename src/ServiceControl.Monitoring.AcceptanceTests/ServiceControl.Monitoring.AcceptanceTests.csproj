@@ -9,7 +9,6 @@
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
     <ProjectReference Include="..\ServiceControl.Monitoring\ServiceControl.Monitoring.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
-    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
