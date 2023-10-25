@@ -52,7 +52,13 @@
             var ravenPackageVersion = ravenNode.Attributes["Version"].Value;
 
             // Now find Raven.Server.runtimeconfig.json
-            var nugetPath = Path.Combine(Environment.GetEnvironmentVariable("USERPROFILE"), ".nuget", "packages");
+            var nugetPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+
+            if (string.IsNullOrWhiteSpace(nugetPath))
+            {
+                nugetPath = Path.Combine(Environment.GetEnvironmentVariable("USERPROFILE"), ".nuget", "packages");
+            }
+
             var packagePath = Path.Combine(nugetPath, "ravendb.embedded", ravenPackageVersion);
             var contentFilesPath = Path.Combine(packagePath, "contentFiles");
 
