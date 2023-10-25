@@ -20,14 +20,20 @@
     <ProjectReference Update="..\**\*" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ZipFile Include="Particular.ServiceControl" />
+    <ZipFile Include="Particular.ServiceControl.Audit" />
+    <ZipFile Include="Particular.ServiceControl.Monitoring" />
+    <ZipFile Include="Transports" />
+    <ZipFile Include="RavenDBServer" />
+  </ItemGroup>
+
   <Target Name="CreateZipFiles" AfterTargets="CopyArtifacts">
     <PropertyGroup>
       <ZipFolder>..\..\zip\</ZipFolder>
     </PropertyGroup>
     <MakeDir Directories="$(ZipFolder)" />
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(InstanceName.identity)" DestinationFile="$(ZipFolder)%(InstanceName.identity).zip" Overwrite="true" />
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)Transports" DestinationFile="$(ZipFolder)Transports.zip" Overwrite="true" />
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)RavenDBServer" DestinationFile="$(ZipFolder)RavenDBServer.zip" Overwrite="true" />    
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(ZipFile.identity)" DestinationFile="$(ZipFolder)%(ZipFile.identity).zip" Overwrite="true" />
   </Target>
 
 </Project>
