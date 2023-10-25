@@ -34,7 +34,7 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            Analyze(x => x.Query, "StandardAnalyzer");
+            Analyze(x => x.Query, "StandardAnalyzer"); // Not using typeof() to prevent dependency on Lucene
         }
     }
 }
