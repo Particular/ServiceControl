@@ -28,9 +28,9 @@
     <PackageReference Include="Autofac" />
     <PackageReference Include="Caliburn.Micro" />
     <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" />
     <PackageReference Include="Mindscape.Raygun4Net.NetCore" />
     <PackageReference Include="ReactiveUI.WPF" />
-    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" />
   </ItemGroup>
 
   <ItemGroup>

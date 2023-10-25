@@ -113,7 +113,7 @@
 
         public virtual void CopyFiles(string zipResourceName)
         {
-            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
 

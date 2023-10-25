@@ -8,7 +8,7 @@
     public class PersistenceManifestTests
     {
         /*
-         * Persistence methods that are no longer supprorted still need to ship a persistence.manifest file so that
+         * Persistence methods that are no longer supported still need to ship a persistence.manifest file so that
          * ServiceControl Management can still display information about older ServiceControl instances.
          */
 
