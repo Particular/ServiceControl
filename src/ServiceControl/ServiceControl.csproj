@@ -42,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt" DirExclude="Transports;Persisters;.diagnostics" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.exe.config;logfile.*.txt;nsb_log_*.txt;*-configuration.txt" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\ServiceControl" />
   </ItemGroup>
 
 </Project>
