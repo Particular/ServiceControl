@@ -80,44 +80,43 @@ namespace ServiceControlInstaller.Engine.FileSystem
         public static void UnzipToSubdirectory(string zipResourceName, string targetPath, string zipFolderNameToExtract)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var zipStream = assembly.GetManifestResourceStream(zipResourceName);
+            using var zipStream = assembly.GetManifestResourceStream(zipResourceName);
 
             UnzipToSubdirectory(zipStream, targetPath, zipFolderNameToExtract);
         }
 
         internal static void UnzipToSubdirectory(Stream zipStream, string targetPath, string zipFolderNameToExtract)
         {
-            using (var zip = ZipFile.Read(zipStream))
-            {
-                foreach (var e in zip)
-                {
-                    var dir = Path.GetDirectoryName(e.FileName);
-                    string filename = null;
+            using var zip = ZipFile.Read(zipStream);
 
-                    if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
+            foreach (var e in zip)
+            {
+                var dir = Path.GetDirectoryName(e.FileName);
+                string filename = null;
+
+                if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
+                {
+                    filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
+                }
+
+                if (filename != null)
+                {
+                    if (e.IsDirectory)
                     {
-                        filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
+                        Directory.CreateDirectory(filename);
+                        continue;
                     }
 
-                    if (filename != null)
+                    // Ensure folder exists
+                    var folder = Path.GetDirectoryName(filename);
+                    if (!Directory.Exists(folder))
                     {
-                        if (e.IsDirectory)
-                        {
-                            Directory.CreateDirectory(filename);
-                            continue;
-                        }
+                        Directory.CreateDirectory(folder);
+                    }
 
-                        // Ensure folder exists
-                        var folder = Path.GetDirectoryName(filename);
-                        if (!Directory.Exists(folder))
-                        {
-                            Directory.CreateDirectory(folder);
-                        }
-
-                        using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
-                        {
-                            e.Extract(stream);
-                        }
+                    using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
+                    {
+                        e.Extract(stream);
                     }
                 }
             }
