@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <LangVersion>8</LangVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,13 +18,13 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="HdrHistogram" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Metrics" />
     <PackageReference Include="NServiceBus.Metrics.ServiceControl" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="HdrHistogram" />
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 
