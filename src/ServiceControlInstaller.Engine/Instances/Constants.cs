@@ -3,7 +3,7 @@
     using System;
     using System.Reflection;
 
-    public class Constants
+    public static class Constants
     {
         public const string ServiceControlExe = "ServiceControl.exe";
         public const string ServiceControlAuditExe = "ServiceControl.Audit.exe";
