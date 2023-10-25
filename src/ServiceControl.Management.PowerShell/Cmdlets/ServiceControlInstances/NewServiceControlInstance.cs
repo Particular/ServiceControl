@@ -171,12 +171,16 @@ namespace ServiceControl.Management.PowerShell
             details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 
             var modulePath = Path.GetDirectoryName(MyInvocation.MyCommand.Module.Path);
-            var zipfolder = ZipPath.Get(this);
 
             var logger = new PSLogger(Host);
-            var installer = new UnattendServiceControlInstaller(logger, zipfolder);
+            var installer = new UnattendServiceControlInstaller(logger);
             try
             {
+                if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
+                }
+
                 if (details.TransportPackage.IsLatestRabbitMQTransport() &&
                    (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
                 {
@@ -184,7 +188,6 @@ namespace ServiceControl.Management.PowerShell
                 }
 
                 logger.Info("Module root at " + modulePath);
-                logger.Info("Installer(s) path at " + zipfolder);
                 logger.Info("Installing Service Control instance...");
                 var result = installer.Add(details, PromptToProceed);
                 result.Wait();

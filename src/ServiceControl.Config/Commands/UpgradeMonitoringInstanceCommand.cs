@@ -11,6 +11,7 @@
     using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
+    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
 
     class UpgradeMonitoringInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
@@ -45,6 +46,12 @@
 
 
             instance.Service.Refresh();
+
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
+            {
+                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
+                return;
+            }
 
             if (instance.TransportPackage.IsOldRabbitMQTransport() &&
                 !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",

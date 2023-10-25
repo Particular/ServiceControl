@@ -111,9 +111,9 @@
 
         public string BrowsableUrl => throw new NotImplementedException("Not available until the instance is installed");
 
-        public virtual void CopyFiles(string zipFilePath)
+        public virtual void CopyFiles(string zipResourceName)
         {
-            //Clear out any files from previos runs of Add Instance, just in case user switches transport
+            //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
             FileUtils.DeleteDirectory(InstallPath, true, true);
 
@@ -139,8 +139,8 @@
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, DirectoryName);
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, DirectoryName);
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public virtual void WriteConfigurationFile()

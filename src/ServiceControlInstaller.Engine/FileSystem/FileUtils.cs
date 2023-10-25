@@ -3,6 +3,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Security.AccessControl;
     using Ionic.Zip;
 
@@ -76,39 +77,46 @@ namespace ServiceControlInstaller.Engine.FileSystem
             destination.SetAccessControl(accessRules);
         }
 
-        public static void UnzipToSubdirectory(string zipFilePath, string targetPath, string zipFolderNameToExtract)
+        public static void UnzipToSubdirectory(string zipResourceName, string targetPath, string zipFolderNameToExtract)
         {
-            using (var zip = ZipFile.Read(zipFilePath))
-            {
-                foreach (var e in zip)
-                {
-                    var dir = Path.GetDirectoryName(e.FileName);
-                    string filename = null;
+            var assembly = Assembly.GetExecutingAssembly();
+            using var zipStream = assembly.GetManifestResourceStream(zipResourceName);
 
-                    if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
+            UnzipToSubdirectory(zipStream, targetPath, zipFolderNameToExtract);
+        }
+
+        internal static void UnzipToSubdirectory(Stream zipStream, string targetPath, string zipFolderNameToExtract)
+        {
+            using var zip = ZipFile.Read(zipStream);
+
+            foreach (var e in zip)
+            {
+                var dir = Path.GetDirectoryName(e.FileName);
+                string filename = null;
+
+                if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
+                {
+                    filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
+                }
+
+                if (filename != null)
+                {
+                    if (e.IsDirectory)
                     {
-                        filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
+                        Directory.CreateDirectory(filename);
+                        continue;
                     }
 
-                    if (filename != null)
+                    // Ensure folder exists
+                    var folder = Path.GetDirectoryName(filename);
+                    if (!Directory.Exists(folder))
                     {
-                        if (e.IsDirectory)
-                        {
-                            Directory.CreateDirectory(filename);
-                            continue;
-                        }
+                        Directory.CreateDirectory(folder);
+                    }
 
-                        // Ensure folder exists
-                        var folder = Path.GetDirectoryName(filename);
-                        if (!Directory.Exists(folder))
-                        {
-                            Directory.CreateDirectory(folder);
-                        }
-
-                        using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
-                        {
-                            e.Extract(stream);
-                        }
+                    using (var stream = new FileStream(filename, FileMode.OpenOrCreate))
+                    {
+                        e.Extract(stream);
                     }
                 }
             }

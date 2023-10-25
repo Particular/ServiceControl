@@ -5,7 +5,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Configuration;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Configuration;
     using Configuration.ServiceControl;
@@ -16,15 +15,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
     public class ServiceControlInstance : ServiceControlBaseService, IServiceControlInstance
     {
-        public ServiceControlInstance(IWindowsServiceController service)
-            : this(service, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
+        public ServiceControlInstance(IWindowsServiceController service) : base(service)
         {
-        }
-
-        public ServiceControlInstance(IWindowsServiceController service, string deploymentCachePath) : base(service)
-        {
-            this.deploymentCachePath = deploymentCachePath;
-
             Reload();
         }
 
@@ -121,8 +113,7 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            var zipInfo = ServiceControlZipInfo.Find(deploymentCachePath);
-            var manifests = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath);
+            var manifests = ServiceControlPersisters.PrimaryPersistenceManifests;
             var persistenceType = AppConfig.Read<string>(ServiceControlSettings.PersistenceType, null);
 
             if (string.IsNullOrEmpty(persistenceType))
@@ -240,7 +231,5 @@ namespace ServiceControlInstaller.Engine.Instances
                     : folderpath;
             }
         }
-
-        readonly string deploymentCachePath;
     }
 }

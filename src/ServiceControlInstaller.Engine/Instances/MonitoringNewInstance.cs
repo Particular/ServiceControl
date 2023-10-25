@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Security.AccessControl;
     using System.Security.Principal;
     using System.Threading.Tasks;
@@ -21,9 +20,7 @@
     {
         public MonitoringNewInstance()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var zipInfo = MonitoringZipInfo.Find(appDirectory);
-            Version = zipInfo.Version;
+            Version = Constants.CurrentVersion;
         }
 
         public ReportCard ReportCard { get; set; }
@@ -67,7 +64,7 @@
 
         public string BrowsableUrl => throw new NotImplementedException("Not available until the instance is installed");
 
-        public void CopyFiles(string zipFilePath)
+        public void CopyFiles(string zipResourceName)
         {
             //Clear out any files from previous runs of Add Instance, just in case user switches transport
             //Validation checks for the flag file so wont get here if the directory was also changed
@@ -83,15 +80,15 @@
                 FileUtils.CreateDirectoryAndSetAcl(LogPath, modifyAccessRule);
             }
 
-            // Mark these directories with a flag 
+            // Mark these directories with a flag
             // These flags indicate the directory is empty check can be ignored
             // We need this because if an install screws up and doesn't complete it is ok to overwrite on a subsequent attempt
             // First run will still the check
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Transports\{TransportPackage.ZipName}");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, "ServiceControl.Monitoring");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Transports\{TransportPackage.ZipName}");
         }
 
         public void WriteConfigurationFile()

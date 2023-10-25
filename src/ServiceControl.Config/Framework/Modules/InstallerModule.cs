@@ -1,8 +1,6 @@
 namespace ServiceControl.Config.Framework.Modules
 {
     using System;
-    using System.IO;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Autofac;
     using ServiceControl.LicenseManagement;
@@ -10,6 +8,7 @@ namespace ServiceControl.Config.Framework.Modules
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
     using ServiceControlInstaller.Engine.Validation;
+    using Constants = ServiceControlInstaller.Engine.Instances.Constants;
     using Module = Autofac.Module;
 
     public class InstallerModule : Module
@@ -26,8 +25,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public ServiceControlInstanceInstaller()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            ZipInfo = ServiceControlZipInfo.Find(appDirectory);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip", Constants.CurrentVersion);
         }
     }
 
@@ -35,8 +33,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public ServiceControlAuditInstanceInstaller()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            ZipInfo = ServiceControlAuditZipInfo.Find(appDirectory);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip", Constants.CurrentVersion);
         }
     }
 
@@ -60,7 +57,7 @@ namespace ServiceControl.Config.Framework.Modules
             }
 
             progress.Report(3, 9, "Copying files...");
-            instanceInstaller.CopyFiles(ZipInfo.FilePath);
+            instanceInstaller.CopyFiles(ZipInfo.ResourceName);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
 
@@ -124,7 +121,7 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 progress.Report(currentStep++, totalSteps, "Upgrading Files...");
-                instance.UpgradeFiles(ZipInfo.FilePath);
+                instance.UpgradeFiles(ZipInfo.ResourceName);
             }
             finally
             {
@@ -272,8 +269,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public MonitoringInstanceInstaller()
         {
-            var appDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            ZipInfo = MonitoringZipInfo.Find(appDirectory);
+            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip", Constants.CurrentVersion);
         }
 
         public PlatformZipInfo ZipInfo { get; }
@@ -294,7 +290,7 @@ namespace ServiceControl.Config.Framework.Modules
             }
 
             progress.Report(3, 9, "Copying files...");
-            instanceInstaller.CopyFiles(ZipInfo.FilePath);
+            instanceInstaller.CopyFiles(ZipInfo.ResourceName);
             progress.Report(4, 9, "Writing configurations...");
             instanceInstaller.WriteConfigurationFile();
 
@@ -356,7 +352,7 @@ namespace ServiceControl.Config.Framework.Modules
             try
             {
                 progress.Report(2, 5, "Upgrading Files...");
-                instance.UpgradeFiles(ZipInfo.FilePath);
+                instance.UpgradeFiles(ZipInfo.ResourceName);
             }
             finally
             {

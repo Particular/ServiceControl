@@ -4,7 +4,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
@@ -17,27 +16,21 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public static ServiceControlNewInstance CreateWithDefaultPersistence()
         {
-            return CreateWithDefaultPersistence(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-        }
-
-        public static ServiceControlNewInstance CreateWithDefaultPersistence(string deploymentCachePath)
-        {
             const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB5;
-            return CreateWithPersistence(deploymentCachePath, persisterUsedForBrandNewInstances);
+            return CreateWithPersistence(persisterUsedForBrandNewInstances);
         }
 
-        public static ServiceControlNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
+        public static ServiceControlNewInstance CreateWithPersistence(string persistence)
         {
-            var zipInfo = ServiceControlZipInfo.Find(deploymentCachePath);
-            var persistenceManifest = ServiceControlPersisters.LoadAllManifests(zipInfo.FilePath)
+            var persistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests
                 .Single(manifest => manifest.Name == persistence);
 
-            return new ServiceControlNewInstance(zipInfo.Version, persistenceManifest);
+            return new ServiceControlNewInstance(persistenceManifest);
         }
 
-        public ServiceControlNewInstance(Version version, PersistenceManifest persistenceManifest)
+        public ServiceControlNewInstance(PersistenceManifest persistenceManifest)
         {
-            Version = version;
+            Version = Constants.CurrentVersion;
             PersistenceManifest = persistenceManifest;
         }
 

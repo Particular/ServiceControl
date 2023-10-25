@@ -3,7 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Windows;
     using System.Windows.Controls;
@@ -23,6 +25,9 @@
         }
 
         static HashSet<Thread> recursionProtection = new HashSet<Thread>();
+
+        static readonly Regex doubleNewlineRegex = new Regex(@"\r?\n\r?\n", RegexOptions.Compiled);
+        static readonly Regex singleNewlineRegex = new Regex(@"\r?\n", RegexOptions.Compiled);
 
         public static readonly DependencyProperty DocumentXamlProperty =
             DependencyProperty.RegisterAttached(
@@ -54,7 +59,13 @@
 
                             if (!xaml.Contains("</"))
                             {
-                                xaml = $"<Paragraph>{xaml}</Paragraph>";
+                                var paragraphs = doubleNewlineRegex.Split(xaml)
+                                    .Select(p => $"<Paragraph>{singleNewlineRegex.Replace(p, "<LineBreak/>")}</Paragraph>")
+                                    .ToArray();
+
+                                xaml = paragraphs.Length > 1
+                                    ? "<Section>" + string.Join(string.Empty, paragraphs) + "</Section>"
+                                    : paragraphs[0];
                             }
 
                             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(xaml)))

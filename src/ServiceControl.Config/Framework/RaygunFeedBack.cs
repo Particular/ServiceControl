@@ -2,9 +2,9 @@
 {
     using System;
     using System.IO;
+    using System.Threading.Tasks;
     using Extensions;
     using Mindscape.Raygun4Net;
-    using Mindscape.Raygun4Net.Messages;
 
     public class RaygunFeedback : RaygunReporter
     {
@@ -28,7 +28,7 @@
             }
         }
 
-        public void SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
+        public Task SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
         {
             raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
             {
@@ -36,7 +36,7 @@
                 UUID = trackingId.BareString()
             };
 
-            var raygunMessage = RaygunMessageBuilder.New
+            var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
                 .SetUser(raygunClient.UserInfo)
                 .SetVersion(Version)
                 .SetExceptionDetails(new Feedback(message));
@@ -48,17 +48,17 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m);
+            return raygunClient.Send(m);
         }
 
-        public void SendException(Exception ex, bool includeSystemInfo)
+        public Task SendException(Exception ex, bool includeSystemInfo)
         {
             raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
             {
                 UUID = trackingId.BareString()
             };
 
-            var raygunMessage = RaygunMessageBuilder.New
+            var raygunMessage = RaygunMessageBuilder.New(new RaygunSettings())
                 .SetUser(raygunClient.UserInfo)
                 .SetVersion(Version)
                 .SetExceptionDetails(ex);
@@ -70,10 +70,9 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m);
+            return raygunClient.Send(m);
         }
 
-        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
         Guid trackingId = Guid.NewGuid();
     }
 

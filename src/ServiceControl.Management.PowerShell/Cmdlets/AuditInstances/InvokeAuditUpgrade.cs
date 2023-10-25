@@ -6,6 +6,7 @@ namespace ServiceControl.Management.PowerShell
     using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
+    using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
     [Cmdlet(VerbsLifecycle.Invoke, "ServiceControlAuditInstanceUpgrade")]
@@ -31,8 +32,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendAuditInstaller(logger, zipFolder);
+            var installer = new UnattendAuditInstaller(logger);
 
             foreach (var name in Name)
             {
@@ -46,6 +46,11 @@ namespace ServiceControl.Management.PowerShell
                 if (DisableFullTextSearchOnBodies)
                 {
                     instance.EnableFullTextSearchOnBodies = false;
+                }
+
+                if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
                 }
 
                 if (instance.TransportPackage.IsOldRabbitMQTransport() &&

@@ -135,35 +135,35 @@
                     // check if the mouse is within one of the rectangles
                     if (topLeft.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTTOPLEFT;
+                        returnval = NativeConstants.HTTOPLEFT;
                     }
                     else if (top.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTTOP;
+                        returnval = NativeConstants.HTTOP;
                     }
                     else if (topRight.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTTOPRIGHT;
+                        returnval = NativeConstants.HTTOPRIGHT;
                     }
                     else if (left.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTLEFT;
+                        returnval = NativeConstants.HTLEFT;
                     }
                     else if (right.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTRIGHT;
+                        returnval = NativeConstants.HTRIGHT;
                     }
                     else if (bottomLeft.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTBOTTOMLEFT;
+                        returnval = NativeConstants.HTBOTTOMLEFT;
                     }
                     else if (bottom.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTBOTTOM;
+                        returnval = NativeConstants.HTBOTTOM;
                     }
                     else if (bottomRight.Contains(windowPoint))
                     {
-                        returnval = (IntPtr)NativeConstants.HTBOTTOMRIGHT;
+                        returnval = NativeConstants.HTBOTTOMRIGHT;
                     }
 
                     if (returnval != IntPtr.Zero)

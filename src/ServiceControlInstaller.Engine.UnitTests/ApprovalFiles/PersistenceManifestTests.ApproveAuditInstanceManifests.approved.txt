@@ -1,0 +1,5 @@
+[
+  "InMemory: In-memory",
+  "RavenDB35: RavenDB 3.5",
+  "RavenDB5: RavenDB 5"
+]

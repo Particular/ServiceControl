@@ -42,7 +42,7 @@
 
             try
             {
-                feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo);
+                await feedBack.SendFeedBack(EmailAddress, Message, IncludeSystemInfo);
                 Success = true;
             }
             catch

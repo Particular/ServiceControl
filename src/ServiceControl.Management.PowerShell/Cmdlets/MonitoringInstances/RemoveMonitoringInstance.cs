@@ -25,8 +25,7 @@ namespace ServiceControl.Management.PowerShell
         protected override void ProcessRecord()
         {
             var logger = new PSLogger(Host);
-            var zipfolder = ZipPath.Get(this);
-            var installer = new UnattendMonitoringInstaller(logger, zipfolder);
+            var installer = new UnattendMonitoringInstaller(logger);
 
             foreach (var name in Name)
             {

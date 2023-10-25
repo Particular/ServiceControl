@@ -66,8 +66,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendServiceControlInstaller(logger, zipFolder);
+            var installer = new UnattendServiceControlInstaller(logger);
 
             var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(Name);
             if (instance == null)
@@ -84,7 +83,7 @@ namespace ServiceControl.Management.PowerShell
                     PerformUpgrade(instance, installer);
                     break;
                 case RequiredUpgradeAction.SplitOutAudit:
-                    PerformSplit(instance, logger, zipFolder).Wait();
+                    PerformSplit(instance, logger).Wait();
                     break;
                 case RequiredUpgradeAction.ConvertToAudit:
                 default:
@@ -93,11 +92,11 @@ namespace ServiceControl.Management.PowerShell
             }
         }
 
-        async Task PerformSplit(ServiceControlInstance instance, PSLogger logger, string zipFolder)
+        async Task PerformSplit(ServiceControlInstance instance, PSLogger logger)
         {
             AssertValidForAuditSplit(instance.Name);
 
-            var serviceControlSplitter = new UnattendServiceControlSplitter(logger, zipFolder);
+            var serviceControlSplitter = new UnattendServiceControlSplitter(logger);
 
             var options = new UnattendServiceControlSplitter.Options
             {
@@ -157,6 +156,11 @@ namespace ServiceControl.Management.PowerShell
                 UpgradeInfo =
                     UpgradeControl.GetUpgradeInfoForTargetVersion(installer.ZipInfo.Version, instance.Version),
             };
+
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
+            {
+                ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
+            }
 
             if (instance.TransportPackage.IsOldRabbitMQTransport() &&
                (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))

@@ -1,24 +1,39 @@
 ﻿namespace ServiceControlInstaller.Engine.FileSystem
 {
     using System;
+    using System.Reflection;
 
     public class PlatformZipInfo
     {
-        public static PlatformZipInfo Empty = new PlatformZipInfo(string.Empty, string.Empty, string.Empty, null, false);
-
-        public PlatformZipInfo(string mainEntrypoint, string name, string filePath, Version version, bool present)
+        public PlatformZipInfo(string mainEntrypoint, string name, string zipResourceName, Version version)
         {
             Name = name;
             MainEntrypoint = mainEntrypoint;
-            FilePath = filePath;
+            ResourceName = zipResourceName;
             Version = version;
-            Present = present;
         }
 
         public string MainEntrypoint { get; }
+
         public string Name { get; }
-        public string FilePath { get; }
+
+        public string ResourceName { get; }
+
         public Version Version { get; }
-        public bool Present { get; }
+
+        public void ValidateZip()
+        {
+            if (string.IsNullOrEmpty(ResourceName))
+            {
+                throw new Exception("Empty zip file resource name");
+            }
+
+            var resourceInfo = Assembly.GetExecutingAssembly().GetManifestResourceInfo(ResourceName);
+
+            if (resourceInfo is null)
+            {
+                throw new Exception($"Missing zip file resource '{ResourceName}'");
+            }
+        }
     }
 }

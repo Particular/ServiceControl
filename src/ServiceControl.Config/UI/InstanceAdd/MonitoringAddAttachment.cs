@@ -69,6 +69,13 @@
                 ServiceAccountPwd = viewModel.Password
             };
 
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
+            {
+                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
+                viewModel.InProgress = false;
+                return;
+            }
+
             if (instanceMetadata.TransportPackage.IsLatestRabbitMQTransport() &&
                 !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
                                                      "Do you want to proceed?",

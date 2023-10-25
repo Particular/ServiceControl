@@ -28,11 +28,11 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3.2.0
         with:
-          dotnet-version: 6.0.x
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3
+          dotnet-version: 7.0.x
       - name: Build
-        run: msbuild src -p:Configuration=Release -restore -m -verbosity:minimal
+        run: dotnet build src --configuration Release -graph
+      - name: Build ServiceControl Management
+        run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --configuration Release --runtime win-x64 --no-build --output assets
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:
@@ -44,6 +44,20 @@ jobs:
         run: New-FileCatalog -Path deploy\PowerShellModules\Particular.ServiceControl.Management -CatalogFilePath deploy\PowerShellModules\Particular.ServiceControl.Management\Particular.ServiceControl.Management.cat -CatalogVersion 2.0
       - name: Install AzureSignTool
         run: dotnet tool install --global azuresigntool
+      - name: Sign ServiceControl Management EXE
+        run: |
+          AzureSignTool sign `
+          --file-digest sha256 `
+          --timestamp-rfc3161 http://timestamp.digicert.com `
+          --azure-key-vault-url https://particularcodesigning.vault.azure.net `
+          --azure-key-vault-client-id ${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }} `
+          --azure-key-vault-tenant-id ${{ secrets.AZURE_KEY_VAULT_TENANT_ID }} `
+          --azure-key-vault-client-secret ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }} `
+          --azure-key-vault-certificate ${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }} `
+          assets\Particular.ServiceControl.exe
+      - name: Rename ServiceControl Management EXE
+        run: Rename-Item -Path assets\Particular.ServiceControl.exe -NewName "Particular.ServiceControl-${{ env.MinVerVersion }}.exe"
+        shell: pwsh
       - name: Sign PowerShell module
         run: |
           AzureSignTool sign `
@@ -59,20 +73,6 @@ jobs:
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
-      - name: Setup Advanced Installer
-        run: |
-          $version = "20.2.1"
-          choco install advanced-installer --version=$version
-          & "C:\Program Files (x86)\Caphyon\Advanced Installer $version\bin\x86\AdvancedInstaller.com" /register ${{ secrets.ADVANCED_INSTALLER_LICENSE_KEY }}
-      - name: Prepare AIP file
-        run: |
-          $content = Get-Content -Raw -Path src/Setup/ServiceControl.aip
-          $content = $content -replace "replace-tenant-id", "${{ secrets.AZURE_KEY_VAULT_TENANT_ID }}" -replace "replace-app-id", "${{ secrets.AZURE_KEY_VAULT_CLIENT_ID }}" -replace "replace-cert-name", "${{ secrets.AZURE_KEY_VAULT_CERTIFICATE_NAME }}"
-          Set-Content src/Setup/ServiceControl.aip $content
-      - name: Build Windows installer
-        env:
-          AZURE_KEY_VAULT_CLIENT_SECRET: ${{ secrets.AZURE_KEY_VAULT_CLIENT_SECRET }}
-        run: dotnet build src/Setup --configuration Release
       # - name: Build Docker images
       #   if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
       #   run: dotnet build src/ServiceControl.DockerImages --configuration Release
@@ -105,9 +105,9 @@ jobs:
           $nugetsCount =  (Get-ChildItem -Recurse -File nugets).Count
           $zipCount = (Get-ChildItem -Recurse -File zip).Count
 
-          $expectedAssetsCount = 2
-          $expectedNugetsCount = 1
-          $expectedZipCount = 3
+          $expectedAssetsCount = 2 # SCMU & PowerShell module
+          $expectedNugetsCount = 1 # PlatformSample
+          $expectedZipCount = 3    # ServiceControl, Audit, & Monitoring
 
           if ($assetsCount -ne $expectedAssetsCount)
           {

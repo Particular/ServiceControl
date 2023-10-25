@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
@@ -17,15 +16,7 @@
         public UnattendServiceControlInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables("."));
-            ZipInfo = ServiceControlZipInfo.Find(sourceroot);
-        }
-
-        public UnattendServiceControlInstaller(ILogging loggingInstance, string deploymentCachePath)
-        {
-            logger = new Logging(loggingInstance);
-            var sourceroot = Path.GetFullPath(Environment.ExpandEnvironmentVariables(deploymentCachePath));
-            ZipInfo = ServiceControlZipInfo.Find(sourceroot);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip", Constants.CurrentVersion);
         }
 
         public PlatformZipInfo ZipInfo { get; }
@@ -58,7 +49,7 @@
 
                 try
                 {
-                    instanceInstaller.CopyFiles(ZipInfo.FilePath);
+                    instanceInstaller.CopyFiles(ZipInfo.ResourceName);
                     instanceInstaller.WriteConfigurationFile();
 
                     try
@@ -142,7 +133,7 @@
                 var backupFile = instance.BackupAppConfig();
                 try
                 {
-                    instance.UpgradeFiles(ZipInfo.FilePath);
+                    instance.UpgradeFiles(ZipInfo.ResourceName);
                 }
                 finally
                 {

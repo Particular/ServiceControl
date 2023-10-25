@@ -396,7 +396,7 @@ namespace ServiceControlInstaller.Engine.Instances
             AppConfig.Save();
         }
 
-        public abstract void UpgradeFiles(string zipFilePath);
+        public abstract void UpgradeFiles(string zipResourceName);
 
         public abstract void RunQueueCreation();
 

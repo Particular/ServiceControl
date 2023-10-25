@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
-    using System;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
@@ -21,7 +20,7 @@
                 persistenceManifest = JsonSerializer.Deserialize<PersistenceManifest>(manifestContent);
             }
 
-            var newInstance = new ServiceControlAuditNewInstance(new Version(1, 0, 0), persistenceManifest);
+            var newInstance = new ServiceControlAuditNewInstance(persistenceManifest);
 
             var installPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "install");
 

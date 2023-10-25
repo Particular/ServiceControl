@@ -6,6 +6,7 @@ namespace ServiceControl.Management.PowerShell
     using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
+    using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
     [Cmdlet(VerbsLifecycle.Invoke, "MonitoringInstanceUpgrade")]
@@ -28,8 +29,7 @@ namespace ServiceControl.Management.PowerShell
         {
             var logger = new PSLogger(Host);
 
-            var zipFolder = ZipPath.Get(this);
-            var installer = new UnattendMonitoringInstaller(logger, zipFolder);
+            var installer = new UnattendMonitoringInstaller(logger);
 
             foreach (var name in Name)
             {
@@ -38,6 +38,11 @@ namespace ServiceControl.Management.PowerShell
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
+                }
+
+                if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
+                {
+                    ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
                 }
 
                 if (instance.TransportPackage.IsOldRabbitMQTransport() &&

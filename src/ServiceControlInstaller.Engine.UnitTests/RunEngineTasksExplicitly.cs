@@ -19,7 +19,7 @@
         [Explicit]
         public void DeleteInstance()
         {
-            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(new TestLogger());
             foreach (var instance in InstanceFinder.ServiceControlInstances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
                 installer.Delete(instance.Name, true, true);
@@ -30,7 +30,7 @@
         [Explicit]
         public void UpgradeInstance()
         {
-            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(new TestLogger());
             foreach (var instance in InstanceFinder.ServiceControlInstances().Where(p => p.Name.StartsWith("Test.ServiceControl", StringComparison.OrdinalIgnoreCase)))
             {
                 installer.Upgrade(instance, new ServiceControlUpgradeOptions
@@ -46,10 +46,10 @@
         [Explicit]
         public async Task CreateInstanceMSMQ()
         {
-            var installer = new UnattendServiceControlInstaller(new TestLogger(), DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(new TestLogger());
             var instanceName = "Test.ServiceControl.Msmq";
             var root = Path.Combine(Path.GetTempPath(), instanceName);
-            var details = ServiceControlNewInstance.CreateWithDefaultPersistence(DeploymentCache);
+            var details = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
             details.DisplayName = instanceName.Replace(".", " ");
             details.Name = instanceName;
@@ -87,7 +87,7 @@
         public async Task ChangeConfigTests()
         {
             var logger = new TestLogger();
-            var installer = new UnattendServiceControlInstaller(logger, DeploymentCache);
+            var installer = new UnattendServiceControlInstaller(logger);
 
             logger.Info("Deleting instances");
             DeleteInstance();
@@ -138,7 +138,5 @@
                 }
             }
         }
-
-        const string DeploymentCache = @"..\..\..\..\..\Zip";
     }
 }

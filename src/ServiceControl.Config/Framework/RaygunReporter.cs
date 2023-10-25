@@ -1,20 +1,22 @@
 ﻿namespace ServiceControl.Config.Framework
 {
+    using System;
     using System.Net;
+    using System.Net.Http;
     using System.Reflection;
     using System.Threading.Tasks;
     using Extensions;
     using Mindscape.Raygun4Net;
 
-    public class RaygunReporter
+    public abstract class RaygunReporter
     {
         protected RaygunReporter()
         {
-            init = Task.Run(() =>
+            init = Task.Run(async () =>
             {
-                enabled = TestAndSetCreds(null) ||
-                          TestAndSetCreds(CredentialCache.DefaultCredentials) ||
-                          TestAndSetCreds(CredentialCache.DefaultNetworkCredentials);
+                enabled = (await TestAndSetCreds(null)) ||
+                          (await TestAndSetCreds(CredentialCache.DefaultCredentials)) ||
+                          (await TestAndSetCreds(CredentialCache.DefaultNetworkCredentials));
                 Version = GetVersion();
             });
         }
@@ -34,22 +36,33 @@
 
         protected string Version { get; private set; }
 
-        bool TestAndSetCreds(ICredentials credentials)
+        async Task<bool> TestAndSetCreds(ICredentials credentials)
         {
-            var client = WebRequest.Create(RaygunUrl);
+            HttpClient http = null;
             try
             {
-                client.Timeout = 5000;
-                client.Proxy.Credentials = credentials;
-                using (client.GetResponse())
+                http = new HttpClient(new HttpClientHandler { Credentials = credentials })
                 {
-                    raygunClient.ProxyCredentials = credentials;
-                    return true;
-                }
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
+                using var response = await http.GetAsync(RaygunUrl);
+                response.EnsureSuccessStatusCode();
+
+                raygunClient = new RaygunClientWithCredentials(http);
+                return true;
             }
             catch
             {
+                http?.Dispose();
                 return false;
+            }
+        }
+
+        class RaygunClientWithCredentials : RaygunClient
+        {
+            public RaygunClientWithCredentials(HttpClient http)
+                : base(new RaygunSettings { ApiKey = RaygunApiKey }, http)
+            {
             }
         }
 
@@ -60,7 +73,7 @@
             return versionParts?[0];
         }
 
-        RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
+        protected RaygunClient raygunClient = new RaygunClient(RaygunApiKey);
         Task init;
         bool enabled;
         protected const string RaygunApiKey = "zdm49nndHCXZ3NVzM8Kzug==";

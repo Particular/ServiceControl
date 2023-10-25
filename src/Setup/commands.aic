@@ -1,3 +1,0 @@
-﻿;aic
-SetAzureKeyVaultSecret AZURE_KEY_VAULT_CLIENT_SECRET -secret_is_env_var_name
-Rebuild

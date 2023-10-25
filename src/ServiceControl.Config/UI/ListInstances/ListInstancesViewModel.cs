@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -45,13 +45,13 @@
                     continue;
                 }
 
-                _ = Task.Run(() =>
+                _ = Task.Run(async () =>
                 {
                     try
                     {
-                        var request = WebRequest.Create($"{instance.BrowsableUrl}license?refresh=true");
-                        request.Timeout = 2000;
-                        request.GetResponse();
+                        using var http = new HttpClient();
+                        http.Timeout = TimeSpan.FromSeconds(2);
+                        await http.GetAsync($"{instance.BrowsableUrl}license?refresh=true");
                     }
                     catch
                     {
