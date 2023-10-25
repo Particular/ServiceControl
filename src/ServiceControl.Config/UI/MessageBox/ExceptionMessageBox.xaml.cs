@@ -103,7 +103,7 @@
 
             try
             {
-                await Task.Factory.StartNew(() => reporter.SendException(Exception, IncludeSystemInfo));
+                await reporter.SendException(Exception, IncludeSystemInfo);
             }
             finally
             {

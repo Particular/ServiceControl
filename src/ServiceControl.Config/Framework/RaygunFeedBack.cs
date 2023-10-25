@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Threading.Tasks;
     using Extensions;
     using Mindscape.Raygun4Net;
 
@@ -27,7 +28,7 @@
             }
         }
 
-        public void SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
+        public Task SendFeedBack(string emailAddress, string message, bool includeSystemInfo)
         {
             raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
             {
@@ -47,10 +48,10 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m).GetAwaiter().GetResult();
+            return raygunClient.Send(m);
         }
 
-        public void SendException(Exception ex, bool includeSystemInfo)
+        public Task SendException(Exception ex, bool includeSystemInfo)
         {
             raygunClient.UserInfo = new RaygunIdentifierMessage(trackingId.BareString())
             {
@@ -69,7 +70,7 @@
             }
 
             var m = raygunMessage.Build();
-            raygunClient.Send(m).GetAwaiter().GetResult();
+            return raygunClient.Send(m);
         }
 
         Guid trackingId = Guid.NewGuid();
