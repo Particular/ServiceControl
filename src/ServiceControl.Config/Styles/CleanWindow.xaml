@@ -4,7 +4,7 @@
                     xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls">
 
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Icons.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Icons.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Storyboard x:Key="WindowButtonMouseOverStoryboard">

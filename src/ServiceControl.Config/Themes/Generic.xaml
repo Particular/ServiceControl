@@ -2,10 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:ServiceControl.Config.Xaml.Controls">
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Palette.xaml" />
-        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Icons.xaml" />
-        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/Converters.xaml" />
-        <ResourceDictionary Source="/ServiceControlConfig;component/Styles/CleanWindow.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Palette.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Icons.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/Converters.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/Styles/CleanWindow.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!--  ==================== FormTextBox ====================  -->
