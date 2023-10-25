@@ -14,7 +14,6 @@
   <ItemGroup>
     <PackageReference Include="ByteSize" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-    <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="RavenDB.Embedded" />
     <PackageReference Include="Rx-Linq" />
   </ItemGroup>
