@@ -34,7 +34,8 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            Analyze(x => x.Query, "StandardAnalyzer"); // Not using typeof() to prevent dependency on Lucene
+            // Not using typeof() to prevent dependency on Lucene
+            Analyze(x => x.Query, "Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181");
         }
     }
 }
