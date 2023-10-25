@@ -73,7 +73,7 @@
     <PackageVersion Include="System.Text.Json" Version="7.0.3" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
-	<PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
+    <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
