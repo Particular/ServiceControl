@@ -156,6 +156,11 @@
         {
             get
             {
+                if (ServiceInstance is IServiceControlInstance primaryInstance)
+                {
+                    return primaryInstance.PersistenceManifest.DisplayName;
+                }
+
                 if (ServiceInstance is IServiceControlAuditInstance auditInstance)
                 {
                     return auditInstance.PersistenceManifest.DisplayName;
