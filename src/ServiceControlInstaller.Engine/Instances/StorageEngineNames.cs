@@ -1,4 +1,4 @@
-﻿namespace ServiceControlInstaller.Engine.Instances
+namespace ServiceControlInstaller.Engine.Instances
 {
     public static class StorageEngineNames
     {

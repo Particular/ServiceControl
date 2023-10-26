@@ -39,7 +39,7 @@
                         return;
                     }
 
-                    var started = await model.StartServiceInMaintenanceMode(progress);
+                    var started = await model.StartService(progress, maintenanceMode: true);
 
                     if (!started)
                     {
