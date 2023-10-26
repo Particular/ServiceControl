@@ -25,7 +25,7 @@
         public bool IsSupported { get; set; } = true;
 
         internal bool IsMatch(string persistenceType) =>
-            string.Compare(TypeName, persistenceType, true) == 0
+            string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
             || string.Compare(Name, persistenceType, true) == 0;
     }
 
