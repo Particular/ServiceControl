@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.RavenAttachments
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Raven.Client.Documents;
@@ -18,9 +17,6 @@
         {
             this.documentStore = documentStore;
         }
-
-        public Task Store(string uniqueId, string contentType, int bodySize, Stream bodyStream)
-            => throw new NotImplementedException("Only included for interface compatibility with Raven3.5 persister implementation. Raven5 tests should use IIngestionUnitOfWorkFactory to store failed messages/bodies.");
 
         public async Task<MessageBodyStreamResult> TryFetch(string bodyId)
         {
