@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <!-- Artifact does not include RavenDBServer directory. Primary instance is responsible for copying that to deploy directory. -->
-    <Artifact Include="$(OutputPath)" DirExclude="RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB5" />
+    <Artifact Include="$(OutputPath)" DirExclude="RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Audit\Persisters\RavenDB" />
   </ItemGroup>
 
   <ItemGroup>

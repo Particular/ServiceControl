@@ -23,7 +23,7 @@
   <Target Name="AddFilesToPackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\ServiceControl\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
-      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB5\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
+      <TfmSpecificPackageFile Include="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
       <TfmSpecificPackageFile Include="$(ArtifactsPath)Transports\LearningTransport\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance" />
       <TfmSpecificPackageFile Include="$(ArtifactsPath)RavenDBServer\**\*" PackagePath="platform\servicecontrol\servicecontrol-instance\RavenDBServer" />
 
