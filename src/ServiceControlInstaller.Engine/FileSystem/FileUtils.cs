@@ -7,7 +7,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
     using System.Security.AccessControl;
     using Ionic.Zip;
 
-    static class FileUtils
+    public static class FileUtils
     {
         public static string SanitizeFolderName(string folderName)
         {
