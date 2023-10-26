@@ -43,7 +43,9 @@
             instance.Reload();
 
             instance.UpgradeFiles(zipResourceName);
+            // Don't want any persistence DLL, bit awkward but serves the purpose of the test
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb.dll"));
+            FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll"));
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));
 
             var manifestFilePath = Path.Combine(InstallPath, "persistence.manifest");

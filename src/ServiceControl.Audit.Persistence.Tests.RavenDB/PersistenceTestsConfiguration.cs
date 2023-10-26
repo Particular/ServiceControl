@@ -92,7 +92,7 @@
             }
         }
 
-        public string Name => "RavenDB5";
+        public string Name => "RavenDB";
 
         public IDocumentStore DocumentStore { get; private set; }
 

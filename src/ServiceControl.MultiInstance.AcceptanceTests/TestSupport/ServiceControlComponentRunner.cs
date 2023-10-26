@@ -243,7 +243,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var excludedAssemblies = new[]
             {
                 Path.GetFileName(typeof(Settings).Assembly.CodeBase), // ServiceControl.exe
-                "ServiceControl.Persistence.RavenDb5.dll",
+                "ServiceControl.Persistence.RavenDB.dll",
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name // This project
             };
 
