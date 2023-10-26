@@ -21,7 +21,7 @@
         {
             var response = store.Maintenance.Send(new GetIndexErrorsOperation());
 
-            // Filter response as RavenDB5 will return entries without errors
+            // Filter response as RavenDB5+ will return entries without errors
             var indexErrors = response
                 .Where(x => x.Errors.Any())
                 .ToArray();

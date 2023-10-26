@@ -12,7 +12,7 @@
         const string zipResourceName = "Particular.ServiceControl.Audit.zip";
 
         [Test]
-        public void Should_install_raven5_for_new_instances()
+        public void Should_install_modern_raven_for_new_instances()
         {
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
 
@@ -27,7 +27,7 @@
             newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
-            FileAssert.Exists(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));
+            FileAssert.Exists(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll"));
             var configFile = File.ReadAllText(Path.Combine(InstallPath, "ServiceControl.Audit.exe.config"));
 
             Approver.Verify(configFile, input => input.Replace(DbPath, "value-not-asserted").Replace(LogPath, "value-not-asserted"));

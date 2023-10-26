@@ -4,7 +4,7 @@ ServiceControl.MessageFailures.GroupComment, ServiceControl.Persistence, Version
 ServiceControl.MessageFailures.QueueAddress, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Operations.FailedErrorImport, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.KnownEndpoint, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
-ServiceControl.Persistence.MessagesViewIndex+SortAndFilterOptions, ServiceControl.Persistence.RavenDb5, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
+ServiceControl.Persistence.MessagesViewIndex+SortAndFilterOptions, ServiceControl.Persistence.RavenDB, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RetryBatch, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Persistence.RetryBatchGroup, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null
 ServiceControl.Recoverability.FailedMessageRetry, ServiceControl.Persistence, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null

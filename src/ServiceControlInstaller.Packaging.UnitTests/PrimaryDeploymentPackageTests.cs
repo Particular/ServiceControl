@@ -16,7 +16,7 @@ namespace Tests
         {
             var expectedPersisters = new[] {
                 "RavenDB35", // Still must exist, as Raven35 persistence.manifest file must be available for SCMU to understand old versions
-                "RavenDB5"
+                "RavenDB"
             };
 
             var persisters = deploymentPackage.DeploymentUnits.Where(u => u.Category == "Persisters");

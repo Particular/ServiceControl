@@ -26,7 +26,7 @@
             MinimumStorageLeftRequiredForIngestionKey
         };
 
-        public string Name => "RavenDB5";
+        public string Name => "RavenDB";
 
         public IPersistence Create(PersistenceSettings settings)
         {
