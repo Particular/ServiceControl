@@ -17,7 +17,7 @@
 
             if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
             {
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.RavenDb5"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Persistence.RavenDB"));
             }
         }
 
