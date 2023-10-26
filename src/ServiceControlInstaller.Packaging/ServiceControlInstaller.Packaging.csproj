@@ -20,20 +20,48 @@
     <ProjectReference Update="..\**\*" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ZipFile Include="Particular.ServiceControl" />
-    <ZipFile Include="Particular.ServiceControl.Audit" />
-    <ZipFile Include="Particular.ServiceControl.Monitoring" />
-    <ZipFile Include="Transports" />
-    <ZipFile Include="RavenDBServer" />
-  </ItemGroup>
+  <PropertyGroup>
+    <ZipFolder>..\..\zip\</ZipFolder>
+    <Primary>Particular.ServiceControl</Primary>
+    <Audit>Particular.ServiceControl.Audit</Audit>
+    <Monitoring>Particular.ServiceControl.Monitoring</Monitoring>
+    <Transports>Transports</Transports>
+    <RavenDBServer>RavenDBServer</RavenDBServer>
+  </PropertyGroup>
 
-  <Target Name="CreateZipFiles" AfterTargets="CopyArtifacts">
-    <PropertyGroup>
-      <ZipFolder>..\..\zip\</ZipFolder>
-    </PropertyGroup>
+  <Target Name="PrepareCreateZipFiles">
+    <ItemGroup>
+      <PrimaryFilesToZip Include="$(ArtifactsPath)$(Primary)\**\*" />
+      <AuditFilesToZip Include="$(ArtifactsPath)$(Audit)\**\*" />
+      <MonitoringFilesToZip Include="$(ArtifactsPath)$(Monitoring)\**\*" />
+      <TransportsFilesToZip Include="$(ArtifactsPath)$(Transports)\**\*" />
+      <RavenDBServerFilesToZip Include="$(ArtifactsPath)$(RavenDBServer)\**\*" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CreatePrimaryZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(PrimaryFilesToZip)" Outputs="$(ZipFolder)$(Primary).zip">
     <MakeDir Directories="$(ZipFolder)" />
-    <ZipDirectory SourceDirectory="$(ArtifactsPath)%(ZipFile.identity)" DestinationFile="$(ZipFolder)%(ZipFile.identity).zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)$(Primary)" DestinationFile="$(ZipFolder)$(Primary).zip" Overwrite="true" />
+  </Target>
+
+  <Target Name="CreateAuditZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(AuditFilesToZip)" Outputs="$(ZipFolder)$(Audit).zip">
+    <MakeDir Directories="$(ZipFolder)" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)$(Audit)" DestinationFile="$(ZipFolder)$(Audit).zip" Overwrite="true" />
+  </Target>
+
+  <Target Name="CreateMonitoringZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(MonitoringFilesToZip)" Outputs="$(ZipFolder)$(Monitoring).zip">
+    <MakeDir Directories="$(ZipFolder)" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)$(Monitoring)" DestinationFile="$(ZipFolder)$(Monitoring).zip" Overwrite="true" />
+  </Target>
+
+  <Target Name="CreateTransportsZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(TransportsFilesToZip)" Outputs="$(ZipFolder)$(Transports).zip">
+    <MakeDir Directories="$(ZipFolder)" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)$(Transports)" DestinationFile="$(ZipFolder)$(Transports).zip" Overwrite="true" />
+  </Target>
+
+  <Target Name="CreateRavenDBServerZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(RavenDBServerFilesToZip)" Outputs="$(ZipFolder)$(RavenDBServer).zip">
+    <MakeDir Directories="$(ZipFolder)" />
+    <ZipDirectory SourceDirectory="$(ArtifactsPath)$(RavenDBServer)" DestinationFile="$(ZipFolder)$(RavenDBServer).zip" Overwrite="true" />
   </Target>
 
 </Project>
