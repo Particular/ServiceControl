@@ -8,8 +8,8 @@
 
     public static class ServiceControlPersisters
     {
-        public static PersistenceManifest[] PrimaryPersistenceManifests { get; }
-        public static PersistenceManifest[] AuditPersistenceManifests { get; }
+        static readonly PersistenceManifest[] primaryPersistenceManifests;
+        static readonly PersistenceManifest[] auditPersistenceManifests;
 
         static ServiceControlPersisters()
         {
@@ -20,18 +20,24 @@
                 .Where(name => name.EndsWith("persistence.manifest"))
                 .ToArray();
 
-            PrimaryPersistenceManifests = resourceNames
+            primaryPersistenceManifests = resourceNames
                 .Where(name => name.StartsWith(@"Particular.ServiceControl\Persisters"))
                 .Select(name => Load(assembly, name))
                 .OrderBy(m => m.Name)
                 .ToArray();
 
-            AuditPersistenceManifests = resourceNames
+            auditPersistenceManifests = resourceNames
                 .Where(name => name.StartsWith(@"Particular.ServiceControl.Audit\Persisters"))
                 .Select(name => Load(assembly, name))
                 .OrderBy(m => m.Name)
                 .ToArray();
         }
+
+        public static PersistenceManifest GetPrimaryPersistence(string name) => primaryPersistenceManifests.Single(m => m.IsMatch(name));
+        public static PersistenceManifest GetAuditPersistence(string name) => auditPersistenceManifests.Single(m => m.IsMatch(name));
+
+        public static PersistenceManifest[] GetAllPrimaryManifests() => primaryPersistenceManifests;
+        public static PersistenceManifest[] GetAllAuditManifests() => auditPersistenceManifests;
 
         static PersistenceManifest Load(Assembly assembly, string resourceName)
         {

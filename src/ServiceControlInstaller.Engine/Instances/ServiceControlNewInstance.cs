@@ -22,8 +22,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public static ServiceControlNewInstance CreateWithPersistence(string persistence)
         {
-            var persistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests
-                .Single(manifest => manifest.Name == persistence);
+            var persistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(persistence);
 
             return new ServiceControlNewInstance(persistenceManifest);
         }

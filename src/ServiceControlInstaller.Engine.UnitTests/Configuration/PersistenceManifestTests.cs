@@ -15,13 +15,13 @@
         [Test]
         public void ApprovePrimaryInstanceManifests()
         {
-            Approver.Verify(ServiceControlPersisters.PrimaryPersistenceManifests.Select(m => $"{m.Name}: {m.DisplayName}"));
+            Approver.Verify(ServiceControlPersisters.GetAllPrimaryManifests().Select(m => $"{m.Name}: {m.DisplayName}"));
         }
 
         [Test]
         public void ApproveAuditInstanceManifests()
         {
-            Approver.Verify(ServiceControlPersisters.AuditPersistenceManifests.Select(m => $"{m.Name}: {m.DisplayName}"));
+            Approver.Verify(ServiceControlPersisters.GetAllAuditManifests().Select(m => $"{m.Name}: {m.DisplayName}"));
         }
     }
 }
