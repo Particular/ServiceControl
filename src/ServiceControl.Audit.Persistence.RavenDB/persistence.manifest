@@ -20,5 +20,8 @@
   ],
   "SettingsWithPathsToCleanup": [
     "ServiceControl.Audit/DBPath"
+  ],
+  "Aliases": [
+    "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5"
   ]
 }

@@ -23,5 +23,26 @@
         {
             Approver.Verify(ServiceControlPersisters.GetAllAuditManifests().Select(m => $"{m.Name}: {m.DisplayName}"));
         }
+
+        [Test]
+        public void ServiceControl4AuditTypeNames()
+        {
+            void Test(string v4TypeName, string expectedPersisterName)
+            {
+                var manifest = ServiceControlPersisters.GetAuditPersistence(v4TypeName);
+                Assert.That(manifest?.Name ?? "not found", Is.EqualTo(expectedPersisterName));
+            }
+
+            // ServiceControl v4 audit instances created with RavenDB 5 should have this configured type, which in V5 should be considered RavenDB (modern)
+            Test("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5", "RavenDB");
+
+            // ServiceControl v4 audit instances on RavenDB 3.5 should have this type, with the improperly lowercase "b" on RavenDb
+            Test("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb", "RavenDB35");
+
+            // This is the actual type for the v5 RavenDB 5+ persistence and it should return correctly as well
+            Test("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB", "RavenDB");
+        }
+
+
     }
 }
