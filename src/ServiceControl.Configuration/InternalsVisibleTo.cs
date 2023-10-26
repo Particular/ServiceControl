@@ -6,4 +6,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("ServiceControl.AcceptanceTesting")]
 [assembly: InternalsVisibleTo("ServiceControl.PersistenceTests")]
 [assembly: InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
-[assembly: InternalsVisibleTo("ServiceControl.Persistence.RavenDb")]
+[assembly: InternalsVisibleTo("ServiceControl.Persistence.RavenDB")]
