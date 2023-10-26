@@ -11,7 +11,7 @@ static class SharedEmbeddedServer
 {
     public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
     {
-        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.Raven5Acceptance");
+        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.RavenAcceptance");
         var dbPath = Path.Combine(basePath, "DB");
         var databasesPath = Path.Combine(dbPath, "Databases");
 

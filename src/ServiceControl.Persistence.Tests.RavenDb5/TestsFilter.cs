@@ -1,1 +1,1 @@
-﻿[assembly: IncludeInTestCategory("Raven5Persistence")]
+﻿[assembly: IncludeInTestCategory("PrimaryRavenPersistence")]
