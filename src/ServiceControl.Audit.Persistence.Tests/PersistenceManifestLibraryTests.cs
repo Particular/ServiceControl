@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -77,9 +78,10 @@
 
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
 
-                //NOTE not checking namespace here as it doesn't match for RavenDb5
-                //Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == definition.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
-                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == definition.TypeName.Split(',').FirstOrDefault()), $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
+                var fullName = definition.TypeName.Split(',').FirstOrDefault();
+                var foundType = assembly.GetType(fullName);
+
+                Assert.IsNotNull(foundType, $"Persistence type {definition.TypeName} not found in assembly {assemblyName}");
             }
 
             Assert.NotZero(count, "No persistence manifests found.");
