@@ -5,9 +5,9 @@
     using RavenDb5.CustomChecks;
     using UnitOfWork;
 
-    class RavenDb5Persistence : IPersistence
+    class RavenDBPersistence : IPersistence
     {
-        public RavenDb5Persistence(DatabaseConfiguration databaseConfiguration)
+        public RavenDBPersistence(DatabaseConfiguration databaseConfiguration)
         {
             this.databaseConfiguration = databaseConfiguration;
         }
@@ -28,7 +28,7 @@
             return lifecycle;
         }
 
-        public IPersistenceInstaller CreateInstaller() => new RavenDb5Installer(CreateLifecycle());
+        public IPersistenceInstaller CreateInstaller() => new RavenDBInstaller(CreateLifecycle());
 
         IRavenDbPersistenceLifecycle CreateLifecycle()
         {

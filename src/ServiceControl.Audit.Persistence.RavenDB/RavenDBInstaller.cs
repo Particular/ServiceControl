@@ -3,9 +3,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    class RavenDb5Installer : IPersistenceInstaller
+    class RavenDBInstaller : IPersistenceInstaller
     {
-        public RavenDb5Installer(IRavenDbPersistenceLifecycle lifecycle)
+        public RavenDBInstaller(IRavenDbPersistenceLifecycle lifecycle)
         {
             this.lifecycle = lifecycle;
         }

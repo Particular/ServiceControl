@@ -32,7 +32,7 @@
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
 
-            return new RavenDb5Persistence(databaseConfiguration);
+            return new RavenDBPersistence(databaseConfiguration);
         }
 
         internal static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
