@@ -8,9 +8,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControl.AcceptanceTesting\ServiceControl.AcceptanceTesting.csproj" />
-    <ProjectReference Include="..\ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj" />
     <ProjectReference Include="..\ServiceControl.Transports.Learning\ServiceControl.Transports.Learning.csproj" />
-    <ProjectReference Include="..\ServiceControl\ServiceControl.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
@@ -18,13 +18,14 @@
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.SagaAudit" />
-    <PackageReference Include="NServiceBus.Heartbeat" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Audit.AcceptanceTests\**\*.cs" Exclude="..\ServiceControl.Audit.AcceptanceTests\AcceptanceTestStorageConfiguration.cs;..\ServiceControl.Audit.AcceptanceTests\obj\**\*.*;..\ServiceControl.Audit.AcceptanceTests\bin\**\*.*" />
+    <Compile Include="..\ServiceControl.Audit.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>
