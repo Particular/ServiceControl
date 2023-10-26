@@ -15,7 +15,7 @@
     {
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence()
         {
-            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB5;
+            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB;
             return CreateWithPersistence(persisterToUseForBrandNewInstances);
         }
 

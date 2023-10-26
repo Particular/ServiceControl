@@ -2,6 +2,6 @@
 {
     public static class StorageEngineNames
     {
-        public const string RavenDB5 = "RavenDB5";
+        public const string RavenDB = "RavenDB";
     }
 }
