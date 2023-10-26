@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
-    using RavenDb5;
+    using RavenDB;
     using ServiceControl.Persistence.UnitOfWork;
 
     class RavenDbIngestionUnitOfWork : IngestionUnitOfWorkBase

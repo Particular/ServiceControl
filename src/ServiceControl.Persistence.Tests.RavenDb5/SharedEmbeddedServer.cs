@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.ServerWide.Operations;
-using ServiceControl.Persistence.RavenDb5;
+using ServiceControl.Persistence.RavenDB;
 using TestHelper;
 
 static class SharedEmbeddedServer

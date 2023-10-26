@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using ServiceControl.Persistence.RavenDb5;
+using ServiceControl.Persistence.RavenDB;
 
 [SetUpFixture]
 public class SharedDatabaseSetup

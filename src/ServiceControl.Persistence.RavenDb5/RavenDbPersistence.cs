@@ -4,7 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Persistence.Recoverability;
-    using RavenDb5;
+    using RavenDB;
     using Recoverability;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;

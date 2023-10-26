@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb5
+﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
     using EventLog;

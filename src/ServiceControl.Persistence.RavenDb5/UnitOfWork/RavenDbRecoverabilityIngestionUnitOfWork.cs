@@ -8,7 +8,7 @@
     using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
-    using RavenDb5;
+    using RavenDB;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;

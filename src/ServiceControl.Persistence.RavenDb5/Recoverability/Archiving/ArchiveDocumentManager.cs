@@ -6,7 +6,7 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus.Logging;
-    using Persistence.RavenDb5;
+    using Persistence.RavenDB;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
