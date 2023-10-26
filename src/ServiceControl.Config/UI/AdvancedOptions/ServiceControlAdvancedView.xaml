@@ -112,21 +112,25 @@
                         Width="180"
                         />
 
-                <!-- Forced Upgrade to RavenDB5 Section-->
+                <!-- Forced Upgrade to Version 5 Section-->
                 <StackPanel Visibility="{Binding ForcedUpgradeAllowed, Converter={StaticResource boolToVis}}">
                     <Border Margin="0,25,0,0"
                             BorderBrush="{StaticResource Gray90Brush}"
                             BorderThickness="0,0,0,1">
                         <TextBlock FontSize="13px"
                                    FontWeight="Bold"
-                                   Text="FORCE UPGRADE TO RAVENDB 5"  
+                                   Text="FORCE UPGRADE TO VERSION 5"  
                         />
                     </Border>
 
                     <TextBlock FontSize="12px" 
                                TextWrapping="Wrap" 
                                Margin="0,0,0,20">
-                        Forced upgrade to RavenDB 5 will delete any data stored by the instance.<LineBreak />The associated database and logs can be also removed via the confirmation dialog.
+                        Forced upgrade to version 5 will delete any data stored by the instance.<LineBreak /> 
+                        If you want to preserve the error data follow
+                        <Hyperlink Command="{Binding OpenUrl}" CommandParameter="https://docs.particular.net/servicecontrol/upgrades/4to5/">
+                            the version 4 to 5 upgrade guide
+                        </Hyperlink>.
                     </TextBlock>
                     <Button
                         Command="{Binding ForceUpgradeCommand}"
