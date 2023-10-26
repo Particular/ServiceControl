@@ -2,9 +2,8 @@
   "Version": "1.0.0",
   "Name": "RavenDB35",
   "IsSupported": false,
-  "DisplayName": "RavenDB 3.5",
-  "Description": "RavenDB 3.5 ServiceControl persister",
-  "TypeName": "ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDb",
+  "DisplayName": "RavenDB 3.5 (Legacy)",
+  "Description": "RavenDB 3.5 (Legacy) ServiceControl persister",
   "Settings": [
     {
       "Name": "Raven/ESENT/MaxPageSize",

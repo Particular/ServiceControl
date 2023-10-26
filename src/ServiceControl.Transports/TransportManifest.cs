@@ -27,7 +27,7 @@
         public string[] Aliases { get; set; }
 
         internal bool IsMatch(string transportType) =>
-            string.Compare(TypeName, transportType, true) == 0
+            string.Compare(TypeName, transportType, false) == 0 // Type names are case sensitive
             || string.Compare(Name, transportType, true) == 0
             || AliasesContain(transportType);
 

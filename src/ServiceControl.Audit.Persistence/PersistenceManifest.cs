@@ -24,9 +24,22 @@
 
         public bool IsSupported { get; set; } = true;
 
+        public string[] Aliases { get; set; }
+
         internal bool IsMatch(string persistenceType) =>
             string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
-            || string.Compare(Name, persistenceType, true) == 0;
+            || string.Compare(Name, persistenceType, true) == 0
+            || AliasesContain(persistenceType);
+
+        bool AliasesContain(string transportType)
+        {
+            if (Aliases == null)
+            {
+                return false;
+            }
+
+            return Aliases.Contains(transportType);
+        }
     }
 
     public static class PersistenceManifestLibrary

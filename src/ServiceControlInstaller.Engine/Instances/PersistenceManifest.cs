@@ -1,6 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     public class PersistenceManifest
     {
@@ -16,7 +17,22 @@
 
         public IList<Setting> Settings { get; set; } = new List<Setting>();
 
-        public IList<string> SettingsWithPathsToCleanup { get; set; } = new List<string>();
+        public IList<string> SettingsWithPathsToCleanup { get; set; } = new List<string>(); public string[] Aliases { get; set; }
+
+        internal bool IsMatch(string persistenceType) =>
+            string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
+            || string.Compare(Name, persistenceType, true) == 0
+            || AliasesContain(persistenceType);
+
+        bool AliasesContain(string transportType)
+        {
+            if (Aliases == null)
+            {
+                return false;
+            }
+
+            return Aliases.Contains(transportType);
+        }
 
         public class Setting
         {

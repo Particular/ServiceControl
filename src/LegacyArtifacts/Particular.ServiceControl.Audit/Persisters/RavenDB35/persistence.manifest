@@ -2,9 +2,8 @@
   "Version": "1.0.0",
   "Name": "RavenDB35",
   "IsSupported": false,
-  "DisplayName": "RavenDB 3.5",
-  "Description": "RavenDB 3.5 ServiceControl Audit persister",
-  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb",
+  "DisplayName": "RavenDB 3.5 (Legacy)",
+  "Description": "RavenDB 3.5 (Legacy) ServiceControl Audit persister",
   "Settings": [
     {
       "Name": "Raven/ESENT/MaxPageSize",
@@ -32,5 +31,8 @@
     "Raven/CompiledIndexCacheDirectory",
     "Raven/Esent/LogsPath",
     "ServiceControl.Audit/DBPath"
+  ],
+  "Aliases": [
+    "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb"
   ]
 }

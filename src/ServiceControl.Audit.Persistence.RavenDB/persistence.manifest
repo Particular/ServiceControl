@@ -1,9 +1,9 @@
 ﻿{
   "Version": "1.0.0",
-  "Name": "RavenDB5",
-  "DisplayName": "RavenDB 5",
-  "Description": "RavenDB 5 ServiceControl Audit persister",
-  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5",
+  "Name": "RavenDB",
+  "DisplayName": "RavenDB",
+  "Description": "RavenDB ServiceControl Audit persister",
+  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
   "Settings": [
     {
       "Name": "ServiceControl.Audit/DBPath",

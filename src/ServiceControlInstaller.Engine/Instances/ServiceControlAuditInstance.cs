@@ -84,7 +84,7 @@ namespace ServiceControlInstaller.Engine.Instances
             }
             else
             {
-                PersistenceManifest = manifests.Single(m => m.TypeName == persistenceType);
+                PersistenceManifest = manifests.Single(m => m.IsMatch(persistenceType));
             }
 
             TransportPackage = DetermineTransportPackage();

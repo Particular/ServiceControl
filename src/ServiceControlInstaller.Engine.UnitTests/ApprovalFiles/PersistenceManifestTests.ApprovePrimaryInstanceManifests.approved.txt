@@ -1,4 +1,4 @@
 [
   "RavenDB: RavenDB",
-  "RavenDB35: RavenDB 3.5"
+  "RavenDB35: RavenDB 3.5 (Legacy)"
 ]
