@@ -31,6 +31,7 @@
             ApplyConventionalServiceNameToAuditInstance(ConventionName);
         }
 
+        [SuppressPropertyChangedWarnings]
         public virtual void OnSelectedTransportChanged()
         {
             ServiceControl?.SelectedTransportChanged();
