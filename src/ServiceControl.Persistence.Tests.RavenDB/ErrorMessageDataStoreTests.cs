@@ -7,8 +7,8 @@ using ServiceControl.MessageFailures;
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.Infrastructure;
-using ServiceControl.Persistence.Tests.RavenDb5;
-using ServiceControl.Persistence.Tests.RavenDb5.ObjectExtensions;
+using ServiceControl.Persistence.Tests.RavenDB;
+using ServiceControl.Persistence.Tests.RavenDB.ObjectExtensions;
 
 [TestFixture]
 class ErrorMessageDataStoreTests : PersistenceTestBase

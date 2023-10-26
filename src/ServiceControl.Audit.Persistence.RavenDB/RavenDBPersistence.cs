@@ -2,7 +2,7 @@
 {
     using Microsoft.Extensions.DependencyInjection;
     using Persistence.UnitOfWork;
-    using RavenDb5.CustomChecks;
+    using RavenDB.CustomChecks;
     using UnitOfWork;
 
     class RavenDBPersistence : IPersistence

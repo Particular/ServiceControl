@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.Tests.RavenDb5
+﻿namespace ServiceControl.Persistence.Tests.RavenDB
 {
     using System;
     using System.Collections.Generic;

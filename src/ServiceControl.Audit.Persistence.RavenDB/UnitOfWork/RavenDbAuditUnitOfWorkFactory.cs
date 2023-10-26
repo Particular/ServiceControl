@@ -3,7 +3,7 @@
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
     using RavenDb;
-    using ServiceControl.Audit.Persistence.RavenDb5.CustomChecks;
+    using ServiceControl.Audit.Persistence.RavenDB.CustomChecks;
 
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {

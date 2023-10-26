@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb5.CustomChecks
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.CustomChecks
 {
     using System;
     using System.IO;

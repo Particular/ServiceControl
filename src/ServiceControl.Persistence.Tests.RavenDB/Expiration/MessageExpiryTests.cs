@@ -15,7 +15,7 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Expiration;
     using ServiceControl.CompositeViews.Messages;
-    using ServiceControl.Persistence.Tests.RavenDb5;
+    using ServiceControl.Persistence.Tests.RavenDB;
 
     [TestFixture]
     public class MessageExpiryTests : PersistenceTestBase
