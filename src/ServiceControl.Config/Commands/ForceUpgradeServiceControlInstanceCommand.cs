@@ -72,7 +72,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
         await UpgradeServiceControlInstance(model, instance, upgradeOptions);
 
-        await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
+        await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
     async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions)
