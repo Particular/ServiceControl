@@ -1,0 +1,5 @@
+ServiceControl.Config
+ServiceControl.Config.Tests
+ServiceControl.Management.PowerShell
+ServiceControlInstaller.Engine
+ServiceControlInstaller.Engine.UnitTests
