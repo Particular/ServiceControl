@@ -40,7 +40,7 @@
             Test("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb", "RavenDB35");
 
             // This is the actual type for the v5 RavenDB 5+ persistence and it should return correctly as well
-            Test("ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB", "RavenDB");
+            Test("ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB", "RavenDB");
         }
 
 

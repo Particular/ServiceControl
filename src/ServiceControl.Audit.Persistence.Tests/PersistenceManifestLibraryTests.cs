@@ -10,7 +10,7 @@
     public class PersistenceManifestLibraryTests
     {
         const string persistenceName = "RavenDB";
-        const string persistenceType = "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB";
+        const string persistenceType = "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB";
 
         [Test]
         public void Should_find_persistence_type_by_name()
