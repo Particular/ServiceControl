@@ -3,7 +3,7 @@
   "Definitions": [
     {
       "Name": "NetStandardAzureServiceBus",
-      "DisplayName": "Azure Service Bus Standard",
+      "DisplayName": "Azure Service Bus",
       "TypeName": "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
       "Aliases": [ "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus" ]
     }    

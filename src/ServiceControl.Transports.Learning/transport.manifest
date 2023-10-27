@@ -3,7 +3,7 @@
   "Definitions": [
     {
       "Name": "LearningTransport",
-      "DisplayName": "LearningTransport",
+      "DisplayName": "Learning",
       "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning"
     }
   ]

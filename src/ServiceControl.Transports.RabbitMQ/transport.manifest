@@ -3,34 +3,34 @@
   "Definitions": [
     {
       "Name": "RabbitMQ.ClassicConventionalRouting",
-      "DisplayName": "RabbitMQ Classic Conventional Routing",
+      "DisplayName": "RabbitMQ - Conventional routing topology (classic queues)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
       "Name": "RabbitMQ.ClassicDirectRouting",
-      "DisplayName": "RabbitMQ Classic Direct Routing",
+      "DisplayName": "RabbitMQ - Direct routing topology (classic queues)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
       "Name": "RabbitMQ.ConventionalRouting",
-      "DisplayName": "RabbitMQ Conventional Routing",
+      "DisplayName": "RabbitMQ - Conventional routing topology",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
       "Aliases": [ "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ", "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ" ]
     },
     {
       "Name": "RabbitMQ.DirectRouting",
-      "DisplayName": "RabbitMQ Direct Routing",
+      "DisplayName": "RabbitMQ - Direct routing topology (Old)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
       "Aliases": [ "ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ" ]
     },
     {
       "Name": "RabbitMQ.QuorumConventionalRouting",
-      "DisplayName": "RabbitMQ Quorum Conventional Routing",
+      "DisplayName": "RabbitMQ - Conventional routing topology (quorum queues)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     },
     {
       "Name": "RabbitMQ.QuorumDirectRouting",
-      "DisplayName": "RabbitMQ Quorum Direct Routing",
+      "DisplayName": "RabbitMQ - Direct routing topology (quorum queues)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ"
     }
   ]

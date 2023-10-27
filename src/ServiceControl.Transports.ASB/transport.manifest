@@ -3,13 +3,13 @@
   "Definitions": [
     {
       "Name": "AzureServiceBus.EndpointOriented",
-      "DisplayName": "Azure Service Bus EndpointOriented topology",
+      "DisplayName": "Azure Service Bus - Endpoint-oriented topology (Legacy)",
       "TypeName": "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
       "Aliases": [ "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus" ]
     },
     {
       "Name": "AzureServiceBus.Forwarding",
-      "DisplayName": "Azure Service Bus Forwarding topology",
+      "DisplayName": "Azure Service Bus - Forwarding topology (Legacy)",
       "TypeName": "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
       "Aliases": [ "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus", "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus" ]
     }
