@@ -27,7 +27,7 @@
             || string.Compare(Name, persistenceType, true) == 0
             || AliasesContain(persistenceType);
 
-        bool AliasesContain(string transportType) => Aliases.Contains(transportType);
+        bool AliasesContain(string persistenceType) => Aliases.Contains(persistenceType);
 
         public class Setting
         {

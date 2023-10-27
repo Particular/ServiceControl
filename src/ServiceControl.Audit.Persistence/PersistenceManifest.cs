@@ -31,15 +31,7 @@
             || string.Compare(Name, persistenceType, true) == 0
             || AliasesContain(persistenceType);
 
-        bool AliasesContain(string transportType)
-        {
-            if (Aliases == null)
-            {
-                return false;
-            }
-
-            return Aliases.Contains(transportType);
-        }
+        bool AliasesContain(string persistenceType) => Aliases.Contains(persistenceType);
     }
 
     public static class PersistenceManifestLibrary

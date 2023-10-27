@@ -1,0 +1,17 @@
+[
+  "AmazonSQS",
+  "AzureServiceBus.EndpointOriented",
+  "AzureServiceBus.Forwarding",
+  "AzureStorageQueue",
+  "LearningTransport",
+  "LearningTransport",
+  "MSMQ",
+  "NetStandardAzureServiceBus",
+  "RabbitMQ.ClassicConventionalRouting",
+  "RabbitMQ.ClassicDirectRouting",
+  "RabbitMQ.ConventionalRouting",
+  "RabbitMQ.DirectRouting",
+  "RabbitMQ.QuorumConventionalRouting",
+  "RabbitMQ.QuorumDirectRouting",
+  "SQLServer"
+]

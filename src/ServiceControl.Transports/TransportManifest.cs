@@ -24,22 +24,14 @@
 
         public string TypeName { get; set; }
 
-        public string[] Aliases { get; set; }
+        public string[] Aliases { get; set; } = Array.Empty<string>();
 
         internal bool IsMatch(string transportType) =>
             string.Compare(TypeName, transportType, false) == 0 // Type names are case sensitive
             || string.Compare(Name, transportType, true) == 0
             || AliasesContain(transportType);
 
-        bool AliasesContain(string transportType)
-        {
-            if (Aliases == null)
-            {
-                return false;
-            }
-
-            return Aliases.Contains(transportType);
-        }
+        bool AliasesContain(string transportType) => Aliases.Contains(transportType);
     }
 
     public static class TransportManifestLibrary
