@@ -9,7 +9,6 @@
       "AvailableInSCMU": false,
       "Aliases": [
         "AzureServiceBus",
-        "Azure Service Bus - Endpoint-oriented topology (Legacy)",
         "Azure Service Bus - Endpoint-oriented topology (Old)",
         "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
         "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
