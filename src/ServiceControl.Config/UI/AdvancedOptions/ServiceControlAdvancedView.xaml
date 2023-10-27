@@ -135,7 +135,7 @@
                     <Button
                         Command="{Binding ForceUpgradeCommand}"
                         CommandParameter="{Binding DataContext, ElementName=root}"
-                        Content="Upgrade"
+                        Content="Delete all data and upgrade"
                         Style="{StaticResource ErrorButton}" 
                         HorizontalAlignment="Left"
                         Padding="10,10"
