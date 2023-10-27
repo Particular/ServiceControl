@@ -29,7 +29,7 @@
                 Port = instance.Port,
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
-                TransportPackageName = instance.TransportPackage.Name,
+                TransportPackageName = instance.TransportPackage.DisplayName,
                 ConnectionString = instance.ConnectionString,
                 ErrorQueue = instance.ErrorQueue,
                 ServiceAccount = instance.ServiceAccount,

@@ -45,7 +45,7 @@
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
                 DBPath = instance.DBPath,
-                TransportPackageName = instance.TransportPackage.Name,
+                TransportPackageName = instance.TransportPackage.DisplayName,
                 ConnectionString = instance.ConnectionString,
                 AuditQueue = instance.AuditQueue,
                 AuditLogQueue = instance.AuditLogQueue,

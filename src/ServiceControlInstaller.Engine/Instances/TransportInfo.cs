@@ -9,7 +9,7 @@
             Matches = name => name.Equals(TypeName, StringComparison.OrdinalIgnoreCase);
         }
 
-        public string Name { get; set; }
+        public string DisplayName { get; set; }
         public string TypeName { get; set; }
         public string ZipName { get; set; }
         public string SampleConnectionString { get; set; }
@@ -26,12 +26,12 @@
                 return false;
             }
 
-            return Name.Equals(that.Name, StringComparison.OrdinalIgnoreCase);
+            return DisplayName.Equals(that.DisplayName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return DisplayName.GetHashCode();
         }
     }
 }

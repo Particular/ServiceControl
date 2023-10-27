@@ -12,7 +12,7 @@
         {
             return new PsTransportInfo
             {
-                Name = transport.Name,
+                Name = transport.DisplayName,
                 TypeName = transport.TypeName,
                 SampleConnectionString = transport.SampleConnectionString
             };

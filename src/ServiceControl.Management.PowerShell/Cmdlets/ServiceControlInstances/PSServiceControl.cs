@@ -54,7 +54,7 @@
                 InstallPath = instance.InstallPath,
                 LogPath = instance.LogPath,
                 DBPath = instance.DBPath,
-                TransportPackageName = instance.TransportPackage.Name,
+                TransportPackageName = instance.TransportPackage.DisplayName,
                 ConnectionString = instance.ConnectionString,
                 ErrorQueue = instance.ErrorQueue,
                 ErrorLogQueue = instance.ForwardErrorMessages ? instance.ErrorLogQueue : null,

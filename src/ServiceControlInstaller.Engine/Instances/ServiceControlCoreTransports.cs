@@ -15,7 +15,7 @@
             //      As a result Match is comparing to old/current names, old/current types.
             new TransportInfo
             {
-                Name = TransportNames.AmazonSQS,
+                DisplayName = TransportNames.AmazonSQS,
                 ZipName = "AmazonSQS",
                 TypeName = "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
                 SampleConnectionString = "Region=<REGION>;QueueNamePrefix=<prefix>;TopicNamePrefix=<prefix>;AccessKeyId=<ACCESSKEYID>;SecretAccessKey=<SECRETACCESSKEY>;S3BucketForLargeMessages=<BUCKETNAME>;S3KeyPrefix=<KEYPREFIX>",
@@ -28,7 +28,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBus,
+                DisplayName = TransportNames.AzureServiceBus,
                 TypeName = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
                 ZipName = "NetStandardAzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>;TopicName=<TopicBundleName(Default=bundle-1)>",
@@ -39,7 +39,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureStorageQueue,
+                DisplayName = TransportNames.AzureStorageQueue,
                 TypeName = "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ",
                 ZipName = "AzureStorageQueue",
                 SampleConnectionString = "DefaultEndpointsProtocol=[http|https];AccountName=<MyAccountName>;AccountKey=<MyAccountKey>;Subscriptions Table=tablename",
@@ -52,7 +52,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.MSMQ,
+                DisplayName = TransportNames.MSMQ,
                 TypeName = "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
                 ZipName = "Msmq",
                 SampleConnectionString = string.Empty,
@@ -65,7 +65,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQConventionalRoutingTopologyDeprecated,
+                DisplayName = TransportNames.RabbitMQConventionalRoutingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -79,7 +79,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQClassicConventionalRoutingTopology,
+                DisplayName = TransportNames.RabbitMQClassicConventionalRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -92,7 +92,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQQuorumConventionalRoutingTopology,
+                DisplayName = TransportNames.RabbitMQQuorumConventionalRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -105,7 +105,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQDirectRoutingTopologyDeprecated,
+                DisplayName = TransportNames.RabbitMQDirectRoutingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -117,7 +117,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQClassicDirectRoutingTopology,
+                DisplayName = TransportNames.RabbitMQClassicDirectRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQClassicDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -128,7 +128,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.RabbitMQQuorumDirectRoutingTopology,
+                DisplayName = TransportNames.RabbitMQQuorumDirectRoutingTopology,
                 TypeName = "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
                 ZipName = "RabbitMQ",
                 SampleConnectionString = "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
@@ -139,7 +139,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.SQLServer,
+                DisplayName = TransportNames.SQLServer,
                 TypeName = "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
                 ZipName = "SqlServer",
                 SampleConnectionString = "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
@@ -153,7 +153,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated,
+                DisplayName = TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
@@ -168,7 +168,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.AzureServiceBusForwardingTopologyDeprecated,
+                DisplayName = TransportNames.AzureServiceBusForwardingTopologyDeprecated,
                 TypeName = "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
                 ZipName = "AzureServiceBus",
                 SampleConnectionString = "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
@@ -185,7 +185,7 @@
             },
             new TransportInfo
             {
-                Name = TransportNames.LearningTransport,
+                DisplayName = TransportNames.LearningTransport,
                 TypeName = "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
                 ZipName = "LearningTransport",
                 SampleConnectionString = "%TEMP%\\.learningtransport",
