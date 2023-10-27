@@ -17,7 +17,13 @@
 
     class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
-        public ServiceControlAdvancedViewModel(BaseService instance, IEventAggregator eventAggregator, StartServiceControlInMaintenanceModeCommand maintenanceModeCommand, DeleteServiceControlInstanceCommand deleteInstanceCommand, ForceUpgradeServiceControlInstanceCommand forceUpgradeCommand)
+        public ServiceControlAdvancedViewModel(
+            BaseService instance,
+            IEventAggregator eventAggregator,
+            StartServiceControlInMaintenanceModeCommand maintenanceModeCommand,
+            DeleteServiceControlInstanceCommand deleteInstanceCommand,
+            ForceUpgradeServiceControlInstanceCommand forceUpgradeCommand
+            )
         {
             ServiceControlInstance = (ServiceControlBaseService)instance;
             DisplayName = "ADVANCED OPTIONS";
