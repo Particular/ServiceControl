@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
+namespace ServiceControl.Audit.Persistence.RavenDB.Indexes
 {
     using System;
     using System.Linq;

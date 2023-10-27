@@ -7,7 +7,7 @@
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
-    using Persistence.RavenDb;
+    using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
 
     [TestFixture]

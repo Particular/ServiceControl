@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb
+﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using Raven.Client.Documents.Session;
 

@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb
+﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System.Collections.Generic;
     using System.Threading;
@@ -12,7 +12,7 @@
     using Raven.Client.Exceptions.Database;
     using Raven.Client.ServerWide;
     using Raven.Client.ServerWide.Operations;
-    using ServiceControl.Audit.Persistence.RavenDb.Indexes;
+    using ServiceControl.Audit.Persistence.RavenDB.Indexes;
     using ServiceControl.SagaAudit;
 
     class DatabaseSetup

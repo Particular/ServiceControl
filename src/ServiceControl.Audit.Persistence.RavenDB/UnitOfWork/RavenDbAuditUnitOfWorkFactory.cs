@@ -1,8 +1,8 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
-    using RavenDb;
+    using RavenDB;
     using ServiceControl.Audit.Persistence.RavenDB.CustomChecks;
 
     class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory

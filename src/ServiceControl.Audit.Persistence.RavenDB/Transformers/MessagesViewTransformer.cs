@@ -1,4 +1,4 @@
-namespace ServiceControl.Audit.Persistence.RavenDb.Transformers
+namespace ServiceControl.Audit.Persistence.RavenDB.Transformers
 {
     using System;
     using System.Collections.Generic;

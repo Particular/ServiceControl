@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb
+﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Collections.Concurrent;
     using System.Threading.Tasks;

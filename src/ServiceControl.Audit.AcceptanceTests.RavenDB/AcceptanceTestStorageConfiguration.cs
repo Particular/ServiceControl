@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
 
     class AcceptanceTestStorageConfiguration

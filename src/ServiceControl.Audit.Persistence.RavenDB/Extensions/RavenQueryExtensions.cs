@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb.Extensions
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.Extensions
 {
     using System;
     using System.Linq;

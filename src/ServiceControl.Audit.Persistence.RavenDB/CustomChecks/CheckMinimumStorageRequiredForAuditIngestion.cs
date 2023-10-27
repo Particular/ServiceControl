@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using ServiceControl.Audit.Persistence.RavenDB;
 
     class CheckMinimumStorageRequiredForAuditIngestion : CustomCheck
     {

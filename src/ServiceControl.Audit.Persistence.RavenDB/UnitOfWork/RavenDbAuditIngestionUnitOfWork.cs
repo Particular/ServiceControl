@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.RavenDb.UnitOfWork
+﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
     using System;
     using System.Threading.Tasks;

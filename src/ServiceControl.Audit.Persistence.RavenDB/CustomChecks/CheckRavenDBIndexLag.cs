@@ -4,7 +4,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Audit.Persistence.RavenDb;
+    using Audit.Persistence.RavenDB;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using Raven.Client.Documents.Operations;

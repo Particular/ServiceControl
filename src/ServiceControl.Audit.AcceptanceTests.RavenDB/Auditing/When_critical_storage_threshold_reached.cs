@@ -7,7 +7,7 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using Persistence.RavenDb;
+    using Persistence.RavenDB;
     using ServiceControl.AcceptanceTesting;
     using ServiceControl.Audit.AcceptanceTests.TestSupport.EndpointTemplates;
     using ServiceControl.Audit.Auditing.MessagesView;

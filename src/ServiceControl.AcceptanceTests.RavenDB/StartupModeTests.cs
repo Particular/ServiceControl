@@ -7,7 +7,7 @@
     using NUnit.Framework;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
-    using Persistence.RavenDb;
+    using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 

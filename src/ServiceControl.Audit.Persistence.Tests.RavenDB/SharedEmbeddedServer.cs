@@ -5,7 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using ServiceControl.Audit.Persistence.RavenDB;
     using TestHelper;
 
     class SharedEmbeddedServer

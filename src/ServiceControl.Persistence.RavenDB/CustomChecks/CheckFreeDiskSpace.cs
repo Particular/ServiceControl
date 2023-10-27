@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using Persistence.RavenDb;
+    using Persistence.RavenDB;
 
     class CheckFreeDiskSpace : CustomCheck
     {

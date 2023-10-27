@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb
+﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;

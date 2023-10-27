@@ -1,4 +1,4 @@
-namespace ServiceControl.Persistence.RavenDb.Infrastructure
+namespace ServiceControl.Persistence.RavenDB.Infrastructure
 {
     using System;
     using System.Collections.Generic;

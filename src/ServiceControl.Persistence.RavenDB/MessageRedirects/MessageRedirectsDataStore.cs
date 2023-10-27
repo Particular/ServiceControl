@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb.MessageRedirects
+﻿namespace ServiceControl.Persistence.RavenDB.MessageRedirects
 {
     using System.Threading.Tasks;
     using Raven.Client.Documents;

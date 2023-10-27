@@ -11,7 +11,7 @@
     using Persistence;
     using Raven.Client.Documents;
     using Raven.Client.ServerWide.Operations;
-    using ServiceControl.Persistence.RavenDb;
+    using ServiceControl.Persistence.RavenDB;
 
     sealed class TestPersistenceImpl : TestPersistence
     {

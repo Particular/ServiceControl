@@ -8,8 +8,8 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
-    using RavenDb;
     using ServiceControl.Audit.Auditing.BodyStorage;
+    using ServiceControl.Audit.Persistence.RavenDB;
     using UnitOfWork;
 
     partial class PersistenceTestsConfiguration

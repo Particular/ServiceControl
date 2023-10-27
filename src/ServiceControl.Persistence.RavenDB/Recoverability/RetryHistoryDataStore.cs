@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb.Recoverability
+﻿namespace ServiceControl.Persistence.RavenDB.Recoverability
 {
     using System;
     using System.Threading.Tasks;

@@ -3,7 +3,7 @@
     using System;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence;
-    using ServiceControl.Audit.Persistence.RavenDb;
+    using ServiceControl.Audit.Persistence.RavenDB;
 
     class ConfigurationValidationTests
     {

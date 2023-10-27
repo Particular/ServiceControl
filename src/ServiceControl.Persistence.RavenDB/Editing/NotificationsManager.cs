@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence.RavenDb.Editing
+﻿namespace ServiceControl.Persistence.RavenDB.Editing
 {
     using System;
     using System.Threading.Tasks;

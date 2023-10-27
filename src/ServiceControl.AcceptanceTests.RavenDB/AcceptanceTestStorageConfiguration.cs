@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests
 {
     using System.Threading.Tasks;
-    using Persistence.RavenDb;
+    using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting;
 
