@@ -3,9 +3,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    class RavenDBInstaller : IPersistenceInstaller
+    class RavenInstaller : IPersistenceInstaller
     {
-        public RavenDBInstaller(IRavenDbPersistenceLifecycle lifecycle)
+        public RavenInstaller(IRavenPersistenceLifecycle lifecycle)
         {
             this.lifecycle = lifecycle;
         }
@@ -16,6 +16,6 @@
             await lifecycle.Stop(cancellationToken);
         }
 
-        readonly IRavenDbPersistenceLifecycle lifecycle;
+        readonly IRavenPersistenceLifecycle lifecycle;
     }
 }

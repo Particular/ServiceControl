@@ -21,9 +21,9 @@
                 logPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
                 var databaseMaintenancePort = PortUtility.FindAvailablePort(33335);
 
-                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dbPath;
-                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = logPath;
-                s.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
+                s.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dbPath;
+                s.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
+                s.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = databaseMaintenancePort.ToString();
             };
 
             //make sure to stop the global instance first

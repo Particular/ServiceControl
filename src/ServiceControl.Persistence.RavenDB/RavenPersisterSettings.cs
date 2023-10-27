@@ -2,7 +2,7 @@
 using ServiceControl.Operations;
 using ServiceControl.Persistence;
 
-class RavenDBPersisterSettings : PersistenceSettings
+class RavenPersisterSettings : PersistenceSettings
 {
     public int DatabasePort { get; set; } = DatabasePortDefault;
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;

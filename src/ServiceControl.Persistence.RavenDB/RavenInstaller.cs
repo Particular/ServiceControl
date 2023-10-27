@@ -5,9 +5,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Persistence;
 
-    class RavenDbInstaller : IPersistenceInstaller
+    class RavenInstaller : IPersistenceInstaller
     {
-        public RavenDbInstaller(ServiceCollection services)
+        public RavenInstaller(ServiceCollection services)
         {
             this.services = services;
         }

@@ -29,7 +29,7 @@
 
         static IEnumerable<ICustomCheck> GetCustomChecks()
         {
-            var serviceControlTypes = typeof(RavenDbPersistenceConfiguration).Assembly
+            var serviceControlTypes = typeof(RavenPersistenceConfiguration).Assembly
                 .GetTypes()
                 .Where(t => t.IsAbstract == false);
 
@@ -38,7 +38,7 @@
             var supportedConstructorArguments = new List<object>()
             {
                 new Settings(),
-                new RavenDBPersisterSettings
+                new RavenPersisterSettings
                 {
                     DatabasePath = "%TEMP%"
                 }

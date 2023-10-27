@@ -7,9 +7,9 @@
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
 
-    class RavenDbMonitoringDataStore : IMonitoringDataStore
+    class RavenMonitoringDataStore : IMonitoringDataStore
     {
-        public RavenDbMonitoringDataStore(IDocumentStore store)
+        public RavenMonitoringDataStore(IDocumentStore store)
         {
             this.store = store;
         }

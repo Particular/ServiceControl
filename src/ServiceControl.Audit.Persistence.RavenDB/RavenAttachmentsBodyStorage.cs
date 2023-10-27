@@ -7,7 +7,7 @@
 
     class RavenAttachmentsBodyStorage : IBodyStorage
     {
-        public RavenAttachmentsBodyStorage(IRavenDbSessionProvider sessionProvider, BulkInsertOperation bulkInsert, int settingsMaxBodySizeToStore)
+        public RavenAttachmentsBodyStorage(IRavenSessionProvider sessionProvider, BulkInsertOperation bulkInsert, int settingsMaxBodySizeToStore)
         {
             this.sessionProvider = sessionProvider;
             bulkInsertOperation = bulkInsert;
@@ -47,7 +47,7 @@
             }
         }
 
-        readonly IRavenDbSessionProvider sessionProvider;
+        readonly IRavenSessionProvider sessionProvider;
         readonly BulkInsertOperation bulkInsertOperation;
         readonly int settingsMaxBodySizeToStore;
     }

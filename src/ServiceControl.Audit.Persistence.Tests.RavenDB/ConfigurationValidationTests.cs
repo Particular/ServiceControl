@@ -12,9 +12,9 @@
         {
             var settings = BuildSettings();
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
 
-            var configuration = RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
             Assert.AreEqual(settings.AuditRetentionPeriod, configuration.AuditRetentionPeriod);
             Assert.AreEqual(settings.MaxBodySizeToStore, configuration.MaxBodySizeToStore);
@@ -27,9 +27,9 @@
             var settings = BuildSettings();
             var connectionString = "http://someserver:44444";
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = connectionString;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = connectionString;
 
-            var configuration = RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
             Assert.False(configuration.ServerConfiguration.UseEmbeddedServer);
             Assert.AreEqual(connectionString, configuration.ServerConfiguration.ConnectionString);
@@ -42,10 +42,10 @@
             var dpPath = "c://db-path";
             var logPath = "c://log-path";
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = logPath;
-            var configuration = RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings);
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "11111";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = logPath;
+            var configuration = RavenPersistenceConfiguration.GetDatabaseConfiguration(settings);
 
             Assert.True(configuration.ServerConfiguration.UseEmbeddedServer);
             Assert.AreEqual(dpPath, configuration.ServerConfiguration.DbPath);
@@ -59,9 +59,9 @@
             var settings = BuildSettings();
             var dpPath = "c://some-path";
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
 
-            Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
         [Test]
@@ -70,10 +70,10 @@
             var settings = BuildSettings();
             var dpPath = "c://some-path";
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = dpPath;
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseMaintenancePortKey] = "not an int";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = dpPath;
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseMaintenancePortKey] = "not an int";
 
-            Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
         [Test]
@@ -81,7 +81,7 @@
         {
             var settings = BuildSettings();
 
-            Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
         [Test]
@@ -89,10 +89,10 @@
         {
             var settings = BuildSettings();
 
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabasePathKey] = "path";
-            settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = "connection string";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabasePathKey] = "path";
+            settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = "connection string";
 
-            Assert.Throws<InvalidOperationException>(() => RavenDbPersistenceConfiguration.GetDatabaseConfiguration(settings));
+            Assert.Throws<InvalidOperationException>(() => RavenPersistenceConfiguration.GetDatabaseConfiguration(settings));
         }
 
         PersistenceSettings BuildSettings()

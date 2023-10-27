@@ -9,7 +9,7 @@ public class DatabaseLease : IAsyncDisposable
 
     public void CustomizeSettings(Settings settings)
     {
-        settings.PersisterSpecificSettings = new RavenDBPersisterSettings
+        settings.PersisterSpecificSettings = new RavenPersisterSettings
         {
             ErrorRetentionPeriod = TimeSpan.FromDays(10),
             ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,

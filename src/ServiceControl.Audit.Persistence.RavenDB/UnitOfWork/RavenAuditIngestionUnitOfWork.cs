@@ -12,13 +12,13 @@
     using Raven.Client.Json;
     using ServiceControl.SagaAudit;
 
-    class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
+    class RavenAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         BulkInsertOperation bulkInsert;
         TimeSpan auditRetentionPeriod;
         IBodyStorage bodyStorage;
 
-        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
+        public RavenAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
         {
             this.bulkInsert = bulkInsert;
             this.auditRetentionPeriod = auditRetentionPeriod;

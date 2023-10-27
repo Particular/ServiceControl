@@ -5,9 +5,9 @@
     using System.Threading.Tasks;
     using Raven.Client.Documents;
 
-    class RavenDbEmbeddedPersistenceLifecycle : IRavenDbPersistenceLifecycle
+    class RavenEmbeddedPersistenceLifecycle : IRavenPersistenceLifecycle
     {
-        public RavenDbEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration)
+        public RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration)
         {
             this.databaseConfiguration = databaseConfiguration;
         }

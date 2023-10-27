@@ -14,7 +14,7 @@
         readonly TimeSpan errorRetentionPeriod;
         readonly TimeSpan eventsRetentionPeriod;
 
-        public ExpirationManager(RavenDBPersisterSettings settings)
+        public ExpirationManager(RavenPersisterSettings settings)
         {
             errorRetentionPeriod = settings.ErrorRetentionPeriod;
             eventsRetentionPeriod = settings.EventsRetentionPeriod;

@@ -16,9 +16,9 @@
     using ServiceControl.SagaAudit;
     using Transformers;
 
-    class RavenDbAuditDataStore : IAuditDataStore
+    class RavenAuditDataStore : IAuditDataStore
     {
-        public RavenDbAuditDataStore(IRavenDbSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
+        public RavenAuditDataStore(IRavenSessionProvider sessionProvider, DatabaseConfiguration databaseConfiguration)
         {
             this.sessionProvider = sessionProvider;
             isFullTextSearchEnabled = databaseConfiguration.EnableFullTextSearch;
@@ -220,6 +220,6 @@
 
         bool isFullTextSearchEnabled;
 
-        readonly IRavenDbSessionProvider sessionProvider;
+        readonly IRavenSessionProvider sessionProvider;
     }
 }

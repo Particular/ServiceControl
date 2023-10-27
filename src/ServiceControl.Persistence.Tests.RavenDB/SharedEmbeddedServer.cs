@@ -14,12 +14,12 @@ static class SharedEmbeddedServer
         var dbPath = Path.Combine(basePath, "DB");
         var databasesPath = Path.Combine(dbPath, "Databases");
 
-        var settings = new RavenDBPersisterSettings
+        var settings = new RavenPersisterSettings
         {
             DatabasePath = dbPath,
             LogPath = Path.Combine(basePath, "Logs"),
             LogsMode = "Operations",
-            DatabasePort = PortUtility.FindAvailablePort(RavenDBPersisterSettings.DatabasePortDefault)
+            DatabasePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabasePortDefault)
         };
 
         var instance = EmbeddedDatabase.Start(settings);

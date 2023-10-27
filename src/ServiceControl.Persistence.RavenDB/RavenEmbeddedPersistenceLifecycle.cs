@@ -7,9 +7,9 @@
     using Raven.Client.Documents;
     using ServiceControl.Persistence;
 
-    class RavenDbEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
+    class RavenEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
     {
-        public RavenDbEmbeddedPersistenceLifecycle(RavenDBPersisterSettings databaseConfiguration)
+        public RavenEmbeddedPersistenceLifecycle(RavenPersisterSettings databaseConfiguration)
         {
             this.databaseConfiguration = databaseConfiguration;
         }
@@ -40,9 +40,9 @@
         IDocumentStore documentStore;
         EmbeddedDatabase database;
 
-        readonly RavenDBPersisterSettings databaseConfiguration;
+        readonly RavenPersisterSettings databaseConfiguration;
 
-        ~RavenDbEmbeddedPersistenceLifecycle()
+        ~RavenEmbeddedPersistenceLifecycle()
         {
             Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
         }

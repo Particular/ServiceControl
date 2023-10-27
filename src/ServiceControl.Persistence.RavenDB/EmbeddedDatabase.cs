@@ -16,7 +16,7 @@
 
     public class EmbeddedDatabase : IDisposable
     {
-        EmbeddedDatabase(RavenDBPersisterSettings configuration)
+        EmbeddedDatabase(RavenPersisterSettings configuration)
         {
             this.configuration = configuration;
             ServerUrl = configuration.ServerUrl;
@@ -44,7 +44,7 @@
             }
         }
 
-        internal static EmbeddedDatabase Start(RavenDBPersisterSettings settings)
+        internal static EmbeddedDatabase Start(RavenPersisterSettings settings)
         {
             var licenseFileNameAndServerDirectory = GetRavenLicenseFileNameAndServerDirectory();
 
@@ -149,7 +149,7 @@
             EmbeddedServer.Instance?.Dispose();
         }
 
-        static void RecordStartup(RavenDBPersisterSettings settings)
+        static void RecordStartup(RavenPersisterSettings settings)
         {
             var dataSize = DataSize(settings);
             var folderSize = FolderSize(settings);
@@ -163,7 +163,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
             logger.Info(startupMessage);
         }
 
-        static long DataSize(RavenDBPersisterSettings settings)
+        static long DataSize(RavenPersisterSettings settings)
         {
             var datafilePath = Path.Combine(settings.DatabasePath, "Databases", settings.DatabaseName, "Raven.voron");
 
@@ -182,7 +182,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
             }
         }
 
-        static long FolderSize(RavenDBPersisterSettings settings)
+        static long FolderSize(RavenPersisterSettings settings)
         {
             try
             {
@@ -218,7 +218,7 @@ Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.
         }
         CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
         bool restartRequired;
-        readonly RavenDBPersisterSettings configuration;
+        readonly RavenPersisterSettings configuration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();

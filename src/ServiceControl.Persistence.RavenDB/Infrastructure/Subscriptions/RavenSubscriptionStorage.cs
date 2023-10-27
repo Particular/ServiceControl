@@ -19,14 +19,14 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.RavenDB.Infrastructure;
 
-    class RavenDbSubscriptionStorage : IServiceControlSubscriptionStorage
+    class RavenSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public RavenDbSubscriptionStorage(IDocumentStore store, ReadOnlySettings settings) :
+        public RavenSubscriptionStorage(IDocumentStore store, ReadOnlySettings settings) :
             this(store, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
-        public RavenDbSubscriptionStorage(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
+        public RavenSubscriptionStorage(IDocumentStore store, string endpointName, string localAddress, MessageType[] locallyHandledEventTypes)
         {
             this.store = store;
             localClient = new SubscriptionClient
@@ -236,7 +236,7 @@
 
         SemaphoreSlim subscriptionsLock = new SemaphoreSlim(1);
 
-        static ILog logger = LogManager.GetLogger<RavenDbSubscriptionStorage>();
+        static ILog logger = LogManager.GetLogger<RavenSubscriptionStorage>();
     }
 
     class Subscriptions

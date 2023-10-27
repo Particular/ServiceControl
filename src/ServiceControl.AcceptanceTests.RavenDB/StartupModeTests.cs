@@ -27,9 +27,9 @@
             settings = new Settings(
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
-                persisterType: typeof(RavenDbPersistenceConfiguration).AssemblyQualifiedName)
+                persisterType: typeof(RavenPersistenceConfiguration).AssemblyQualifiedName)
             {
-                PersisterSpecificSettings = new RavenDBPersisterSettings
+                PersisterSpecificSettings = new RavenPersisterSettings
                 {
                     ErrorRetentionPeriod = TimeSpan.FromDays(1),
                     ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,

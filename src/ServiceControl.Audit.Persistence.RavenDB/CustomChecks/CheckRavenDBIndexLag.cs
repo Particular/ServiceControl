@@ -11,7 +11,7 @@
 
     class CheckRavenDBIndexLag : CustomCheck
     {
-        public CheckRavenDBIndexLag(IRavenDbDocumentStoreProvider documentStoreProvider)
+        public CheckRavenDBIndexLag(IRavenDocumentStoreProvider documentStoreProvider)
             : base("Audit Database Index Lag", "ServiceControl.Audit Health", TimeSpan.FromMinutes(5))
         {
             this.documentStoreProvider = documentStoreProvider;
@@ -84,6 +84,6 @@
         static readonly TimeSpan IndexLagThresholdError = TimeSpan.FromMinutes(10);
         static readonly ILog Log = LogManager.GetLogger<CheckRavenDBIndexLag>();
 
-        readonly IRavenDbDocumentStoreProvider documentStoreProvider;
+        readonly IRavenDocumentStoreProvider documentStoreProvider;
     }
 }

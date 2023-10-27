@@ -21,14 +21,14 @@
 
             return new Dictionary<string, string>
             {
-                { RavenDbPersistenceConfiguration.ConnectionStringKey,databaseInstance.ServerUrl },
-                { RavenDbPersistenceConfiguration.DatabaseNameKey,databaseName}
+                { RavenPersistenceConfiguration.ConnectionStringKey,databaseInstance.ServerUrl },
+                { RavenPersistenceConfiguration.DatabaseNameKey,databaseName}
             };
         }
 
         public Task Configure()
         {
-            PersistenceType = typeof(RavenDbPersistenceConfiguration).AssemblyQualifiedName;
+            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
             return Task.CompletedTask;
         }

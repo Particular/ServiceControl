@@ -8,20 +8,19 @@
     using NServiceBus.Transport;
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
-    using RavenDB;
     using ServiceControl.Infrastructure;
     using ServiceControl.MessageFailures;
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.UnitOfWork;
     using ServiceControl.Recoverability;
 
-    class RavenDbRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
+    class RavenRecoverabilityIngestionUnitOfWork : IRecoverabilityIngestionUnitOfWork
     {
-        readonly RavenDbIngestionUnitOfWork parentUnitOfWork;
+        readonly RavenIngestionUnitOfWork parentUnitOfWork;
         readonly ExpirationManager expirationManager;
         readonly bool doFullTextIndexing;
 
-        public RavenDbRecoverabilityIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenDBPersisterSettings settings)
+        public RavenRecoverabilityIngestionUnitOfWork(RavenIngestionUnitOfWork parentUnitOfWork, ExpirationManager expirationManager, RavenPersisterSettings settings)
         {
             this.parentUnitOfWork = parentUnitOfWork;
             this.expirationManager = expirationManager;

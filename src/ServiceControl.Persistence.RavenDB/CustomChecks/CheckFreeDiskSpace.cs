@@ -9,7 +9,7 @@
 
     class CheckFreeDiskSpace : CustomCheck
     {
-        public CheckFreeDiskSpace(RavenDBPersisterSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
+        public CheckFreeDiskSpace(RavenPersisterSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
         {
             dataPath = settings.DatabasePath;
             percentageThreshold = settings.DataSpaceRemainingThreshold;
@@ -42,7 +42,7 @@
                 : CheckResult.Failed($"{percentRemaining:P0} disk space remaining on data drive '{dataDriveInfo.VolumeLabel} ({dataDriveInfo.RootDirectory})' on '{Environment.MachineName}'.");
         }
 
-        public static void Validate(RavenDBPersisterSettings settings)
+        public static void Validate(RavenPersisterSettings settings)
         {
             var threshold = settings.DataSpaceRemainingThreshold;
 
@@ -50,14 +50,14 @@
 
             if (threshold < 0)
             {
-                message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, minimum value is 0.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }
 
             if (threshold > 100)
             {
-                message = $"{RavenDbPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
+                message = $"{RavenPersistenceConfiguration.DataSpaceRemainingThresholdKey} is invalid, maximum value is 100.";
                 Logger.Fatal(message);
                 throw new Exception(message);
             }

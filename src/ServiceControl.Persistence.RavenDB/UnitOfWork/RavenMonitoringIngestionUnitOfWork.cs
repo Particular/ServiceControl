@@ -6,11 +6,11 @@
     using Raven.Client.Documents.Operations;
     using ServiceControl.Persistence.UnitOfWork;
 
-    class RavenDbMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
+    class RavenMonitoringIngestionUnitOfWork : IMonitoringIngestionUnitOfWork
     {
-        RavenDbIngestionUnitOfWork parentUnitOfWork;
+        RavenIngestionUnitOfWork parentUnitOfWork;
 
-        public RavenDbMonitoringIngestionUnitOfWork(RavenDbIngestionUnitOfWork parentUnitOfWork)
+        public RavenMonitoringIngestionUnitOfWork(RavenIngestionUnitOfWork parentUnitOfWork)
         {
             this.parentUnitOfWork = parentUnitOfWork;
         }
@@ -26,7 +26,7 @@
             var document = JObject.FromObject(endpoint);
             document["@metadata"] = KnownEndpointMetadata;
 
-            var docId = RavenDbMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId());
+            var docId = RavenMonitoringDataStore.MakeDocumentId(endpoint.EndpointDetails.GetDeterministicId());
 
             var request = new PatchRequest
             {
@@ -43,7 +43,7 @@
             return new PatchCommandData(docId, null, request, request);
         }
 
-        static RavenDbMonitoringIngestionUnitOfWork()
+        static RavenMonitoringIngestionUnitOfWork()
         {
             KnownEndpointMetadata = JObject.Parse($@"
                                     {{

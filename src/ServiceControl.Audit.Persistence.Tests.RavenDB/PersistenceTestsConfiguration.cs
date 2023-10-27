@@ -21,26 +21,26 @@
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
-            var config = new RavenDbPersistenceConfiguration();
+            var config = new RavenPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
             var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
 
             setSettings(settings);
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.DatabasePathKey))
+            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
             {
                 var instance = await SharedEmbeddedServer.GetInstance();
 
-                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
             }
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenDbPersistenceConfiguration.LogPathKey))
+            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
             {
-                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
+                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
             }
 
-            if (settings.PersisterSpecificSettings.TryGetValue(RavenDbPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
+            if (settings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
             {
                 databaseName = configuredDatabaseName;
             }
@@ -48,7 +48,7 @@
             {
                 databaseName = Guid.NewGuid().ToString();
 
-                settings.PersisterSpecificSettings[RavenDbPersistenceConfiguration.DatabaseNameKey] = databaseName;
+                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
             }
 
             var persistence = config.Create(settings);
@@ -61,12 +61,12 @@
             AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
             FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
 
-            var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDbDocumentStoreProvider>();
+            var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDocumentStoreProvider>();
             DocumentStore = documentStoreProvider.GetDocumentStore();
             var bulkInsert = DocumentStore.BulkInsert(
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 
-            var sessionProvider = serviceProvider.GetRequiredService<IRavenDbSessionProvider>();
+            var sessionProvider = serviceProvider.GetRequiredService<IRavenSessionProvider>();
 
             BodyStorage = new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, settings.MaxBodySizeToStore);
             AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();

@@ -5,14 +5,14 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
+    using Indexes;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Commands;
     using Raven.Client.Documents.Commands.Batches;
-    using Indexes;
 
-    class RavenDbFailedAuditStorage : IFailedAuditStorage
+    class RavenFailedAuditStorage : IFailedAuditStorage
     {
-        public RavenDbFailedAuditStorage(IRavenDbSessionProvider sessionProvider)
+        public RavenFailedAuditStorage(IRavenSessionProvider sessionProvider)
         {
             this.sessionProvider = sessionProvider;
         }
@@ -83,6 +83,6 @@
             }
         }
 
-        readonly IRavenDbSessionProvider sessionProvider;
+        readonly IRavenSessionProvider sessionProvider;
     }
 }

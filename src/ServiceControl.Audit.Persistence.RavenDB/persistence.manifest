@@ -3,7 +3,7 @@
   "Name": "RavenDB",
   "DisplayName": "RavenDB",
   "Description": "RavenDB ServiceControl Audit persister",
-  "TypeName": "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
+  "TypeName": "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
   "Settings": [
     {
       "Name": "ServiceControl.Audit/DBPath",

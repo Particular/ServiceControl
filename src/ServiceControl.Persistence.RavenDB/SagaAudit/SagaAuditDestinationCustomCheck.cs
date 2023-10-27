@@ -11,7 +11,7 @@
         readonly State stateHolder;
         static readonly TimeSpan retentionTime = TimeSpan.FromHours(24);
 
-        public SagaAuditDestinationCustomCheck(State stateHolder, RavenDBPersisterSettings settings)
+        public SagaAuditDestinationCustomCheck(State stateHolder, RavenPersisterSettings settings)
             : base("Saga Audit Destination", "Health", settings.OverrideCustomCheckRepeatTime ?? TimeSpan.FromMinutes(15))
         {
             this.stateHolder = stateHolder;

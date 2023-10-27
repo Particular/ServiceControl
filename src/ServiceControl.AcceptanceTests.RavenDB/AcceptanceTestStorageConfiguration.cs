@@ -22,7 +22,7 @@
 
         public Task Configure()
         {
-            PersistenceType = typeof(RavenDbPersistenceConfiguration).AssemblyQualifiedName;
+            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
             return Task.CompletedTask;
         }

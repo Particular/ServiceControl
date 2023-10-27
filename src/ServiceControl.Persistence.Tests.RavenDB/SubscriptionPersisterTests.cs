@@ -16,7 +16,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForOlderVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenDbSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new RavenSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));
@@ -34,7 +34,7 @@
         [Test]
         public async Task ShouldReturnSubscriptionsForNewerVersionsOfSameMessageType()
         {
-            var subscriptionPersister = new RavenDbSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
+            var subscriptionPersister = new RavenSubscriptionStorage(documentStore, "NServiceBus.Routing.EndpointName", "TestEndpoint", new MessageType[0]);
 
             var v1MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(1, 0, 0));
             var v2MessageType = new MessageType(typeof(SampleMessageType).FullName, new Version(2, 0, 0));

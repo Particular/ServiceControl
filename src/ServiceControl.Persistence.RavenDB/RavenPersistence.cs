@@ -4,7 +4,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Unicast.Subscriptions.MessageDrivenSubscriptions;
     using Persistence.Recoverability;
-    using RavenDB;
     using Recoverability;
     using ServiceControl.CustomChecks;
     using ServiceControl.Infrastructure.RavenDB.Subscriptions;
@@ -17,9 +16,9 @@
     using ServiceControl.Recoverability;
     using ServiceControl.SagaAudit;
 
-    class RavenDbPersistence : IPersistence
+    class RavenPersistence : IPersistence
     {
-        public RavenDbPersistence(RavenDBPersisterSettings settings)
+        public RavenPersistence(RavenPersisterSettings settings)
         {
             this.settings = settings;
         }
@@ -34,12 +33,12 @@
             serviceCollection.AddSingleton<PersistenceSettings>(settings);
             serviceCollection.AddSingleton(settings);
 
-            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
+            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
             serviceCollection.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
 
-            serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
-            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
-            serviceCollection.AddUnitOfWorkFactory<RavenDbIngestionUnitOfWorkFactory>();
+            serviceCollection.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
+            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
+            serviceCollection.AddUnitOfWorkFactory<RavenIngestionUnitOfWorkFactory>();
             serviceCollection.AddSingleton<ExpirationManager>();
             serviceCollection.AddSingleton<MinimumRequiredStorageState>();
             serviceCollection.AddSingleton<IBodyStorage, RavenAttachmentsBodyStorage>();
@@ -60,19 +59,19 @@
             serviceCollection.AddSingleton<OperationsManager>();
 
             serviceCollection.AddSingleton<IArchiveMessages, MessageArchiver>();
-            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenDbCustomCheckDataStore>();
+            serviceCollection.AddSingleton<ICustomChecksDataStore, RavenCustomCheckDataStore>();
             serviceCollection.AddSingleton<IErrorMessageDataStore, ErrorMessagesDataStore>();
             serviceCollection.AddSingleton<IEventLogDataStore, EventLogDataStore>();
             serviceCollection.AddSingleton<IFailedErrorImportDataStore, FailedErrorImportDataStore>();
             serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
             serviceCollection.AddSingleton<IGroupsDataStore, GroupsDataStore>();
             serviceCollection.AddSingleton<IMessageRedirectsDataStore, MessageRedirectsDataStore>();
-            serviceCollection.AddSingleton<IMonitoringDataStore, RavenDbMonitoringDataStore>();
+            serviceCollection.AddSingleton<IMonitoringDataStore, RavenMonitoringDataStore>();
             serviceCollection.AddSingleton<IQueueAddressStore, QueueAddressStore>();
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenDbSubscriptionStorage>();
+            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
 
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
             serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
@@ -84,16 +83,16 @@
         {
             if (settings.UseEmbeddedServer)
             {
-                serviceCollection.AddSingleton<RavenDbEmbeddedPersistenceLifecycle>();
-                serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenDbEmbeddedPersistenceLifecycle>());
-                serviceCollection.AddSingleton(b => b.GetService<RavenDbEmbeddedPersistenceLifecycle>().GetDocumentStore());
+                serviceCollection.AddSingleton<RavenEmbeddedPersistenceLifecycle>();
+                serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenEmbeddedPersistenceLifecycle>());
+                serviceCollection.AddSingleton(b => b.GetService<RavenEmbeddedPersistenceLifecycle>().GetDocumentStore());
                 return;
             }
 
 
-            serviceCollection.AddSingleton<RavenDbExternalPersistenceLifecycle>();
-            serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenDbExternalPersistenceLifecycle>());
-            serviceCollection.AddSingleton(b => b.GetService<RavenDbExternalPersistenceLifecycle>().GetDocumentStore());
+            serviceCollection.AddSingleton<RavenExternalPersistenceLifecycle>();
+            serviceCollection.AddSingleton<IPersistenceLifecycle>(b => b.GetService<RavenExternalPersistenceLifecycle>());
+            serviceCollection.AddSingleton(b => b.GetService<RavenExternalPersistenceLifecycle>().GetDocumentStore());
         }
 
         public IPersistenceInstaller CreateInstaller()
@@ -102,9 +101,9 @@
             ConfigureLifecycle(serviceCollection);
 
             serviceCollection.AddSingleton(settings);
-            return new RavenDbInstaller(serviceCollection);
+            return new RavenInstaller(serviceCollection);
         }
 
-        readonly RavenDBPersisterSettings settings;
+        readonly RavenPersisterSettings settings;
     }
 }

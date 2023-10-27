@@ -20,7 +20,7 @@
         , IAsyncDisposable
     {
 
-        public ExternalIntegrationRequestsDataStore(RavenDBPersisterSettings settings, IDocumentStore documentStore, CriticalError criticalError)
+        public ExternalIntegrationRequestsDataStore(RavenPersisterSettings settings, IDocumentStore documentStore, CriticalError criticalError)
         {
             this.settings = settings;
             this.documentStore = documentStore;
@@ -205,7 +205,7 @@
             circuitBreaker?.Dispose();
         }
 
-        readonly RavenDBPersisterSettings settings;
+        readonly RavenPersisterSettings settings;
         readonly IDocumentStore documentStore;
         readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
         readonly RepeatedFailuresOverTimeCircuitBreaker circuitBreaker;

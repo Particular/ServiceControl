@@ -13,7 +13,7 @@
 
     class DatabaseSetup
     {
-        public DatabaseSetup(RavenDBPersisterSettings settings)
+        public DatabaseSetup(RavenPersisterSettings settings)
         {
             this.settings = settings;
         }
@@ -48,6 +48,6 @@
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
         }
 
-        readonly RavenDBPersisterSettings settings;
+        readonly RavenPersisterSettings settings;
     }
 }

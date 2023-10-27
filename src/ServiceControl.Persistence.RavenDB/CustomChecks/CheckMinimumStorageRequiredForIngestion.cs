@@ -12,7 +12,7 @@
     {
         public CheckMinimumStorageRequiredForIngestion(
             MinimumRequiredStorageState stateHolder,
-            RavenDBPersisterSettings settings)
+            RavenPersisterSettings settings)
             : base("Message Ingestion Process", "ServiceControl Health", TimeSpan.FromSeconds(5))
         {
             this.stateHolder = stateHolder;
@@ -56,7 +56,7 @@
             return CheckResult.Failed(message);
         }
 
-        public static void Validate(RavenDBPersisterSettings settings)
+        public static void Validate(RavenPersisterSettings settings)
         {
             int threshold = settings.MinimumStorageLeftRequiredForIngestion;
 
@@ -79,7 +79,7 @@
         public const int MinimumStorageLeftRequiredForIngestionDefault = 5;
 
         readonly MinimumRequiredStorageState stateHolder;
-        readonly RavenDBPersisterSettings settings;
+        readonly RavenPersisterSettings settings;
         readonly string dataPathRoot;
 
         decimal percentageThreshold;

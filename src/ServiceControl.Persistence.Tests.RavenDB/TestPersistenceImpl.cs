@@ -26,7 +26,7 @@
 
             TestContext.Out.WriteLine($"Test Database Name: {databaseName}");
 
-            Settings = new RavenDBPersisterSettings
+            Settings = new RavenPersisterSettings
             {
                 AuditRetentionPeriod = retentionPeriod,
                 ErrorRetentionPeriod = retentionPeriod,
@@ -38,7 +38,7 @@
 
         public override void Configure(IServiceCollection services)
         {
-            var persistence = new RavenDbPersistenceConfiguration().Create(Settings);
+            var persistence = new RavenPersistenceConfiguration().Create(Settings);
             PersistenceHostBuilderExtensions.CreatePersisterLifecyle(services, persistence);
             services.AddHostedService(p => new FakeServiceToExtractDocumentStore(this, p.GetRequiredService<IDocumentStore>()));
         }

@@ -6,9 +6,9 @@
     using Raven.Client.Documents;
     using Raven.Client.Documents.Conventions;
 
-    class RavenDbExternalPersistenceLifecycle : IRavenDbPersistenceLifecycle
+    class RavenExternalPersistenceLifecycle : IRavenPersistenceLifecycle
     {
-        public RavenDbExternalPersistenceLifecycle(DatabaseConfiguration configuration)
+        public RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration)
         {
             this.configuration = configuration;
         }

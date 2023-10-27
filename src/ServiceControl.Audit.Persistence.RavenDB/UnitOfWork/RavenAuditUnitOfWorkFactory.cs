@@ -5,9 +5,9 @@
     using RavenDB;
     using ServiceControl.Audit.Persistence.RavenDB.CustomChecks;
 
-    class RavenDbAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
+    class RavenAuditIngestionUnitOfWorkFactory : IAuditIngestionUnitOfWorkFactory
     {
-        public RavenDbAuditIngestionUnitOfWorkFactory(IRavenDbDocumentStoreProvider documentStoreProvider, IRavenDbSessionProvider sessionProvider,
+        public RavenAuditIngestionUnitOfWorkFactory(IRavenDocumentStoreProvider documentStoreProvider, IRavenSessionProvider sessionProvider,
             DatabaseConfiguration databaseConfiguration, CheckMinimumStorageRequiredForAuditIngestion.State customCheckState)
         {
             this.documentStoreProvider = documentStoreProvider;
@@ -22,7 +22,7 @@
                 .BulkInsert(
                 options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 
-            return new RavenDbAuditIngestionUnitOfWork(
+            return new RavenAuditIngestionUnitOfWork(
                 bulkInsert, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
             );
         }
@@ -32,8 +32,8 @@
             return customCheckState.CanIngestMore;
         }
 
-        readonly IRavenDbDocumentStoreProvider documentStoreProvider;
-        readonly IRavenDbSessionProvider sessionProvider;
+        readonly IRavenDocumentStoreProvider documentStoreProvider;
+        readonly IRavenSessionProvider sessionProvider;
         readonly DatabaseConfiguration databaseConfiguration;
         readonly CheckMinimumStorageRequiredForAuditIngestion.State customCheckState;
     }

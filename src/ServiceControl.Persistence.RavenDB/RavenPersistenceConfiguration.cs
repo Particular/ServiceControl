@@ -3,7 +3,7 @@
     using System;
     using ServiceControl.Operations;
 
-    class RavenDbPersistenceConfiguration : IPersistenceConfiguration
+    class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
         public const string DataSpaceRemainingThresholdKey = "DataSpaceRemainingThreshold";
         const string AuditRetentionPeriodKey = "AuditRetentionPeriod";
@@ -40,12 +40,12 @@
                 }
             }
 
-            var settings = new RavenDBPersisterSettings
+            var settings = new RavenPersisterSettings
             {
                 ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
-                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenDBPersisterSettings.DatabaseNameDefault),
+                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
-                DatabasePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenDBPersisterSettings.DatabasePortDefault),
+                DatabasePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabasePortDefault),
                 ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
                 MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
                 DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
@@ -55,7 +55,7 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
-                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenDBPersisterSettings.LogsModeDefault),
+                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenPersisterSettings.LogsModeDefault),
                 EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
 
@@ -66,14 +66,14 @@
 
         public IPersistence Create(PersistenceSettings settings)
         {
-            var specificSettings = (RavenDBPersisterSettings)settings;
+            var specificSettings = (RavenPersisterSettings)settings;
 
             //var documentStore = new EmbeddableDocumentStore();
             //RavenBootstrapper.Configure(documentStore, specificSettings);
 
             //var ravenStartup = new RavenStartup();
 
-            return new RavenDbPersistence(specificSettings);
+            return new RavenPersistence(specificSettings);
         }
     }
 }

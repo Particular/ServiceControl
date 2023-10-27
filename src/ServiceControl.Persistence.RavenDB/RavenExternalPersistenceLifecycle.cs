@@ -7,9 +7,9 @@
     using Raven.Client.Documents.Conventions;
     using ServiceControl.Persistence;
 
-    class RavenDbExternalPersistenceLifecycle : IPersistenceLifecycle, IDisposable
+    class RavenExternalPersistenceLifecycle : IPersistenceLifecycle, IDisposable
     {
-        public RavenDbExternalPersistenceLifecycle(RavenDBPersisterSettings settings)
+        public RavenExternalPersistenceLifecycle(RavenPersisterSettings settings)
         {
             this.settings = settings;
         }
@@ -51,6 +51,6 @@
 
         IDocumentStore documentStore;
 
-        readonly RavenDBPersisterSettings settings;
+        readonly RavenPersisterSettings settings;
     }
 }

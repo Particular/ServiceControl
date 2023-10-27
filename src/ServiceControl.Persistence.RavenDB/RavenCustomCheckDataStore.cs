@@ -11,9 +11,9 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class RavenDbCustomCheckDataStore : ICustomChecksDataStore
+    class RavenCustomCheckDataStore : ICustomChecksDataStore
     {
-        public RavenDbCustomCheckDataStore(IDocumentStore store)
+        public RavenCustomCheckDataStore(IDocumentStore store)
         {
             this.store = store;
         }

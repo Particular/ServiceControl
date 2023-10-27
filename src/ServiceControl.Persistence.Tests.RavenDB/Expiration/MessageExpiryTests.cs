@@ -23,7 +23,7 @@
         [SetUp]
         public async Task Setup()
         {
-            var settings = (RavenDBPersisterSettings)PersistenceSettings;
+            var settings = (RavenPersisterSettings)PersistenceSettings;
 
             settings.ErrorRetentionPeriod = TimeSpan.FromMilliseconds(1);
             settings.EventsRetentionPeriod = TimeSpan.FromMilliseconds(1);

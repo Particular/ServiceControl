@@ -3,7 +3,7 @@
   "Name": "RavenDB",
   "DisplayName": "RavenDB",
   "Description": "RavenDB ServiceControl persister",
-  "TypeName": "ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDB",
+  "TypeName": "ServiceControl.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Persistence.RavenDB",
   "Settings": [
     {
       "Name": "ServiceControl/DBPath",

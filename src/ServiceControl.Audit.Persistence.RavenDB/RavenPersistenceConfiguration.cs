@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using NServiceBus.Logging;
 
-    public class RavenDbPersistenceConfiguration : IPersistenceConfiguration
+    public class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
         public const string DatabaseNameKey = "RavenDB5/DatabaseName";
         public const string DatabasePathKey = "DbPath";
@@ -32,7 +32,7 @@
         {
             var databaseConfiguration = GetDatabaseConfiguration(settings);
 
-            return new RavenDBPersistence(databaseConfiguration);
+            return new RavenPersistence(databaseConfiguration);
         }
 
         internal static DatabaseConfiguration GetDatabaseConfiguration(PersistenceSettings settings)
@@ -147,7 +147,7 @@
             return expirationProcessTimerInSeconds;
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(RavenDbPersistenceConfiguration));
+        static ILog logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
     }
