@@ -48,10 +48,9 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
             }
         }
 
-        if (ForcedUpgradeAllowed(model) == false)
+        if (!ForcedUpgradeAllowed(model))
         {
-            await windowManager.ShowMessage("Cannot run the command",
-                "Only ver. 4.x primary instance that use RavenDB ver. 3.5 can be forced upgraded.");
+            await windowManager.ShowMessage("Cannot run the command", "Only ver. 4.x primary instance that use RavenDB ver. 3.5 can be forced upgraded.");
 
             return;
         }
@@ -98,7 +97,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
             reportCard = await Task.Run(() =>
             {
                 //HINT: we wipe out the database before we continue with the upgrade
-                FileUtils.DeleteDirectory(instance.DBPath, true, true);
+                FileUtils.DeleteDirectory(instance.DBPath, recursive: true, contentsOnly: true);
                 instance.PersistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests.Single(pm => pm.Name == StorageEngineNames.RavenDB5);
 
                 return serviceControlInstaller.Upgrade(instance, upgradeOptions, progress);

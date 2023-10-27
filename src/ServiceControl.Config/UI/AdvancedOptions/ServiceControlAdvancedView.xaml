@@ -119,14 +119,14 @@
                             BorderThickness="0,0,0,1">
                         <TextBlock FontSize="13px"
                                    FontWeight="Bold"
-                                   Text="FORCE UPGRADE TO VERSION 5"  
+                                   Text="FORCE UPGRADE TO VERSION 5"
                         />
                     </Border>
 
                     <TextBlock FontSize="12px" 
                                TextWrapping="Wrap" 
                                Margin="0,0,0,20">
-                        Forced upgrade to version 5 will delete any data stored by the instance.<LineBreak /> 
+                        Forced upgrade to version 5 deletes any data stored by the instance.<LineBreak /> 
                         If you want to preserve the error data follow
                         <Hyperlink Command="{Binding OpenUrl}" CommandParameter="https://docs.particular.net/servicecontrol/upgrades/4to5/">
                             the version 4 to 5 upgrade guide
