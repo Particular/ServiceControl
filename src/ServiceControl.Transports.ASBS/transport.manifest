@@ -5,7 +5,9 @@
       "Name": "NetStandardAzureServiceBus",
       "DisplayName": "Azure Service Bus",
       "TypeName": "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
-      "Aliases": [ "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus" ]
+      "Aliases": [
+        "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus"
+      ]
     }    
   ]
 }

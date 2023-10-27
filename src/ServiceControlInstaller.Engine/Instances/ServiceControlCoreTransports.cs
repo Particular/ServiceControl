@@ -54,7 +54,7 @@
             {
                 DisplayName = TransportNames.MSMQ,
                 TypeName = "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
-                ZipName = "Msmq",
+                ZipName = "MSMQ",
                 SampleConnectionString = string.Empty,
                 Default = true,
                 AvailableInSCMU = true,
@@ -141,7 +141,7 @@
             {
                 DisplayName = TransportNames.SQLServer,
                 TypeName = "ServiceControl.Transports.SqlServer.SqlServerTransportCustomization, ServiceControl.Transports.SqlServer",
-                ZipName = "SqlServer",
+                ZipName = "SQLServer",
                 SampleConnectionString = "Data Source=<SQLInstance>;Initial Catalog=nservicebus;Integrated Security=True;Queue Schema=myschema;Subscriptions Table=tablename@schema@catalog",
                 AvailableInSCMU = true,
                 Help = "Specify optional 'Queue Schema' to override the default schema. Specify optional 'Subscriptions Table' to override the default subscriptions table location. When integrated authentication is specified in the SQL connection string the the current installing user is used to create the required SQL tables structure not the service account.",

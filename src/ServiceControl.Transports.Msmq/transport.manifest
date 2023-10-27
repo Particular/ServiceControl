@@ -5,7 +5,9 @@
       "Name": "MSMQ",
       "DisplayName": "MSMQ",
       "TypeName": "ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq",
-      "Aliases": [ "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq" ]
+      "Aliases": [
+        "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq"
+      ]
     }
   ]
 }

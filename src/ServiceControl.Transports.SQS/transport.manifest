@@ -5,7 +5,10 @@
       "Name": "AmazonSQS",
       "DisplayName": "AmazonSQS",
       "TypeName": "ServiceControl.Transports.SQS.SQSTransportCustomization, ServiceControl.Transports.SQS",
-      "Aliases": [ "NServiceBus.SqsTransport, NServiceBus.AmazonSQS", "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS" ]
+      "Aliases": [
+        "NServiceBus.SqsTransport, NServiceBus.AmazonSQS",
+        "ServiceControl.Transports.AmazonSQS.ServiceControlSqsTransport, ServiceControl.Transports.AmazonSQS"
+      ]
     }
   ]
 }
