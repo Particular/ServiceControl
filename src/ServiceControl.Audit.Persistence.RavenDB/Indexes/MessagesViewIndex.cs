@@ -33,7 +33,10 @@ namespace ServiceControl.Audit.Persistence.RavenDb.Indexes
 
             Index(x => x.Query, FieldIndexing.Search);
 
-            // Not using typeof() to prevent dependency on Lucene
+            // Not using typeof() to prevent dependency on Lucene.
+            // Unfortunately while "StandardAnalyzer" would probably be better and more future-proof here,
+            // we can't change this string without causing any existing audit database to completely rebuild this index.
+            // If this index *must* be changed for some other reason, the analyzer name should be changed at the same time.
             Analyze(x => x.Query, "Lucene.Net.Analysis.Standard.StandardAnalyzer, Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181");
         }
 
