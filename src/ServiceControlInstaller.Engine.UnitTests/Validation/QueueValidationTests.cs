@@ -116,7 +116,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var instanceA = new FakeServiceControlInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find("MSMQ"),
                 ErrorQueue = @"error",
                 ErrorLogQueue = @"errorlog",
                 ForwardErrorMessages = true
@@ -124,7 +124,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var instanceB = new FakeServiceControlInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.DisplayName == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
+                TransportPackage = ServiceControlCoreTransports.Find("RabbitMQ.QuorumConventionalRouting"),
                 ErrorQueue = @"RMQerror",
                 ErrorLogQueue = @"RMQerrorlog",
                 ForwardErrorMessages = true,
@@ -252,7 +252,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("RabbitMQ.QuorumConventionalRouting");
             newInstance.ErrorLogQueue = "errorlog";
             newInstance.ErrorQueue = "error";
             newInstance.ForwardErrorMessages = true;
@@ -285,7 +285,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.RabbitMQQuorumConventionalRoutingTopology);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("RabbitMQ.QuorumConventionalRouting");
             newInstance.ErrorQueue = "RMQerror";
             newInstance.ErrorLogQueue = "RMQerrorlog";
             newInstance.ConnectionString = "afakeconnectionstring";
