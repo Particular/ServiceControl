@@ -56,7 +56,7 @@ namespace ServiceControl.Management.PowerShell
         public string ErrorLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopologyDeprecated, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQClassicDirectRoutingTopology, TransportNames.RabbitMQQuorumDirectRoutingTopology, TransportNames.RabbitMQClassicConventionalRoutingTopology, TransportNames.RabbitMQQuorumConventionalRoutingTopology, TransportNames.AmazonSQS)]
+        [ValidateTransport]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]

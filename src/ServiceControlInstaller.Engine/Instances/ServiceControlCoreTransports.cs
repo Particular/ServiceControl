@@ -41,6 +41,21 @@
             }
         }
 
+        public static IEnumerable<string> GetTransportNames(bool includeDisplayNames)
+        {
+            foreach (var transport in All)
+            {
+                if (transport.AvailableInSCMU)
+                {
+                    yield return transport.Name;
+                    if (includeDisplayNames)
+                    {
+                        yield return transport.DisplayName;
+                    }
+                }
+            }
+        }
+
         static bool IncludeLearningTransport()
         {
             try
