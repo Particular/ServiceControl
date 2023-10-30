@@ -105,6 +105,8 @@ namespace ServiceControl.Management.PowerShell
         {
             AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
 
+            var transport = ServiceControlCoreTransports.Find(Transport);
+
             if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
@@ -115,9 +117,9 @@ namespace ServiceControl.Management.PowerShell
                 throw new Exception($"MSMQ transport no longer uses a connectionString");
             }
 
-            if (TransportNames.IsDeprecated(Transport))
+            if (!transport.AvailableInSCMU)
             {
-                WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
+                WriteWarning($"The transport '{Transport}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
             }
 
             if (string.IsNullOrWhiteSpace(HostName))
