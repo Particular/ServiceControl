@@ -143,7 +143,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.ErrorLogQueue = "errorlog";
             newInstance.ErrorQueue = "error";
 
@@ -159,13 +159,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var existingAudit = new FakeServiceControlAuditInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find("MSMQ"),
                 AuditQueue = @"audit"
             };
 
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.AuditQueue = "audit";
 
             var validator = new QueueNameValidator(newInstance)
@@ -181,7 +181,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.ErrorLogQueue = "error";
             newInstance.ErrorQueue = "error";
             newInstance.ForwardErrorMessages = true;
@@ -200,7 +200,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.ErrorLogQueue = "errorlog2";
             newInstance.ErrorQueue = "error2";
 
@@ -217,7 +217,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
             var newInstance = ServiceControlNewInstance.CreateWithDefaultPersistence();
             {
-                newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.DisplayName == TransportNames.MSMQ);
+                newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
                 newInstance.ErrorLogQueue = "errorlog";
                 newInstance.ErrorQueue = "error";
                 newInstance.ForwardErrorMessages = true;

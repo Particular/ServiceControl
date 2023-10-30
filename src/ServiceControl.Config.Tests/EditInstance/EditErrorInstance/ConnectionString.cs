@@ -25,7 +25,7 @@
 
         public static ServiceControlEditViewModel When_MSQMQ_transport_is_selected(this ServiceControlEditViewModel viewModel)
         {
-            var transportInfo = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
+            var transportInfo = ServiceControlCoreTransports.Find("MSMQ");
 
             viewModel.SelectedTransport = transportInfo;
 
@@ -48,7 +48,7 @@
                 .When_MSQMQ_transport_is_selected();
 
             Assert.IsFalse(viewModel.ShowConnectionString);
-            Assert.AreEqual(TransportNames.MSMQ, viewModel.SelectedTransport.DisplayName);
+            Assert.AreEqual("MSMQ", viewModel.SelectedTransport.Name);
             Assert.IsEmpty(viewModel.SampleConnectionString);
             Assert.IsNull(viewModel.TransportWarning);
         }

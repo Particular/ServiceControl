@@ -104,9 +104,14 @@
 
             var transport = ServiceControlCoreTransports.Find(Transport);
 
-            if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
+            if (transport.SampleConnectionString is not null && string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
+            }
+
+            if (transport.SampleConnectionString is null && !string.IsNullOrEmpty(ConnectionString))
+            {
+                throw new Exception($"'{Transport}' does not use a connection string.");
             }
 
             if (!transport.AvailableInSCMU)

@@ -37,7 +37,7 @@
                 }
 
                 newInstance.InstallPath = installPath;
-                newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.DisplayName == TransportNames.MSMQ);
+                newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
 
                 newInstance.DBPath = dbPath;
                 newInstance.LogPath = logPath;

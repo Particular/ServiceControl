@@ -17,7 +17,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.DisplayName == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
 
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;

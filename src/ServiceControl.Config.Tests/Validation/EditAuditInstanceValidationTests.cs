@@ -49,7 +49,7 @@
 
         }
 
-        [TestCase(TransportNames.MSMQ)]
+        [TestTheseTransports("MSMQ")]
         public void Transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_audit_instance(
            string transportInfoName)
         {
@@ -67,7 +67,7 @@
             Assert.IsEmpty(errors);
         }
 
-        [TestCase(TransportNames.MSMQ)]
+        [TestTheseTransports("MSMQ")]
         public void Transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_audit_instance(
             string transportInfoName)
         {

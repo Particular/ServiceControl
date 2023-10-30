@@ -4,7 +4,6 @@
     using System.Data.Common;
     using System.Linq;
     using Accounts;
-    using Instances;
     using Microsoft.Data.SqlClient;
 
     class ConnectionStringValidator
