@@ -7,10 +7,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public const string MSMQ = "MSMQ";
 
-        public const string SQLServer = "SQL Server";
 
-
-
-        public const string LearningTransport = "Learning";
     }
 }

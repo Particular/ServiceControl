@@ -2,10 +2,10 @@
 {
     using System;
     using System.Data.Common;
-    using Microsoft.Data.SqlClient;
     using System.Linq;
     using Accounts;
     using Instances;
+    using Microsoft.Data.SqlClient;
 
     class ConnectionStringValidator
     {
@@ -18,7 +18,7 @@
         public static void Validate(IServiceControlAuditInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage.DisplayName.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
+            if (instance.TransportPackage.Name == "SQLServer")
             {
                 validator.CheckMsSqlConnectionString();
             }
@@ -27,7 +27,7 @@
         public static void Validate(IServiceControlInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage.DisplayName.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
+            if (instance.TransportPackage.Name == "SQLServer")
             {
                 validator.CheckMsSqlConnectionString();
             }
@@ -36,7 +36,7 @@
         public static void Validate(IMonitoringInstance instance)
         {
             var validator = new ConnectionStringValidator(instance.ConnectionString, instance.ServiceAccount);
-            if (instance.TransportPackage.DisplayName.Equals(TransportNames.SQLServer, StringComparison.OrdinalIgnoreCase))
+            if (instance.TransportPackage.Name == "SQLServer")
             {
                 validator.CheckMsSqlConnectionString();
             }
