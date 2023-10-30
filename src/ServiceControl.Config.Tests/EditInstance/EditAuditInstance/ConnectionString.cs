@@ -52,21 +52,18 @@
             Assert.IsNull(viewModel.TransportWarning);
         }
 
-        [TestCase(TransportNames.AmazonSQS, true)]
-        [TestCase(TransportNames.AzureServiceBus, false)]
-        [TestCase(TransportNames.SQLServer, true)]
-        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology, false)]
-        [TestCase(TransportNames.AzureStorageQueue, true)]
-        public void Non_MSMQ_transport_is_selected(string transportInfoName, bool showTransportWarning)
+        [TestAllTransportsExcept("MSMQ")]
+        public void Non_MSMQ_transport_is_selected(string transportInfoName)
         {
             var viewModel = Given_an_audit_instance()
                 .When_a_transport_is_selected(transportInfoName);
 
             Assert.IsTrue(viewModel.ShowConnectionString);
-            Assert.AreEqual(transportInfoName, viewModel.SelectedTransport.DisplayName);
+            StringAssert.StartsWith(transportInfoName, viewModel.SelectedTransport.Name);
             Assert.IsNotEmpty(viewModel.SampleConnectionString);
-            if (showTransportWarning)
+            if (transportInfoName is "SQLServer" or "AmazonSQS" or "AzureStorageQueue")
             {
+                Assert.IsNotNull(viewModel.TransportWarning);
                 Assert.IsNotEmpty(viewModel.TransportWarning);
             }
             else
