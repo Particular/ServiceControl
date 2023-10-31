@@ -20,13 +20,13 @@
                 .Where(name => name.EndsWith("transport.manifest"))
                 .ToArray();
 
-            var includeLearning = IncludeLearningTransport();
-
             All = resourceNames
                 .SelectMany(name => Load(assembly, name))
-                .Where(manifest => includeLearning || manifest.Name != "LearningTransport")
                 .OrderBy(m => m.Name)
                 .ToArray();
+
+            // Filtered by environment variable in SCMU, needs to be available all the time for PowerShell
+            Find("LearningTransport").AvailableInSCMU = IncludeLearningTransport();
         }
 
         static TransportInfo[] Load(Assembly assembly, string resourceName)
