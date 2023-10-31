@@ -28,7 +28,7 @@
         internal bool IsMatch(string persistenceType) =>
             string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
             || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
-            || Aliases.Contains(persistenceType);
+            || Aliases.Contains(persistenceType, StringComparer.Ordinal);
     }
 
     public static class PersistenceManifestLibrary
