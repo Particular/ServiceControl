@@ -4,7 +4,7 @@ using ServiceControl.Persistence;
 
 class RavenPersisterSettings : PersistenceSettings
 {
-    public int DatabasePort { get; set; } = DatabasePortDefault;
+    public int DatabaseMaintenancePort { get; set; } = DatabaseMaintenancePortDefault;
     public int ExpirationProcessTimerInSeconds { get; set; } = ExpirationProcessTimerInSecondsDefault;
     public int MinimumStorageLeftRequiredForIngestion { get; set; } = CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault;
     public int DataSpaceRemainingThreshold { get; set; } = CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault;
@@ -16,7 +16,7 @@ class RavenPersisterSettings : PersistenceSettings
     /// <summary>
     /// Computed connection string to access embedded RavenDB API and RavenDB Studio
     /// </summary>
-    public string ServerUrl => $"http://localhost:{DatabasePort}";
+    public string ServerUrl => $"http://localhost:{DatabaseMaintenancePort}";
 
     /// <summary>
     /// User provided external RavenDB instance connection string
@@ -28,7 +28,7 @@ class RavenPersisterSettings : PersistenceSettings
     public string DatabaseName { get; set; } = DatabaseNameDefault;
 
     public const string DatabaseNameDefault = "primary";
-    public const int DatabasePortDefault = 33334;
+    public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
     public const string LogsModeDefault = "Operations";
 }
