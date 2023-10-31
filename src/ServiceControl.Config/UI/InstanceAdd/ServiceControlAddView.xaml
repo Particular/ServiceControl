@@ -39,7 +39,7 @@
                     </Border>
 
                     <controls:FormComboBox HorizontalAlignment="Stretch"
-                                           DisplayMemberPath="Name"
+                                           DisplayMemberPath="DisplayName"
                                            Header="TRANSPORT"
                                            ItemsSource="{Binding Transports}"
                                            SelectedItem="{Binding SelectedTransport}" />

@@ -231,7 +231,7 @@
         <GroupBox Grid.Row="8"
                   Header="TRANSPORT"
                   HeaderTemplate="{StaticResource SimpleHeaderedGroupBox}">
-            <TextBlock FontSize="14px" Text="{Binding Transport.Name}" TextWrapping="WrapWithOverflow" />
+            <TextBlock FontSize="14px" Text="{Binding Transport.DisplayName}" TextWrapping="WrapWithOverflow" />
         </GroupBox>
         <GroupBox Grid.Row="8"
                    Grid.Column="1"
