@@ -26,8 +26,8 @@
         public string[] Aliases { get; set; } = Array.Empty<string>();
 
         internal bool IsMatch(string persistenceType) =>
-            string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
-            || string.Compare(Name, persistenceType, true) == 0
+            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
             || Aliases.Contains(persistenceType);
     }
 

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
 
     public class PersistenceManifest
@@ -18,15 +17,15 @@
 
         public bool IsSupported { get; set; } = true;
 
-        public IList<Setting> Settings { get; set; } = new List<Setting>();
+        public Setting[] Settings { get; set; } = Array.Empty<Setting>();
 
-        public IList<string> SettingsWithPathsToCleanup { get; set; } = new List<string>();
+        public string[] SettingsWithPathsToCleanup { get; set; } = Array.Empty<string>();
 
         public string[] Aliases { get; set; } = Array.Empty<string>();
 
         internal bool IsMatch(string persistenceType) =>
-            string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
-            || string.Compare(Name, persistenceType, true) == 0
+            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
             || Aliases.Contains(persistenceType);
 
         public class Setting
