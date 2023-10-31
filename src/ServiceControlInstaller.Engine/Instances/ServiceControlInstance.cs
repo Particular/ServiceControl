@@ -113,17 +113,16 @@ namespace ServiceControlInstaller.Engine.Instances
             Description = GetDescription();
             ServiceAccount = Service.Account;
 
-            var manifests = ServiceControlPersisters.PrimaryPersistenceManifests;
             var persistenceType = AppConfig.Read<string>(ServiceControlSettings.PersistenceType, null);
 
             if (string.IsNullOrEmpty(persistenceType))
             {
                 // Must always remain RavenDB35 so that SCMU understands that an instance with no configured value is an old Raven 3.5 instance
-                PersistenceManifest = manifests.Single(m => m.Name == "RavenDB35");
+                PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence("RavenDB35");
             }
             else
             {
-                PersistenceManifest = manifests.Single(m => m.TypeName == persistenceType);
+                PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(persistenceType);
             }
 
             ForwardErrorMessages = AppConfig.Read(ServiceControlSettings.ForwardErrorMessages, false);

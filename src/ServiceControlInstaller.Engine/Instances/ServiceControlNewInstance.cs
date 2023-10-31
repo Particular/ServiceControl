@@ -16,14 +16,13 @@ namespace ServiceControlInstaller.Engine.Instances
     {
         public static ServiceControlNewInstance CreateWithDefaultPersistence()
         {
-            const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB5;
+            const string persisterUsedForBrandNewInstances = StorageEngineNames.RavenDB;
             return CreateWithPersistence(persisterUsedForBrandNewInstances);
         }
 
         public static ServiceControlNewInstance CreateWithPersistence(string persistence)
         {
-            var persistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests
-                .Single(manifest => manifest.Name == persistence);
+            var persistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(persistence);
 
             return new ServiceControlNewInstance(persistenceManifest);
         }

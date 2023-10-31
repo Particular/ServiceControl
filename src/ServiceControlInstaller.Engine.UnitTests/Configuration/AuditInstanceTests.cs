@@ -43,7 +43,9 @@
             instance.Reload();
 
             instance.UpgradeFiles(zipResourceName);
+            // Don't want any persistence DLL, bit awkward but serves the purpose of the test
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb.dll"));
+            FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll"));
             FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));
 
             var manifestFilePath = Path.Combine(InstallPath, "persistence.manifest");
@@ -54,7 +56,7 @@
         [Test]
         public void Should_update_existing_persister()
         {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB5");
+            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB");
 
             newInstance.InstallPath = InstallPath;
             newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
@@ -71,7 +73,7 @@
 
             instance.Reload();
 
-            var persisterFilePath = Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll");
+            var persisterFilePath = Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll");
 
             //delete the persitence dll to make sure it gets re-installed
             File.Delete(persisterFilePath);
@@ -83,7 +85,6 @@
         [Test]
         public void Should_remove_log_and_db_folders_on_uninstall()
         {
-
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
@@ -96,13 +97,6 @@
             newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
-            var fakeRavenLogsPath = Path.Combine(InstallPath, "RavenLogs");
-            newInstance.PersistenceManifest.Settings.Add(new PersistenceManifest.Setting
-            {
-                Name = "Raven/Esent/LogsPath",
-                DefaultValue = fakeRavenLogsPath
-            });
-
             var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
 
             instance.Reload();
@@ -112,7 +106,6 @@
 
             Assert.False(Directory.Exists(LogPath));
             Assert.False(Directory.Exists(DbPath));
-            Assert.False(Directory.Exists(fakeRavenLogsPath));
         }
 
         class FakeWindowsServiceController : IWindowsServiceController

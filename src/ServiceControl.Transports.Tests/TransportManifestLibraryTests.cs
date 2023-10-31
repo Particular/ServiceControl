@@ -1,9 +1,11 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using NUnit.Framework;
+    using Particular.Approvals;
     using ServiceControl.Transports;
 
     [TestFixture]
@@ -82,21 +84,25 @@
         [Test]
         public void All_types_defined_in_manifest_files_exist_in_specified_assembly()
         {
-            var count = 0;
+            var foundTransportNames = new List<string>();
 
             foreach (var definition in TransportManifestLibrary.TransportManifests.SelectMany(t => t.Definitions))
             {
-                count++;
+                foundTransportNames.Add(definition.Name);
+
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(definition.Name);
                 var assemblyName = definition.TypeName.Split(',')[1].Trim();
                 var assemblyFile = Path.Combine(transportFolder, assemblyName + ".dll");
                 var assembly = Assembly.LoadFrom(assemblyFile);
 
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
-                Assert.IsTrue(assembly.GetTypes().Any(a => a.FullName == definition.TypeName.Split(',').FirstOrDefault() && a.Namespace == assemblyName), $"Transport type {definition.TypeName} not found in assembly {assemblyName}");
+                var typeFullName = definition.TypeName.Split(',').FirstOrDefault();
+                var foundType = assembly.GetType(typeFullName);
+                Assert.IsNotNull(foundType, $"Transport type {definition.TypeName} not found in assembly {assemblyName}");
             }
 
-            Assert.NotZero(count, "No transport manifests found.");
+            foundTransportNames.Sort();
+            Approver.Verify(foundTransportNames);
         }
     }
 }

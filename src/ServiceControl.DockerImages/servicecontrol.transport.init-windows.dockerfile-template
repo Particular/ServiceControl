@@ -4,12 +4,12 @@ WORKDIR /servicecontrol
 
 ARG TRANSPORT
 
-ADD /Particular.ServiceControl/ServiceControl /Transports/${TRANSPORT} /Particular.ServiceControl/Persisters/RavenDB5 ./
+ADD /Particular.ServiceControl/ServiceControl /Transports/${TRANSPORT} /Particular.ServiceControl/Persisters/RavenDB ./
 
 ARG TRANSPORT_CUSTOMIZATION_TYPE
 
 ENV "ServiceControl/TransportType"="${TRANSPORT_CUSTOMIZATION_TYPE}" \
-    "ServiceControl/PersistenceType"="ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDb5" \
+    "ServiceControl/PersistenceType"="ServiceControl.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Persistence.RavenDB" \
     "ServiceControl/Hostname"="*" \
     "ServiceControl/DBPath"="C:\\Data\\DB\\" \
     "ServiceControl/LogPath"="C:\\Data\\Logs\\" \

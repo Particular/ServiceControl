@@ -109,11 +109,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests", "ServiceControl.Audit.Persistence.Tests\ServiceControl.Audit.Persistence.Tests.csproj", "{D0BD5CD8-4928-46CE-B926-8BD3D2D28F20}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.RavenDb5", "ServiceControl.Audit.Persistence.Tests.RavenDb5\ServiceControl.Audit.Persistence.Tests.RavenDb5.csproj", "{A67C7407-BB65-4C81-9DE8-65D69A8E97C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.Tests.RavenDB", "ServiceControl.Audit.Persistence.Tests.RavenDB\ServiceControl.Audit.Persistence.Tests.RavenDB.csproj", "{A67C7407-BB65-4C81-9DE8-65D69A8E97C5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.RavenDb5", "ServiceControl.Audit.Persistence.RavenDb5\ServiceControl.Audit.Persistence.RavenDb5.csproj", "{7FD0C9BD-BF75-45FA-AD03-AE5F887A9CA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence.RavenDB", "ServiceControl.Audit.Persistence.RavenDB\ServiceControl.Audit.Persistence.RavenDB.csproj", "{7FD0C9BD-BF75-45FA-AD03-AE5F887A9CA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.AcceptanceTests.RavenDB5", "ServiceControl.Audit.AcceptanceTests.RavenDB5\ServiceControl.Audit.AcceptanceTests.RavenDB5.csproj", "{62F493D6-2282-4830-940D-906F8B85D3D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.AcceptanceTests.RavenDB", "ServiceControl.Audit.AcceptanceTests.RavenDB\ServiceControl.Audit.AcceptanceTests.RavenDB.csproj", "{62F493D6-2282-4830-940D-906F8B85D3D7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Audit.Persistence", "ServiceControl.Audit.Persistence\ServiceControl.Audit.Persistence.csproj", "{41D7051A-013E-42EC-87A2-FF30F564CDB6}"
 EndProject
@@ -161,11 +161,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Infrastructu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.DomainEvents", "ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj", "{B93B8B7E-BEAF-4645-AA5C-2A1CADEC3D4B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.RavenDb5", "ServiceControl.Persistence.RavenDb5\ServiceControl.Persistence.RavenDb5.csproj", "{84627DC0-7B43-480D-80CF-A4DDA514A4EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.RavenDB", "ServiceControl.Persistence.RavenDB\ServiceControl.Persistence.RavenDB.csproj", "{84627DC0-7B43-480D-80CF-A4DDA514A4EE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.Tests.RavenDb5", "ServiceControl.Persistence.Tests.RavenDb5\ServiceControl.Persistence.Tests.RavenDb5.csproj", "{2EF143A5-E769-42FD-8B7E-7C01C381BC13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Persistence.Tests.RavenDB", "ServiceControl.Persistence.Tests.RavenDB\ServiceControl.Persistence.Tests.RavenDB.csproj", "{2EF143A5-E769-42FD-8B7E-7C01C381BC13}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTests.RavenDB5", "ServiceControl.AcceptanceTests.RavenDB5\ServiceControl.AcceptanceTests.RavenDB5.csproj", "{4F2CAFC7-113A-4D31-A365-6669AB4C7787}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTests.RavenDB", "ServiceControl.AcceptanceTests.RavenDB\ServiceControl.AcceptanceTests.RavenDB.csproj", "{4F2CAFC7-113A-4D31-A365-6669AB4C7787}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LegacyArtifacts", "LegacyArtifacts\LegacyArtifacts.csproj", "{38147B68-13EE-48DC-BB38-4217889978AE}"
 EndProject

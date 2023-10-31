@@ -1,0 +1,36 @@
+﻿namespace ServiceControl.Persistence.RavenDB
+{
+    using System.Collections.Concurrent;
+    using System.Threading.Tasks;
+    using Raven.Client.Documents;
+    using Raven.Client.Documents.Commands.Batches;
+    using ServiceControl.Persistence.UnitOfWork;
+
+    class RavenIngestionUnitOfWork : IngestionUnitOfWorkBase
+    {
+        readonly IDocumentStore store;
+        // Must be ordered - can't put attachments until after document exists
+        readonly ConcurrentQueue<ICommandData> commands;
+
+        public RavenIngestionUnitOfWork(IDocumentStore store, ExpirationManager expirationManager, RavenPersisterSettings settings)
+        {
+            this.store = store;
+            commands = new ConcurrentQueue<ICommandData>();
+            Monitoring = new RavenMonitoringIngestionUnitOfWork(this);
+            Recoverability = new RavenRecoverabilityIngestionUnitOfWork(this, expirationManager, settings);
+        }
+
+        internal void AddCommand(ICommandData command) => commands.Enqueue(command);
+
+        public override async Task Complete()
+        {
+            using (var session = store.OpenAsyncSession())
+            {
+                // not really interested in the batch results since a batch is atomic
+                var commands = this.commands.ToArray();
+                session.Advanced.Defer(commands);
+                await session.SaveChangesAsync();
+            }
+        }
+    }
+}

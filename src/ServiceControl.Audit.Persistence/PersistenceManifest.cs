@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Text.Json;
     using NServiceBus.Logging;
-    using ServiceControl.Persistence;
 
     public class PersistenceManifest
     {
@@ -24,9 +23,12 @@
 
         public bool IsSupported { get; set; } = true;
 
+        public string[] Aliases { get; set; } = Array.Empty<string>();
+
         internal bool IsMatch(string persistenceType) =>
-            string.Compare(TypeName, persistenceType, true) == 0
-            || string.Compare(Name, persistenceType, true) == 0;
+            string.Equals(TypeName, persistenceType, StringComparison.Ordinal) // Type names are case-sensitive
+            || string.Equals(Name, persistenceType, StringComparison.OrdinalIgnoreCase)
+            || Aliases.Contains(persistenceType, StringComparer.Ordinal);
     }
 
     public static class PersistenceManifestLibrary

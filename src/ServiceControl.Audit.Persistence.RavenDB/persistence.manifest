@@ -1,0 +1,27 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "RavenDB",
+  "DisplayName": "RavenDB",
+  "Description": "RavenDB ServiceControl Audit persister",
+  "TypeName": "ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB",
+  "Settings": [
+    {
+      "Name": "ServiceControl.Audit/DBPath",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/LogPath",
+      "Mandatory": true
+    },
+    {
+      "Name": "ServiceControl.Audit/DatabaseMaintenancePort",
+      "Mandatory": true
+    }
+  ],
+  "SettingsWithPathsToCleanup": [
+    "ServiceControl.Audit/DBPath"
+  ],
+  "Aliases": [
+    "ServiceControl.Audit.Persistence.RavenDb.RavenDbPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDb5"
+  ]
+}

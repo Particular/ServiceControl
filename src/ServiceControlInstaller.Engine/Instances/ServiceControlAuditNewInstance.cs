@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
@@ -15,14 +14,13 @@
     {
         public static ServiceControlAuditNewInstance CreateWithDefaultPersistence()
         {
-            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB5;
+            const string persisterToUseForBrandNewInstances = StorageEngineNames.RavenDB;
             return CreateWithPersistence(persisterToUseForBrandNewInstances);
         }
 
         public static ServiceControlAuditNewInstance CreateWithPersistence(string persistence)
         {
-            var persistenceManifest = ServiceControlPersisters.AuditPersistenceManifests
-                .Single(manifest => manifest.Name == persistence);
+            var persistenceManifest = ServiceControlPersisters.GetAuditPersistence(persistence);
 
             return new ServiceControlAuditNewInstance(persistenceManifest);
         }

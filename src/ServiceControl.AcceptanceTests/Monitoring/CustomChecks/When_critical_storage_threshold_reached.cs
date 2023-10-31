@@ -24,7 +24,7 @@
             };
         }
 
-        RavenDBPersisterSettings PersisterSettings => (RavenDBPersisterSettings)Settings.PersisterSpecificSettings;
+        RavenPersisterSettings PersisterSettings => (RavenPersisterSettings)Settings.PersisterSpecificSettings;
 
         [Test]
         public async Task Should_stop_ingestion()

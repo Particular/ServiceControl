@@ -61,7 +61,7 @@
 
             instance.Service.Refresh();
 
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB5;
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 
             if (!compatibleStorageEngine)
             {

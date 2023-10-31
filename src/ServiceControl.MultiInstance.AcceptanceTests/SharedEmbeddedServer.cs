@@ -4,23 +4,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.Documents;
 using Raven.Client.ServerWide.Operations;
-using ServiceControl.Persistence.RavenDb5;
+using ServiceControl.Persistence.RavenDB;
 using TestHelper;
 
 static class SharedEmbeddedServer
 {
     public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
     {
-        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.Raven5MultiInstance");
+        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.RavenMultiInstance");
         var dbPath = Path.Combine(basePath, "DB");
         var databasesPath = Path.Combine(dbPath, "Databases");
 
-        var settings = new RavenDBPersisterSettings
+        var settings = new RavenPersisterSettings
         {
             DatabasePath = dbPath,
             LogPath = Path.Combine(basePath, "Logs"),
             LogsMode = "Operations",
-            DatabasePort = PortUtility.FindAvailablePort(RavenDBPersisterSettings.DatabasePortDefault)
+            DatabasePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabasePortDefault)
         };
 
         var instance = EmbeddedDatabase.Start(settings);

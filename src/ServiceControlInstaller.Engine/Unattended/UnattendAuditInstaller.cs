@@ -97,7 +97,7 @@
 
         public bool Upgrade(ServiceControlAuditInstance instance)
         {
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB5;
+            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 
             if (!compatibleStorageEngine)
             {

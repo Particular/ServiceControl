@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence
+﻿namespace ServiceControl.Audit.Persistence
 {
     using System.Collections.Generic;
     using System.IO;
@@ -18,7 +18,7 @@
             if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
             {
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Audit.Persistence.InMemory"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Audit.Persistence.RavenDb5"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Audit.Persistence.RavenDB"));
             }
         }
 

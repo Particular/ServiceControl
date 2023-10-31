@@ -17,7 +17,7 @@ namespace Tests
         {
             var expectedPersisters = new[] {
                 "RavenDB35", // Still must exist, as Raven35 persistence.manifest file must be available for SCMU to understand old versions
-                "RavenDB5",
+                "RavenDB",
                 "InMemory"
             };
 
@@ -35,7 +35,7 @@ namespace Tests
         [Test]
         public void Raven_server_should_be_included()
         {
-            var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB5", "RavenDBServer");
+            var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB", "RavenDBServer");
             var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
             DirectoryAssert.DoesNotExist(inPersisterPath, "RavenDBServer should not be bundled inside the persister");
             DirectoryAssert.Exists(separateAssetPath, "RavenDBServer should be bundled as its own resource");

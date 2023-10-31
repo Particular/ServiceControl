@@ -1,1 +1,0 @@
-﻿[assembly: IncludeInTestCategory("Raven5Persistence")]
