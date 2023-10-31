@@ -16,6 +16,8 @@
 
         public string TypeName { get; set; }
 
+        public bool IsSupported { get; set; } = true;
+
         public IList<Setting> Settings { get; set; } = new List<Setting>();
 
         public IList<string> SettingsWithPathsToCleanup { get; set; } = new List<string>();
@@ -25,9 +27,7 @@
         internal bool IsMatch(string persistenceType) =>
             string.Compare(TypeName, persistenceType, false) == 0 // Type names are case-sensitive
             || string.Compare(Name, persistenceType, true) == 0
-            || AliasesContain(persistenceType);
-
-        bool AliasesContain(string persistenceType) => Aliases.Contains(persistenceType);
+            || Aliases.Contains(persistenceType);
 
         public class Setting
         {

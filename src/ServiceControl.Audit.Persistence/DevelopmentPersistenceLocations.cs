@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence
+﻿namespace ServiceControl.Audit.Persistence
 {
     using System.Collections.Generic;
     using System.IO;
