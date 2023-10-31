@@ -31,8 +31,9 @@
             ApplyConventionalServiceNameToAuditInstance(ConventionName);
         }
 
-        public virtual void OnSelectedTransportChanged()
+        public override void OnSelectedTransportChanged()
         {
+            base.OnSelectedTransportChanged();
             ServiceControl?.SelectedTransportChanged();
             ServiceControlAudit?.SelectedTransportChanged();
             NotifyOfPropertyChange(nameof(ConnectionString));
