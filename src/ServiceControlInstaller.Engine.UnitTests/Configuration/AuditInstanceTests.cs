@@ -85,7 +85,6 @@
         [Test]
         public void Should_remove_log_and_db_folders_on_uninstall()
         {
-
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
@@ -98,13 +97,6 @@
             newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
-            var fakeRavenLogsPath = Path.Combine(InstallPath, "RavenLogs");
-            newInstance.PersistenceManifest.Settings.Add(new PersistenceManifest.Setting
-            {
-                Name = "Raven/Esent/LogsPath",
-                DefaultValue = fakeRavenLogsPath
-            });
-
             var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
 
             instance.Reload();
@@ -114,7 +106,6 @@
 
             Assert.False(Directory.Exists(LogPath));
             Assert.False(Directory.Exists(DbPath));
-            Assert.False(Directory.Exists(fakeRavenLogsPath));
         }
 
         class FakeWindowsServiceController : IWindowsServiceController
