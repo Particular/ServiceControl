@@ -9,7 +9,17 @@
 
     public static class ServiceControlCoreTransports
     {
-        public static readonly TransportInfo[] All;
+        static readonly TransportInfo[] all;
+        static readonly TransportInfo[] supported;
+        static readonly TransportInfo defaultTransport;
+
+        public static TransportInfo[] GetSupportedTransports() => supported;
+        public static TransportInfo GetDefaultTransport() => defaultTransport;
+
+        // Only tests should use this
+        internal static TransportInfo[] GetAllTransports() => all;
+
+        public static IEnumerable<T> Select<T>(Func<TransportInfo, T> selector) => all.Select(selector);
 
         static ServiceControlCoreTransports()
         {
@@ -20,13 +30,17 @@
                 .Where(name => name.EndsWith("transport.manifest"))
                 .ToArray();
 
-            All = resourceNames
+            all = resourceNames
                 .SelectMany(name => Load(assembly, name))
                 .OrderBy(m => m.Name)
                 .ToArray();
 
             // Filtered by environment variable in SCMU, needs to be available all the time for PowerShell
-            Find("LearningTransport").AvailableInSCMU = IncludeLearningTransport();
+            all.First(t => t.Name == "LearningTransport").AvailableInSCMU = IncludeLearningTransport();
+
+            supported = all.Where(t => t.AvailableInSCMU).ToArray();
+
+            defaultTransport = all.Single(t => t.Default);
         }
 
         static TransportInfo[] Load(Assembly assembly, string resourceName)
@@ -43,7 +57,7 @@
 
         public static IEnumerable<string> GetTransportNames(bool includeDisplayNames)
         {
-            foreach (var transport in All)
+            foreach (var transport in all)
             {
                 if (transport.AvailableInSCMU)
                 {
@@ -81,7 +95,7 @@
 
         public static TransportInfo Find(string name)
         {
-            return All.FirstOrDefault(p => p.Matches(name));
+            return all.FirstOrDefault(p => p.Matches(name));
         }
 
         public static TransportInfo UpgradedTransportSeam(TransportInfo transport)

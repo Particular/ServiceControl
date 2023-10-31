@@ -168,7 +168,7 @@ namespace ServiceControl.Management.PowerShell
             details.ForwardErrorMessages = ForwardErrorMessages.ToBool();
             details.ErrorRetentionPeriod = ErrorRetentionPeriod;
             details.ConnectionString = ConnectionString;
-            details.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            details.TransportPackage = ServiceControlCoreTransports.Find(Transport);
             details.SkipQueueCreation = SkipQueueCreation;
             details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 

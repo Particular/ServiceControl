@@ -39,7 +39,7 @@
             {
                 var set = matching.ToHashSet();
 
-                matching = ServiceControlCoreTransports.All
+                matching = ServiceControlCoreTransports.GetAllTransports()
                     .Where(manifest => !set.Contains(manifest.Name))
                     .Select(manifest => manifest.Name)
                     .ToArray();
@@ -54,7 +54,7 @@
         {
             foreach (string transportName in transportNames)
             {
-                var matching = ServiceControlCoreTransports.All
+                var matching = ServiceControlCoreTransports.GetAllTransports()
                     .Where(t => t.Name == transportName || t.ZipName == transportName);
 
                 if (matching.Any())

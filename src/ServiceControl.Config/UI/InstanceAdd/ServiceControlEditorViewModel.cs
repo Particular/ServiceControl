@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.UI.InstanceAdd;
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Input;
 using Framework.Rx;
 using PropertyChanged;
@@ -12,7 +11,7 @@ public class ServiceControlEditorViewModel : RxProgressScreen
 {
     public ServiceControlEditorViewModel()
     {
-        Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
+        Transports = ServiceControlCoreTransports.GetSupportedTransports();
         ServiceControl = new ServiceControlInformation(this);
         ServiceControlAudit = new ServiceControlAuditInformation(this);
     }

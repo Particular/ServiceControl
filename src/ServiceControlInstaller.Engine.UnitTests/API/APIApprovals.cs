@@ -16,7 +16,7 @@
             // PowerShell scripts in ServiceControl v5 prefer loading transport by Name, but ServiceControl v4 used the display name,
             // and older display names are represented in the Aliases collection
 
-            var toVerify = ServiceControlCoreTransports.All
+            var toVerify = ServiceControlCoreTransports.GetAllTransports()
                 .OrderBy(t => t.Name)
                 .Select(t => new
                 {
