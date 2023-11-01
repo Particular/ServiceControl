@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" />
+    <PackageReference Include="System.Management.Automation" />
   </ItemGroup>
 
   <ItemGroup>
