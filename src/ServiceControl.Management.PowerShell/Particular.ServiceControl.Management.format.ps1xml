@@ -15,8 +15,8 @@
                 <PropertyName>Name</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>TypeName</Label>
-                <PropertyName>TypeName</PropertyName>
+                <Label>DisplayName</Label>
+                <PropertyName>DisplayName</PropertyName>
               </ListItem>
               <ListItem>
                 <Label>SampleConnectionString </Label>

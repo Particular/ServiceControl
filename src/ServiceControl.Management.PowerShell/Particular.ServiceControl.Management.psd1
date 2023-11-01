@@ -1,20 +1,13 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = if($PSEdition -eq 'Core')
-    {
-        'net6.0-windows\ServiceControl.Management.PowerShell.dll'
-    }
-    else
-    {
-        'net472\ServiceControl.Management.PowerShell.dll'
-    }
+RootModule = 'ServiceControl.Management.PowerShell.dll'
 
 # Version number of this module.
 ModuleVersion = '{{Version}}'
 
 # Supported PSEditions
-CompatiblePSEditions = 'Desktop', 'Core'
+CompatiblePSEditions = @('Core')
 
 # ID used to uniquely identify this module
 GUID = '98A9BB97-F763-4C6D-9F0A-A732EEE0505F'
@@ -32,7 +25,7 @@ Copyright = '© 2010-{{Date}} NServiceBus Ltd. All rights reserved'
 Description = 'ServiceControl Management'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '5.1'
+PowerShellVersion = '7.2'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -94,7 +87,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'ServiceControl','PSEdition_Core','PSEdition_Desktop','Windows'
+        Tags = 'ServiceControl','PSEdition_Core','Windows'
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/Particular/ServiceControl/blob/master/LICENSE.md'
