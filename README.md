@@ -101,34 +101,35 @@ c:\Temp\ServiceControlTemp
 
 ## How to developer test the PowerShell Module
 
-The PowerShell module can be tested locally by downloading the "assets" file from the release worklfow and then importing the module. Once imported, the scripts can be run and tested out.
+Steps:
 
-- Download the "assets" zip file from the summary section of release workflow action.
-- Extract or unzip the module from the zip file. 
-- Open PowerShell 7 and [Import the module](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.3#example-4-import-all-modules-specified-by-a-path) by specifying the path
- ```
- Import-Module -Name C:\test\assets\PowerShellModules\Particular.ServiceControl.Management -Verbose 
- ```
+- Build the solution
+- Open PowerShell 7
+- [Import the module](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.3#example-4-import-all-modules-specified-by-a-path) by specifying the path to the ServiceControl git repo folder `deploy\PowerShellModules\Particular.ServiceControl.Management`
+  ```
+  Import-Module -Name S:\ServiceControl\deploy\PowerShellModules\Particular.ServiceControl.Management -Verbose 
+  ```
    - If there are any issues running the import script, try setting the execution policy to "unrestricted' by running the following script in PowerShell 7 admin mode. Then run the command to import the module.
-```
-set-executionpolicy unrestricted
-```
+      ```
+      set-executionpolicy unrestricted
+      ```
 
 - Now that the module has been successfully imported, enter any of the ServiceControl PowerShell scripts to test them out. Eg: the following creates a new ServiceControl Instance
-```
-$serviceControlInstance = New-ServiceControlInstance `
-   -Name 'Test.DEV.ServiceControl' `
-   -InstallPath C:\ServiceControl\Bin `
-   -DBPath C:\ServiceControl\DB `
-   -LogPath C:\ServiceControl\Logs `
-   -Port 44334 `
-   -DatabaseMaintenancePort 44335 `
-   -Transport 'RabbitMQ - Direct routing topology (quorum queues)' `
-   -ConnectionString 'host=localhost;username=guest;password=guest' `
-   -ErrorQueue errormq `
-   -ErrorRetentionPeriod 10:00:00:00 `
-   -Acknowledgements RabbitMQBrokerVersion310
-```
+  ```
+  $serviceControlInstance = New-ServiceControlInstance `
+     -Name 'Test.DEV.ServiceControl' `
+     -InstallPath C:\ServiceControl\Bin `
+     -DBPath C:\ServiceControl\DB `
+     -LogPath C:\ServiceControl\Logs `
+     -Port 44334 `
+     -DatabaseMaintenancePort 44335 `
+     -Transport 'RabbitMQ - Direct routing topology (quorum queues)' `
+     -ConnectionString 'host=localhost;username=guest;password=guest' `
+     -ErrorQueue errormq `
+     -ErrorRetentionPeriod 10:00:00:00 `
+     -Acknowledgements RabbitMQBrokerVersion310
+  ```
+
 ## How to build and run Docker images
 
 NOTE: The following instructions are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
