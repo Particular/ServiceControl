@@ -15,7 +15,7 @@
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer to edit configuration for newer minor/patch release",
-                    $"Instance version {instanceVersion} is newer than installer version {installerVersion}. Installer can only edit instances for the same version ({installerVersion}) or older versions (between {installerVersion.Major}.0.0 - and {installerVersion} for this major ({installerVersion.Major}.minor.patch."
+                    $"Instance version {instanceVersion} is newer than installer version {installerVersion}. Installer can only edit instances for the same version or older versions (between {installerVersion.Major}.0.0 - and {installerVersion} for this major."
                     );
                 return true;
             }
@@ -24,7 +24,7 @@
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer to edit configuration of different major release",
-                    $"Installer cannot edit configurations for installers of a different major version. Use installer version {installerVersion} or a newer {instanceVersion.Major}.minor.patch to edit the configuration of this instance."
+                    $"Installer cannot edit configurations for installers of a different major version. Use installer version {instanceVersion} or a newer {instanceVersion.Major}.minor.patch to edit the configuration of this instance."
                     );
                 return true;
             }
