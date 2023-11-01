@@ -36,6 +36,11 @@
     ]
   },
   {
+    "Name": "LearningTransport",
+    "DisplayName": "Learning",
+    "Aliases": []
+  },
+  {
     "Name": "MSMQ",
     "DisplayName": "MSMQ",
     "Aliases": [

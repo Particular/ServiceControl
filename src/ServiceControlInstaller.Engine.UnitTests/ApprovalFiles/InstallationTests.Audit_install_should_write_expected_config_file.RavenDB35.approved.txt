@@ -5,7 +5,7 @@
         <add key="ServiceControl.Audit/HostName" value="localhost" />
         <add key="ServiceControl.Audit/LogPath" value="value-not-asserted" />
         <add key="ServiceControl.Audit/ForwardAuditMessages" value="false" />
-        <add key="ServiceControl.Audit/TransportType" value="ServiceControl.Transports.Msmq.MsmqTransportCustomization, ServiceControl.Transports.Msmq" />
+        <add key="ServiceControl.Audit/TransportType" value="MSMQ" />
         <add key="ServiceControl.Audit/PersistenceType" value="RavenDB35" />
         <add key="ServiceControl.Audit/AuditRetentionPeriod" value="00:00:00" />
         <add key="ServiceControl.Audit/EnableFullTextSearchOnBodies"
