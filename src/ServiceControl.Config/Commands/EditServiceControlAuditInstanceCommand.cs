@@ -17,13 +17,13 @@ namespace ServiceControl.Config.Commands
             IServiceControlWindowManager windowManager,
             Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel,
             IEventAggregator eventAggregator,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller
+            ServiceControlAuditInstanceInstaller installer
         ) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
-            this.serviceControlAuditInstaller = serviceControlAuditInstaller;
+            this.installer = installer;
         }
 
         static bool CanEditInstance(InstanceDetailsViewModel viewModel)
@@ -37,7 +37,7 @@ namespace ServiceControl.Config.Commands
             var editVM = editViewModel((ServiceControlAuditInstance)viewModel.ServiceInstance);
 
             var instanceVersion = viewModel.Version;
-            var installerVersion = serviceControlAuditInstaller.ZipInfo.Version;
+            var installerVersion = installer.ZipInfo.Version;
 
             if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
             {
@@ -54,6 +54,6 @@ namespace ServiceControl.Config.Commands
         readonly Func<ServiceControlAuditInstance, ServiceControlAuditEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
-        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
+        readonly ServiceControlAuditInstanceInstaller installer;
     }
 }
