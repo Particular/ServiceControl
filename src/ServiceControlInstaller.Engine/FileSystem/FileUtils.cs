@@ -88,22 +88,13 @@ namespace ServiceControlInstaller.Engine.FileSystem
         internal static void UnzipToSubdirectory(Stream zipStream, string targetPath, string zipFolderNameToExtract)
         {
             using var zip = ZipFile.Read(zipStream);
+            var zipFilter = new ZipFilterEvaluator(zipFolderNameToExtract, targetPath);
 
             foreach (var e in zip)
             {
                 var dir = Path.GetDirectoryName(e.FileName);
-                string filename = null;
 
-                if (string.IsNullOrEmpty(zipFolderNameToExtract))
-                {
-                    filename = Path.Combine(targetPath, e.FileName);
-                }
-                else if (dir.StartsWith(zipFolderNameToExtract, StringComparison.OrdinalIgnoreCase))
-                {
-                    filename = Path.Combine(targetPath, e.FileName.Substring(zipFolderNameToExtract.Length + 1));
-                }
-
-                if (filename != null)
+                if (zipFilter.Evaluate(e, out var filename))
                 {
                     if (e.IsDirectory)
                     {
@@ -123,6 +114,60 @@ namespace ServiceControlInstaller.Engine.FileSystem
                         e.Extract(stream);
                     }
                 }
+            }
+        }
+
+
+        class ZipFilterEvaluator
+        {
+            readonly string[] folderNameSegments;
+            readonly string targetPath;
+
+            static readonly char[] directorySplitChars = new[] { '/', '\\' };
+
+            public ZipFilterEvaluator(string zipFolderNameToExtract, string targetPath)
+            {
+                folderNameSegments = zipFolderNameToExtract.Split(directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+                this.targetPath = targetPath;
+            }
+
+            public bool Evaluate(ZipEntry zipEntry, out string resultPath)
+            {
+                var zipPathSegments = zipEntry.FileName.Split(directorySplitChars);
+                resultPath = null;
+
+                if (folderNameSegments.Length > 0)
+                {
+                    // If folder name is "a/b" and path is "a/file.txt" then the directory is too deep and the file can't match, so (2 + 1) > 2
+                    // Also makes sure we don't get index out of range on next block
+                    if (folderNameSegments.Length + 1 > zipPathSegments.Length)
+                    {
+                        return false;
+                    }
+
+                    for (var i = 0; i < folderNameSegments.Length; i++)
+                    {
+                        if (!string.Equals(zipPathSegments[i], folderNameSegments[i], StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                // How many segments of the zip file name do wwe need? If just one, use Path.Combine(string, string)
+                var nonPrefixZipFileSegmentsCount = zipPathSegments.Length - folderNameSegments.Length;
+                if (nonPrefixZipFileSegmentsCount == 1)
+                {
+                    resultPath = Path.Combine(targetPath, zipPathSegments[folderNameSegments.Length]);
+                    return true;
+                }
+
+                // For deeper paths, construct an array with the targetPath + the segments of the zip path after the desired folder name to Path.Combine(string[])
+                var resultSegments = new string[nonPrefixZipFileSegmentsCount + 1];
+                resultSegments[0] = targetPath;
+                Array.Copy(zipPathSegments, folderNameSegments.Length, resultSegments, 1, nonPrefixZipFileSegmentsCount);
+                resultPath = Path.Combine(resultSegments);
+                return true;
             }
         }
 
