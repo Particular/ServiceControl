@@ -431,7 +431,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);
 
-            AppConfig.SetTransportType(TransportPackage.TypeName);
+            AppConfig.SetTransportType(TransportPackage.Name);
             AppConfig.Save();
         }
 
