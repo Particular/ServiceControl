@@ -11,6 +11,12 @@ Function Get-ServiceControlManagementCommands {
     }
 }
 
+if ($PSVersionTable.Platform -ne 'Win32NT')
+{
+    # Prevents module from being loaded even directly with Import-Module
+    throw "Particular.ServiceControl.Management is only supported on Windows."
+}
+
 New-Alias -Value Get-ServiceControlInstances -Name sc-instances
 New-Alias -Value Invoke-ServiceControlInstanceUpgrade -Name  sc-upgrade
 New-Alias -Value Remove-ServiceControlInstance -Name  sc-delete
