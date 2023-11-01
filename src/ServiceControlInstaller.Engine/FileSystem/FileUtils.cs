@@ -127,7 +127,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
 
             public ZipFilterEvaluator(string zipFolderNameToExtract, string targetPath)
             {
-                folderNameSegments = zipFolderNameToExtract.Split(directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+                folderNameSegments = (zipFolderNameToExtract ?? string.Empty).Split(directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
                 this.targetPath = targetPath;
             }
 
