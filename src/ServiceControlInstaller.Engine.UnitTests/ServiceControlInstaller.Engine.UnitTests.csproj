@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,8 +11,7 @@
 
   <ItemGroup>
     <Reference Include="System.DirectoryServices.AccountManagement" />
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.ServiceProcess" />
+    <!--<Reference Include="System.Messaging" />-->
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +21,7 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
 </Project>
