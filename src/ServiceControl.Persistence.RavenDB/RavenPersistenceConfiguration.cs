@@ -45,7 +45,7 @@
                 ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
                 DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
                 DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
-                DatabasePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabasePortDefault),
+                DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
                 ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
                 MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
                 DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
