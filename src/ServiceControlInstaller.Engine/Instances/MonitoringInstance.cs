@@ -99,12 +99,8 @@
         {
             var transportAppSetting = AppConfig.Read<string>(SettingsList.TransportType, null)?.Trim();
             var transport = ServiceControlCoreTransports.Find(transportAppSetting);
-            if (transport != null)
-            {
-                return transport;
-            }
 
-            return ServiceControlCoreTransports.GetDefaultTransport();
+            return transport;
         }
 
         public async Task ValidateChanges()
