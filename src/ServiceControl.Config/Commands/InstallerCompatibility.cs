@@ -14,8 +14,8 @@
             if (instanceIsNewer)
             {
                 await windowManager.ShowMessage(
-                    "Incompatible installer to edit configuration for newer minor/patch release",
-                    $"Instance version {instanceVersion} is newer than installer version {installerVersion}. Installer can only edit instances for the same version or older versions (between {installerVersion.Major}.0.0 - and {installerVersion} for this major."
+                    "Incompatible installer version",
+                    $"This instance version {instanceVersion} is newer than the installer version {installerVersion}. This installer can only edit instances with versions between {installerVersion.Major}.0.0 and {installerVersion}."
                     );
                 return true;
             }
@@ -23,8 +23,8 @@
             if (installerOfDifferentMajor)
             {
                 await windowManager.ShowMessage(
-                    "Incompatible installer to edit configuration of different major release",
-                    $"Installer cannot edit configurations for installers of a different major version. Use installer version {instanceVersion} or a newer {instanceVersion.Major}.minor.patch to edit the configuration of this instance."
+                    "Incompatible installer version",
+                    $"This installer cannot edit instances created by a different major version. This instance can be edited by a {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build}."
                     );
                 return true;
             }
