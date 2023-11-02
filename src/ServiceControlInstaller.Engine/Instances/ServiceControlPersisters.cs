@@ -33,8 +33,25 @@
                 .ToArray();
         }
 
-        public static PersistenceManifest GetPrimaryPersistence(string name) => primaryPersistenceManifests.Single(m => m.IsMatch(name));
-        public static PersistenceManifest GetAuditPersistence(string name) => auditPersistenceManifests.Single(m => m.IsMatch(name));
+        public static PersistenceManifest GetPrimaryPersistence(string name) => GetPersistenceManifest(primaryPersistenceManifests, name);
+        public static PersistenceManifest GetAuditPersistence(string name) => GetPersistenceManifest(auditPersistenceManifests, name);
+
+        static PersistenceManifest GetPersistenceManifest(PersistenceManifest[] manifestCollection, string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                // Must always remain RavenDB35 so that SCMU understands that an instance with no configured value is an old Raven 3.5 instance
+                name = "RavenDB35";
+            }
+
+            return manifestCollection.FirstOrDefault(m => m.IsMatch(name)) ?? new PersistenceManifest
+            {
+                Name = name,
+                DisplayName = "Unknown Persistence: " + name,
+                IsSupported = false,
+                Description = "This persistence is unknown. It may be from a future version of ServiceControl."
+            };
+        }
 
         public static PersistenceManifest[] GetAllPrimaryManifests() => primaryPersistenceManifests;
         public static PersistenceManifest[] GetAllAuditManifests() => auditPersistenceManifests;
