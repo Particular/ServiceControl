@@ -4,7 +4,6 @@
     <!-- Must stay net6.0 to support PowerShell 7.2 LTS -->
     <TargetFramework>net6.0-windows</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <LangVersion>10.0</LangVersion>
     <ModuleName>Particular.ServiceControl.Management</ModuleName>
     <ModuleArtifactsPath>$(ArtifactsPath)PowerShellModules\$(ModuleName)\</ModuleArtifactsPath>
   </PropertyGroup>

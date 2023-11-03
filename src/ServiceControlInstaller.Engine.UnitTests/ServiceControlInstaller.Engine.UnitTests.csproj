@@ -10,18 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.DirectoryServices.AccountManagement" />
-    <!--<Reference Include="System.Messaging" />-->
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
 </Project>
