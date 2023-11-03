@@ -45,12 +45,12 @@
                 return false;
             }
 
-            return DisplayName.Equals(that.DisplayName, StringComparison.OrdinalIgnoreCase);
+            return Name.Equals(that.Name, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return DisplayName.GetHashCode();
+            return Name.GetHashCode();
         }
     }
 

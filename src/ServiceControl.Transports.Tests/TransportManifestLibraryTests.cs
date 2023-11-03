@@ -11,9 +11,9 @@
     [TestFixture]
     public class TransportManifestLibraryTests
     {
-        const string transportName = "AzureServiceBus.EndpointOriented";
-        const string transportType = "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB";
-        const string transportAlias = "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus";
+        const string transportName = "NetStandardAzureServiceBus";
+        const string transportType = "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS";
+        const string transportAlias = "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus";
 
         [Test]
         public void Should_find_transport_type_by_name()

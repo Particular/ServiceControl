@@ -17,7 +17,6 @@
 
             if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
             {
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASB"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASBS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Learning"));

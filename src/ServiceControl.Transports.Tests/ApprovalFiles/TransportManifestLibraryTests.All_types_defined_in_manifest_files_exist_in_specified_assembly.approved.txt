@@ -1,7 +1,5 @@
 [
   "AmazonSQS",
-  "AzureServiceBus.EndpointOriented",
-  "AzureServiceBus.Forwarding",
   "AzureStorageQueue",
   "LearningTransport",
   "LearningTransport",
