@@ -124,6 +124,10 @@ namespace ServiceControl.Config.UI.AdvancedOptions
             }
         }
 
+        public bool ForcedUpgradeAllowed => ForceUpgradeCommand.CanExecute(this);
+
+        public string ForcedUpgradeBackupLocation => $"{ServiceControlInstance.DBPath}_UpgradeBackup";
+
         public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             NotifyOfPropertyChange("AllowStop");
