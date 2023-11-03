@@ -13,7 +13,7 @@ Function Get-ServiceControlManagementCommands {
 
 if ($PSVersionTable.Platform -ne 'Win32NT')
 {
-    # Prevents module from being loaded even directly with Import-Module
+    # Prevents module from being used if not on Windows
     throw "Particular.ServiceControl.Management is only supported on Windows."
 }
 
