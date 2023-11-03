@@ -2,12 +2,10 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.ServiceProcess;
     using System.Xml;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-    using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -20,7 +18,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";
@@ -56,7 +54,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB5");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
 
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
@@ -86,7 +84,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence(ZipFileFolder.FullName, "RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";

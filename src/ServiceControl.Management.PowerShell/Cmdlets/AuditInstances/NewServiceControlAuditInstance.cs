@@ -151,7 +151,7 @@
             newAuditInstance.ForwardAuditMessages = ForwardAuditMessages.ToBool();
             newAuditInstance.AuditRetentionPeriod = AuditRetentionPeriod;
             newAuditInstance.ConnectionString = ConnectionString;
-            newAuditInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            newAuditInstance.TransportPackage = ServiceControlCoreTransports.Find(Transport);
             newAuditInstance.SkipQueueCreation = SkipQueueCreation;
             newAuditInstance.ServiceControlQueueAddress = ServiceControlQueueAddress;
             newAuditInstance.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;

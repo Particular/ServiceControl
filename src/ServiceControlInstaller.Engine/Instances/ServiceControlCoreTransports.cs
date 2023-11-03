@@ -6,7 +6,7 @@
 
     public class ServiceControlCoreTransports
     {
-        public static List<TransportInfo> All => new List<TransportInfo>
+        static readonly TransportInfo[] all = new TransportInfo[]
         {
             //INFO: Those types are used in the SCMU and in PS scripts. In both cases Match predicate is used to find a transport info.
             //      In the UI the matching is done based on the transport TypeName from app.config. In PS it's done based on human friendly names.
@@ -195,6 +195,9 @@
             },
         };
 
+        public static TransportInfo[] GetSupportedTransports() => all.Where(t => t.AvailableInSCMU).ToArray();
+        public static IEnumerable<T> Select<T>(Func<TransportInfo, T> selector) => all.Select(selector);
+
         static bool IncludeLearningTransport()
         {
             try
@@ -220,7 +223,16 @@
 
         public static TransportInfo Find(string name)
         {
-            return All.FirstOrDefault(p => p.Matches(name));
+            if (string.IsNullOrEmpty(name))
+            {
+                return all.FirstOrDefault(t => t.Default); // MSMQ
+            }
+
+            return all.FirstOrDefault(p => p.Matches(name)) ?? new TransportInfo
+            {
+                Name = $"Unknown Message Transport: {name}",
+                AvailableInSCMU = false
+            };
         }
 
         public static TransportInfo UpgradedTransportSeam(TransportInfo transport)

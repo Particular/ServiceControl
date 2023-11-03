@@ -39,7 +39,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string GetTransportTypeSetting()
         {
-            return AppConfig.Read(ServiceControlSettings.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            return AppConfig.Read<string>(ServiceControlSettings.TransportType, null)?.Trim();
         }
 
         protected override AppConfig CreateAppConfig()

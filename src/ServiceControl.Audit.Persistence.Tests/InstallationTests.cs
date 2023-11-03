@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Text.Json;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -34,7 +33,7 @@
             var logPath = Path.Combine(Path.GetTempPath(), TestContext.CurrentContext.Test.ID, "log");
 
             newInstance.InstallPath = installPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
 
             newInstance.DBPath = dbPath;
             newInstance.LogPath = logPath;

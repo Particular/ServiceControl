@@ -121,7 +121,7 @@ namespace ServiceControl.Management.PowerShell
                 Port = Port,
                 ErrorQueue = ErrorQueue,
                 ConnectionString = ConnectionString,
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport)),
+                TransportPackage = ServiceControlCoreTransports.Find(Transport),
                 SkipQueueCreation = SkipQueueCreation
             };
             var details = monitoringNewInstance;

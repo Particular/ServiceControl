@@ -16,13 +16,13 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void Init()
         {
             var instanceA = new Mock<IServiceControlInstance>();
-            instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
+            instanceA.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.Find(TransportNames.MSMQ));
             instanceA.SetupGet(p => p.ErrorQueue).Returns(@"error");
             instanceA.SetupGet(p => p.ErrorLogQueue).Returns(@"errorlog");
             instanceA.SetupGet(p => p.ForwardErrorMessages).Returns(true);
 
             var instanceB = new Mock<IServiceControlInstance>();
-            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQClassicConventionalRoutingTopology || t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology));
+            instanceB.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.Find(TransportNames.RabbitMQClassicConventionalRoutingTopology));
             instanceB.SetupGet(p => p.ErrorQueue).Returns(@"RMQerror");
             instanceB.SetupGet(p => p.ErrorLogQueue).Returns(@"RMQerrorlog");
             instanceB.SetupGet(p => p.ForwardErrorMessages).Returns(true);
@@ -40,7 +40,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ),
                 ErrorLogQueue = "errorlog",
                 ErrorQueue = "error"
             };
@@ -56,12 +56,12 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         public void CheckChainingOfAuditQueues_ShouldSucceed()
         {
             var existingAudit = new Mock<IServiceControlAuditInstance>();
-            existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ));
+            existingAudit.SetupGet(p => p.TransportPackage).Returns(ServiceControlCoreTransports.Find(TransportNames.MSMQ));
             existingAudit.SetupGet(p => p.AuditQueue).Returns(@"audit");
 
             var newInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence(GetZipFolder().FullName);
 
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ);
             newInstance.AuditQueue = "audit";
 
             var validator = new QueueNameValidator(newInstance)
@@ -77,7 +77,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ),
                 ErrorLogQueue = "error",
                 ErrorQueue = "error",
                 ForwardErrorMessages = true
@@ -97,7 +97,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ),
                 ErrorLogQueue = "errorlog2",
                 ErrorQueue = "error2"
             };
@@ -115,7 +115,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
             var expectedError = "Some queue names specified are already assigned to another ServiceControl instance - Correct the values for ErrorLogQueue, ErrorQueue";
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.MSMQ),
                 ErrorLogQueue = "errorlog",
                 ErrorQueue = "error",
                 ForwardErrorMessages = true
@@ -152,7 +152,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.RabbitMQQuorumConventionalRoutingTopology),
                 ErrorLogQueue = "errorlog",
                 ErrorQueue = "error",
                 ForwardErrorMessages = true
@@ -186,7 +186,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
         {
             var newInstance = new ServiceControlNewInstance
             {
-                TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.RabbitMQQuorumConventionalRoutingTopology),
+                TransportPackage = ServiceControlCoreTransports.Find(TransportNames.RabbitMQQuorumConventionalRoutingTopology),
                 ErrorQueue = "RMQerror",
                 ErrorLogQueue = "RMQerrorlog",
                 ConnectionString = "afakeconnectionstring",
