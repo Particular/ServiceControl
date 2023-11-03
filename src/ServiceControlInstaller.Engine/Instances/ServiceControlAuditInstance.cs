@@ -82,18 +82,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
 
-            var manifests = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath);
-
             var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
-
-            if (string.IsNullOrEmpty(persistenceType))
-            {
-                PersistenceManifest = manifests.Single(m => m.Name == "RavenDB35");
-            }
-            else
-            {
-                PersistenceManifest = manifests.Single(m => m.TypeName == persistenceType);
-            }
+            PersistenceManifest = ServiceControlAuditPersisters.GetPersistence(zipInfo.FilePath, persistenceType);
 
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();

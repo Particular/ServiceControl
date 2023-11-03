@@ -166,7 +166,12 @@
                     return "InMemory";
                 }
 
-                return "RavenDB 3.5";
+                if (ServiceInstance.Version.Major <= 4)
+                {
+                    return "RavenDB 3.5";
+                }
+
+                return "Unknown";
             }
         }
 
