@@ -94,7 +94,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             {
                 var dir = Path.GetDirectoryName(e.FileName);
 
-                if (zipFilter.Evaluate(e, out var filename))
+                if (zipFilter.ShouldExtract(e, out var filename))
                 {
                     if (e.IsDirectory)
                     {
@@ -131,7 +131,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
                 this.targetPath = targetPath;
             }
 
-            public bool Evaluate(ZipEntry zipEntry, out string resultPath)
+            public bool ShouldExtract(ZipEntry zipEntry, out string resultPath)
             {
                 var zipPathSegments = zipEntry.FileName.Split(directorySplitChars);
                 resultPath = null;
@@ -154,20 +154,24 @@ namespace ServiceControlInstaller.Engine.FileSystem
                     }
                 }
 
-                // How many segments of the zip file name do wwe need? If just one, use Path.Combine(string, string)
+                resultPath = DetermineDestinationPath(zipPathSegments);
+                return true;
+            }
+
+            string DetermineDestinationPath(string[] zipPathSegments)
+            {
+                // How many segments of the zip file name do we need? If just one, use Path.Combine(string, string)
                 var nonPrefixZipFileSegmentsCount = zipPathSegments.Length - folderNameSegments.Length;
                 if (nonPrefixZipFileSegmentsCount == 1)
                 {
-                    resultPath = Path.Combine(targetPath, zipPathSegments[folderNameSegments.Length]);
-                    return true;
+                    return Path.Combine(targetPath, zipPathSegments[folderNameSegments.Length]);
                 }
 
                 // For deeper paths, construct an array with the targetPath + the segments of the zip path after the desired folder name to Path.Combine(string[])
                 var resultSegments = new string[nonPrefixZipFileSegmentsCount + 1];
                 resultSegments[0] = targetPath;
                 Array.Copy(zipPathSegments, folderNameSegments.Length, resultSegments, 1, nonPrefixZipFileSegmentsCount);
-                resultPath = Path.Combine(resultSegments);
-                return true;
+                return Path.Combine(resultSegments);
             }
         }
 
