@@ -11,8 +11,10 @@
     {
         static readonly TransportInfo[] all;
         static readonly TransportInfo[] supported;
+        static readonly TransportInfo defaultTransport;
 
         public static TransportInfo[] GetSupportedTransports() => supported;
+        public static TransportInfo GetDefaultTransport() => defaultTransport;
 
         // Only tests should use this
         internal static TransportInfo[] GetAllTransports() => all;
@@ -37,6 +39,8 @@
             all.First(t => t.Name == "LearningTransport").AvailableInSCMU = IncludeLearningTransport();
 
             supported = all.Where(t => t.AvailableInSCMU).ToArray();
+
+            defaultTransport = all.Single(t => t.Default);
         }
 
         static TransportInfo[] Load(Assembly assembly, string resourceName)
@@ -91,17 +95,7 @@
 
         public static TransportInfo Find(string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                name = "MSMQ";
-            }
-
-            return all.FirstOrDefault(p => p.Matches(name)) ?? new TransportInfo
-            {
-                Name = name,
-                DisplayName = $"Unknown Message Transport: {name}",
-                AvailableInSCMU = false
-            };
+            return all.FirstOrDefault(p => p.Matches(name));
         }
 
         public static TransportInfo UpgradedTransportSeam(TransportInfo transport)

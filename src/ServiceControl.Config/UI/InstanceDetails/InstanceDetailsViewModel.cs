@@ -156,9 +156,14 @@
         {
             get
             {
-                if (ServiceInstance is IPersistenceConfig persistence)
+                if (ServiceInstance is IServiceControlInstance primaryInstance)
                 {
-                    return persistence.PersistenceManifest.DisplayName;
+                    return primaryInstance.PersistenceManifest.DisplayName;
+                }
+
+                if (ServiceInstance is IServiceControlAuditInstance auditInstance)
+                {
+                    return auditInstance.PersistenceManifest.DisplayName;
                 }
 
                 if (ServiceInstance is IMonitoringInstance)

@@ -53,7 +53,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
 
             var serviceControlNewInstance = viewModel.InstallErrorInstance ? ServiceControlNewInstance.CreateWithDefaultPersistence() : null;
 
-            if (viewModel.InstallAuditInstance)
+            if (viewModel.InstallErrorInstance)
             {
                 serviceControlNewInstance.DisplayName = viewModel.ServiceControl.InstanceName;
                 serviceControlNewInstance.Name = viewModel.ServiceControl.InstanceName.Replace(' ', '.');

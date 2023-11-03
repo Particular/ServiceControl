@@ -10,6 +10,7 @@
         public string TypeName { get; set; }
         public string SampleConnectionString { get; set; }
         public string Help { get; set; }
+        public bool Default { get; set; }
         public bool AvailableInSCMU { get; set; } = true;
         public string AutoMigrateTo { get; set; }
         public string[] Aliases { get; set; } = Array.Empty<string>();
@@ -45,12 +46,12 @@
                 return false;
             }
 
-            return Name.Equals(that.Name, StringComparison.OrdinalIgnoreCase);
+            return DisplayName.Equals(that.DisplayName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return DisplayName.GetHashCode();
         }
     }
 
