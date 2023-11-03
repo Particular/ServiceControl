@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.UI.AdvancedOptions
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading;
@@ -124,6 +125,8 @@
         }
 
         public bool ForcedUpgradeAllowed => ForceUpgradeCommand.CanExecute(this);
+
+        public string ForcedUpgradeBackupLocation => $"{ServiceControlInstance.DBPath}_UpgradeBackup";
 
         public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {

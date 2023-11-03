@@ -1,5 +1,7 @@
-﻿namespace ServiceControl.Config.Commands;
+namespace ServiceControl.Config.Commands;
 
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
@@ -8,7 +10,6 @@ using Events;
 using Framework.Modules;
 using Framework;
 using ServiceControlInstaller.Engine.Configuration.ServiceControl;
-using ServiceControlInstaller.Engine.FileSystem;
 using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
 using ServiceControlInstaller.Engine.Validation;
@@ -96,8 +97,9 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
             reportCard = await Task.Run(() =>
             {
-                //HINT: we wipe out the database before we continue with the upgrade
-                FileUtils.DeleteDirectory(instance.DBPath, recursive: true, contentsOnly: true);
+                //HINT: we move the data directory to a backup location
+                Directory.Move(instance.DBPath, model.ForcedUpgradeBackupLocation);
+
                 instance.PersistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests.Single(pm => pm.Name == StorageEngineNames.RavenDB5);
 
                 return serviceControlInstaller.Upgrade(instance, upgradeOptions, progress);
