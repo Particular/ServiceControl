@@ -28,6 +28,7 @@
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
+    <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="7.1.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="NLog.Extensions.Logging" Version="5.3.3" />
@@ -56,7 +57,6 @@
     <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
     <PackageVersion Include="Particular.Approvals" Version="0.5.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
-    <PackageVersion Include="System.Management.Automation" Version="7.2.16" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.0.0" />
@@ -67,12 +67,12 @@
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="7.0.1" />
     <PackageVersion Include="System.IO.Compression" Version="4.3.0" />
     <PackageVersion Include="System.Management" Version="7.0.2" />
+    <PackageVersion Include="System.Management.Automation" Version="7.2.16" />
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="7.0.1" />
     <PackageVersion Include="System.Text.Json" Version="7.0.3" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
-    <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
