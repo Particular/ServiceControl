@@ -97,14 +97,14 @@
 
         TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
-            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
+            var transportAppSetting = AppConfig.Read<string>(SettingsList.TransportType, null)?.Trim();
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
             if (transport != null)
             {
                 return transport;
             }
 
-            return ServiceControlCoreTransports.All.First(p => p.Default);
+            return ServiceControlCoreTransports.GetDefaultTransport();
         }
 
         public async Task ValidateChanges()
@@ -252,7 +252,6 @@
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl.Monitoring");
             FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
         }
 
         public void RestoreAppConfig(string sourcePath)

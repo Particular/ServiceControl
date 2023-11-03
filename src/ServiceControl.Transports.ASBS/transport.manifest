@@ -3,9 +3,13 @@
   "Definitions": [
     {
       "Name": "NetStandardAzureServiceBus",
-      "DisplayName": "Azure Service Bus Standard",
+      "DisplayName": "Azure Service Bus",
       "TypeName": "ServiceControl.Transports.ASBS.ASBSTransportCustomization, ServiceControl.Transports.ASBS",
-      "Aliases": [ "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus" ]
+      "SampleConnectionString": "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>;TopicName=<TopicBundleName(Default=bundle-1)>",
+      "AvailableInSCMU": true,
+      "Aliases": [
+        "ServiceControl.Transports.AzureServiceBus.AzureServiceBusTransport, ServiceControl.Transports.AzureServiceBus"
+      ]
     }    
   ]
 }

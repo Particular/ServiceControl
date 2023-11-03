@@ -102,13 +102,8 @@
 
         }
 
-        [TestCase(TransportNames.AmazonSQS)]
-        [TestCase(TransportNames.AzureServiceBus)]
-        [TestCase(TransportNames.SQLServer)]
-        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
-        public void
-            Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_audit_instance(
-                string transportInfoName)
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
+        public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_audit_instance(string transportInfoName)
         {
             var viewModel = new ServiceControlAddViewModel
             {
@@ -125,10 +120,7 @@
             Assert.IsNotEmpty(errors);
         }
 
-        [TestCase(TransportNames.AmazonSQS)]
-        [TestCase(TransportNames.AzureServiceBus)]
-        [TestCase(TransportNames.SQLServer)]
-        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
         public void
             Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_audit_instance(
                 string transportInfoName)

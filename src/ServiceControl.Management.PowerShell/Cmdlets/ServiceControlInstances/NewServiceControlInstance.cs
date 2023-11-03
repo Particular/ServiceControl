@@ -56,7 +56,7 @@ namespace ServiceControl.Management.PowerShell
         public string ErrorLogQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateSet(TransportNames.AzureServiceBus, TransportNames.AzureServiceBusForwardingTopologyDeprecated, TransportNames.AzureServiceBusForwardingTopologyOld, TransportNames.AzureServiceBusEndpointOrientedTopologyDeprecated, TransportNames.AzureServiceBusEndpointOrientedTopologyOld, TransportNames.AzureStorageQueue, TransportNames.MSMQ, TransportNames.SQLServer, TransportNames.RabbitMQClassicDirectRoutingTopology, TransportNames.RabbitMQQuorumDirectRoutingTopology, TransportNames.RabbitMQClassicConventionalRoutingTopology, TransportNames.RabbitMQQuorumConventionalRoutingTopology, TransportNames.AmazonSQS)]
+        [ValidateTransport]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]
@@ -105,19 +105,21 @@ namespace ServiceControl.Management.PowerShell
         {
             AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
 
-            if (Transport != TransportNames.MSMQ && string.IsNullOrEmpty(ConnectionString))
+            var transport = ServiceControlCoreTransports.Find(Transport);
+
+            if (transport.SampleConnectionString is not null && string.IsNullOrEmpty(ConnectionString))
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
             }
 
-            if (Transport == TransportNames.MSMQ && !string.IsNullOrEmpty(ConnectionString))
+            if (transport.SampleConnectionString is null && !string.IsNullOrEmpty(ConnectionString))
             {
-                throw new Exception($"MSMQ transport no longer uses a connectionString");
+                throw new Exception($"'{Transport}' does not use a connection string.");
             }
 
-            if (TransportNames.IsDeprecated(Transport))
+            if (!transport.AvailableInSCMU)
             {
-                WriteWarning($"The transport '{Transport.Replace(TransportNames.DeprecatedPrefix, string.Empty)}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
+                WriteWarning($"The transport '{Transport}' is deprecated. Consult the corresponding upgrade guide for the selected transport on 'https://docs.particular.net'");
             }
 
             if (string.IsNullOrWhiteSpace(HostName))
@@ -166,7 +168,7 @@ namespace ServiceControl.Management.PowerShell
             details.ForwardErrorMessages = ForwardErrorMessages.ToBool();
             details.ErrorRetentionPeriod = ErrorRetentionPeriod;
             details.ConnectionString = ConnectionString;
-            details.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Matches(Transport));
+            details.TransportPackage = ServiceControlCoreTransports.Find(Transport);
             details.SkipQueueCreation = SkipQueueCreation;
             details.EnableFullTextSearchOnBodies = EnableFullTextSearchOnBodies;
 

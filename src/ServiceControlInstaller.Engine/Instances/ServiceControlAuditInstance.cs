@@ -53,7 +53,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string GetTransportTypeSetting()
         {
-            return AppConfig.Read(AuditInstanceSettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            return AppConfig.Read<string>(AuditInstanceSettingsList.TransportType, null)?.Trim();
         }
 
         protected override string BaseServiceName => "ServiceControl.Audit";

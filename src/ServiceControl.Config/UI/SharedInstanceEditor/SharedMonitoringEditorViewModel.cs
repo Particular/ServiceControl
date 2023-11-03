@@ -4,20 +4,19 @@ namespace ServiceControl.Config.UI.SharedInstanceEditor
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Windows.Input;
     using Framework.Rx;
     using PropertyChanged;
+    using ServiceControl.Config.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using Validation;
-    using ServiceControl.Config.Extensions;
     using Validations = Validation.Validations;
 
     public class SharedMonitoringEditorViewModel : RxProgressScreen
     {
         public SharedMonitoringEditorViewModel()
         {
-            Transports = ServiceControlCoreTransports.All.Where(t => t.AvailableInSCMU);
+            Transports = ServiceControlCoreTransports.GetSupportedTransports();
         }
 
         [DoNotNotify]

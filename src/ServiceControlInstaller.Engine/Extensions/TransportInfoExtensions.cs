@@ -6,16 +6,12 @@
     {
         public static bool IsLatestRabbitMQTransport(this TransportInfo transport)
         {
-            return transport.Name is TransportNames.RabbitMQClassicConventionalRoutingTopology or
-                   TransportNames.RabbitMQQuorumConventionalRoutingTopology or
-                   TransportNames.RabbitMQClassicDirectRoutingTopology or
-                   TransportNames.RabbitMQQuorumDirectRoutingTopology;
+            return transport.ZipName == "RabbitMQ" && transport.AvailableInSCMU;
         }
 
         public static bool IsOldRabbitMQTransport(this TransportInfo transport)
         {
-            return transport.Name is TransportNames.RabbitMQConventionalRoutingTopologyDeprecated or
-                   TransportNames.RabbitMQDirectRoutingTopologyDeprecated;
+            return transport.ZipName == "RabbitMQ" && !transport.AvailableInSCMU;
         }
     }
 }

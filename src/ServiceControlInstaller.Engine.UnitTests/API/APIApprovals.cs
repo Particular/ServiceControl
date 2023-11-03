@@ -1,8 +1,8 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
+    using System.Linq;
     using NUnit.Framework;
     using Particular.Approvals;
-    using PublicApiGenerator;
     using ServiceControlInstaller.Engine.Instances;
 
     [TestFixture]
@@ -11,16 +11,22 @@
         [Test]
         public void TransportNames()
         {
-            //HINT: Those names are used in PowerShell scripts thus constitute a public api.
-            //Also Particular.PlatformSamples relies on it to specify the learning transport.
-            var transportNamesType = typeof(TransportNames);
-            var publicTransportNames = transportNamesType.Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                IncludeTypes = new[] { transportNamesType },
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
+            // These values constitute a public API
+            // ServiceControl instances load transports either by Name (preferred) or a type name which may appear in an Alias
+            // PowerShell scripts in ServiceControl v5 prefer loading transport by Name, but ServiceControl v4 used the display name,
+            // and older display names are represented in the Aliases collection
 
-            Approver.Verify(publicTransportNames);
+            var toVerify = ServiceControlCoreTransports.GetAllTransports()
+                .OrderBy(t => t.Name)
+                .Select(t => new
+                {
+                    t.Name,
+                    t.DisplayName,
+                    t.Aliases
+                })
+                .ToArray();
+
+            Approver.Verify(toVerify);
         }
     }
 }

@@ -21,7 +21,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";
@@ -59,7 +59,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
 
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
@@ -88,7 +88,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.All.Single(t => t.Name == TransportNames.MSMQ);
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";

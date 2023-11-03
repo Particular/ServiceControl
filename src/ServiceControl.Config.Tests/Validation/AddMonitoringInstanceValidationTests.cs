@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Config.Tests.Validation
 {
-    using NUnit.Framework;
-    using UI.InstanceAdd;
-    using ServiceControlInstaller.Engine.Instances;
     using System.ComponentModel;
-    using System.ServiceProcess;
     using System.Linq;
+    using System.ServiceProcess;
+    using NUnit.Framework;
+    using ServiceControlInstaller.Engine.Instances;
+    using UI.InstanceAdd;
 
     public class AddMonitoringInstanceValidationTests
     {
@@ -364,10 +364,7 @@
         }
 
 
-        [TestCase(TransportNames.AmazonSQS)]
-        [TestCase(TransportNames.AzureServiceBus)]
-        [TestCase(TransportNames.SQLServer)]
-        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
         public void Transport_connection_string_cannot_be_empty_if_sample_connection_string_is_present_when_adding_monitoring_instance(string transportInfoName)
         {
 
@@ -385,10 +382,7 @@
             Assert.IsNotEmpty(errors);
         }
 
-        [TestCase(TransportNames.AmazonSQS)]
-        [TestCase(TransportNames.AzureServiceBus)]
-        [TestCase(TransportNames.SQLServer)]
-        [TestCase(TransportNames.RabbitMQClassicDirectRoutingTopology)]
+        [TestTheseTransports("AmazonSQS", "AzureServiceBus", "SQLServer", "RabbitMQ")]
         public void Transport_connection_string_cannot_be_null_if_sample_connection_string_is_present_when_adding_monitoring_instance(
             string transportInfoName)
         {

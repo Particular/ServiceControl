@@ -145,13 +145,13 @@ namespace ServiceControlInstaller.Engine.Instances
         protected TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = GetTransportTypeSetting();
-            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
             if (transport != null)
             {
                 return transport;
             }
 
-            return ServiceControlCoreTransports.All.First(p => p.Default);
+            return ServiceControlCoreTransports.GetDefaultTransport();
         }
 
         protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)
@@ -431,7 +431,7 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             TransportPackage = ServiceControlCoreTransports.UpgradedTransportSeam(TransportPackage);
 
-            AppConfig.SetTransportType(TransportPackage.TypeName);
+            AppConfig.SetTransportType(TransportPackage.Name);
             AppConfig.Save();
         }
 

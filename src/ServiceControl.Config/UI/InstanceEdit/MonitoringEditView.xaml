@@ -127,7 +127,7 @@
                                 Grid.ColumnSpan="2"
                                 VerticalAlignment="Center"
                                 FontSize="14px"
-                                Text="{Binding SelectedTransport.Name}" />
+                                Text="{Binding SelectedTransport.DisplayName}" />
                 </Grid>
               
 

@@ -67,7 +67,7 @@
             details.AuditRetentionPeriod = TimeSpan.FromDays(SettingConstants.AuditRetentionPeriodDefaultInDaysForUI);
             details.ErrorRetentionPeriod = TimeSpan.FromDays(SettingConstants.ErrorRetentionPeriodDefaultInDaysForUI);
             details.ErrorQueue = "testerror";
-            details.TransportPackage = ServiceControlCoreTransports.All.First(t => t.Name == TransportNames.MSMQ);
+            details.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
             details.ReportCard = new ReportCard();
             // but this fails for unit tests as the deploymentCache path is not used
             // constructer of ServiceControlInstanceMetadata extracts version from zip

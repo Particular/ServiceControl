@@ -3,8 +3,10 @@
   "Definitions": [
     {
       "Name": "LearningTransport",
-      "DisplayName": "LearningTransport",
-      "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning"
+      "DisplayName": "Learning",
+      "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
+      "SampleConnectionString": "%TEMP%\\.learningtransport",
+      "AvailableInSCMU": true
     }
   ]
 }
