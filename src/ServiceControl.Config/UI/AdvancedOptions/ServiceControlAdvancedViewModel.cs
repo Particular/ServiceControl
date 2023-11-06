@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.UI.AdvancedOptions
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading;

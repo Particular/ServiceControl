@@ -125,14 +125,13 @@
 
                     <TextBlock FontSize="12px" 
                                TextWrapping="Wrap" 
-                               Margin="0,0,0,20">
-                        Forced upgrade to version 5 will not preserve any data stored by the instance. Before migration a backup of current data will be stored in 
-                        <TextBlock Text="{Binding ForcedUpgradeBackupLocation}" /> directory.
-                        
-
+                               Margin="0,0,0,20"
+                               >
+                        Forced upgrade will not preserve data stored by the instance. Before the migration, the current, RavenDB 3.5 database will be moved to 
+                        <TextBlock FontSize="12px" FontWeight="Bold" Text="{Binding ForcedUpgradeBackupLocation}" /> directory.
                         <LineBreak/>
                         <LineBreak/>
-                        If you want migrate the error data follow
+                        If you want perform the migration preserving the error data follow
                         <Hyperlink Command="{Binding OpenUrl}" CommandParameter="https://docs.particular.net/servicecontrol/upgrades/4to5/">
                             the version 4 to 5 upgrade guide
                         </Hyperlink>.
