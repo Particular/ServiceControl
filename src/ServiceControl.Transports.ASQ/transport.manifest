@@ -2,13 +2,14 @@
   "Version": "1.0.0",  
   "Definitions": [
     {
-      "Name": "AzureStorageQueue",
-      "DisplayName": "Azure Storage Queue",
+      "Name": "AzureStorageQueues",
+      "DisplayName": "Azure Storage Queues",
       "TypeName": "ServiceControl.Transports.ASQ.ASQTransportCustomization, ServiceControl.Transports.ASQ",
       "SampleConnectionString": "DefaultEndpointsProtocol=[http|https];AccountName=<MyAccountName>;AccountKey=<MyAccountKey>;Subscriptions Table=tablename",
       "AvailableInSCMU": true,
       "Help": "Specify optional 'Subscriptions Table' to override the default subscriptions table name.",
       "Aliases": [
+        "AzureStorageQueue",
         "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues",
         "ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues"
       ]
