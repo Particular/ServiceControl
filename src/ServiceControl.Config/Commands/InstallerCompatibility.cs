@@ -15,7 +15,7 @@
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer version",
-                    $"This instance version {instanceVersion} is newer than the installer version {installerVersion}. This installer can only edit instances with versions between {installerVersion.Major}.0.0 and {installerVersion}.",
+                    $"This instance version {instanceVersion} is newer than the installer version {installerVersion}. This installer can only edit or remove instances with versions between {installerVersion.Major}.0.0 and {installerVersion}.",
                     hideCancel: true
                     );
                 return true;
@@ -25,7 +25,7 @@
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer version",
-                    $"This installer cannot edit instances created by a different major version. This instance can be edited by a {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build}.",
+                    $"This installer cannot edit or remove instances created by a different major version. This instance can be edited by a {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build}.",
                     hideCancel: true
                     );
                 return true;
