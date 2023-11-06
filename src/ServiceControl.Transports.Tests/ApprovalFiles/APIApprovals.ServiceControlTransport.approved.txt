@@ -52,6 +52,7 @@ namespace ServiceControl.Transports
         public ServiceControl.Transports.TransportManifestDefinition[] Definitions { get; set; }
         public string Location { get; set; }
         public string Version { get; set; }
+        public override string ToString() { }
     }
     public class TransportManifestDefinition
     {
@@ -60,6 +61,7 @@ namespace ServiceControl.Transports
         public string DisplayName { get; set; }
         public string Name { get; set; }
         public string TypeName { get; set; }
+        public override string ToString() { }
     }
     public static class TransportManifestLibrary
     {

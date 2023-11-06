@@ -43,6 +43,31 @@
             Test("ServiceControl.Audit.Persistence.RavenDB.RavenPersistenceConfiguration, ServiceControl.Audit.Persistence.RavenDB", "RavenDB");
         }
 
+        [Test]
+        public void Raven35IsDefault()
+        {
+            var manifests = new[] {
+                ServiceControlPersisters.GetPrimaryPersistence(null),
+                ServiceControlPersisters.GetAuditPersistence(null),
+                ServiceControlPersisters.GetPrimaryPersistence(""),
+                ServiceControlPersisters.GetAuditPersistence("")
+            };
 
+            Assert.That(manifests.All(m => m.Name == "RavenDB35"));
+        }
+
+        [Test]
+        public void UnknownPersister()
+        {
+            var garbage = "garbage-value";
+
+            var manifests = new[]
+            {
+                ServiceControlPersisters.GetPrimaryPersistence(garbage),
+                ServiceControlPersisters.GetAuditPersistence(garbage)
+            };
+
+            Assert.That(manifests.All(m => m.Name == garbage && m.DisplayName == $"Unknown Persistence: {garbage}" && !m.IsSupported));
+        }
     }
 }

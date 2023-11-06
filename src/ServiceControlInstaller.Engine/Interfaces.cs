@@ -18,6 +18,11 @@ namespace ServiceControlInstaller.Engine
         string ConnectionString { get; }
     }
 
+    public interface IPersistenceConfig
+    {
+        PersistenceManifest PersistenceManifest { get; }
+    }
+
     public interface IHttpInstance
     {
         int Port { get; }
@@ -78,7 +83,8 @@ namespace ServiceControlInstaller.Engine
         IServiceInstance,
         IServiceControlPaths,
         IInstallable,
-        ITransportConfig
+        ITransportConfig,
+        IPersistenceConfig
     {
         bool EnableFullTextSearchOnBodies { get; }
     }
@@ -91,7 +97,6 @@ namespace ServiceControlInstaller.Engine
         bool ForwardAuditMessages { get; }
         TimeSpan AuditRetentionPeriod { get; }
         string ServiceControlQueueAddress { get; set; }
-        PersistenceManifest PersistenceManifest { get; }
     }
 
     public interface IServiceControlInstance : IServiceControlBaseInstance, IURLInfo
@@ -103,6 +108,5 @@ namespace ServiceControlInstaller.Engine
         TimeSpan ErrorRetentionPeriod { get; }
         TimeSpan? AuditRetentionPeriod { get; set; }
         List<RemoteInstanceSetting> RemoteInstances { get; }
-        PersistenceManifest PersistenceManifest { get; }
     }
 }

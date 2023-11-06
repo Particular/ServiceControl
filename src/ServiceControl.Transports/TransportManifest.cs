@@ -14,6 +14,8 @@
         public string Location { get; set; }
 
         public TransportManifestDefinition[] Definitions { get; set; }
+
+        public override string ToString() => $"{nameof(TransportManifest)}: {string.Join(", ", Definitions.Select(d => d.Name))}";
     }
 
     public class TransportManifestDefinition
@@ -32,6 +34,8 @@
             || AliasesContain(transportType);
 
         bool AliasesContain(string transportType) => Aliases.Contains(transportType);
+
+        public override string ToString() => $"{nameof(TransportManifestDefinition)}: {Name}";
     }
 
     public static class TransportManifestLibrary

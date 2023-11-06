@@ -74,16 +74,7 @@ namespace ServiceControlInstaller.Engine.Instances
             ServiceControlQueueAddress = AppConfig.Read<string>(AuditInstanceSettingsList.ServiceControlQueueAddress, null);
 
             var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
-
-            if (string.IsNullOrEmpty(persistenceType))
-            {
-                // Must always remain RavenDB35 so that SCMU understands that an instance with no configured value is an old Raven 3.5 instance
-                PersistenceManifest = ServiceControlPersisters.GetAuditPersistence("RavenDB35");
-            }
-            else
-            {
-                PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(persistenceType);
-            }
+            PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(persistenceType);
 
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();
