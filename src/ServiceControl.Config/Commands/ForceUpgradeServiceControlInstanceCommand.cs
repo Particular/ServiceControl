@@ -38,6 +38,12 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
+        if (await windowManager.ShowMessage("Forced migration",
+                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
+        {
+            return;
+        }
+
         if (LicenseChecks)
         {
             var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
