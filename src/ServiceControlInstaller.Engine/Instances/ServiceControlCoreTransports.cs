@@ -17,7 +17,21 @@
         // Only tests should use this
         internal static TransportInfo[] GetAllTransports() => all;
 
-        public static IEnumerable<T> Select<T>(Func<TransportInfo, T> selector) => all.Select(selector);
+        public static IEnumerable<TransportInfo> GetPowerShellTransports(bool allTransports)
+        {
+            foreach (var transport in all.Where(t => t.AvailableInSCMU || t.Name == "LearningTransport"))
+            {
+                yield return transport;
+            }
+
+            if (allTransports)
+            {
+                foreach (var transport in all.Where(t => !t.AvailableInSCMU && t.Name != "LearningTransport"))
+                {
+                    yield return transport;
+                }
+            }
+        }
 
         static ServiceControlCoreTransports()
         {
@@ -30,7 +44,7 @@
 
             all = resourceNames
                 .SelectMany(name => Load(assembly, name))
-                .OrderBy(m => m.Name)
+                .OrderBy(m => m.DisplayName)
                 .ToArray();
 
             // Filtered by environment variable in SCMU, needs to be available all the time for PowerShell
