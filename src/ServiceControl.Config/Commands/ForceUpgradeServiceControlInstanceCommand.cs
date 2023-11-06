@@ -1,6 +1,5 @@
 namespace ServiceControl.Config.Commands;
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
         var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
 
         //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
-        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name == StorageEngineNames.RavenDB35;
+        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name == "RavenDB35";
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
@@ -100,7 +99,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
                 //HINT: we move the data directory to a backup location
                 Directory.Move(instance.DBPath, model.ForcedUpgradeBackupLocation);
 
-                instance.PersistenceManifest = ServiceControlPersisters.PrimaryPersistenceManifests.Single(pm => pm.Name == StorageEngineNames.RavenDB5);
+                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
 
                 return serviceControlInstaller.Upgrade(instance, upgradeOptions, progress);
             });
