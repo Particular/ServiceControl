@@ -100,6 +100,13 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
                 return;
             }
 
+            if (Directory.Exists(model.ForcedUpgradeBackupLocation))
+            {
+                await windowManager.ShowMessage("Cannot make database backup.", $"The target database backup location: {model.ForcedUpgradeBackupLocation} already exists.", hideCancel: true);
+
+                return;
+            }
+
             reportCard = await Task.Run(() =>
             {
                 //HINT: we move the data directory to a backup location
