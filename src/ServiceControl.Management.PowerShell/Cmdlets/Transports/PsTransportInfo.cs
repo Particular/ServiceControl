@@ -13,9 +13,11 @@
             return new PsTransportInfo
             {
                 Name = transport.Name,
-                DisplayName = (transport.AvailableInSCMU ? "" : "DEPRECATED: ") + transport.DisplayName,
+                DisplayName = (ShowDeprecated(transport) ? "DEPRECATED: " : "") + transport.DisplayName,
                 SampleConnectionString = transport.SampleConnectionString
             };
         }
+
+        static bool ShowDeprecated(TransportInfo t) => !t.AvailableInSCMU && t.Name != "LearningTransport";
     }
 }

@@ -43,7 +43,7 @@ namespace ServiceControl.Management.PowerShell
         public string ErrorQueue { get; set; }
 
         [Parameter(Mandatory = true, HelpMessage = "Specify the NServiceBus Transport to use")]
-        [ValidateTransport]
+        [ValidateSet(typeof(TransportValuesGenerator))]
         public string Transport { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Specify the Windows Service Display name. If unspecified the instance name will be used")]

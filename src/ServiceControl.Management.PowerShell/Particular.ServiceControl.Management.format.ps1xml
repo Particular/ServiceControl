@@ -11,15 +11,15 @@
           <ListEntry>
             <ListItems>
               <ListItem>
-                <Label>Name</Label>
+                <Label>Transport Name</Label>
+                <PropertyName>DisplayName</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>-Transport Parameter Value</Label>
                 <PropertyName>Name</PropertyName>
               </ListItem>
               <ListItem>
-                <Label>TypeName</Label>
-                <PropertyName>TypeName</PropertyName>
-              </ListItem>
-              <ListItem>
-                <Label>SampleConnectionString </Label>
+                <Label>Sample Connection String</Label>
                 <PropertyName>SampleConnectionString</PropertyName>
               </ListItem>
             </ListItems>

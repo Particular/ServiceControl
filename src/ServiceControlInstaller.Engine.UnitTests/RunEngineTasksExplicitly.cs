@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Messaging;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Engine.Configuration.ServiceControl;
@@ -122,21 +121,23 @@
 
         void RemoveAltMSMQQueues()
         {
-            var removeThese = new[]
-            {
-                @"private$\alternateAudit",
-                @"private$\alternateError"
-            };
+            //var removeThese = new[]
+            //{
+            //    @"private$\alternateAudit",
+            //    @"private$\alternateError"
+            //};
 
-            var queues = MessageQueue.GetPrivateQueuesByMachine("localhost");
-            foreach (var queue in queues)
-            {
-                if (removeThese.Contains(queue.QueueName, StringComparer.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine("Removing {0}", queue.QueueName);
-                    MessageQueue.Delete(@".\" + queue.QueueName);
-                }
-            }
+            //var queues = MessageQueue.GetPrivateQueuesByMachine("localhost");
+            //foreach (var queue in queues)
+            //{
+            //    if (removeThese.Contains(queue.QueueName, StringComparer.OrdinalIgnoreCase))
+            //    {
+            //        Console.WriteLine("Removing {0}", queue.QueueName);
+            //        MessageQueue.Delete(@".\" + queue.QueueName);
+            //    }
+            //}
+
+            throw new Exception("If you need to use these explicit tests, you can rewrite it to use a different message queue.");
         }
     }
 }

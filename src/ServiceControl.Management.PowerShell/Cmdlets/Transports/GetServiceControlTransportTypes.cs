@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Management.PowerShell
 {
+    using System.Linq;
     using System.Management.Automation;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -8,7 +9,10 @@
     {
         protected override void ProcessRecord()
         {
-            WriteObject(ServiceControlCoreTransports.Select(PsTransportInfo.FromTransport), true);
+            var transportInfos = ServiceControlCoreTransports.GetSupportedTransports()
+                .Select(PsTransportInfo.FromTransport);
+
+            WriteObject(transportInfos, true);
         }
     }
 }

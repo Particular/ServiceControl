@@ -29,7 +29,7 @@
   },
   {
     "Name": "AzureStorageQueue",
-    "DisplayName": "Azure Storage Queue",
+    "DisplayName": "Azure Storage Queues",
     "Aliases": [
       "NServiceBus.AzureStorageQueueTransport, NServiceBus.Azure.Transports.WindowsAzureStorageQueues",
       "ServiceControl.Transports.AzureStorageQueues.ServiceControlAzureStorageQueueTransport, ServiceControl.Transports.AzureStorageQueues"
@@ -37,7 +37,7 @@
   },
   {
     "Name": "LearningTransport",
-    "DisplayName": "Learning",
+    "DisplayName": "Learning Transport (Non-Production)",
     "Aliases": []
   },
   {

@@ -1,18 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.DirectoryServices.AccountManagement" />
-    <Reference Include="System.Messaging" />
-    <Reference Include="System.ServiceProcess" />
   </ItemGroup>
 
   <ItemGroup>

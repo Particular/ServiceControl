@@ -3,7 +3,7 @@
   "Definitions": [
     {
       "Name": "LearningTransport",
-      "DisplayName": "Learning",
+      "DisplayName": "Learning Transport (Non-Production)",
       "TypeName": "ServiceControl.Transports.Learning.LearningTransportCustomization, ServiceControl.Transports.Learning",
       "SampleConnectionString": "%TEMP%\\.learningtransport",
       "AvailableInSCMU": true
