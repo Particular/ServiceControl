@@ -17,22 +17,6 @@
         // Only tests should use this
         internal static TransportInfo[] GetAllTransports() => all;
 
-        public static IEnumerable<TransportInfo> GetPowerShellTransports(bool allTransports)
-        {
-            foreach (var transport in all.Where(t => t.AvailableInSCMU || t.Name == "LearningTransport"))
-            {
-                yield return transport;
-            }
-
-            if (allTransports)
-            {
-                foreach (var transport in all.Where(t => !t.AvailableInSCMU && t.Name != "LearningTransport"))
-                {
-                    yield return transport;
-                }
-            }
-        }
-
         static ServiceControlCoreTransports()
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -62,21 +46,6 @@
                 var manifest = JsonConvert.DeserializeObject<TransportManifest>(manifestContent);
 
                 return manifest.Definitions;
-            }
-        }
-
-        public static IEnumerable<string> GetTransportNames(bool includeDisplayNames)
-        {
-            foreach (var transport in all)
-            {
-                if (transport.AvailableInSCMU)
-                {
-                    yield return transport.Name;
-                    if (includeDisplayNames)
-                    {
-                        yield return transport.DisplayName;
-                    }
-                }
             }
         }
 

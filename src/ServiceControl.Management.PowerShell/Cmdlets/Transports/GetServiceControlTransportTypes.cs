@@ -9,10 +9,7 @@
     {
         protected override void ProcessRecord()
         {
-            // Perhaps in the future only show deprecated transports if extra parameter is given
-            bool allTransports = true;
-
-            var transportInfos = ServiceControlCoreTransports.GetPowerShellTransports(allTransports)
+            var transportInfos = ServiceControlCoreTransports.GetSupportedTransports()
                 .Select(PsTransportInfo.FromTransport);
 
             WriteObject(transportInfos, true);

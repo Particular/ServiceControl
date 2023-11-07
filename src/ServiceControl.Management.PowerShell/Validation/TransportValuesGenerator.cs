@@ -6,7 +6,8 @@
 
     public class TransportValuesGenerator : IValidateSetValuesGenerator
     {
-        public string[] GetValidValues() => ServiceControlCoreTransports.GetTransportNames(false)
+        public string[] GetValidValues() => ServiceControlCoreTransports.GetSupportedTransports()
+            .Select(t => t.Name)
             .ToArray();
     }
 }
