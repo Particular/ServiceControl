@@ -18,9 +18,9 @@
             {
                 RecommendedUpgradeVersion = new Version(3, 8, 2),
             },
-            new (new Version(5, 0), new Version(4, 33, 0))
+            new (new Version(5, 0), new Version(4, 0, 0))
             {
-                RecommendedUpgradeVersion = new Version(4, 33, 0),
+                RecommendedUpgradeVersion = new Version(4, 32, 3),
             }
         };
     }
