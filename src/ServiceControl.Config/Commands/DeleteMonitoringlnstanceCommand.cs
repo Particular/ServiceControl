@@ -22,6 +22,14 @@
 
         public override async Task ExecuteAsync(MonitoringAdvancedViewModel model)
         {
+            var instanceVersion = model.MonitoringInstance.Version;
+            var installerVersion = installer.ZipInfo.Version;
+
+            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
+            {
+                return;
+            }
+
             var confirmation = deleteInstanceConfirmation();
             confirmation.InstanceName = model.Name;
             var isConfirmed = await windowManager.ShowDialogAsync(confirmation);
