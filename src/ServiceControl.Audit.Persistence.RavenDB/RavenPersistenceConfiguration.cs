@@ -15,7 +15,7 @@
         public const string RavenDbLogLevelKey = "RavenDBLogLevel";
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
 
-        public IEnumerable<string> ConfigurationKeys => new string[]{
+        public IEnumerable<string> ConfigurationKeys => new[]{
             DatabaseNameKey,
             DatabasePathKey,
             ConnectionStringKey,
@@ -110,17 +110,22 @@
 
         static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
         {
-            if (ravenDbLogLevel == "Off")
+            switch (ravenDbLogLevel.ToLower())
             {
-                return "None";
+                case "off":         // Backwards compatibility with 4.x
+                case "none":
+                    return "None";
+                case "trace":       // Backwards compatibility with 4.x
+                case "debug":       // Backwards compatibility with 4.x
+                case "info":        // Backwards compatibility with 4.x
+                case "information":
+                    return "Information";
+                case "operations":
+                    return "Operations";
+                default:
+                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'");
+                    return "Operations";
             }
-
-            if (ravenDbLogLevel == "Trace" || ravenDbLogLevel == "Debug" || ravenDbLogLevel == "Info")
-            {
-                return "Information";
-            }
-
-            return "Operations";
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
@@ -134,20 +139,20 @@
 
             if (expirationProcessTimerInSeconds < 0)
             {
-                logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                Logger.Error($"ExpirationProcessTimerInSeconds cannot be negative. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                 return ExpirationProcessTimerInSecondsDefault;
             }
 
             if (expirationProcessTimerInSeconds > TimeSpan.FromHours(3).TotalSeconds)
             {
-                logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
+                Logger.Error($"ExpirationProcessTimerInSeconds cannot be larger than {TimeSpan.FromHours(3).TotalSeconds}. Defaulting to {ExpirationProcessTimerInSecondsDefault}");
                 return ExpirationProcessTimerInSecondsDefault;
             }
 
             return expirationProcessTimerInSeconds;
         }
 
-        static ILog logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
 
         const int ExpirationProcessTimerInSecondsDefault = 600;
     }

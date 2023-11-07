@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using NServiceBus.Logging;
     using ServiceControl.Operations;
+    using Sparrow.Logging;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -40,6 +42,9 @@
                 }
             }
 
+            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
+            var logsMode = MapRavenDbLogLevelToLogsMode(ravenDbLogLevel);
+
             var settings = new RavenPersisterSettings
             {
                 ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
@@ -55,13 +60,33 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
-                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenPersisterSettings.LogsModeDefault),
+                LogsMode = logsMode,
                 EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
 
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);
             return settings;
+        }
+
+        static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
+        {
+            switch (ravenDbLogLevel.ToLower())
+            {
+                case "off":         // Backwards compatibility with 4.x
+                case "none":
+                    return "None";
+                case "trace":       // Backwards compatibility with 4.x
+                case "debug":       // Backwards compatibility with 4.x
+                case "info":        // Backwards compatibility with 4.x
+                case "information":
+                    return "Information";
+                case "operations":
+                    return "Operations";
+                default:
+                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'");
+                    return "Operations";
+            }
         }
 
         public IPersistence Create(PersistenceSettings settings)
@@ -75,5 +100,7 @@
 
             return new RavenPersistence(specificSettings);
         }
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
     }
 }
