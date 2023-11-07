@@ -34,7 +34,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
         var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
 
         //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
-        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name == "RavenDB35";
+        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name != StorageEngineNames.RavenDB;
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
