@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.UI.AdvancedOptions
+namespace ServiceControl.Config.UI.AdvancedOptions
 {
     using System;
     using System.Linq;
@@ -17,7 +17,13 @@
 
     class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
     {
-        public ServiceControlAdvancedViewModel(BaseService instance, IEventAggregator eventAggregator, StartServiceControlInMaintenanceModeCommand maintenanceModeCommand, DeleteServiceControlInstanceCommand deleteInstanceCommand)
+        public ServiceControlAdvancedViewModel(
+            BaseService instance,
+            IEventAggregator eventAggregator,
+            StartServiceControlInMaintenanceModeCommand maintenanceModeCommand,
+            DeleteServiceControlInstanceCommand deleteInstanceCommand,
+            ForceUpgradeServiceControlInstanceCommand forceUpgradeCommand
+            )
         {
             ServiceControlInstance = (ServiceControlBaseService)instance;
             DisplayName = "ADVANCED OPTIONS";
@@ -28,6 +34,7 @@
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
             DeleteCommand = deleteInstanceCommand;
+            ForceUpgradeCommand = forceUpgradeCommand;
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
             StopMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
@@ -50,6 +57,8 @@
         public bool MaintenanceModeSupported => ServiceControlInstance.Version >= ServiceControlSettings.MaintenanceMode.SupportedFrom;
 
         public ICommand DeleteCommand { get; set; }
+
+        public ICommand ForceUpgradeCommand { get; set; }
 
         public ICommand Cancel { get; set; }
 
@@ -114,6 +123,10 @@
             }
         }
 
+        public bool ForcedUpgradeAllowed => ForceUpgradeCommand.CanExecute(this);
+
+        public string ForcedUpgradeBackupLocation => $"{ServiceControlInstance.DBPath}_UpgradeBackup";
+
         public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
             NotifyOfPropertyChange("AllowStop");
@@ -123,7 +136,7 @@
             return Task.CompletedTask;
         }
 
-        public async Task<bool> StartServiceInMaintenanceMode(IProgressObject progress)
+        public async Task<bool> StartService(IProgressObject progress, bool maintenanceMode)
         {
             var disposeProgress = progress == null;
             var result = false;
@@ -134,7 +147,15 @@
                 progress.Report(new ProgressDetails("Starting Service"));
                 await Task.Run(() =>
                 {
-                    ServiceControlInstance.EnableMaintenanceMode();
+                    if (maintenanceMode)
+                    {
+                        ServiceControlInstance.EnableMaintenanceMode();
+                    }
+                    else
+                    {
+                        ServiceControlInstance.DisableMaintenanceMode();
+                    }
+
                     result = ServiceControlInstance.TryStartService();
                 });
 

@@ -146,8 +146,12 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             var transportAppSetting = GetTransportTypeSetting();
             var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+            if (transport != null)
+            {
+                return transport;
+            }
 
-            return transport;
+            return ServiceControlCoreTransports.GetDefaultTransport();
         }
 
         protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)

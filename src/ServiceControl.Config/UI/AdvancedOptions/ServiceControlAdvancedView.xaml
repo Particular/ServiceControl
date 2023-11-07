@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ServiceControl.Config.UI.AdvancedOptions.ServiceControlAdvancedView"
+<UserControl x:Class="ServiceControl.Config.UI.AdvancedOptions.ServiceControlAdvancedView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -111,7 +111,41 @@
                         Padding="10,10"
                         Width="180"
                         />
-                
+
+                <!-- Forced Upgrade to Version 5 Section-->
+                <StackPanel Visibility="{Binding ForcedUpgradeAllowed, Converter={StaticResource boolToVis}}">
+                    <Border Margin="0,25,0,0"
+                            BorderBrush="{StaticResource Gray90Brush}"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock FontSize="13px"
+                                   FontWeight="Bold"
+                                   Text="FORCE UPGRADE TO VERSION 5"
+                        />
+                    </Border>
+
+                    <TextBlock FontSize="12px" 
+                               TextWrapping="Wrap" 
+                               Margin="0,0,0,20"
+                               >
+                        Forced upgrade will not preserve data stored by the instance. Before the migration, the current, RavenDB 3.5 database will be moved to 
+                        <TextBlock FontSize="12px" FontWeight="Bold" Text="{Binding ForcedUpgradeBackupLocation}" /> directory.
+                        <LineBreak/>
+                        <LineBreak/>
+                        If you want perform the migration preserving the error data follow
+                        <Hyperlink Command="{Binding OpenUrl}" CommandParameter="https://docs.particular.net/servicecontrol/upgrades/4to5/">
+                            the version 4 to 5 upgrade guide
+                        </Hyperlink>.
+                    </TextBlock>
+                    <Button
+                        Command="{Binding ForceUpgradeCommand}"
+                        CommandParameter="{Binding DataContext, ElementName=root}"
+                        Content="Upgrade instance"
+                        Style="{StaticResource ErrorButton}" 
+                        HorizontalAlignment="Left"
+                        Padding="10,10"
+                        Width="180"
+                    />
+                </StackPanel>
             </StackPanel>
 
 
