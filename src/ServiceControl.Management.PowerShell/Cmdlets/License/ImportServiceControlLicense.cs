@@ -2,8 +2,8 @@ namespace ServiceControl.Management.PowerShell
 {
     using System;
     using System.Management.Automation;
-    using ServiceControl.LicenseManagement;
     using Microsoft.PowerShell.Commands;
+    using ServiceControl.LicenseManagement;
 
     [Cmdlet(VerbsData.Import, "ServiceControlLicense")]
     public class ImportServiceControlLicense : PSCmdlet
@@ -15,8 +15,6 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void BeginProcessing()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
-
             Account.TestIfAdmin();
         }
 
