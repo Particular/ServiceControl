@@ -86,10 +86,10 @@
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
-	
+
   <ItemGroup Label="Must not be changed to prevent breaking cmdlets in PowerShell 7.2 LTS">
-	  <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="[6.0.0]" />
-	  <PackageVersion Include="System.ServiceProcess.ServiceController" Version="[6.0.1]" />
+    <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="[6.0.0]" />
+    <PackageVersion Include="System.ServiceProcess.ServiceController" Version="[6.0.1]" />
   </ItemGroup>
 
   <ItemGroup>
