@@ -3,7 +3,6 @@
     using System;
     using NServiceBus.Logging;
     using ServiceControl.Operations;
-    using Sparrow.Logging;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -43,7 +42,7 @@
             }
 
             var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMode = MapRavenDbLogLevelToLogsMode(ravenDbLogLevel);
+            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
 
             var settings = new RavenPersisterSettings
             {
@@ -69,26 +68,6 @@
             return settings;
         }
 
-        static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
-        {
-            switch (ravenDbLogLevel.ToLower())
-            {
-                case "off":         // Backwards compatibility with 4.x
-                case "none":
-                    return "None";
-                case "trace":       // Backwards compatibility with 4.x
-                case "debug":       // Backwards compatibility with 4.x
-                case "info":        // Backwards compatibility with 4.x
-                case "information":
-                    return "Information";
-                case "operations":
-                    return "Operations";
-                default:
-                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'");
-                    return "Operations";
-            }
-        }
-
         public IPersistence Create(PersistenceSettings settings)
         {
             var specificSettings = (RavenPersisterSettings)settings;
@@ -100,7 +79,5 @@
 
             return new RavenPersistence(specificSettings);
         }
-
-        static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
     }
 }

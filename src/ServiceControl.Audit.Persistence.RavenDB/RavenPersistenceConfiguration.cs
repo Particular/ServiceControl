@@ -72,7 +72,7 @@
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
-                    logsMode = MapRavenDbLogLevelToLogsMode(ravenDbLogLevel);
+                    logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
@@ -106,26 +106,6 @@
                 settings.MaxBodySizeToStore,
                 minimumStorageLeftRequiredForIngestion,
                 serverConfiguration);
-        }
-
-        static string MapRavenDbLogLevelToLogsMode(string ravenDbLogLevel)
-        {
-            switch (ravenDbLogLevel.ToLower())
-            {
-                case "off":         // Backwards compatibility with 4.x
-                case "none":
-                    return "None";
-                case "trace":       // Backwards compatibility with 4.x
-                case "debug":       // Backwards compatibility with 4.x
-                case "info":        // Backwards compatibility with 4.x
-                case "information":
-                    return "Information";
-                case "operations":
-                    return "Operations";
-                default:
-                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'");
-                    return "Operations";
-            }
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)
