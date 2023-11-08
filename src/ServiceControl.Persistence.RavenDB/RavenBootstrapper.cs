@@ -10,6 +10,6 @@
         public const string MinimumStorageLeftRequiredForIngestionKey = "MinimumStorageLeftRequiredForIngestion";
         public const string DatabaseNameKey = "RavenDB5/DatabaseName";
         public const string LogsPathKey = "LogPath";
-        public const string LogsModeKey = "LogMode";
+        public const string RavenDbLogLevelKey = "RavenDBLogLevel";
     }
 }

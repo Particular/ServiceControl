@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using NServiceBus.Logging;
     using ServiceControl.Operations;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
@@ -40,6 +41,9 @@
                 }
             }
 
+            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
+            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
+
             var settings = new RavenPersisterSettings
             {
                 ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
@@ -55,7 +59,7 @@
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = GetSetting(MaintenanceModeKey, false),
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
-                LogsMode = GetSetting(RavenBootstrapper.LogsModeKey, RavenPersisterSettings.LogsModeDefault),
+                LogsMode = logsMode,
                 EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
 
