@@ -18,10 +18,13 @@
                 case "info": // Backwards compatibility with 4.x
                 case "information":
                     return "Information";
+                case "error": // Backwards compatibility with 4.x
+                case "warn": // Backwards compatibility with 4.x
+                case "fatal": // Backwards compatibility with 4.x
                 case "operations":
                     return "Operations";
                 default:
-                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'");
+                    Logger.WarnFormat("Unknown log level '{0}', mapped to 'Operations'", ravenDbLogLevel);
                     return "Operations";
             }
         }
