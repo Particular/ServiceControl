@@ -28,6 +28,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             ErrorQueue = GetErrorQueue();
             ErrorLogQueue = GetErrorLogQueue(ErrorQueue);
+            IngestErrorMessages = SettingsReader<bool>.Read("IngestErrorMessages", true);
 
             TryLoadLicenseFromConfig();
 
