@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" />
+    <PackageReference Include="PowerShellStandard.Library" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
