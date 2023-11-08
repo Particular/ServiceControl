@@ -33,17 +33,19 @@
                 missing.Add(".NET Framework 4.7.2 or later: Download from https://dotnet.microsoft.com/download/dotnet-framework");
             }
 
-            if (needsRavenDB) // Monitoring instances don't need RavenDB
+            if (needsRavenDB) // Monitoring instances don't need RavenDB and (for now) only need .NET Framework
             {
-                // Visual C++ Redistributable only required on Windows 2012 or earlier - Server 2016 reports as 10.* while Server 2016 reports as 6.x
-                // Windows 2016+ has this built-in
+                // .NET itself requires Visual C++ Redistributable on Windows 2012 or earlier: https://learn.microsoft.com/en-us/dotnet/core/install/windows?tabs=net70#additional-deps
+                // Server 2016 reports as 10.* while Server 2012 reports as 6.x
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version.Major < 10)
                 {
-                    using var visualCppRedistributableKey = registry.OpenSubKey(@"SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum");
-                    var visualCppRedistributableVersion = visualCppRedistributableKey?.GetValue("Version") as string;
-                    if (!Version.TryParse(visualCppRedistributableVersion, out var version) || version < new Version(14, 26, 28720))
+                    // Key to use from https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170#install-the-redistributable-packages
+                    // Exact version isn't even that important so we don't check it
+                    using var visualCppRedistributableKey = registry.OpenSubKey(@"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64");
+                    var installedValue = (int?)visualCppRedistributableKey?.GetValue("Installed");
+                    if (installedValue != 1)
                     {
-                        missing.Add("Visual C++ Redistributable for Visual Studio 2015-2019 x64: Download from https://aka.ms/vs/17/release/vc_redist.x64.exe");
+                        missing.Add("Microsoft Visual C++ 2015-2022 Redistributable (x64): Download from https://aka.ms/vs/17/release/vc_redist.x64.exe");
                     }
                 }
 
