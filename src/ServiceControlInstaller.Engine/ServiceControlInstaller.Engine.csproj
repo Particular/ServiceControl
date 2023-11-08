@@ -18,9 +18,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
-    <PackageReference Include="System.IO.Compression" />
     <PackageReference Include="System.Management" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
