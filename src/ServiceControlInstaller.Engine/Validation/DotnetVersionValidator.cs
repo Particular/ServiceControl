@@ -25,6 +25,7 @@
             var missing = new List<string>();
             using var registry = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
 
+            // Check for .NET Framework 4.7.2 - will go away in upcoming .NET version
             using var netFxKey = registry.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full");
             var netFxValue = netFxKey?.GetValue("Release") as int?;
             if (netFxValue is null or < 461813)
@@ -32,15 +33,23 @@
                 missing.Add(".NET Framework 4.7.2 or later: Download from https://dotnet.microsoft.com/download/dotnet-framework");
             }
 
-            if (needsRavenDB)
+            if (needsRavenDB) // Monitoring instances don't need RavenDB and (for now) only need .NET Framework
             {
-                using var visualCppRedistributableKey = registry.OpenSubKey(@"SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum");
-                var visualCppRedistributableVersion = visualCppRedistributableKey?.GetValue("Version") as string;
-                if (!Version.TryParse(visualCppRedistributableVersion, out var version) || version < new Version(14, 26, 28720))
+                // .NET itself requires Visual C++ Redistributable on Windows 2012 or earlier: https://learn.microsoft.com/en-us/dotnet/core/install/windows?tabs=net70#additional-deps
+                // Server 2016 reports as 10.* while Server 2012 reports as 6.x
+                if (Environment.OSVersion.Platform == PlatformID.Win32NT && Environment.OSVersion.Version.Major < 10)
                 {
-                    missing.Add("Visual C++ Redistributable for Visual Studio 2015-2019 x64: Download from https://aka.ms/vs/17/release/vc_redist.x64.exe");
+                    // Key to use from https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170#install-the-redistributable-packages
+                    // Exact version isn't even that important so we don't check it
+                    using var visualCppRedistributableKey = registry.OpenSubKey(@"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64");
+                    var installedValue = (int?)visualCppRedistributableKey?.GetValue("Installed");
+                    if (installedValue != 1)
+                    {
+                        missing.Add("Microsoft Visual C++ 2015-2022 Redistributable (x64): Download from https://aka.ms/vs/17/release/vc_redist.x64.exe");
+                    }
                 }
 
+                // Check for .NET Version
                 using var dotnetKey = registry.OpenSubKey(@"SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App")
                     ?? registry.OpenSubKey(@"SOFTWARE\WOW6432NODE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App");
 
@@ -53,6 +62,7 @@
                     missing.Add($".NET {dotnetMinVersion.Major} Runtime (x64), requires {dotnetMinVersion} or greater, found {dotnetClosest}: Download from https://dotnet.microsoft.com/download/dotnet/{majorMinor}");
                 }
 
+                // Check for ASP.NET Core
                 var aspOk = false;
                 string aspClosest = null;
                 using var aspNetKey = registry.OpenSubKey($@"SOFTWARE\Microsoft\ASP.NET Core\Shared Framework");
