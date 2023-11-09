@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -22,13 +21,11 @@
         public UpgradeAuditInstanceCommand(
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
-            ServiceControlInstanceInstaller serviceControlInstaller,
             ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
             CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
-            this.serviceControlInstaller = serviceControlInstaller;
             this.serviceControlAuditInstaller = serviceControlAuditInstaller;
             this.commandChecks = commandChecks;
         }
@@ -68,11 +65,7 @@
                 }
             }
 
-            if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                !await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
-                    $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
-                    "Do you want to proceed?",
-                    "Yes, I want to proceed", "No"))
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
             {
                 return;
             }
@@ -128,7 +121,6 @@
 
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
-        readonly ServiceControlInstanceInstaller serviceControlInstaller;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
         readonly CommandChecks commandChecks;
     }

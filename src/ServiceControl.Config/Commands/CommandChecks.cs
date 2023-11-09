@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System.Diagnostics;
+    using System.ServiceProcess;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
@@ -105,6 +106,21 @@
             }
 
             return true;
+        }
+
+        public async Task<bool> StopBecauseInstanceIsRunning(BaseService instance, string instanceName)
+        {
+            if (instance.Service.Status == ServiceControllerStatus.Stopped)
+            {
+                return false;
+            }
+
+            var proceed = await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
+                $"{instanceName} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
+                "Do you want to proceed?",
+                "Yes, I want to proceed", "No");
+
+            return !proceed;
         }
     }
 }

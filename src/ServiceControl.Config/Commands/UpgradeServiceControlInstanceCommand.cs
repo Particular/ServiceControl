@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -152,11 +151,7 @@
                 }
             }
 
-            if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                !await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
-                    $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
-                    "Do you want to proceed?",
-                    "Yes, I want to proceed", "No"))
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
             {
                 return;
             }

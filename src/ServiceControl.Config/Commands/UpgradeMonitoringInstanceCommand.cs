@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -39,51 +38,50 @@
                 return;
             }
 
-            var confirm = instance.Service.Status == ServiceControllerStatus.Stopped ||
-                          await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}", $"{model.Name} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.", "Do you want to proceed?", "Yes, I want to proceed", "No");
-
-            if (confirm)
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
             {
-                using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
+                return;
+            }
+
+            using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
+            {
+                var reportCard = new ReportCard();
+                var restartAgain = model.IsRunning;
+
+                var stopped = await model.StopService(progress);
+
+                if (!stopped)
                 {
-                    var reportCard = new ReportCard();
-                    var restartAgain = model.IsRunning;
+                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
 
-                    var stopped = await model.StopService(progress);
+                    reportCard.Errors.Add("Failed to stop the service");
+                    reportCard.SetStatus();
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
 
-                    if (!stopped)
+                    return;
+                }
+
+                reportCard = await Task.Run(() => installer.Upgrade(model.Name, progress));
+
+                if (reportCard.HasErrors || reportCard.HasWarnings)
+                {
+                    await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+                }
+                else
+                {
+                    if (restartAgain)
                     {
-                        await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-
-                        reportCard.Errors.Add("Failed to stop the service");
-                        reportCard.SetStatus();
-                        await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:");
-
-                        return;
-                    }
-
-                    reportCard = await Task.Run(() => installer.Upgrade(model.Name, progress));
-
-                    if (reportCard.HasErrors || reportCard.HasWarnings)
-                    {
-                        await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
-                    }
-                    else
-                    {
-                        if (restartAgain)
+                        var serviceStarted = await model.StartService(progress);
+                        if (!serviceStarted)
                         {
-                            var serviceStarted = await model.StartService(progress);
-                            if (!serviceStarted)
-                            {
-                                reportCard.Errors.Add("The Service failed to start. Please consult the  logs for this instance");
-                                await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
-                            }
+                            reportCard.Errors.Add("The Service failed to start. Please consult the  logs for this instance");
+                            await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
                         }
                     }
                 }
-
-                await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             }
+
+            await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
         readonly IEventAggregator eventAggregator;
