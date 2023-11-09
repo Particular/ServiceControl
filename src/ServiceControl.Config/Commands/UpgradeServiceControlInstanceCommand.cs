@@ -17,7 +17,6 @@
     using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
     using UI.MessageBox;
-    using UI.Upgrades;
     using Validation;
     using Xaml.Controls;
     using Validations = Extensions.Validations;
@@ -31,15 +30,12 @@
         public UpgradeServiceControlInstanceCommand(
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
-            ServiceControlInstanceInstaller serviceControlInstaller,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-            Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory)
+            ServiceControlInstanceInstaller serviceControlInstaller
+            )
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlInstaller = serviceControlInstaller;
-            this.serviceControlAuditInstaller = serviceControlAuditInstaller;
-            this.auditUpgradeViewModelFactory = auditUpgradeViewModelFactory;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
@@ -82,22 +78,16 @@
                 return;
             }
 
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
-
-            var upgradeAction = instance.GetRequiredUpgradeAction(serviceControlInstaller.ZipInfo.Version);
-            var shouldInstallAudit = upgradeAction == RequiredUpgradeAction.SplitOutAudit;
-
-            AddNewAuditInstanceViewModel auditViewModel = null;
-
-            if (instance.Version < upgradeInfo.CurrentMinimumVersion)
+            var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
+            if (upgradeInfo.HasIncompatibleVersion)
             {
+                var nextVersion = upgradeInfo.UpgradePath[0];
                 await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                     "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
-                    $"<Paragraph>You must upgrade to version {upgradeInfo.RecommendedUpgradeVersion} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
+                    $"<Paragraph>You must upgrade to version(s) {upgradeInfo} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
                     "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
-                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {upgradeInfo.RecommendedUpgradeVersion} from https://github.com/Particular/ServiceControl/releases/tag/{upgradeInfo.RecommendedUpgradeVersion}</Paragraph></ListItem>" +
-                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {upgradeInfo.RecommendedUpgradeVersion}.</Paragraph></ListItem>\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}</Paragraph></ListItem>" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {nextVersion}.</Paragraph></ListItem>\r\n" +
                     "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
                     "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
                     "</List>\r\n" +
@@ -115,6 +105,8 @@
 
                 return;
             }
+
+            var upgradeOptions = new ServiceControlUpgradeOptions();
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {
@@ -207,22 +199,6 @@
                 }
             }
 
-            if (shouldInstallAudit)
-            {
-                auditViewModel = auditUpgradeViewModelFactory(instance.Name);
-                auditViewModel.ServiceControlAudit.SetupServiceAccount(instance);
-                auditViewModel.ServiceControlAudit.SetFullTextSearchOnBodies(
-                    instance.EnableFullTextSearchOnBodies
-                    && !upgradeOptions.DisableFullTextSearchOnBodies);
-
-                if (await windowManager.ShowInnerDialog(auditViewModel) != true)
-                {
-                    //Dialog was cancelled
-                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-                    return;
-                }
-            }
-
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
             {
                 await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
@@ -247,80 +223,9 @@
                 return;
             }
 
-            if (shouldInstallAudit)
-            {
-                var auditInstalled = await InstallServiceControlAudit(model, auditViewModel, instance);
-                if (!auditInstalled)
-                {
-                    //Dialog was cancelled
-                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-                    return;
-                }
-
-                var auditInstance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(auditViewModel.ServiceControlAudit.InstanceName);
-                upgradeOptions.RemoteUrl = auditInstance.BrowsableUrl;
-            }
-
             await UpgradeServiceControlInstance(model, instance, upgradeOptions);
 
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-        }
-
-        async Task<bool> InstallServiceControlAudit(InstanceDetailsViewModel detailsViewModel, AddNewAuditInstanceViewModel viewModel, ServiceControlInstance instance)
-        {
-            var auditNewInstance = ServiceControlAuditNewInstance.CreateWithDefaultPersistence();
-
-            //Read from user configured values
-            auditNewInstance.DisplayName = viewModel.ServiceControlAudit.InstanceName;
-            auditNewInstance.Name = viewModel.ServiceControlAudit.InstanceName.Replace(' ', '.');
-            auditNewInstance.ServiceDescription = viewModel.ServiceControlAudit.Description;
-            auditNewInstance.DBPath = viewModel.ServiceControlAudit.DatabasePath;
-            auditNewInstance.LogPath = viewModel.ServiceControlAudit.LogPath;
-            auditNewInstance.InstallPath = viewModel.ServiceControlAudit.DestinationPath;
-            auditNewInstance.HostName = viewModel.ServiceControlAudit.HostName;
-            auditNewInstance.Port = Convert.ToInt32(viewModel.ServiceControlAudit.PortNumber);
-            auditNewInstance.DatabaseMaintenancePort = Convert.ToInt32(viewModel.ServiceControlAudit.DatabaseMaintenancePortNumber);
-            auditNewInstance.ServiceAccount = viewModel.ServiceControlAudit.ServiceAccount;
-            auditNewInstance.ServiceAccountPwd = viewModel.ServiceControlAudit.Password;
-            auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
-
-            //Copy from existing ServiceControl instance
-            auditNewInstance.AuditLogQueue = instance.AuditLogQueue;
-            auditNewInstance.AuditQueue = instance.AuditQueue;
-            auditNewInstance.ForwardAuditMessages = instance.ForwardAuditMessages;
-            auditNewInstance.AuditRetentionPeriod = instance.AuditRetentionPeriod.Value;
-            auditNewInstance.TransportPackage = instance.TransportPackage;
-            auditNewInstance.ConnectionString = instance.ConnectionString;
-            auditNewInstance.ServiceControlQueueAddress = instance.Name;
-
-            using (var progress = detailsViewModel.GetProgressObject("ADDING AUDIT INSTANCE"))
-            {
-                var installationCancelled = await InstallInstance(auditNewInstance, progress);
-                if (installationCancelled)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        async Task<bool> InstallInstance(ServiceControlAuditNewInstance instanceData, IProgressObject progress)
-        {
-            var reportCard = await Task.Run(() => serviceControlAuditInstaller.Add(instanceData, progress, PromptToProceed));
-
-            if (reportCard.HasErrors || reportCard.HasWarnings)
-            {
-                await windowManager.ShowActionReport(reportCard, "ISSUES ADDING INSTANCE", "Could not add new instance because of the following errors:", "There were some warnings while adding the instance:");
-                return true;
-            }
-
-            if (reportCard.CancelRequested)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         async Task UpgradeServiceControlInstance(InstanceDetailsViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions)
@@ -364,21 +269,9 @@
             }
         }
 
-        async Task<bool> PromptToProceed(PathInfo pathInfo)
-        {
-            var result = false;
-
-            await Execute.OnUIThreadAsync(async () => { result = await windowManager.ShowYesNoDialog("ADDING INSTANCE QUESTION - DIRECTORY NOT EMPTY", $"The directory specified as the {pathInfo.Name} is not empty.", $"Are you sure you want to use '{pathInfo.Path}' ?", "Yes use it", "No I want to change it"); });
-
-            return result;
-        }
-
-
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
-        readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
-        readonly Func<string, AddNewAuditInstanceViewModel> auditUpgradeViewModelFactory;
 
         class PortValidator : AbstractValidator<TextBoxDialogViewModel>
         {

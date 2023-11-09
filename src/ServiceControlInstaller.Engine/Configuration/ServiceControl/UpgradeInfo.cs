@@ -1,0 +1,34 @@
+﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
+{
+    using System;
+    using System.Linq;
+
+    public class UpgradeInfo
+    {
+        static readonly Version[] LatestMajors =
+        {
+            new(1, 48, 0),
+            new(2, 1, 5),
+            new(3, 8, 4),
+            new(4, 33, 3),
+        };
+
+        public Version[] UpgradePath { get; private init; }
+        public bool HasIncompatibleVersion { get; private init; }
+
+        public static UpgradeInfo GetUpgradePathFor(Version current) //5.0.0 // 4.24.0
+        {
+            var upgradePath = LatestMajors
+                .Where(x => x > current)
+                .ToArray();
+
+            return new UpgradeInfo
+            {
+                UpgradePath = upgradePath,
+                HasIncompatibleVersion = upgradePath.Length > 0
+            };
+        }
+
+        public override string ToString() => string.Join<Version>(" ➡️ ", UpgradePath);
+    }
+}
