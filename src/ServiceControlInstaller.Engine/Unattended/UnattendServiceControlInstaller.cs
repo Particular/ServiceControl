@@ -102,12 +102,11 @@
                 return false;
             }
 
-            if (UpgradeControl.HasIncompatibleVersion(instance.Version))
+            var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
+            if (upgradeInfo.HasIncompatibleVersion)
             {
-                var upgradePath = UpgradeControl.GetUpgradePathFor(instance.Version);
-                var upgradePathText = string.Join<Version>(" -> ", upgradePath);
-                var nextVersion = upgradePath[0];
-                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradePathText} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
+                var nextVersion = upgradeInfo.UpgradePath[0];
+                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
                 return false;
             }
 

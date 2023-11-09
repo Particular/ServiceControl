@@ -4,7 +4,6 @@ namespace ServiceControl.Management.PowerShell
     using System.Linq;
     using System.Management.Automation;
     using ServiceControl.Engine.Extensions;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
     using ServiceControlInstaller.Engine.Validation;
