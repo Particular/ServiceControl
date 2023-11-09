@@ -21,6 +21,8 @@
         public string ServiceAccount { get; set; }
         public string ServiceAccountPwd { get; set; }
 
+        public TransportInfo TransportPackage { get; set; }
+
         public Version Version
         {
             get
