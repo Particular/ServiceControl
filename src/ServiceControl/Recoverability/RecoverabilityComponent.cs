@@ -16,7 +16,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Operations;
     using Operations.BodyStorage;
