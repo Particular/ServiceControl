@@ -20,11 +20,12 @@
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.installer = installer;
+            this.commandChecks = commandChecks;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
@@ -32,20 +33,13 @@
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
-            if (LicenseChecks)
-            {
-                var licenseCheckResult = installer.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return;
-                }
-            }
-
             var instance = InstanceFinder.FindMonitoringInstance(model.Name);
-
-
             instance.Service.Refresh();
+
+            if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks))
+            {
+                return;
+            }
 
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
             {
@@ -112,5 +106,6 @@
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
         readonly IServiceControlWindowManager windowManager;
+        readonly CommandChecks commandChecks;
     }
 }

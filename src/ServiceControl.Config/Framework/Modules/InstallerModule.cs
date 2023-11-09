@@ -3,6 +3,7 @@ namespace ServiceControl.Config.Framework.Modules
     using System;
     using System.Threading.Tasks;
     using Autofac;
+    using ServiceControl.Config.Commands;
     using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
@@ -18,6 +19,7 @@ namespace ServiceControl.Config.Framework.Modules
             builder.RegisterType<ServiceControlInstanceInstaller>().SingleInstance();
             builder.RegisterType<MonitoringInstanceInstaller>().SingleInstance();
             builder.RegisterType<ServiceControlAuditInstanceInstaller>().SingleInstance();
+            builder.RegisterType<CommandChecks>().InstancePerDependency();
         }
     }
 

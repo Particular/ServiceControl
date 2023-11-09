@@ -26,12 +26,14 @@
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
             ServiceControlInstanceInstaller serviceControlInstaller,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
+            CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlInstaller = serviceControlInstaller;
             this.serviceControlAuditInstaller = serviceControlAuditInstaller;
+            this.commandChecks = commandChecks;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
@@ -39,18 +41,13 @@
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
-            if (LicenseChecks)
-            {
-                var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return;
-                }
-            }
-
             var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
             instance.Service.Refresh();
+
+            if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks))
+            {
+                return;
+            }
 
             var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 
@@ -191,5 +188,6 @@
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
+        readonly CommandChecks commandChecks;
     }
 }
