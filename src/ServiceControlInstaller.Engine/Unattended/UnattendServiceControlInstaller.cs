@@ -102,9 +102,11 @@
                 return false;
             }
 
-            if (instance.Version < options.UpgradeInfo.CurrentMinimumVersion)
+            if (options.UpgradePath.Length > 0)
             {
-                logger.Error($"Upgrade aborted. An interim upgrade to version {options.UpgradeInfo.RecommendedUpgradeVersion} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{options.UpgradeInfo.RecommendedUpgradeVersion}");
+                var upgradePathText = string.Join<Version>(" -> ", options.UpgradePath);
+                var nextVersion = options.UpgradePath[0];
+                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradePathText} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
                 return false;
             }
 

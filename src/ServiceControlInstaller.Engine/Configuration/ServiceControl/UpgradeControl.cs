@@ -3,14 +3,21 @@
     using System;
     using System.Linq;
 
-    public partial class UpgradeControl
+    public class UpgradeControl
     {
-        public static UpgradeInfo GetUpgradeInfoForTargetVersion(Version target, Version current)
+        static readonly Version[] LatestMajors =
         {
-            return details.Where(r => r.TargetMinimumVersion <= target && current < r.CurrentMinimumVersion)
-                .DefaultIfEmpty(new UpgradeInfo(target, new Version(0, 0)))
-                .OrderBy(r => r.CurrentMinimumVersion)
-                .First();
+            new(1, 48, 0),
+            new(2, 1, 5),
+            new(3, 8, 4),
+            new(4, 33, 3),
+        };
+
+        public static Version[] GetUpgradePathFor(Version current) //5.0.0 // 4.24.0
+        {
+            return LatestMajors
+                .Where(x => x > current)
+                .ToArray();
         }
     }
 

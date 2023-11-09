@@ -73,8 +73,10 @@
                 return;
             }
 
-            var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
-            var upgradeOptions = new ServiceControlUpgradeOptions { UpgradeInfo = upgradeInfo };
+            var upgradeOptions = new ServiceControlUpgradeOptions
+            {
+                UpgradePath = UpgradeControl.GetUpgradePathFor(instance.Version)
+            };
 
             if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name))
             {

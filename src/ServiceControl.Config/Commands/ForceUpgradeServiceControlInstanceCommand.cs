@@ -69,10 +69,10 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
         var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
 
-        var upgradeInfo = UpgradeControl.GetUpgradeInfoForTargetVersion(serviceControlInstaller.ZipInfo.Version, instance.Version);
+        var upgradeInfo = UpgradeControl.GetUpgradePathFor(instance.Version);
         var upgradeOptions = new ServiceControlUpgradeOptions
         {
-            UpgradeInfo = upgradeInfo,
+            UpgradePath = upgradeInfo,
         };
 
         await UpgradeServiceControlInstance(model, instance, upgradeOptions);
