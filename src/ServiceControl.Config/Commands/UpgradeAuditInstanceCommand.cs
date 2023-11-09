@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Diagnostics;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
@@ -45,27 +44,6 @@
 
             if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks))
             {
-                return;
-            }
-
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
-
-            if (!compatibleStorageEngine)
-            {
-                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
-
-                var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
-                    $"Please note that the storage format has changed and the {instance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
-                    "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
-                    "Yes",
-                    "No"
-                );
-
-                if (openUpgradeGuide)
-                {
-                    Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
-                }
-
                 return;
             }
 

@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
@@ -20,6 +21,7 @@
 
         public async Task<bool> CanUpgradeInstance(BaseService instance, bool licenseCheck)
         {
+            // Check for license
             if (licenseCheck)
             {
                 var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
@@ -30,6 +32,7 @@
                 }
             }
 
+            // Check for transports that can't be upgraded
             var cantUpdateTransport = instance.TransportPackage.Removed && instance.TransportPackage.AutoMigrateTo is null;
             if (cantUpdateTransport)
             {
@@ -37,11 +40,37 @@
                 return false;
             }
 
+            // Validate .NET Framework requirements
             bool needsRavenDB = instance is IServiceControlBaseInstance;
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB, out var missingMessage))
             {
                 await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
                 return false;
+            }
+
+            // RavenDB 5+ check
+            if (instance is IServiceControlBaseInstance baseInstance)
+            {
+                var compatibleStorageEngine = baseInstance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
+
+                if (!compatibleStorageEngine)
+                {
+                    var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
+
+                    var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
+                        $"Please note that the storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
+                        "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
+                        "Yes",
+                        "No"
+                    );
+
+                    if (openUpgradeGuide)
+                    {
+                        Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
+                    }
+
+                    return false;
+                }
             }
 
             return true;
