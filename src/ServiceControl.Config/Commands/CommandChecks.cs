@@ -5,6 +5,7 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine;
+    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
 
@@ -68,6 +69,26 @@
                     {
                         Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
                     }
+
+                    return false;
+                }
+
+                // TODO: Why doesn't the Monitoring instance do this check? Should it?
+                var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
+                if (upgradeInfo.HasIncompatibleVersion)
+                {
+                    var nextVersion = upgradeInfo.UpgradePath[0];
+                    await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                        "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                        $"<Paragraph>You must upgrade to version(s) {upgradeInfo} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
+                        "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
+                        $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}</Paragraph></ListItem>" +
+                        $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {nextVersion}.</Paragraph></ListItem>\r\n" +
+                        "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
+                        "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
+                        "</List>\r\n" +
+                        "</Section>",
+                        hideCancel: true);
 
                     return false;
                 }
