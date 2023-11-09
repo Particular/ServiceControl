@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
+    using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
@@ -92,6 +93,15 @@
 
                     return false;
                 }
+            }
+
+            if (instance.TransportPackage.IsOldRabbitMQTransport() &&
+                !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",
+                   "Do you want to proceed?",
+                   "Yes, my RabbitMQ broker meets the minimum requirements",
+                   "No, cancel the upgrade"))
+            {
+                return false;
             }
 
             return true;
