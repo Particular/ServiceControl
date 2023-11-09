@@ -8,7 +8,6 @@ using Framework.Commands;
 using Events;
 using Framework.Modules;
 using Framework;
-using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
 using ServiceControlInstaller.Engine.Validation;
@@ -69,18 +68,12 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
         var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
 
-        var upgradeInfo = UpgradeControl.GetUpgradePathFor(instance.Version);
-        var upgradeOptions = new ServiceControlUpgradeOptions
-        {
-            UpgradePath = upgradeInfo,
-        };
-
-        await UpgradeServiceControlInstance(model, instance, upgradeOptions);
+        await UpgradeServiceControlInstance(model, instance);
 
         await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
-    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance, ServiceControlUpgradeOptions upgradeOptions)
+    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance)
     {
         using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
         {
@@ -114,7 +107,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
                 instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
 
-                return serviceControlInstaller.Upgrade(instance, upgradeOptions, progress);
+                return serviceControlInstaller.Upgrade(instance, new ServiceControlUpgradeOptions(), progress);
             });
 
             if (reportCard.HasErrors || reportCard.HasWarnings)

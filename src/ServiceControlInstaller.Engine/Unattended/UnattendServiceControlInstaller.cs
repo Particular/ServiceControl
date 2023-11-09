@@ -102,10 +102,11 @@
                 return false;
             }
 
-            if (options.UpgradePath.Length > 0)
+            if (UpgradeControl.HasIncompatibleVersion(instance.Version))
             {
-                var upgradePathText = string.Join<Version>(" -> ", options.UpgradePath);
-                var nextVersion = options.UpgradePath[0];
+                var upgradePath = UpgradeControl.GetUpgradePathFor(instance.Version);
+                var upgradePathText = string.Join<Version>(" -> ", upgradePath);
+                var nextVersion = upgradePath[0];
                 logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradePathText} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
                 return false;
             }

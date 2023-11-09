@@ -78,15 +78,11 @@
                 return;
             }
 
-            var upgradeOptions = new ServiceControlUpgradeOptions
+            if (UpgradeControl.HasIncompatibleVersion(instance.Version))
             {
-                UpgradePath = UpgradeControl.GetUpgradePathFor(instance.Version)
-            };
-
-            if (upgradeOptions.UpgradePath.Length > 0)
-            {
-                var upgradePathText = string.Join<Version>(" -> ", upgradeOptions.UpgradePath);
-                var nextVersion = upgradeOptions.UpgradePath[0];
+                var upgradePath = UpgradeControl.GetUpgradePathFor(instance.Version);
+                var upgradePathText = string.Join<Version>(" -> ", upgradePath);
+                var nextVersion = upgradePath[0];
                 await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                     "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
                     $"<Paragraph>You must upgrade to version(s) {upgradePathText} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
@@ -110,6 +106,8 @@
 
                 return;
             }
+
+            var upgradeOptions = new ServiceControlUpgradeOptions();
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))
             {

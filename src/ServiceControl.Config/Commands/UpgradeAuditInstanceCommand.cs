@@ -73,10 +73,27 @@
                 return;
             }
 
-            var upgradeOptions = new ServiceControlUpgradeOptions
+            if (UpgradeControl.HasIncompatibleVersion(instance.Version))
             {
-                UpgradePath = UpgradeControl.GetUpgradePathFor(instance.Version)
-            };
+                var upgradePath = UpgradeControl.GetUpgradePathFor(instance.Version);
+                var upgradePathText = string.Join<Version>(" -> ", upgradePath);
+                var nextVersion = upgradePath;
+                await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
+                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
+                    $"<Paragraph>You must upgrade to version(s) {upgradePathText} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
+                    "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}</Paragraph></ListItem>" +
+                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {nextVersion}.</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
+                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
+                    "</List>\r\n" +
+                    "</Section>",
+                    hideCancel: true);
+
+                return;
+            }
+
+            var upgradeOptions = new ServiceControlUpgradeOptions();
 
             if (!instance.AppConfig.AppSettingExists(AuditInstanceSettingsList.EnableFullTextSearchOnBodies.Name))
             {
@@ -127,7 +144,11 @@
             await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
         }
 
-        async Task UpgradeAuditInstance(InstanceDetailsViewModel model, ServiceControlAuditInstance instance, ServiceControlUpgradeOptions upgradeOptions)
+        async Task UpgradeAuditInstance(
+            InstanceDetailsViewModel model,
+            ServiceControlAuditInstance instance,
+            ServiceControlUpgradeOptions upgradeOptions
+            )
         {
             using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
             {

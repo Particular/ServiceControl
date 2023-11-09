@@ -19,6 +19,11 @@
                 .Where(x => x > current)
                 .ToArray();
         }
+
+        public static bool HasIncompatibleVersion(Version version)
+        {
+            return LatestMajors.Last() <= version;
+        }
     }
 
     public class UpgradeInfo

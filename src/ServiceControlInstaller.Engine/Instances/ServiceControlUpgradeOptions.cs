@@ -10,7 +10,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public TimeSpan? AuditRetentionPeriod { get; set; }
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public Version[] UpgradePath { get; set; }
         public string RemoteUrl { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)

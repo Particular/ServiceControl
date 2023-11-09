@@ -80,8 +80,7 @@ namespace ServiceControl.Management.PowerShell
             var options = new ServiceControlUpgradeOptions
             {
                 SkipQueueCreation = SkipQueueCreation,
-                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies,
-                UpgradePath = UpgradeControl.GetUpgradePathFor(instance.Version),
+                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies
             };
 
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
