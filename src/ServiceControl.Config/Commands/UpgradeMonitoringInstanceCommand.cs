@@ -11,7 +11,6 @@
     using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
 
     class UpgradeMonitoringInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
@@ -38,12 +37,6 @@
 
             if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks))
             {
-                return;
-            }
-
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: false, out var missingMessage))
-            {
-                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
                 return;
             }
 

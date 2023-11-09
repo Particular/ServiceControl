@@ -13,7 +13,6 @@
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
 
     class UpgradeAuditInstanceCommand : AwaitableAbstractCommand<InstanceDetailsViewModel>
@@ -109,12 +108,6 @@
                     await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
                     return;
                 }
-            }
-
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
-            {
-                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
-                return;
             }
 
             if (instance.TransportPackage.IsOldRabbitMQTransport() &&

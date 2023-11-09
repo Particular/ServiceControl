@@ -3,7 +3,9 @@
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
+    using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
+    using ServiceControlInstaller.Engine.Validation;
 
     public class CommandChecks
     {
@@ -32,6 +34,13 @@
             if (cantUpdateTransport)
             {
                 await windowManager.ShowMessage("DEPRECATED MESSAGE TRANSPORT", $"The message transport '{instance.TransportPackage.DisplayName}' is not available in this version of ServiceControl, and this instance cannot be upgraded.", acceptText: "Cancel Upgrade", hideCancel: true);
+                return false;
+            }
+
+            bool needsRavenDB = instance is IServiceControlBaseInstance;
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB, out var missingMessage))
+            {
+                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
                 return false;
             }
 
