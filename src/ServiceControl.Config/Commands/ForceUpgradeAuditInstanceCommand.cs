@@ -4,42 +4,39 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using Events;
-using Framework;
 using Framework.Commands;
+using Events;
 using Framework.Modules;
+using Framework;
 using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
 using UI.AdvancedOptions;
 
-class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
+class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
 {
-    public ForceUpgradePrimaryInstanceCommand(
+    public ForceUpgradeAuditInstanceCommand(
         IServiceControlWindowManager windowManager,
         IEventAggregator eventAggregator,
-        ServiceControlInstanceInstaller serviceControlInstaller,
-        CommandChecks commandChecks)
-        : base(ForcedUpgradeAllowed)
+        ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
+        CommandChecks commandChecks
+        ) : base(ForcedUpgradeAllowed)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
-        this.serviceControlInstaller = serviceControlInstaller;
+        this.serviceControlAuditInstaller = serviceControlAuditInstaller;
         this.commandChecks = commandChecks;
     }
 
     static bool ForcedUpgradeAllowed(ServiceControlAdvancedViewModel model)
     {
-        var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
+        var instance = InstanceFinder.ServiceControlAuditInstances().FirstOrDefault(i => i.Name == model.Name);
 
         //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
         return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name != StorageEngineNames.RavenDB;
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
-        var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
-        instance.Service.Refresh();
-
-        if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
+        if (!await commandChecks.CanAddInstance(needsRavenDB: false))
         {
             return;
         }
@@ -57,12 +54,14 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
             return;
         }
 
-        await UpgradeServiceControlInstance(model, instance);
+        var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
+
+        await UpgradeServiceControlInstance(model, instance, new ServiceControlUpgradeOptions());
 
         await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
-    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance)
+    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlAuditInstance instance, ServiceControlUpgradeOptions upgradeOptions)
     {
         using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
         {
@@ -92,9 +91,9 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
             reportCard = await Task.Run(() =>
             {
                 instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
+                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
 
-                return serviceControlInstaller.Upgrade(instance, new ServiceControlUpgradeOptions(), progress);
+                return serviceControlAuditInstaller.Upgrade(instance, upgradeOptions, progress);
             });
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
@@ -118,6 +117,6 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
 
     readonly IEventAggregator eventAggregator;
     readonly IServiceControlWindowManager windowManager;
-    readonly ServiceControlInstanceInstaller serviceControlInstaller;
+    readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
     readonly CommandChecks commandChecks;
 }

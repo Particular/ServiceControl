@@ -131,7 +131,7 @@
                         <TextBlock FontSize="12px" FontWeight="Bold" Text="{Binding ForcedUpgradeBackupLocation}" /> directory.
                         <LineBreak/>
                         <LineBreak/>
-                        If you want perform the migration preserving the error data follow
+                        If you want perform the migration preserving the data follow
                         <Hyperlink Command="{Binding OpenUrl}" CommandParameter="https://docs.particular.net/servicecontrol/upgrades/4to5/">
                             the version 4 to 5 upgrade guide
                         </Hyperlink>.

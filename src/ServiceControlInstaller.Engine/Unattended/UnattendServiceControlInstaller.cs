@@ -1,6 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
@@ -93,6 +94,12 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
+            if (options.ForceRecreateDatabase)
+            {
+                instance.CreateDatabaseBackup();
+                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
+            }
+
             var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 
             if (!compatibleStorageEngine)

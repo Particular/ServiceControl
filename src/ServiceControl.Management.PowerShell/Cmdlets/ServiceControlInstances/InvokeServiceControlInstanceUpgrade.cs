@@ -51,6 +51,9 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
         public string[] Acknowledgements { get; set; }
 
+        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if storage engine is incompatible resulting in data loss")]
+        public SwitchParameter ForceRecreateDatabase { get; set; }
+
         protected override void BeginProcessing()
         {
             Account.TestIfAdmin();
@@ -77,7 +80,8 @@ namespace ServiceControl.Management.PowerShell
             var options = new ServiceControlUpgradeOptions
             {
                 SkipQueueCreation = SkipQueueCreation,
-                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies
+                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies,
+                ForceRecreateDatabase = ForceRecreateDatabase.IsPresent
             };
 
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
