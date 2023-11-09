@@ -66,7 +66,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             {
                 throw new Exception($"Error ingestion cannot be enabled when ServiceBus/ErrorQueue is '{ErrorQueue}'");
             }
-            
+
             if (hasValidErrorQueueName == false || IngestErrorMessages == false)
             {
                 logger.Info("Error ingestion disabled.");
