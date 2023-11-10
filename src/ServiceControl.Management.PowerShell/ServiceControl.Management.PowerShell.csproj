@@ -1,15 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+
+  NOTE: No ProjectReferences or PackageReferences can be added to the project without first ensuring that they done in a way that
+  doesn't break the dependency isolation required by the PowerShell module. All dependencies need to be loaded in the separated
+  AssemblyLoadContext so that they don't conflict with the assemblies that ship as part of PowerShell itself or from other modules.
+  Additionally, any type that lives in a dependency can mess up the module loading process if it's exposed as part of the public API
+  of the PowerShell cmdlets. It's complex. Tread carefully.
+  See: https://devblogs.microsoft.com/powershell/resolving-powershell-module-assembly-dependency-conflicts/
+
+  -->
+
   <PropertyGroup>
     <!-- Must stay net6.0 to support PowerShell 7.2 LTS -->
     <TargetFramework>net6.0-windows</TargetFramework>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <ModuleName>Particular.ServiceControl.Management</ModuleName>
-    <ModuleArtifactsPath>$(ArtifactsPath)PowerShellModules\$(ModuleName)\</ModuleArtifactsPath>
+
+    <!--Ensures that all project references are explicitly defined in this file -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" />
+    <ProjectReference Include="..\ServiceControlInstaller.Engine\ServiceControlInstaller.Engine.csproj" Private="false" />
+    <!--Even though we have this dependency, we are actually relying on the copy provided by ServiceControlInstaller.Engine at runtime -->
+    <ProjectReference Include="..\ServiceControl.LicenseManagement\ServiceControl.LicenseManagement.csproj" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,11 +30,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" DestinationFolder="$(ModuleArtifactsPath)" />
-    <Artifact Include="$(ModuleName).psd1" DestinationFolder="$(ModuleArtifactsPath)" />
-    <Artifact Include="$(ModuleName).psm1" DestinationFolder="$(ModuleArtifactsPath)" />
-    <Artifact Include="$(ModuleName).format.ps1xml" DestinationFolder="$(ModuleArtifactsPath)" />
-    <Artifact Include="ServiceControl.Management.PowerShell.dll-help.xml" DestinationFolder="$(ModuleArtifactsPath)" />
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
+    <Artifact Include="$(PowerShellModuleName).psd1" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
+    <Artifact Include="$(PowerShellModuleName).psm1" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
+    <Artifact Include="$(PowerShellModuleName).format.ps1xml" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
+    <Artifact Include="ServiceControl.Management.PowerShell.dll-help.xml" DestinationFolder="$(PowerShellModuleArtifactsPath)" />
   </ItemGroup>
 
   <UsingTask TaskName="FileUpdate" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -58,7 +71,7 @@
 
   <Target Name="UpdateModuleManifestVersion" DependsOnTargets="MinVer" AfterTargets="CopyArtifacts">
     <ItemGroup>
-      <ModuleFile Include="$(ModuleArtifactsPath)$(ModuleName).psd1" />
+      <ModuleFile Include="$(PowerShellModuleArtifactsPath)$(PowerShellModuleName).psd1" />
     </ItemGroup>
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Version}}" ReplacementText="$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)" />
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Prerelease}}" ReplacementText="$(MinVerPrerelease)" />

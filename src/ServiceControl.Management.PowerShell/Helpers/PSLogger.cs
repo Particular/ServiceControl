@@ -3,7 +3,7 @@
     using System.Management.Automation.Host;
     using ServiceControlInstaller.Engine;
 
-    public class PSLogger : ILogging
+    class PSLogger : ILogging
     {
         public PSLogger(PSHost Host)
         {

@@ -23,8 +23,6 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void BeginProcessing()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
-
             Account.TestIfAdmin();
         }
 

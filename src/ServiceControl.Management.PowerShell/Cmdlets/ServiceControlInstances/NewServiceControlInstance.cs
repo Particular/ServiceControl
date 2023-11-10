@@ -103,8 +103,6 @@ namespace ServiceControl.Management.PowerShell
 
         protected override void BeginProcessing()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += BindingRedirectAssemblyLoader.CurrentDomain_BindingRedirect;
-
             var transport = ServiceControlCoreTransports.Find(Transport);
 
             if (transport.SampleConnectionString is not null && string.IsNullOrEmpty(ConnectionString))

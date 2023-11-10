@@ -3,6 +3,7 @@
   <PropertyGroup>
     <!-- Must stay net6.0 to support PowerShell 7.2 LTS -->
     <TargetFramework>net6.0-windows</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +19,12 @@
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
-    <PackageReference Include="System.IO.Compression" />
     <PackageReference Include="System.Management" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" DestinationFolder="$(PowerShellModuleArtifactsPath)InstallerEngine" />
   </ItemGroup>
 
   <Target Name="EmbedInstallerResources" AfterTargets="ResolveProjectReferences">
