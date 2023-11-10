@@ -1,5 +1,5 @@
-ServiceControl.Config
-ServiceControl.Config.Tests
-ServiceControl.Management.PowerShell
-ServiceControlInstaller.Engine
-ServiceControlInstaller.Engine.UnitTests
+deploy/PowerShellModules/Particular.ServiceControl.Management/InstallerEngine/ServiceControlInstaller.Engine.dll
+src/ServiceControl.Config
+src/ServiceControl.Config.Tests
+src/ServiceControlInstaller.Engine
+src/ServiceControlInstaller.Engine.UnitTests
