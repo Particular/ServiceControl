@@ -20,10 +20,15 @@
             this.windowManager = windowManager;
         }
 
-        public async Task<bool> CanAddInstance()
+        public async Task<bool> CanAddInstance(bool needsRavenDB)
         {
             // Check for license
             if (!await IsLicenseOk())
+            {
+                return false;
+            }
+
+            if (await FrameworkRequirementsAreMissing(needsRavenDB))
             {
                 return false;
             }
@@ -49,6 +54,11 @@
 
             // Validate .NET Framework requirements
             bool needsRavenDB = instance is IServiceControlBaseInstance;
+            if (await FrameworkRequirementsAreMissing(needsRavenDB))
+            {
+                return false;
+            }
+
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB, out var missingMessage))
             {
                 await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
@@ -113,6 +123,17 @@
             }
 
             return true;
+        }
+
+        async Task<bool> FrameworkRequirementsAreMissing(bool needsRavenDB)
+        {
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB, out var missingMessage))
+            {
+                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
+                return true;
+            }
+
+            return false;
         }
 
         async Task<bool> IsLicenseOk()
