@@ -6,7 +6,7 @@
     using System.Linq;
     using Newtonsoft.Json;
 
-    public class ServiceControlAuditPersisters
+    public static class ServiceControlAuditPersisters
     {
         internal static IReadOnlyList<PersistenceManifest> LoadAllManifests(string zipFilePath)
         {
@@ -42,7 +42,7 @@
                 return manifests.Single(m => m.Name == "RavenDB35");
             }
 
-            return manifests.FirstOrDefault(m => m.Name == name || m.TypeName == name) ?? new PersistenceManifest
+            return manifests.FirstOrDefault(m => m.Matches(name)) ?? new PersistenceManifest
             {
                 Name = $"Unknown Persistence: {name}",
                 Description = $"Unknown Persistence {name} may be from a future version of ServiceControl"
