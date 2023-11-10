@@ -16,12 +16,9 @@
             this.commandChecks = commandChecks;
         }
 
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
-
         public override async Task ExecuteAsync(object obj)
         {
-            if (!await commandChecks.CanAddInstance(LicenseChecks))
+            if (!await commandChecks.CanAddInstance())
             {
                 return;
             }

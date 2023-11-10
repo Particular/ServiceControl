@@ -25,15 +25,12 @@
             this.commandChecks = commandChecks;
         }
 
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
-
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
             var instance = InstanceFinder.FindMonitoringInstance(model.Name);
             instance.Service.Refresh();
 
-            if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks))
+            if (!await commandChecks.CanUpgradeInstance(instance))
             {
                 return;
             }

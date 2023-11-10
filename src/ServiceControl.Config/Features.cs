@@ -20,7 +20,6 @@
     public static class Feature
     {
         public const string MonitoringInstances = "MonitoringInstances";
-        public const string LicenseChecks = "LicenseChecks";
     }
 
     public class FeatureToggles
@@ -48,7 +47,6 @@
         public void Start()
         {
             featureToggles.Enable(Feature.MonitoringInstances);
-            featureToggles.Enable(Feature.LicenseChecks);
         }
 
         FeatureToggles featureToggles;

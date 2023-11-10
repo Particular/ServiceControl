@@ -27,9 +27,6 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
         this.commandChecks = commandChecks;
     }
 
-    [FeatureToggle(Feature.LicenseChecks)]
-    public bool LicenseChecks { get; set; }
-
     static bool ForcedUpgradeAllowed(ServiceControlAdvancedViewModel model)
     {
         var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
@@ -42,7 +39,7 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
         var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
         instance.Service.Refresh();
 
-        if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks, forceUpgradeDb: true))
+        if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
         {
             return;
         }

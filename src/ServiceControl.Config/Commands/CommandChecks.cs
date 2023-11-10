@@ -20,10 +20,10 @@
             this.windowManager = windowManager;
         }
 
-        public async Task<bool> CanAddInstance(bool licenseCheck)
+        public async Task<bool> CanAddInstance()
         {
             // Check for license
-            if (licenseCheck && !await IsLicenseOk())
+            if (!await IsLicenseOk())
             {
                 return false;
             }
@@ -31,10 +31,10 @@
             return true;
         }
 
-        public async Task<bool> CanUpgradeInstance(BaseService instance, bool licenseCheck, bool forceUpgradeDb = false)
+        public async Task<bool> CanUpgradeInstance(BaseService instance, bool forceUpgradeDb = false)
         {
             // Check for license
-            if (licenseCheck && !await IsLicenseOk())
+            if (!await IsLicenseOk())
             {
                 return false;
             }
