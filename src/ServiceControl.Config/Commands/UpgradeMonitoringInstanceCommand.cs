@@ -17,12 +17,12 @@
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.installer = installer;
-            commandChecks = new CommandChecks(installer, windowManager);
+            this.commandChecks = commandChecks;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]

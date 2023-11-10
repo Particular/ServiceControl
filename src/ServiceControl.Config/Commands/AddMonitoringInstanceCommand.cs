@@ -4,16 +4,15 @@
     using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
-    using Framework.Modules;
     using UI.InstanceAdd;
 
     class AddMonitoringInstanceCommand : AwaitableAbstractCommand<object>
     {
-        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
+        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, CommandChecks commandChecks) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
-            commandChecks = new CommandChecks(installer, windowManager);
+            this.commandChecks = commandChecks;
         }
 
         [FeatureToggle(Feature.LicenseChecks)]

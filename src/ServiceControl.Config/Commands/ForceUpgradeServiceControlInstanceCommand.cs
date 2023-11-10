@@ -17,13 +17,14 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
     public ForceUpgradeServiceControlInstanceCommand(
         IServiceControlWindowManager windowManager,
         IEventAggregator eventAggregator,
-        ServiceControlInstanceInstaller serviceControlInstaller)
+        ServiceControlInstanceInstaller serviceControlInstaller,
+        CommandChecks commandChecks)
         : base(ForcedUpgradeAllowed)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
         this.serviceControlInstaller = serviceControlInstaller;
-        commandChecks = new CommandChecks(serviceControlInstaller, windowManager);
+        this.commandChecks = commandChecks;
     }
 
     [FeatureToggle(Feature.LicenseChecks)]
