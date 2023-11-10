@@ -7,18 +7,19 @@
     using Framework;
     using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Engine.Extensions;
+    using ServiceControl.Config.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
     class MonitoringAddAttachment : Attachment<MonitoringAddViewModel>
     {
-        public MonitoringAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer)
+        public MonitoringAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.installer = installer;
             this.eventAggregator = eventAggregator;
+            this.commandChecks = commandChecks;
         }
 
         protected override void OnAttach()
@@ -69,11 +70,7 @@
                 ServiceAccountPwd = viewModel.Password
             };
 
-            if (instanceMetadata.TransportPackage.IsLatestRabbitMQTransport() &&
-                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
-                                                     "Do you want to proceed?",
-                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
-                                                     "No, cancel the install"))
+            if (!await commandChecks.ValidateNewInstance(instanceMetadata))
             {
                 viewModel.InProgress = false;
                 return;
@@ -112,5 +109,6 @@
         readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
+        readonly CommandChecks commandChecks;
     }
 }

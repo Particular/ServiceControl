@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System.Diagnostics;
+    using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
@@ -31,6 +32,33 @@
             if (await FrameworkRequirementsAreMissing(needsRavenDB))
             {
                 return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ValidateNewInstance(params IServiceInstance[] instances)
+        {
+            var transport = instances
+                .OfType<ITransportConfig>()
+                .Where(i => i is not null)
+                .Select(i => i.TransportPackage)
+                .First(t => t is not null);
+
+            if (transport is not null)
+            {
+                if (transport.IsLatestRabbitMQTransport())
+                {
+                    var continueInstall = await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
+                                                     "Do you want to proceed?",
+                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
+                                                     "No, cancel the install");
+
+                    if (!continueInstall)
+                    {
+                        return false;
+                    }
+                }
             }
 
             return true;
