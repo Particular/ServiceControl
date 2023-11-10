@@ -1,5 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
+    using System;
     using System.Collections.Generic;
 
     public class PersistenceManifest
@@ -24,5 +25,8 @@
             public string DefaultValue { get; set; }
             public bool Mandatory { get; set; }
         }
+
+        public bool Matches(string name) => Name.Equals(name, StringComparison.OrdinalIgnoreCase)
+            || TypeName.Equals(name, StringComparison.Ordinal);
     }
 }

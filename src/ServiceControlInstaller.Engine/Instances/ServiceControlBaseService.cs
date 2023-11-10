@@ -145,13 +145,8 @@ namespace ServiceControlInstaller.Engine.Instances
         protected TransportInfo DetermineTransportPackage()
         {
             var transportAppSetting = GetTransportTypeSetting();
-            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
-            if (transport != null)
-            {
-                return transport;
-            }
-
-            return ServiceControlCoreTransports.All.First(p => p.Default);
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+            return transport;
         }
 
         protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)

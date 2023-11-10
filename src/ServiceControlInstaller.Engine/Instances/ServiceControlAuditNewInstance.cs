@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Xml;
     using System.Xml.Serialization;
@@ -27,8 +26,7 @@
         public static ServiceControlAuditNewInstance CreateWithPersistence(string deploymentCachePath, string persistence)
         {
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
-            var persistenceManifest = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath)
-                .Single(manifest => manifest.Name == persistence);
+            var persistenceManifest = ServiceControlAuditPersisters.GetPersistence(zipInfo.FilePath, persistence);
 
             return new ServiceControlAuditNewInstance(zipInfo.Version, persistenceManifest);
         }

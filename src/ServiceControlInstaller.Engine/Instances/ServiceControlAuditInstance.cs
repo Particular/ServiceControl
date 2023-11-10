@@ -60,7 +60,7 @@ namespace ServiceControlInstaller.Engine.Instances
 
         protected override string GetTransportTypeSetting()
         {
-            return AppConfig.Read(AuditInstanceSettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
+            return AppConfig.Read<string>(AuditInstanceSettingsList.TransportType, null)?.Trim();
         }
 
         protected override string BaseServiceName => "ServiceControl.Audit";
@@ -82,18 +82,8 @@ namespace ServiceControlInstaller.Engine.Instances
 
             var zipInfo = ServiceControlAuditZipInfo.Find(deploymentCachePath);
 
-            var manifests = ServiceControlAuditPersisters.LoadAllManifests(zipInfo.FilePath);
-
             var persistenceType = AppConfig.Read<string>(AuditInstanceSettingsList.PersistenceType, null);
-
-            if (string.IsNullOrEmpty(persistenceType))
-            {
-                PersistenceManifest = manifests.Single(m => m.Name == "RavenDB35");
-            }
-            else
-            {
-                PersistenceManifest = manifests.Single(m => m.TypeName == persistenceType);
-            }
+            PersistenceManifest = ServiceControlAuditPersisters.GetPersistence(zipInfo.FilePath, persistenceType);
 
             TransportPackage = DetermineTransportPackage();
             ConnectionString = ReadConnectionString();

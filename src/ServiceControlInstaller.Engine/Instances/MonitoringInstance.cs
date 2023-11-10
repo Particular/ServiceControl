@@ -97,14 +97,9 @@
 
         TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read(SettingsList.TransportType, ServiceControlCoreTransports.All.Single(t => t.Default).TypeName).Trim();
-            var transport = ServiceControlCoreTransports.All.FirstOrDefault(p => p.Matches(transportAppSetting));
-            if (transport != null)
-            {
-                return transport;
-            }
-
-            return ServiceControlCoreTransports.All.First(p => p.Default);
+            var transportAppSetting = AppConfig.Read<string>(SettingsList.TransportType, null)?.Trim();
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+            return transport;
         }
 
         public async Task ValidateChanges()
