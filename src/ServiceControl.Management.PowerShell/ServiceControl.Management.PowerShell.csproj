@@ -3,7 +3,8 @@
   <!--
 
   NOTE: No ProjectReferences or PackageReferences can be added to the project without first ensuring that they done in a way that
-  doesn't break the dependnecy isolation required by the PowerShell module.
+  doesn't break the dependency isolation required by the PowerShell module.
+  See https://devblogs.microsoft.com/powershell/resolving-powershell-module-assembly-dependency-conflicts/
 
   -->
 
