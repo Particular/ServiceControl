@@ -3,8 +3,11 @@
   <!--
 
   NOTE: No ProjectReferences or PackageReferences can be added to the project without first ensuring that they done in a way that
-  doesn't break the dependency isolation required by the PowerShell module.
-  See https://devblogs.microsoft.com/powershell/resolving-powershell-module-assembly-dependency-conflicts/
+  doesn't break the dependency isolation required by the PowerShell module. All dependencies need to be loaded in the separated
+  AssemblyLoadContext so that they don't conflict with the assemblies that ship as part of PowerShell itself or from other modules.
+  Additionally, any type that lives in a dependency can mess up the module loading process if it's exposed as part of the public API
+  of the PowerShell cmdlets. It's complex. Tread carefully.
+  See: https://devblogs.microsoft.com/powershell/resolving-powershell-module-assembly-dependency-conflicts/
 
   -->
 
