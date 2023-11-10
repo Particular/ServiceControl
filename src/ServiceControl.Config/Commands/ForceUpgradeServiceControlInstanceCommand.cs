@@ -4,13 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using Framework.Commands;
 using Events;
-using Framework.Modules;
 using Framework;
+using Framework.Commands;
+using Framework.Modules;
 using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
-using ServiceControlInstaller.Engine.Validation;
 using UI.AdvancedOptions;
 
 class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
@@ -18,11 +17,13 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
     public ForceUpgradeServiceControlInstanceCommand(
         IServiceControlWindowManager windowManager,
         IEventAggregator eventAggregator,
-        ServiceControlInstanceInstaller serviceControlInstaller) : base(ForcedUpgradeAllowed)
+        ServiceControlInstanceInstaller serviceControlInstaller,
+        CommandChecks commandChecks) : base(ForcedUpgradeAllowed)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
         this.serviceControlInstaller = serviceControlInstaller;
+        this.commandChecks = commandChecks;
     }
 
     [FeatureToggle(Feature.LicenseChecks)]
@@ -37,20 +38,18 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
-        if (await windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
+        var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
+        instance.Service.Refresh();
+
+        if (!await commandChecks.CanUpgradeInstance(instance, LicenseChecks, forceUpgradeDb: true))
         {
             return;
         }
 
-        if (LicenseChecks)
+        if (await windowManager.ShowMessage("Forced migration",
+                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
         {
-            var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
-            if (!licenseCheckResult.Valid)
-            {
-                await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                return;
-            }
+            return;
         }
 
         if (!ForcedUpgradeAllowed(model))
@@ -59,14 +58,6 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
 
             return;
         }
-
-        if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
-        {
-            await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
-            return;
-        }
-
-        var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
 
         await UpgradeServiceControlInstance(model, instance);
 
@@ -132,4 +123,5 @@ class ForceUpgradeServiceControlInstanceCommand : AwaitableAbstractCommand<Servi
     readonly IEventAggregator eventAggregator;
     readonly IServiceControlWindowManager windowManager;
     readonly ServiceControlInstanceInstaller serviceControlInstaller;
+    readonly CommandChecks commandChecks;
 }

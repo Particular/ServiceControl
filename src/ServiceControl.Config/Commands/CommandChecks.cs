@@ -22,7 +22,7 @@
             this.windowManager = windowManager;
         }
 
-        public async Task<bool> CanUpgradeInstance(BaseService instance, bool licenseCheck)
+        public async Task<bool> CanUpgradeInstance(BaseService instance, bool licenseCheck, bool forceUpgradeDb = false)
         {
             // Check for license
             if (licenseCheck)
@@ -54,25 +54,28 @@
             // RavenDB 5+ check
             if (instance is IServiceControlBaseInstance baseInstance)
             {
-                var compatibleStorageEngine = baseInstance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
-
-                if (!compatibleStorageEngine)
+                if (!forceUpgradeDb)
                 {
-                    var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
+                    var compatibleStorageEngine = baseInstance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 
-                    var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
-                        $"Please note that the storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
-                        "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
-                        "Yes",
-                        "No"
-                    );
-
-                    if (openUpgradeGuide)
+                    if (!compatibleStorageEngine)
                     {
-                        Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
-                    }
+                        var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
 
-                    return false;
+                        var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
+                            $"Please note that the storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
+                            "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
+                            "Yes",
+                            "No"
+                        );
+
+                        if (openUpgradeGuide)
+                        {
+                            Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
+                        }
+
+                        return false;
+                    }
                 }
 
                 // TODO: Why doesn't the Monitoring instance do this check? Should it?
