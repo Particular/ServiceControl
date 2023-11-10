@@ -21,13 +21,12 @@
         public UpgradeAuditInstanceCommand(
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-            CommandChecks commandChecks)
+            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlAuditInstaller = serviceControlAuditInstaller;
-            this.commandChecks = commandChecks;
+            commandChecks = new CommandChecks(serviceControlAuditInstaller, windowManager);
         }
 
         [FeatureToggle(Feature.LicenseChecks)]

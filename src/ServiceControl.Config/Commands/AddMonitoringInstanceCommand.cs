@@ -13,7 +13,7 @@
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
-            this.installer = installer;
+            commandChecks = new CommandChecks(installer, windowManager);
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
@@ -21,14 +21,9 @@
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (LicenseChecks)
+            if (!await commandChecks.CanAddInstance(LicenseChecks))
             {
-                var licenseCheckResult = installer.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Install could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return;
-                }
+                return;
             }
 
             var instanceViewModel = addInstance();
@@ -37,6 +32,6 @@
 
         readonly Func<MonitoringAddViewModel> addInstance;
         readonly IServiceControlWindowManager windowManager;
-        readonly MonitoringInstanceInstaller installer;
+        readonly CommandChecks commandChecks;
     }
 }

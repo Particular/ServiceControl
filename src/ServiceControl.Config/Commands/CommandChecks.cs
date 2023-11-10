@@ -6,6 +6,7 @@
     using ServiceControl.Config.Framework;
     using ServiceControl.Config.Framework.Modules;
     using ServiceControl.Engine.Extensions;
+    using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
@@ -13,26 +14,32 @@
 
     public class CommandChecks
     {
-        readonly ServiceControlInstanceInstaller serviceControlInstaller;
+        readonly InstallerBase installer;
         readonly IServiceControlWindowManager windowManager;
 
-        public CommandChecks(ServiceControlInstanceInstaller serviceControlInstaller, IServiceControlWindowManager windowManager)
+        public CommandChecks(InstallerBase installer, IServiceControlWindowManager windowManager)
         {
-            this.serviceControlInstaller = serviceControlInstaller;
+            this.installer = installer;
             this.windowManager = windowManager;
+        }
+
+        public async Task<bool> CanAddInstance(bool licenseCheck)
+        {
+            // Check for license
+            if (licenseCheck && !await IsLicenseOk())
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public async Task<bool> CanUpgradeInstance(BaseService instance, bool licenseCheck, bool forceUpgradeDb = false)
         {
             // Check for license
-            if (licenseCheck)
+            if (licenseCheck && !await IsLicenseOk())
             {
-                var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return false;
-                }
+                return false;
             }
 
             // Check for transports that can't be upgraded
@@ -85,7 +92,7 @@
                     var nextVersion = upgradeInfo.UpgradePath[0];
                     await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
                         "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
-                        $"<Paragraph>You must upgrade to version(s) {upgradeInfo} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
+                        $"<Paragraph>You must upgrade to version(s) {upgradeInfo} before upgrading to version {installer.ZipInfo.Version}:</Paragraph>\r\n" +
                         "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
                         $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}</Paragraph></ListItem>" +
                         $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {nextVersion}.</Paragraph></ListItem>\r\n" +
@@ -100,11 +107,23 @@
             }
 
             if (instance.TransportPackage.IsOldRabbitMQTransport() &&
-                !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",
+                !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",
                    "Do you want to proceed?",
                    "Yes, my RabbitMQ broker meets the minimum requirements",
                    "No, cancel the upgrade"))
             {
+                return false;
+            }
+
+            return true;
+        }
+
+        async Task<bool> IsLicenseOk()
+        {
+            var licenseCheckResult = CheckLicenseIsValid();
+            if (!licenseCheckResult.Valid)
+            {
+                await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
                 return false;
             }
 
@@ -118,12 +137,48 @@
                 return false;
             }
 
-            var proceed = await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
-                $"{instanceName} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
+            var proceed = await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {installer.ZipInfo.Version}",
+                $"{instanceName} needs to be stopped in order to upgrade to version {installer.ZipInfo.Version}.",
                 "Do you want to proceed?",
                 "Yes, I want to proceed", "No");
 
             return !proceed;
+        }
+
+        CheckLicenseResult CheckLicenseIsValid()
+        {
+            var license = LicenseManager.FindLicense();
+
+            if (license.Details.HasLicenseExpired())
+            {
+                return new CheckLicenseResult(false, "License has expired");
+            }
+
+            if (!license.Details.ValidForServiceControl)
+            {
+                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
+            }
+
+            var releaseDate = LicenseManager.GetReleaseDate();
+
+            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
+            {
+                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired.");
+            }
+
+            return new CheckLicenseResult(true);
+        }
+
+        class CheckLicenseResult
+        {
+            public CheckLicenseResult(bool valid, string message = null)
+            {
+                Valid = valid;
+                Message = message;
+            }
+
+            public bool Valid { get; private set; }
+            public string Message { get; private set; }
         }
     }
 }

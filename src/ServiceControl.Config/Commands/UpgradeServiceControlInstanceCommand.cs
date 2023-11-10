@@ -26,14 +26,13 @@
         public UpgradeServiceControlInstanceCommand(
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
-            ServiceControlInstanceInstaller serviceControlInstaller,
-            CommandChecks commandChecks
+            ServiceControlInstanceInstaller serviceControlInstaller
             )
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlInstaller = serviceControlInstaller;
-            this.commandChecks = commandChecks;
+            commandChecks = new CommandChecks(serviceControlInstaller, windowManager);
         }
 
         [FeatureToggle(Feature.LicenseChecks)]
