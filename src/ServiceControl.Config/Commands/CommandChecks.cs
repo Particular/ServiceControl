@@ -120,7 +120,8 @@
                     }
                 }
 
-                // TODO: Why doesn't the Monitoring instance do this check? Should it?
+                // To be clear, Monitoring doesn't bother with this check because it's all in-memory storage
+                // so you could hypothetically change to any version at any time
                 var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
                 if (upgradeInfo.HasIncompatibleVersion)
                 {
