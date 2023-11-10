@@ -52,7 +52,7 @@ jobs:
           retention-days: 1
       - name: Smoke test PowerShell module import
         shell: pwsh
-        run: Import-Module deploy/PowerShellModules/Particular.ServiceControl.Management
+        run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
         uses: azure/login@v1.4.7
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
