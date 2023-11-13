@@ -7,6 +7,7 @@
       "TypeName": "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
       "SampleConnectionString": "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
       "AvailableInSCMU": false,
+      "Removed": true,
       "Aliases": [
         "AzureServiceBus",
         "Azure Service Bus - Endpoint-oriented topology (Old)",
@@ -21,6 +22,7 @@
       "TypeName": "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
       "SampleConnectionString": "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
       "AvailableInSCMU": false,
+      "Removed": true,
       "AutoMigrateTo": "NetStandardAzureServiceBus",
       "Aliases": [
         "Azure Service Bus - Forwarding topology (Legacy)",

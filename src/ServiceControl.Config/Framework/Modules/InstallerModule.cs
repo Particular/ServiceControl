@@ -3,7 +3,6 @@ namespace ServiceControl.Config.Framework.Modules
     using System;
     using System.Threading.Tasks;
     using Autofac;
-    using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine.FileSystem;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
@@ -37,10 +36,13 @@ namespace ServiceControl.Config.Framework.Modules
         }
     }
 
-    public class ServiceControlInstallerBase
+    public abstract class InstallerBase
     {
-        public PlatformZipInfo ZipInfo { get; protected set; }
+        public PlatformZipInfo ZipInfo { get; init; }
+    }
 
+    public class ServiceControlInstallerBase : InstallerBase
+    {
         internal async Task<ReportCard> Add(ServiceControlInstallableBase details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
@@ -227,52 +229,14 @@ namespace ServiceControl.Config.Framework.Modules
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
         }
-
-        internal CheckLicenseResult CheckLicenseIsValid()
-        {
-            var license = LicenseManager.FindLicense();
-
-            if (license.Details.HasLicenseExpired())
-            {
-                return new CheckLicenseResult(false, "License has expired");
-            }
-
-            if (!license.Details.ValidForServiceControl)
-            {
-                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
-            }
-
-            var releaseDate = LicenseManager.GetReleaseDate();
-
-            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-            {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired.");
-            }
-
-            return new CheckLicenseResult(true);
-        }
-
-        internal class CheckLicenseResult
-        {
-            public CheckLicenseResult(bool valid, string message = null)
-            {
-                Valid = valid;
-                Message = message;
-            }
-
-            public bool Valid { get; }
-            public string Message { get; }
-        }
     }
 
-    public class MonitoringInstanceInstaller
+    public class MonitoringInstanceInstaller : InstallerBase
     {
         public MonitoringInstanceInstaller()
         {
             ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip", Constants.CurrentVersion);
         }
-
-        public PlatformZipInfo ZipInfo { get; }
 
         internal async Task<ReportCard> Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
         {
@@ -443,42 +407,6 @@ namespace ServiceControl.Config.Framework.Modules
 
             instance.ReportCard.SetStatus();
             return instance.ReportCard;
-        }
-
-        internal CheckLicenseResult CheckLicenseIsValid()
-        {
-            var license = LicenseManager.FindLicense();
-
-            if (license.Details.HasLicenseExpired())
-            {
-                return new CheckLicenseResult(false, "License has expired");
-            }
-
-            if (!license.Details.ValidForServiceControl)
-            {
-                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
-            }
-
-            var releaseDate = LicenseManager.GetReleaseDate();
-
-            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-            {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired.");
-            }
-
-            return new CheckLicenseResult(true);
-        }
-
-        internal class CheckLicenseResult
-        {
-            public CheckLicenseResult(bool valid, string message = null)
-            {
-                Valid = valid;
-                Message = message;
-            }
-
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
         }
     }
 }

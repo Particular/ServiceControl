@@ -1,8 +1,6 @@
 ﻿namespace ServiceControl.Config.Commands
 {
     using System;
-    using System.Diagnostics;
-    using System.ServiceProcess;
     using System.Threading.Tasks;
     using Caliburn.Micro;
     using Events;
@@ -10,11 +8,9 @@
     using Framework;
     using Framework.Commands;
     using Framework.Modules;
-    using ServiceControl.Engine.Extensions;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.ReportCard;
-    using ServiceControlInstaller.Engine.Validation;
     using UI.InstanceDetails;
     using UI.MessageBox;
     using Validation;
@@ -30,70 +26,23 @@
         public UpgradeServiceControlInstanceCommand(
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
-            ServiceControlInstanceInstaller serviceControlInstaller
+            ServiceControlInstanceInstaller serviceControlInstaller,
+            CommandChecks commandChecks
             )
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
             this.serviceControlInstaller = serviceControlInstaller;
+            this.commandChecks = commandChecks;
         }
-
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel model)
         {
-            if (LicenseChecks)
-            {
-                var licenseCheckResult = serviceControlInstaller.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return;
-                }
-            }
-
             var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
-
             instance.Service.Refresh();
 
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
-
-            if (!compatibleStorageEngine)
+            if (!await commandChecks.CanUpgradeInstance(instance))
             {
-                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
-
-                var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
-                    $"Please note that the storage format has changed and the {instance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}",
-                    "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
-                    "Yes",
-                    "No"
-                );
-
-                if (openUpgradeGuide)
-                {
-                    Process.Start(new ProcessStartInfo(upgradeGuide4to5url) { UseShellExecute = true });
-                }
-
-                return;
-            }
-
-            var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
-            if (upgradeInfo.HasIncompatibleVersion)
-            {
-                var nextVersion = upgradeInfo.UpgradePath[0];
-                await windowManager.ShowMessage("VERSION UPGRADE INCOMPATIBLE",
-                    "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xml:space=\"preserve\" TextAlignment=\"Left\" LineHeight=\"Auto\" IsHyphenationEnabled=\"False\" xml:lang=\"en-us\">\r\n" +
-                    $"<Paragraph>You must upgrade to version(s) {upgradeInfo} before upgrading to version {serviceControlInstaller.ZipInfo.Version}:</Paragraph>\r\n" +
-                    "<List MarkerStyle=\"Decimal\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">\r\n" +
-                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}</Paragraph></ListItem>" +
-                    $"<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to version {nextVersion}.</Paragraph></ListItem>\r\n" +
-                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Download and install the latest version from https://particular.net/start-servicecontrol-download</Paragraph></ListItem>\r\n" +
-                    "<ListItem Margin=\"48,0,0,0\"><Paragraph>Upgrade this instance to the latest version of ServiceControl.</Paragraph></ListItem>\r\n" +
-                    "</List>\r\n" +
-                    "</Section>",
-                    hideCancel: true);
-
                 return;
             }
 
@@ -199,26 +148,7 @@
                 }
             }
 
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
-            {
-                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
-                return;
-            }
-
-            if (instance.TransportPackage.IsOldRabbitMQTransport() &&
-                !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",
-                   "Do you want to proceed?",
-                   "Yes, my RabbitMQ broker meets the minimum requirements",
-                   "No, cancel the upgrade"))
-            {
-                return;
-            }
-
-            if (instance.Service.Status != ServiceControllerStatus.Stopped &&
-                !await windowManager.ShowYesNoDialog($"STOP INSTANCE AND UPGRADE TO {serviceControlInstaller.ZipInfo.Version}",
-                    $"{model.Name} needs to be stopped in order to upgrade to version {serviceControlInstaller.ZipInfo.Version}.",
-                    "Do you want to proceed?",
-                    "Yes, I want to proceed", "No"))
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
             {
                 return;
             }
@@ -272,6 +202,7 @@
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
+        readonly CommandChecks commandChecks;
 
         class PortValidator : AbstractValidator<TextBoxDialogViewModel>
         {

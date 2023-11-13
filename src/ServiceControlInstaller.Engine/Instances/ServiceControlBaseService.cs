@@ -85,7 +85,6 @@ namespace ServiceControlInstaller.Engine.Instances
         public string AuditLogQueue { get; set; }
         public bool ForwardAuditMessages { get; set; }
         public bool ForwardErrorMessages { get; set; }
-        public TransportInfo TransportPackage { get; set; }
         public string ConnectionString { get; set; }
         public TimeSpan ErrorRetentionPeriod { get; set; }
         public bool SkipQueueCreation { get; set; }

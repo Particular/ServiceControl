@@ -7,19 +7,20 @@ namespace ServiceControl.Config.UI.InstanceAdd
     using Framework;
     using Framework.Modules;
     using ReactiveUI;
-    using ServiceControl.Engine.Extensions;
+    using ServiceControl.Config.Commands;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Validation;
     using Validation;
 
     class ServiceControlAddAttachment : Attachment<ServiceControlAddViewModel>
     {
-        public ServiceControlAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller serviceControlInstaller, ServiceControlAuditInstanceInstaller serviceControlAuditInstaller)
+        public ServiceControlAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller serviceControlInstaller, ServiceControlAuditInstanceInstaller serviceControlAuditInstaller, CommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.serviceControlInstaller = serviceControlInstaller;
             this.serviceControlAuditInstaller = serviceControlAuditInstaller;
             this.eventAggregator = eventAggregator;
+            this.commandChecks = commandChecks;
         }
 
         protected override void OnAttach()
@@ -100,19 +101,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                 auditNewInstance.EnableFullTextSearchOnBodies = viewModel.ServiceControlAudit.EnableFullTextSearchOnBodies.Value;
             }
 
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
-            {
-                await windowManager.ShowMessage("Missing prerequisites", missingMessage, acceptText: "Cancel", hideCancel: true);
-                viewModel.InProgress = false;
-                return;
-            }
-
-            var transportPackage = serviceControlNewInstance != null ? serviceControlNewInstance.TransportPackage : auditNewInstance.TransportPackage;
-            if (transportPackage.IsLatestRabbitMQTransport() &&
-                !await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {serviceControlInstaller.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
-                                                     "Do you want to proceed?",
-                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
-                                                     "No, cancel the install"))
+            if (!await commandChecks.ValidateNewInstance(serviceControlNewInstance, auditNewInstance))
             {
                 viewModel.InProgress = false;
                 return;
@@ -201,5 +190,6 @@ namespace ServiceControl.Config.UI.InstanceAdd
         readonly IEventAggregator eventAggregator;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
+        readonly CommandChecks commandChecks;
     }
 }

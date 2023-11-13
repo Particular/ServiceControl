@@ -1,5 +1,5 @@
 ﻿{
-  "Version": "1.0.0",  
+  "Version": "1.0.0",
   "Definitions": [
     {
       "Name": "RabbitMQ.ClassicConventionalRouting",
@@ -22,29 +22,6 @@
       ]
     },
     {
-      "Name": "RabbitMQ.ConventionalRouting",
-      "DisplayName": "RabbitMQ - Conventional routing topology",
-      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
-      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
-      "AvailableInSCMU": false,
-      "AutoMigrateTo": "RabbitMQ.ClassicConventionalRouting",
-      "Aliases": [
-        "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ",
-        "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
-      ]
-    },
-    {
-      "Name": "RabbitMQ.DirectRouting",
-      "DisplayName": "RabbitMQ - Direct routing topology (Old)",
-      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
-      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
-      "AvailableInSCMU": false,
-      "AutoMigrateTo": "RabbitMQ.ClassicDirectRouting",
-      "Aliases": [
-        "ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
-      ]
-    },
-    {
       "Name": "RabbitMQ.QuorumConventionalRouting",
       "DisplayName": "RabbitMQ - Conventional routing topology (quorum queues)",
       "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQQuorumConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
@@ -62,6 +39,31 @@
       "AvailableInSCMU": true,
       "Aliases": [
         "ServiceControl.Transports.RabbitMQ.QuorumDirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
+      ]
+    },
+    {
+      "Name": "RabbitMQ.ConventionalRouting",
+      "DisplayName": "RabbitMQ - Conventional routing topology",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQConventionalRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+      "AvailableInSCMU": false,
+      "Removed": true,
+      "AutoMigrateTo": "RabbitMQ.ClassicConventionalRouting",
+      "Aliases": [
+        "NServiceBus.RabbitMQTransport, NServiceBus.Transports.RabbitMQ",
+        "ServiceControl.Transports.RabbitMQ.ConventialRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
+      ]
+    },
+    {
+      "Name": "RabbitMQ.DirectRouting",
+      "DisplayName": "RabbitMQ - Direct routing topology (Old)",
+      "TypeName": "ServiceControl.Transports.RabbitMQ.RabbitMQDirectRoutingTransportCustomization, ServiceControl.Transports.RabbitMQ",
+      "SampleConnectionString": "host=<HOSTNAME>;username=<USERNAME>;password=<PASSWORD>;DisableRemoteCertificateValidation=<true|false(default)>;UseExternalAuthMechanism=<true|false(default)>",
+      "AvailableInSCMU": false,
+      "Removed": true,
+      "AutoMigrateTo": "RabbitMQ.ClassicDirectRouting",
+      "Aliases": [
+        "ServiceControl.Transports.RabbitMQ.DirectRoutingTopologyRabbitMQTransport, ServiceControl.Transports.RabbitMQ"
       ]
     }
   ]

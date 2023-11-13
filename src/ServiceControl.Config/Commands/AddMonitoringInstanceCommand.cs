@@ -4,31 +4,22 @@
     using System.Threading.Tasks;
     using Framework;
     using Framework.Commands;
-    using Framework.Modules;
     using UI.InstanceAdd;
 
     class AddMonitoringInstanceCommand : AwaitableAbstractCommand<object>
     {
-        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, MonitoringInstanceInstaller installer) : base(null)
+        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, CommandChecks commandChecks) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
-            this.installer = installer;
+            this.commandChecks = commandChecks;
         }
-
-        [FeatureToggle(Feature.LicenseChecks)]
-        public bool LicenseChecks { get; set; }
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (LicenseChecks)
+            if (!await commandChecks.CanAddInstance(needsRavenDB: false))
             {
-                var licenseCheckResult = installer.CheckLicenseIsValid();
-                if (!licenseCheckResult.Valid)
-                {
-                    await windowManager.ShowMessage("LICENSE ERROR", $"Install could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net", hideCancel: true);
-                    return;
-                }
+                return;
             }
 
             var instanceViewModel = addInstance();
@@ -37,6 +28,6 @@
 
         readonly Func<MonitoringAddViewModel> addInstance;
         readonly IServiceControlWindowManager windowManager;
-        readonly MonitoringInstanceInstaller installer;
+        readonly CommandChecks commandChecks;
     }
 }
