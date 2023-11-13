@@ -23,13 +23,6 @@
         {
             ZipInfo.ValidateZip();
 
-            var checkLicenseResult = CheckLicenseIsValid();
-            if (!checkLicenseResult.Valid)
-            {
-                logger.Error($"Install aborted - {checkLicenseResult.Message}");
-                return false;
-            }
-
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
 
@@ -97,13 +90,6 @@
         public bool Upgrade(MonitoringInstance instance)
         {
             ZipInfo.ValidateZip();
-
-            var checkLicenseResult = CheckLicenseIsValid();
-            if (!checkLicenseResult.Valid)
-            {
-                logger.Error($"Upgrade aborted - {checkLicenseResult.Message}");
-                return false;
-            }
 
             instance.ReportCard = new ReportCard();
 
@@ -249,42 +235,6 @@
             return true;
         }
 
-        internal CheckLicenseResult CheckLicenseIsValid()
-        {
-            var license = LicenseManager.FindLicense();
-
-            if (license.Details.HasLicenseExpired())
-            {
-                return new CheckLicenseResult(false, "License has expired");
-            }
-
-            if (!license.Details.ValidForServiceControl)
-            {
-                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
-            }
-
-            var releaseDate = LicenseManager.GetReleaseDate();
-
-            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-            {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl Monitoring. Upgrade protection expired.");
-            }
-
-            return new CheckLicenseResult(true);
-        }
-
         Logging logger;
-
-        internal class CheckLicenseResult
-        {
-            public CheckLicenseResult(bool valid, string message = null)
-            {
-                Valid = valid;
-                Message = message;
-            }
-
-            public bool Valid { get; private set; }
-            public string Message { get; private set; }
-        }
     }
 }

@@ -8,7 +8,6 @@
     using FileSystem;
     using Instances;
     using ReportCard;
-    using ServiceControl.LicenseManagement;
     using Validation;
 
     public class UnattendServiceControlInstaller
@@ -24,13 +23,6 @@
         public async Task<bool> Add(ServiceControlNewInstance details, Func<PathInfo, Task<bool>> promptToProceed)
         {
             ZipInfo.ValidateZip();
-
-            var checkLicenseResult = CheckLicenseIsValid();
-            if (!checkLicenseResult.Valid)
-            {
-                logger.Error($"Install aborted - {checkLicenseResult.Message}");
-                return false;
-            }
 
             var instanceInstaller = details;
 
@@ -99,31 +91,7 @@
                 instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
             }
 
-            var compatibleStorageEngine = instance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
-
-            if (!compatibleStorageEngine)
-            {
-                var upgradeGuide4to5url = "https://docs.particular.net/servicecontrol/upgrades/4to5/";
-                logger.Error($"Upgrade aborted. Please note that the storage format has changed and the {instance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {upgradeGuide4to5url}");
-                return false;
-            }
-
-            var upgradeInfo = UpgradeInfo.GetUpgradePathFor(instance.Version);
-            if (upgradeInfo.HasIncompatibleVersion)
-            {
-                var nextVersion = upgradeInfo.UpgradePath[0];
-                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {Constants.CurrentVersion}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
-                return false;
-            }
-
             ZipInfo.ValidateZip();
-
-            var checkLicenseResult = CheckLicenseIsValid();
-            if (!checkLicenseResult.Valid)
-            {
-                logger.Error($"Upgrade aborted - {checkLicenseResult.Message}");
-                return false;
-            }
 
             instance.ReportCard = new ReportCard();
 
@@ -263,43 +231,7 @@
             return true;
         }
 
-        internal CheckLicenseResult CheckLicenseIsValid()
-        {
-            var license = LicenseManager.FindLicense();
-
-            if (license.Details.HasLicenseExpired())
-            {
-                return new CheckLicenseResult(false, "License has expired");
-            }
-
-            if (!license.Details.ValidForServiceControl)
-            {
-                return new CheckLicenseResult(false, "This license edition does not include ServiceControl");
-            }
-
-            var releaseDate = LicenseManager.GetReleaseDate();
-
-            if (license.Details.ReleaseNotCoveredByMaintenance(releaseDate))
-            {
-                return new CheckLicenseResult(false, "License does not cover this release of ServiceControl. Upgrade protection expired.");
-            }
-
-            return new CheckLicenseResult(true);
-        }
-
         Logging logger;
-
-        internal class CheckLicenseResult
-        {
-            public CheckLicenseResult(bool valid, string message = null)
-            {
-                Valid = valid;
-                Message = message;
-            }
-
-            public bool Valid { get; }
-            public string Message { get; }
-        }
 
         public bool AddRemoteInstance(ServiceControlInstance instance, string[] remoteInstanceAddresses, ILogging log)
         {
