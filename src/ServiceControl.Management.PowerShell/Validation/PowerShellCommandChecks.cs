@@ -84,9 +84,8 @@
 
         protected override Task<bool> PromptToStopRunningInstance(BaseService instance)
         {
-            var msg = $"{instance.Name} needs to be stopped in order to upgrade to version {Constants.CurrentVersion}.";
-            Terminate(msg, "Service Running", ErrorCategory.InvalidOperation);
-            return Task.FromResult(false);
+            // PowerShell assumes you always want to stop the service if it's running
+            return Task.FromResult(true);
         }
     }
 }
