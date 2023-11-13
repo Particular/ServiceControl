@@ -18,7 +18,7 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
         IServiceControlWindowManager windowManager,
         IEventAggregator eventAggregator,
         ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-        CommandChecks commandChecks
+        ScmuCommandChecks commandChecks
         ) : base(ForcedUpgradeAllowed)
     {
         this.windowManager = windowManager;
@@ -119,5 +119,5 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
     readonly IEventAggregator eventAggregator;
     readonly IServiceControlWindowManager windowManager;
     readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
-    readonly CommandChecks commandChecks;
+    readonly ScmuCommandChecks commandChecks;
 }

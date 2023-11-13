@@ -27,7 +27,7 @@
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
             ServiceControlInstanceInstaller serviceControlInstaller,
-            CommandChecks commandChecks
+            ScmuCommandChecks commandChecks
             )
         {
             this.windowManager = windowManager;
@@ -202,7 +202,7 @@
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlInstanceInstaller serviceControlInstaller;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
 
         class PortValidator : AbstractValidator<TextBoxDialogViewModel>
         {

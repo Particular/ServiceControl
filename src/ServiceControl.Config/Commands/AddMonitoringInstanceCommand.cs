@@ -8,7 +8,7 @@
 
     class AddMonitoringInstanceCommand : AwaitableAbstractCommand<object>
     {
-        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, CommandChecks commandChecks) : base(null)
+        public AddMonitoringInstanceCommand(IServiceControlWindowManager windowManager, Func<MonitoringAddViewModel> addInstance, ScmuCommandChecks commandChecks) : base(null)
         {
             this.windowManager = windowManager;
             this.addInstance = addInstance;
@@ -28,6 +28,6 @@
 
         readonly Func<MonitoringAddViewModel> addInstance;
         readonly IServiceControlWindowManager windowManager;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

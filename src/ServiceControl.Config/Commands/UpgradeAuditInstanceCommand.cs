@@ -22,7 +22,7 @@
             IServiceControlWindowManager windowManager,
             IEventAggregator eventAggregator,
             ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-            CommandChecks commandChecks)
+            ScmuCommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -119,6 +119,6 @@
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
         readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

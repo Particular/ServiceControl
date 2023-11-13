@@ -17,7 +17,7 @@
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
+        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, ScmuCommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -84,6 +84,6 @@
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
         readonly IServiceControlWindowManager windowManager;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
     }
 }
