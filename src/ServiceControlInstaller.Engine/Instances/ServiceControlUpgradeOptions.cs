@@ -11,6 +11,7 @@ namespace ServiceControlInstaller.Engine.Instances
         public int? MaintenancePort { get; set; }
         public bool SkipQueueCreation { get; set; }
         public string RemoteUrl { get; set; }
+        public bool Force { get; set; }
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {

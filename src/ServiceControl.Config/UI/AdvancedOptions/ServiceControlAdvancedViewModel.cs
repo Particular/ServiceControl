@@ -22,7 +22,8 @@ namespace ServiceControl.Config.UI.AdvancedOptions
             IEventAggregator eventAggregator,
             StartServiceControlInMaintenanceModeCommand maintenanceModeCommand,
             DeleteServiceControlInstanceCommand deleteInstanceCommand,
-            ForceUpgradeServiceControlInstanceCommand forceUpgradeCommand
+            ForceUpgradePrimaryInstanceCommand forceUpgradePrimaryCommand,
+            ForceUpgradeAuditInstanceCommand forceUpgradeAuditCommand
             )
         {
             ServiceControlInstance = (ServiceControlBaseService)instance;
@@ -34,7 +35,16 @@ namespace ServiceControl.Config.UI.AdvancedOptions
                 await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
             });
             DeleteCommand = deleteInstanceCommand;
-            ForceUpgradeCommand = forceUpgradeCommand;
+
+            if (instance is ServiceControlAuditInstance)
+            {
+                ForceUpgradeCommand = forceUpgradeAuditCommand;
+            }
+            else if (instance is ServiceControlInstance)
+            {
+                ForceUpgradeCommand = forceUpgradePrimaryCommand;
+            }
+
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
             StopMaintenanceModeCommand = ReactiveCommand.CreateFromTask<ServiceControlAdvancedViewModel>(async _ =>
@@ -125,7 +135,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
 
         public bool ForcedUpgradeAllowed => ForceUpgradeCommand.CanExecute(this);
 
-        public string ForcedUpgradeBackupLocation => $"{ServiceControlInstance.DBPath}_UpgradeBackup";
+        public string ForcedUpgradeBackupLocation => ServiceControlInstance.DatabaseBackupPath;
 
         public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {

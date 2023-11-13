@@ -12,31 +12,38 @@ using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
 using UI.AdvancedOptions;
 
-class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
+class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
 {
-    public ForceUpgradePrimaryInstanceCommand(
+    public ForceUpgradeAuditInstanceCommand(
         IServiceControlWindowManager windowManager,
         IEventAggregator eventAggregator,
-        ServiceControlInstanceInstaller serviceControlInstaller,
-        CommandChecks commandChecks)
-        : base(ForcedUpgradeAllowed)
+        ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
+        CommandChecks commandChecks
+        ) : base(ForcedUpgradeAllowed)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
-        this.serviceControlInstaller = serviceControlInstaller;
+        this.serviceControlAuditInstaller = serviceControlAuditInstaller;
         this.commandChecks = commandChecks;
     }
 
     static bool ForcedUpgradeAllowed(ServiceControlAdvancedViewModel model)
     {
-        var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
+        var instance = InstanceFinder.ServiceControlAuditInstances().FirstOrDefault(i => i.Name == model.Name);
 
         //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
         return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name != StorageEngineNames.RavenDB;
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
-        var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
+        if (!ForcedUpgradeAllowed(model))
+        {
+            await windowManager.ShowMessage("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.", hideCancel: true);
+
+            return;
+        }
+
+        var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
         instance.Service.Refresh();
 
         if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
@@ -45,24 +52,17 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
         }
 
         if (await windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
+                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes") == false)
         {
             return;
         }
 
-        if (!ForcedUpgradeAllowed(model))
-        {
-            await windowManager.ShowMessage("Cannot run the command", "Only ver. 4.x primary instance that use RavenDB ver. 3.5 can be forced upgraded.");
-
-            return;
-        }
-
-        await UpgradeServiceControlInstance(model, instance);
+        await UpgradeServiceControlInstance(model, instance, new ServiceControlUpgradeOptions());
 
         await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
-    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlInstance instance)
+    async Task UpgradeServiceControlInstance(ServiceControlAdvancedViewModel model, ServiceControlAuditInstance instance, ServiceControlUpgradeOptions upgradeOptions)
     {
         using (var progress = model.GetProgressObject($"UPGRADING {model.Name}"))
         {
@@ -92,9 +92,9 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
             reportCard = await Task.Run(() =>
             {
                 instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
+                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
 
-                return serviceControlInstaller.Upgrade(instance, new ServiceControlUpgradeOptions(), progress);
+                return serviceControlAuditInstaller.Upgrade(instance, upgradeOptions, progress);
             });
 
             if (reportCard.HasErrors || reportCard.HasWarnings)
@@ -118,6 +118,6 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
 
     readonly IEventAggregator eventAggregator;
     readonly IServiceControlWindowManager windowManager;
-    readonly ServiceControlInstanceInstaller serviceControlInstaller;
+    readonly ServiceControlAuditInstanceInstaller serviceControlAuditInstaller;
     readonly CommandChecks commandChecks;
 }

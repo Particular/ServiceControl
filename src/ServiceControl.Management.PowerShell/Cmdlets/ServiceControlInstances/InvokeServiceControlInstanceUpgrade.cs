@@ -16,36 +16,13 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string Name;
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Instance")]
-        [ValidatePath]
-        public string InstallPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for the new ServiceControl Audit Instance")]
-        [ValidatePath]
-        public string DBPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Logs")]
-        [ValidatePath]
-        public string LogPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the port number for the new ServiceControl Audit API to listen on")]
-        [ValidateRange(1, 49151)]
-        public int? Port { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number for the new ServiceControl Audit instance to listen on")]
-        [ValidateRange(1, 49151)]
-        public int? DatabaseMaintenancePort { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Service Account Password (if required)")]
-        public string ServiceAccountPassword { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Disable full text search on error messages.")]
         public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
+        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if the current instance is using obsolete, incompatible RavenDB 3.5 storage engine. Replaces the database with a brand new one, removing all data previously stored.")]
         public SwitchParameter Force { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
@@ -77,7 +54,8 @@ namespace ServiceControl.Management.PowerShell
             var options = new ServiceControlUpgradeOptions
             {
                 SkipQueueCreation = SkipQueueCreation,
-                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies
+                DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies,
+                Force = Force.IsPresent
             };
 
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))

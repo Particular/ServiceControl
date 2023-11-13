@@ -434,10 +434,17 @@ namespace ServiceControlInstaller.Engine.Instances
             AppConfig.Save();
         }
 
+        public void CreateDatabaseBackup()
+        {
+            Directory.Move(DBPath, DatabaseBackupPath);
+        }
+
         public AppConfig AppConfig;
 
         public bool VersionHasServiceControlAuditFeatures => Version >= AuditFeatureMinVersion;
 
-        static Version AuditFeatureMinVersion = new Version(4, 0);
+        public string DatabaseBackupPath => DBPath + "_UpgradeBackup";
+
+        static Version AuditFeatureMinVersion = new(4, 0);
     }
 }
