@@ -22,7 +22,7 @@ namespace ServiceControl.Management.PowerShell
         public string[] Acknowledgements { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if storage engine is incompatible resulting in data loss")]
-        public SwitchParameter ForceRecreateDatabase { get; set; }
+        public SwitchParameter Force { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -60,7 +60,7 @@ namespace ServiceControl.Management.PowerShell
                     ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {installer.ZipInfo.Version} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
                 }
 
-                if (!installer.Upgrade(instance, ForceRecreateDatabase.IsPresent))
+                if (!installer.Upgrade(instance, Force.IsPresent))
                 {
                     ThrowTerminatingError(new ErrorRecord(new Exception($"Upgrade of {instance.Name} failed"), "UpgradeFailure", ErrorCategory.InvalidResult, null));
                 }

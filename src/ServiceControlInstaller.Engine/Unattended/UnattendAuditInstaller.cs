@@ -96,9 +96,9 @@
             return true;
         }
 
-        public bool Upgrade(ServiceControlAuditInstance instance, bool forceWithRecreate)
+        public bool Upgrade(ServiceControlAuditInstance instance, bool force)
         {
-            if (forceWithRecreate)
+            if (force)
             {
                 instance.CreateDatabaseBackup();
                 instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);

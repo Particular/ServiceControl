@@ -94,7 +94,7 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
-            if (options.ForceRecreateDatabase)
+            if (options.Force)
             {
                 instance.CreateDatabaseBackup();
                 instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);

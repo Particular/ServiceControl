@@ -45,14 +45,11 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Disable full text search on error messages.")]
         public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty")]
+        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty and perform upgrade even if storage engine is incompatible resulting in data loss")]
         public SwitchParameter Force { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
         public string[] Acknowledgements { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if storage engine is incompatible resulting in data loss")]
-        public SwitchParameter ForceRecreateDatabase { get; set; }
 
         protected override void BeginProcessing()
         {
@@ -81,7 +78,7 @@ namespace ServiceControl.Management.PowerShell
             {
                 SkipQueueCreation = SkipQueueCreation,
                 DisableFullTextSearchOnBodies = DisableFullTextSearchOnBodies,
-                ForceRecreateDatabase = ForceRecreateDatabase.IsPresent
+                Force = Force.IsPresent
             };
 
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
