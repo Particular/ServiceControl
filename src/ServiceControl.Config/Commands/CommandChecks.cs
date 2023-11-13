@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.Config.Commands
 {
+    using System;
     using System.Diagnostics;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using ServiceControl.Config.Framework;
-    using ServiceControl.Engine.Extensions;
     using ServiceControl.LicenseManagement;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
@@ -45,23 +45,40 @@
                 .Select(i => i.TransportPackage)
                 .First(t => t is not null);
 
-            if (transport is not null)
-            {
-                if (transport.IsLatestRabbitMQTransport())
-                {
-                    var continueInstall = await windowManager.ShowYesNoDialog("INSTALL WARNING", $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before installing.",
-                                                     "Do you want to proceed?",
-                                                     "Yes, my RabbitMQ broker meets the minimum requirements",
-                                                     "No, cancel the install");
+            var continueInstall = await RabbitMqCheckIsOK(transport, false);
 
-                    if (!continueInstall)
-                    {
-                        return false;
-                    }
-                }
+            return continueInstall;
+        }
+
+        async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, bool isUpgrade)
+        {
+            if (transport is null)
+            {
+                throw new ArgumentNullException(nameof(transport));
             }
 
-            return true;
+            if (transport.ZipName != "RabbitMQ")
+            {
+                // not Rabbit, don't care
+                return true;
+            }
+
+            // Only way we DON'T need to warn is if we're updating an instance that's already on a "new" (AvailableInSCMU) Rabbit transport
+            var needToWarn = !(isUpgrade && transport.AvailableInSCMU);
+            if (!needToWarn)
+            {
+                return true;
+            }
+
+            var title = isUpgrade ? "UPGRADE WARNING" : "INSTALL WARNING";
+            var beforeWhat = isUpgrade ? "upgrading" : "installing";
+            var message = $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before {beforeWhat}.";
+            var question = "Do you want to proceed?";
+            var yes = "Yes, my RabbitMQ broker meets the minimum requirements";
+            var no = "No, cancel the install";
+
+            var continueInstall = await windowManager.ShowYesNoDialog(title, message, question, yes, no);
+            return continueInstall;
         }
 
         public async Task<bool> CanUpgradeInstance(BaseService instance, bool forceUpgradeDb = false)
@@ -142,11 +159,7 @@
                 }
             }
 
-            if (instance.TransportPackage.IsOldRabbitMQTransport() &&
-                !await windowManager.ShowYesNoDialog("UPGRADE WARNING", $"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Please confirm your broker meets the minimum requirements before upgrading.",
-                   "Do you want to proceed?",
-                   "Yes, my RabbitMQ broker meets the minimum requirements",
-                   "No, cancel the upgrade"))
+            if (!await RabbitMqCheckIsOK(instance.TransportPackage, isUpgrade: true))
             {
                 return false;
             }
