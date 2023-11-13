@@ -23,6 +23,7 @@
 
         public async Task<bool> CanAddInstance(bool needsRavenDB)
         {
+            // TODO: Existing PowerShell cmdlets do not check for license
             // Check for license
             if (!await IsLicenseOk().ConfigureAwait(false))
             {

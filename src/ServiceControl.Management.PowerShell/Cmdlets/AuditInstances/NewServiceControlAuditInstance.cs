@@ -165,15 +165,14 @@
 
             var installer = new UnattendAuditInstaller(logger);
 
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB: true, out var missingMessage))
+            var checks = new PowerShellCommandChecks(this, Acknowledgements);
+            if (!checks.CanAddInstance(needsRavenDB: true).GetAwaiter().GetResult())
             {
-                ThrowTerminatingError(new ErrorRecord(new Exception(missingMessage), "Missing Prerequisites", ErrorCategory.NotInstalled, null));
+                return;
             }
-
-            if (newAuditInstance.TransportPackage.IsLatestRabbitMQTransport() &&
-               (Acknowledgements == null || !Acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase))))
+            if (!checks.ValidateNewInstance(newAuditInstance).GetAwaiter().GetResult())
             {
-                ThrowTerminatingError(new ErrorRecord(new Exception($"ServiceControl version {Constants.CurrentVersion} requires RabbitMQ broker version 3.10.0 or higher. Also, the stream_queue and quorum_queue feature flags must be enabled on the broker. Use -Acknowledgements {AcknowledgementValues.RabbitMQBrokerVersion310} if you are sure your broker meets these requirements."), "Install Error", ErrorCategory.InvalidArgument, null));
+                return;
             }
 
             try
