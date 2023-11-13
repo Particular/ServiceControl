@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using Framework.Commands;
 using Events;
-using Framework.Modules;
 using Framework;
+using Framework.Commands;
+using Framework.Modules;
 using ServiceControlInstaller.Engine.Instances;
 using ServiceControlInstaller.Engine.ReportCard;
 using UI.AdvancedOptions;
@@ -36,25 +36,26 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
     }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
-        if (!await commandChecks.CanAddInstance(needsRavenDB: false))
-        {
-            return;
-        }
-
-        if (await windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
-        {
-            return;
-        }
-
         if (!ForcedUpgradeAllowed(model))
         {
-            await windowManager.ShowMessage("Cannot run the command", "Only ver. 4.x primary instance that use RavenDB ver. 3.5 can be forced upgraded.");
+            await windowManager.ShowMessage("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.", hideCancel: true);
 
             return;
         }
 
         var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
+        instance.Service.Refresh();
+
+        if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
+        {
+            return;
+        }
+
+        if (await windowManager.ShowMessage("Forced migration",
+                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes") == false)
+        {
+            return;
+        }
 
         await UpgradeServiceControlInstance(model, instance, new ServiceControlUpgradeOptions());
 

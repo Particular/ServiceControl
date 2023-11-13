@@ -21,7 +21,7 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
         public string[] Acknowledgements { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if current instance is using an obsolete incompatibiel RavenDB3.5 storage engine resulting in data loss")]
+        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if the current instance is using obsolete, incompatible RavenDB 3.5 storage engine. Replaces the database with a brand new one, removing all data previously stored.")]
         public SwitchParameter Force { get; set; }
 
         protected override void BeginProcessing()
