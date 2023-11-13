@@ -16,29 +16,6 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string Name;
 
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Instance")]
-        [ValidatePath]
-        public string InstallPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory that will contain the RavenDB database for the new ServiceControl Audit Instance")]
-        [ValidatePath]
-        public string DBPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the directory to use for the new ServiceControl Audit Logs")]
-        [ValidatePath]
-        public string LogPath { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the port number for the new ServiceControl Audit API to listen on")]
-        [ValidateRange(1, 49151)]
-        public int? Port { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Specify the database maintenance port number for the new ServiceControl Audit instance to listen on")]
-        [ValidateRange(1, 49151)]
-        public int? DatabaseMaintenancePort { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Service Account Password (if required)")]
-        public string ServiceAccountPassword { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
