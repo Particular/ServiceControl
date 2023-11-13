@@ -148,7 +148,7 @@
                 }
             }
 
-            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance))
             {
                 return;
             }
