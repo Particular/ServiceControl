@@ -123,7 +123,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error"))
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.ErrorInstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error"))
-                .When(x => x.InstallErrorInstance && x.ErrorQueueName != "!disable");
+                .When(x => x.InstallErrorInstance);
 
             RuleFor(x => x.ErrorForwardingQueueName)
                 .NotEmpty()
@@ -226,7 +226,7 @@ namespace ServiceControl.Config.UI.InstanceAdd
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.AuditInstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
-                .When(x => x.InstallAuditInstance && x.AuditQueueName != "!disable");
+                .When(x => x.InstallAuditInstance);
 
             RuleFor(x => x.AuditForwardingQueueName)
                 .NotEmpty()

@@ -25,7 +25,7 @@ namespace ServiceControl.Audit.Infrastructure
             var transportSettings = MapSettings(settings);
             var transportCustomization = settings.LoadTransportCustomization();
 
-            // if audit queue is ("!disable") IngestAuditMessages will be false
+            // if `DisableAuditQueueIngestion` setting is true than IngestAuditMessages will be false
             if (settings.IngestAuditMessages)
             {
                 if (settings.SkipQueueCreation)

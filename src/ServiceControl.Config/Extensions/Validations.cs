@@ -56,9 +56,7 @@
                 {
                     p.ErrorLogQueue,
                     p.ErrorQueue
-                }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
-                                      string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
-                                      string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0)
+                }).Where(queuename => !string.IsNullOrEmpty(queuename))
                 .Distinct()
                 .ToList();
         }
@@ -75,10 +73,7 @@
                  {
                     p.AuditQueue,
                     p.AuditLogQueue
-                 }).Where(queuename => !string.IsNullOrEmpty(queuename) &&
-                                       string.Compare(queuename, "!disable", StringComparison.OrdinalIgnoreCase) != 0 &&
-                                       string.Compare(queuename, "!disable.log", StringComparison.OrdinalIgnoreCase) != 0
-                                       )
+                 }).Where(queuename => !string.IsNullOrEmpty(queuename))
                  .Distinct()
                  .ToList();
         }

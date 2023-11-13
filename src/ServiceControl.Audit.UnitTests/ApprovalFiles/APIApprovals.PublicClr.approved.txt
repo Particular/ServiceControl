@@ -13,7 +13,6 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     public class Settings
     {
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
-        public const string Disabled = "!disable";
         public Settings(string serviceName, string transportType = null, string persisterType = null) { }
         public string ApiUrl { get; }
         public string AuditLogQueue { get; set; }

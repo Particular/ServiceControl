@@ -73,7 +73,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                 .MustNotBeIn(x =>
                     Validations.UsedErrorQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Error"))
-                .When(x => x.SubmitAttempted && x.ErrorQueueName != "!disable");
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.ErrorForwardingQueueName)
                 .NotEmpty()

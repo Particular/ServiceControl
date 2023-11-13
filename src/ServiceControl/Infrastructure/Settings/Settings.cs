@@ -33,8 +33,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             // Overwrite the service name if it is specified in ENVVAR, reg, or config file
             ServiceName = SettingsReader.Read("InternalQueueName", ServiceName);
 
-            ErrorQueue = GetErrorQueue();
-            ErrorLogQueue = GetErrorLogQueue(ErrorQueue);
+            LoadErrorIngestionSettings();
 
             TryLoadLicenseFromConfig();
 
@@ -183,45 +182,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
-        }
-
-        string GetErrorQueue()
-        {
-            var value = SettingsReader.Read("ServiceBus", "ErrorQueue", "error");
-
-            if (value == null)
-            {
-                logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                IngestErrorMessages = false;
-                return null;
-            }
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Error ingestion disabled.");
-                IngestErrorMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
-        }
-
-        string GetErrorLogQueue(string errorQueue)
-        {
-            if (errorQueue == null)
-            {
-                return null;
-            }
-
-            var value = SettingsReader.Read<string>("ServiceBus", "ErrorLogQueue", null);
-
-            if (value == null)
-            {
-                logger.Info("No settings found for error log queue to import, default name will be used");
-                return Subscope(errorQueue);
-            }
-
-            return value;
         }
 
         static bool GetForwardErrorMessages()
@@ -426,6 +386,31 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return threshold;
         }
 
+        void LoadErrorIngestionSettings()
+        {
+            ErrorQueue = SettingsReader.Read("ServiceBus", "ErrorQueue", "error");
+
+            if (string.IsNullOrEmpty(ErrorQueue))
+            {
+                throw new Exception("ServiceBus/ErrorQueue requires a value to start the instance");
+            }
+
+            IngestErrorMessages = !SettingsReader.Read("DisableErrorQueueIngestion", false);
+
+            if (!IngestErrorMessages)
+            {
+                logger.Info("Error ingestion disabled.");
+            }
+
+            ErrorLogQueue = SettingsReader.Read<string>("ServiceBus", "ErrorLogQueue", null);
+
+            if (ErrorLogQueue == null)
+            {
+                logger.Info("No settings found for error log queue to import, default name will be used");
+                ErrorLogQueue = Subscope(ErrorQueue);
+            }
+        }
+
         void TryLoadLicenseFromConfig()
         {
             LicenseFileText = SettingsReader.Read<string>("LicenseText");
@@ -433,7 +418,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         static readonly ILog logger = LogManager.GetLogger(typeof(Settings));
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
-        public const string Disabled = "!disable";
 
         const int DataSpaceRemainingThresholdDefault = 20;
     }

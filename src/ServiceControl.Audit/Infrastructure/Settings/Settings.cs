@@ -28,8 +28,7 @@
 
             TransportConnectionString = GetConnectionString();
 
-            AuditQueue = GetAuditQueue();
-            AuditLogQueue = GetAuditLogQueue(AuditQueue);
+            LoadAuditQueueInformation();
 
             TryLoadLicenseFromConfig();
 
@@ -42,6 +41,31 @@
             ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+        }
+
+        void LoadAuditQueueInformation()
+        {
+            AuditQueue = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
+
+            if (string.IsNullOrEmpty(AuditQueue))
+            {
+                throw new Exception("ServiceBus/AuditQueue requires a value to start the instance");
+            }
+
+            IngestAuditMessages = SettingsReader<bool>.Read("ServiceControl", "DisableAuditQueueIngestion", false);
+
+            if (IngestAuditMessages == false)
+            {
+                logger.Info("Audit ingestion disabled.");
+            }
+
+            AuditLogQueue = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
+
+            if (AuditLogQueue == null)
+            {
+                logger.Info("No settings found for audit log queue to import, default name will be used");
+                AuditLogQueue = Subscope(AuditQueue);
+            }
         }
 
         //HINT: acceptance tests only
@@ -170,38 +194,6 @@
             return result;
         }
 
-        string GetAuditLogQueue(string auditQueue)
-        {
-            if (auditQueue == null)
-            {
-                return null;
-            }
-
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
-
-            if (value == null)
-            {
-                logger.Info("No settings found for audit log queue to import, default name will be used");
-                return Subscope(auditQueue);
-            }
-
-            return value;
-        }
-
-        string GetAuditQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Audit ingestion disabled.");
-                IngestAuditMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
-        }
-
         static bool GetForwardAuditMessages()
         {
             var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
@@ -304,7 +296,6 @@
         ILog logger = LogManager.GetLogger(typeof(Settings));
         int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
-        public const string Disabled = "!disable";
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;

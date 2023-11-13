@@ -343,8 +343,6 @@ namespace ServiceControlInstaller.Engine.Instances
             return Enumerable.Empty<string>();
         }
 
-        protected bool IsQueueDisabled(string queueName) => queueName != null && queueName.Equals("!disable", StringComparison.InvariantCultureIgnoreCase);
-
         protected virtual void ValidateConnectionString()
         {
         }
