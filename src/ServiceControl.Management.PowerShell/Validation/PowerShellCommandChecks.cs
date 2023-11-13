@@ -4,6 +4,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Management.Automation;
+    using System.Text;
     using System.Threading.Tasks;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
@@ -27,10 +28,40 @@
             cmdlet.ThrowTerminatingError(errorRecord);
         }
 
-        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport) => throw new NotImplementedException();
-        protected override Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance) => throw new NotImplementedException();
-        protected override Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo) => throw new NotImplementedException();
-        protected override Task NotifyForLicenseIssue(string licenseMessage) => throw new NotImplementedException();
+        protected override Task NotifyForDeprecatedMessageTransport(TransportInfo transport)
+        {
+            var terminateMsg = $"The message transport '{transport.DisplayName}' is not available in this version of ServiceControl, and this instance cannot be upgraded.";
+            Terminate(terminateMsg, "Install Error", ErrorCategory.InvalidOperation);
+            return Task.CompletedTask;
+        }
+
+        protected override Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance)
+        {
+            var msg = $"The storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {UpgradeGuide4to5Url}";
+            Terminate(msg, "Install Error", ErrorCategory.InvalidOperation);
+            return Task.CompletedTask;
+        }
+
+        protected override Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo)
+        {
+            var nextVersion = upgradeInfo.UpgradePath[0];
+            var b = new StringBuilder();
+
+            b.AppendLine($"You must upgrade to version(s) {upgradeInfo} before upgrading to version {Constants.CurrentVersion}:");
+            b.AppendLine($" • Download and install version {nextVersion} from https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
+            b.AppendLine($" • Upgrade this instance to version {nextVersion}.");
+            b.AppendLine($" • Download and install the latest version from https://particular.net/start-servicecontrol-download");
+            b.AppendLine($" • Upgrade this instance to the latest version of ServiceControl.");
+
+            Terminate(b.ToString(), "Install Error", ErrorCategory.InvalidOperation);
+            return Task.CompletedTask;
+        }
+
+        protected override Task NotifyForLicenseIssue(string licenseMessage)
+        {
+            Terminate(licenseMessage, "License Error", ErrorCategory.InvalidOperation);
+            return Task.CompletedTask;
+        }
 
         protected override Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage)
         {
@@ -51,6 +82,11 @@
             return Task.FromResult(false);
         }
 
-        protected override Task<bool> PromptToStopRunningInstance(BaseService instance) => throw new NotImplementedException();
+        protected override Task<bool> PromptToStopRunningInstance(BaseService instance)
+        {
+            var msg = $"{instance.Name} needs to be stopped in order to upgrade to version {Constants.CurrentVersion}.";
+            Terminate(msg, "Service Running", ErrorCategory.InvalidOperation);
+            return Task.FromResult(false);
+        }
     }
 }

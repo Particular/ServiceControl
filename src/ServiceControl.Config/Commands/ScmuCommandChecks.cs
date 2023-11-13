@@ -43,7 +43,7 @@
         protected override async Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance)
         {
             var openUpgradeGuide = await windowManager.ShowYesNoDialog("STORAGE ENGINE INCOMPATIBLE",
-                $"Please note that the storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {UpgradeGuide4to5Url}",
+                $"The storage format has changed and the {baseInstance.PersistenceManifest.DisplayName} storage engine is no longer available. Upgrading requires a side-by-side deployment of both versions. Migration guidance is available in the version 4 to 5 upgrade guidance at {UpgradeGuide4to5Url}",
                 "Open online ServiceControl 4 to 5 upgrade guide in system default browser?",
                 "Yes",
                 "No"
