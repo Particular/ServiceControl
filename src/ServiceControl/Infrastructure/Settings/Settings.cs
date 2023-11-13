@@ -58,7 +58,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
         {
             ErrorQueue = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
 
-            var hasValidErrorQueueName = string.IsNullOrEmpty(ErrorQueue) && !ErrorQueue.Equals(Disabled, StringComparison.OrdinalIgnoreCase);
+            var hasValidErrorQueueName = !string.IsNullOrEmpty(ErrorQueue) && !ErrorQueue.Equals(Disabled, StringComparison.OrdinalIgnoreCase);
 
             IngestErrorMessages = !SettingsReader<bool>.Read("DisableErrorQueueIngestion", !hasValidErrorQueueName);
 
