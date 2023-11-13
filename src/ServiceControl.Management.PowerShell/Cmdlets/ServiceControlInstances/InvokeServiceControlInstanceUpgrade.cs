@@ -45,7 +45,7 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Disable full text search on error messages.")]
         public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Reuse the specified log, db, and install paths even if they are not empty and perform upgrade even if storage engine is incompatible resulting in data loss")]
+        [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if current instance is using an obsolete incompatibiel RavenDB3.5 storage engine resulting in data loss and reuse the specified log, db, and install paths even if they are not empty")]
         public SwitchParameter Force { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
