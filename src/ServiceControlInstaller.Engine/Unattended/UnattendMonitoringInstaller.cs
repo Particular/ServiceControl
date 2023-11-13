@@ -14,7 +14,7 @@
         public UnattendMonitoringInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip");
         }
 
         public PlatformZipInfo ZipInfo { get; }

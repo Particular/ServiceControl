@@ -3,19 +3,20 @@
     using System;
     using System.Threading.Tasks;
     using Framework;
+    using ServiceControlInstaller.Engine.Instances;
 
     static class InstallerVersionCompatibilityDialog
     {
-        public static async Task<bool> ShowValidation(Version instanceVersion, Version installerVersion, IServiceControlWindowManager windowManager)
+        public static async Task<bool> ShowValidation(Version instanceVersion, IServiceControlWindowManager windowManager)
         {
-            var instanceIsNewer = instanceVersion > installerVersion;
-            var installerOfDifferentMajor = instanceVersion.Major != installerVersion.Major;
+            var instanceIsNewer = instanceVersion > Constants.CurrentVersion;
+            var installerOfDifferentMajor = instanceVersion.Major != Constants.CurrentVersion.Major;
 
             if (instanceIsNewer)
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer version",
-                    $"This instance version {instanceVersion} is newer than the installer version {installerVersion}. This installer can only edit or remove instances with versions between {installerVersion.Major}.0.0 and {installerVersion}.",
+                    $"This instance version {instanceVersion} is newer than the installer version {Constants.CurrentVersion}. This installer can only edit or remove instances with versions between {Constants.CurrentVersion.Major}.0.0 and {Constants.CurrentVersion}.",
                     hideCancel: true
                     );
                 return true;

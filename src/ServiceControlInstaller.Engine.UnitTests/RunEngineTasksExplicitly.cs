@@ -70,7 +70,7 @@
             details.ReportCard = new ReportCard();
             // but this fails for unit tests as the deploymentCache path is not used
             // constructer of ServiceControlInstanceMetadata extracts version from zip
-            details.Version = installer.ZipInfo.Version;
+            details.Version = Constants.CurrentVersion;
 
             await details.Validate(s => Task.FromResult(false)).ConfigureAwait(false);
             if (details.ReportCard.HasErrors)

@@ -5,12 +5,11 @@
 
     public class PlatformZipInfo
     {
-        public PlatformZipInfo(string mainEntrypoint, string name, string zipResourceName, Version version)
+        public PlatformZipInfo(string mainEntrypoint, string name, string zipResourceName)
         {
             Name = name;
             MainEntrypoint = mainEntrypoint;
             ResourceName = zipResourceName;
-            Version = version;
         }
 
         public string MainEntrypoint { get; }
@@ -18,8 +17,6 @@
         public string Name { get; }
 
         public string ResourceName { get; }
-
-        public Version Version { get; }
 
         public void ValidateZip()
         {

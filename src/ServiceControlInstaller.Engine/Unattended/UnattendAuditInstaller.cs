@@ -15,7 +15,7 @@
         public UnattendAuditInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip");
         }
 
         public PlatformZipInfo ZipInfo { get; }
@@ -33,7 +33,7 @@
 
             var instanceInstaller = details;
             instanceInstaller.ReportCard = new ReportCard();
-            instanceInstaller.Version = ZipInfo.Version;
+            instanceInstaller.Version = Constants.CurrentVersion;
 
             //Validation
             await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
@@ -117,7 +117,7 @@
             if (upgradeInfo.HasIncompatibleVersion)
             {
                 var nextVersion = upgradeInfo.UpgradePath[0];
-                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
+                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {Constants.CurrentVersion}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
                 return false;
             }
 

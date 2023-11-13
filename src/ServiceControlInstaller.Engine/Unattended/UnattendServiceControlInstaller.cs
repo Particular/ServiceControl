@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Unattended
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.ServiceProcess;
     using System.Threading.Tasks;
@@ -17,7 +16,7 @@
         public UnattendServiceControlInstaller(ILogging loggingInstance)
         {
             logger = new Logging(loggingInstance);
-            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip");
         }
 
         public PlatformZipInfo ZipInfo { get; }
@@ -38,7 +37,7 @@
             try
             {
                 instanceInstaller.ReportCard = new ReportCard();
-                instanceInstaller.Version = ZipInfo.Version;
+                instanceInstaller.Version = Constants.CurrentVersion;
 
                 //Validation
                 await instanceInstaller.Validate(promptToProceed).ConfigureAwait(false);
@@ -113,7 +112,7 @@
             if (upgradeInfo.HasIncompatibleVersion)
             {
                 var nextVersion = upgradeInfo.UpgradePath[0];
-                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {ZipInfo.Version}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
+                logger.Error($"Upgrade aborted. An interim upgrade to version(s) {upgradeInfo} is required before upgrading to version {Constants.CurrentVersion}. Download available at https://github.com/Particular/ServiceControl/releases/tag/{nextVersion}");
                 return false;
             }
 

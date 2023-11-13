@@ -24,7 +24,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public ServiceControlInstanceInstaller()
         {
-            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlExe, "ServiceControl", "Particular.ServiceControl.zip");
         }
     }
 
@@ -32,7 +32,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public ServiceControlAuditInstanceInstaller()
         {
-            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.ServiceControlAuditExe, "ServiceControl Audit", "Particular.ServiceControl.Audit.zip");
         }
     }
 
@@ -235,7 +235,7 @@ namespace ServiceControl.Config.Framework.Modules
     {
         public MonitoringInstanceInstaller()
         {
-            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip", Constants.CurrentVersion);
+            ZipInfo = new PlatformZipInfo(Constants.MonitoringExe, "ServiceControl Monitoring", "Particular.ServiceControl.Monitoring.zip");
         }
 
         internal async Task<ReportCard> Add(MonitoringNewInstance details, IProgress<ProgressDetails> progress, Func<PathInfo, Task<bool>> promptToProceed)
