@@ -14,7 +14,7 @@
 
     class MonitoringAddAttachment : Attachment<MonitoringAddViewModel>
     {
-        public MonitoringAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
+        public MonitoringAddAttachment(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, ScmuCommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.installer = installer;
@@ -109,6 +109,6 @@
         readonly IServiceControlWindowManager windowManager;
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

@@ -17,7 +17,7 @@
         {
         }
 
-        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, CommandChecks commandChecks)
+        public UpgradeMonitoringInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, ScmuCommandChecks commandChecks)
         {
             this.windowManager = windowManager;
             this.eventAggregator = eventAggregator;
@@ -35,7 +35,7 @@
                 return;
             }
 
-            if (await commandChecks.StopBecauseInstanceIsRunning(instance, model.Name))
+            if (await commandChecks.StopBecauseInstanceIsRunning(instance))
             {
                 return;
             }
@@ -84,6 +84,6 @@
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
         readonly IServiceControlWindowManager windowManager;
-        readonly CommandChecks commandChecks;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

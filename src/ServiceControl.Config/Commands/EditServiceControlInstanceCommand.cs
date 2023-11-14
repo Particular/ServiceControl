@@ -6,7 +6,6 @@ namespace ServiceControl.Config.Commands
     using Events;
     using Framework;
     using Framework.Commands;
-    using Framework.Modules;
     using ServiceControlInstaller.Engine.Instances;
     using UI.InstanceDetails;
     using UI.InstanceEdit;
@@ -16,15 +15,13 @@ namespace ServiceControl.Config.Commands
         public EditServiceControlInstanceCommand(
             IServiceControlWindowManager windowManager,
             Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel,
-            IEventAggregator eventAggregator,
-            ServiceControlInstanceInstaller installer
+            IEventAggregator eventAggregator
 
             ) : base(CanEditInstance)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
-            this.installer = installer;
         }
 
         static bool CanEditInstance(InstanceDetailsViewModel viewModel)
@@ -38,9 +35,8 @@ namespace ServiceControl.Config.Commands
             var editVM = editViewModel((ServiceControlInstance)viewModel.ServiceInstance);
 
             var instanceVersion = viewModel.Version;
-            var installerVersion = installer.ZipInfo.Version;
 
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
+            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
             {
                 return;
             }
@@ -55,6 +51,5 @@ namespace ServiceControl.Config.Commands
         readonly Func<ServiceControlInstance, ServiceControlEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
-        readonly ServiceControlInstanceInstaller installer;
     }
 }

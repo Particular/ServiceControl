@@ -11,7 +11,6 @@
     using Events;
     using Extensions;
     using Framework;
-    using Framework.Modules;
     using Framework.Rx;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
@@ -27,10 +26,7 @@
             UpgradeMonitoringInstanceCommand upgradeMonitoringCommand,
             UpgradeAuditInstanceCommand upgradeAuditCommand,
             AdvancedMonitoringOptionsCommand advancedOptionsMonitoringCommand,
-            AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand,
-            ServiceControlInstanceInstaller serviceControlinstaller,
-            ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
-            MonitoringInstanceInstaller monitoringinstaller)
+            AdvancedServiceControlOptionsCommand advancedOptionsServiceControlCommand)
         {
             OpenUrl = new OpenURLCommand();
             CopyToClipboard = new CopyToClipboardCommand();
@@ -42,7 +38,7 @@
             if (instance.GetType() == typeof(ServiceControlInstance))
             {
                 ServiceControlInstance = (ServiceControlInstance)instance;
-                NewVersion = serviceControlinstaller.ZipInfo.Version;
+                NewVersion = Constants.CurrentVersion;
                 EditCommand = showServiceControlEditScreenCommand;
                 UpgradeToNewVersionCommand = upgradeServiceControlCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;
@@ -53,7 +49,7 @@
             if (instance.GetType() == typeof(MonitoringInstance))
             {
                 MonitoringInstance = (MonitoringInstance)instance;
-                NewVersion = monitoringinstaller.ZipInfo.Version;
+                NewVersion = Constants.CurrentVersion;
                 EditCommand = showEditMonitoringScreenCommand;
                 UpgradeToNewVersionCommand = upgradeMonitoringCommand;
                 AdvancedOptionsCommand = advancedOptionsMonitoringCommand;
@@ -64,7 +60,7 @@
             if (instance.GetType() == typeof(ServiceControlAuditInstance))
             {
                 ServiceControlAuditInstance = (ServiceControlAuditInstance)instance;
-                NewVersion = serviceControlAuditInstaller.ZipInfo.Version;
+                NewVersion = Constants.CurrentVersion;
                 EditCommand = showAuditEditScreenCommand;
                 UpgradeToNewVersionCommand = upgradeAuditCommand;
                 AdvancedOptionsCommand = advancedOptionsServiceControlCommand;

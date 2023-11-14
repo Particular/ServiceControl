@@ -23,9 +23,8 @@
         public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
         {
             var instanceVersion = model.ServiceControlInstance.Version;
-            var installerVersion = installer.ZipInfo.Version;
 
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
+            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
             {
                 return;
             }

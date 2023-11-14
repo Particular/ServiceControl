@@ -6,7 +6,6 @@ namespace ServiceControl.Config.Commands
     using Events;
     using Framework;
     using Framework.Commands;
-    using ServiceControl.Config.Framework.Modules;
     using ServiceControlInstaller.Engine.Instances;
     using UI.InstanceDetails;
     using UI.InstanceEdit;
@@ -16,14 +15,12 @@ namespace ServiceControl.Config.Commands
         public EditMonitoringInstanceCommand(
             IServiceControlWindowManager windowManager,
             Func<MonitoringInstance, MonitoringEditViewModel> editViewModel,
-            IEventAggregator eventAggregator,
-            MonitoringInstanceInstaller installer
+            IEventAggregator eventAggregator
             ) : base(null)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
-            this.installer = installer;
         }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel viewModel)
@@ -31,9 +28,8 @@ namespace ServiceControl.Config.Commands
             var editVM = editViewModel((MonitoringInstance)viewModel.ServiceInstance);
 
             var instanceVersion = viewModel.Version;
-            var installerVersion = installer.ZipInfo.Version;
 
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
+            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
             {
                 return;
             }
@@ -48,6 +44,5 @@ namespace ServiceControl.Config.Commands
         readonly Func<MonitoringInstance, MonitoringEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
-        readonly MonitoringInstanceInstaller installer;
     }
 }

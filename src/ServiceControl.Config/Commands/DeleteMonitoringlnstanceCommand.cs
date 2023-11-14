@@ -23,9 +23,8 @@
         public override async Task ExecuteAsync(MonitoringAdvancedViewModel model)
         {
             var instanceVersion = model.MonitoringInstance.Version;
-            var installerVersion = installer.ZipInfo.Version;
 
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, installerVersion, windowManager))
+            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
             {
                 return;
             }
