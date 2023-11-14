@@ -46,15 +46,6 @@
                 return;
             }
 
-            if (instance.IsErrorQueueDisabled())
-            {
-                await windowManager.ShowMessage("UPGRADE INCOMPATIBLE",
-                    "You cannot upgrade the instance of ServiceControl with error ingestion disabled. Please contact support.",
-                    hideCancel: true);
-
-                return;
-            }
-
             var upgradeOptions = new ServiceControlUpgradeOptions();
 
             if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.ForwardErrorMessages.Name))

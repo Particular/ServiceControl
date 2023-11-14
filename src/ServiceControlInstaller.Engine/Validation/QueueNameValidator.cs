@@ -107,6 +107,7 @@ namespace ServiceControlInstaller.Engine.Validation
             var duplicatedQueues = queues
                 .Where(x => x.QueueName != null)
                 .ToLookup(x => x.QueueName.ToLower())
+                //HINT: we need to filter out `!disable` as the user can still have old instances with this value
                 .Where(x => x.Key != "!disable" && x.Key != "!disable.log" && x.Count() > 1);
 
             if (duplicatedQueues.Any())
@@ -124,6 +125,7 @@ namespace ServiceControlInstaller.Engine.Validation
                     p.QueueType != QueueType.Audit &&
                     string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
+                    //HINT: we need to filter out `!disable` as the user can still have old instances with this value
                     string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
                     string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
                 select queue.PropertyName
@@ -140,6 +142,7 @@ namespace ServiceControlInstaller.Engine.Validation
                 where allQueues.Any(p =>
                     string.Equals(p.ConnectionString, queue.ConnectionString, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(p.QueueName, queue.QueueName, StringComparison.OrdinalIgnoreCase) &&
+                    //HINT: we need to filter out `!disable` as the user can still have old instances with this value
                     string.Compare("!disable", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0 &&
                     string.Compare("!disable.log", queue.QueueName, StringComparison.OrdinalIgnoreCase) != 0)
                 select queue.PropertyName

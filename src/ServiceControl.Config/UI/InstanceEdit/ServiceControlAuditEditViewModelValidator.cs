@@ -71,7 +71,7 @@ namespace ServiceControl.Config.UI.InstanceEdit
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
                 .MustNotBeIn(x => Validations.UsedAuditQueueNames(x.SelectedTransport, x.InstanceName, x.ConnectionString))
                     .WithMessage(string.Format(Validation.Validations.MSG_QUEUE_ALREADY_ASSIGNED, "Audit"))
-                .When(x => x.SubmitAttempted && x.AuditQueueName != "!disable");
+                .When(x => x.SubmitAttempted);
 
             RuleFor(x => x.AuditForwardingQueueName)
                 .NotEmpty()
