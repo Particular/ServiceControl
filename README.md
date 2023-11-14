@@ -1,6 +1,6 @@
 # ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 
-ServiceControl is the monitoring brain in the Particular Service Platform. It collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
+ServiceControl is the monitoring brain in the Particular Service Platform. It collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
 
 ## Where to Download
 
@@ -8,7 +8,7 @@ The current version of ServiceControl can be downloaded from https://particular.
 
 ## User Documentation
 
-Documentation for ServiceControl is located on the Particular Docs website at following address:
+Documentation for ServiceControl is located on the Particular Docs website at the following address:
 
 https://docs.particular.net/servicecontrol/
 
@@ -79,7 +79,7 @@ NOTE: If no variable is defined all tests will be executed.
 ### Use the x64 test agent
 
 The tests need to be run in x64 otherwise an exception about RavenDB (Voron) not being supported in 32bit mode will be thrown.
-The ServiceControl.runsettings file in each test project should automatically ensure that tests are run in 64 bit mode.  For reference, there is also a setting in Visual Studio that can be used to ensure test execution is using x64 only: 
+The `ServiceControl.runsettings` file in each test project should automatically ensure that tests are run in 64 bit mode.  For reference, there is also a setting in Visual Studio that can be used to ensure test execution is using x64 only: 
 
 ![image](https://user-images.githubusercontent.com/4316196/177248330-c7357e85-b7a1-4cec-992f-535b1e9a0cb4.png)
 
@@ -106,16 +106,16 @@ Steps:
 - Build the solution
 - Open PowerShell 7
 - [Import the module](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/import-module?view=powershell-7.3#example-4-import-all-modules-specified-by-a-path) by specifying the path to the ServiceControl git repo folder `deploy\PowerShellModules\Particular.ServiceControl.Management`
-  ```
+  ```ps1
   Import-Module -Name S:\ServiceControl\deploy\PowerShellModules\Particular.ServiceControl.Management -Verbose 
   ```
    - If there are any issues running the import script, try setting the execution policy to "unrestricted' by running the following script in PowerShell 7 admin mode. Then run the command to import the module.
-      ```
-      set-executionpolicy unrestricted
+      ```ps1
+      Set-ExecutionPolicy Unrestricted
       ```
 
 - Now that the module has been successfully imported, enter any of the ServiceControl PowerShell scripts to test them out. Eg: the following creates a new ServiceControl Instance
-  ```
+  ```ps1
   $serviceControlInstance = New-ServiceControlInstance `
      -Name 'Test.DEV.ServiceControl' `
      -InstallPath C:\ServiceControl\Bin `
@@ -140,7 +140,7 @@ NOTE: The project will build Docker images for all supported transports. To buil
 
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases (using RabbitMQ Conventional topology as an example):
 
-```
+```cmd
 docker run --name servicecontrol.init -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl/:c:/data/ particular/servicecontrolrabbitdirect.init
 docker run --name servicecontrol.monitoring.init -e "Monitoring/ConnectionString=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' particular/servicecontrolrabbitconventional.monitoring.init
 docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -v C:/ServiceControl.Audit/:c:/data/ particular/servicecontrolrabbitdirect.audit.init
@@ -148,13 +148,13 @@ docker run --name servicecontrol.audit.init -e "ServiceControl.Audit/ConnectionS
 
 That will create the required queues and the database for ServiceControl and ServiceControl.Audit. To run the containers now that everything is provisioned, first run the audit container:
 
-```
+```cmd
 docker run --name servicecontrol.audit -p 44444:44444 -e "ServiceControl.Audit/ConnectionString=host=[connectionstring]" -e 'ServiceControl.Audit/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -v C:/ServiceControl.Audit/:c:/data/ -d particular/servicecontrolrabbitdirect.audit
 ```
 
 Then grab its IP address using `docker inspect`, and specify it using the `ServiceControl/RemoteInstances` environment variable when starting the servicecontrol container. 
 
-```
+```cmd
 docker run --name servicecontrol -p 33333:33333 -e "ServiceControl/ConnectionString=host=[connectionstring]" -e 'ServiceControl/LicenseText=[licensecontents]' -e 'ServiceControl.Audit/ServiceControlQueueAddress=Particular.ServiceControl' -e "ServiceControl/RemoteInstances=[{'api_uri':'http://172.28.XXX.XXX:44444/api'}]" -v C:/ServiceControl:c:/data/ -d particular/servicecontrolrabbitdirect
 ```
 
@@ -162,7 +162,7 @@ ServiceControl will now run in a docker container.
 
 To run a ServiceControl Monitoring instance:
 
-```
+```cmd
 docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/ConnectionString=host=[connectionstring]" -e 'Monitoring/LicenseText=[licensecontents]' -d particular/servicecontrolrabbitdirect.monitoring
 ```
 
@@ -171,7 +171,7 @@ docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/Connec
 - RabbitMQ can either be installed on the host or run in another [Docker container](https://github.com/Particular/Platform/blob/main/scripts/docker-images.md).  In either case, the ServiceControl connection strings will need to refer to the host IP address.
 - The special DNS name `host.docker.internal` does [not](https://github.com/docker/for-win/issues/12673) [work](https://github.com/docker/for-win/issues/1976) on Docker Desktop for Windows, and it also doesn't support host networks.  To get the IP address of the host for the connection string environment variables, use `ipconfig` and find the IP address of the vEthernet adapter Docker is using, e.g.
 
-```
+```txt
 Ethernet adapter vEthernet (nat):
 
    Connection-specific DNS Suffix  . :
