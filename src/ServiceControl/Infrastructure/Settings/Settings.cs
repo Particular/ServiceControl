@@ -26,8 +26,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             // Overwrite the service name if it is specified in ENVVAR, reg, or config file
             ServiceName = SettingsReader<string>.Read("InternalQueueName", ServiceName);
 
-            ErrorQueue = GetErrorQueue();
-            ErrorLogQueue = GetErrorLogQueue(ErrorQueue);
+            LoadErrorIngestionSettings();
 
             TryLoadLicenseFromConfig();
 
@@ -53,6 +52,51 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DisableExternalIntegrationsPublishing = SettingsReader<bool>.Read("DisableExternalIntegrationsPublishing", false);
             EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
             DataStoreType = GetDataStoreType();
+        }
+
+        void LoadErrorIngestionSettings()
+        {
+            ErrorQueue = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
+
+            var hasValidErrorQueueName = !string.IsNullOrEmpty(ErrorQueue) && !ErrorQueue.Equals(Disabled, StringComparison.OrdinalIgnoreCase);
+
+            IngestErrorMessages = SettingsReader<bool>.Read("IngestErrorMessages", hasValidErrorQueueName);
+
+            if (IngestErrorMessages && hasValidErrorQueueName == false)
+            {
+                throw new Exception($"Error ingestion cannot be enabled when ServiceBus/ErrorQueue is '{ErrorQueue}'");
+            }
+
+            if (hasValidErrorQueueName == false || IngestErrorMessages == false)
+            {
+                logger.Info("Error ingestion disabled.");
+            }
+
+            if (hasValidErrorQueueName == false)
+            {
+                if (string.IsNullOrEmpty(ErrorQueue))
+                {
+                    logger.Warn("No configuration value set for ServiceBus/ErrorQueue. If this is not intentional provide a value.");
+                }
+
+                ErrorLogQueue = null;
+                ErrorQueue = null;
+            }
+            else
+            {
+                var errorLogQueue = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
+
+                if (errorLogQueue == null)
+                {
+                    logger.Info("No settings found for error log queue to import, default name will be used");
+
+                    ErrorLogQueue = Subscope(ErrorQueue);
+                }
+                else
+                {
+                    ErrorLogQueue = errorLogQueue;
+                }
+            }
         }
 
         public string NotificationsFilter { get; set; }
@@ -231,45 +275,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             var connectionStringSettings = ConfigurationManager.ConnectionStrings["NServiceBus/Transport"];
             return connectionStringSettings?.ConnectionString;
-        }
-
-        string GetErrorQueue()
-        {
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorQueue", "error");
-
-            if (value == null)
-            {
-                logger.Warn("No settings found for error queue to import, if this is not intentional please set add ServiceBus/ErrorQueue to your appSettings");
-                IngestErrorMessages = false;
-                return null;
-            }
-
-            if (value.Equals(Disabled, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.Info("Error ingestion disabled.");
-                IngestErrorMessages = false;
-                return null; // needs to be null to not create the queues
-            }
-
-            return value;
-        }
-
-        string GetErrorLogQueue(string errorQueue)
-        {
-            if (errorQueue == null)
-            {
-                return null;
-            }
-
-            var value = SettingsReader<string>.Read("ServiceBus", "ErrorLogQueue", null);
-
-            if (value == null)
-            {
-                logger.Info("No settings found for error log queue to import, default name will be used");
-                return Subscope(errorQueue);
-            }
-
-            return value;
         }
 
         string GetDbPath()
