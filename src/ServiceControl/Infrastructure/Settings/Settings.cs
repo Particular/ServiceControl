@@ -60,7 +60,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
             var hasValidErrorQueueName = !string.IsNullOrEmpty(ErrorQueue) && !ErrorQueue.Equals(Disabled, StringComparison.OrdinalIgnoreCase);
 
-            IngestErrorMessages = !SettingsReader<bool>.Read("IngestErrorMessages", hasValidErrorQueueName);
+            IngestErrorMessages = SettingsReader<bool>.Read("IngestErrorMessages", hasValidErrorQueueName);
 
             if (IngestErrorMessages && hasValidErrorQueueName == false)
             {
