@@ -395,7 +395,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 throw new Exception("ServiceBus/ErrorQueue requires a value to start the instance");
             }
 
-            IngestErrorMessages = !SettingsReader.Read("DisableErrorQueueIngestion", false);
+            IngestErrorMessages = !SettingsReader.Read("IngestErrorMessages", true);
 
             if (!IngestErrorMessages)
             {

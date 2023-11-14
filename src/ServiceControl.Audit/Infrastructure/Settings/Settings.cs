@@ -52,7 +52,7 @@
                 throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
             }
 
-            IngestAuditMessages = SettingsReader<bool>.Read("ServiceControl", "DisableAuditQueueIngestion", false);
+            IngestAuditMessages = SettingsReader<bool>.Read("ServiceControl", "IngestAuditMessages", true);
 
             if (IngestAuditMessages == false)
             {
