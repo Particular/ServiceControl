@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Management.PowerShell
 {
     using System;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
     public class PsAuditInstance
@@ -28,7 +29,7 @@
 
         public string ServiceAccount { get; set; }
 
-        public Version Version { get; set; }
+        public SemanticVersion Version { get; set; }
 
         public string ServiceControlQueueAddress { get; set; }
 

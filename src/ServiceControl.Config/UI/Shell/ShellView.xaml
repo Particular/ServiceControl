@@ -76,7 +76,7 @@
                 <Button Command="{Binding AddInstance}" Style="{StaticResource OriginalNewButton}" 
                         Visibility="{Binding ShowMonitoringInstances, 
                                      Converter={StaticResource boolToVisInverted}}"/>
-                
+
                 <ToggleButton Name="AddInstanceButton"
                               Style="{StaticResource NewButton}" 
                               IsChecked="{Binding ShowingMenuOverlay, Mode=TwoWay}"
@@ -183,7 +183,8 @@
 
                 <TextBlock FontSize="14px"
                            Foreground="{StaticResource Gray60Brush}"
-                           Text="{Binding VersionInfo}" />
+                           Text="{Binding AppVersion, StringFormat=v{0}}" />
+
 
                 <TextBlock Margin="20,0,0,0"
                            FontSize="14px"

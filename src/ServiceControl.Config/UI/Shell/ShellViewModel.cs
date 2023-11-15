@@ -2,18 +2,17 @@
 {
     using System;
     using System.Linq;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Caliburn.Micro;
     using Commands;
     using Events;
-    using Extensions;
     using Framework;
     using Framework.Rx;
     using ListInstances;
     using NoInstances;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
     class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<RefreshInstances>
@@ -60,9 +59,7 @@
 
         public RxScreen Overlay { get; set; }
 
-        public string AppVersion { get; private set; }
-
-        public string VersionInfo { get; private set; }
+        public SemanticVersion AppVersion { get; private set; }
 
         public string CopyrightInfo { get; }
 
@@ -121,34 +118,17 @@
 
         void LoadAppVersion()
         {
-            var assemblyInfo = typeof(App).Assembly.GetAttribute<AssemblyInformationalVersionAttribute>();
-            var version = assemblyInfo != null ? assemblyInfo.InformationalVersion : "Unknown Version";
-            var versionParts = version.Split('+');
-            AppVersion = versionParts[0];
-
-            VersionInfo = "v" + AppVersion;
-
-            var metadata = versionParts.Last();
-            var parts = metadata.Split('.');
-            var shaIndex = parts.IndexOf("Sha", StringComparer.InvariantCultureIgnoreCase);
-            if (shaIndex != -1 && parts.Length > shaIndex + 1)
-            {
-                var shaValue = parts[shaIndex + 1];
-                var shortCommitHash = shaValue.Substring(0, 7);
-
-                VersionInfo += " / " + shortCommitHash;
-            }
+            AppVersion = Constants.CurrentVersion;
         }
 
         async Task CheckForUpdates()
         {
             // Get the lates upgradble version based on the current version
             // get the json version file from https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt
-            var shortAppVersion = AppVersion.Split('-').First();
 
-            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(shortAppVersion);
+            var availableUpgradeRelease = await VersionCheckerHelper.GetLatestRelease(AppVersion);
 
-            if (availableUpgradeRelease.Version.ToString() == shortAppVersion)
+            if (availableUpgradeRelease.Version == AppVersion)
             {
                 UpdateAvailable = false;
             }

@@ -1,13 +1,13 @@
 ﻿namespace ServiceControl.Config.Commands
 {
-    using System;
     using System.Threading.Tasks;
     using Framework;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
     static class InstallerVersionCompatibilityDialog
     {
-        public static async Task<bool> ShowValidation(Version instanceVersion, IServiceControlWindowManager windowManager)
+        public static async Task<bool> ShowValidation(SemanticVersion instanceVersion, IServiceControlWindowManager windowManager)
         {
             var instanceIsNewer = instanceVersion > Constants.CurrentVersion;
             var installerOfDifferentMajor = instanceVersion.Major != Constants.CurrentVersion.Major;
@@ -26,7 +26,7 @@
             {
                 await windowManager.ShowMessage(
                     "Incompatible installer version",
-                    $"This installer cannot edit or remove instances created by a different major version. This instance can be edited by a {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build}.",
+                    $"This installer cannot edit or remove instances created by a different major version. This instance can be edited by a {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.ToNormalizedString()}.",
                     hideCancel: true
                     );
                 return true;

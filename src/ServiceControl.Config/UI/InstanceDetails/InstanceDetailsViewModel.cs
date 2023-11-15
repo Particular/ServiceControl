@@ -12,6 +12,7 @@
     using Extensions;
     using Framework;
     using Framework.Rx;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -134,7 +135,7 @@
 
         public string LogPath => ((IServicePaths)ServiceInstance).LogPath;
 
-        public Version Version => ServiceInstance.Version;
+        public SemanticVersion Version => ServiceInstance.Version;
 
         public InstanceType InstanceType { get; set; }
 
@@ -142,7 +143,7 @@
 
         public string InstanceTypeIcon => InstanceType == InstanceType.Monitoring ? "MonitoringInstanceIcon" : "ServiceControlInstanceIcon";
 
-        public Version NewVersion { get; }
+        public SemanticVersion NewVersion { get; }
 
         public bool HasNewVersion => Version < NewVersion;
 
