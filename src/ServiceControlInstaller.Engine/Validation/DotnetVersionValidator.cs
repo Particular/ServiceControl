@@ -7,7 +7,7 @@
 
     public static class DotnetVersionValidator
     {
-        public const string MinimumVersionString = "7.0.11";
+        public const string MinimumVersionString = "7.0.13";
 
         public static bool FrameworkRequirementsAreMissing(bool needsRavenDB, out string message)
         {
