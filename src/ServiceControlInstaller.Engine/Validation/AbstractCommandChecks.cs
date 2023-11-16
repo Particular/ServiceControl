@@ -72,7 +72,7 @@
 
             if (installerOfDifferentMajor && !isDelete)
             {
-                var message = $"This installer cannot edit instances created by a different major version. A {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build} must be used instead.";
+                var message = $"This installer cannot edit instances created by a different major version. A {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Patch} must be used instead.";
                 await NotifyError(title, message).ConfigureAwait(false);
                 return false;
             }
