@@ -10,7 +10,7 @@
             new(1, 48, 0),
             new(2, 1, 5),
             new(3, 8, 4),
-            new(4, 33, 3),
+            new(4, 33, 0),
         };
 
         public Version[] UpgradePath { get; private init; }
