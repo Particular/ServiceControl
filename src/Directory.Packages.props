@@ -93,7 +93,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="4.2.0" />
+    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.2" />
     <GlobalPackageReference Include="Particular.Packaging" Version="3.0.0" />
   </ItemGroup>
 
