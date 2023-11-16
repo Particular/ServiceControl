@@ -8,7 +8,6 @@
     using Persistence.MessageRedirects;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Session;
-    using RavenDB;
     using ServiceControl.Recoverability;
 
     class RetryBatchesManager : AbstractSessionManager, IRetryBatchesManager

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
-    using NServiceBus.Logging;
     using ServiceControl.Operations;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
