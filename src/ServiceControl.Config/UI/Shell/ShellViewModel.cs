@@ -15,7 +15,7 @@
     using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<RefreshInstances>
+    class ShellViewModel : RxConductor<RxScreen>.OneActive, IHandle<PostRefreshInstances>
     {
         public ShellViewModel(
             NoInstancesViewModel noInstances,
@@ -86,7 +86,7 @@
 
         public string AvailableUpgradeReleaseLink { get; set; }
 
-        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken) => RefreshInstances();
 
         protected override Task OnInitialize() => RefreshInstances();
 

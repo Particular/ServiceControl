@@ -22,6 +22,8 @@
 
         public string ExePath { get; }
 
+        public bool Exists() => ReadValue("ObjectName") != null;
+
         public string Description
         {
             get { return (string)ReadValue("Description"); }
