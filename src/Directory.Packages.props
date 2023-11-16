@@ -77,7 +77,7 @@
     <PackageVersion Include="Microsoft.Owin.Hosting" Version="4.2.2" />
     <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="2.4.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
