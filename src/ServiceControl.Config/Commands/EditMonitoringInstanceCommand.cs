@@ -15,21 +15,21 @@ namespace ServiceControl.Config.Commands
         public EditMonitoringInstanceCommand(
             IServiceControlWindowManager windowManager,
             Func<MonitoringInstance, MonitoringEditViewModel> editViewModel,
-            IEventAggregator eventAggregator
+            IEventAggregator eventAggregator,
+            ScmuCommandChecks commandChecks
             ) : base(null)
         {
             this.windowManager = windowManager;
             this.editViewModel = editViewModel;
             this.eventAggregator = eventAggregator;
+            this.commandChecks = commandChecks;
         }
 
         public override async Task ExecuteAsync(InstanceDetailsViewModel viewModel)
         {
             var editVM = editViewModel((MonitoringInstance)viewModel.ServiceInstance);
 
-            var instanceVersion = viewModel.Version;
-
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
+            if (!await commandChecks.CanEditInstance(viewModel.ServiceInstance))
             {
                 return;
             }
@@ -44,5 +44,6 @@ namespace ServiceControl.Config.Commands
         readonly Func<MonitoringInstance, MonitoringEditViewModel> editViewModel;
         readonly IEventAggregator eventAggregator;
         readonly IServiceControlWindowManager windowManager;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

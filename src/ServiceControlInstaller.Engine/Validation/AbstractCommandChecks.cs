@@ -19,7 +19,7 @@
         protected abstract Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage);
         protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance);
         protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo);
-        protected abstract Task NotifyForLicenseIssue(string licenseMessage);
+        protected abstract Task NotifyError(string title, string message);
 
         public async Task<bool> CanAddInstance(bool needsRavenDB)
         {
@@ -48,6 +48,36 @@
             var continueInstall = await RabbitMqCheckIsOK(transport, false).ConfigureAwait(false);
 
             return continueInstall;
+        }
+
+        public Task<bool> CanEditInstance(BaseService instance) => CanEditOrDelete(instance, isDelete: false);
+
+        public Task<bool> CanDeleteInstance(BaseService instance) => CanEditOrDelete(instance, isDelete: true);
+
+        async Task<bool> CanEditOrDelete(BaseService instance, bool isDelete)
+        {
+            var instanceVersion = instance.Version;
+            var instanceIsNewer = instanceVersion > Constants.CurrentVersion;
+            var installerOfDifferentMajor = instanceVersion.Major != Constants.CurrentVersion.Major;
+
+            const string title = "Incompatible installer version";
+
+            if (instanceIsNewer)
+            {
+                var verb = isDelete ? "remove" : "edit";
+                var message = $"This instance version {instanceVersion} is newer than the installer version {Constants.CurrentVersion}. This installer can only {verb} instances with versions between {Constants.CurrentVersion.Major}.0.0 and {Constants.CurrentVersion}.";
+                await NotifyError(title, message).ConfigureAwait(false);
+                return false;
+            }
+
+            if (installerOfDifferentMajor && !isDelete)
+            {
+                var message = $"This installer cannot edit instances created by a different major version. A {instanceVersion.Major}.* installer version greater or equal to {instanceVersion.Major}.{instanceVersion.Minor}.{instanceVersion.Build} must be used instead.";
+                await NotifyError(title, message).ConfigureAwait(false);
+                return false;
+            }
+
+            return true;
         }
 
         async Task<bool> RabbitMqCheckIsOK(TransportInfo transport, bool isUpgrade)
@@ -144,7 +174,7 @@
             var licenseCheckResult = CheckLicenseIsValid();
             if (!licenseCheckResult.Valid)
             {
-                await NotifyForLicenseIssue($"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net").ConfigureAwait(false);
+                await NotifyError("License Error", $"Upgrade could not continue due to an issue with the current license. {licenseCheckResult.Message}.  Contact contact@particular.net").ConfigureAwait(false);
                 return false;
             }
 

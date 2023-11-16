@@ -71,9 +71,9 @@
                 hideCancel: true);
         }
 
-        protected override Task NotifyForLicenseIssue(string licenseMessage)
+        protected override Task NotifyError(string title, string message)
         {
-            return windowManager.ShowMessage("LICENSE ERROR", licenseMessage, hideCancel: true);
+            return windowManager.ShowMessage(title.ToUpperInvariant(), message, hideCancel: true);
         }
 
         protected override Task<bool> PromptToStopRunningInstance(BaseService instance)

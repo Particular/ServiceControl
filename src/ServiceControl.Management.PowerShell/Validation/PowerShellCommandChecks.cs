@@ -57,9 +57,9 @@
             return Task.CompletedTask;
         }
 
-        protected override Task NotifyForLicenseIssue(string licenseMessage)
+        protected override Task NotifyError(string title, string message)
         {
-            Terminate(licenseMessage, "License Error", ErrorCategory.InvalidOperation);
+            Terminate(message, title, ErrorCategory.InvalidOperation);
             return Task.CompletedTask;
         }
 

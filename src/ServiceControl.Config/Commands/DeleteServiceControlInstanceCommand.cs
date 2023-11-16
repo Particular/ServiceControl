@@ -12,19 +12,19 @@
 
     class DeleteServiceControlInstanceCommand : AwaitableAbstractCommand<ServiceControlAdvancedViewModel>
     {
-        public DeleteServiceControlInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
+        public DeleteServiceControlInstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, ServiceControlInstanceInstaller installer, Func<DeleteServiceControlConfirmationViewModel> deleteInstanceConfirmation, ScmuCommandChecks commandChecks)
+            : base(model => model != null)
         {
             this.windowManager = windowManager;
             this.deleteInstanceConfirmation = deleteInstanceConfirmation;
             this.eventAggregator = eventAggregator;
             this.installer = installer;
+            this.commandChecks = commandChecks;
         }
 
         public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
         {
-            var instanceVersion = model.ServiceControlInstance.Version;
-
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
+            if (!await commandChecks.CanDeleteInstance(model.ServiceControlInstance))
             {
                 return;
             }
@@ -56,5 +56,6 @@
         readonly IEventAggregator eventAggregator;
         readonly ServiceControlInstanceInstaller installer;
         readonly IServiceControlWindowManager windowManager;
+        readonly ScmuCommandChecks commandChecks;
     }
 }
