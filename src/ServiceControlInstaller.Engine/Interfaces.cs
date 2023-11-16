@@ -4,6 +4,7 @@ namespace ServiceControlInstaller.Engine
     using System.Collections.Generic;
     using Configuration.ServiceControl;
     using Instances;
+    using NuGet.Versioning;
 
     public interface ILogging
     {
@@ -48,7 +49,7 @@ namespace ServiceControlInstaller.Engine
 
     public interface IVersionInfo
     {
-        Version Version { get; }
+        SemanticVersion Version { get; }
     }
 
     public interface IURLInfo

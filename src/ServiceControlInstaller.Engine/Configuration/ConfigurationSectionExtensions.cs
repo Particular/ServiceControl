@@ -2,6 +2,7 @@
 {
     using System;
     using System.Configuration;
+    using NuGet.Versioning;
 
     static class ConfigurationSectionExtensions
     {
@@ -14,7 +15,7 @@
             }
         }
 
-        public static void Set(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, string value, Version currentVersion = null)
+        public static void Set(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, string value, SemanticVersion currentVersion = null)
         {
             // If either SupportedFrom or RemovedFrom exists then we need the currentVersion
             if (keyInfo.SupportedFrom != null || keyInfo.RemovedFrom != null)
@@ -44,7 +45,7 @@
         }
 
 
-        public static void RemoveIfRetired(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, Version currentVersion)
+        public static void RemoveIfRetired(this KeyValueConfigurationCollection collection, SettingInfo keyInfo, SemanticVersion currentVersion)
         {
             if (keyInfo.RemovedFrom == null)
             {

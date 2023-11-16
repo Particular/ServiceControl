@@ -10,6 +10,7 @@
     using Accounts;
     using Configuration.Monitoring;
     using FileSystem;
+    using NuGet.Versioning;
     using Queues;
     using ReportCard;
     using Services;
@@ -58,7 +59,7 @@
         public bool SkipQueueCreation { get; set; }
 
 
-        public Version Version { get; }
+        public SemanticVersion Version { get; }
 
         public string Url => $"http://{HostName}:{Port}/";
 

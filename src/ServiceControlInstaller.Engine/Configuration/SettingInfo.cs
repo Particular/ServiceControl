@@ -1,11 +1,11 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration
 {
-    using System;
+    using NuGet.Versioning;
 
     public class SettingInfo
     {
         public string Name { get; set; }
-        public Version SupportedFrom { get; set; }
-        public Version RemovedFrom { get; set; }
+        public SemanticVersion SupportedFrom { get; set; }
+        public SemanticVersion RemovedFrom { get; set; }
     }
 }

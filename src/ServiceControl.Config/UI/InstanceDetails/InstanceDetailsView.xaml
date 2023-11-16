@@ -125,13 +125,13 @@
                                    Text="{Binding}" />
                         <TextBlock Visibility="{Binding DataContext.HasNewVersion, ElementName=root, Converter={StaticResource boolToVis}}">
                             <Hyperlink Command="{Binding DataContext.UpgradeToNewVersionCommand, ElementName=root}" CommandParameter="{Binding DataContext, ElementName=root}">
-                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=• UPGRADE TO V{0}}" />
+                                <TextBlock FontSize="13" Text="{Binding DataContext.NewVersion, ElementName=root, StringFormat=• UPGRADE TO {0}}" />
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>
                 </DataTemplate>
             </GroupBox.HeaderTemplate>
-            <TextBlock FontSize="14px" Text="{Binding Version}" />
+            <TextBlock FontSize="14px" Text="{Binding Version, StringFormat={}{0}}" />
         </GroupBox>
 
         <GroupBox Grid.Row="4"

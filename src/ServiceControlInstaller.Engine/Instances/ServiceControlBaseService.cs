@@ -12,6 +12,7 @@ namespace ServiceControlInstaller.Engine.Instances
     using Configuration;
     using Configuration.ServiceControl;
     using FileSystem;
+    using NuGet.Versioning;
     using Queues;
     using ReportCard;
     using Services;
@@ -443,6 +444,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public string DatabaseBackupPath => DBPath + "_UpgradeBackup";
 
-        static Version AuditFeatureMinVersion = new(4, 0);
+        static SemanticVersion AuditFeatureMinVersion = new(4, 0, 0);
     }
 }

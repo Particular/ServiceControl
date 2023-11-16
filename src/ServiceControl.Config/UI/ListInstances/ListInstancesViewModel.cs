@@ -10,6 +10,7 @@
     using Events;
     using Framework.Rx;
     using InstanceDetails;
+    using NuGet.Versioning;
     using PropertyChanging;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -35,7 +36,7 @@
             // on license change inform each instance to refresh the license (1.23.0 and below don't support this)
             foreach (var instance in Instances)
             {
-                if (instance.Version <= new Version("1.23.0"))
+                if (instance.Version <= new SemanticVersion(1, 23, 0))
                 {
                     continue;
                 }

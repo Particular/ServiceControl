@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Config.Tests
 {
-    using System;
     using System.Threading.Tasks;
+    using NuGet.Versioning;
     using NUnit.Framework;
     using ServiceControl.Config.UI.Shell;
 
@@ -12,9 +12,9 @@
         [Explicit]
         public async Task GetUpgradeInfoForTargetVersionSameMajor()
         {
-            var current = new Version("4.13.3");
+            var current = new SemanticVersion(4, 13, 3);
 
-            var releaseDetails = await VersionCheckerHelper.GetLatestRelease(current.ToString());
+            var releaseDetails = await VersionCheckerHelper.GetLatestRelease(current);
 
             Assert.IsNotNull(releaseDetails, "Failed to get a release details");
             Assert.That(releaseDetails.Version, Is.GreaterThanOrEqualTo(current), "Got a lower version than current");

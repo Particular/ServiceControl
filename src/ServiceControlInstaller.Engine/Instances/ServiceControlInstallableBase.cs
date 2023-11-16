@@ -10,6 +10,7 @@
     using System.Xml.Serialization;
     using Accounts;
     using FileSystem;
+    using NuGet.Versioning;
     using Queues;
     using ReportCard;
     using Services;
@@ -88,7 +89,7 @@
         public bool EnableFullTextSearchOnBodies { get; set; }
 
         [XmlIgnore]
-        public Version Version { get; set; }
+        public SemanticVersion Version { get; set; }
 
         [XmlIgnore]
         public string ServiceAccount { get; set; }

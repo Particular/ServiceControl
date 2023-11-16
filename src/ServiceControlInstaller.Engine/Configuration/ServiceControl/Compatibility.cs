@@ -1,17 +1,17 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
-    using System;
+    using NuGet.Versioning;
 
     // For Removing and Adding Setting use SettingsList.cs
     public static class Compatibility
     {
-        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo { SupportedFrom = new Version(1, 29) };
-        public static CompatibilityInfo RemoteInstancesDoNotNeedQueueAddress = new CompatibilityInfo { SupportedFrom = new Version(4, 0) };
+        public static CompatibilityInfo ForwardingQueuesAreOptional = new CompatibilityInfo { SupportedFrom = new SemanticVersion(1, 29, 0) };
+        public static CompatibilityInfo RemoteInstancesDoNotNeedQueueAddress = new CompatibilityInfo { SupportedFrom = new SemanticVersion(4, 0, 0) };
 
         public class CompatibilityInfo
         {
-            public Version SupportedFrom { get; set; }
-            public Version RemovedFrom { get; set; }
+            public SemanticVersion SupportedFrom { get; set; }
+            public SemanticVersion RemovedFrom { get; set; }
         }
     }
 }

@@ -8,26 +8,26 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
+    using NuGet.Versioning;
 
     public static class VersionCheckerHelper
     {
-        public static async Task<Release> GetLatestRelease(string currentVersion)
+        public static async Task<Release> GetLatestRelease(SemanticVersion currentVersion)
         {
-            var current = new Version(currentVersion);
             List<Release> releases = await GetVersionInformation();
 
             if (releases != null)
             {
                 Release topversion = releases.Select(t => (t.Version, t)).Max().t;
 
-                if (topversion.Version > current)
+                if (topversion.Version > currentVersion)
                 {
                     return topversion;
                 }
             }
 
             // we have no release available
-            return new Release(current);
+            return new Release(currentVersion);
         }
 
         static async Task<List<Release>> GetVersionInformation()
@@ -64,9 +64,9 @@
             {
             }
 
-            public Release(Version current)
+            public Release(SemanticVersion current)
             {
-                Tag = current.ToString();
+                Tag = current.ToNormalizedString();
             }
 
             [JsonProperty("tag")]
@@ -82,7 +82,7 @@
             public List<Asset> Assets { get; set; }
 
             [JsonIgnore]
-            public Version Version => new Version(Tag);
+            public SemanticVersion Version => SemanticVersion.Parse(Tag);
         }
 
         public class Asset

@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.Management.PowerShell.Cmdlets.Instances
 {
-    using System;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Instances;
 
     public class PsMonitoringService
@@ -17,7 +17,7 @@
         public string ConnectionString { get; set; }
         public string ErrorQueue { get; set; }
         public string ServiceAccount { get; set; }
-        public Version Version { get; set; }
+        public SemanticVersion Version { get; set; }
 
         public static PsMonitoringService FromInstance(MonitoringInstance instance)
         {

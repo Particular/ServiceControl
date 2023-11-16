@@ -8,6 +8,7 @@
     using System.Threading;
     using Engine;
     using FileSystem;
+    using NuGet.Versioning;
     using Services;
     using TimeoutException = System.ServiceProcess.TimeoutException;
 
@@ -23,7 +24,7 @@
 
         public TransportInfo TransportPackage { get; set; }
 
-        public Version Version
+        public SemanticVersion Version
         {
             get
             {
@@ -31,10 +32,11 @@
                 if (File.Exists(Service.ExePath))
                 {
                     var fileVersion = FileVersionInfo.GetVersionInfo(Service.ExePath);
-                    return new Version(fileVersion.FileMajorPart, fileVersion.FileMinorPart, fileVersion.FileBuildPart);
+
+                    return SemanticVersion.Parse(fileVersion.ProductVersion);
                 }
 
-                return new Version(0, 0, 0);
+                return new SemanticVersion(0, 0, 0);
             }
         }
 

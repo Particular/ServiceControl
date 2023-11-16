@@ -1,11 +1,11 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
-    using System;
     using System.Linq;
+    using NuGet.Versioning;
 
     public class UpgradeInfo
     {
-        static readonly Version[] LatestMajors =
+        static readonly SemanticVersion[] LatestMajors =
         {
             new(1, 48, 0),
             new(2, 1, 5),
@@ -13,10 +13,10 @@
             new(4, 33, 0),
         };
 
-        public Version[] UpgradePath { get; private init; }
+        public SemanticVersion[] UpgradePath { get; private init; }
         public bool HasIncompatibleVersion { get; private init; }
 
-        public static UpgradeInfo GetUpgradePathFor(Version current) //5.0.0 // 4.24.0
+        public static UpgradeInfo GetUpgradePathFor(SemanticVersion current) //5.0.0 // 4.24.0
         {
             var upgradePath = LatestMajors
                 .Where(x => x > current)
@@ -29,6 +29,6 @@
             };
         }
 
-        public override string ToString() => string.Join<Version>(" ➡️ ", UpgradePath);
+        public override string ToString() => string.Join<SemanticVersion>(" ➡️ ", UpgradePath);
     }
 }

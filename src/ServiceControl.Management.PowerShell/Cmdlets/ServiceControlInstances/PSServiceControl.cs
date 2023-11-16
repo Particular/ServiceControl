@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using NuGet.Versioning;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
@@ -36,7 +37,7 @@
 
         public string ServiceAccount { get; set; }
 
-        public Version Version { get; set; }
+        public SemanticVersion Version { get; set; }
 
         public object[] RemoteInstances { get; set; }
 

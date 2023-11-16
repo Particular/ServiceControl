@@ -1,6 +1,6 @@
 namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
-    using System;
+    using NuGet.Versioning;
 
     public static class AuditInstanceSettingsList
     {
@@ -17,6 +17,6 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         public static readonly SettingInfo AuditRetentionPeriod = new SettingInfo { Name = "ServiceControl.Audit/AuditRetentionPeriod" };
         public static readonly SettingInfo MaintenanceMode = new SettingInfo { Name = "ServiceControl.Audit/MaintenanceMode" };
         public static readonly SettingInfo ServiceControlQueueAddress = new SettingInfo { Name = "ServiceControl.Audit/ServiceControlQueueAddress" };
-        public static readonly SettingInfo EnableFullTextSearchOnBodies = new SettingInfo { Name = "ServiceControl.Audit/EnableFullTextSearchOnBodies", SupportedFrom = new Version(4, 17, 0) };
+        public static readonly SettingInfo EnableFullTextSearchOnBodies = new SettingInfo { Name = "ServiceControl.Audit/EnableFullTextSearchOnBodies", SupportedFrom = new SemanticVersion(4, 17, 0) };
     }
 }

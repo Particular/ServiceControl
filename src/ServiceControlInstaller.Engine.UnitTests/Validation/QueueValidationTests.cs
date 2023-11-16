@@ -2,9 +2,9 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Engine.Validation;
     using Instances;
+    using NuGet.Versioning;
     using NUnit.Framework;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
 
@@ -43,7 +43,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public string ServiceAccountPwd { get; set; }
 
-            public Version Version { get; set; }
+            public SemanticVersion Version { get; set; }
 
             public string DBPath { get; set; }
 
@@ -96,7 +96,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             public string ServiceAccountPwd { get; set; }
 
-            public Version Version { get; set; }
+            public SemanticVersion Version { get; set; }
 
             public string DBPath { get; set; }
 
