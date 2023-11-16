@@ -115,6 +115,8 @@
             }
             public string ServiceName => "ServiceControl.Audit";
 
+            public bool Exists() => true;
+
             public string ExePath { get; }
 
             public string Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
