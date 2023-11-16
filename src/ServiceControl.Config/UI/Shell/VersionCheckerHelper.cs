@@ -34,8 +34,7 @@
         {
             try
             {
-                var json = await httpClient.GetStringAsync(
-                    "https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
+                var json = await httpClient.GetStringAsync("https://s3.us-east-1.amazonaws.com/platformupdate.particular.net/servicecontrol.txt");
 
                 return JsonConvert.DeserializeObject<List<Release>>(json);
             }
@@ -45,13 +44,18 @@
             }
         }
 
-        static readonly HttpClient httpClient =
-            new HttpClient(new HttpClientHandler
+        static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             })
             {
-                DefaultRequestHeaders = { Accept = { new MediaTypeWithQualityHeaderValue("application/json"), } }
+            DefaultRequestHeaders =
+            {
+                Accept =
+                {
+                    new MediaTypeWithQualityHeaderValue("application/json"),
+                }
+            }
             };
 
         public class Release
@@ -65,13 +69,17 @@
                 Tag = current.ToNormalizedString();
             }
 
-            [JsonProperty("tag")] public string Tag { get; set; }
+            [JsonProperty("tag")]
+            public string Tag { get; set; }
 
-            [JsonProperty("release")] public Uri ReleaseUri { get; set; }
+            [JsonProperty("release")]
+            public Uri ReleaseUri { get; set; }
 
-            [JsonProperty("published")] public DateTimeOffset Published { get; set; }
+            [JsonProperty("published")]
+            public DateTimeOffset Published { get; set; }
 
-            [JsonProperty("assets")] public List<Asset> Assets { get; set; }
+            [JsonProperty("assets")]
+            public List<Asset> Assets { get; set; }
 
             [JsonIgnore]
             public SemanticVersion Version => SemanticVersion.Parse(Tag);
@@ -79,11 +87,14 @@
 
         public class Asset
         {
-            [JsonProperty("name")] public string Name { get; set; }
+            [JsonProperty("name")]
+            public string Name { get; set; }
 
-            [JsonProperty("size")] public long Size { get; set; }
+            [JsonProperty("size")]
+            public long Size { get; set; }
 
-            [JsonProperty("download")] public Uri Download { get; set; }
+            [JsonProperty("download")]
+            public Uri Download { get; set; }
         }
     }
 }
