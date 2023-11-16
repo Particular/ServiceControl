@@ -45,10 +45,10 @@
         }
 
         static readonly HttpClient httpClient = new HttpClient(new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            })
-            {
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+        })
+        {
             DefaultRequestHeaders =
             {
                 Accept =
@@ -56,7 +56,7 @@
                     new MediaTypeWithQualityHeaderValue("application/json"),
                 }
             }
-            };
+        };
 
         public class Release
         {
