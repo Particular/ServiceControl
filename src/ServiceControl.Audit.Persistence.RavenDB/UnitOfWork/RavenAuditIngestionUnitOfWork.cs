@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
     using Auditing.BodyStorage;
@@ -15,12 +16,14 @@
     class RavenAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         BulkInsertOperation bulkInsert;
+        CancellationTokenSource timedCancellationSource;
         TimeSpan auditRetentionPeriod;
         IBodyStorage bodyStorage;
 
-        public RavenAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
+        public RavenAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, CancellationTokenSource timedCancellationSource, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
         {
             this.bulkInsert = bulkInsert;
+            this.timedCancellationSource = timedCancellationSource;
             this.auditRetentionPeriod = auditRetentionPeriod;
             this.bodyStorage = bodyStorage;
         }
@@ -69,6 +72,9 @@
             => bulkInsert.StoreAsync(knownEndpoint, GetExpirationMetadata());
 
         public async ValueTask DisposeAsync()
-            => await bulkInsert.DisposeAsync();
+        {
+            await bulkInsert.DisposeAsync();
+            timedCancellationSource.Dispose();
+        }
     }
 }
