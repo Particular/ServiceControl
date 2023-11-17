@@ -20,12 +20,12 @@
 
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
         {
-            var timedCancellation = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            var timedCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
             var bulkInsert = documentStoreProvider.GetDocumentStore()
-                .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellation.Token);
+                .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
 
             return new RavenDbAuditIngestionUnitOfWork(
-                bulkInsert, timedCancellation, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
+                bulkInsert, timedCancellationSource, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
             );
         }
 
