@@ -17,14 +17,14 @@
     class RavenDbAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
     {
         BulkInsertOperation bulkInsert;
-        CancellationTokenSource timedCancellation;
+        CancellationTokenSource timedCancellationSource;
         TimeSpan auditRetentionPeriod;
         IBodyStorage bodyStorage;
 
-        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, CancellationTokenSource timedCancellation, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
+        public RavenDbAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, CancellationTokenSource timedCancellationSource, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
         {
             this.bulkInsert = bulkInsert;
-            this.timedCancellation = timedCancellation;
+            this.timedCancellationSource = timedCancellationSource;
             this.auditRetentionPeriod = auditRetentionPeriod;
             this.bodyStorage = bodyStorage;
         }
@@ -75,7 +75,7 @@
         public async ValueTask DisposeAsync()
         {
             await bulkInsert.DisposeAsync().ConfigureAwait(false);
-            timedCancellation.Dispose();
+            timedCancellationSource.Dispose();
         }
     }
 }
