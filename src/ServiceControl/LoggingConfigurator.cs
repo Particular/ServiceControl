@@ -31,7 +31,7 @@ namespace Particular.ServiceControl
 ServiceControl Version:				{version}
 -------------------------------------------------------------";
 
-            Target fileTarget = new FileTarget
+            var fileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "logfile.${shortdate}.txt"),
@@ -42,7 +42,7 @@ ServiceControl Version:				{version}
                 ArchiveAboveSize = 30 * megaByte
             };
 
-            Target ravenFileTarget = new FileTarget
+            var ravenFileTarget = new FileTarget
             {
                 ArchiveEvery = FileArchivePeriod.Day,
                 FileName = Path.Combine(loggingSettings.LogPath, "ravenlog.${shortdate}.txt"),
@@ -53,7 +53,7 @@ ServiceControl Version:				{version}
                 ArchiveAboveSize = 30 * megaByte
             };
 
-            Target consoleTarget = new ColoredConsoleTarget
+            var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = simpleLayout,
                 UseDefaultRowHighlightingRules = true
@@ -103,7 +103,7 @@ ServiceControl Version:				{version}
             {
                 TimeStamp = DateTime.Now
             };
-            //logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
+            logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), loggingSettings.LoggingLevel.Name);
         }
     }
 }
