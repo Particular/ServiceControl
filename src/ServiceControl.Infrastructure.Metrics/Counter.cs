@@ -20,7 +20,7 @@
             eventsPerSecond = new int[2];
             movingAverage = new int[300];
             movingAverageEpochs = new long[300];
-            epoch = DateTime.Now.Minute;
+            epoch = DateTime.UtcNow.Minute;
         }
 
         public void Mark()

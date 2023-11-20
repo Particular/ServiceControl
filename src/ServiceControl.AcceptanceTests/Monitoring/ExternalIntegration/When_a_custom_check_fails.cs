@@ -39,7 +39,7 @@
                         HostId = Guid.Empty,
                         Name = "Testing"
                     },
-                    FailedAt = DateTime.Now,
+                    FailedAt = DateTime.UtcNow,
                     FailureReason = "Because I can"
                 });
             });

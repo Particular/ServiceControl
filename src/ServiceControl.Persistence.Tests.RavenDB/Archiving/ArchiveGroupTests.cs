@@ -39,7 +39,7 @@
                     ArchiveType = ArchiveType.FailureGroup,
                     TotalNumberOfMessages = 2,
                     NumberOfMessagesArchived = 0,
-                    Started = DateTime.Now,
+                    Started = DateTime.UtcNow,
                     GroupName = "Test Group",
                     NumberOfBatches = 3,
                     CurrentBatch = 0
@@ -87,7 +87,7 @@
                     ArchiveType = ArchiveType.FailureGroup,
                     TotalNumberOfMessages = 2,
                     NumberOfMessagesArchived = 0,
-                    Started = DateTime.Now,
+                    Started = DateTime.UtcNow,
                     GroupName = "Test Group",
                     NumberOfBatches = 3,
                     CurrentBatch = 0

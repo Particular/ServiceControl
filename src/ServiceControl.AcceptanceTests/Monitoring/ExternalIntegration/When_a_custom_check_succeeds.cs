@@ -38,7 +38,7 @@
                         HostId = Guid.Empty,
                         Name = "Testing"
                     },
-                    SucceededAt = DateTime.Now
+                    SucceededAt = DateTime.UtcNow
                 });
             });
 

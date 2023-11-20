@@ -27,7 +27,7 @@
                 ArchiveType = archiveType,
                 TotalNumberOfMessages = numberOfMessages,
                 NumberOfMessagesUnarchived = 0,
-                Started = DateTime.Now,
+                Started = DateTime.UtcNow,
                 GroupName = groupName,
                 NumberOfBatches = (int)Math.Ceiling(numberOfMessages / (float)batchSize),
                 CurrentBatch = 0

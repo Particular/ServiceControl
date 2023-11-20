@@ -84,7 +84,7 @@ Selected Transport:					{settings.TransportType}
             var logger = LogManager.GetLogger("LoggingConfiguration");
             var logEventInfo = new LogEventInfo
             {
-                TimeStamp = DateTime.Now
+                TimeStamp = DateTime.UtcNow
             };
             logger.InfoFormat("Logging to {0} with LogLevel '{1}'", fileTarget.FileName.Render(logEventInfo), settings.LogLevel.Name);
         }
