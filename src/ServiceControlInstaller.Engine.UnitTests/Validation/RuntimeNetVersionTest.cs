@@ -38,7 +38,12 @@
         public void TestValidatorLogic()
         {
             // Should always pass on CI because we download the latest available dotnet SDK
-            Assert.IsFalse(DotnetVersionValidator.FrameworkRequirementsAreMissing(true, out var _));
+            var isMissing = DotnetVersionValidator.FrameworkRequirementsAreMissing(true, out var message);
+
+            if (isMissing)
+            {
+                throw new Exception(message);
+            }
         }
 
         static RavenServerVersions GetFromRavenServerRuntimeConfig()
