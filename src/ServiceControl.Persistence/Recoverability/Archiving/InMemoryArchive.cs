@@ -59,7 +59,7 @@
             ArchiveState = ArchiveState.ArchiveProgressing;
             NumberOfMessagesArchived += numberOfMessagesArchivedInBatch;
             CurrentBatch++;
-            Last = DateTime.Now;
+            Last = DateTime.UtcNow;
 
             return domainEvents.Raise(new ArchiveOperationBatchCompleted
             {
@@ -75,7 +75,7 @@
         {
             ArchiveState = ArchiveState.ArchiveFinalizing;
             NumberOfMessagesArchived = TotalNumberOfMessages;
-            Last = DateTime.Now;
+            Last = DateTime.UtcNow;
 
             return domainEvents.Raise(new ArchiveOperationFinalizing
             {
@@ -91,8 +91,8 @@
         {
             ArchiveState = ArchiveState.ArchiveCompleted;
             NumberOfMessagesArchived = TotalNumberOfMessages;
-            CompletionTime = DateTime.Now;
-            Last = DateTime.Now;
+            CompletionTime = DateTime.UtcNow;
+            Last = DateTime.UtcNow;
 
             return domainEvents.Raise(new ArchiveOperationCompleted
             {

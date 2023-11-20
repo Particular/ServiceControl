@@ -60,7 +60,7 @@
 
             summary.TotalNumberOfMessages = 0;
             summary.NumberOfMessagesUnarchived = 0;
-            summary.Started = DateTime.Now;
+            summary.Started = DateTime.UtcNow;
             summary.GroupName = "Undefined";
             summary.NumberOfBatches = 0;
             summary.CurrentBatch = 0;

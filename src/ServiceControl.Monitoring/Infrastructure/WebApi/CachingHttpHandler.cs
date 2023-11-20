@@ -18,7 +18,7 @@
 
             if (!response.Content.Headers.Contains("Last-Modified"))
             {
-                response.Content.Headers.Add("Last-Modified", DateTime.Now.ToUniversalTime().ToString("R"));
+                response.Content.Headers.Add("Last-Modified", DateTime.UtcNow.ToString("R"));
             }
 
             if (!response.Headers.Contains("Cache-Control"))

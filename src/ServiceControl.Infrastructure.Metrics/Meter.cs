@@ -26,7 +26,7 @@
             movingAverageSums = new long[300];
             movingAverageCounts = new long[300];
             movingAverageEpochs = new long[300];
-            epoch = DateTime.Now.Minute;
+            epoch = DateTime.UtcNow.Minute;
         }
 
         public Measurement Measure() => new Measurement(this, enabled);

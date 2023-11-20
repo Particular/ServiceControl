@@ -35,7 +35,7 @@
             DisplayName = "ServiceControl Config";
             IsModal = false;
             LoadAppVersion();
-            CopyrightInfo = $"{DateTime.Now.Year} © Particular Software";
+            CopyrightInfo = $"{DateTime.UtcNow.Year} © Particular Software";
             addInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
             addMonitoringInstance.OnCommandExecuting = () => ShowingMenuOverlay = false;
 

@@ -84,7 +84,7 @@
             lock (lockObject)
             {
                 connectionFactory.AutomaticRecoveryEnabled = automaticRecoveryEnabled;
-                connectionFactory.ClientProperties["connected"] = DateTime.Now.ToString("G");
+                connectionFactory.ClientProperties["connected"] = DateTime.UtcNow.ToString("G");
 
                 var connection = connectionFactory.CreateConnection(connectionName);
 
