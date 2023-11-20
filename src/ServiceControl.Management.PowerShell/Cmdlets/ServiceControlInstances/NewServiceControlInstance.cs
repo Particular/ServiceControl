@@ -176,7 +176,7 @@ namespace ServiceControl.Management.PowerShell
             try
             {
                 var checks = new PowerShellCommandChecks(this, Acknowledgements);
-                if (!checks.CanAddInstance(needsRavenDB: true).GetAwaiter().GetResult())
+                if (!checks.CanAddInstance().GetAwaiter().GetResult())
                 {
                     return;
                 }

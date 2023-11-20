@@ -21,7 +21,7 @@
         protected abstract Task NotifyForIncompatibleUpgradeVersion(UpgradeInfo upgradeInfo);
         protected abstract Task NotifyError(string title, string message);
 
-        public async Task<bool> CanAddInstance(bool needsRavenDB)
+        public async Task<bool> CanAddInstance()
         {
             // Check for license
             if (!await IsLicenseOk().ConfigureAwait(false))
@@ -29,7 +29,7 @@
                 return false;
             }
 
-            if (await FrameworkRequirementsAreMissing(needsRavenDB).ConfigureAwait(false))
+            if (await FrameworkRequirementsAreMissing().ConfigureAwait(false))
             {
                 return false;
             }
@@ -120,8 +120,7 @@
             }
 
             // Validate .NET Framework requirements
-            bool needsRavenDB = instance is IServiceControlBaseInstance;
-            if (await FrameworkRequirementsAreMissing(needsRavenDB).ConfigureAwait(false))
+            if (await FrameworkRequirementsAreMissing().ConfigureAwait(false))
             {
                 return false;
             }
@@ -158,9 +157,9 @@
             return true;
         }
 
-        async Task<bool> FrameworkRequirementsAreMissing(bool needsRavenDB)
+        async Task<bool> FrameworkRequirementsAreMissing()
         {
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(needsRavenDB, out var missingMessage))
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(out var missingMessage))
             {
                 await NotifyForMissingSystemPrerequisites(missingMessage).ConfigureAwait(false);
                 return true;
