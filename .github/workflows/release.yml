@@ -29,6 +29,9 @@ jobs:
         uses: actions/setup-dotnet@v3.2.0
         with:
           dotnet-version: 8.0.x
+      - name: Download RavenDB Server
+        shell: pwsh
+        run: ./tools/download-ravendb-server.ps1
       - name: Build
         run: dotnet build src --configuration Release -graph
       - name: Build ServiceControl Management
