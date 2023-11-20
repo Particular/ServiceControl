@@ -18,13 +18,14 @@ Invoke-WebRequest $downloadUrl -OutFile $zipPath
 
 Write-Output "Unzipping archive..."
 $unzipPath = Join-Path $Env:TEMP "ravendb-extracted"
-Remove-Item $unzipPath -Force -Recurse
+if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
 Expand-Archive $zipPath $unzipPath
 
 $serverPath = Join-Path $unzipPath "Server"
-Remove-Item deploy/RavenDBServer -Force -Recurse
-Write-Output "Copying $serverPath to deploy/RavenDBServer"
-Copy-Item -Path $serverPath -Destination "deploy/RavenDBServer" -Recurse
+$deployPath = Join-Path $PWD.Path deploy RavenDBServer
+if (Test-Path $deployPath ) { Remove-Item $deployPath -Force -Recurse }
+Write-Output "Copying '$serverPath' to '$deployPath'"
+Copy-Item -Path $serverPath -Destination $deployPath -Recurse
 
 Write-Output "Deleting temporary files"
 Remove-Item $zipPath -Force
