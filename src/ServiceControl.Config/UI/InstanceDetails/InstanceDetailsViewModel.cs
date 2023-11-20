@@ -16,7 +16,7 @@
     using ServiceControlInstaller.Engine;
     using ServiceControlInstaller.Engine.Instances;
 
-    class InstanceDetailsViewModel : RxProgressScreen, IHandle<RefreshInstances>
+    class InstanceDetailsViewModel : RxProgressScreen, IHandle<PostRefreshInstances>
     {
         public InstanceDetailsViewModel(
             BaseService instance,
@@ -273,7 +273,9 @@
 
         public ICommand UpgradeToNewVersionCommand { get; private set; }
 
-        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
+        public bool Exists() => ServiceInstance.Service.Exists();
+
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken)
         {
             UpdateServiceProperties();
 

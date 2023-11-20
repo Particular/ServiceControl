@@ -1,6 +1,7 @@
 namespace ServiceControl.Management.PowerShell
 {
     using System.Management.Automation;
+    using ServiceControl.Management.PowerShell.Validation;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
@@ -34,6 +35,12 @@ namespace ServiceControl.Management.PowerShell
                 {
                     WriteWarning($"No action taken. An instance called {name} was not found");
                     break;
+                }
+
+                var checks = new PowerShellCommandChecks(this);
+                if (!checks.CanDeleteInstance(instance).GetAwaiter().GetResult())
+                {
+                    return;
                 }
 
                 WriteObject(installer.Delete(instance.Name, RemoveDB.ToBool(), RemoveLogs.ToBool()));

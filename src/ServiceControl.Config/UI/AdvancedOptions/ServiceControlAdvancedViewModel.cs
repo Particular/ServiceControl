@@ -15,7 +15,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
 
-    class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<RefreshInstances>
+    class ServiceControlAdvancedViewModel : RxProgressScreen, IHandle<PostRefreshInstances>
     {
         public ServiceControlAdvancedViewModel(
             BaseService instance,
@@ -137,7 +137,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
 
         public string ForcedUpgradeBackupLocation => ServiceControlInstance.DatabaseBackupPath;
 
-        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
+        public Task HandleAsync(PostRefreshInstances message, CancellationToken cancellationToken)
         {
             NotifyOfPropertyChange("AllowStop");
             NotifyOfPropertyChange("IsRunning");

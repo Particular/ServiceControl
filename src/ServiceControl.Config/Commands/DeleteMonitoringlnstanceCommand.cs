@@ -12,19 +12,19 @@
 
     class DeleteMonitoringlnstanceCommand : AwaitableAbstractCommand<MonitoringAdvancedViewModel>
     {
-        public DeleteMonitoringlnstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation) : base(model => model != null)
+        public DeleteMonitoringlnstanceCommand(IServiceControlWindowManager windowManager, IEventAggregator eventAggregator, MonitoringInstanceInstaller installer, Func<DeleteMonitoringConfirmationViewModel> deleteInstanceConfirmation, ScmuCommandChecks commandChecks)
+            : base(model => model != null)
         {
             this.windowManager = windowManager;
             this.deleteInstanceConfirmation = deleteInstanceConfirmation;
             this.eventAggregator = eventAggregator;
             this.installer = installer;
+            this.commandChecks = commandChecks;
         }
 
         public override async Task ExecuteAsync(MonitoringAdvancedViewModel model)
         {
-            var instanceVersion = model.MonitoringInstance.Version;
-
-            if (await InstallerVersionCompatibilityDialog.ShowValidation(instanceVersion, windowManager))
+            if (!await commandChecks.CanDeleteInstance(model.MonitoringInstance))
             {
                 return;
             }
@@ -56,5 +56,6 @@
         readonly IEventAggregator eventAggregator;
         readonly MonitoringInstanceInstaller installer;
         readonly IServiceControlWindowManager windowManager;
+        readonly ScmuCommandChecks commandChecks;
     }
 }

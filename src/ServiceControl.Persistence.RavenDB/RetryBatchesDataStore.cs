@@ -10,7 +10,6 @@
     using Raven.Client.Documents.Commands.Batches;
     using Raven.Client.Documents.Operations;
     using Raven.Client.Exceptions;
-    using RavenDB;
     using ServiceControl.Recoverability;
 
     class RetryBatchesDataStore : IRetryBatchesDataStore

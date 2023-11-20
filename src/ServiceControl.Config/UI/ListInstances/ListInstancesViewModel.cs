@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Caliburn.Micro;
+    using DynamicData;
     using Events;
     using Framework.Rx;
     using InstanceDetails;
@@ -23,7 +24,7 @@
 
             Instances = new BindableCollection<InstanceDetailsViewModel>();
 
-            AddMissingInstances();
+            AddAndRemoveInstances();
         }
 
         public BindableCollection<InstanceDetailsViewModel> OrderedInstances => new BindableCollection<InstanceDetailsViewModel>(Instances.OrderBy(x => x.Name));
@@ -64,10 +65,15 @@
             return Task.CompletedTask;
         }
 
-        public Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
+        /// <summary>
+        /// Should be only subscriber for RefreshInstances so that add/removes can happen in the list
+        /// before the PostRefreshInstances handlers do all their rebinding. That way, deleting an instance
+        /// in PowerShell won't cause an error from a deleted instance viewmodel trying to refresh itself.
+        /// </summary>
+        public async Task HandleAsync(RefreshInstances message, CancellationToken cancellationToken)
         {
-            AddMissingInstances();
-            return Task.CompletedTask;
+            AddAndRemoveInstances();
+            await EventAggregator.PublishOnUIThreadAsync(new PostRefreshInstances(), cancellationToken);
         }
 
         public async Task HandleAsync(ResetInstances message, CancellationToken cancellationToken)
@@ -86,8 +92,15 @@
             NotifyOfPropertyChange(nameof(OrderedInstances));
         }
 
-        void AddMissingInstances()
+        async void AddAndRemoveInstances()
         {
+            var toRemove = Instances.Where(instance => !instance.Exists());
+            foreach (var instance in toRemove)
+            {
+                await instance.TryCloseAsync();
+            }
+            Instances.RemoveMany(toRemove);
+
             var missingInstances = InstanceFinder.AllInstances().Where(i => !Instances.Any(existingInstance => existingInstance.Name == i.Name));
 
             foreach (var item in missingInstances)

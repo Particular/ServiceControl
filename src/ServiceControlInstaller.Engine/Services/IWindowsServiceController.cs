@@ -6,6 +6,7 @@
     public interface IWindowsServiceController
     {
         string ServiceName { get; }
+        bool Exists();
         string ExePath { get; }
         string Description { get; set; }
         ServiceControllerStatus Status { get; }

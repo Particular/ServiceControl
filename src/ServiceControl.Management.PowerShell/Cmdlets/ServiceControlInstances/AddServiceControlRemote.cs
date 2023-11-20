@@ -2,6 +2,7 @@ namespace ServiceControl.Management.PowerShell
 {
     using System;
     using System.Management.Automation;
+    using ServiceControl.Management.PowerShell.Validation;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Unattended;
 
@@ -28,6 +29,12 @@ namespace ServiceControl.Management.PowerShell
             if (instance == null)
             {
                 WriteWarning($"No action taken. An instance called {Name} was not found");
+                return;
+            }
+
+            var checks = new PowerShellCommandChecks(this);
+            if (!checks.CanEditInstance(instance).GetAwaiter().GetResult())
+            {
                 return;
             }
 

@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.UnitTests.Configuration
 {
     using System.IO;
-    using System.Linq;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceControlInstaller.Engine.Instances;

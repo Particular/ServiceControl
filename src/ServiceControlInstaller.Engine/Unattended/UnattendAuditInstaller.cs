@@ -6,7 +6,6 @@
     using FileSystem;
     using Instances;
     using ReportCard;
-    using ServiceControl.LicenseManagement;
     using Validation;
 
     public class UnattendAuditInstaller

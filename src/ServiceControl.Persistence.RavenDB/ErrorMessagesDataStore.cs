@@ -15,7 +15,6 @@
     using Raven.Client.Documents.Queries;
     using Raven.Client.Documents.Queries.Facets;
     using Raven.Client.Documents.Session;
-    using RavenDB;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.EventLog;
     using ServiceControl.MessageFailures;

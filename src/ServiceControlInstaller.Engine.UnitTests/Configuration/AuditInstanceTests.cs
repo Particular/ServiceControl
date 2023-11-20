@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.ServiceProcess;
     using System.Xml;
     using NUnit.Framework;
@@ -115,6 +114,8 @@
                 ExePath = exePath;
             }
             public string ServiceName => "ServiceControl.Audit";
+
+            public bool Exists() => true;
 
             public string ExePath { get; }
 
