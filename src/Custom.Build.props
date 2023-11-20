@@ -24,4 +24,9 @@
     <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
+  <!-- workaround for https://github.com/microsoft/MSBuildSdks/issues/477 -->
+  <PropertyGroup>
+    <UseArtifactsOutput>false</UseArtifactsOutput>
+  </PropertyGroup>
+
 </Project>

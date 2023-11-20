@@ -63,7 +63,7 @@
     <PackageVersion Include="PropertyChanging.Fody" Version="1.30.3" />
     <PackageVersion Include="PublicApiGenerator" Version="11.0.0" />
     <PackageVersion Include="RavenDB.Database" Version="3.5.10-patch-35319" />
-    <PackageVersion Include="RavenDB.Embedded" Version="5.4.103" />
+    <PackageVersion Include="RavenDB.Embedded" Version="5.4.112" />
     <PackageVersion Include="RavenDB.Tests.Helpers" Version="3.5.10-patch-35319" />
     <PackageVersion Include="ReactiveUI.WPF" Version="19.2.1" />
     <PackageVersion Include="Rx-Linq" Version="2.2.5" />
@@ -93,7 +93,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="4.2.0" />
+    <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.2" />
     <GlobalPackageReference Include="Particular.Packaging" Version="3.0.0" />
   </ItemGroup>
 
