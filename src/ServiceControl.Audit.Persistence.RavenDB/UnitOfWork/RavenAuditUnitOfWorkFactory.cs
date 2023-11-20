@@ -1,5 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
+    using System;
+    using System.Threading;
     using Persistence.UnitOfWork;
     using Raven.Client.Documents.BulkInsert;
     using RavenDB;
@@ -18,12 +20,12 @@
 
         public IAuditIngestionUnitOfWork StartNew(int batchSize)
         {
+            var timedCancellationSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
             var bulkInsert = documentStoreProvider.GetDocumentStore()
-                .BulkInsert(
-                options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
+                .BulkInsert(new BulkInsertOptions { SkipOverwriteIfUnchanged = true, }, timedCancellationSource.Token);
 
             return new RavenAuditIngestionUnitOfWork(
-                bulkInsert, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
+                bulkInsert, timedCancellationSource, databaseConfiguration.AuditRetentionPeriod, new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, databaseConfiguration.MaxBodySizeToStore)
             );
         }
 
