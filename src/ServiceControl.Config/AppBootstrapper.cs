@@ -90,7 +90,7 @@
 
             await DisplayRootViewForAsync<ShellViewModel>();
 
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(true, out var message))
+            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(out var message))
             {
                 message += $"{Environment.NewLine}{Environment.NewLine}Until the prerequisites are installed, no ServiceControl instances can be installed.";
 

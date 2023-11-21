@@ -164,7 +164,7 @@
             var installer = new UnattendAuditInstaller(logger);
 
             var checks = new PowerShellCommandChecks(this, Acknowledgements);
-            if (!checks.CanAddInstance(needsRavenDB: true).GetAwaiter().GetResult())
+            if (!checks.CanAddInstance().GetAwaiter().GetResult())
             {
                 return;
             }

@@ -18,7 +18,7 @@
 
         public override async Task ExecuteAsync(object obj)
         {
-            if (!await commandChecks.CanAddInstance(needsRavenDB: true))
+            if (!await commandChecks.CanAddInstance())
             {
                 return;
             }
