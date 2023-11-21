@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.Commands;
 
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using Events;
@@ -19,7 +18,7 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
         IEventAggregator eventAggregator,
         ServiceControlInstanceInstaller serviceControlInstaller,
         ScmuCommandChecks commandChecks)
-        : base(ForcedUpgradeAllowed)
+        : base(null)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
@@ -27,13 +26,6 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
         this.commandChecks = commandChecks;
     }
 
-    static bool ForcedUpgradeAllowed(ServiceControlAdvancedViewModel model)
-    {
-        var instance = InstanceFinder.ServiceControlInstances().FirstOrDefault(i => i.Name == model.Name);
-
-        //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
-        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name != StorageEngineNames.RavenDB;
-    }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
         var instance = InstanceFinder.FindInstanceByName<ServiceControlInstance>(model.Name);
@@ -41,19 +33,6 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
 
         if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
         {
-            return;
-        }
-
-        if (await windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to version 5?", "Yes") == false)
-        {
-            return;
-        }
-
-        if (!ForcedUpgradeAllowed(model))
-        {
-            await windowManager.ShowMessage("Cannot run the command", "Only ver. 4.x primary instance that use RavenDB ver. 3.5 can be forced upgraded.");
-
             return;
         }
 

@@ -15,6 +15,7 @@
 
         protected abstract Task<bool> PromptForRabbitMqCheck(bool isUpgrade);
         protected abstract Task<bool> PromptToStopRunningInstance(BaseService instance);
+        protected abstract Task<bool> PromptToContinueWithForcedUpgrade();
         protected abstract Task NotifyForDeprecatedMessageTransport(TransportInfo transport);
         protected abstract Task NotifyForMissingSystemPrerequisites(string missingPrereqsMessage);
         protected abstract Task NotifyForIncompatibleStorageEngine(IServiceControlBaseInstance baseInstance);
@@ -128,7 +129,24 @@
             // RavenDB 5+ check
             if (instance is IServiceControlBaseInstance baseInstance)
             {
-                if (!forceUpgradeDb)
+                if (forceUpgradeDb)
+                {
+                    var forceUpgradeAllowed = instance is IPersistenceConfig persistenceCfg
+                        && instance.Version.Major == 4
+                        && persistenceCfg.PersistenceManifest.Name != StorageEngineNames.RavenDB;
+
+                    if (!forceUpgradeAllowed)
+                    {
+                        await NotifyError("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.").ConfigureAwait(false);
+                        return false;
+                    }
+
+                    if (!await PromptToContinueWithForcedUpgrade().ConfigureAwait(false))
+                    {
+                        return false;
+                    }
+                }
+                else
                 {
                     var compatibleStorageEngine = baseInstance.PersistenceManifest.Name == StorageEngineNames.RavenDB;
 

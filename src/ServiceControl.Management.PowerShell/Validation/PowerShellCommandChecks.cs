@@ -87,5 +87,11 @@
             // PowerShell assumes you always want to stop the service if it's running
             return Task.FromResult(true);
         }
+
+        protected override Task<bool> PromptToContinueWithForcedUpgrade()
+        {
+            // In PowerShell, you passed the -Force parameter to get here in the first place
+            return Task.FromResult(true);
+        }
     }
 }
