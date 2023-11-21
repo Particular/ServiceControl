@@ -56,7 +56,7 @@ jobs:
         shell: pwsh
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
-        uses: azure/login@v1.4.7
+        uses: azure/login@v1.5.0
         if: matrix.test-category == 'AzureServiceBus' || matrix.test-category == 'AzureStorageQueues' || matrix.test-category == 'RabbitMQ'
         with:
           creds: ${{ secrets.AZURE_ACI_CREDENTIALS }}
