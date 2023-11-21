@@ -19,7 +19,7 @@
         public static UpgradeInfo GetUpgradePathFor(SemanticVersion current) //5.0.0 // 4.24.0
         {
             var upgradePath = LatestMajors
-                .Where(x => x > current)
+                .Where(x => current.CompareTo(x, VersionComparison.Version) < 0)
                 .ToArray();
 
             return new UpgradeInfo
