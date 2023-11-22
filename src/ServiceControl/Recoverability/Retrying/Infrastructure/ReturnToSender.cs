@@ -62,7 +62,7 @@ namespace ServiceControl.Recoverability
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
-            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions);
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction);
 
             if (Log.IsDebugEnabled)
             {

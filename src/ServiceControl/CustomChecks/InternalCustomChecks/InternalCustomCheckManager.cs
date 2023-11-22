@@ -38,7 +38,7 @@
             CheckResult result = default;
             try
             {
-                result = await check.PerformCheck();
+                result = await check.PerformCheck(cancellationToken);
             }
             catch (OperationCanceledException)
             {

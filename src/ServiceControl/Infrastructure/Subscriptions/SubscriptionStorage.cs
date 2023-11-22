@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Infrastructure.Subscriptions
 {
+    using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;
@@ -15,7 +17,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
+            context.RegisterStartupTask(b => b.GetRequiredService<PrimeSubscriptions>());
         }
 
         class PrimeSubscriptions : FeatureStartupTask
@@ -27,12 +29,12 @@
                 this.persister = persister;
             }
 
-            protected override Task OnStart(IMessageSession session)
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 return persister?.Initialize() ?? Task.FromResult(0);
             }
 
-            protected override Task OnStop(IMessageSession session)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(0);
             }

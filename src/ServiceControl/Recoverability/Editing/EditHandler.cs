@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
@@ -103,7 +102,7 @@
             return dispatcher.Dispatch(
                 new TransportOperations(new TransportOperation(editedMessage, destination)),
                 transportTransaction,
-                new ContextBag());
+                context.CancellationToken);
         }
 
         readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;

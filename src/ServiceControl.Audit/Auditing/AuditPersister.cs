@@ -9,7 +9,6 @@
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
@@ -268,8 +267,7 @@
                 }
 
                 await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
-                    new TransportTransaction(), //Do not hook into the incoming transaction
-                    new ContextBag());
+                    new TransportTransaction()); //Do not hook into the incoming transaction
 
                 if (Logger.IsDebugEnabled)
                 {

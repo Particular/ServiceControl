@@ -7,7 +7,6 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using MessageFailures;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
@@ -28,7 +27,7 @@ namespace ServiceControl.Recoverability
 
         Task Enqueue(IMessageDispatcher sender, TransportOperations outgoingMessages)
         {
-            return sender.Dispatch(outgoingMessages, new TransportTransaction(), new ContextBag());
+            return sender.Dispatch(outgoingMessages, new TransportTransaction());
         }
 
         public async Task<bool> ProcessBatches(IMessageDispatcher sender, CancellationToken cancellationToken = default)

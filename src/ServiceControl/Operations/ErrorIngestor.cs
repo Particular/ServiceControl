@@ -8,7 +8,6 @@
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
@@ -160,7 +159,7 @@
             {
                 anyContext = messageContext;
                 var outgoingMessage = new OutgoingMessage(
-                    messageContext.MessageId,
+                    messageContext.NativeMessageId,
                     messageContext.Headers,
                     messageContext.Body);
 
@@ -174,9 +173,7 @@
             return anyContext != null
                 ? dispatcher.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction,
-                    anyContext.Extensions
-                )
+                    anyContext.TransportTransaction)
                 : Task.CompletedTask;
         }
 
@@ -193,7 +190,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction();
             }
             catch (Exception e)
             {

@@ -18,7 +18,7 @@
             remoteQueryTasks = new List<Task>(remoteInstanceSetting.Length);
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var httpClient = httpClientFactory();
 

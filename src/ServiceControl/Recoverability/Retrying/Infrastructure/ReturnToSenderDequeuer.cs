@@ -119,11 +119,11 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>();
                 registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
 
-                var startable = await RawEndpoint.Create(config);
+                var startable = await RawEndpoint.Create(config, cancellationToken);
 
                 errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
 
-                processor = await startable.Start();
+                processor = await startable.Start(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
@@ -148,7 +148,7 @@ namespace ServiceControl.Recoverability
                 registration?.Dispose();
                 if (processor != null)
                 {
-                    await processor.Stop();
+                    await processor.Stop(cancellationToken);
                 }
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
@@ -215,7 +215,7 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher)
+            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
             {
                 try
                 {

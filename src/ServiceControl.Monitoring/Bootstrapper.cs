@@ -95,7 +95,7 @@
                 config.EnableInstallers(settings.Username);
             }
 
-            config.DefineCriticalErrorAction(c =>
+            config.DefineCriticalErrorAction((c, _) =>
             {
                 onCriticalError(c);
                 return Task.CompletedTask;

@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Monitoring.QueueLength
 {
+    using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
     using Transports;
@@ -9,7 +11,7 @@
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.Build<IProvideQueueLength>()));
+            context.RegisterStartupTask(b => new QueueLengthProviderTask(b.GetRequiredService<IProvideQueueLength>()));
         }
     }
 
@@ -20,12 +22,12 @@
             this.queueLengthProvider = queueLengthProvider;
         }
 
-        protected override Task OnStart(IMessageSession session)
+        protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
         {
             return queueLengthProvider.Start();
         }
 
-        protected override Task OnStop(IMessageSession session)
+        protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
         {
             return queueLengthProvider.Stop();
         }

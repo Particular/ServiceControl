@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Auditing
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
 
@@ -12,7 +13,7 @@
             this.criticalErrorHolder = criticalErrorHolder;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var failure = criticalErrorHolder.GetLastFailure();
             return failure == null

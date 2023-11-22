@@ -8,7 +8,6 @@
     using Microsoft.AspNet.SignalR;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Settings;
@@ -44,7 +43,7 @@
                 var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
                 var transportOperations = new TransportOperations(transportOperation);
 
-                await sender.Dispatch(transportOperations, transportTransaction, contextBag);
+                await sender.Dispatch(transportOperations, transportTransaction);
             }
             catch (Exception ex)
             {
@@ -59,6 +58,5 @@
 
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         static TransportTransaction transportTransaction = new TransportTransaction();
-        static ContextBag contextBag = new ContextBag();
     }
 }

@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Auditing
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
@@ -14,7 +15,7 @@ namespace ServiceControl.Audit.Auditing
             this.store = store;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var count = await store.GetFailedAuditsCount();
             if (count > 0)
