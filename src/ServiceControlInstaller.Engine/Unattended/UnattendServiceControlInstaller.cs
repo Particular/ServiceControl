@@ -85,6 +85,8 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
+            ZipInfo.ValidateZip();
+
             instance.ReportCard = new ReportCard();
 
             var restartService = instance.Service.Status == ServiceControllerStatus.Running;
@@ -99,8 +101,6 @@
                 instance.CreateDatabaseBackup();
                 instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
             }
-
-            ZipInfo.ValidateZip();
 
             try
             {
