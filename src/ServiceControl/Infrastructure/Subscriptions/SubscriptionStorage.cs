@@ -12,7 +12,7 @@
     {
         SubscriptionStorage()
         {
-            Prerequisite(c => c.Settings.Get<TransportInfrastructure>().OutboundRoutingPolicy.Publishes == OutboundRoutingType.Unicast, "The transport does not support native pub sub");
+            Prerequisite(c => c.Settings.Get<TransportDefinition>().SupportsPublishSubscribe == false, "The transport supports native pub sub");
         }
 
         protected override void Setup(FeatureConfigurationContext context)

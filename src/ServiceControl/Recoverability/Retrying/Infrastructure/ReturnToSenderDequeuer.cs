@@ -48,7 +48,7 @@ namespace ServiceControl.Recoverability
             if (Log.IsDebugEnabled)
             {
                 var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
-                Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.MessageId, stagingId, InputAddress);
+                Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.NativeMessageId, stagingId, InputAddress);
             }
 
             if (shouldProcess(message))
@@ -58,7 +58,7 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.MessageId);
+                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.NativeMessageId);
             }
         }
 

@@ -23,7 +23,7 @@ namespace ServiceControl.Recoverability
             outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
             byte[] body = null;
-            var messageId = message.MessageId;
+            var messageId = message.NativeMessageId;
             if (Log.IsDebugEnabled)
             {
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
