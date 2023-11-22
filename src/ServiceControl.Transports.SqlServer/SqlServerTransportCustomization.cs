@@ -55,7 +55,7 @@
             }
 
             endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
-            var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
+            var sendOnlyEndpoint = endpointConfig.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
             if (!sendOnlyEndpoint)
             {
                 transport.NativeDelayedDelivery();

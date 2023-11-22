@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -56,7 +57,8 @@
 
         public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
-            var config = RawEndpointConfiguration.CreateSendOnly(name);
+            // TODO NSB8 TransportDefinition temporarily set to null
+            var config = RawEndpointConfiguration.CreateSendOnly(name, default);
 
             CustomizeRawSendOnlyEndpoint(config, transportSettings);
 
@@ -70,11 +72,13 @@
             Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
-            var config = RawEndpointConfiguration.Create(queueName, (mt, _) => onMessage(mt), transportSettings.ErrorQueue);
+            // TODO NSB8 TransportDefinition temporarily set to null
+            var config = RawEndpointConfiguration.Create(queueName, default, (mt, _, __) => onMessage(mt), transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
-            Func<ICriticalErrorContext, Task> onCriticalErrorAction = (cet) => onCriticalError(cet.Error, cet.Exception);
-            config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);
+            // TODO NSB8 Critical error is no longer there but since we move towards the Raw seam it probably doesnt matter
+            //Func<ICriticalErrorContext, Task> onCriticalErrorAction = cet => onCriticalError(cet.Error, cet.Exception);
+            //config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);
 
             config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
 
@@ -86,11 +90,12 @@
 
         public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
-            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, (_, __) => throw new NotImplementedException(), transportSettings.ErrorQueue);
+            // TODO NSB8 TransportDefinition temporarily set to null
+            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, default, (_, __, ___) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
             CustomizeForQueueIngestion(config, transportSettings);
 
-            config.AutoCreateQueues(additionalQueues.ToArray(), username);
+            config.AutoCreateQueues(additionalQueues.ToArray());
 
             //No need to start the raw endpoint to create queues
             return RawEndpoint.Create(config);
@@ -104,7 +109,7 @@
         {
             public IngestionErrorPolicy(Func<ErrorContext, Task<ErrorHandleResult>> onError) => this.onError = onError;
 
-            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
             {
                 return onError(handlingContext.Error);
             }

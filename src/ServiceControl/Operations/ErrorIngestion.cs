@@ -220,7 +220,7 @@
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         IQueueIngestor queueIngestor;
-        IDispatchMessages dispatcher;
+        IMessageDispatcher dispatcher;
 
         readonly Settings settings;
         readonly TransportCustomization transportCustomization;
