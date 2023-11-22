@@ -42,6 +42,7 @@
     <PackageVersion Include="NServiceBus.Metrics" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="4.0.0" />
+    <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="3.0.0" />
     <PackageVersion Include="NServiceBus.Persistence.NonDurable" Version="1.0.0" />
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="8.0.3" />
     <PackageVersion Include="NServiceBus.SagaAudit" Version="4.0.0" />
@@ -75,7 +76,6 @@
 
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Owin.Hosting" Version="4.2.2" />
-    <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="3.0.0" />
     <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />

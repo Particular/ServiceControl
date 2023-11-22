@@ -31,6 +31,7 @@
     <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 

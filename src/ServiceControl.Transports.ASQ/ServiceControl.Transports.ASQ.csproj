@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Transport.AzureStorageQueues" />
   </ItemGroup>
 
