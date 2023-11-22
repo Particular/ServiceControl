@@ -106,7 +106,7 @@
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
 
             config.UseSerialization<NewtonsoftJsonSerializer>();
-            config.UsePersistence<InMemoryPersistence>();
+            config.UsePersistence<NonDurablePersistence>();
             config.SendFailedMessagesTo(settings.ErrorQueue);
             config.DisableFeature<AutoSubscribe>();
 
