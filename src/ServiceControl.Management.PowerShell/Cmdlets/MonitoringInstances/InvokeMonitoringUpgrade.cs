@@ -12,9 +12,6 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
-        public string[] Acknowledgements { get; set; }
-
         protected override void BeginProcessing()
         {
             Account.TestIfAdmin();
@@ -35,7 +32,7 @@ namespace ServiceControl.Management.PowerShell
                     break;
                 }
 
-                var checks = new PowerShellCommandChecks(this, Acknowledgements);
+                var checks = new PowerShellCommandChecks(this);
                 if (!checks.CanUpgradeInstance(instance).GetAwaiter().GetResult())
                 {
                     return;
