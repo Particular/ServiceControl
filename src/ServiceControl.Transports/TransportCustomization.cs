@@ -58,9 +58,10 @@
         public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
             // TODO NSB8 TransportDefinition temporarily set to null
-            var config = RawEndpointConfiguration.CreateSendOnly(name, default);
+            var transport = CreateTransport(transportSettings);
+            var config = RawEndpointConfiguration.CreateSendOnly(name, transport);
 
-            CustomizeRawSendOnlyEndpoint(config, transportSettings);
+            CustomizeRawSendOnlyEndpoint(transport, transportSettings);
 
             return await RawEndpoint.Create(config);
         }
@@ -73,7 +74,8 @@
             Func<string, Exception, Task> onCriticalError)
         {
             // TODO NSB8 TransportDefinition temporarily set to null
-            var config = RawEndpointConfiguration.Create(queueName, default, (mt, _, __) => onMessage(mt), transportSettings.ErrorQueue);
+            var transport = CreateTransport(transportSettings);
+            var config = RawEndpointConfiguration.Create(queueName, transport, (mt, _, __) => onMessage(mt), transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
             // TODO NSB8 Critical error is no longer there but since we move towards the Raw seam it probably doesnt matter
@@ -82,7 +84,7 @@
 
             config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
 
-            CustomizeForQueueIngestion(config, transportSettings);
+            CustomizeForQueueIngestion(transport, transportSettings);
 
             var startableRaw = await RawEndpoint.Create(config);
             return new QueueIngestor(startableRaw);
@@ -91,9 +93,10 @@
         public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             // TODO NSB8 TransportDefinition temporarily set to null
-            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, default, (_, __, ___) => throw new NotImplementedException(), transportSettings.ErrorQueue);
+            var transport = CreateTransport(transportSettings);
+            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, transport, (_, __, ___) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
-            CustomizeForQueueIngestion(config, transportSettings);
+            CustomizeForQueueIngestion(transport, transportSettings);
 
             config.AutoCreateQueues(additionalQueues.ToArray());
 
@@ -101,9 +104,11 @@
             return RawEndpoint.Create(config);
         }
 
-        protected abstract void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        protected abstract void CustomizeRawSendOnlyEndpoint(TransportDefinition transportDefinition, TransportSettings transportSettings);
 
-        protected abstract void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        protected abstract void CustomizeForQueueIngestion(TransportDefinition transportDefinition, TransportSettings transportSettings);
+
+        protected abstract TransportDefinition CreateTransport(TransportSettings transportSettings);
 
         class IngestionErrorPolicy : IErrorHandlingPolicy
         {

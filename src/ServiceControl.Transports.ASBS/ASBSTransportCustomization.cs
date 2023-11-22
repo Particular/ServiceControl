@@ -2,6 +2,7 @@
 {
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
 
     public class ASBSTransportCustomization : TransportCustomization
     {
@@ -52,27 +53,42 @@
             return new QueueLengthProvider();
         }
 
+        protected override void CustomizeRawSendOnlyEndpoint(TransportDefinition transportDefinition, TransportSettings transportSettings)
+        {
+            ((AzureServiceBusTransport)transportDefinition).TransportTransactionMode =
+                TransportTransactionMode.ReceiveOnly;
+        }
+
+        protected override void CustomizeForQueueIngestion(TransportDefinition transportDefinition, TransportSettings transportSettings)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override TransportDefinition CreateTransport(TransportSettings transportSettings)
+        {
+            var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
+            var asb = connectionSettings.AuthenticationMethod.ConfigureConnection(transport);
+            if (connectionSettings.TopicName != null)
+            {
+                asb.TopicName(connectionSettings.TopicName);
+            }
+
+            if (connectionSettings.UseWebSockets)
+            {
+                asb.UseWebSockets();
+            }
+
+            transport.ConfigureNameShorteners();
+            return asb;
+        }
+
         void CustomizeEndpoint(
             TransportExtensions<AzureServiceBusTransport> transport,
             TransportSettings transportSettings,
             TransportTransactionMode transportTransactionMode)
         {
-            var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
-
-            if (connectionSettings.TopicName != null)
-            {
-                transport.TopicName(connectionSettings.TopicName);
-            }
-
-            if (connectionSettings.UseWebSockets)
-            {
-                transport.UseWebSockets();
-            }
-
-            transport.ConfigureNameShorteners();
-            transport.Transactions(transportTransactionMode);
-
-            connectionSettings.AuthenticationMethod.ConfigureConnection(transport);
+            ((AzureServiceBusTransport)transportDefinition).TransportTransactionMode =
+                TransportTransactionMode.ReceiveOnly;
         }
     }
 }
