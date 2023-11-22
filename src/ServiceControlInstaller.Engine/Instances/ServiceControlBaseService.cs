@@ -435,7 +435,14 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void CreateDatabaseBackup()
         {
-            Directory.Move(DBPath, DatabaseBackupPath);
+            try
+            {
+                Directory.Move(DBPath, DatabaseBackupPath);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Could not move {DBPath} to {DatabaseBackupPath}", e);
+            }
         }
 
         public AppConfig AppConfig;

@@ -85,12 +85,6 @@
 
         public bool Upgrade(ServiceControlInstance instance, ServiceControlUpgradeOptions options)
         {
-            if (options.Force)
-            {
-                instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
-            }
-
             ZipInfo.ValidateZip();
 
             instance.ReportCard = new ReportCard();
@@ -100,6 +94,12 @@
             {
                 logger.Error("Service failed to stop or service stop timed out");
                 return false;
+            }
+
+            if (options.Force)
+            {
+                instance.CreateDatabaseBackup();
+                instance.PersistenceManifest = ServiceControlPersisters.GetPrimaryPersistence(StorageEngineNames.RavenDB);
             }
 
             try
