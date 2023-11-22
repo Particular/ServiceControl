@@ -12,9 +12,6 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Disable full text search on audit messages.")]
-        public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
         public string[] Acknowledgements { get; set; }
 
@@ -41,10 +38,6 @@ namespace ServiceControl.Management.PowerShell
                 }
 
                 instance.SkipQueueCreation = SkipQueueCreation;
-                if (DisableFullTextSearchOnBodies)
-                {
-                    instance.EnableFullTextSearchOnBodies = false;
-                }
 
                 var checks = new PowerShellCommandChecks(this, Acknowledgements);
                 if (!checks.CanUpgradeInstance(instance, Force.IsPresent).GetAwaiter().GetResult())
