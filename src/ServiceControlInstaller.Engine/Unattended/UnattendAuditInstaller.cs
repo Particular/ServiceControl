@@ -106,7 +106,6 @@
                 instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
             }
 
-
             try
             {
                 instance.UpgradeTransportSeam();
