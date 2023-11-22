@@ -5,7 +5,6 @@ namespace ServiceControlInstaller.Engine.Instances
     public class ServiceControlUpgradeOptions
     {
         public bool? OverrideEnableErrorForwarding { get; set; }
-        public bool DisableFullTextSearchOnBodies { get; set; }
         public TimeSpan? ErrorRetentionPeriod { get; set; }
         public TimeSpan? AuditRetentionPeriod { get; set; }
         public int? MaintenancePort { get; set; }
@@ -15,11 +14,6 @@ namespace ServiceControlInstaller.Engine.Instances
 
         public void ApplyChangesToInstance(ServiceControlBaseService instance)
         {
-            if (DisableFullTextSearchOnBodies)
-            {
-                instance.EnableFullTextSearchOnBodies = false;
-            }
-
             ApplyChangesTo(instance as ServiceControlInstance);
             ApplyChangesTo(instance as ServiceControlAuditInstance);
 
@@ -36,11 +30,6 @@ namespace ServiceControlInstaller.Engine.Instances
             if (OverrideEnableErrorForwarding.HasValue)
             {
                 instance.ForwardErrorMessages = OverrideEnableErrorForwarding.Value;
-            }
-
-            if (DisableFullTextSearchOnBodies)
-            {
-                instance.EnableFullTextSearchOnBodies = false;
             }
 
             if (ErrorRetentionPeriod.HasValue)

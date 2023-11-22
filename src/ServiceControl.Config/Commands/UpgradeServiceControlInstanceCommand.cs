@@ -119,26 +119,6 @@
                 }
             }
 
-            if (!instance.AppConfig.AppSettingExists(ServiceControlSettings.EnableFullTextSearchOnBodies.Name))
-            {
-                var dialogResult = await windowManager.ShowYesNoCancelDialog(
-                    "INPUT REQUIRED - FULL TEXT SEARCH ON MESSAGE BODIES",
-                    "ServiceControl indexes message bodies to enable searching for messages by their contents in ServiceInsight. This has a performance impact on the ServiceControl instance and the feature can be disabled if it is not required.", "Do you want to disable full text search for message bodies?", "YES", "NO");
-                if (dialogResult.HasValue)
-                {
-                    if (dialogResult.Value)
-                    {
-                        upgradeOptions.DisableFullTextSearchOnBodies = true;
-                    }
-                }
-                else
-                {
-                    //Dialog was cancelled
-                    await eventAggregator.PublishOnUIThreadAsync(new RefreshInstances());
-                    return;
-                }
-            }
-
             if (await commandChecks.StopBecauseInstanceIsRunning(instance))
             {
                 return;
