@@ -71,7 +71,7 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public MyContext TestContext { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                public IReadOnlySettings Settings { get; set; }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {

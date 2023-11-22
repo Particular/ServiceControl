@@ -51,7 +51,7 @@
             auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
         }
 
-        public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher)
         {
             if (log.IsDebugEnabled)
             {
@@ -92,7 +92,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IDispatchMessages dispatcher)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IMessageDispatcher dispatcher)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -127,7 +127,7 @@
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
+        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher)
         {
             if (!settings.ForwardAuditMessages)
             {

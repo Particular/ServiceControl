@@ -346,7 +346,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             {
                 public MyContext Context { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
+                public IReadOnlySettings Settings { get; set; }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
@@ -374,7 +374,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             {
                 public MyContext Context { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
+                public IReadOnlySettings Settings { get; set; }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
@@ -387,7 +387,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         }
         class MySuperSerializer : SerializationDefinition
         {
-            public override Func<IMessageMapper, IMessageSerializer> Configure(ReadOnlySettings settings)
+            public override Func<IMessageMapper, IMessageSerializer> Configure(IReadOnlySettings settings)
             {
                 return mapper => new MyCustomSerializer();
             }

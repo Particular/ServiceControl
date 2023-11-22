@@ -236,7 +236,7 @@
         }
 
         IQueueIngestor queueIngestor;
-        IDispatchMessages dispatcher;
+        IMessageDispatcher dispatcher;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;

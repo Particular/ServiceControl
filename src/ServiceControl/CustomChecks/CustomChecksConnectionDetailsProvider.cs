@@ -9,7 +9,7 @@
     {
         readonly string instanceMainQueue;
 
-        public CustomChecksPlatformConnectionDetailsProvider(ReadOnlySettings endpointSettings)
+        public CustomChecksPlatformConnectionDetailsProvider(IReadOnlySettings endpointSettings)
             => instanceMainQueue = endpointSettings.LocalAddress();
 
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)

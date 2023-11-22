@@ -10,7 +10,7 @@
 
     class TaggedLongValueWriterOccurrenceSerializerDefinition : SerializationDefinition
     {
-        public override Func<IMessageMapper, IMessageSerializer> Configure(ReadOnlySettings settings)
+        public override Func<IMessageMapper, IMessageSerializer> Configure(IReadOnlySettings settings)
         {
             return mapper => new TaggedLongValueSerializer();
         }
@@ -34,9 +34,10 @@
         //+-------+-------+-------+-------+---------------+-------+-------+
         //|    value 1    | date2 | tag2  |     value 2   | date3 | ...   |
         //+-------+---------------+-------+---------------+-------+-------+
-        public object[] Deserialize(Stream stream, IList<Type> messageTypes = null)
+        public object[] Deserialize(ReadOnlyMemory<byte> body, IList<Type> messageTypes = null)
         {
-            var reader = new BinaryReader(stream);
+            //TODO clean up ReadOnlyMemory conversion
+            var reader = new BinaryReader(new MemoryStream(body.ToArray(), 0, body.Length));
 
             var version = reader.ReadInt64();
 

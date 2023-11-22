@@ -16,7 +16,7 @@
 
     class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings)
+        public MessageStreamerConnection(IMessageDispatcher sender, IReadOnlySettings settings)
         {
             var conventions = settings.Get<Conventions>();
             this.sender = sender;
@@ -54,7 +54,7 @@
         }
 
         readonly Dictionary<string, string> messageTypes;
-        readonly IDispatchMessages sender;
+        readonly IMessageDispatcher sender;
         string localAddress;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));

@@ -288,7 +288,7 @@
             }
         }
 
-        public class TestSender : IDispatchMessages
+        public class TestSender : IMessageDispatcher
         {
             public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
 

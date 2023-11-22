@@ -19,7 +19,7 @@
         protected override void Setup(FeatureConfigurationContext context)
         {
             context.RegisterStartupTask(b => new DispatchTask(
-                b.Build<IDispatchMessages>(),
+                b.Build<IMessageDispatcher>(),
                 () => CreateMessage((TContext)b.Build<ScenarioContext>()),
                 s => BeforeDispatch(s, (TContext)b.Build<ScenarioContext>()),
                 s => AfterDispatch(s, (TContext)b.Build<ScenarioContext>()),
@@ -40,7 +40,7 @@
 
         class DispatchTask : FeatureStartupTask
         {
-            public DispatchTask(IDispatchMessages dispatcher, Func<TransportOperations> operationFactory, Func<IMessageSession, Task> before, Func<IMessageSession, Task> after, ScenarioContext scenarioContext)
+            public DispatchTask(IMessageDispatcher dispatcher, Func<TransportOperations> operationFactory, Func<IMessageSession, Task> before, Func<IMessageSession, Task> after, ScenarioContext scenarioContext)
             {
                 this.after = after;
                 this.scenarioContext = scenarioContext;
@@ -72,7 +72,7 @@
                 return Task.FromResult(0);
             }
 
-            IDispatchMessages dispatchMessages;
+            IMessageDispatcher dispatchMessages;
             Func<TransportOperations> operationFactory;
             Func<IMessageSession, Task> before;
             Func<IMessageSession, Task> after;

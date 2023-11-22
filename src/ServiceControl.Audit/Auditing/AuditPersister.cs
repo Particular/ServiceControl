@@ -39,7 +39,7 @@
             this.messageSession = messageSession;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IMessageDispatcher dispatcher)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -191,7 +191,7 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessMessage(MessageContext context, IMessageDispatcher dispatcher)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -232,7 +232,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessAuditMessage(MessageContext context, IMessageDispatcher dispatcher)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {

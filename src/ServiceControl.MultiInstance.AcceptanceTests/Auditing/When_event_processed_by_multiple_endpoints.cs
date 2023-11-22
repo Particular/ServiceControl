@@ -76,9 +76,9 @@
             class SomeEventHandler : IHandleMessages<SomeEvent>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public SomeEventHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public SomeEventHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -106,9 +106,9 @@
             class SomeEventHandler : IHandleMessages<SomeEvent>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public SomeEventHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public SomeEventHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

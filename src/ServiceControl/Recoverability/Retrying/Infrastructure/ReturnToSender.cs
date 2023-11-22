@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
             this.errorMessageStore = errorMessageStore;
         }
 
-        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
+        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 

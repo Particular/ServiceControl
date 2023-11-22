@@ -85,14 +85,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
             public class FailingMessageHandler : IHandleMessages<Meow>
             {
-                public FailingMessageHandler(MeowContext scenarioContext, ReadOnlySettings settings)
+                public FailingMessageHandler(MeowContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
 
                 readonly MeowContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
                 public Task Handle(Meow message, IMessageHandlerContext context)
                 {

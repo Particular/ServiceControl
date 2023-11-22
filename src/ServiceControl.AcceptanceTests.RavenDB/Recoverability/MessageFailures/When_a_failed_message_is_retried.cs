@@ -243,9 +243,9 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -312,9 +312,9 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

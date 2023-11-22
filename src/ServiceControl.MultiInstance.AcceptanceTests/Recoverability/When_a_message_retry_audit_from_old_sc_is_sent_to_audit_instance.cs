@@ -89,7 +89,7 @@
             {
                 public MyContext Context { get; set; }
 
-                public ReadOnlySettings Settings { get; set; }
+                public IReadOnlySettings Settings { get; set; }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {

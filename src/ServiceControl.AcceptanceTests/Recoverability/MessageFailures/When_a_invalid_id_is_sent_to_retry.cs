@@ -56,9 +56,9 @@
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MessageThatWillFailHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

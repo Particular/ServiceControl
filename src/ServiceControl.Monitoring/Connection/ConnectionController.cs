@@ -12,7 +12,7 @@
         readonly string mainInputQueue;
         readonly TimeSpan defaultInterval = TimeSpan.FromSeconds(1);
 
-        public ConnectionController(ReadOnlySettings nsbSettings) => mainInputQueue = nsbSettings.LocalAddress();
+        public ConnectionController(IReadOnlySettings nsbSettings) => mainInputQueue = nsbSettings.LocalAddress();
 
         [Route("connection")]
         [HttpGet]

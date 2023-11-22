@@ -15,7 +15,7 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IDispatchMessages dispatcher)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
@@ -109,7 +109,7 @@
         readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
         readonly IErrorMessageDataStore store;
         readonly IMessageRedirectsDataStore redirectsStore;
-        readonly IDispatchMessages dispatcher;
+        readonly IMessageDispatcher dispatcher;
         static readonly ILog log = LogManager.GetLogger<EditHandler>();
     }
 }

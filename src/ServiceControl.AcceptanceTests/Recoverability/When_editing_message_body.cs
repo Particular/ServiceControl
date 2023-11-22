@@ -81,7 +81,7 @@
 
             class EditedMessageHandler : IHandleMessages<EditMessage>
             {
-                public EditedMessageHandler(EditMessageContext testContext, ReadOnlySettings settings)
+                public EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
                 {
                     this.testContext = testContext;
                     this.settings = settings;
@@ -104,7 +104,7 @@
                 }
 
                 EditMessageContext testContext;
-                ReadOnlySettings settings;
+                IReadOnlySettings settings;
             }
         }
 

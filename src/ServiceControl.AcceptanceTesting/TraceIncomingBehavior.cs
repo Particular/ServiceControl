@@ -10,7 +10,7 @@ namespace ServiceControl.AcceptanceTesting
 
     public class TraceIncomingBehavior : IBehavior<IIncomingLogicalMessageContext, IIncomingLogicalMessageContext>
     {
-        public TraceIncomingBehavior(ScenarioContext scenarioContext, ReadOnlySettings settings)
+        public TraceIncomingBehavior(ScenarioContext scenarioContext, IReadOnlySettings settings)
         {
             this.scenarioContext = scenarioContext;
             this.settings = settings;
@@ -29,7 +29,7 @@ namespace ServiceControl.AcceptanceTesting
         }
 
         ScenarioContext scenarioContext;
-        ReadOnlySettings settings;
+        IReadOnlySettings settings;
 
         public class Registration : RegisterStep
         {

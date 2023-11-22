@@ -60,9 +60,9 @@
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MessageToRetryHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MessageToRetryHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

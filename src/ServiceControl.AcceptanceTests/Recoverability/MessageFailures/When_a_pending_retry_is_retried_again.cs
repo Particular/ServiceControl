@@ -61,14 +61,14 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
 
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {

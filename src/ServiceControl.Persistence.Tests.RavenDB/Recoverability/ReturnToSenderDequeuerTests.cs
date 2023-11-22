@@ -136,7 +136,7 @@
             Assert.IsTrue(message.Headers.ContainsKey("ServiceControl.Retry.Attempt.MessageId"));
         }
 
-        class FaultySender : IDispatchMessages
+        class FaultySender : IMessageDispatcher
         {
             public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
             {
@@ -144,7 +144,7 @@
             }
         }
 
-        class FakeSender : IDispatchMessages
+        class FakeSender : IMessageDispatcher
         {
             public OutgoingMessage Message { get; private set; }
             public string Destination { get; private set; }

@@ -97,7 +97,7 @@
 
             class FailingMessageHandler : IHandleMessages<FailingMessage>
             {
-                public FailingMessageHandler(EditMessageFailureContext testContext, ReadOnlySettings settings)
+                public FailingMessageHandler(EditMessageFailureContext testContext, IReadOnlySettings settings)
                 {
                     this.testContext = testContext;
                     this.settings = settings;
@@ -118,7 +118,7 @@
                 }
 
                 EditMessageFailureContext testContext;
-                ReadOnlySettings settings;
+                IReadOnlySettings settings;
             }
         }
 

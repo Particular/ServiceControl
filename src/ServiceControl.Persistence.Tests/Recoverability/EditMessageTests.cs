@@ -24,7 +24,7 @@
         public EditMessageTests()
         {
             RegisterServices = services => services
-                .AddSingleton<IDispatchMessages>(dispatcher)
+                .AddSingleton<IMessageDispatcher>(dispatcher)
                 .AddTransient<EditHandler>();
         }
 
@@ -242,7 +242,7 @@
         }
     }
 
-    public sealed class TestableUnicastDispatcher : IDispatchMessages
+    public sealed class TestableUnicastDispatcher : IMessageDispatcher
     {
         public List<(UnicastTransportOperation, TransportTransaction, ContextBag)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction, ContextBag)>();
 

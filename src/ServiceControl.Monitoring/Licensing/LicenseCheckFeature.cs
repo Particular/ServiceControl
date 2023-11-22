@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
 
@@ -10,8 +11,8 @@
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.Container.ConfigureComponent<LicenseManager>(DependencyLifecycle.SingleInstance);
-            context.RegisterStartupTask(b => b.Build<LicenseCheckFeatureStartup>());
+            context.Services.AddSingleton<LicenseManager>();
+            context.RegisterStartupTask(b => b.GetRequiredService<LicenseCheckFeatureStartup>());
         }
     }
 
@@ -27,12 +28,12 @@
             checklicenseTimer?.Dispose();
         }
 
-        protected override Task OnStart(IMessageSession session)
+        protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
         {
             return Task.Run(() => checklicenseTimer = new Timer(objectstate => { licenseManager.Refresh(); }, null, TimeSpan.Zero, TimeSpan.FromHours(8)));
         }
 
-        protected override Task OnStop(IMessageSession session)
+        protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(0);
         }

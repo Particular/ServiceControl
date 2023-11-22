@@ -138,7 +138,7 @@
 
             return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
         }
-        protected Task<IDispatchMessages> CreateDispatcher(string endpointName)
+        protected Task<IMessageDispatcher> CreateDispatcher(string endpointName)
         {
             var transportSettings = new TransportSettings
             {

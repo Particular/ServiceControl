@@ -43,7 +43,7 @@ namespace ServiceControl.Recoverability
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        async Task Handle(MessageContext message, IDispatchMessages sender)
+        async Task Handle(MessageContext message, IMessageDispatcher sender)
         {
             if (Log.IsDebugEnabled)
             {
@@ -215,7 +215,7 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher)
             {
                 try
                 {

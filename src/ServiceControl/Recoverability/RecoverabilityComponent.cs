@@ -292,7 +292,7 @@
 
             RetryProcessor processor;
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
-            IDispatchMessages dispatcher;
+            IMessageDispatcher dispatcher;
         }
     }
 }

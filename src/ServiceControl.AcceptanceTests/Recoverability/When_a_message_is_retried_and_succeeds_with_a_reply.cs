@@ -88,7 +88,7 @@
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
                 public RetryReplyContext Context { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                public IReadOnlySettings Settings { get; set; }
 
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {

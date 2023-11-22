@@ -10,7 +10,7 @@
 
     static class TestDispatcherExtensions
     {
-        public static Task SendTestMessage(this IDispatchMessages dispatcher, string queue, string content)
+        public static Task SendTestMessage(this IMessageDispatcher dispatcher, string queue, string content)
         {
             var transportOperation = new TransportOperation(
              new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>(),

@@ -42,7 +42,7 @@ namespace ServiceControl.Transports
         protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
         protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        public System.Threading.Tasks.Task<NServiceBus.Transport.IDispatchMessages> InitializeDispatcher(string name, ServiceControl.Transports.TransportSettings transportSettings) { }
+        public System.Threading.Tasks.Task<NServiceBus.Transport.IMessageDispatcher> InitializeDispatcher(string name, ServiceControl.Transports.TransportSettings transportSettings) { }
         public System.Threading.Tasks.Task<ServiceControl.Transports.IQueueIngestor> InitializeQueueIngestor(string queueName, ServiceControl.Transports.TransportSettings transportSettings, System.Func<NServiceBus.Transport.MessageContext, System.Threading.Tasks.Task> onMessage, System.Func<NServiceBus.Transport.ErrorContext, System.Threading.Tasks.Task<NServiceBus.Transport.ErrorHandleResult>> onError, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError) { }
         public virtual System.Threading.Tasks.Task ProvisionQueues(string username, ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
     }

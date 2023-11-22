@@ -12,7 +12,7 @@
         readonly Settings settings;
         readonly string instanceMainQueue;
 
-        public HeartbeatsPlatformConnectionDetailsProvider(Settings settings, ReadOnlySettings endpointSettings)
+        public HeartbeatsPlatformConnectionDetailsProvider(Settings settings, IReadOnlySettings endpointSettings)
         {
             this.settings = settings;
             instanceMainQueue = endpointSettings.LocalAddress();
