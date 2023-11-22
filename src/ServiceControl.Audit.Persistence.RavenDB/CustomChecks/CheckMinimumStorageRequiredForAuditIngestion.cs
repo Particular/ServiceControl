@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
@@ -16,7 +17,7 @@
             this.databaseConfiguration = databaseConfiguration;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var percentageThreshold = databaseConfiguration.MinimumStorageLeftRequiredForIngestion / 100m;
 

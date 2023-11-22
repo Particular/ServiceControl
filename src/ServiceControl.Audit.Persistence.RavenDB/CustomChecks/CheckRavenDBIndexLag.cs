@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Audit.Persistence.RavenDB;
     using NServiceBus.CustomChecks;
@@ -17,10 +18,10 @@
             this.documentStoreProvider = documentStoreProvider;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var store = documentStoreProvider.GetDocumentStore();
-            var statistics = await store.Maintenance.SendAsync(new GetStatisticsOperation());
+            var statistics = await store.Maintenance.SendAsync(new GetStatisticsOperation(), cancellationToken);
             var indexes = statistics.Indexes.OrderBy(x => x.Name).ToArray();
 
             CreateDiagnosticsLogEntry(statistics, indexes);

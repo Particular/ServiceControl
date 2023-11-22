@@ -21,8 +21,8 @@
 
     class RavenSubscriptionStorage : IServiceControlSubscriptionStorage
     {
-        public RavenSubscriptionStorage(IDocumentStore store, ReadOnlySettings settings) :
-            this(store, settings.EndpointName(), settings.LocalAddress(), settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
+        public RavenSubscriptionStorage(IDocumentStore store, IReadOnlySettings settings, ReceiveAddresses receiveAddresses) :
+            this(store, settings.EndpointName(), receiveAddresses.MainReceiveAddress, settings.GetAvailableTypes().Implementing<IEvent>().Select(e => new MessageType(e)).ToArray())
         {
         }
 
@@ -51,7 +51,7 @@
             }
         }
 
-        public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
+        public async Task Subscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken)
         {
             if (subscriber.Endpoint == localClient.Endpoint)
             {
@@ -60,7 +60,7 @@
 
             try
             {
-                await subscriptionsLock.WaitAsync();
+                await subscriptionsLock.WaitAsync(cancellationToken);
 
                 if (AddOrUpdateSubscription(messageType, subscriber))
                 {
@@ -73,11 +73,11 @@
             }
         }
 
-        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context)
+        public async Task Unsubscribe(Subscriber subscriber, MessageType messageType, ContextBag context, CancellationToken cancellationToken)
         {
             try
             {
-                await subscriptionsLock.WaitAsync();
+                await subscriptionsLock.WaitAsync(cancellationToken);
 
                 var needsSave = false;
                 if (subscriptions.All.TryGetValue(FormatId(messageType), out var subscription))
@@ -100,7 +100,7 @@
             }
         }
 
-        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context)
+        public Task<IEnumerable<Subscriber>> GetSubscriberAddressesForMessage(IEnumerable<MessageType> messageTypes, ContextBag context, CancellationToken cancellationToken)
         {
             return Task.FromResult(messageTypes.SelectMany(x => subscriptionsLookup[x]).Distinct());
         }

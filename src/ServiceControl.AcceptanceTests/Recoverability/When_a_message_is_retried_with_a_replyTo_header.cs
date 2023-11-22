@@ -76,7 +76,7 @@
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader)),
                         ["NServiceBus.TimeOfFailure"] = "2014-11-11 02:26:58:000462 Z",
                         [Headers.EnclosedMessageTypes] = typeof(OriginalMessage).AssemblyQualifiedName,
-                        [Headers.MessageIntent] = MessageIntentEnum.Send.ToString()
+                        [Headers.MessageIntent] = MessageIntent.Send.ToString()
                     };
 
                     var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);

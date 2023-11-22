@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
 
@@ -17,7 +18,7 @@
             this.stateHolder = stateHolder;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var failedEndpoints = stateHolder.GetFailedEndpoints();
 

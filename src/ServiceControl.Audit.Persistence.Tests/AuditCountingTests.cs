@@ -8,6 +8,7 @@
     using Particular.Approvals;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Monitoring;
+    using DateTimeExtensions = ServiceControl.Audit.Auditing.DateTimeExtensions;
 
     [TestFixture]
     class AuditCountingTests : PersistenceTestFixture
@@ -77,7 +78,7 @@
             var metadata = new Dictionary<string, object>
             {
                 { "MessageId", Guid.NewGuid().ToString() },
-                { "MessageIntent", MessageIntentEnum.Send },
+                { "MessageIntent", MessageIntent.Send },
                 { "CriticalTime", TimeSpan.FromSeconds(5) },
                 { "ProcessingTime", processingTime },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
@@ -92,7 +93,7 @@
             {
                 { Headers.MessageId, messageId },
                 { Headers.ProcessingEndpoint, processingEndpoint },
-                { Headers.MessageIntent, nameof(MessageIntentEnum.Send) },
+                { Headers.MessageIntent, nameof(MessageIntent.Send) },
                 { Headers.ConversationId, messageId },
                 { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted) },
                 { Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(processedAt) },

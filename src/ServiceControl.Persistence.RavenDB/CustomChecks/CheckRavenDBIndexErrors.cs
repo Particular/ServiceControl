@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
@@ -17,7 +18,7 @@
             this.store = store;
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             var response = store.Maintenance.Send(new GetIndexErrorsOperation());
 

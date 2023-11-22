@@ -71,7 +71,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                     //Do not filter out subscribe messages as they can't be stamped
                     if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                            && intent == MessageIntentEnum.Subscribe.ToString())
+                            && intent == MessageIntent.Subscribe.ToString())
                     {
                         return @continue();
                     }

@@ -23,7 +23,7 @@ namespace ServiceControl.CompositeViews.Messages
         public string ConversationId { get; set; }
         public IEnumerable<KeyValuePair<string, object>> Headers { get; set; }
         public MessageStatus Status { get; set; }
-        public MessageIntentEnum MessageIntent { get; set; }
+        public MessageIntent MessageIntent { get; set; }
         public string BodyUrl { get; set; }
         public int BodySize { get; set; }
         public List<SagaInfo> InvokedSagas { get; set; }

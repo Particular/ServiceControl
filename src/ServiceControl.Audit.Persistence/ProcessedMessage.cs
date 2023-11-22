@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using NServiceBus;
     using ServiceControl.Audit.Persistence.Infrastructure;
 
     public class ProcessedMessage

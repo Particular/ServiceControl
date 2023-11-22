@@ -72,7 +72,7 @@
 
             Assert.AreEqual(TimeSpan.Zero, failedMessage.ProcessingTime, "Processing time should not be calculated");
             Assert.AreEqual(TimeSpan.Zero, failedMessage.CriticalTime, "Critical time should be not calculated");
-            Assert.AreEqual(MessageIntentEnum.Send, failedMessage.MessageIntent, "Message intent should be set");
+            Assert.AreEqual(MessageIntent.Send, failedMessage.MessageIntent, "Message intent should be set");
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
