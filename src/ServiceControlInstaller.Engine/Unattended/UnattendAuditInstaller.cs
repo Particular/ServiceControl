@@ -89,12 +89,6 @@
 
         public bool Upgrade(ServiceControlAuditInstance instance, bool force)
         {
-            if (force)
-            {
-                instance.CreateDatabaseBackup();
-                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
-            }
-
             ZipInfo.ValidateZip();
 
             instance.ReportCard = new ReportCard();
@@ -105,6 +99,13 @@
                 logger.Error("Service failed to stop or service stop timed out");
                 return false;
             }
+
+            if (force)
+            {
+                instance.CreateDatabaseBackup();
+                instance.PersistenceManifest = ServiceControlPersisters.GetAuditPersistence(StorageEngineNames.RavenDB);
+            }
+
 
             try
             {
