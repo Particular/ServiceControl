@@ -65,14 +65,6 @@ ServiceControl Audit Version:				{version}
             nlogConfig.AddTarget("raven", ravenFileTarget);
             nlogConfig.AddTarget("null", nullTarget);
 
-            // Only want to see raven errors
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", loggingSettings.RavenDBLogLevel, ravenFileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Error, consoleTarget)); //Noise reduction - Only RavenDB errors on the console
-            nlogConfig.LoggingRules.Add(new LoggingRule("Raven.*", LogLevel.Debug, nullTarget)
-            {
-                Final = true
-            }); //Will swallow debug and above messages
-
             // Always want to see license logging regardless of default logging level
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
             nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)

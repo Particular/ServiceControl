@@ -19,7 +19,7 @@
 
             using (var tokenSource = new CancellationTokenSource())
             {
-                var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info, LogLevel.Info);
+                var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
                 var bootstrapper = new Bootstrapper(
                     ctx => { tokenSource.Cancel(); },
                     settings,

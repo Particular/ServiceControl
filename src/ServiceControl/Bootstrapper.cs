@@ -150,7 +150,6 @@ Error Retention Period:             {settings.ErrorRetentionPeriod}
 Ingest Error Messages:              {settings.IngestErrorMessages}
 Forwarding Error Messages:          {settings.ForwardErrorMessages}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
-RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
