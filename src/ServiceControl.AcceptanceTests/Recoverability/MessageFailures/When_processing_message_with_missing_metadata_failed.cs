@@ -103,7 +103,7 @@
                     };
                     if (context.TimeSent.HasValue)
                     {
-                        headers["NServiceBus.TimeSent"] = DateTimeExtensions.ToWireFormattedString(context.TimeSent.Value);
+                        headers["NServiceBus.TimeSent"] = DateTimeOffsetHelper.ToWireFormattedString(context.TimeSent.Value);
                     }
 
                     var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);

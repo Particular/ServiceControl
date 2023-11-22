@@ -87,7 +87,7 @@
                     var transportOperations = Enumerable.Range(0, NumberOfFailedAttempts)
                         .Select(i =>
                         {
-                            var timeOfFailure = DateTimeExtensions.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
+                            var timeOfFailure = DateTimeOffsetHelper.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
 
                             var headers = new Dictionary<string, string>
                             {

@@ -8,7 +8,6 @@
     using Particular.Approvals;
     using ServiceControl.Audit.Auditing;
     using ServiceControl.Audit.Monitoring;
-    using DateTimeExtensions = ServiceControl.Audit.Auditing.DateTimeExtensions;
 
     [TestFixture]
     class AuditCountingTests : PersistenceTestFixture
@@ -95,8 +94,8 @@
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, nameof(MessageIntent.Send) },
                 { Headers.ConversationId, messageId },
-                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted) },
-                { Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(processedAt) },
+                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted) },
+                { Headers.ProcessingEnded, DateTimeOffsetHelper.ToWireFormattedString(processedAt) },
                 { Headers.EnclosedMessageTypes, messageType }
             };
 

@@ -255,7 +255,7 @@
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId },
-                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
+                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
                 { Headers.EnclosedMessageTypes, messageType }
             };
 

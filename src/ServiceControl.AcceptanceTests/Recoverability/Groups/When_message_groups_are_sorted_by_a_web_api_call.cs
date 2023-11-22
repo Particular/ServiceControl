@@ -115,7 +115,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
                         {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))},
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
-                        {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
+                        {Headers.TimeSent, DateTimeOffsetHelper.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"}
                     }, new byte[0]);
                     return msg;

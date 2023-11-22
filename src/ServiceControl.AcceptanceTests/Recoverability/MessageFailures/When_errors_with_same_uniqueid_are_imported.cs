@@ -124,7 +124,7 @@
                                 ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                                 ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                                 ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
-                                ["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(failureTimes[failureNo]),
+                                ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(failureTimes[failureNo]),
                                 ["Counter"] = i.ToString()
                             };
 

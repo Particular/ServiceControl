@@ -1,16 +1,10 @@
 namespace ServiceControl.Persistence
 {
     using System;
-    using System.Globalization;
 
     // TODO NSB8 This class has been copied from Core 7 for now. Let´s check if we can get rid of it or put it somewhere else
     static class DateTimeExtensions
     {
-        public static string ToWireFormattedString(DateTime dateTime)
-        {
-            return dateTime.ToUniversalTime().ToString(format, CultureInfo.InvariantCulture);
-        }
-
         public static DateTime ToUtcDateTime(string wireFormattedString)
         {
             if (wireFormattedString.Length != format.Length)
