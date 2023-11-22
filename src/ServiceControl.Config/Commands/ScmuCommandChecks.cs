@@ -83,5 +83,11 @@
                 "Do you want to proceed?",
                 "Yes, I want to proceed", "No");
         }
+
+        protected override Task<bool> PromptToContinueWithForcedUpgrade()
+        {
+            return windowManager.ShowMessage("Forced migration",
+                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes");
+        }
     }
 }

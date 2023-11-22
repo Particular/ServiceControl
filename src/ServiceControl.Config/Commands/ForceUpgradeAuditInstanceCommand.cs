@@ -1,7 +1,6 @@
 namespace ServiceControl.Config.Commands;
 
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using Events;
@@ -19,7 +18,7 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
         IEventAggregator eventAggregator,
         ServiceControlAuditInstanceInstaller serviceControlAuditInstaller,
         ScmuCommandChecks commandChecks
-        ) : base(ForcedUpgradeAllowed)
+        ) : base(null)
     {
         this.windowManager = windowManager;
         this.eventAggregator = eventAggregator;
@@ -27,32 +26,12 @@ class ForceUpgradeAuditInstanceCommand : AwaitableAbstractCommand<ServiceControl
         this.commandChecks = commandChecks;
     }
 
-    static bool ForcedUpgradeAllowed(ServiceControlAdvancedViewModel model)
-    {
-        var instance = InstanceFinder.ServiceControlAuditInstances().FirstOrDefault(i => i.Name == model.Name);
-
-        //HINT: Force upgrade is available only primary v4 instance, running on RavenDB 3.5
-        return instance != null && instance.Version.Major == 4 && instance.PersistenceManifest.Name != StorageEngineNames.RavenDB;
-    }
     public override async Task ExecuteAsync(ServiceControlAdvancedViewModel model)
     {
-        if (!ForcedUpgradeAllowed(model))
-        {
-            await windowManager.ShowMessage("Cannot run the command", "Only ServiceControl 4.x primary instances that use RavenDB 3.5 persistence can be force-upgraded.", hideCancel: true);
-
-            return;
-        }
-
         var instance = InstanceFinder.FindInstanceByName<ServiceControlAuditInstance>(model.Name);
         instance.Service.Refresh();
 
         if (!await commandChecks.CanUpgradeInstance(instance, forceUpgradeDb: true))
-        {
-            return;
-        }
-
-        if (await windowManager.ShowMessage("Forced migration",
-                "Do you want to proceed with forced migration to ServiceControl 5? The current RavenDB 3.5 database will be moved aside and a new database will be created.", "Yes") == false)
         {
             return;
         }
