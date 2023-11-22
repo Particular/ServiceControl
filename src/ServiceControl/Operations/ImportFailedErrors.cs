@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using Persistence;
@@ -16,13 +17,15 @@
             ErrorIngestor errorIngestor,
             Settings settings,
             TransportCustomization transportCustomization,
-            TransportSettings transportSettings)
+            TransportSettings transportSettings,
+            ReceiveAddresses receiveAddresses)
         {
             this.store = store;
             this.errorIngestor = errorIngestor;
             this.settings = settings;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
+            this.receiveAddresses = receiveAddresses;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
@@ -36,8 +39,8 @@
 
             await store.ProcessFailedErrorImports(async transportMessage =>
             {
-                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers,
-                    transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                //TODO decent chance adding ReceiveAddresses here isn't correct, but wasn't clear how else to get the info since it's passed to the MessagePump ctor
+                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, receiveAddresses.MainReceiveAddress, EmptyContextBag);
                 var taskCompletionSource =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
@@ -52,8 +55,9 @@
         readonly Settings settings;
         readonly TransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        readonly ReceiveAddresses receiveAddresses;
+
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
-        static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
         static readonly ContextBag EmptyContextBag = new ContextBag();
     }
 }
