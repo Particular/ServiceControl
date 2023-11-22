@@ -98,13 +98,13 @@
             bool isOriginalMessageId = true;
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
-                messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+                messageId = DeterministicGuid.MakeId(context.NativeMessageId).ToString();
                 isOriginalMessageId = false;
             }
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.DebugFormat("Ingesting error message {0} (original message id: {1})", context.MessageId, isOriginalMessageId ? messageId : string.Empty);
+                Logger.DebugFormat("Ingesting error message {0} (original message id: {1})", context.NativeMessageId, isOriginalMessageId ? messageId : string.Empty);
             }
 
             try
@@ -129,7 +129,7 @@
             {
                 if (Logger.IsWarnEnabled)
                 {
-                    Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.MessageId, e);
+                    Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.NativeMessageId, e);
                 }
 
                 context.GetTaskCompletionSource().TrySetException(e);

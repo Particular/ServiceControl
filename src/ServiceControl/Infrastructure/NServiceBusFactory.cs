@@ -49,7 +49,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
+            configuration.DefineCriticalErrorAction((criticalErrorContext, _) => CriticalErrorCustomCheck.OnCriticalError(criticalErrorContext));
         }
 
         static bool IsExternalContract(Type t)

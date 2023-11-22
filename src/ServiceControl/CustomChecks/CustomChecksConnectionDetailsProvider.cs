@@ -3,14 +3,13 @@
     using System.Threading.Tasks;
     using Connection;
     using NServiceBus;
-    using NServiceBus.Settings;
 
     class CustomChecksPlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
     {
         readonly string instanceMainQueue;
 
-        public CustomChecksPlatformConnectionDetailsProvider(IReadOnlySettings endpointSettings)
-            => instanceMainQueue = endpointSettings.LocalAddress();
+        public CustomChecksPlatformConnectionDetailsProvider(ReceiveAddresses receiveAddresses)
+            => instanceMainQueue = receiveAddresses.MainReceiveAddress;
 
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)
         {

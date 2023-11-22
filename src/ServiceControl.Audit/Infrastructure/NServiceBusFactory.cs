@@ -54,7 +54,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            configuration.DefineCriticalErrorAction(criticalErrorContext =>
+            configuration.DefineCriticalErrorAction((criticalErrorContext, _) =>
             {
                 onCriticalError(criticalErrorContext);
                 return Task.FromResult(0);

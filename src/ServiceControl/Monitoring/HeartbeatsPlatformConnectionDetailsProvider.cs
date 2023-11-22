@@ -4,7 +4,6 @@
     using System.Threading.Tasks;
     using Connection;
     using NServiceBus;
-    using NServiceBus.Settings;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class HeartbeatsPlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
@@ -12,10 +11,10 @@
         readonly Settings settings;
         readonly string instanceMainQueue;
 
-        public HeartbeatsPlatformConnectionDetailsProvider(Settings settings, IReadOnlySettings endpointSettings)
+        public HeartbeatsPlatformConnectionDetailsProvider(Settings settings, ReceiveAddresses receiveAddresses)
         {
             this.settings = settings;
-            instanceMainQueue = endpointSettings.LocalAddress();
+            instanceMainQueue = receiveAddresses.MainReceiveAddress;
         }
 
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection)

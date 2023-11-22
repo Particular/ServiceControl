@@ -15,7 +15,7 @@
 
     class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(IMessageDispatcher sender, IReadOnlySettings settings)
+        public MessageStreamerConnection(IMessageDispatcher sender, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
         {
             var conventions = settings.Get<Conventions>();
             this.sender = sender;
@@ -24,7 +24,7 @@
                 .Where(conventions.IsMessageType)
                 .GroupBy(x => x.Name)
                 .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
-            localAddress = settings.LocalAddress();
+            localAddress = receiveAddresses.MainReceiveAddress;
         }
 
         protected override async Task OnReceived(IRequest request, string connectionId, string data)
