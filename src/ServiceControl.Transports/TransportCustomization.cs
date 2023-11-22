@@ -49,13 +49,12 @@
             endpointConfiguration.DisableFeature<AutoSubscribe>();
             endpointConfiguration.DisableFeature<Outbox>();
             endpointConfiguration.DisableFeature<Sagas>();
-            endpointConfiguration.DisableFeature<TimeoutManager>();
             endpointConfiguration.SendFailedMessagesTo(transportSettings.ErrorQueue);
         }
 
         public abstract IProvideQueueLength CreateQueueLengthProvider();
 
-        public async Task<IDispatchMessages> InitializeDispatcher(string name, TransportSettings transportSettings)
+        public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
             var config = RawEndpointConfiguration.CreateSendOnly(name);
 

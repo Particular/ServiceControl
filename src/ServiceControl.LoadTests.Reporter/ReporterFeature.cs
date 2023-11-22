@@ -4,7 +4,7 @@
     using Audit.Infrastructure;
     using Audit.Infrastructure.Settings;
     using Metrics;
-    using NServiceBus;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Features;
 
     public class ReporterFeature : Feature
@@ -30,7 +30,7 @@
             var auditQueueAddress = context.Settings.ToTransportAddress(settings.AuditQueue);
             var statistics = new Statistics();
 
-            context.Container.ConfigureComponent(b => new StatisticsEnricher(statistics, processedMeter), DependencyLifecycle.SingleInstance);
+            context.Services.AddSingleton(new StatisticsEnricher(statistics, processedMeter));
             context.RegisterStartupTask(new ReportProcessingStatistics(statistics, auditQueueAddress, loadGenetorQueue));
         }
     }

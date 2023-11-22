@@ -29,7 +29,6 @@
     <PackageReference Include="Microsoft.Owin.Cors" />
     <PackageReference Include="NLog.Extensions.Logging" />
     <PackageReference Include="NServiceBus.CustomChecks" />
-    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="System.Threading.Channels" />

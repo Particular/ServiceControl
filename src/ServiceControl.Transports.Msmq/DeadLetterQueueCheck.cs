@@ -3,6 +3,7 @@
     using System;
     using System.Configuration;
     using System.Diagnostics;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
@@ -35,7 +36,7 @@
             }
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             if (!runCheck)
             {
@@ -91,7 +92,7 @@
 ";
         }
 
-        // from ConfigFileSettingsReader since we cannot reference ServiceControl 
+        // from ConfigFileSettingsReader since we cannot reference ServiceControl
         static string Read(string name, string defaultValue = default)
         {
             return Read("ServiceControl", name, defaultValue);
