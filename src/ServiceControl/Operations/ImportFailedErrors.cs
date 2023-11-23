@@ -17,15 +17,13 @@
             ErrorIngestor errorIngestor,
             Settings settings,
             TransportCustomization transportCustomization,
-            TransportSettings transportSettings,
-            ReceiveAddresses receiveAddresses)
+            TransportSettings transportSettings)
         {
             this.store = store;
             this.errorIngestor = errorIngestor;
             this.settings = settings;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            this.receiveAddresses = receiveAddresses;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
@@ -39,8 +37,7 @@
 
             await store.ProcessFailedErrorImports(async transportMessage =>
             {
-                //TODO decent chance adding ReceiveAddresses here isn't correct, but wasn't clear how else to get the info since it's passed to the MessagePump ctor
-                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, receiveAddresses.MainReceiveAddress, EmptyContextBag);
+                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, settings.ErrorQueue, EmptyContextBag);
                 var taskCompletionSource =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);

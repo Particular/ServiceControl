@@ -4,6 +4,7 @@ namespace ServiceControl.Audit.Auditing
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -16,15 +17,15 @@ namespace ServiceControl.Audit.Auditing
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
+            Settings settings,
             TransportCustomization transportCustomization,
-            TransportSettings transportSettings,
-            ReceiveAddresses receiveAddresses)
+            TransportSettings transportSettings)
         {
+            this.settings = settings;
             this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
             this.transportCustomization = transportCustomization;
             this.transportSettings = transportSettings;
-            this.receiveAddresses = receiveAddresses;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
@@ -41,8 +42,7 @@ namespace ServiceControl.Audit.Auditing
                     {
                         try
                         {
-                            //TODO decent chance adding ReceiveAddresses here isn't correct, but wasn't clear how else to get the info since it's passed to the MessagePump ctor
-                            var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, receiveAddresses.MainReceiveAddress, EmptyContextBag);
+                            var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, settings.AuditQueue, EmptyContextBag);
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
@@ -86,5 +86,6 @@ namespace ServiceControl.Audit.Auditing
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
         static readonly ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
+        private readonly Settings settings;
     }
 }
