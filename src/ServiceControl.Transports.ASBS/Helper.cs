@@ -7,11 +7,11 @@
 
     public static class Helper
     {
-        public static void ConfigureNameShorteners(this TransportExtensions<AzureServiceBusTransport> transport)
+        public static void ConfigureNameShorteners(this AzureServiceBusTransport transport)
         {
 #pragma warning disable 618
-            transport.SubscriptionNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
-            transport.RuleNameShortener(n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n);
+            transport.SubscriptionNamingConvention = n => n.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n) : n;
+            transport.SubscriptionRuleNamingConvention = n => n.FullName.Length > MaxEntityName ? MD5DeterministicNameBuilder.Build(n.FullName) : n.FullName;
 #pragma warning restore 618
         }
 

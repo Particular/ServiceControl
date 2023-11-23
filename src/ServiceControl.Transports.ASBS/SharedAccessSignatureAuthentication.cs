@@ -12,9 +12,7 @@
         public override ServiceBusAdministrationClient BuildManagementClient()
             => new ServiceBusAdministrationClient(ConnectionString);
 
-        public override void ConfigureConnection(TransportExtensions<AzureServiceBusTransport> transport)
-        {
-            transport.ConnectionString(ConnectionString);
-        }
+        public override AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings) 
+            => new AzureServiceBusTransport(ConnectionString);
     }
 }

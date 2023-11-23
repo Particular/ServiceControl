@@ -11,26 +11,60 @@
     using NServiceBus.Raw;
     using NServiceBus.Transport;
 
-    public abstract class TransportCustomization
+    public interface ITransportCustomization
     {
-        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name, Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage, TransportSettings transportSettings);
+        void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        IProvideQueueLength CreateQueueLengthProvider();
+        Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings);
 
-        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        Task<IQueueIngestor> InitializeQueueIngestor(
+            string queueName,
+            TransportSettings transportSettings,
+            Func<MessageContext, Task> onMessage,
+            Func<ErrorContext, Task<ErrorHandleResult>> onError,
+            Func<string, Exception, Task> onCriticalError);
 
-        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues);
+    }
 
-        public abstract void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+    public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
+    {
+        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration, TTransport transportDefinition,
+            TransportSettings transportSettings);
+
+        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
+
+        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
+
+        protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
+
+        public RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name,
+            Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage, TransportSettings transportSettings)
+        {
+            var transport = CreateTransport(transportSettings);
+            CustomizeForReturnToSenderIngestion(transport, transportSettings);
+            var config = RawEndpointConfiguration.Create(name, transport, onMessage, transportSettings.ErrorQueue);
+            return config;
+        }
 
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            CustomizeTransportSpecificServiceControlEndpointSettings(endpointConfiguration, transportSettings);
+            var transport = CreateTransport(transportSettings);
+            endpointConfiguration.UseTransport(transport);
+            CustomizeTransportSpecificServiceControlEndpointSettings(endpointConfiguration, transport, transportSettings);
         }
 
         public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            CustomizeTransportSpecificSendOnlyEndpointSettings(endpointConfiguration, transportSettings);
+            var transport = CreateTransport(transportSettings);
+            endpointConfiguration.UseTransport(transport);
+            CustomizeTransportSpecificSendOnlyEndpointSettings(endpointConfiguration, transport, transportSettings);
 
             endpointConfiguration.SendOnly();
 
@@ -41,7 +75,9 @@
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            CustomizeTransportSpecificMonitoringEndpointSettings(endpointConfiguration, transportSettings);
+            var transport = CreateTransport(transportSettings);
+            endpointConfiguration.UseTransport(transport);
+            CustomizeTransportSpecificMonitoringEndpointSettings(endpointConfiguration, transport, transportSettings);
         }
 
         protected void ConfigureDefaultEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -57,7 +93,6 @@
 
         public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
-            // TODO NSB8 TransportDefinition temporarily set to null
             var transport = CreateTransport(transportSettings);
             var config = RawEndpointConfiguration.CreateSendOnly(name, transport);
 
@@ -73,15 +108,14 @@
             Func<ErrorContext, Task<ErrorHandleResult>> onError,
             Func<string, Exception, Task> onCriticalError)
         {
-            // TODO NSB8 TransportDefinition temporarily set to null
             var transport = CreateTransport(transportSettings);
             var config = RawEndpointConfiguration.Create(queueName, transport, (mt, _, __) => onMessage(mt), transportSettings.ErrorQueue);
             config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
-            // TODO NSB8 Critical error is no longer there but since we move towards the Raw seam it probably doesnt matter
-            //Func<ICriticalErrorContext, Task> onCriticalErrorAction = cet => onCriticalError(cet.Error, cet.Exception);
-            //config.Settings.Set("onCriticalErrorAction", onCriticalErrorAction);
+            // TODO NSB8 Pass around the cancellation token
+            Task OnCriticalErrorAction(ICriticalErrorContext cet, CancellationToken cancellationToken) => onCriticalError(cet.Error, cet.Exception);
 
+            config.CriticalErrorAction(OnCriticalErrorAction);
             config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
 
             CustomizeForQueueIngestion(transport, transportSettings);
@@ -92,7 +126,6 @@
 
         public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
-            // TODO NSB8 TransportDefinition temporarily set to null
             var transport = CreateTransport(transportSettings);
             var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, transport, (_, __, ___) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
@@ -104,11 +137,11 @@
             return RawEndpoint.Create(config);
         }
 
-        protected abstract void CustomizeRawSendOnlyEndpoint(TransportDefinition transportDefinition, TransportSettings transportSettings);
+        protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);
 
-        protected abstract void CustomizeForQueueIngestion(TransportDefinition transportDefinition, TransportSettings transportSettings);
+        protected abstract void CustomizeForQueueIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
-        protected abstract TransportDefinition CreateTransport(TransportSettings transportSettings);
+        protected abstract TTransport CreateTransport(TransportSettings transportSettings);
 
         class IngestionErrorPolicy : IErrorHandlingPolicy
         {

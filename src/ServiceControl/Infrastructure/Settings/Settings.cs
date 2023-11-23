@@ -157,14 +157,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
 
-        public TransportCustomization LoadTransportCustomization()
+        public ITransportCustomization LoadTransportCustomization()
         {
             try
             {
                 TransportType = TransportManifestLibrary.Find(TransportType);
 
                 var customizationType = Type.GetType(TransportType, true);
-                return (TransportCustomization)Activator.CreateInstance(customizationType);
+                return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {

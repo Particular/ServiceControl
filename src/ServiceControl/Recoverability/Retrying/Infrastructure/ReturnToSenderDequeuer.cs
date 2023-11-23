@@ -43,7 +43,8 @@ namespace ServiceControl.Recoverability
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        async Task Handle(MessageContext message, IMessageDispatcher sender)
+        // TODO NSB8 Forward cancellation token
+        async Task Handle(MessageContext message, IMessageDispatcher sender, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
             {
