@@ -176,7 +176,7 @@ namespace ServiceControl.Management.PowerShell
 
             if (!Force.ToBool())
             {
-                throw new EngineValidationException($"The directory specified for {pathInfo.Name} is not empty.  Use -Force to if you are sure you want to use this path");
+                throw new EngineValidationException($"The directory specified for {pathInfo.Name} is not empty. Use -Force to if you are sure you want to use this path");
             }
 
             WriteWarning($"The directory specified for {pathInfo.Name} is not empty but will be used as -Force was specified");

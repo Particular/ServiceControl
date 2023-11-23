@@ -71,6 +71,13 @@
 
         protected override Task<bool> PromptForRabbitMqCheck(bool isUpgrade)
         {
+            //HINT: version 4.30 already forced customers to run on quorum queue's compatible RabbitMQ broker.
+            //      We don't need to ask the users to acknowledge when upgrading from version 4.33+
+            if (isUpgrade)
+            {
+                return Task.FromResult(true);
+            }
+
             if (acknowledgements.Any(ack => ack.Equals(AcknowledgementValues.RabbitMQBrokerVersion310, StringComparison.OrdinalIgnoreCase)))
             {
                 return Task.FromResult(true);

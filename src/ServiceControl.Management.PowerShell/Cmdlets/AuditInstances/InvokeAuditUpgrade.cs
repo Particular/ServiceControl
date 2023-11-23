@@ -12,12 +12,6 @@ namespace ServiceControl.Management.PowerShell
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
         public SwitchParameter SkipQueueCreation { get; set; }
 
-        [Parameter(Mandatory = false, HelpMessage = "Disable full text search on audit messages.")]
-        public SwitchParameter DisableFullTextSearchOnBodies { get; set; }
-
-        [Parameter(Mandatory = false, HelpMessage = "Acknowledge mandatory requirements have been met.")]
-        public string[] Acknowledgements { get; set; }
-
         [Parameter(Mandatory = false, HelpMessage = "Perform upgrade even if the current instance is using obsolete, incompatible RavenDB 3.5 storage engine. Replaces the database with a brand new one, removing all data previously stored.")]
         public SwitchParameter Force { get; set; }
 
@@ -41,12 +35,8 @@ namespace ServiceControl.Management.PowerShell
                 }
 
                 instance.SkipQueueCreation = SkipQueueCreation;
-                if (DisableFullTextSearchOnBodies)
-                {
-                    instance.EnableFullTextSearchOnBodies = false;
-                }
 
-                var checks = new PowerShellCommandChecks(this, Acknowledgements);
+                var checks = new PowerShellCommandChecks(this);
                 if (!checks.CanUpgradeInstance(instance, Force.IsPresent).GetAwaiter().GetResult())
                 {
                     return;
