@@ -4,8 +4,9 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Transport.SqlServer;
 
-    public class SqlServerTransportCustomization : TransportCustomization
+    public class SqlServerTransportCustomization : TransportCustomization<SqlServerTransport>
     {
         protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
@@ -44,33 +45,60 @@
             return new QueueLengthProvider();
         }
 
-        static TransportExtensions<SqlServerTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        protected override SqlServerTransport CreateTransport(TransportSettings transportSettings)
         {
-            var transport = endpointConfig.UseTransport<SqlServerTransport>();
-            ConfigureConnection(transport, transportSettings);
+            var connectionString = transportSettings.ConnectionString
+                .RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
 
+            var transport = new SqlServerTransport(connectionString);
+
+            var subscriptions = transport.Subscriptions;
+
+            if (customSchema != null)
+            {
+                transport.DefaultSchema = customSchema;
+                subscriptions.SubscriptionTableName =
+                    new SubscriptionTableName(defaultSubscriptionTableName, customSchema);
+            }
+
+            if (subscriptionsTableSetting != null)
+            {
+                var subscriptionsAddress = QueueAddress.Parse(subscriptionsTableSetting);
+
+                subscriptions.SubscriptionTableName =
+                    new SubscriptionTableName(subscriptionsAddress.Table,
+                        subscriptionsAddress.Schema ?? customSchema,
+                        subscriptionsAddress.Catalog);
+            }
+
+            return transport;
+        }
+
+        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, SqlServerTransport transport, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        {
             if (transportSettings.GetOrDefault<bool>("TransportSettings.EnableDtc"))
             {
                 Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
+            // TODO NSB8 we need to set this with reflection
             endpointConfig.GetSettings().Set("SqlServer.DisableDelayedDelivery", true);
             var sendOnlyEndpoint = endpointConfig.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
             if (!sendOnlyEndpoint)
             {
+                // TODO NSB8 How?
                 transport.NativeDelayedDelivery();
             }
 
-            transport.Transactions(transportTransactionMode);
-            return transport;
+            transport.TransportTransactionMode = transportTransactionMode;
         }
 
-        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, SqlServerTransport transport, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
         {
-            var transport = endpointConfig.UseTransport<SqlServerTransport>();
-            ConfigureConnection(transport, transportSettings);
+            // TODO NSB8 Why should this be activiated on a raw endpoint???
             transport.EnableMessageDrivenPubSubCompatibilityMode();
-            endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
+            // TODO NSB8 we need to set this with reflection
+            // endpointConfig.Settings.Set("SqlServer.DisableDelayedDelivery", true);
 
             var sendOnlyEndpoint = transport.GetSettings().GetOrDefault<bool>("Endpoint.SendOnly");
             if (!sendOnlyEndpoint)
@@ -79,34 +107,6 @@
             }
 
             transport.Transactions(transportTransactionMode);
-        }
-
-        static void ConfigureConnection(TransportExtensions<SqlServerTransport> transport, TransportSettings transportSettings)
-        {
-            var connectionString = transportSettings.ConnectionString
-                .RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
-
-            var subscriptions = transport.SubscriptionSettings();
-
-            if (customSchema != null)
-            {
-                transport.DefaultSchema(customSchema);
-                subscriptions.SubscriptionTableName(defaultSubscriptionTableName, customSchema);
-            }
-
-            if (subscriptionsTableSetting != null)
-            {
-                var subscriptionsAddress = QueueAddress.Parse(subscriptionsTableSetting);
-
-                subscriptions.SubscriptionTableName(
-                    tableName: subscriptionsAddress.Table,
-                    schemaName: subscriptionsAddress.Schema ?? customSchema,
-                    catalogName: subscriptionsAddress.Catalog
-                );
-            }
-
-            transport.ConnectionString(connectionString);
-
         }
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
