@@ -71,7 +71,6 @@
                     {
                         loggingSettings.LogPath,
                         LoggingLevel = loggingSettings.LoggingLevel.Name,
-                        RavenDBLogLevel = loggingSettings.RavenDBLogLevel.Name
                     }
                 },
                 DataRetention = new

@@ -116,7 +116,6 @@ ServiceControl Audit Version:       {version}
 Audit Retention Period:             {settings.AuditRetentionPeriod}
 Forwarding Audit Messages:          {settings.ForwardAuditMessages}
 ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
-RavenDB Logging Level:              {loggingSettings.RavenDBLogLevel}
 Transport Customization:            {settings.TransportType},
 Persistence Customization:          {settings.PersistenceType},
 Persistence:                        {persistenceConfiguration.Name}

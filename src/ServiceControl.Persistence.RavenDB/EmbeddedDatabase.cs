@@ -158,6 +158,7 @@
 -------------------------------------------------------------
 Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
+RavenDB Logging Level:              {settings.LogsMode}
 -------------------------------------------------------------";
 
             logger.Info(startupMessage);
