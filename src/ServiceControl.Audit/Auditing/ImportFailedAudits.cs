@@ -5,12 +5,11 @@ namespace ServiceControl.Audit.Auditing
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
-    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using ServiceControl.Audit.Persistence;
-    using ServiceControl.Transports;
+    using Persistence;
+    using Transports;
 
     class ImportFailedAudits
     {
@@ -18,7 +17,7 @@ namespace ServiceControl.Audit.Auditing
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
             Settings settings,
-            TransportCustomization transportCustomization,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings)
         {
             this.settings = settings;
@@ -79,13 +78,12 @@ namespace ServiceControl.Audit.Auditing
 
         readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
-        readonly ReceiveAddresses receiveAddresses;
+        readonly Settings settings;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
         static readonly ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
-        private readonly Settings settings;
     }
 }

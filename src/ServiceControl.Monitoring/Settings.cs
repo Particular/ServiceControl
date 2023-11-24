@@ -6,8 +6,8 @@ namespace ServiceControl.Monitoring
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NLog;
-    using ServiceControl.Monitoring.Infrastructure.Settings;
     using Transports;
 
     public class Settings
@@ -66,7 +66,7 @@ namespace ServiceControl.Monitoring
             LicenseFileText = SettingsReader<string>.Read("LicenseText");
         }
 
-        public TransportCustomization LoadTransportCustomization()
+        public ITransportCustomization LoadTransportCustomization()
         {
             try
             {
@@ -74,7 +74,7 @@ namespace ServiceControl.Monitoring
 
                 var customizationType = Type.GetType(TransportType, true);
 
-                return (TransportCustomization)Activator.CreateInstance(customizationType);
+                return (ITransportCustomization)Activator.CreateInstance(customizationType);
             }
             catch (Exception e)
             {

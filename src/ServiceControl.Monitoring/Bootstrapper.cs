@@ -117,7 +117,8 @@
             config.EnableFeature<LicenseCheckFeature>();
         }
 
-        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString, TransportCustomization transportCustomization)
+        static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString,
+            ITransportCustomization transportCustomization)
         {
             return qls =>
             {

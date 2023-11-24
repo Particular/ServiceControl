@@ -2,14 +2,14 @@
 {
     using System;
     using System.Threading.Tasks;
-    using ServiceControl.Transports.RabbitMQ;
     using Transports;
+    using Transports.RabbitMQ;
 
     partial class TransportTestsConfiguration
     {
         public string ConnectionString { get; private set; }
 
-        public TransportCustomization TransportCustomization { get; private set; }
+        public ITransportCustomization TransportCustomization { get; private set; }
 
         public Task Configure()
         {

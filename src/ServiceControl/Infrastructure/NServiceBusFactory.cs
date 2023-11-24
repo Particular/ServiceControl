@@ -13,7 +13,8 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
+        public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
+            TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
         {
             if (configuration == null)
             {

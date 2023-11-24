@@ -5,13 +5,11 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
 
     class ReturnToSenderDequeuer : IHostedService
     {
@@ -163,12 +161,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable)
-        {
-            var transportInfra = startable.Settings.Get<TransportInfrastructure>();
-            var localInstance = transportInfra.BindToLocalEndpoint(new EndpointInstance(errorQueue));
-            return transportInfra.ToTransportAddress(LogicalAddress.CreateRemoteAddress(localInstance));
-        }
+        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable) => startable.ToTransportAddress(new QueueAddress(errorQueue));
 
         public Task Stop()
         {

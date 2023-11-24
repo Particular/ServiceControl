@@ -3,12 +3,11 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Transports;
+    using Transports;
 
     class ImportFailedErrors
     {
@@ -16,7 +15,7 @@
             IFailedErrorImportDataStore store,
             ErrorIngestor errorIngestor,
             Settings settings,
-            TransportCustomization transportCustomization,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings)
         {
             this.store = store;
@@ -50,9 +49,8 @@
         readonly IFailedErrorImportDataStore store;
         readonly ErrorIngestor errorIngestor;
         readonly Settings settings;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
-        readonly ReceiveAddresses receiveAddresses;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
         static readonly ContextBag EmptyContextBag = new ContextBag();

@@ -13,7 +13,10 @@ namespace ServiceControl.Audit.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
+            TransportSettings transportSettings, LoggingSettings loggingSettings,
+            Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration,
+            bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)

@@ -1,16 +1,18 @@
 ﻿namespace ServiceControl.Audit.UnitTests.Infrastructure
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Audit.Infrastructure;
+    using Audit.Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Raw;
+    using NServiceBus.Transport;
     using NUnit.Framework;
-    using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Infrastructure.Settings;
-    using ServiceControl.Audit.Persistence;
-    using ServiceControl.Transports;
+    using Persistence;
+    using Transports;
 
     class When_instance_is_setup
     {
@@ -40,12 +42,37 @@
         }
     }
 
-    class FakeTransport : TransportCustomization
+    internal class FakeTransport : ITransportCustomization
     {
         public static string UserNameUsed;
         public static IList<string> QueuesCreated;
 
-        public override Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name,
+            Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage,
+            TransportSettings transportSettings) =>
+            throw new NotImplementedException();
+
+        public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration,
+            TransportSettings transportSettings) => throw new NotImplementedException();
+
+        public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration,
+            TransportSettings transportSettings) => throw new NotImplementedException();
+
+        public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,
+            TransportSettings transportSettings) => throw new NotImplementedException();
+
+        public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
+
+        public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
+            throw new NotImplementedException();
+
+        public Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings,
+            Func<MessageContext, Task> onMessage, Func<ErrorContext, Task<ErrorHandleResult>> onError,
+            Func<string, Exception, Task> onCriticalError) =>
+            throw new NotImplementedException();
+
+        public Task ProvisionQueues(string username, TransportSettings transportSettings,
+            IEnumerable<string> additionalQueues)
         {
             UserNameUsed = username;
             QueuesCreated = new List<string>(additionalQueues)
@@ -55,14 +82,6 @@
             };
             return Task.CompletedTask;
         }
-
-        public override IProvideQueueLength CreateQueueLengthProvider() => throw new System.NotImplementedException();
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings) => throw new System.NotImplementedException();
     }
 
     class FakePersistenceConfiguration : IPersistenceConfiguration
@@ -75,7 +94,8 @@
 
         class FakePersistence : IPersistence
         {
-            public IPersistenceLifecycle Configure(IServiceCollection serviceCollection) => throw new System.NotImplementedException();
+            public IPersistenceLifecycle Configure(IServiceCollection serviceCollection) =>
+                throw new NotImplementedException();
             public IPersistenceInstaller CreateInstaller() => new FakePersistenceInstaller();
 
             class FakePersistenceInstaller : IPersistenceInstaller

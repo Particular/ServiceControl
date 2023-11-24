@@ -13,7 +13,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Persistence;
+    using Persistence;
     using Settings;
     using Transports;
     using WebApi;
@@ -135,6 +135,6 @@ Persistence:                        {persistenceConfiguration.Name}
         Action<ICriticalErrorContext> onCriticalError;
         Settings.Settings settings;
         TransportSettings transportSettings;
-        TransportCustomization transportCustomization;
+        ITransportCustomization transportCustomization;
     }
 }

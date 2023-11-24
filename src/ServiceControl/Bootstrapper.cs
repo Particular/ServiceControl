@@ -166,7 +166,7 @@ Selected Transport Customization:   {settings.TransportType}
         LoggingSettings loggingSettings;
         Settings settings;
         TransportSettings transportSettings;
-        TransportCustomization transportCustomization;
+        ITransportCustomization transportCustomization;
         static HttpClient httpClient;
     }
 }
