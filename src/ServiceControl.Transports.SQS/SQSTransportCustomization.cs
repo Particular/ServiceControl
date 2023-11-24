@@ -157,6 +157,6 @@
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
 
-        private static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
+        static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }

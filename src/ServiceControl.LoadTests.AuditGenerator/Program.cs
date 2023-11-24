@@ -7,13 +7,13 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Metrics;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
     class Program
@@ -31,7 +31,8 @@
 
             var connectionString = commandLineArgs.Length > 2 ? commandLineArgs[2] : null;
 
-            var transportCustomization = (TransportCustomization)Activator.CreateInstance(Type.GetType(transportCustomizationName, true));
+            var transportCustomization =
+                (ITransportCustomization)Activator.CreateInstance(Type.GetType(transportCustomizationName, true));
             var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
             queueLengthProvider.Initialize(connectionString, CacheQueueLength);
 
