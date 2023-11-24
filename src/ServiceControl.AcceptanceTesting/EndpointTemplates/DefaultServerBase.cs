@@ -26,7 +26,7 @@
             this.endpointTestExecutionConfiguration = endpointTestExecutionConfiguration;
         }
 
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
@@ -66,7 +66,7 @@
 
             endpointConfiguration.DisableFeature<AutoSubscribe>();
 
-            configurationBuilderCustomization(endpointConfiguration);
+            await configurationBuilderCustomization(endpointConfiguration);
 
             return endpointConfiguration;
         }

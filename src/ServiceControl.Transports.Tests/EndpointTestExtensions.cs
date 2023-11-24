@@ -4,10 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Hosting.Helpers;
-    using NServiceBus.ObjectBuilder;
 
     public static class EndpointTestExtensions
     {
@@ -53,17 +53,16 @@
             }
         }
 
-        public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor)
-        {
-            builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
-        }
+        public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor) => builder.RegisterComponents(
+            services => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, services); });
 
-        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor, IConfigureComponents r)
+        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor,
+            IServiceCollection services)
         {
-            var type = runDescriptor.ScenarioContext.GetType();
+            Type type = runDescriptor.ScenarioContext.GetType();
             while (type != typeof(object))
             {
-                r.RegisterSingleton(type, runDescriptor.ScenarioContext);
+                services.AddSingleton(type, runDescriptor.ScenarioContext);
                 type = type.BaseType;
             }
         }

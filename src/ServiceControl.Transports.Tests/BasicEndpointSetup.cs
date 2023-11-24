@@ -9,7 +9,9 @@
 
     public class BasicEndpointSetup : IEndpointSetupTemplate
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomization, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor,
+            EndpointCustomizationConfiguration endpointCustomization,
+            Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             var typesToInclude = endpointCustomization.GetTypesScopedByTestClass().ToList();
 
@@ -21,9 +23,9 @@
             endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
-            configurationBuilderCustomization(endpointConfiguration);
+            await configurationBuilderCustomization(endpointConfiguration);
 
-            return Task.FromResult(endpointConfiguration);
+            return endpointConfiguration;
         }
     }
 }

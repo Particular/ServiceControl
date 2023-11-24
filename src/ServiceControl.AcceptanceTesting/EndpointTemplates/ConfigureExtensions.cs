@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.AcceptanceTesting.EndpointTemplates
 {
     using System.Threading.Tasks;
+    using InfrastructureConfig;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.ObjectBuilder;
-    using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
     public static class ConfigureExtensions
     {
@@ -15,17 +15,15 @@
             runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
         }
 
-        public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor)
-        {
-            builder.RegisterComponents(r => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, r); });
-        }
+        public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor) => builder.RegisterComponents(services => { RegisterInheritanceHierarchyOfContextOnContainer(runDescriptor, services); });
 
-        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor, IConfigureComponents r)
+        static void RegisterInheritanceHierarchyOfContextOnContainer(RunDescriptor runDescriptor,
+            IServiceCollection services)
         {
             var type = runDescriptor.ScenarioContext.GetType();
             while (type != typeof(object))
             {
-                r.RegisterSingleton(type, runDescriptor.ScenarioContext);
+                services.AddSingleton(type, runDescriptor.ScenarioContext);
                 type = type.BaseType;
             }
         }

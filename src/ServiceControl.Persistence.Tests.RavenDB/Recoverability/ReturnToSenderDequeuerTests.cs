@@ -27,9 +27,9 @@
             return new MessageContext(
                 id,
                 headers,
-                new byte[0],
+                ReadOnlyMemory<byte>.Empty,
                 new TransportTransaction(),
-                new CancellationTokenSource(),
+                "receiveAddress",
                 new ContextBag()
             );
         }
@@ -70,7 +70,7 @@
 
             await new ReturnToSender(new FakeErrorMessageDataStore()).HandleMessage(message, sender, "error");
 
-            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body));
+            Assert.AreEqual("MessageBodyId", Encoding.UTF8.GetString(sender.Message.Body.ToArray()));
         }
 
         [Test]
@@ -138,7 +138,7 @@
 
         class FaultySender : IMessageDispatcher
         {
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
             {
                 throw new Exception("Simulated");
             }
@@ -150,12 +150,12 @@
             public string Destination { get; private set; }
 
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
             {
                 var operation = outgoingMessages.UnicastTransportOperations.Single();
                 Message = operation.Message;
                 Destination = operation.Destination;
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
 

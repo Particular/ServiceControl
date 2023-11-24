@@ -6,14 +6,15 @@
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using ServiceControl.Transports;
+    using Transports;
+    using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class ServiceControlMonitoringEndpointTests : TransportTestFixture
     {
         [Test]
         public async Task Should_configure_monitoring_endpoint()
         {
-            var endpointName = NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
+            string endpointName = Conventions.EndpointNamingConvention(typeof(ServiceControlEndpoint));
             var transportSettings = new TransportSettings
             {
                 ConnectionString = configuration.ConnectionString,
@@ -44,7 +45,7 @@
             {
                 EndpointSetup<BasicEndpointSetup>(c =>
                 {
-                    c.UsePersistence<InMemoryPersistence>();
+                    c.UsePersistence<NonDurablePersistence>();
                 });
             }
         }

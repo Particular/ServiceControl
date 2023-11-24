@@ -44,7 +44,7 @@
             {
                 EndpointSetup<BasicEndpointSetup>(c =>
                 {
-                    c.UsePersistence<InMemoryPersistence>();
+                    c.UsePersistence<NonDurablePersistence>();
                 });
             }
         }

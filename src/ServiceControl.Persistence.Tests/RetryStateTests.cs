@@ -292,14 +292,14 @@
         {
             public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
             {
                 foreach (var operation in outgoingMessages.UnicastTransportOperations)
                 {
                     Callback(operation);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
     }

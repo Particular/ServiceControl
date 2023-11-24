@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageFailures;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -244,11 +244,11 @@
 
     public sealed class TestableUnicastDispatcher : IMessageDispatcher
     {
-        public List<(UnicastTransportOperation, TransportTransaction, ContextBag)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction, ContextBag)>();
+        public List<(UnicastTransportOperation, TransportTransaction)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction)>();
 
-        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
         {
-            DispatchedMessages.AddRange(outgoingMessages.UnicastTransportOperations.Select(m => (m, transaction, context)));
+            DispatchedMessages.AddRange(outgoingMessages.UnicastTransportOperations.Select(m => (m, transaction)));
             return Task.CompletedTask;
         }
     }

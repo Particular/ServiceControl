@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 

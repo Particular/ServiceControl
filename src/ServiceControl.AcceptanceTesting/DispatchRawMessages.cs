@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTesting
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -49,7 +50,7 @@
                 dispatchMessages = dispatcher;
             }
 
-            protected override async Task OnStart(IMessageSession session)
+            protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 await before(session);
                 var operations = operationFactory();
@@ -63,13 +64,13 @@
                     op.Message.Headers["SC.SessionID"] = scenarioContext.TestRunId.ToString();
                 }
 
-                await dispatchMessages.Dispatch(operations, new TransportTransaction(), new ContextBag());
+                await dispatchMessages.Dispatch(operations, new TransportTransaction(), cancellationToken);
                 await after(session);
             }
 
-            protected override Task OnStop(IMessageSession session)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             IMessageDispatcher dispatchMessages;

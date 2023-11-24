@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
@@ -15,9 +15,9 @@
             var transportOperation = new TransportOperation(
              new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>(),
                  Encoding.UTF8.GetBytes(content)),
-             new UnicastAddressTag(queue), DispatchConsistency.Default);
+             new UnicastAddressTag(queue), new DispatchProperties());
 
-            return dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), new ContextBag());
+            return dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), CancellationToken.None);
         }
     }
 }

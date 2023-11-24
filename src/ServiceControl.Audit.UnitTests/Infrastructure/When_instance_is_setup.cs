@@ -42,7 +42,7 @@
         }
     }
 
-    internal class FakeTransport : ITransportCustomization
+    class FakeTransport : ITransportCustomization
     {
         public static string UserNameUsed;
         public static IList<string> QueuesCreated;
