@@ -3,70 +3,61 @@
     using System;
     using System.Data.Common;
     using System.Linq;
-    using System.Reflection;
     using Amazon;
     using Amazon.Runtime;
     using Amazon.S3;
     using Amazon.SimpleNotificationService;
     using Amazon.SQS;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
 
     public class SQSTransportCustomization : TransportCustomization<SqsTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            var transport = endpointConfiguration.UseTransport<SqsTransport>();
-            ConfigureTransport(transport, transportSettings);
             //Do not ConfigurePubSub for send-only endpoint
         }
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            var transport = endpointConfiguration.UseTransport<SqsTransport>();
-            ConfigureTransport(transport, transportSettings);
-            ConfigurePubSub(transport, transportSettings);
+            var routing = new RoutingSettings(endpointConfiguration.GetSettings());
+            routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeRawSendOnlyEndpoint(SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeForQueueIngestion(SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            var transport = endpointConfiguration.UseTransport<SqsTransport>();
-            ConfigureTransport(transport, transportSettings);
         }
 
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeForReturnToSenderIngestion(SqsTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
         protected override SqsTransport CreateTransport(TransportSettings transportSettings)
         {
-            // TODO NSB8 is this still needed?
-            //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
-            //      This prevents SQS from throwing on startup.
-            // var connectionString = transport.GetSettings().Get("NServiceBus.TransportConnectionString");
-            //
-            // connectionString.GetType()
-            //     .GetField("GetValue", BindingFlags.NonPublic | BindingFlags.Instance)
-            //     ?.SetValue(connectionString, (Func<string>)(() => null));
-
             var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
-            IAmazonSQS sqsClient = null;
-            IAmazonSimpleNotificationService snsClient = null;
+            IAmazonSQS sqsClient;
+            IAmazonSimpleNotificationService snsClient;
 
             bool alwaysLoadFromEnvironmentVariable = false;
             if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
@@ -90,13 +81,9 @@
 
             string region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
 
-            RegionEndpoint awsRegion = RegionEndpoint.EnumerableAllRegions
-                .SingleOrDefault(x => x.SystemName == region);
-
-            if (awsRegion == null)
-            {
+            _ = RegionEndpoint.EnumerableAllRegions
+                    .SingleOrDefault(x => x.SystemName == region) ??
                 throw new ArgumentException($"Unknown region: \"{region}\"");
-            }
 
             var transport =
                 new SqsTransport(sqsClient, snsClient)
@@ -133,7 +120,7 @@
                         keyPrefixAsString = (string)keyPrefix;
                     }
 
-                    IAmazonS3 s3Client = null;
+                    IAmazonS3 s3Client;
                     if (alwaysLoadFromEnvironmentVariable)
                     {
                         s3Client = new AmazonS3Client(new EnvironmentVariablesAWSCredentials());
@@ -158,120 +145,6 @@
             return transport;
         }
 
-        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            var transport = endpointConfig.UseTransport<SqsTransport>();
-            transport.ApplyHacksForNsbRaw();
-
-            ConfigureTransport(transport, transportSettings);
-            ConfigurePubSub(transport, transportSettings);
-        }
-
-        static void ConfigurePubSub(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
-        {
-            // precaution in case we would ever use the subscription manager
-            transportSettings.Set("NServiceBus.AmazonSQS.DisableSubscribeBatchingOnStart", true);
-            // will be removed in next major
-#pragma warning disable 618
-            transport.EnableMessageDrivenPubSubCompatibilityMode();
-#pragma warning restore 618
-        }
-
-        static void ConfigureTransport(TransportExtensions<SqsTransport> transport, TransportSettings transportSettings)
-        {
-            var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
-
-            var alwaysLoadFromEnvironmentVariable = false;
-            if (builder.ContainsKey("AccessKeyId") || builder.ContainsKey("SecretAccessKey"))
-            {
-                PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
-                PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
-
-                // if the user provided the access key and secret access key they should always be loaded from environment credentials
-                alwaysLoadFromEnvironmentVariable = true;
-                transport.ClientFactory(() => new AmazonSQSClient(new EnvironmentVariablesAWSCredentials()));
-                transport.ClientFactory(() => new AmazonSimpleNotificationServiceClient(new EnvironmentVariablesAWSCredentials()));
-            }
-            else
-            {
-                //See https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/net-dg-config-creds.html#creds-assign
-                log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for SQS Client.");
-            }
-
-            var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
-
-            var awsRegion = RegionEndpoint.EnumerableAllRegions
-                .SingleOrDefault(x => x.SystemName == region);
-
-            if (awsRegion == null)
-            {
-                throw new ArgumentException($"Unknown region: \"{region}\"");
-            }
-
-            if (builder.TryGetValue("QueueNamePrefix", out var queueNamePrefix))
-            {
-                var queueNamePrefixAsString = (string)queueNamePrefix;
-                if (!string.IsNullOrEmpty(queueNamePrefixAsString))
-                {
-                    transport.QueueNamePrefix(queueNamePrefixAsString);
-                }
-            }
-
-            if (builder.TryGetValue("TopicNamePrefix", out var topicNamePrefix))
-            {
-                var topicNamePrefixAsString = (string)topicNamePrefix;
-                if (!string.IsNullOrEmpty(topicNamePrefixAsString))
-                {
-                    transport.TopicNamePrefix(topicNamePrefixAsString);
-                }
-            }
-
-            if (builder.TryGetValue("S3BucketForLargeMessages", out var bucketForLargeMessages))
-            {
-                var bucketForLargeMessagesAsString = (string)bucketForLargeMessages;
-                if (!string.IsNullOrEmpty(bucketForLargeMessagesAsString))
-                {
-                    var keyPrefixAsString = string.Empty;
-                    if (builder.TryGetValue("S3KeyPrefix", out var keyPrefix))
-                    {
-                        keyPrefixAsString = (string)keyPrefix;
-                    }
-
-                    var s3Settings = transport.S3(bucketForLargeMessagesAsString, keyPrefixAsString);
-                    if (alwaysLoadFromEnvironmentVariable)
-                    {
-                        s3Settings.ClientFactory(() => new AmazonS3Client(new EnvironmentVariablesAWSCredentials()));
-                    }
-                    else
-                    {
-                        log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
-                    }
-                }
-            }
-
-            if (builder.TryGetValue("DoNotWrapOutgoingMessages", out var doNotWrapOutgoingMessages))
-            {
-                if (bool.TryParse(doNotWrapOutgoingMessages.ToString(), out var doNotWrapOutgoingMessagesAsBool))
-                {
-                    if (doNotWrapOutgoingMessagesAsBool)
-                    {
-                        transport.DoNotWrapOutgoingMessages();
-                    }
-                }
-            }
-
-            //HINT: This is needed to make Core doesn't load a connection string value from the app.config.
-            //      This prevents SQS from throwing on startup.
-            var connectionString = transport.GetSettings().Get("NServiceBus.TransportConnectionString");
-
-            connectionString.GetType()
-                .GetField("GetValue", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?.SetValue(connectionString, (Func<string>)(() => null));
-
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
-        }
-
-
         static string PromoteEnvironmentVariableFromConnectionString(DbConnectionStringBuilder builder, string connectionStringKey, string environmentVariableName)
         {
             if (builder.TryGetValue(connectionStringKey, out var value))
@@ -284,6 +157,6 @@
             throw new ArgumentException($"Missing value for '{connectionStringKey}'", connectionStringKey);
         }
 
-        static ILog log = LogManager.GetLogger<SQSTransportCustomization>();
+        private static readonly ILog log = LogManager.GetLogger<SQSTransportCustomization>();
     }
 }
