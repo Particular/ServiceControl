@@ -24,7 +24,7 @@
                 activeLicense.Refresh();
                 return ScheduleNextExecutionTask;
             }, due, due, ex => { log.Error("Unhandled error while refreshing the license.", ex); });
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

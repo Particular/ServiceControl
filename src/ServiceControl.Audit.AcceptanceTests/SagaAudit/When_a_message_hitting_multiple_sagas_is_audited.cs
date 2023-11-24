@@ -79,7 +79,7 @@
                 {
                     Context.SagaId = Data.Id;
                     Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
@@ -104,7 +104,7 @@
 
                     MarkAsComplete();
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)

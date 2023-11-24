@@ -26,7 +26,7 @@
             transportConfig.StorageDirectory(ConnectionString);
             transportConfig.NoPayloadSizeRestriction();
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task Cleanup()
@@ -42,7 +42,7 @@
                 }
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public string Name => "Learning";

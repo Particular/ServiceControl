@@ -8,6 +8,7 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -23,7 +24,7 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the error import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(services => services.AddSingleton<FailOnceEnricher>()); };
 
             var maximumConcurrencyLevel = 5;
 

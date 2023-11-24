@@ -109,7 +109,7 @@
                     MarkAsComplete();
                     Context.Saga1Id = Data.Id;
                     Context.Saga1Complete = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
@@ -145,7 +145,7 @@
                     MarkAsComplete();
                     Context.Saga2Id = Data.Id;
                     Context.Saga2Complete = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)

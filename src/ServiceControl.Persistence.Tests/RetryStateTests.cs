@@ -237,7 +237,7 @@
                     return base.MoveBatchToStaging(batchDocumentId);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             bool progressToStaged;
@@ -259,7 +259,7 @@
                     return base.MoveBatchToStaging(batchDocumentId);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             bool progressToStaged;
@@ -284,7 +284,7 @@
 
             public override Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
 

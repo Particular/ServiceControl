@@ -134,7 +134,7 @@
                     }
 
                     Console.WriteLine("Message processing success");
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

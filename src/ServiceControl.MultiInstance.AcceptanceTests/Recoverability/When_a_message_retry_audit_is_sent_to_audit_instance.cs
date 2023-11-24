@@ -70,15 +70,22 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext Context;
+                readonly IReadOnlySettings Settings;
+                readonly ReceiveAddresses ReceiveAddresses;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext context, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    Context = context;
+                    Settings = settings;
+                    ReceiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
+                    Context.LocalAddress = ReceiveAddresses.MainReceiveAddress;
                     Context.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
@@ -87,7 +94,7 @@
                         throw new Exception("Simulated exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

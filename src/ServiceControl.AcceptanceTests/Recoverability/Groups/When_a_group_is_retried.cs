@@ -127,7 +127,7 @@
                         throw new Exception("Simulated exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

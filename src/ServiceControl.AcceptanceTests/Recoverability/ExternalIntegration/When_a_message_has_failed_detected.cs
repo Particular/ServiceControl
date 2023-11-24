@@ -76,7 +76,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_SERVICE_NAME); });
             }
@@ -89,13 +89,13 @@
                 {
                     if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != Context.TestRunId.ToString())
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
                     Context.EventDelivered = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

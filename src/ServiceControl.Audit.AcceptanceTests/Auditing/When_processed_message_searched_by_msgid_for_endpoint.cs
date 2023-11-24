@@ -51,7 +51,7 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

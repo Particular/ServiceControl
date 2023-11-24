@@ -99,7 +99,7 @@
             public bool Done { get; set; }
             public Dictionary<string, string> Headers { get; set; }
             public byte[] BodyReceived { get; set; }
-            public byte[] BodyToSend { get; set; } = new byte[0];
+            public byte[] BodyToSend { get; set; } = Array.Empty<byte>();
         }
 
         class VerifyHeader : EndpointConfigurationBuilder
@@ -146,7 +146,7 @@
                 public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {
                     testContext.Headers = context.Message.Headers;
-                    testContext.BodyReceived = context.Message.Body;
+                    testContext.BodyReceived = context.Message.Body.ToArray();
                     testContext.Done = true;
                     return Task.CompletedTask;
                 }

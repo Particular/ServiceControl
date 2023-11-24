@@ -46,7 +46,7 @@
                     c.When((session, ctx) =>
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(NewEndpoint));
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }).DoNotFailOnErrorMessages();
                 })
                 .Done(async ctx =>
@@ -77,16 +77,18 @@
             {
                 readonly Context scenarioContext;
                 readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public MessageToRetryHandler(Context scenarioContext, IReadOnlySettings settings)
+                public MessageToRetryHandler(Context scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
+                    this.receiveAddresses = receiveAddresses;
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    scenarioContext.FromAddress = settings.LocalAddress();
+                    scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                     scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), settings.EndpointName()).ToString();
                     throw new Exception("Message Failed");
                 }

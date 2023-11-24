@@ -73,7 +73,7 @@
             {
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

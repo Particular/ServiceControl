@@ -154,7 +154,7 @@
                 public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 readonly Context testContext;

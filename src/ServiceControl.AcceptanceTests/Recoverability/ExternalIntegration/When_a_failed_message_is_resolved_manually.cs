@@ -69,7 +69,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(Settings.DEFAULT_SERVICE_NAME); });
             }
@@ -83,7 +83,7 @@
                     var serializedMessage = JsonConvert.SerializeObject(message);
                     Context.Event = serializedMessage;
                     Context.EventDelivered = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

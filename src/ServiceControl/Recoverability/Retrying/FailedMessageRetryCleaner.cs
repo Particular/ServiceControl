@@ -21,7 +21,7 @@ namespace ServiceControl.Recoverability
                 return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

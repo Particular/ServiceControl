@@ -29,7 +29,7 @@
         {
             store.Subscribe(TryDispatchEventBatch);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         async Task TryDispatchEventBatch(object[] allContexts)

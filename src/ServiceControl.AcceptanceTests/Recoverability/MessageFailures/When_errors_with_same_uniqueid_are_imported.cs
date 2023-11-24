@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -26,12 +27,12 @@
             SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction(ctx =>
+                config.DefineCriticalErrorAction((_, __) =>
                 {
                     criticalErrorExecuted = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 });
-                config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
+                config.RegisterComponents(services => services.AddSingleton<CounterEnricher>());
             };
 
             FailedMessage failure = null;

@@ -171,7 +171,7 @@
                 public Task Handle(DoQueryAllowed message, IMessageHandlerContext context)
                 {
                     Context.QueryForMessages = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

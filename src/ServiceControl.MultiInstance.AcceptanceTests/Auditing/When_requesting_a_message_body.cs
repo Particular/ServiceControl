@@ -75,7 +75,7 @@
         class MyContext : ScenarioContext
         {
             public string AuditInstanceMessageId { get; set; }
-            public ReadOnlyMemory<byte> MessageBody { get; set; }
+            public byte[] MessageBody { get; set; }
             public string MessageContentType { get; set; }
             public bool MessageAudited { get; set; }
             public string AuditInstanceId { get; set; }
@@ -100,8 +100,8 @@
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     Context.MessageContentType = context.Headers[Headers.ContentType];
-                    Context.MessageBody = context.Body;
-                    return Task.FromResult(0);
+                    Context.MessageBody = context.Body.ToArray();
+                    return Task.CompletedTask;
                 }
             }
 
@@ -112,7 +112,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.AuditInstanceMessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

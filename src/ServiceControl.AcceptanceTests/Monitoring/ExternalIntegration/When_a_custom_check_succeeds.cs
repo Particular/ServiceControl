@@ -64,7 +64,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata =>
                 {
@@ -79,7 +79,7 @@
                 public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)
                 {
                     Context.CustomCheckSucceededReceived = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

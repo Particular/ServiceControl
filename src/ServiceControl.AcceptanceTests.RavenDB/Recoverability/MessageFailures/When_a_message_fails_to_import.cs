@@ -29,10 +29,10 @@
                 config.RegisterComponents(c =>
                 {
                     //Make sure the error import attempt fails
-                    c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance);
+                    c.AddSingleton<FailOnceEnricher>();
 
                     //Register domain event spy
-                    c.ConfigureComponent<MessageFailedHandler>(DependencyLifecycle.SingleInstance);
+                    c.AddSingleton<MessageFailedHandler>();
                 });
             };
 
@@ -143,7 +143,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }

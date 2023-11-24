@@ -79,7 +79,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
                         log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     return @continue();

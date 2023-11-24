@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -64,7 +65,7 @@
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
-                    c.RegisterComponents(components => components.ConfigureComponent<CorrelationIdRemover>(DependencyLifecycle.InstancePerCall));
+                    c.RegisterComponents(services => services.AddSingleton<CorrelationIdRemover>());
                 });
             }
 
@@ -85,7 +86,7 @@
                     }
 
                     TestContext.RetryHandled = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -94,7 +95,7 @@
                 public Task MutateOutgoing(MutateOutgoingTransportMessageContext context)
                 {
                     context.OutgoingHeaders.Remove(Headers.CorrelationId);
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

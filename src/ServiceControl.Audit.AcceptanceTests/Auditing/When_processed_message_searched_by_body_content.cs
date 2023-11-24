@@ -104,7 +104,7 @@
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

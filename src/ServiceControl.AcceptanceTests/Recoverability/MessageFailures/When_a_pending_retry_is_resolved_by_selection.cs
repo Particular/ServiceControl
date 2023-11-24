@@ -67,11 +67,13 @@
             {
                 readonly Context scenarioContext;
                 readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
                 }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
@@ -79,7 +81,7 @@
                     Console.WriteLine("Message Handled");
                     if (scenarioContext.Step == 0)
                     {
-                        scenarioContext.FromAddress = settings.LocalAddress();
+                        scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                         scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
@@ -87,7 +89,7 @@
                     scenarioContext.RetryCount++;
                     scenarioContext.Retried = true;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

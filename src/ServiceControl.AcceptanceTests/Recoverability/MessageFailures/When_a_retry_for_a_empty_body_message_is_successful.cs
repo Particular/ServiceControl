@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
@@ -73,7 +74,7 @@
                 {
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
-                    c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");
+                    c.Pipeline.Register(services => new LookForControlMessage(services.GetRequiredService<MyContext>()), "Look for control messages");
                 });
             }
 

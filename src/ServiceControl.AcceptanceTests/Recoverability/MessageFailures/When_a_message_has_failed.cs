@@ -16,6 +16,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -219,7 +220,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         }
 
                         return false;
-                    }, (session, ctx) => Task.FromResult(0));
+                    }, (session, ctx) => Task.CompletedTask);
                 })
                 .Done(c => searchResults.Count == 1)
                 .Run();
@@ -275,7 +276,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
@@ -289,8 +290,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    context.Container.ConfigureComponent<SignalRStarter>(DependencyLifecycle.SingleInstance);
-                    context.RegisterStartupTask(b => b.Build<SignalRStarter>());
+                    context.Services.AddSingleton<SignalRStarter>();
+                    context.RegisterStartupTask(provider => provider.GetRequiredService<SignalRStarter>());
                 }
 
                 class SignalRStarter : FeatureStartupTask
@@ -346,15 +347,22 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -374,15 +382,22 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -390,9 +405,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         class MySuperSerializer : SerializationDefinition
         {
             public override Func<IMessageMapper, IMessageSerializer> Configure(IReadOnlySettings settings)
-            {
-                return mapper => new MyCustomSerializer();
-            }
+                => mapper => new MyCustomSerializer();
         }
 
         public class MyCustomSerializer : IMessageSerializer

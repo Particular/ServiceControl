@@ -72,7 +72,7 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.Remote1MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

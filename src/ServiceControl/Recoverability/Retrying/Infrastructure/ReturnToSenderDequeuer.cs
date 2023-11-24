@@ -30,7 +30,6 @@ namespace ServiceControl.Recoverability
 
             faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
-
         }
 
         public string InputAddress { get; }
@@ -114,9 +113,9 @@ namespace ServiceControl.Recoverability
                 }
 
                 var config = createEndpointConfiguration();
-                syncEvent = new TaskCompletionSource<bool>();
-                stopCompletionSource = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
+                syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
                 var startable = await RawEndpoint.Create(config, cancellationToken);
 
@@ -152,7 +151,7 @@ namespace ServiceControl.Recoverability
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
-                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
+                stopCompletionSource.TrySetResult(true);
             }
 
             if (endedPrematurely || cancellationToken.IsCancellationRequested)
@@ -177,8 +176,8 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Completing forwarding.");
             }
 
-            await Task.Run(() => syncEvent?.TrySetResult(true));
-            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0));
+            syncEvent?.TrySetResult(true);
+            await (stopCompletionSource?.Task ?? Task.CompletedTask);
             if (Log.IsDebugEnabled)
             {
                 Log.Debug("Forwarding completed.");

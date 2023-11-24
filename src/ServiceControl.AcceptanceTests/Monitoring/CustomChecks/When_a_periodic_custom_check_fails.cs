@@ -11,6 +11,7 @@
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
@@ -77,8 +78,8 @@
             {
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    context.Container.ConfigureComponent<SignalrStarter>(DependencyLifecycle.SingleInstance);
-                    context.RegisterStartupTask(b => b.Build<SignalrStarter>());
+                    context.Services.AddSingleton<SignalrStarter>();
+                    context.RegisterStartupTask(provider => provider.GetRequiredService<SignalrStarter>());
                 }
 
                 class SignalrStarter : FeatureStartupTask

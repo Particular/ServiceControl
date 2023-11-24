@@ -41,13 +41,14 @@
             }
 
             //Rabbit defaults the header when deserializing the message based on the IBasicProperties.DeliveryMode
+            // TODO NSB8 Verify if the header is still set
             if (TransportIntegration.Name.Contains("RabbitMQ"))
             {
-                Assert.AreEqual("False", context.Headers[Headers.NonDurableMessage], "Should not corrupt the non-durable header");
+                Assert.AreEqual("False", context.Headers["NServiceBus.NonDurableMessage"], "Should not corrupt the non-durable header");
             }
             else
             {
-                Assert.False(context.Headers.ContainsKey(Headers.NonDurableMessage), "Should not add the non-durable header");
+                Assert.False(context.Headers.ContainsKey("NServiceBus.NonDurableMessage"), "Should not add the non-durable header");
             }
         }
 
@@ -96,7 +97,7 @@
                     testContext.Headers = context.Headers;
 
                     testContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 TestContext testContext;

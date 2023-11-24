@@ -79,7 +79,7 @@
                 {
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
                     scenarioContext.SentLocalMessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -106,7 +106,7 @@
                 {
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
                     scenarioContext.SentMessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

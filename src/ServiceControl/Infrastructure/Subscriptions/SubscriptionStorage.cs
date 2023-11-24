@@ -31,12 +31,12 @@
 
             protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
-                return persister?.Initialize() ?? Task.FromResult(0);
+                return persister?.Initialize() ?? Task.CompletedTask;
             }
 
             protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
     }

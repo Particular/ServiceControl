@@ -65,7 +65,7 @@
         {
             public Originator() => EndpointSetup<DefaultServer>(c =>
             {
-                var routing = c.ConfigureTransport().Routing();
+                var routing = c.ConfigureRouting();
                 routing.RouteToEndpoint(typeof(OriginalMessage), typeof(Receiver));
             });
 
@@ -76,7 +76,7 @@
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Originating Endpoint";
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -112,7 +112,7 @@
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
                     Context.ReplyHandledBy = "Receiving Endpoint";
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

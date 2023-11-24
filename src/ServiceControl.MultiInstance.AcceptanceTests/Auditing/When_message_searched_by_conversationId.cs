@@ -65,7 +65,7 @@
                 public Task Handle(TriggeredMessage message, IMessageHandlerContext context)
                 {
                     Context.ConversationId = context.MessageHeaders[Headers.ConversationId];
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

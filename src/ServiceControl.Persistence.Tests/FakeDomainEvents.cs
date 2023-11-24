@@ -16,7 +16,7 @@
             RaisedEvents.Add(domainEvent);
             TestContext.WriteLine($"Raised DomainEvent {typeof(T).Name}:");
             TestContext.WriteLine(JsonConvert.SerializeObject(domainEvent, jsonSettings));
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         static FakeDomainEvents()

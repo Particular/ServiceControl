@@ -54,7 +54,7 @@
                 }
             });
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         void UpdateStore()

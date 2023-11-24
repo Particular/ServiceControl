@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -25,7 +26,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IErrorMessageDataStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IErrorMessageDataStore>(), provider.GetRequiredService<MyContext>())));
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
@@ -95,7 +96,7 @@
                     }
 
                     scenarioContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 

@@ -66,7 +66,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
             }
@@ -78,7 +78,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     Context.NotificationDelivered = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

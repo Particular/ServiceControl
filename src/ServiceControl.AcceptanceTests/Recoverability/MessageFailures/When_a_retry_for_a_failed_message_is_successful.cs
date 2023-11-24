@@ -205,18 +205,20 @@
             {
                 readonly MyContext scenarioContext;
                 readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
                 }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
-                    scenarioContext.LocalAddress = settings.LocalAddress();
+                    scenarioContext.LocalAddress = receiveAddresses.MainReceiveAddress;
                     scenarioContext.MessageId = context.MessageId.Replace(@"\", "-");
 
                     if (!scenarioContext.RetryIssued) //simulate that the exception will be resolved with the retry
@@ -224,7 +226,7 @@
                         throw new Exception("Simulated exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
