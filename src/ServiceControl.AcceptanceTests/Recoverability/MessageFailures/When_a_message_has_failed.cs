@@ -7,6 +7,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
@@ -21,6 +22,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.MessageInterfaces;
+    using NServiceBus.ObjectBuilder;
     using NServiceBus.Serialization;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -302,18 +304,18 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         };
                     }
 
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Received += ConnectionOnReceived;
                         connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
 
-                        return session.Send(new MyMessage());
+                        return session.Send(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Stop();
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     void ConnectionOnReceived(string s)
@@ -402,11 +404,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 serializer.Serialize(stream, message);
             }
 
-            public object[] Deserialize(Stream stream, IList<Type> messageTypes = null)
+            public object[] Deserialize(ReadOnlyMemory<byte> body, IList<Type> messageTypes = null)
             {
                 var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
 
-                stream.Position = 0;
+                using var stream = new MemoryStream(body.ToArray());
                 var msg = serializer.Deserialize(stream);
 
                 return new[]
@@ -420,15 +422,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
+            public FailingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using EventLog;
@@ -20,7 +21,7 @@
             {
             }
 
-            public override Task<CheckResult> PerformCheck()
+            public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(CheckResult.Failed("Some reason"));
             }

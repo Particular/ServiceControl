@@ -65,7 +65,7 @@
                 MessageFilter = messageContext =>
                 {
                     var headers = messageContext.Headers;
-                    var id = messageContext.MessageId;
+                    var id = messageContext.NativeMessageId;
                     var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
@@ -114,8 +114,8 @@
 
             configuration.RegisterComponents(r =>
             {
-                r.RegisterSingleton(context.GetType(), context);
-                r.RegisterSingleton(typeof(ScenarioContext), context);
+                r.AddSingleton(context.GetType(), context);
+                r.AddSingleton(typeof(ScenarioContext), context);
             });
 
             configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();

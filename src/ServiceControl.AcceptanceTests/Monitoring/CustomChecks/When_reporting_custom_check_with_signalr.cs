@@ -8,6 +8,7 @@
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
@@ -50,8 +51,8 @@
             {
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    context.Container.ConfigureComponent<SignalrStarter>(DependencyLifecycle.SingleInstance);
-                    context.RegisterStartupTask(b => b.Build<SignalrStarter>());
+                    context.Services.AddSingleton<SignalrStarter>();
+                    context.RegisterStartupTask(b => b.GetRequiredService<SignalrStarter>());
                 }
             }
 
@@ -78,17 +79,17 @@
                     }
                 }
 
-                protected override Task OnStart(IMessageSession session)
+                protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                 {
                     connection.Received += ConnectionOnReceived;
 
                     return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
                 }
 
-                protected override Task OnStop(IMessageSession session)
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                 {
                     connection.Stop();
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 readonly MyContext context;
@@ -110,7 +111,7 @@
                 {
                 }
 
-                public override Task<CheckResult> PerformCheck()
+                public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
 #pragma warning disable IDE0047 // Remove unnecessary parentheses
                     if ((Interlocked.Increment(ref counter) / 5) % 2 == 1)

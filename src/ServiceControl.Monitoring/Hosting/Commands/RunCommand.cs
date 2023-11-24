@@ -14,7 +14,7 @@ namespace ServiceControl.Monitoring
             var runAsWindowsService = !Environment.UserInteractive && !settings.Portable;
             var configuration = new EndpointConfiguration(settings.ServiceName);
 
-            var hostBuilder = new Bootstrapper(_ => { }, settings, configuration).HostBuilder;
+            var hostBuilder = new Bootstrapper((_, __) => Task.CompletedTask, settings, configuration).HostBuilder;
 
             if (runAsWindowsService)
             {

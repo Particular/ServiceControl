@@ -9,6 +9,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using Contracts.HeartbeatMonitoring;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -37,7 +38,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                 });
 
-                config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
+                config.RegisterComponents(services => services.AddSingleton<FaultyPublisher>());
             };
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
@@ -109,7 +110,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
             }
@@ -121,7 +122,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     Context.NotificationDelivered = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

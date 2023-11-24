@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -228,14 +229,14 @@
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return session.SendLocal(new MyMessage());
+                        return session.SendLocal(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
                 }
             }
@@ -264,7 +265,7 @@
                         throw new Exception("Simulated Exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -297,14 +298,14 @@
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return session.SendLocal(new MyMessage());
+                        return session.SendLocal(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
                 }
             }

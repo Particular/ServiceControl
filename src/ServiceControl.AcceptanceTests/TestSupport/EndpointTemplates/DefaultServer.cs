@@ -10,14 +10,12 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
-        {
-            return new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, b =>
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
+            new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, async b =>
             {
                 b.DisableFeature<Audit>();
 
-                configurationBuilderCustomization(b);
+                await configurationBuilderCustomization(b);
             });
-        }
     }
 }

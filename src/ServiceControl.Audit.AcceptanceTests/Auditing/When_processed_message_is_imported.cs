@@ -126,7 +126,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
@@ -149,7 +149,7 @@
                 {
                     Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
                     Context.MessageId = context.MessageId;
-                    return Task.Delay(500);
+                    return Task.Delay(500, context.CancellationToken);
                 }
             }
         }

@@ -21,7 +21,11 @@
             {
                 var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
                 var bootstrapper = new Bootstrapper(
-                    ctx => { tokenSource.Cancel(); },
+                    (_, __) =>
+                    {
+                        tokenSource.Cancel();
+                        return Task.CompletedTask;
+                    },
                     settings,
                     busConfiguration,
                     loggingSettings);

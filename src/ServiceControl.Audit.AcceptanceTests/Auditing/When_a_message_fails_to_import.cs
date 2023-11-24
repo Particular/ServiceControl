@@ -4,6 +4,7 @@
     using AcceptanceTesting;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -18,7 +19,7 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(services => services.AddSingleton<FailOnceEnricher>()); };
 
             SetSettings = settings =>
             {
@@ -101,7 +102,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }

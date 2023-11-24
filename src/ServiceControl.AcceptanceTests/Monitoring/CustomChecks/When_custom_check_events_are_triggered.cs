@@ -53,7 +53,7 @@
                 {
                 }
 
-                public override Task<CheckResult> PerformCheck()
+                public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
 #pragma warning disable IDE0047 // Remove unnecessary parentheses
                     if ((Interlocked.Increment(ref counter) / 10) % 2 == 0)

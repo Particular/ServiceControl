@@ -64,7 +64,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 ServiceControlQueueAddress = "SHOULDNOTBEUSED",
                 MessageFilter = messageContext =>
                 {
-                    var id = messageContext.MessageId;
+                    var id = messageContext.NativeMessageId;
                     var headers = messageContext.Headers;
 
                     var log = LogManager.GetLogger<ServiceControlComponentRunner>();
@@ -121,8 +121,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             configuration.RegisterComponents(r =>
             {
-                r.RegisterSingleton(context.GetType(), context);
-                r.RegisterSingleton(typeof(ScenarioContext), context);
+                r.AddSingleton(context.GetType(), context);
+                r.AddSingleton(typeof(ScenarioContext), context);
             });
 
             configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
@@ -142,17 +142,17 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
 
-                bootstrapper = new Bootstrapper(ctx =>
+                bootstrapper = new Bootstrapper((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.ServiceName,
                         Level = LogLevel.Fatal,
                         LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
+                        Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };
                     context.Logs.Enqueue(logitem);
-                    ctx.Stop().GetAwaiter().GetResult();
+                    return criticalErrorContext.Stop(cancellationToken);
                 },
                 settings,
                 configuration,

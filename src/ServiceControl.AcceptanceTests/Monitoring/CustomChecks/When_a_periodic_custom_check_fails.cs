@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts.CustomChecks;
@@ -14,6 +15,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
+    using NServiceBus.ObjectBuilder;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
@@ -99,7 +101,7 @@
                         }
                     }
 
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Received += ConnectionOnReceived;
                         connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
@@ -107,10 +109,10 @@
                         return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Stop();
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     readonly MyContext context;
@@ -133,7 +135,7 @@
                     this.context = context;
                 }
 
-                public override Task<CheckResult> PerformCheck()
+                public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
                     if (executed && context.SignalrStarted)
                     {

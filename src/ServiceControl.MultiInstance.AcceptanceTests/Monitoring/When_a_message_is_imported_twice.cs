@@ -47,7 +47,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }

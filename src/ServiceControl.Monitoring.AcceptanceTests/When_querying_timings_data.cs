@@ -45,9 +45,7 @@
             class Handler : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
-                {
-                    return Task.Delay(TimeSpan.FromMilliseconds(10));
-                }
+                    => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
             }
         }
 

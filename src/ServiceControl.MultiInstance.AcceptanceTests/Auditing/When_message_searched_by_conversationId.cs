@@ -34,8 +34,7 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.ConfigureTransport()
-                        .Routing()
+                    c.ConfigureRouting()
                         .RouteToEndpoint(typeof(TriggeredMessage), typeof(ReceiverRemote));
                 });
             }

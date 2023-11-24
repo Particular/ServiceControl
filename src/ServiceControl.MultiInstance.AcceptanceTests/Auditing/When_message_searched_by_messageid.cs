@@ -30,8 +30,7 @@
             {
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.ConfigureTransport()
-                        .Routing()
+                    c.ConfigureRouting()
                         .RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }

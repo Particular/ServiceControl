@@ -3,6 +3,8 @@ namespace ServiceControl.Audit.Infrastructure
     using System;
     using System.Diagnostics;
     using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Auditing;
     using Metrics;
     using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +25,7 @@ namespace ServiceControl.Audit.Infrastructure
         public IHostBuilder HostBuilder { get; private set; }
 
         public Bootstrapper(
-            Action<ICriticalErrorContext> onCriticalError,
+            Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError,
             Settings.Settings settings,
             EndpointConfiguration configuration,
             LoggingSettings loggingSettings)
@@ -132,7 +134,7 @@ Persistence:                        {persistenceConfiguration.Name}
 
         EndpointConfiguration configuration;
         LoggingSettings loggingSettings;
-        Action<ICriticalErrorContext> onCriticalError;
+        Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError;
         Settings.Settings settings;
         TransportSettings transportSettings;
         ITransportCustomization transportCustomization;

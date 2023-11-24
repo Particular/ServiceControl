@@ -3,9 +3,9 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Extensibility;
     using NServiceBus.Features;
     using NServiceBus.Transport;
 
@@ -19,24 +19,24 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => new DispatchTask(
-                b.Build<IMessageDispatcher>(),
-                () => CreateMessage((TContext)b.Build<ScenarioContext>()),
-                s => BeforeDispatch(s, (TContext)b.Build<ScenarioContext>()),
-                s => AfterDispatch(s, (TContext)b.Build<ScenarioContext>()),
-                b.Build<ScenarioContext>()));
+            context.RegisterStartupTask(provider => new DispatchTask(
+                provider.GetRequiredService<IMessageDispatcher>(),
+                () => CreateMessage((TContext)provider.GetRequiredService<ScenarioContext>()),
+                s => BeforeDispatch(s, (TContext)provider.GetRequiredService<ScenarioContext>()),
+                s => AfterDispatch(s, (TContext)provider.GetRequiredService<ScenarioContext>()),
+                provider.GetRequiredService<ScenarioContext>()));
         }
 
         protected abstract TransportOperations CreateMessage(TContext context);
 
         protected virtual Task BeforeDispatch(IMessageSession session, TContext context)
         {
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         protected virtual Task AfterDispatch(IMessageSession session, TContext context)
         {
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         class DispatchTask : FeatureStartupTask

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Audit.Infrastructure.WebApi;
     using Infrastructure;
@@ -22,7 +23,7 @@
 
     public class Bootstrapper
     {
-        public Bootstrapper(Action<ICriticalErrorContext> onCriticalError, Settings settings, EndpointConfiguration endpointConfiguration)
+        public Bootstrapper(Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, Settings settings, EndpointConfiguration endpointConfiguration)
         {
             this.onCriticalError = onCriticalError;
             this.settings = settings;
@@ -95,11 +96,7 @@
                 config.EnableInstallers(settings.Username);
             }
 
-            config.DefineCriticalErrorAction((c, _) =>
-            {
-                onCriticalError(c);
-                return Task.CompletedTask;
-            });
+            config.DefineCriticalErrorAction(onCriticalError);
 
             config.GetSettings().Set(settings);
             config.SetDiagnosticsPath(settings.LogPath);
@@ -118,9 +115,8 @@
         }
 
         static Func<QueueLengthStore, IProvideQueueLength> QueueLengthProviderBuilder(string connectionString,
-            ITransportCustomization transportCustomization)
-        {
-            return qls =>
+            ITransportCustomization transportCustomization) =>
+            qls =>
             {
                 var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
 
@@ -130,21 +126,16 @@
 
                 return queueLengthProvider;
             };
-        }
 
         static EndpointInputQueue ToQueueId(EndpointToQueueMapping endpointInputQueueDto)
-        {
-            return new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
-        }
+            => new EndpointInputQueue(endpointInputQueueDto.EndpointName, endpointInputQueueDto.InputQueue);
 
-        static RawMessage.Entry ToEntry(QueueLengthEntry entryDto)
-        {
-            return new RawMessage.Entry
+        static RawMessage.Entry ToEntry(QueueLengthEntry entryDto) =>
+            new RawMessage.Entry
             {
                 DateTicks = entryDto.DateTicks,
                 Value = entryDto.Value
             };
-        }
 
         public static LogLevel ToHostLogLevel(NLog.LogLevel logLevel)
         {
@@ -176,7 +167,7 @@
             return LogLevel.None;
         }
 
-        Action<ICriticalErrorContext> onCriticalError;
+        Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError;
         Settings settings;
 
         readonly EndpointConfiguration endpointConfiguration;

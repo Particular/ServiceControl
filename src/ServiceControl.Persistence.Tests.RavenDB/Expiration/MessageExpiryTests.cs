@@ -176,7 +176,7 @@
 
             var attempt = FailedMessageBuilder.Minimal().ProcessingAttempts.First();
 
-            var message = new MessageContext(Guid.NewGuid().ToString(), headers, Array.Empty<byte>(), new TransportTransaction(), new CancellationTokenSource(), new ContextBag());
+            var message = new MessageContext(Guid.NewGuid().ToString(), headers, ReadOnlyMemory<byte>.Empty, new TransportTransaction(), "receiveAddress", new ContextBag());
 
             return (message, attempt);
         }
