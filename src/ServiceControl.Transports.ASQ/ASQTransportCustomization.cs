@@ -1,79 +1,67 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
     using NServiceBus;
-    using NServiceBus.Raw;
     using System;
+    using NServiceBus.Configuration.AdvancedExtensibility;
 
-    public class ASQTransportCustomization : TransportCustomization
+    public class ASQTransportCustomization : TransportCustomization<AzureStorageQueueTransport>
     {
+        protected override void CustomizeForQueueIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
+            => CustomizeRawEndpoint(transportDefinition);
 
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+            EndpointConfiguration endpointConfiguration,
+            AzureStorageQueueTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
         }
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeForReturnToSenderIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
+            => CustomizeRawEndpoint(transportDefinition);
+
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration,
+            AzureStorageQueueTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
+            var routing = new RoutingSettings(endpointConfiguration.GetSettings());
+            routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
-        }
+        protected override void CustomizeRawSendOnlyEndpoint(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
+            => CustomizeRawEndpoint(transportDefinition);
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+            EndpointConfiguration endpointConfiguration,
+            AzureStorageQueueTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            var transport = CustomizeEndpoint(endpointConfiguration, transportSettings);
-            transport.EnableMessageDrivenPubSubCompatibilityMode();
-        }
-
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings);
-        }
-
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeEndpoint(endpointConfiguration, transportSettings);
             //Do not ConfigurePubSub for send-only endpoint
         }
 
-        static TransportExtensions<AzureStorageQueueTransport> CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
-
-            ConfigureTransport(transport, transportSettings);
-            return transport;
-        }
-
-        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings)
-        {
-            var transport = endpointConfig.UseTransport<AzureStorageQueueTransport>();
-            transport.ApplyHacksForNsbRaw();
-            ConfigureTransport(transport, transportSettings);
-        }
-
-        static void ConfigureTransport(TransportExtensions<AzureStorageQueueTransport> transport, TransportSettings transportSettings)
+        protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings)
         {
             var connectionString = transportSettings.ConnectionString
                 .RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
-            transport.Transactions(TransportTransactionMode.ReceiveOnly);
-            transport.ConnectionString(connectionString);
-            transport.SanitizeQueueNamesWith(BackwardsCompatibleQueueNameSanitizer.Sanitize);
+            var transport = new AzureStorageQueueTransport(connectionString)
+            {
+                TransportTransactionMode = TransportTransactionMode.ReceiveOnly,
+                QueueNameSanitizer = BackwardsCompatibleQueueNameSanitizer.Sanitize,
+                MessageInvisibleTime = TimeSpan.FromMinutes(1)
+            };
 
             if (!string.IsNullOrEmpty(subscriptionTableName))
             {
-                transport.SubscriptionTableName(subscriptionTableName);
+                transport.Subscriptions.SubscriptionTableName = subscriptionTableName;
             }
 
-            transport.MessageInvisibleTime(TimeSpan.FromMinutes(1));
+            return transport;
         }
 
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
-        }
+        static void CustomizeRawEndpoint(AzureStorageQueueTransport transportDefinition)
+            => transportDefinition.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
+
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
     }
 }
