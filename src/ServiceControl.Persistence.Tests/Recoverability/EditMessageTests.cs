@@ -114,7 +114,7 @@
             Assert.AreEqual(
                 failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 dispatchedMessage.Item1.Destination);
-            Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
+            Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body.ToArray());
             Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
