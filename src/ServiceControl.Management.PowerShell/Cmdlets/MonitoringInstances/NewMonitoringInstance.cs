@@ -75,12 +75,15 @@ namespace ServiceControl.Management.PowerShell
         {
             var transport = ServiceControlCoreTransports.Find(Transport);
 
-            if (transport.SampleConnectionString is not null && string.IsNullOrEmpty(ConnectionString))
+            var requiresConnectionString = !string.IsNullOrEmpty(transport.SampleConnectionString);
+            var hasConnectionString = !string.IsNullOrEmpty(ConnectionString);
+
+            if (requiresConnectionString && !hasConnectionString)
             {
                 throw new Exception($"ConnectionString is mandatory for '{Transport}'");
             }
 
-            if (transport.SampleConnectionString is null && !string.IsNullOrEmpty(ConnectionString))
+            if (!requiresConnectionString && hasConnectionString)
             {
                 throw new Exception($"'{Transport}' does not use a connection string.");
             }
