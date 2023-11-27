@@ -10,7 +10,7 @@ namespace ServiceControl.Management.PowerShell
     public class InvokeServiceControlInstanceUpgrade : PSCmdlet
     {
         [ValidateNotNullOrEmpty]
-        [Parameter(Mandatory = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true, Position = 0, HelpMessage = "Specify the name of the ServiceControl Instance to update")]
         public string Name;
 
         [Parameter(Mandatory = false, HelpMessage = "Do not automatically create new queues")]
