@@ -65,9 +65,6 @@
                 PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
                 PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
 
-                // TODO NSB8 this was outside the if below. It was too late because the client throws if the region is not set.
-                // Why was this down below?
-                // Does it make sense here?
                 var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
                 _ = RegionEndpoint.EnumerableAllRegions
                         .SingleOrDefault(x => x.SystemName == region) ??
