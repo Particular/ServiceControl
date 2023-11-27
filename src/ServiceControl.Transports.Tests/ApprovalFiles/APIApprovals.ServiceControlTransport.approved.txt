@@ -1,4 +1,4 @@
-[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName=".NET Framework 4.8")]
 namespace ServiceControl.Transports
 {
     public class EndpointToQueueMapping
@@ -22,26 +22,40 @@ namespace ServiceControl.Transports
         System.Threading.Tasks.Task Start();
         System.Threading.Tasks.Task Stop();
     }
+    public interface ITransportCustomization
+    {
+        ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
+        NServiceBus.Raw.RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name, System.Func<NServiceBus.Transport.MessageContext, NServiceBus.Transport.IMessageDispatcher, System.Threading.CancellationToken, System.Threading.Tasks.Task> onMessage, ServiceControl.Transports.TransportSettings transportSettings);
+        void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        void CustomizeSendOnlyEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        void CustomizeServiceControlEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        System.Threading.Tasks.Task<NServiceBus.Transport.IMessageDispatcher> InitializeDispatcher(string name, ServiceControl.Transports.TransportSettings transportSettings);
+        System.Threading.Tasks.Task<ServiceControl.Transports.IQueueIngestor> InitializeQueueIngestor(string queueName, ServiceControl.Transports.TransportSettings transportSettings, System.Func<NServiceBus.Transport.MessageContext, System.Threading.Tasks.Task> onMessage, System.Func<NServiceBus.Transport.ErrorContext, System.Threading.Tasks.Task<NServiceBus.Transport.ErrorHandleResult>> onError, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError);
+        System.Threading.Tasks.Task ProvisionQueues(string username, ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues);
+    }
     public class QueueLengthEntry
     {
         public QueueLengthEntry() { }
         public long DateTicks { get; set; }
         public long Value { get; set; }
     }
-    public abstract class TransportCustomization
+    public abstract class TransportCustomization<TTransport> : ServiceControl.Transports.ITransportCustomization
+        where TTransport : NServiceBus.Transport.TransportDefinition
     {
         protected TransportCustomization() { }
         protected void ConfigureDefaultEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public abstract ServiceControl.Transports.IProvideQueueLength CreateQueueLengthProvider();
-        protected abstract void CustomizeForQueueIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        public abstract void CustomizeForReturnToSenderIngestion(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        public NServiceBus.Raw.RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name, System.Func<NServiceBus.Transport.MessageContext, NServiceBus.Transport.IMessageDispatcher, System.Threading.CancellationToken, System.Threading.Tasks.Task> onMessage, ServiceControl.Transports.TransportSettings transportSettings) { }
+        protected abstract TTransport CreateTransport(ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeForQueueIngestion(TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         public void CustomizeMonitoringEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
-        protected abstract void CustomizeRawSendOnlyEndpoint(NServiceBus.Raw.RawEndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         public void CustomizeSendOnlyEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
         public void CustomizeServiceControlEndpoint(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings) { }
-        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
-        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
+        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(NServiceBus.EndpointConfiguration endpointConfiguration, TTransport transportDefinition, ServiceControl.Transports.TransportSettings transportSettings);
         public System.Threading.Tasks.Task<NServiceBus.Transport.IMessageDispatcher> InitializeDispatcher(string name, ServiceControl.Transports.TransportSettings transportSettings) { }
         public System.Threading.Tasks.Task<ServiceControl.Transports.IQueueIngestor> InitializeQueueIngestor(string queueName, ServiceControl.Transports.TransportSettings transportSettings, System.Func<NServiceBus.Transport.MessageContext, System.Threading.Tasks.Task> onMessage, System.Func<NServiceBus.Transport.ErrorContext, System.Threading.Tasks.Task<NServiceBus.Transport.ErrorHandleResult>> onError, System.Func<string, System.Exception, System.Threading.Tasks.Task> onCriticalError) { }
         public virtual System.Threading.Tasks.Task ProvisionQueues(string username, ServiceControl.Transports.TransportSettings transportSettings, System.Collections.Generic.IEnumerable<string> additionalQueues) { }
