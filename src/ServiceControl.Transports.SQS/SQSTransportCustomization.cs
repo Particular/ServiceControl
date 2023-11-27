@@ -65,6 +65,14 @@
                 PromoteEnvironmentVariableFromConnectionString(builder, "AccessKeyId", "AWS_ACCESS_KEY_ID");
                 PromoteEnvironmentVariableFromConnectionString(builder, "SecretAccessKey", "AWS_SECRET_ACCESS_KEY");
 
+                // TODO NSB8 this was outside the if below. It was too late because the client throws if the region is not set.
+                // Why was this down below?
+                // Does it make sense here?
+                var region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
+                _ = RegionEndpoint.EnumerableAllRegions
+                        .SingleOrDefault(x => x.SystemName == region) ??
+                    throw new ArgumentException($"Unknown region: \"{region}\"");
+
                 // if the user provided the access key and secret access key they should always be loaded from environment credentials
                 alwaysLoadFromEnvironmentVariable = true;
                 sqsClient = new AmazonSQSClient(new EnvironmentVariablesAWSCredentials());
@@ -78,12 +86,6 @@
                 sqsClient = new AmazonSQSClient();
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
-
-            string region = PromoteEnvironmentVariableFromConnectionString(builder, "Region", "AWS_REGION");
-
-            _ = RegionEndpoint.EnumerableAllRegions
-                    .SingleOrDefault(x => x.SystemName == region) ??
-                throw new ArgumentException($"Unknown region: \"{region}\"");
 
             var transport =
                 new SqsTransport(sqsClient, snsClient)
