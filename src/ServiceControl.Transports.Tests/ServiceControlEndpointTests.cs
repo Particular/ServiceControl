@@ -40,13 +40,11 @@
 
         public class ServiceControlEndpoint : EndpointConfigurationBuilder
         {
-            public ServiceControlEndpoint()
-            {
+            public ServiceControlEndpoint() =>
                 EndpointSetup<BasicEndpointSetup>(c =>
                 {
                     c.UsePersistence<NonDurablePersistence>();
                 });
-            }
         }
     }
 }
