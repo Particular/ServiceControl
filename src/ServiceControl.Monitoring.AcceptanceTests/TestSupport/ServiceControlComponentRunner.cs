@@ -5,7 +5,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
