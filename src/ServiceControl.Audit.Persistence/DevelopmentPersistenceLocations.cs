@@ -31,7 +31,7 @@
 #endif
 
 #if NET48
-        const string framework = "net472";
+        const string framework = "net48";
 #endif
     }
 }
