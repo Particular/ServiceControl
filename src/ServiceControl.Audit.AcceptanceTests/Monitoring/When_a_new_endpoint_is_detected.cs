@@ -25,17 +25,11 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.CompletedTask;
-                }
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
             }
         }
 

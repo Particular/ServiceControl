@@ -73,57 +73,43 @@
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder
         {
-            public SagaAuditProcessorFake()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
-            }
+            public SagaAuditProcessorFake() => EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
 
             class IgnoreAllBehavior : Behavior<ITransportReceiveContext>
             {
-                public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
-                {
-                    return Task.CompletedTask;
-                }
+                public override Task Invoke(ITransportReceiveContext context, Func<Task> next) => Task.CompletedTask;
             }
         }
 
         public class SagasEndpoint : EndpointConfigurationBuilder
         {
-            public SagasEndpoint()
-            {
+            public SagasEndpoint() =>
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
-            }
 
             public class Saga1 : Saga<Saga1.Saga1Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga1>, IHandleMessages<CompleteSaga1>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
 
-                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
-                }
+                public Saga1(MyContext testContext) => this.testContext = testContext;
+
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context) => context.SendLocal(new UpdateSaga1 { MyId = message.Saga1Id });
 
                 public Task Handle(CompleteSaga1 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
-                    Context.Saga1Id = Data.Id;
-                    Context.Saga1Complete = true;
+                    testContext.Saga1Id = Data.Id;
+                    testContext.Saga1Complete = true;
                     return Task.CompletedTask;
                 }
 
-                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
-                }
+                public Task Handle(UpdateSaga1 message, IMessageHandlerContext context) => context.SendLocal(new CompleteSaga1 { MyId = message.MyId });
 
-                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper)
-                {
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga1Data> mapper) =>
                     mapper.MapSaga(saga => saga.MyId)
                         .ToMessage<InitiateSaga>(d => d.Saga1Id)
                         .ToMessage<UpdateSaga1>(d => d.MyId)
                         .ToMessage<CompleteSaga1>(d => d.MyId);
-                }
 
                 public class Saga1Data : ContainSagaData
                 {
@@ -133,33 +119,27 @@
 
             public class Saga2 : Saga<Saga2.Saga2Data>, IAmStartedByMessages<InitiateSaga>, IHandleMessages<UpdateSaga2>, IHandleMessages<CompleteSaga2>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
 
-                public Task Handle(InitiateSaga message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
-                }
+                public Saga2(MyContext testContext) => this.testContext = testContext;
+
+                public Task Handle(InitiateSaga message, IMessageHandlerContext context) => context.SendLocal(new UpdateSaga2 { MyId = message.Saga2Id });
 
                 public Task Handle(CompleteSaga2 message, IMessageHandlerContext context)
                 {
                     MarkAsComplete();
-                    Context.Saga2Id = Data.Id;
-                    Context.Saga2Complete = true;
+                    testContext.Saga2Id = Data.Id;
+                    testContext.Saga2Complete = true;
                     return Task.CompletedTask;
                 }
 
-                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context)
-                {
-                    return context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
-                }
+                public Task Handle(UpdateSaga2 message, IMessageHandlerContext context) => context.SendLocal(new CompleteSaga2 { MyId = message.MyId });
 
-                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper)
-                {
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<Saga2Data> mapper) =>
                     mapper.MapSaga(saga => saga.MyId)
                         .ToMessage<InitiateSaga>(d => d.Saga2Id)
                         .ToMessage<UpdateSaga2>(d => d.MyId)
                         .ToMessage<CompleteSaga2>(d => d.MyId);
-                }
 
                 public class Saga2Data : ContainSagaData
                 {

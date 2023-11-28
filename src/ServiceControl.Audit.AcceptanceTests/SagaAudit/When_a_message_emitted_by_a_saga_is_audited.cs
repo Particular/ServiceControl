@@ -41,11 +41,13 @@
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MySaga(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    Context.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
 
                     return context.SendLocal(new MessageSentBySaga());
                 }
@@ -63,11 +65,13 @@
 
             class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MessageSentBySagaHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = context.MessageId;
+                    testContext.MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }

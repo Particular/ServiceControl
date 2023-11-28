@@ -34,13 +34,11 @@
 
         class EndpointWithTimings : EndpointConfigurationBuilder
         {
-            public EndpointWithTimings()
-            {
+            public EndpointWithTimings() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
-            }
 
             class Handler : IHandleMessages<SampleMessage>
             {
@@ -51,10 +49,7 @@
 
         class MonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public MonitoringEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public MonitoringEndpoint() => EndpointSetup<DefaultServer>();
         }
 
         class Context : ScenarioContext

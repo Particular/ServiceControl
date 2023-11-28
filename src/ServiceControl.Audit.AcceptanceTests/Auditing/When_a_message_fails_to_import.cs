@@ -79,18 +79,17 @@
 
         public class AuditLogSpy : EndpointConfigurationBuilder
         {
-            public AuditLogSpy()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public AuditLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MyMessageHandler(MyContext context) => testContext = context;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.AuditForwarded = true;
+                    testContext.AuditForwarded = true;
                     return Task.CompletedTask;
                 }
             }
@@ -117,11 +116,13 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MyMessageHandler(MyContext context) => testContext = context;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = context.MessageId;
+                    testContext.MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }

@@ -34,10 +34,7 @@ namespace ServiceControl.Audit.AcceptanceTests.Auditing
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

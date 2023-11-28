@@ -36,10 +36,7 @@
 
         public class ThirdPartyEndpoint : EndpointConfigurationBuilder
         {
-            public ThirdPartyEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public ThirdPartyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

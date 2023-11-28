@@ -53,10 +53,7 @@
 
         class FailOnceEnricher : IEnrichImportedAuditMessages
         {
-            public FailOnceEnricher(MyContext context)
-            {
-                testContext = context;
-            }
+            public FailOnceEnricher(MyContext context) => testContext = context;
 
             public void Enrich(AuditEnricherContext context)
             {
@@ -75,10 +72,7 @@
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

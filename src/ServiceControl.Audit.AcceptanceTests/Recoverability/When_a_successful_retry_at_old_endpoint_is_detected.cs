@@ -51,18 +51,15 @@
 
             public class SpyBehavior : Behavior<ITransportReceiveContext>
             {
-                Context scenarioContext;
+                Context testContext;
 
-                public SpyBehavior(Context scenarioContext)
-                {
-                    this.scenarioContext = scenarioContext;
-                }
+                public SpyBehavior(Context testContext) => this.testContext = testContext;
 
                 public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {
                     if (context.Message.Headers.ContainsKey("ServiceControl.Retry.Successful"))
                     {
-                        scenarioContext.AcknowledgementSent = true;
+                        testContext.AcknowledgementSent = true;
                     }
                     return Task.CompletedTask;
                 }
@@ -76,21 +73,16 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServerWithAudit>(cfg =>
                 {
                     // disable retry notifications feature to emulate an NServiceBus endpoint older than version 7.5
                     cfg.DisableFeature<PlatformRetryNotifications>();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.CompletedTask;
-                }
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
             }
         }
 
