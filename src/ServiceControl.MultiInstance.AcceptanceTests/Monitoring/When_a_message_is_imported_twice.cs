@@ -43,22 +43,17 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => c.Pipeline.Register(new DuplicateAuditsBehavior(), "Duplicates outgoing audits"));
-            }
+            public Receiver() => EndpointSetup<DefaultServerWithAudit>(c => c.Pipeline.Register(new DuplicateAuditsBehavior(), "Duplicates outgoing audits"));
 
             class DuplicateAuditsBehavior : Behavior<IAuditContext>
             {
@@ -71,10 +66,7 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    return Task.CompletedTask;
-                }
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
             }
         }
 

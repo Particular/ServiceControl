@@ -56,21 +56,20 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { });
-            }
+            public Sender() => EndpointSetup<DefaultServerWithAudit>(c => { });
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public IReadOnlySettings Settings { get; set; }
-
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
                 {
-                    return Task.CompletedTask;
+                    this.testContext = testContext;
+                    this.settings = settings;
                 }
+
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
             }
         }
 

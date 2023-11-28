@@ -62,10 +62,7 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
-            }
+            public FailureEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

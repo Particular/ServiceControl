@@ -57,25 +57,28 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.ConfigureRouting()
                         .RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.SentLocalMessageId = context.MessageId;
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.SentLocalMessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }
@@ -83,21 +86,23 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { });
-            }
+            public Receiver() => EndpointSetup<DefaultServerWithAudit>(c => { });
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.SentMessageId = context.MessageId;
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.SentMessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }

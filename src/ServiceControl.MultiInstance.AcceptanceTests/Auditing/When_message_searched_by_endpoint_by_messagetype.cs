@@ -67,14 +67,19 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.Remote1MessageId = context.MessageId;
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.Remote1MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }

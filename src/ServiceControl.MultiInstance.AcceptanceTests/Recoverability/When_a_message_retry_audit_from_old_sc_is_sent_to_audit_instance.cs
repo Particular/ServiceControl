@@ -67,14 +67,12 @@
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing()
-            {
+            public Failing() =>
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.NoRetries();
                     c.Pipeline.Register(new SimulateOldServiceControlBehavior(), "Simulates old SC behavior");
                 });
-            }
 
             public class SimulateOldServiceControlBehavior : Behavior<ITransportReceiveContext>
             {

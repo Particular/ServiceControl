@@ -40,21 +40,23 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public IReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = context.MessageId;
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }
