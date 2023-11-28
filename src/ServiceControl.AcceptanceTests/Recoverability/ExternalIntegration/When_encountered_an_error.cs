@@ -38,7 +38,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                 });
 
-                config.RegisterComponents(services => services.AddSingleton<FaultyPublisher>());
+                config.RegisterComponents(services => services.AddSingleton<IEventPublisher, FaultyPublisher>());
             };
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat

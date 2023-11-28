@@ -29,10 +29,10 @@
                 config.RegisterComponents(c =>
                 {
                     //Make sure the error import attempt fails
-                    c.AddSingleton<FailOnceEnricher>();
+                    c.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
 
                     //Register domain event spy
-                    c.AddSingleton<MessageFailedHandler>();
+                    c.AddSingleton<IDomainHandler<MessageFailed>, MessageFailedHandler>();
                 });
             };
 

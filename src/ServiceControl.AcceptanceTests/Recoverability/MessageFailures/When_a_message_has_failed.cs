@@ -23,7 +23,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.MessageInterfaces;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Serialization;
     using NServiceBus.Settings;
     using NUnit.Framework;
@@ -265,7 +264,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-
             Assert.AreEqual(1, searchResults.Count, "Result count did not match");
             Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
         }
@@ -436,18 +434,19 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public QueueSearchContext Context { get; set; }
+                public MyMessageHandler(QueueSearchContext queueSearchContext) => this.queueSearchContext = queueSearchContext;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     lock (lockObj)
                     {
-                        Context.FailedMessageCount++;
+                        queueSearchContext.FailedMessageCount++;
                     }
 
                     throw new Exception("Simulated exception");
                 }
 
+                QueueSearchContext queueSearchContext;
                 static readonly object lockObj = new object();
             }
         }
