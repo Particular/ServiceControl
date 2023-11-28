@@ -163,7 +163,7 @@
                 return base.HandleMessage(message, sender, "error");
             }
 
-            MyContext myContext;
+            readonly MyContext myContext;
         }
     }
 }

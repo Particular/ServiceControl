@@ -78,10 +78,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
         public class MeowReceiver : EndpointConfigurationBuilder
         {
-            public MeowReceiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
-            }
+            public MeowReceiver() => EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
 
             public class FailingMessageHandler : IHandleMessages<Meow>
             {

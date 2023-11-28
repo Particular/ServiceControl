@@ -149,7 +149,7 @@
                 receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
             }
 
-            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+            readonly ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
         }
     }
 }

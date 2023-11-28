@@ -103,7 +103,7 @@
                     return Task.CompletedTask;
                 }
 
-                ReplyToContext replyToContext;
+                readonly ReplyToContext replyToContext;
             }
         }
     }

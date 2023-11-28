@@ -70,7 +70,7 @@
                 TestContext.WriteLine("Message processed correctly");
             }
 
-            MyContext testContext;
+            readonly MyContext testContext;
             int attempt;
         }
 

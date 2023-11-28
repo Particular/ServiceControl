@@ -63,10 +63,7 @@
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
-            }
+            public StartingEndpoint() => EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME));
         }
     }
 }

@@ -151,7 +151,7 @@
                     return Task.CompletedTask;
                 }
 
-                TestContext testContext;
+                readonly TestContext testContext;
             }
 
             class MyMessage : ICommand

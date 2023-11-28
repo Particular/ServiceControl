@@ -63,10 +63,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromHours(1)));
-            }
+            public StartingEndpoint() => EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromHours(1)));
         }
     }
 }

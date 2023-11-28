@@ -93,10 +93,7 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public Receiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MyMessageHandler :
                 IHandleMessages<MyMessageA>,

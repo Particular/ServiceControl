@@ -83,18 +83,20 @@
 
             public class FailureHandler : IHandleMessages<MessageFailed>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public FailureHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
-                    if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != Context.TestRunId.ToString())
+                    if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != testContext.TestRunId.ToString())
                     {
                         return Task.CompletedTask;
                     }
 
                     var serializedMessage = JsonConvert.SerializeObject(message);
-                    Context.Event = serializedMessage;
-                    Context.EventDelivered = true;
+                    testContext.Event = serializedMessage;
+                    testContext.EventDelivered = true;
                     return Task.CompletedTask;
                 }
             }

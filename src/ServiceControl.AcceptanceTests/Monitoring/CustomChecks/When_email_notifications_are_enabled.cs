@@ -24,7 +24,7 @@
         {
             var emailDropPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(emailDropPath);
-            string[] emails = new string[0];
+            string[] emails = Array.Empty<string>();
 
             SetSettings = settings =>
             {
@@ -60,7 +60,7 @@
 
         class SetupNotificationSettings : IHostedService
         {
-            IErrorMessageDataStore errorMessageDataStore;
+            readonly IErrorMessageDataStore errorMessageDataStore;
 
             public SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore)
             {

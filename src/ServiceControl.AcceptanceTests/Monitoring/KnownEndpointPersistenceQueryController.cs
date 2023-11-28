@@ -8,7 +8,7 @@
 
     class KnownEndpointPersistenceQueryController : ApiController
     {
-        IMonitoringDataStore monitoringDataStore;
+        readonly IMonitoringDataStore monitoringDataStore;
 
         public KnownEndpointPersistenceQueryController(IMonitoringDataStore monitoringDataStore)
         {

@@ -76,7 +76,7 @@
 
             class RetryMessageHandler : IHandleMessages<RetryMessage>
             {
-                Context testContext;
+                readonly Context testContext;
 
                 public RetryMessageHandler(Context testContext)
                 {

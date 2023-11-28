@@ -83,13 +83,15 @@
 
             public class FailureHandler : IHandleMessages<FailedMessagesUnArchived>
             {
-                public Context Context { get; set; }
+                readonly Context testContext;
+
+                public FailureHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(FailedMessagesUnArchived message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
-                    Context.Event = serializedMessage;
-                    Context.EventDelivered = true;
+                    testContext.Event = serializedMessage;
+                    testContext.EventDelivered = true;
                     return Task.CompletedTask;
                 }
             }

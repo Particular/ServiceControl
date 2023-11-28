@@ -93,7 +93,7 @@
                 }
 
                 readonly MyContext context;
-                Connection connection;
+                readonly Connection connection;
             }
         }
 

@@ -103,8 +103,8 @@
                     return Task.CompletedTask;
                 }
 
-                EditMessageContext testContext;
-                IReadOnlySettings settings;
+                readonly EditMessageContext testContext;
+                readonly IReadOnlySettings settings;
             }
         }
 

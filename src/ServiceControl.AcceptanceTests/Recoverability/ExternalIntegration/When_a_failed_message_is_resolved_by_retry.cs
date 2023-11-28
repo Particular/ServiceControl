@@ -55,24 +55,24 @@
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
-            }
 
             public class FailureHandler : IHandleMessages<MessageFailureResolvedByRetry>
             {
-                public Context Context { get; set; }
+                readonly Context testContext;
+
+                public FailureHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
                 {
                     var serializedMessage = JsonConvert.SerializeObject(message);
-                    Context.Event = serializedMessage;
-                    Context.EventDelivered = true;
+                    testContext.Event = serializedMessage;
+                    testContext.EventDelivered = true;
                     return Task.CompletedTask;
                 }
             }

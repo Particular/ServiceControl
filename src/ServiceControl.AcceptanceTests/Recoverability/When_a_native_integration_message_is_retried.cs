@@ -100,7 +100,7 @@
                     return Task.CompletedTask;
                 }
 
-                TestContext testContext;
+                readonly TestContext testContext;
             }
         }
     }

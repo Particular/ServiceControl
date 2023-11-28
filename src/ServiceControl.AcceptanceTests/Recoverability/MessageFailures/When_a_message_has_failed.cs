@@ -328,8 +328,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         }
                     }
 
-                    MyContext context;
-                    Connection connection;
+                    readonly MyContext context;
+                    readonly Connection connection;
                 }
             }
         }
@@ -457,7 +457,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     throw new Exception("Simulated exception");
                 }
 
-                static object lockObj = new object();
+                static readonly object lockObj = new object();
             }
         }
 

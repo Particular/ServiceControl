@@ -16,7 +16,6 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NServiceBus.Features;
-    using NServiceBus.ObjectBuilder;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
@@ -69,10 +68,7 @@
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR()
-            {
-                EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
-            }
+            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
 
             class EnableSignalR : Feature
             {
@@ -117,24 +113,18 @@
                     }
 
                     readonly MyContext context;
-                    Connection connection;
+                    readonly Connection connection;
                 }
             }
         }
 
         public class WithCustomCheck : EndpointConfigurationBuilder
         {
-            public WithCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public WithCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck : NServiceBus.CustomChecks.CustomCheck
             {
-                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
-                {
-                    this.context = context;
-                }
+                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5)) => this.context = context;
 
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {

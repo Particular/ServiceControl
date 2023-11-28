@@ -205,11 +205,11 @@
 
         IHost host;
         Bootstrapper bootstrapper;
-        ITransportIntegration transportToUse;
-        AcceptanceTestStorageConfiguration persistenceToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<IHostBuilder> hostBuilderCustomization;
-        string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        readonly ITransportIntegration transportToUse;
+        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly Action<Settings> setSettings;
+        readonly Action<EndpointConfiguration> customConfiguration;
+        readonly Action<IHostBuilder> hostBuilderCustomization;
+        readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

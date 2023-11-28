@@ -117,8 +117,8 @@
                     throw new SimulatedException();
                 }
 
-                EditMessageFailureContext testContext;
-                IReadOnlySettings settings;
+                readonly EditMessageFailureContext testContext;
+                readonly IReadOnlySettings settings;
             }
         }
 
