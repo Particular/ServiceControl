@@ -112,10 +112,6 @@
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
 
-            // This is a hack to ensure ServiceControl picks the correct type for the messages that come from plugins otherwise we pick the type from the plugins assembly and that is not the type we want, we need to pick the type from ServiceControl assembly.
-            // This is needed because we no longer use the AppDomain separation.
-            //configuration.RegisterComponents(r => { configuration.GetSettings().Set("SC.ConfigureComponent", r); });
-
             configuration.RegisterComponents(r =>
             {
                 r.RegisterSingleton(context.GetType(), context);
