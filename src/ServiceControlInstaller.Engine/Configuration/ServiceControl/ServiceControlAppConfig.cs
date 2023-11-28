@@ -4,6 +4,7 @@
     using System.IO;
     using System.Linq;
     using Instances;
+    using NuGet.Versioning;
 
     public class ServiceControlAppConfig : AppConfig
     {
@@ -38,11 +39,15 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
 
-            // Add Settings for performance tuning
-            // See https://github.com/Particular/ServiceControl/issues/655
-            if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
+            var priorTo5 = VersionComparer.Version.Compare(version, new SemanticVersion(5, 0, 0)) < 0;
+
+            if (!priorTo5)
             {
-                settings.Add("Raven/Esent/MaxVerPages", "2048");
+                var esentKeys = settings.AllKeys.Where(k => k.StartsWith("Raven/Esent/", StringComparison.OrdinalIgnoreCase));
+                foreach (var key in esentKeys)
+                {
+                    settings.Remove(key);
+                }
             }
         }
 
