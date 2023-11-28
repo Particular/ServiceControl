@@ -37,10 +37,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
 
         [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
+        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public void Setup()
@@ -49,9 +46,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             CustomAuditEndpointConfiguration = c => { };
             CustomServiceControlSettings = s => { };
             CustomServiceControlAuditSettings = s => { };
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
