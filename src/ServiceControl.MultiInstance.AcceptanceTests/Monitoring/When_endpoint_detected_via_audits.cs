@@ -6,7 +6,6 @@
     using AcceptanceTesting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
-    using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.Monitoring;
     using ServiceControl.Persistence;
@@ -56,19 +55,10 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender() => EndpointSetup<DefaultServerWithAudit>(c => { });
+            public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context) => Task.CompletedTask;
             }
         }
