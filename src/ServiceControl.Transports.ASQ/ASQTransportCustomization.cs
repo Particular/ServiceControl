@@ -37,6 +37,8 @@
             TransportSettings transportSettings)
         {
             //Do not ConfigurePubSub for send-only endpoint
+            var endpointName = endpointConfiguration.GetSettings().EndpointName();
+            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = endpointName + ".poison";
         }
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings)
