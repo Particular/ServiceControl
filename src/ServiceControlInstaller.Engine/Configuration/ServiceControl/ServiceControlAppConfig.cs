@@ -1,8 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
-    using System;
     using System.IO;
-    using System.Linq;
     using Instances;
 
     public class ServiceControlAppConfig : AppConfig
@@ -38,12 +36,7 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
 
-            // Add Settings for performance tuning
-            // See https://github.com/Particular/ServiceControl/issues/655
-            if (!settings.AllKeys.Contains("Raven/Esent/MaxVerPages"))
-            {
-                settings.Add("Raven/Esent/MaxVerPages", "2048");
-            }
+            RemoveRavenDB35Settings(settings, version);
         }
 
         public override void EnableMaintenanceMode()
