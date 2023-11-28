@@ -90,12 +90,19 @@
 
             await DisplayRootViewForAsync<ShellViewModel>();
 
+            var windowManager = GetInstance(typeof(IServiceControlWindowManager), null) as IServiceControlWindowManager;
+
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(out var message))
             {
                 message += $"{Environment.NewLine}{Environment.NewLine}Until the prerequisites are installed, no ServiceControl instances can be installed.";
-
-                var windowManager = GetInstance(typeof(IServiceControlWindowManager), null) as IServiceControlWindowManager;
                 await windowManager.ShowMessage("Missing prerequisites", message, acceptText: "I understand", hideCancel: true);
+            }
+
+            if (OldScmuCheck.OldVersionOfServiceControlInstalled(out var installedVersion))
+            {
+                message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least 4.33.0.";
+                await windowManager.ShowMessage("Outdated Version Installed", message, acceptText: "I understand", hideCancel: true);
+                Application.Current.Shutdown(-1);
             }
         }
 
