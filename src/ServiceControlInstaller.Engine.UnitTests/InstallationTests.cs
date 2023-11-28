@@ -28,6 +28,11 @@
                     persistenceManifest = JsonSerializer.Deserialize<PersistenceManifest>(manifestContent);
                 }
 
+                if (!persistenceManifest.IsSupported)
+                {
+                    Assert.Ignore("Don't care about config for unsupported persistence types.");
+                }
+
                 var newInstance = new ServiceControlAuditNewInstance(persistenceManifest);
 
 
