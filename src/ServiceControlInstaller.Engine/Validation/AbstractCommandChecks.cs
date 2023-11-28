@@ -200,7 +200,7 @@
         {
             if (OldScmuCheck.OldVersionOfServiceControlInstalled(out var installedVersion))
             {
-                var message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least 4.33.0.";
+                var message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least {OldScmuCheck.MinimumScmuVersion}.";
                 await NotifyError("Outdated Version Installed", message).ConfigureAwait(false);
                 return true;
             }

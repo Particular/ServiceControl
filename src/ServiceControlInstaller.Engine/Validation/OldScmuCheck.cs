@@ -1,27 +1,42 @@
 ﻿namespace ServiceControlInstaller.Engine.Validation
 {
     using System;
+    using System.Linq;
     using Microsoft.Win32;
 
     public static class OldScmuCheck
     {
+        public static readonly Version MinimumScmuVersion = new Version(4, 33, 0);
+
         public static bool OldVersionOfServiceControlInstalled(out string installedVersion)
         {
             installedVersion = null;
 
-            using var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\ParticularSoftware\ServiceControl");
-            if (regKey == null)
+            // Example Registry key: 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ServiceControl 4.33.0'
+            using var uninstallKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+
+            var serviceControlVersion = uninstallKey.GetSubKeyNames()
+                .Where(subKeyName => subKeyName.StartsWith("ServiceControl "))
+                .Select(subKeyName =>
+                {
+                    using var appKey = uninstallKey.OpenSubKey(subKeyName);
+
+                    var versionText = appKey.GetValue("DisplayVersion") as string;
+
+                    return Version.TryParse(versionText, out var version) ? version : null;
+                })
+                .Where(v => v is not null)
+                .OrderByDescending(v => v)
+                .FirstOrDefault();
+
+            if (serviceControlVersion is null)
             {
                 return false;
             }
 
-            installedVersion = regKey.GetValue("Version") as string;
-            if (!Version.TryParse(installedVersion, out var version))
-            {
-                return false;
-            }
+            installedVersion = serviceControlVersion.ToString();
 
-            if (version >= new Version(4, 33, 0))
+            if (serviceControlVersion >= MinimumScmuVersion)
             {
                 return false;
             }
