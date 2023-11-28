@@ -10,8 +10,10 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -206,6 +208,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
                     c.ReportSuccessfulRetriesToServiceControl();
 
@@ -276,6 +280,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
 
                     var recoverability = c.Recoverability();

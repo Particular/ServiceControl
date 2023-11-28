@@ -7,8 +7,10 @@
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
@@ -57,6 +59,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
                     c.DisableFeature<PlatformRetryNotifications>();
                     var recoverability = c.Recoverability();
