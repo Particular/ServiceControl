@@ -11,6 +11,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
     using Events;
     using Framework;
     using Framework.Rx;
+    using NuGet.Versioning;
     using ReactiveUI;
     using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
@@ -133,7 +134,8 @@ namespace ServiceControl.Config.UI.AdvancedOptions
             }
         }
 
-        public bool ForcedUpgradeAllowed => ForceUpgradeCommand.CanExecute(this);
+        static readonly SemanticVersion ForcedUpgradeMaxVersion = new(5, 0, 0);
+        public bool ForcedUpgradeAllowed => VersionComparer.Version.Compare(ServiceControlInstance.Version, ForcedUpgradeMaxVersion) < 0 && ForceUpgradeCommand.CanExecute(this);
 
         public string ForcedUpgradeBackupLocation => ServiceControlInstance.DatabaseBackupPath;
 
