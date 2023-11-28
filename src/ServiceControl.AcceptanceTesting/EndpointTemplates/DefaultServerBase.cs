@@ -62,7 +62,7 @@
 
             endpointConfiguration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            endpointConfiguration.RegisterComponents(r => { endpointConfiguration.GetSettings().Set("SC.ConfigureComponent", r); });
+            //endpointConfiguration.RegisterComponents(r => { endpointConfiguration.GetSettings().Set("SC.ConfigureComponent", r); });
 
             endpointConfiguration.GetSettings().Set("SC.ScenarioContext", runDescriptor.ScenarioContext);
 
