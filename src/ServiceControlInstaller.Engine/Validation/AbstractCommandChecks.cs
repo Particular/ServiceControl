@@ -35,6 +35,11 @@
                 return false;
             }
 
+            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -112,6 +117,11 @@
                 return false;
             }
 
+            if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
+            {
+                return false;
+            }
+
             // Check for transports that can't be upgraded
             var cantUpdateTransport = instance.TransportPackage.Removed && instance.TransportPackage.AutoMigrateTo is null;
             if (cantUpdateTransport)
@@ -180,6 +190,18 @@
             if (DotnetVersionValidator.FrameworkRequirementsAreMissing(out var missingMessage))
             {
                 await NotifyForMissingSystemPrerequisites(missingMessage).ConfigureAwait(false);
+                return true;
+            }
+
+            return false;
+        }
+
+        async Task<bool> OldVersionOfServiceControlInstalled()
+        {
+            if (OldScmuCheck.OldVersionOfServiceControlInstalled(out var installedVersion))
+            {
+                var message = $"An old version {installedVersion} of ServiceControl Management is installed, which will not work after installing new instances. Before installing ServiceControl 5 instances, you must either uninstall the {installedVersion} instance or update it to a 4.x version at least 4.33.0.";
+                await NotifyError("Outdated Version Installed", message).ConfigureAwait(false);
                 return true;
             }
 
