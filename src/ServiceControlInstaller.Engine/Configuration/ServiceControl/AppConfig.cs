@@ -1,7 +1,9 @@
 namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
+    using System.Configuration;
     using System.Linq;
     using System.Xml.Linq;
+    using NuGet.Versioning;
 
     public abstract class AppConfig : AppConfigWrapper
     {
@@ -45,5 +47,11 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
         }
 
         protected abstract void UpdateSettings();
+
+        protected static void RemoveRavenDB35Settings(KeyValueConfigurationCollection settings, SemanticVersion version)
+        {
+            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentLogsPath, version);
+            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentMaxVerPages, version);
+        }
     }
 }

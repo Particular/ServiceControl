@@ -1,10 +1,7 @@
 ﻿namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
 {
-    using System;
     using System.IO;
-    using System.Linq;
     using Instances;
-    using NuGet.Versioning;
 
     public class ServiceControlAppConfig : AppConfig
     {
@@ -39,8 +36,7 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
 
-            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentLogsPath, version);
-            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentMaxVerPages, version);
+            RemoveRavenDB35Settings(settings, version);
         }
 
         public override void EnableMaintenanceMode()
