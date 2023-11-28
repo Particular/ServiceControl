@@ -77,17 +77,5 @@ namespace ServiceControlInstaller.Engine.Configuration.ServiceControl
             Name = "ServiceControl/EnableFullTextSearchOnBodies",
             SupportedFrom = new SemanticVersion(4, 17, 0)
         };
-
-        public static SettingInfo RavenEsentMaxVerPages = new()
-        {
-            Name = "Raven/Esent/MaxVerPages",
-            RemovedFrom = new SemanticVersion(5, 0, 0)
-        };
-
-        public static SettingInfo RavenEsentLogsPath = new()
-        {
-            Name = "Raven/Esent/LogsPath",
-            RemovedFrom = new SemanticVersion(5, 0, 0)
-        };
     }
 }
