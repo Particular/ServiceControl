@@ -88,7 +88,7 @@
 
         class RemoteEndpoint : EndpointConfigurationBuilder
         {
-            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => { c.RegisterComponents(services => services.AddSingleton<MessageBodySpy>()); });
+            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.RegisterComponents(services => services.AddSingleton<IMutateIncomingTransportMessages, MessageBodySpy>()));
 
             public class MessageBodySpy : IMutateIncomingTransportMessages
             {
