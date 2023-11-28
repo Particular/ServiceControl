@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.AcceptanceTesting
 {
-    using System.Configuration;
     using System.Linq;
     using System.Threading;
     using NServiceBus.AcceptanceTesting.Customization;

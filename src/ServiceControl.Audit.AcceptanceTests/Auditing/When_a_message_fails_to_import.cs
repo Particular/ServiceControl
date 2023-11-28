@@ -19,7 +19,7 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(services => services.AddSingleton<FailOnceEnricher>()); };
+            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>());
 
             SetSettings = settings =>
             {
