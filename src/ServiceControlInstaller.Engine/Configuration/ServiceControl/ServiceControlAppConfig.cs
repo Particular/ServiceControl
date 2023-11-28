@@ -39,16 +39,8 @@
             settings.RemoveIfRetired(ServiceControlSettings.AuditLogQueue, version);
             settings.RemoveIfRetired(ServiceControlSettings.ForwardAuditMessages, version);
 
-            var priorTo5 = VersionComparer.Version.Compare(version, new SemanticVersion(5, 0, 0)) < 0;
-
-            if (!priorTo5)
-            {
-                var esentKeys = settings.AllKeys.Where(k => k.StartsWith("Raven/Esent/", StringComparison.OrdinalIgnoreCase));
-                foreach (var key in esentKeys)
-                {
-                    settings.Remove(key);
-                }
-            }
+            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentLogsPath, version);
+            settings.RemoveIfRetired(ServiceControlSettings.RavenEsentMaxVerPages, version);
         }
 
         public override void EnableMaintenanceMode()

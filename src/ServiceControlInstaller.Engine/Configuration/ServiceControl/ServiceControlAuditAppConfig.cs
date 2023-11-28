@@ -64,6 +64,8 @@
                     }
                 }
             }
+
+            RemoveRavenDB35Settings(settings, version);
         }
 
         public override void EnableMaintenanceMode()

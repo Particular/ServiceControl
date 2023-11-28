@@ -28,12 +28,14 @@
 
             collection.Remove(keyInfo.Name);
 
-            if (keyInfo.SupportedFrom != null && currentVersion < keyInfo.SupportedFrom)
+            // Using VersionComparer.Version to compare versions and ignore release info (i.e. -alpha.1)
+            if (keyInfo.SupportedFrom != null && VersionComparer.Version.Compare(currentVersion, keyInfo.SupportedFrom) < 0)
             {
                 return;
             }
 
-            if (keyInfo.RemovedFrom != null && currentVersion >= keyInfo.RemovedFrom)
+            // Using VersionComparer.Version to compare versions and ignore release info (i.e. -alpha.1)
+            if (keyInfo.RemovedFrom != null && VersionComparer.Version.Compare(currentVersion, keyInfo.RemovedFrom) >= 0)
             {
                 return;
             }
@@ -57,7 +59,10 @@
                 throw new ArgumentNullException(nameof(currentVersion), $"Version info is required before setting or removing {keyInfo.Name}");
             }
 
-            if (currentVersion >= keyInfo.RemovedFrom)
+            // Using VersionComparer.Version to compare versions and ignore release info (i.e. -alpha.1)
+            var isObsolete = VersionComparer.Version.Compare(currentVersion, keyInfo.RemovedFrom) >= 0;
+
+            if (isObsolete)
             {
                 collection.Remove(keyInfo.Name);
             }
