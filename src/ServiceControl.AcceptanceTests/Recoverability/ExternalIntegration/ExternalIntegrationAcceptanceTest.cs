@@ -52,7 +52,7 @@
                         {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(ErrorSender))},
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
                         {"NServiceBus.ProcessingEndpoint", nameof(ErrorSender)},
-                        {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
+                        {Headers.TimeSent, DateTimeOffsetHelper.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, typeof(AMessage).AssemblyQualifiedName}
                     }, Array.Empty<byte>());
                     return msg;

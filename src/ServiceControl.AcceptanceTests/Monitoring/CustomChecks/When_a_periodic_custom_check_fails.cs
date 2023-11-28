@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts.CustomChecks;
@@ -10,6 +11,7 @@
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
@@ -66,17 +68,14 @@
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR()
-            {
-                EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
-            }
+            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
 
             class EnableSignalR : Feature
             {
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    context.Container.ConfigureComponent<SignalrStarter>(DependencyLifecycle.SingleInstance);
-                    context.RegisterStartupTask(b => b.Build<SignalrStarter>());
+                    context.Services.AddSingleton<SignalrStarter>();
+                    context.RegisterStartupTask(provider => provider.GetRequiredService<SignalrStarter>());
                 }
 
                 class SignalrStarter : FeatureStartupTask
@@ -99,7 +98,7 @@
                         }
                     }
 
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Received += ConnectionOnReceived;
                         connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
@@ -107,33 +106,27 @@
                         return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Stop();
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     readonly MyContext context;
-                    Connection connection;
+                    readonly Connection connection;
                 }
             }
         }
 
         public class WithCustomCheck : EndpointConfigurationBuilder
         {
-            public WithCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public WithCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck : NServiceBus.CustomChecks.CustomCheck
             {
-                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5))
-                {
-                    this.context = context;
-                }
+                public FailingCustomCheck(MyContext context) : base("MyCustomCheckId", "MyCategory", TimeSpan.FromSeconds(5)) => this.context = context;
 
-                public override Task<CheckResult> PerformCheck()
+                public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
                     if (executed && context.SignalrStarted)
                     {

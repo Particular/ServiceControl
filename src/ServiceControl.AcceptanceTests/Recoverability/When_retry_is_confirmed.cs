@@ -69,19 +69,13 @@
 
         class RetryingEndpoint : EndpointConfigurationBuilder
         {
-            public RetryingEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => c.NoRetries());
-            }
+            public RetryingEndpoint() => EndpointSetup<DefaultServer>(c => c.NoRetries());
 
             class RetryMessageHandler : IHandleMessages<RetryMessage>
             {
-                Context testContext;
+                readonly Context testContext;
 
-                public RetryMessageHandler(Context testContext)
-                {
-                    this.testContext = testContext;
-                }
+                public RetryMessageHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(RetryMessage message, IMessageHandlerContext context)
                 {

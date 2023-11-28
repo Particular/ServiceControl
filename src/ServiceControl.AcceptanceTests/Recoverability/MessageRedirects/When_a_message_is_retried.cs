@@ -42,7 +42,7 @@
                     c.When((session, ctx) =>
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(ToNewEndpoint));
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }))
                 .Done(ctx => ctx.Received)
                 .Run(TimeSpan.FromSeconds(120));
@@ -52,26 +52,25 @@
 
         public class FromEndpoint : EndpointConfigurationBuilder
         {
-            public FromEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public FromEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
-                readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly Context testContext;
+                readonly ReceiveAddresses receiveAddresses;
+                readonly IReadOnlySettings settings;
 
-                public MessageToRetryHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MessageToRetryHandler(Context testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
-                    this.scenarioContext = scenarioContext;
+                    this.testContext = testContext;
+                    this.receiveAddresses = receiveAddresses;
                     this.settings = settings;
                 }
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    scenarioContext.FromAddress = settings.LocalAddress();
-                    scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), settings.EndpointName()).ToString();
+                    testContext.FromAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), settings.EndpointName()).ToString();
                     throw new Exception("Message Failed");
                 }
             }
@@ -79,24 +78,18 @@
 
         public class ToNewEndpoint : EndpointConfigurationBuilder
         {
-            public ToNewEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public ToNewEndpoint() => EndpointSetup<DefaultServer>();
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
-                readonly Context scenarioContext;
+                readonly Context testContext;
 
-                public MessageToRetryHandler(Context scenarioContext)
-                {
-                    this.scenarioContext = scenarioContext;
-                }
+                public MessageToRetryHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    scenarioContext.Received = true;
-                    return Task.FromResult(0);
+                    testContext.Received = true;
+                    return Task.CompletedTask;
                 }
             }
         }

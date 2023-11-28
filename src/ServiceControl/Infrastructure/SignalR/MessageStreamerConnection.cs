@@ -8,7 +8,6 @@
     using Microsoft.AspNet.SignalR;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Settings;
@@ -16,7 +15,7 @@
 
     class MessageStreamerConnection : PersistentConnection
     {
-        public MessageStreamerConnection(IDispatchMessages sender, ReadOnlySettings settings)
+        public MessageStreamerConnection(IMessageDispatcher sender, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
         {
             var conventions = settings.Get<Conventions>();
             this.sender = sender;
@@ -25,7 +24,7 @@
                 .Where(conventions.IsMessageType)
                 .GroupBy(x => x.Name)
                 .ToDictionary(x => x.Key, x => x.FirstOrDefault().AssemblyQualifiedName);
-            localAddress = settings.LocalAddress();
+            localAddress = receiveAddresses.MainReceiveAddress;
         }
 
         protected override async Task OnReceived(IRequest request, string connectionId, string data)
@@ -44,7 +43,7 @@
                 var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
                 var transportOperations = new TransportOperations(transportOperation);
 
-                await sender.Dispatch(transportOperations, transportTransaction, contextBag);
+                await sender.Dispatch(transportOperations, transportTransaction);
             }
             catch (Exception ex)
             {
@@ -54,11 +53,10 @@
         }
 
         readonly Dictionary<string, string> messageTypes;
-        readonly IDispatchMessages sender;
+        readonly IMessageDispatcher sender;
         string localAddress;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
         static TransportTransaction transportTransaction = new TransportTransaction();
-        static ContextBag contextBag = new ContextBag();
     }
 }

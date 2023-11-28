@@ -115,7 +115,7 @@
 
             public override string Name => "ServiceControlClient";
 
-            public override Task Start(CancellationToken cancellationToken = default) => Task.FromResult(0);
+            public override Task Start(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
             public override Task ComponentsStarted(CancellationToken cancellationToken = default)
             {
@@ -140,7 +140,7 @@
                         setException(ExceptionDispatchInfo.Capture(e));
                     }
                 }, tokenSource.Token);
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             public override async Task Stop()

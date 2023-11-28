@@ -22,7 +22,7 @@
             this.loadGenetorQueue = loadGenetorQueue;
         }
 
-        protected override Task OnStart(IMessageSession session)
+        protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
         {
             tokenSource = new CancellationTokenSource();
             reportTask = Task.Run(async () =>
@@ -45,11 +45,11 @@
                         Console.WriteLine(e);
                     }
                 }
-            });
+            }, cancellationToken);
             return Task.CompletedTask;
         }
 
-        protected override async Task OnStop(IMessageSession session)
+        protected override async Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
         {
             tokenSource?.Cancel();
             if (reportTask != null)

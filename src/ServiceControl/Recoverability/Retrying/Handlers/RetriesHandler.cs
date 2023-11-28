@@ -32,7 +32,7 @@ namespace ServiceControl.Recoverability
                 return dataStore.RemoveFailedMessageRetryDocument(message.FailedMessageId);
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task Handle(RequestRetryAll message, IMessageHandlerContext context)
@@ -46,7 +46,7 @@ namespace ServiceControl.Recoverability
                 retries.StartRetryForAllMessages();
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task Handle(RetryMessage message, IMessageHandlerContext context)
@@ -65,7 +65,7 @@ namespace ServiceControl.Recoverability
 
             retries.StartRetryForFailedQueueAddress(failedQueueAddress, message.Status);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

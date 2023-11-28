@@ -18,7 +18,7 @@
 
             monitor.RecordHeartbeat(endpointInstanceId, message.ExecutedAt);
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         IEndpointInstanceMonitoring monitor;

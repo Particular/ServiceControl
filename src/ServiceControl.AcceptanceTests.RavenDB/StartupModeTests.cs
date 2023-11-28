@@ -42,10 +42,7 @@
         }
 
         [TearDown]
-        public async Task Cleanup()
-        {
-            await database.DisposeAsync();
-        }
+        public async Task Cleanup() => await database.DisposeAsync();
 
         [Test]
         public async Task CanRunMaintenanceMode()

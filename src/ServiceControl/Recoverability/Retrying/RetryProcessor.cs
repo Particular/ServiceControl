@@ -7,7 +7,6 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using MessageFailures;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
@@ -26,12 +25,12 @@ namespace ServiceControl.Recoverability
             corruptedReplyToHeaderStrategy = new CorruptedReplyToHeaderStrategy(RuntimeEnvironment.MachineName);
         }
 
-        Task Enqueue(IDispatchMessages sender, TransportOperations outgoingMessages)
+        Task Enqueue(IMessageDispatcher sender, TransportOperations outgoingMessages)
         {
-            return sender.Dispatch(outgoingMessages, new TransportTransaction(), new ContextBag());
+            return sender.Dispatch(outgoingMessages, new TransportTransaction());
         }
 
-        public async Task<bool> ProcessBatches(IDispatchMessages sender, CancellationToken cancellationToken = default)
+        public async Task<bool> ProcessBatches(IMessageDispatcher sender, CancellationToken cancellationToken = default)
         {
             using (var manager = await store.CreateRetryBatchesManager())
             {
@@ -43,7 +42,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        async Task<bool> MoveStagedBatchesToForwardingBatch(IRetryBatchesManager manager, IDispatchMessages sender)
+        async Task<bool> MoveStagedBatchesToForwardingBatch(IRetryBatchesManager manager, IMessageDispatcher sender)
         {
             try
             {
@@ -176,7 +175,7 @@ namespace ServiceControl.Recoverability
             };
         }
 
-        async Task<int> Stage(RetryBatch stagingBatch, IRetryBatchesManager manager, IDispatchMessages sender)
+        async Task<int> Stage(RetryBatch stagingBatch, IRetryBatchesManager manager, IMessageDispatcher sender)
         {
             var stagingId = Guid.NewGuid().ToString();
 
@@ -246,7 +245,7 @@ namespace ServiceControl.Recoverability
             return messages.Length;
         }
 
-        Task TryDispatch(IDispatchMessages sender,
+        Task TryDispatch(IMessageDispatcher sender,
             TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages,
             IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId,
             bool previousAttemptFailed)
@@ -255,7 +254,7 @@ namespace ServiceControl.Recoverability
                 BatchDispatchToTransport(sender, transportOperations, messages, failedMessageRetriesById, stagingId);
         }
 
-        Task ConcurrentDispatchToTransport(IDispatchMessages sender, IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
+        Task ConcurrentDispatchToTransport(IMessageDispatcher sender, IReadOnlyCollection<TransportOperation> transportOperations, IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById)
         {
             var tasks = new List<Task>(transportOperations.Count);
             foreach (var transportOperation in transportOperations)
@@ -265,7 +264,7 @@ namespace ServiceControl.Recoverability
             return Task.WhenAll(tasks);
         }
 
-        async Task BatchDispatchToTransport(IDispatchMessages sender,
+        async Task BatchDispatchToTransport(IMessageDispatcher sender,
             TransportOperation[] transportOperations, IReadOnlyCollection<FailedMessage> messages,
             IReadOnlyDictionary<string, FailedMessageRetry> failedMessageRetriesById, string stagingId)
         {
@@ -281,7 +280,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        async Task TryStageMessage(IDispatchMessages sender, TransportOperation transportOperation, FailedMessageRetry failedMessageRetry)
+        async Task TryStageMessage(IMessageDispatcher sender, TransportOperation transportOperation, FailedMessageRetry failedMessageRetry)
         {
             try
             {

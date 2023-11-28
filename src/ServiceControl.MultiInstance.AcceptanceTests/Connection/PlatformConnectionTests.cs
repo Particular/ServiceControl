@@ -34,10 +34,7 @@
 
         class MyEndpoint : EndpointConfigurationBuilder
         {
-            public MyEndpoint()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public MyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
         }
 
         class MyContext : ScenarioContext

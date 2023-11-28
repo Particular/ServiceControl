@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -26,12 +27,12 @@
             SetSettings = settings => { settings.MaximumConcurrencyLevel = 10; };
             CustomConfiguration = config =>
             {
-                config.DefineCriticalErrorAction(ctx =>
+                config.DefineCriticalErrorAction((_, __) =>
                 {
                     criticalErrorExecuted = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 });
-                config.RegisterComponents(c => c.ConfigureComponent<CounterEnricher>(DependencyLifecycle.SingleInstance));
+                config.RegisterComponents(services => services.AddSingleton<CounterEnricher>());
             };
 
             FailedMessage failure = null;
@@ -64,18 +65,15 @@
 
         class CounterEnricher : IEnrichImportedErrorMessages
         {
-            readonly MyContext scenarioContext;
+            readonly MyContext testContext;
 
-            public CounterEnricher(MyContext scenarioContext)
-            {
-                this.scenarioContext = scenarioContext;
-            }
+            public CounterEnricher(MyContext testContext) => this.testContext = testContext;
 
             public void Enrich(ErrorEnricherContext context)
             {
                 if (context.Headers.TryGetValue("Counter", out var counter))
                 {
-                    scenarioContext.OnMessage(counter);
+                    testContext.OnMessage(counter);
                 }
                 else
                 {
@@ -86,10 +84,7 @@
 
         public class SourceEndpoint : EndpointConfigurationBuilder
         {
-            public SourceEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public SourceEndpoint() => EndpointSetup<DefaultServer>();
 
             class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
@@ -124,7 +119,7 @@
                                 ["NServiceBus.ExceptionInfo.Source"] = "NServiceBus.Core",
                                 ["NServiceBus.ExceptionInfo.StackTrace"] = string.Empty,
                                 ["NServiceBus.FailedQ"] = "Error.SourceEndpoint",
-                                ["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(failureTimes[failureNo]),
+                                ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(failureTimes[failureNo]),
                                 ["Counter"] = i.ToString()
                             };
 
@@ -143,12 +138,9 @@
 
             public DateTime[] FailureTimes { get; set; }
 
-            public void OnMessage(string counter)
-            {
-                receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
-            }
+            public void OnMessage(string counter) => receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
 
-            ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
+            readonly ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
         }
     }
 }

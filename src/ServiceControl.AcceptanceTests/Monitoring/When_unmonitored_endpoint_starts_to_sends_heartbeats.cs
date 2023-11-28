@@ -78,18 +78,12 @@
 
         public class WithoutHeartbeat : EndpointConfigurationBuilder
         {
-            public WithoutHeartbeat()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public WithoutHeartbeat() => EndpointSetup<DefaultServer>();
         }
 
         public class WithHeartbeat : EndpointConfigurationBuilder
         {
-            public WithHeartbeat()
-            {
-                EndpointSetup<DefaultServer>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
-            }
+            public WithHeartbeat() => EndpointSetup<DefaultServer>(c => { c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME); }).CustomEndpointName(EndpointName);
         }
     }
 }

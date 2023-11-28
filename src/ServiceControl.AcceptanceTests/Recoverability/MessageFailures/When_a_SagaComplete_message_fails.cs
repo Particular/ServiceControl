@@ -36,10 +36,7 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
-            }
+            public FailureEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
 
             public class SendFailedMessage : DispatchRawMessages<MyContext>
             {

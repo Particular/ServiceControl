@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -59,33 +60,37 @@
 
         class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
-                    c.RegisterComponents(components => components.ConfigureComponent<CorrelationIdRemover>(DependencyLifecycle.InstancePerCall));
+                    c.RegisterComponents(services => services.AddSingleton<CorrelationIdRemover>());
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext TestContext { get; set; }
-                public ReadOnlySettings Settings { get; set; }
+                readonly IReadOnlySettings settings;
+                readonly MyContext testContext;
+
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    testContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
 
-                    if (!TestContext.RetryIssued)
+                    if (!testContext.RetryIssued)
                     {
                         throw new Exception("Simulated exception");
                     }
 
-                    TestContext.RetryHandled = true;
-                    return Task.FromResult(0);
+                    testContext.RetryHandled = true;
+                    return Task.CompletedTask;
                 }
             }
 
@@ -94,7 +99,7 @@
                 public Task MutateOutgoing(MutateOutgoingTransportMessageContext context)
                 {
                     context.OutgoingHeaders.Remove(Headers.CorrelationId);
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

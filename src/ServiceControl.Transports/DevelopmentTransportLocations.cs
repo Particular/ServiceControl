@@ -35,8 +35,8 @@
         const string configuration = "Release";
 #endif
 
-#if NET472
-        const string framework = "net472";
+#if NET48
+        const string framework = "net48";
 #endif
     }
 }

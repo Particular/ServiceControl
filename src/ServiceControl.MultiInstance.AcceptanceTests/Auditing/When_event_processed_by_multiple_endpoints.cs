@@ -75,19 +75,19 @@
 
             class SomeEventHandler : IHandleMessages<SomeEvent>
             {
-                readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public SomeEventHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public SomeEventHandler(MyContext testContext, IReadOnlySettings settings)
                 {
-                    this.scenarioContext = scenarioContext;
+                    this.testContext = testContext;
                     this.settings = settings;
                 }
 
                 public Task Handle(SomeEvent message, IMessageHandlerContext context)
                 {
-                    scenarioContext.Subscriber1Endpoint = settings.EndpointName();
-                    scenarioContext.MessageId = context.MessageId;
+                    testContext.Subscriber1Endpoint = settings.EndpointName();
+                    testContext.MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }
@@ -106,9 +106,9 @@
             class SomeEventHandler : IHandleMessages<SomeEvent>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public SomeEventHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public SomeEventHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

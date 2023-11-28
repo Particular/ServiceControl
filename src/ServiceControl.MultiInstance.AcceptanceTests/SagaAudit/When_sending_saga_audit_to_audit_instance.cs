@@ -68,22 +68,22 @@
 
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public SagaEndpoint()
-            {
+            public SagaEndpoint() =>
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
                     c.AuditSagaStateChanges("audit");
                     c.AuditProcessedMessagesTo("audit");
                 });
-            }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext TestContext { get; set; }
+                readonly MyContext testContext;
+
+                public MySaga(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    TestContext.SagaId = Data.Id;
+                    testContext.SagaId = Data.Id;
                     return Task.CompletedTask;
                 }
 

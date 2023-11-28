@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -87,31 +88,32 @@
 
         class RemoteEndpoint : EndpointConfigurationBuilder
         {
-            public RemoteEndpoint()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { c.RegisterComponents(cc => cc.ConfigureComponent<MessageBodySpy>(DependencyLifecycle.SingleInstance)); });
-            }
+            public RemoteEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => c.RegisterComponents(services => services.AddSingleton<IMutateIncomingTransportMessages, MessageBodySpy>()));
 
             public class MessageBodySpy : IMutateIncomingTransportMessages
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public MessageBodySpy(MyContext testContext) => this.testContext = testContext;
 
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
-                    Context.MessageContentType = context.Headers[Headers.ContentType];
-                    Context.MessageBody = context.Body;
-                    return Task.FromResult(0);
+                    testContext.MessageContentType = context.Headers[Headers.ContentType];
+                    testContext.MessageBody = context.Body.ToArray();
+                    return Task.CompletedTask;
                 }
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public MyMessageHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.AuditInstanceMessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    testContext.AuditInstanceMessageId = context.MessageId;
+                    return Task.CompletedTask;
                 }
             }
         }

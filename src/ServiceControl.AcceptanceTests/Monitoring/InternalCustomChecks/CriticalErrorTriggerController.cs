@@ -9,7 +9,7 @@
 
     class CriticalErrorTriggerController : ApiController
     {
-        CriticalError criticalError;
+        readonly CriticalError criticalError;
 
         public CriticalErrorTriggerController(CriticalError criticalError)
         {

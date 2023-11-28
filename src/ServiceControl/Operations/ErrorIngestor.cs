@@ -8,7 +8,6 @@
     using Contracts.Operations;
     using Infrastructure.DomainEvents;
     using Infrastructure.Metrics;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
@@ -44,7 +43,7 @@
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 
-        public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -151,7 +150,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, IDispatchMessages dispatcher)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, IMessageDispatcher dispatcher)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -160,7 +159,7 @@
             {
                 anyContext = messageContext;
                 var outgoingMessage = new OutgoingMessage(
-                    messageContext.MessageId,
+                    messageContext.NativeMessageId,
                     messageContext.Headers,
                     messageContext.Body);
 
@@ -174,13 +173,11 @@
             return anyContext != null
                 ? dispatcher.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction,
-                    anyContext.Extensions
-                )
+                    anyContext.TransportTransaction)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
+        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher)
         {
             try
             {
@@ -193,7 +190,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {

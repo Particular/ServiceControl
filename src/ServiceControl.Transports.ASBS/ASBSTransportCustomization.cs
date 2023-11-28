@@ -1,78 +1,51 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using NServiceBus;
-    using NServiceBus.Raw;
 
-    public class ASBSTransportCustomization : TransportCustomization
+    public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+            EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeForReturnToSenderIngestion(AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) => transportDefinition.TransportTransactionMode =
+            TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+            EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
-        }
+        protected override void CustomizeRawSendOnlyEndpoint(AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
+        protected override void CustomizeForQueueIngestion(AzureServiceBusTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
-        }
-
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
-
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
-
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = endpointConfiguration.UseTransport<AzureServiceBusTransport>();
-
-            CustomizeEndpoint(transport, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
-
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
-        }
-
-        void CustomizeEndpoint(
-            TransportExtensions<AzureServiceBusTransport> transport,
-            TransportSettings transportSettings,
-            TransportTransactionMode transportTransactionMode)
+        protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings)
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
+            var transport = connectionSettings.AuthenticationMethod.CreateTransportDefinition(connectionSettings);
+            transport.UseWebSockets = connectionSettings.UseWebSockets;
 
             if (connectionSettings.TopicName != null)
             {
-                transport.TopicName(connectionSettings.TopicName);
-            }
-
-            if (connectionSettings.UseWebSockets)
-            {
-                transport.UseWebSockets();
+                transport.Topology = TopicTopology.Single(connectionSettings.TopicName);
             }
 
             transport.ConfigureNameShorteners();
-            transport.Transactions(transportTransactionMode);
-
-            connectionSettings.AuthenticationMethod.ConfigureConnection(transport);
+            return transport;
         }
     }
 }

@@ -237,7 +237,7 @@
                     return base.MoveBatchToStaging(batchDocumentId);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             bool progressToStaged;
@@ -259,7 +259,7 @@
                     return base.MoveBatchToStaging(batchDocumentId);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             bool progressToStaged;
@@ -284,22 +284,22 @@
 
             public override Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
 
-        public class TestSender : IDispatchMessages
+        public class TestSender : IMessageDispatcher
         {
             public Action<UnicastTransportOperation> Callback { get; set; } = m => { };
 
-            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+            public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
             {
                 foreach (var operation in outgoingMessages.UnicastTransportOperations)
                 {
                     Callback(operation);
                 }
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
     }

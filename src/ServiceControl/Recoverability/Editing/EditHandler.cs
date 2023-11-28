@@ -5,7 +5,6 @@
     using System.Threading.Tasks;
     using MessageFailures;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Support;
@@ -15,7 +14,7 @@
 
     class EditHandler : IHandleMessages<EditAndSend>
     {
-        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IDispatchMessages dispatcher)
+        public EditHandler(IErrorMessageDataStore store, IMessageRedirectsDataStore redirectsStore, IMessageDispatcher dispatcher)
         {
             this.store = store;
             this.redirectsStore = redirectsStore;
@@ -103,13 +102,13 @@
             return dispatcher.Dispatch(
                 new TransportOperations(new TransportOperation(editedMessage, destination)),
                 transportTransaction,
-                new ContextBag());
+                context.CancellationToken);
         }
 
         readonly CorruptedReplyToHeaderStrategy corruptedReplyToHeaderStrategy;
         readonly IErrorMessageDataStore store;
         readonly IMessageRedirectsDataStore redirectsStore;
-        readonly IDispatchMessages dispatcher;
+        readonly IMessageDispatcher dispatcher;
         static readonly ILog log = LogManager.GetLogger<EditHandler>();
     }
 }

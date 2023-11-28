@@ -1,6 +1,7 @@
 namespace ServiceControl.Recoverability
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
@@ -9,24 +10,22 @@ namespace ServiceControl.Recoverability
 
     class RawEndpointFactory
     {
-        public RawEndpointFactory(Settings settings, TransportSettings transportSettings, TransportCustomization transportCustomization)
+        public RawEndpointFactory(Settings settings, TransportSettings transportSettings, ITransportCustomization transportCustomization)
         {
             this.transportSettings = transportSettings;
             this.settings = settings;
             this.transportCustomization = transportCustomization;
         }
 
-        public RawEndpointConfiguration CreateReturnToSenderDequeuer(string name, Func<MessageContext, IDispatchMessages, Task> onMessage)
+        public RawEndpointConfiguration CreateReturnToSenderDequeuer(string name, Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage)
         {
-            var config = RawEndpointConfiguration.Create(name, onMessage, transportSettings.ErrorQueue);
+            var config = transportCustomization.CreateRawEndpointForReturnToSenderIngestion(name, onMessage, transportSettings);
             config.LimitMessageProcessingConcurrencyTo(settings.MaximumConcurrencyLevel);
-
-            transportCustomization.CustomizeForReturnToSenderIngestion(config, transportSettings);
             return config;
         }
 
         Settings settings;
-        TransportCustomization transportCustomization;
+        ITransportCustomization transportCustomization;
         TransportSettings transportSettings;
     }
 }

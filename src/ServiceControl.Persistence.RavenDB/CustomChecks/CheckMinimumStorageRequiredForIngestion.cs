@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
@@ -21,7 +22,7 @@
             dataPathRoot = Path.GetPathRoot(settings.DatabasePath);
         }
 
-        public override Task<CheckResult> PerformCheck()
+        public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             percentageThreshold = settings.MinimumStorageLeftRequiredForIngestion / 100m;
 

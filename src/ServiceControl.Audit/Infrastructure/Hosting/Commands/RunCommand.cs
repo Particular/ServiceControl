@@ -17,7 +17,7 @@
             var loggingSettings = new LoggingSettings(settings.ServiceName);
 
             var host = new Bootstrapper(
-                ctx => { }, //Do nothing. The transports in NSB 7 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
+                (_, __) => Task.CompletedTask, //Do nothing. The transports in NSB 8 are designed to handle broker outages. Audit ingestion will be paused when broker is unavailable.
                 settings,
                 busConfiguration,
                 loggingSettings).HostBuilder;

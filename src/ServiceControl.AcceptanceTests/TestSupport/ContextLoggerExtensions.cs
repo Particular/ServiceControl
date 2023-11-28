@@ -18,7 +18,7 @@
 
         class ContextLoggerProvider : ILoggerProvider
         {
-            ConcurrentDictionary<string, ILogger> loggers = new ConcurrentDictionary<string, ILogger>();
+            readonly ConcurrentDictionary<string, ILogger> loggers = new ConcurrentDictionary<string, ILogger>();
 
             public void Dispose() => loggers.Clear();
 
@@ -38,7 +38,7 @@
 
         class ContextLogger : ILogger
         {
-            string categoryName;
+            readonly string categoryName;
 
             public ContextLogger(string categoryName)
             {

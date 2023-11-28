@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
@@ -67,15 +68,13 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
-                    c.Pipeline.Register(cc => new LookForControlMessage(cc.Build<MyContext>()), "Look for control messages");
+                    c.Pipeline.Register(services => new LookForControlMessage(services.GetRequiredService<MyContext>()), "Look for control messages");
                 });
-            }
 
             public class SendControlMessage : DispatchRawMessages<MyContext>
             {
@@ -115,10 +114,7 @@
 
             public class LookForControlMessage : Behavior<IIncomingPhysicalMessageContext>
             {
-                public LookForControlMessage(MyContext context)
-                {
-                    myContext = context;
-                }
+                public LookForControlMessage(MyContext context) => myContext = context;
 
                 public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
                 {

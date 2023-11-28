@@ -43,22 +43,20 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MessageThatWillFailHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -74,7 +72,7 @@
                     }
 
                     scenarioContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

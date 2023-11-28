@@ -97,7 +97,7 @@
 
         ProcessedMessage MakeMessage(
             string messageId = null,
-            MessageIntentEnum intent = MessageIntentEnum.Send,
+            MessageIntent intent = MessageIntent.Send,
             string conversationId = null,
             string processingEndpoint = null
         )

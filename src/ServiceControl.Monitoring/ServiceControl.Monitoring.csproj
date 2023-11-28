@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>Exe</OutputType>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
@@ -19,9 +19,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
     <PackageReference Include="Microsoft.Owin.Cors" />
     <PackageReference Include="NLog.Extensions.Logging" />
-    <PackageReference Include="NServiceBus.Extensions.DependencyInjection" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" />
+    <PackageReference Include="NServiceBus.Persistence.NonDurable" />
     <PackageReference Include="Particular.Licensing.Sources" />
   </ItemGroup>
 

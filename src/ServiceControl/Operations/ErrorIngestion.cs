@@ -6,15 +6,15 @@
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Infrastructure;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using Persistence;
+    using Persistence.UnitOfWork;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure;
-    using ServiceControl.Persistence;
-    using ServiceControl.Persistence.UnitOfWork;
-    using ServiceControl.Transports;
+    using Transports;
 
     class ErrorIngestion : IHostedService
     {
@@ -23,7 +23,7 @@
 
         public ErrorIngestion(
             Settings settings,
-            TransportCustomization transportCustomization,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
             IErrorMessageDataStore dataStore,
@@ -220,10 +220,10 @@
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         IQueueIngestor queueIngestor;
-        IDispatchMessages dispatcher;
+        IMessageDispatcher dispatcher;
 
         readonly Settings settings;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly Watchdog watchdog;
         readonly Channel<MessageContext> channel;

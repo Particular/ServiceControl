@@ -9,7 +9,6 @@
     using Monitoring;
     using Newtonsoft.Json;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence.UnitOfWork;
@@ -39,7 +38,7 @@
             this.messageSession = messageSession;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IMessageDispatcher dispatcher)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -86,7 +85,7 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
+                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body.ToArray()); //TODO ROM<byte> to array
                         }
 
                         storedContexts.Add(context);
@@ -191,7 +190,7 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessMessage(MessageContext context, IMessageDispatcher dispatcher)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -209,7 +208,7 @@
             try
             {
                 SagaUpdatedMessage message;
-                using (var memoryStream = Memory.Manager.GetStream(context.MessageId, context.Body, 0, context.Body.Length))
+                using (var memoryStream = Memory.Manager.GetStream(context.NativeMessageId, context.Body.ToArray(), 0, context.Body.Length)) //TODO More ROM<byte> to array here
                 using (var streamReader = new StreamReader(memoryStream))
                 using (var reader = new JsonTextReader(streamReader))
                 {
@@ -225,18 +224,18 @@
             {
                 if (Logger.IsWarnEnabled)
                 {
-                    Logger.Warn($"Processing of saga audit message '{context.MessageId}' failed.", e);
+                    Logger.Warn($"Processing of saga audit message '{context.NativeMessageId}' failed.", e);
                 }
 
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context, IDispatchMessages dispatcher)
+        async Task ProcessAuditMessage(MessageContext context, IMessageDispatcher dispatcher)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
-                messageId = DeterministicGuid.MakeId(context.MessageId).ToString();
+                messageId = DeterministicGuid.MakeId(context.NativeMessageId).ToString();
             }
 
             try
@@ -268,8 +267,7 @@
                 }
 
                 await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
-                    new TransportTransaction(), //Do not hook into the incoming transaction
-                    new ContextBag());
+                    new TransportTransaction()); //Do not hook into the incoming transaction
 
                 if (Logger.IsDebugEnabled)
                 {

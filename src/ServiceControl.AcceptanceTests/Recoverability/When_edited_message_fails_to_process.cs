@@ -90,14 +90,11 @@
 
         class FailingEditedMessageReceiver : EndpointConfigurationBuilder
         {
-            public FailingEditedMessageReceiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public FailingEditedMessageReceiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             class FailingMessageHandler : IHandleMessages<FailingMessage>
             {
-                public FailingMessageHandler(EditMessageFailureContext testContext, ReadOnlySettings settings)
+                public FailingMessageHandler(EditMessageFailureContext testContext, IReadOnlySettings settings)
                 {
                     this.testContext = testContext;
                     this.settings = settings;
@@ -117,8 +114,8 @@
                     throw new SimulatedException();
                 }
 
-                EditMessageFailureContext testContext;
-                ReadOnlySettings settings;
+                readonly EditMessageFailureContext testContext;
+                readonly IReadOnlySettings settings;
             }
         }
 

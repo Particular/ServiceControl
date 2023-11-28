@@ -32,7 +32,7 @@ namespace ServiceControl.Audit.Persistence.RavenDB.Transformers
                 ConversationId = message.MessageMetadata["ConversationId"].ToString(),
                 Headers = message.Headers.ToArray(),
                 Status = (bool)message.MessageMetadata["IsRetried"] ? MessageStatus.ResolvedSuccessfully : MessageStatus.Successful,
-                MessageIntent = (MessageIntentEnum)message.MessageMetadata["MessageIntent"],
+                MessageIntent = (MessageIntent)message.MessageMetadata["MessageIntent"],
                 BodyUrl = message.MessageMetadata["BodyUrl"].ToString(),
                 BodySize = (int)message.MessageMetadata["ContentLength"],
                 InvokedSagas = (List<SagaInfo>)message.MessageMetadata["InvokedSagas"],

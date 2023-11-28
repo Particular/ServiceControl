@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +19,8 @@
     <PackageReference Include="Particular.Approvals" />
     <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json"/>
+    <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
   </ItemGroup>
 
 </Project>

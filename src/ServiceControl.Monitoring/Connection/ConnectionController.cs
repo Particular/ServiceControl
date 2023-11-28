@@ -4,7 +4,6 @@
     using System.Web.Http;
     using Newtonsoft.Json;
     using NServiceBus;
-    using NServiceBus.Settings;
 
     public class ConnectionController : ApiController
     {
@@ -12,7 +11,7 @@
         readonly string mainInputQueue;
         readonly TimeSpan defaultInterval = TimeSpan.FromSeconds(1);
 
-        public ConnectionController(ReadOnlySettings nsbSettings) => mainInputQueue = nsbSettings.LocalAddress();
+        public ConnectionController(ReceiveAddresses receiveAddresses) => mainInputQueue = receiveAddresses.MainReceiveAddress;
 
         [Route("connection")]
         [HttpGet]

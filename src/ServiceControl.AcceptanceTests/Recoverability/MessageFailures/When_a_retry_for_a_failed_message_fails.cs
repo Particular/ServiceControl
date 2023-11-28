@@ -83,10 +83,7 @@
             Assert.AreEqual(FailedMessageStatus.Resolved, result.Result.Status);
         }
 
-        Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count)
-        {
-            return GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count && f.Status == FailedMessageStatus.Unresolved);
-        }
+        Task<SingleResult<FailedMessage>> CheckProcessingAttemptsIs(MyContext ctx, int count) => GetFailedMessage(ctx, f => f.ProcessingAttempts.Count == count && f.Status == FailedMessageStatus.Unresolved);
 
         async Task<SingleResult<FailedMessage>> GetFailedMessage(MyContext c, Predicate<FailedMessage> condition)
         {
@@ -100,21 +97,19 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -134,7 +129,7 @@
                     }
 
                     Console.WriteLine("Message processing success");
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

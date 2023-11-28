@@ -32,7 +32,7 @@
         {
             var result = new FailureDetails();
 
-            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = DateTimeExtensions.ToUtcDateTime(s));
+            DictionaryExtensions.CheckIfKeyExists("NServiceBus.TimeOfFailure", headers, s => result.TimeOfFailure = ServiceControl.DateTimeExtensions.ToUtcDateTime(s));
 
             result.Exception = GetException(headers);
 

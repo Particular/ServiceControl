@@ -74,7 +74,7 @@
 
             Assert.Less(TimeSpan.Zero, auditedMessage.ProcessingTime, "Processing time should be calculated");
             Assert.Less(TimeSpan.Zero, auditedMessage.CriticalTime, "Critical time should be calculated");
-            Assert.AreEqual(MessageIntentEnum.Send, auditedMessage.MessageIntent, "Message intent should be set");
+            Assert.AreEqual(MessageIntent.Send, auditedMessage.MessageIntent, "Message intent should be set");
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
@@ -122,34 +122,34 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+                IReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext context, IReadOnlySettings settings)
+                {
+                    testContext = context;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.MessageId = context.MessageId;
-                    return Task.Delay(500);
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.MessageId = context.MessageId;
+                    return Task.Delay(500, context.CancellationToken);
                 }
             }
         }

@@ -4,6 +4,7 @@
     using AcceptanceTesting;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -18,7 +19,7 @@
         public async Task It_can_be_reimported()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>());
 
             SetSettings = settings =>
             {
@@ -78,18 +79,17 @@
 
         public class AuditLogSpy : EndpointConfigurationBuilder
         {
-            public AuditLogSpy()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public AuditLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MyMessageHandler(MyContext context) => testContext = context;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.AuditForwarded = true;
+                    testContext.AuditForwarded = true;
                     return Task.CompletedTask;
                 }
             }
@@ -101,7 +101,7 @@
             {
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
@@ -116,11 +116,13 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MyMessageHandler(MyContext context) => testContext = context;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageId = context.MessageId;
+                    testContext.MessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
             }

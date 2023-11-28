@@ -93,10 +93,7 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public Receiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MyMessageHandler :
                 IHandleMessages<MyMessageA>,
@@ -104,9 +101,9 @@
             {
 
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

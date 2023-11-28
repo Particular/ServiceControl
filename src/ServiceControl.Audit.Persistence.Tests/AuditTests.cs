@@ -8,6 +8,7 @@
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
+    using DateTimeExtensions = ServiceControl.Audit.Auditing.DateTimeExtensions;
 
     [TestFixture]
     class AuditTests : PersistenceTestFixture
@@ -222,7 +223,7 @@
 
         ProcessedMessage MakeMessage(
             string messageId = null,
-            MessageIntentEnum intent = MessageIntentEnum.Send,
+            MessageIntent intent = MessageIntent.Send,
             string conversationId = null,
             string processingEndpoint = null,
             DateTime? processingStarted = null,
@@ -254,7 +255,7 @@
                 { Headers.ProcessingEndpoint, processingEndpoint },
                 { Headers.MessageIntent, intent.ToString() },
                 { Headers.ConversationId, conversationId },
-                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
+                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted ?? DateTime.UtcNow) },
                 { Headers.EnclosedMessageTypes, messageType }
             };
 

@@ -33,10 +33,7 @@
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint()
-            {
-                EndpointSetup<BasicEndpointSetup>();
-            }
+            public SendOnlyEndpoint() => EndpointSetup<BasicEndpointSetup>();
         }
     }
 }

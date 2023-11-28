@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.AcceptanceTesting.EndpointTemplates
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Reflection;
@@ -21,30 +20,19 @@
         {
         }
 
-        public DefaultServerBase(IConfigureEndpointTestExecution endpointTestExecutionConfiguration)
-        {
-            this.endpointTestExecutionConfiguration = endpointTestExecutionConfiguration;
-        }
+        public DefaultServerBase(IConfigureEndpointTestExecution endpointTestExecutionConfiguration) => this.endpointTestExecutionConfiguration = endpointTestExecutionConfiguration;
 
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Action<EndpointConfiguration> configurationBuilderCustomization)
+        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            var typesToInclude = new List<Type>();
-
             var endpointConfiguration = new EndpointConfiguration(endpointCustomizations.EndpointName);
-            typesToInclude.AddRange(endpointCustomizations.GetTypesScopedByTestClass<TBootstrapper>().Concat(new[]
-            {
-                typeof(TraceIncomingBehavior),
-                typeof(TraceOutgoingBehavior)
-            }));
 
             endpointConfiguration.Pipeline.Register(new StampDispatchBehavior(runDescriptor.ScenarioContext), "Stamps outgoing messages with session ID");
             endpointConfiguration.Pipeline.Register(new DiscardMessagesBehavior(runDescriptor.ScenarioContext), "Discards messages based on session ID");
 
             endpointConfiguration.SendFailedMessagesTo("error");
 
-            endpointConfiguration.TypesToIncludeInScan(typesToInclude);
             endpointConfiguration.EnableInstallers();
 
             await endpointTestExecutionConfiguration.Configure(endpointCustomizations.EndpointName, endpointConfiguration, runDescriptor.Settings, endpointCustomizations.PublisherMetadata);
@@ -66,7 +54,13 @@
 
             endpointConfiguration.DisableFeature<AutoSubscribe>();
 
-            configurationBuilderCustomization(endpointConfiguration);
+            await configurationBuilderCustomization(endpointConfiguration);
+
+            // scan types at the end so that all types used by the configuration have been loaded into the AppDomain
+            endpointConfiguration.TypesToIncludeInScan(endpointCustomizations.GetTypesScopedByTestClass<TBootstrapper>().Concat(new[]
+            {
+                typeof(TraceIncomingBehavior), typeof(TraceOutgoingBehavior)
+            }).ToList());
 
             return endpointConfiguration;
         }

@@ -58,10 +58,7 @@
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public SendOnlyEndpoint() => EndpointSetup<DefaultServer>();
 
             class Foo : DispatchRawMessages<MyContext>
             {

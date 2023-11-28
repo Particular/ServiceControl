@@ -79,8 +79,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
@@ -88,7 +87,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
-            }
 
             class SendFailedMessages : DispatchRawMessages<MyContext>
             {
@@ -115,9 +113,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                         {"NServiceBus.ExceptionInfo.Source", "NServiceBus.Core"},
                         {"NServiceBus.FailedQ", Conventions.EndpointNamingConvention(typeof(Receiver))},
                         {"NServiceBus.TimeOfFailure", "2014-11-11 02:26:58:000462 Z"},
-                        {Headers.TimeSent, DateTimeExtensions.ToWireFormattedString(date)},
+                        {Headers.TimeSent, DateTimeOffsetHelper.ToWireFormattedString(date)},
                         {Headers.EnclosedMessageTypes, $"MessageThatWillFail{i}"}
-                    }, new byte[0]);
+                    }, Array.Empty<byte>());
                     return msg;
                 }
             }

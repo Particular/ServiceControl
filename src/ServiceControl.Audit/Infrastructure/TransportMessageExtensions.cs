@@ -71,9 +71,9 @@
         }
 
         // NOTE: Duplicated from TransportMessage
-        public static MessageIntentEnum MessageIntent(this IReadOnlyDictionary<string, string> headers)
+        public static MessageIntent MessageIntent(this IReadOnlyDictionary<string, string> headers)
         {
-            var messageIntent = default(MessageIntentEnum);
+            var messageIntent = default(MessageIntent);
 
             if (headers.TryGetValue(Headers.MessageIntent, out var messageIntentString))
             {

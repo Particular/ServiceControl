@@ -29,10 +29,10 @@
                 config.RegisterComponents(c =>
                 {
                     //Make sure the error import attempt fails
-                    c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance);
+                    c.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
 
                     //Register domain event spy
-                    c.ConfigureComponent<MessageFailedHandler>(DependencyLifecycle.SingleInstance);
+                    c.AddSingleton<IDomainHandler<MessageFailed>, MessageFailedHandler>();
                 });
             };
 
@@ -143,7 +143,7 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
             }
@@ -163,13 +163,13 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {

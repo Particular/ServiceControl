@@ -34,7 +34,7 @@
         {
             var uniqueMessageId = context.Headers.UniqueId();
             var contentType = GetContentType(context.Headers, "text/xml");
-            var bodySize = context.Body?.Length ?? 0;
+            var bodySize = context.Body.Length;
 
             processingAttempt.MessageMetadata.Add("ContentType", contentType);
             processingAttempt.MessageMetadata.Add("ContentLength", bodySize);
@@ -48,7 +48,8 @@
                 {
                     try
                     {
-                        var bodyString = utf8.GetString(context.Body);
+                        // TODO NSB8 Fix this as soon as we target NET8
+                        var bodyString = utf8.GetString(context.Body.ToArray());
                         processingAttempt.MessageMetadata.Add("MsgFullText", bodyString);
                     }
                     catch (ArgumentException)
@@ -150,7 +151,9 @@
             var uniqueId = context.Headers.UniqueId();
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
-            var stream = Memory.Manager.GetStream(context.Body);
+            // TODO NSB8 Fix this as soon as we target NET8. We might also need to rethink body access a bit and potentially
+            // remove the memory manager
+            var stream = Memory.Manager.GetStream(context.Body.ToArray());
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
             parentUnitOfWork.AddCommand(putAttachmentCmd);

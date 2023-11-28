@@ -60,26 +60,26 @@
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata =>
                 {
                     publisherMetadata.RegisterPublisherFor<CustomCheckSucceeded>(Settings.DEFAULT_SERVICE_NAME);
                 });
-            }
 
             public class CustomCheckSucceededHandler : IHandleMessages<CustomCheckSucceeded>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public CustomCheckSucceededHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(CustomCheckSucceeded message, IMessageHandlerContext context)
                 {
-                    Context.CustomCheckSucceededReceived = true;
-                    return Task.FromResult(0);
+                    testContext.CustomCheckSucceededReceived = true;
+                    return Task.CompletedTask;
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,7 +32,7 @@ public abstract class PersistenceTestBase
             }).ConfigureServices(services =>
             {
                 services.AddSingleton<IDomainEvents, FakeDomainEvents>();
-                services.AddSingleton(new CriticalError(null));
+                services.AddSingleton(new CriticalError(default(Func<ICriticalErrorContext, CancellationToken, Task>)));
 
                 testPersistence.Configure(services);
                 RegisterServices?.Invoke(services);

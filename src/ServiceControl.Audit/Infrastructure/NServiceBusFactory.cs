@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Diagnostics;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.EndpointControl;
     using Contracts.MessageFailures;
@@ -13,7 +14,10 @@ namespace ServiceControl.Audit.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, Action<ICriticalErrorContext> onCriticalError, EndpointConfiguration configuration, bool isRunningAcceptanceTests)
+        public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
+            TransportSettings transportSettings, LoggingSettings loggingSettings,
+            Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, EndpointConfiguration configuration,
+            bool isRunningAcceptanceTests)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -54,11 +58,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            configuration.DefineCriticalErrorAction(criticalErrorContext =>
-            {
-                onCriticalError(criticalErrorContext);
-                return Task.FromResult(0);
-            });
+            configuration.DefineCriticalErrorAction(onCriticalError);
 
             if (Environment.UserInteractive && Debugger.IsAttached)
             {
@@ -68,11 +68,9 @@ namespace ServiceControl.Audit.Infrastructure
             configuration.Recoverability().AddUnrecoverableException<UnrecoverableException>();
         }
 
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null
-                   && t.Namespace.StartsWith("ServiceControl.Contracts")
-                   && t.Assembly.GetName().Name == "ServiceControl.Contracts";
-        }
+        static bool IsExternalContract(Type t) =>
+            t.Namespace != null
+            && t.Namespace.StartsWith("ServiceControl.Contracts")
+            && t.Assembly.GetName().Name == "ServiceControl.Contracts";
     }
 }

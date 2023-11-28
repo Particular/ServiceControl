@@ -3,14 +3,17 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
@@ -205,6 +208,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
                     c.ReportSuccessfulRetriesToServiceControl();
 
@@ -228,14 +233,14 @@
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return session.SendLocal(new MyMessage());
+                        return session.SendLocal(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
                 }
             }
@@ -243,9 +248,9 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -264,7 +269,7 @@
                         throw new Exception("Simulated Exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }
@@ -275,6 +280,8 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
 
                     var recoverability = c.Recoverability();
@@ -297,14 +304,14 @@
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return session.SendLocal(new MyMessage());
+                        return session.SendLocal(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
                 }
             }
@@ -312,9 +319,9 @@
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -333,7 +340,7 @@
                         throw new Exception("Simulated Exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

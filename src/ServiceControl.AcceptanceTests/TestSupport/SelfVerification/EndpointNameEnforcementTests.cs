@@ -27,6 +27,6 @@
         static bool IsEndpointClass(Type t) => endpointConfigurationBuilderType.IsAssignableFrom(t);
         const int endpointNameMaxLength = 60;
 
-        static Type endpointConfigurationBuilderType = typeof(EndpointConfigurationBuilder);
+        static readonly Type endpointConfigurationBuilderType = typeof(EndpointConfigurationBuilder);
     }
 }

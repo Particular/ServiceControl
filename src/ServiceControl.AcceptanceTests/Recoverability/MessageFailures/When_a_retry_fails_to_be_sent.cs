@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -25,7 +26,7 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(components => components.ConfigureComponent<ReturnToSender>(b => new FakeReturnToSender(b.Build<IErrorMessageDataStore>(), b.Build<MyContext>()), DependencyLifecycle.SingleInstance));
+            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IErrorMessageDataStore>(), provider.GetRequiredService<MyContext>())));
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
@@ -65,21 +66,19 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MessageThatWillFailHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
@@ -95,7 +94,7 @@
                     }
 
                     scenarioContext.Done = true;
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
 
@@ -147,12 +146,9 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore)
-            {
-                this.myContext = myContext;
-            }
+            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore) => this.myContext = myContext;
 
-            public override Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
+            public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
             {
                 if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
                 {
@@ -162,7 +158,7 @@
                 return base.HandleMessage(message, sender, "error");
             }
 
-            MyContext myContext;
+            readonly MyContext myContext;
         }
     }
 }

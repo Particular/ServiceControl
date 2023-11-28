@@ -69,10 +69,7 @@
 
         class AnEndpoint : EndpointConfigurationBuilder
         {
-            public AnEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public AnEndpoint() => EndpointSetup<DefaultServer>();
 
             class FailedMessagesSender : DispatchRawMessages<TestContext>
             {
@@ -87,7 +84,7 @@
                     var transportOperations = Enumerable.Range(0, NumberOfFailedAttempts)
                         .Select(i =>
                         {
-                            var timeOfFailure = DateTimeExtensions.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
+                            var timeOfFailure = DateTimeOffsetHelper.ToWireFormattedString(earliestTimeOfFailure.Add(TimeSpan.FromMinutes(i)));
 
                             var headers = new Dictionary<string, string>
                             {

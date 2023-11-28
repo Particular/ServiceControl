@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Connection;
+    using Contracts.MessageFailures;
     using CustomChecks;
     using EventLog;
     using ExternalIntegration;
@@ -16,11 +17,10 @@
     using NServiceBus.Transport;
     using Operations;
     using Particular.ServiceControl;
+    using Persistence;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Contracts.MessageFailures;
-    using ServiceControl.Persistence;
-    using ServiceControl.Transports;
+    using Transports;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
@@ -256,7 +256,7 @@
                 RetryProcessor processor,
                 Settings settings,
                 IAsyncTimer scheduler,
-                TransportCustomization transportCustomization,
+                ITransportCustomization transportCustomization,
                 TransportSettings transportSettings)
             {
                 this.processor = processor;
@@ -286,13 +286,13 @@
 
             readonly Settings settings;
             readonly IAsyncTimer scheduler;
-            readonly TransportCustomization transportCustomization;
+            readonly ITransportCustomization transportCustomization;
             readonly TransportSettings transportSettings;
             TimerJob timer;
 
             RetryProcessor processor;
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
-            IDispatchMessages dispatcher;
+            IMessageDispatcher dispatcher;
         }
     }
 }

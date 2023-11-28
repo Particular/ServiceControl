@@ -1,57 +1,47 @@
 ﻿namespace ServiceControl.Transports.Msmq
 {
     using NServiceBus;
-    using NServiceBus.Raw;
 
-    public class MsmqTransportCustomization : TransportCustomization
+    public class MsmqTransportCustomization : TransportCustomization<MsmqTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
+
+        protected override void CustomizeRawSendOnlyEndpoint(MsmqTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override void CustomizeForQueueIngestion(MsmqTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+            transportDefinition.IgnoreIncomingTimeToBeReceivedHeaders = true;
         }
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override void CustomizeForReturnToSenderIngestion(MsmqTransport transportDefinition,
+            TransportSettings transportSettings)
         {
-            CustomizeEndpoint(endpointConfiguration, TransportTransactionMode.SendsAtomicWithReceive);
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
+            transportDefinition.IgnoreIncomingTimeToBeReceivedHeaders = true;
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
-        }
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        protected override MsmqTransport CreateTransport(TransportSettings transportSettings)
         {
-            var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
-            transport.IgnoreIncomingTimeToBeReceivedHeaders();
-        }
-
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeEndpoint(endpointConfiguration, TransportTransactionMode.ReceiveOnly);
-        }
-
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            var transport = CustomizeRawEndpoint(endpointConfiguration, TransportTransactionMode.SendsAtomicWithReceive);
-            transport.IgnoreIncomingTimeToBeReceivedHeaders();
-        }
-
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
-        }
-
-        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportTransactionMode transportTransactionMode)
-        {
-            var transport = endpointConfig.UseTransport<MsmqTransport>();
-            transport.Transactions(transportTransactionMode);
-        }
-
-        static TransportExtensions<MsmqTransport> CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportTransactionMode transportTransactionMode)
-        {
-            var transport = endpointConfig.UseTransport<MsmqTransport>();
-            transport.Transactions(transportTransactionMode);
+            var transport = new MsmqTransport();
             return transport;
         }
     }

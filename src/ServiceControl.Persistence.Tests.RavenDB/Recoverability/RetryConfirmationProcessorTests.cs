@@ -113,9 +113,9 @@
             var messageContext = new MessageContext(
                 MessageId,
                 headers,
-                Array.Empty<byte>(),
+                ReadOnlyMemory<byte>.Empty,
                 new TransportTransaction(),
-                new CancellationTokenSource(),
+                "receiveAddress",
                 new ContextBag());
             return messageContext;
         }

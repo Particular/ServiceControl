@@ -8,6 +8,7 @@
     using AcceptanceTesting;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -22,7 +23,7 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the audit import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>());
 
             var maximumConcurrencyLevel = 5;
 
@@ -52,10 +53,7 @@
 
         class FailOnceEnricher : IEnrichImportedAuditMessages
         {
-            public FailOnceEnricher(MyContext context)
-            {
-                testContext = context;
-            }
+            public FailOnceEnricher(MyContext context) => testContext = context;
 
             public void Enrich(AuditEnricherContext context)
             {
@@ -74,10 +72,7 @@
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>();
-            }
+            public Sendonly() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

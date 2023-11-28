@@ -6,6 +6,6 @@
     public abstract class AuthenticationMethod
     {
         public abstract ServiceBusAdministrationClient BuildManagementClient();
-        public abstract void ConfigureConnection(TransportExtensions<AzureServiceBusTransport> transport);
+        public abstract AzureServiceBusTransport CreateTransportDefinition(ConnectionSettings connectionSettings);
     }
 }

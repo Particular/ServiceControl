@@ -34,29 +34,22 @@
 
         class EndpointWithTimings : EndpointConfigurationBuilder
         {
-            public EndpointWithTimings()
-            {
+            public EndpointWithTimings() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
-            }
 
             class Handler : IHandleMessages<SampleMessage>
             {
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
-                {
-                    return Task.Delay(TimeSpan.FromMilliseconds(10));
-                }
+                    => Task.Delay(TimeSpan.FromMilliseconds(10), context.CancellationToken);
             }
         }
 
         class MonitoringEndpoint : EndpointConfigurationBuilder
         {
-            public MonitoringEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public MonitoringEndpoint() => EndpointSetup<DefaultServer>();
         }
 
         class Context : ScenarioContext

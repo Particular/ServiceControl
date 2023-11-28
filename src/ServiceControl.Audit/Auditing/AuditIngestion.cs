@@ -14,7 +14,7 @@
     using Persistence.UnitOfWork;
     using ServiceControl.Infrastructure;
     using ServiceControl.Infrastructure.Metrics;
-    using ServiceControl.Transports;
+    using Transports;
 
     class AuditIngestion : IHostedService
     {
@@ -22,7 +22,7 @@
 
         public AuditIngestion(
             Settings settings,
-            TransportCustomization transportCustomization,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings,
             Metrics metrics,
             IFailedAuditStorage failedImportsStorage,
@@ -236,11 +236,11 @@
         }
 
         IQueueIngestor queueIngestor;
-        IDispatchMessages dispatcher;
+        IMessageDispatcher dispatcher;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
         readonly AuditIngestor auditIngestor;
         readonly AuditIngestionFaultPolicy errorHandlingPolicy;

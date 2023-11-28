@@ -30,23 +30,22 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.ConfigureTransport()
-                        .Routing()
+                    c.ConfigureRouting()
                         .RouteToEndpoint(typeof(TriggeredMessage), typeof(ReceiverRemote));
                 });
-            }
 
             public class TriggeringMessageHandler : IHandleMessages<TriggeringMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public TriggeringMessageHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(TriggeringMessage message, IMessageHandlerContext context)
                 {
-                    Context.ConversationId = context.MessageHeaders[Headers.ConversationId];
+                    testContext.ConversationId = context.MessageHeaders[Headers.ConversationId];
                     return context.Send(new TriggeredMessage());
                 }
             }
@@ -54,19 +53,18 @@
 
         public class ReceiverRemote : EndpointConfigurationBuilder
         {
-            public ReceiverRemote()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { });
-            }
+            public ReceiverRemote() => EndpointSetup<DefaultServerWithAudit>(c => { });
 
             public class TriggeredMessageHandler : IHandleMessages<TriggeredMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public TriggeredMessageHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(TriggeredMessage message, IMessageHandlerContext context)
                 {
-                    Context.ConversationId = context.MessageHeaders[Headers.ConversationId];
-                    return Task.FromResult(0);
+                    testContext.ConversationId = context.MessageHeaders[Headers.ConversationId];
+                    return Task.CompletedTask;
                 }
             }
         }

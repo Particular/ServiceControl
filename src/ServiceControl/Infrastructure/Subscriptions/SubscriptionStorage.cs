@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Infrastructure.Subscriptions
 {
+    using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;
@@ -10,12 +12,12 @@
     {
         SubscriptionStorage()
         {
-            Prerequisite(c => c.Settings.Get<TransportInfrastructure>().OutboundRoutingPolicy.Publishes == OutboundRoutingType.Unicast, "The transport does not support native pub sub");
+            Prerequisite(c => c.Settings.Get<TransportDefinition>().SupportsPublishSubscribe == false, "The transport supports native pub sub");
         }
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => b.Build<PrimeSubscriptions>());
+            context.RegisterStartupTask(b => b.GetRequiredService<PrimeSubscriptions>());
         }
 
         class PrimeSubscriptions : FeatureStartupTask
@@ -27,14 +29,14 @@
                 this.persister = persister;
             }
 
-            protected override Task OnStart(IMessageSession session)
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
-                return persister?.Initialize() ?? Task.FromResult(0);
+                return persister?.Initialize() ?? Task.CompletedTask;
             }
 
-            protected override Task OnStop(IMessageSession session)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
         }
     }

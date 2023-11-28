@@ -65,27 +65,27 @@
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata =>
                 {
                     publisherMetadata.RegisterPublisherFor<CustomCheckFailed>(Settings.DEFAULT_SERVICE_NAME);
                 });
-            }
 
             public class CustomCheckFailedHandler : IHandleMessages<CustomCheckFailed>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public CustomCheckFailedHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(CustomCheckFailed message, IMessageHandlerContext context)
                 {
-                    Context.CustomCheckFailedReceived = true;
-                    Context.IntegrationEventHeaders = context.MessageHeaders;
-                    return Task.FromResult(0);
+                    testContext.CustomCheckFailedReceived = true;
+                    testContext.IntegrationEventHeaders = context.MessageHeaders;
+                    return Task.CompletedTask;
                 }
             }
         }

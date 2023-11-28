@@ -9,7 +9,7 @@
         {
             if (context.Headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
             {
-                var timeSent = DateTimeExtensions.ToUtcDateTime(timeSentValue);
+                var timeSent = ServiceControl.DateTimeExtensions.ToUtcDateTime(timeSentValue);
                 context.Metadata.Add("TimeSent", timeSent);
             }
         }

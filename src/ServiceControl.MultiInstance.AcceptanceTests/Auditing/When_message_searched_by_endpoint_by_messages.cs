@@ -45,35 +45,34 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithAudit>(c =>
                 {
-                    c.ConfigureTransport()
-                        .Routing()
+                    c.ConfigureRouting()
                         .RouteToEndpoint(typeof(MyMessage), typeof(ReceiverRemote));
                 });
-            }
         }
 
         public class ReceiverRemote : EndpointConfigurationBuilder
         {
-            public ReceiverRemote()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { });
-            }
+            public ReceiverRemote() => EndpointSetup<DefaultServerWithAudit>(c => { });
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.Remote1MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.Remote1MessageId = context.MessageId;
+                    return Task.CompletedTask;
                 }
             }
         }

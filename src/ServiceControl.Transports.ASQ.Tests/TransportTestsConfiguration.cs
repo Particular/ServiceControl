@@ -9,7 +9,7 @@
     {
         public string ConnectionString { get; private set; }
 
-        public TransportCustomization TransportCustomization { get; private set; }
+        public ITransportCustomization TransportCustomization { get; private set; }
 
         public Task Configure()
         {

@@ -72,7 +72,7 @@
 
             Assert.AreEqual(TimeSpan.Zero, failedMessage.ProcessingTime, "Processing time should not be calculated");
             Assert.AreEqual(TimeSpan.Zero, failedMessage.CriticalTime, "Critical time should be not calculated");
-            Assert.AreEqual(MessageIntentEnum.Send, failedMessage.MessageIntent, "Message intent should be set");
+            Assert.AreEqual(MessageIntent.Send, failedMessage.MessageIntent, "Message intent should be set");
 
             var bodyAsString = Encoding.UTF8.GetString(body);
 
@@ -85,34 +85,30 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly MyContext scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
-                public MyMessageHandler(MyContext scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;

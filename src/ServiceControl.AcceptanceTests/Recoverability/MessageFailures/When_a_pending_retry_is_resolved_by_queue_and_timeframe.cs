@@ -16,8 +16,7 @@
     class When_a_pending_retry_is_resolved_by_queue_and_timeframe : AcceptanceTest
     {
         [Test]
-        public async Task Should_succeed()
-        {
+        public async Task Should_succeed() =>
             await Define<Context>()
                 .WithEndpoint<Failing>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("DetectFailure", async ctx =>
@@ -56,12 +55,10 @@
                 })
                 .Done(ctx => true) //We're done once the sequence is finished
                 .Run();
-        }
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing()
-            {
+            public Failing() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     //Do not inform SC that the message has been already successfully handled
@@ -69,17 +66,18 @@
                     c.NoRetries();
                     c.NoOutbox();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
                 }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
@@ -87,7 +85,7 @@
                     Console.WriteLine("Message Handled");
                     if (scenarioContext.Step == 0)
                     {
-                        scenarioContext.FromAddress = settings.LocalAddress();
+                        scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                         scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
                         throw new Exception("Simulated Exception");
                     }
@@ -95,7 +93,7 @@
                     scenarioContext.RetryCount++;
                     scenarioContext.Retried = true;
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

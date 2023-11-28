@@ -45,43 +45,34 @@
 
         public class SagaAuditProcessorFake : EndpointConfigurationBuilder
         {
-            public SagaAuditProcessorFake()
-            {
-                EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
-            }
+            public SagaAuditProcessorFake() => EndpointSetup<DefaultServerWithoutAudit>(c => c.Pipeline.Register(new IgnoreAllBehavior(), "Ignore all messages"));
 
             class IgnoreAllBehavior : Behavior<ITransportReceiveContext>
             {
-                public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
-                {
-                    return Task.CompletedTask;
-                }
+                public override Task Invoke(ITransportReceiveContext context, Func<Task> next) => Task.CompletedTask;
             }
         }
 
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public SagaEndpoint()
-            {
+            public SagaEndpoint() =>
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
-            }
 
             public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                public MyContext Context { get; set; }
+                MyContext testContext;
+
+                public MySaga(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
-                    Context.SagaId = Data.Id;
-                    Context.MessageId = context.MessageId;
-                    return Task.FromResult(0);
+                    testContext.SagaId = Data.Id;
+                    testContext.MessageId = context.MessageId;
+                    return Task.CompletedTask;
                 }
 
-                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper)
-                {
-                    mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
-                }
+                protected override void ConfigureHowToFindSaga(SagaPropertyMapper<MySagaData> mapper) => mapper.ConfigureMapping<MessageInitiatingSaga>(msg => msg.Id).ToSaga(saga => saga.MessageId);
             }
 
             public class MySagaData : ContainSagaData

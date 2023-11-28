@@ -46,7 +46,7 @@
                 {
                     Id = errorContext.Message.MessageId,
                     Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body
+                    Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
                 }
             };
 

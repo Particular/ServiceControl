@@ -44,18 +44,17 @@
 
         class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
             class SomeMessageHandler : IHandleMessages<SomeMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public SomeMessageHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(SomeMessage message, IMessageHandlerContext context)
                 {
-                    Context.MessageHandled = true;
+                    testContext.MessageHandled = true;
                     return Task.CompletedTask;
                 }
             }

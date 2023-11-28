@@ -5,13 +5,11 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
-    using NServiceBus.Routing;
     using NServiceBus.Transport;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Persistence;
 
     class ReturnToSenderDequeuer : IHostedService
     {
@@ -32,7 +30,6 @@ namespace ServiceControl.Recoverability
 
             faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
-
         }
 
         public string InputAddress { get; }
@@ -43,12 +40,13 @@ namespace ServiceControl.Recoverability
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        async Task Handle(MessageContext message, IDispatchMessages sender)
+        // TODO NSB8 Forward cancellation token
+        async Task Handle(MessageContext message, IMessageDispatcher sender, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
             {
                 var stagingId = message.Headers["ServiceControl.Retry.StagingId"];
-                Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.MessageId, stagingId, InputAddress);
+                Log.DebugFormat("Handling message with id {0} and staging id {1} in input queue {2}", message.NativeMessageId, stagingId, InputAddress);
             }
 
             if (shouldProcess(message))
@@ -58,7 +56,7 @@ namespace ServiceControl.Recoverability
             }
             else
             {
-                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.MessageId);
+                Log.WarnFormat("Rejecting message from staging queue as it's not part of a fully staged batch: {0}", message.NativeMessageId);
             }
         }
 
@@ -115,15 +113,15 @@ namespace ServiceControl.Recoverability
                 }
 
                 var config = createEndpointConfiguration();
-                syncEvent = new TaskCompletionSource<bool>();
-                stopCompletionSource = new TaskCompletionSource<bool>();
-                registration = cancellationToken.Register(() => _ = Task.Run(() => syncEvent.TrySetResult(true), CancellationToken.None));
+                syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
-                var startable = await RawEndpoint.Create(config);
+                var startable = await RawEndpoint.Create(config, cancellationToken);
 
                 errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
 
-                processor = await startable.Start();
+                processor = await startable.Start(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
 
@@ -148,12 +146,12 @@ namespace ServiceControl.Recoverability
                 registration?.Dispose();
                 if (processor != null)
                 {
-                    await processor.Stop();
+                    await processor.Stop(cancellationToken);
                 }
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
-                await Task.Run(() => stopCompletionSource.TrySetResult(true), CancellationToken.None);
+                stopCompletionSource.TrySetResult(true);
             }
 
             if (endedPrematurely || cancellationToken.IsCancellationRequested)
@@ -162,12 +160,7 @@ namespace ServiceControl.Recoverability
             }
         }
 
-        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable)
-        {
-            var transportInfra = startable.Settings.Get<TransportInfrastructure>();
-            var localInstance = transportInfra.BindToLocalEndpoint(new EndpointInstance(errorQueue));
-            return transportInfra.ToTransportAddress(LogicalAddress.CreateRemoteAddress(localInstance));
-        }
+        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable) => startable.ToTransportAddress(new QueueAddress(errorQueue));
 
         public Task Stop()
         {
@@ -183,8 +176,8 @@ namespace ServiceControl.Recoverability
                 Log.Debug("Completing forwarding.");
             }
 
-            await Task.Run(() => syncEvent?.TrySetResult(true));
-            await (stopCompletionSource?.Task ?? (Task)Task.FromResult(0));
+            syncEvent?.TrySetResult(true);
+            await (stopCompletionSource?.Task ?? Task.CompletedTask);
             if (Log.IsDebugEnabled)
             {
                 Log.Debug("Forwarding completed.");
@@ -215,7 +208,7 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
             {
                 try
                 {

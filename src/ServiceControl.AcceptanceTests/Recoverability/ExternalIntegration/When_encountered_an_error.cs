@@ -9,6 +9,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using Contracts.HeartbeatMonitoring;
     using ExternalIntegrations;
     using Infrastructure.DomainEvents;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -37,7 +38,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
                     }
                 });
 
-                config.RegisterComponents(cc => cc.ConfigureComponent<FaultyPublisher>(DependencyLifecycle.SingleInstance));
+                config.RegisterComponents(services => services.AddSingleton<IEventPublisher, FaultyPublisher>());
             };
 
             ExecuteWhen(() => externalProcessorSubscribed, domainEvents => domainEvents.Raise(new EndpointFailedToHeartbeat
@@ -71,22 +72,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
         class FaultyPublisher : IEventPublisher
         {
-            public FaultyPublisher(MyContext context)
-            {
-                this.context = context;
-            }
+            public FaultyPublisher(MyContext context) => this.context = context;
 
             readonly MyContext context;
 
-            public bool Handles(IDomainEvent @event)
-            {
-                return false;
-            }
+            public bool Handles(IDomainEvent @event) => false;
 
-            public object CreateDispatchContext(IDomainEvent @event)
-            {
-                return null;
-            }
+            public object CreateDispatchContext(IDomainEvent @event) => null;
 
             public Task<IEnumerable<object>> PublishEventsForOwnContexts(IEnumerable<object> allContexts)
             {
@@ -105,23 +97,23 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
-            }
 
             public class FailureHandler : IHandleMessages<HeartbeatStopped>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public FailureHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
-                    Context.NotificationDelivered = true;
-                    return Task.FromResult(0);
+                    testContext.NotificationDelivered = true;
+                    return Task.CompletedTask;
                 }
             }
         }

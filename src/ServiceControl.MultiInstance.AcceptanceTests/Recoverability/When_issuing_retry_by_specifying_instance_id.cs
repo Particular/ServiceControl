@@ -62,31 +62,35 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
-                EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
-            }
+            public FailureEndpoint() => EndpointSetup<DefaultServerWithAudit>(c => { c.NoRetries(); });
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.MessageId = context.MessageId.Replace(@"\", "-");
 
-                    if (!Context.RetryIssued) //simulate that the exception will be resolved with the retry
+                    if (!testContext.RetryIssued) //simulate that the exception will be resolved with the retry
                     {
                         Console.Out.WriteLine("Throwing exception for MyMessage");
                         throw new Exception("Simulated exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

@@ -46,7 +46,7 @@
                     c.When((session, ctx) =>
                     {
                         ctx.ToAddress = Conventions.EndpointNamingConvention(typeof(NewEndpoint));
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }).DoNotFailOnErrorMessages();
                 })
                 .Done(async ctx =>
@@ -68,25 +68,24 @@
 
         class OriginalEndpoint : EndpointConfigurationBuilder
         {
-            public OriginalEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public OriginalEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public MessageToRetryHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MessageToRetryHandler(Context scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
                 {
+                    this.receiveAddresses = receiveAddresses;
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    scenarioContext.FromAddress = settings.LocalAddress();
+                    scenarioContext.FromAddress = receiveAddresses.MainReceiveAddress;
                     scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId.Replace(@"\", "-"), settings.EndpointName()).ToString();
                     throw new Exception("Message Failed");
                 }
@@ -95,18 +94,17 @@
 
         class NewEndpoint : EndpointConfigurationBuilder
         {
-            public NewEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public NewEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
-                public Context Context { get; set; }
+                readonly Context testContext;
+
+                public MessageToRetryHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    Context.ProcessedAgain = true;
+                    testContext.ProcessedAgain = true;
                     throw new Exception("Message Failed In New Endpoint Too");
                 }
             }

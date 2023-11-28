@@ -1,13 +1,16 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Settings;
+    using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
@@ -52,54 +55,42 @@
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
+            public FailingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
+                    c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
+                        TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
                     c.DisableFeature<PlatformRetryNotifications>();
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(1));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             class StartFeature : Feature
             {
-                public StartFeature()
-                {
-                    EnableByDefault();
-                }
+                public StartFeature() => EnableByDefault();
 
-                protected override void Setup(FeatureConfigurationContext context)
-                {
-                    context.RegisterStartupTask(new SendMessageAtStart());
-                }
+                protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(new SendMessageAtStart());
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session)
-                    {
-                        return session.SendLocal(new MyMessage());
-                    }
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => session.SendLocal(new MyMessage(), cancellationToken);
 
-                    protected override Task OnStop(IMessageSession session)
-                    {
-                        return Task.FromResult(0);
-                    }
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
                 }
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(Context scenarioContext, ReadOnlySettings settings)
+                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
                 {
                     this.scenarioContext = scenarioContext;
                     this.settings = settings;
                 }
 
                 readonly Context scenarioContext;
-                readonly ReadOnlySettings settings;
+                readonly IReadOnlySettings settings;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
@@ -114,7 +105,7 @@
                         throw new Exception("Simulated Exception");
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
             }
         }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using EventLog;
@@ -42,10 +43,7 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
             class FailingCustomCheck : CustomCheck
             {
@@ -54,10 +52,7 @@
                 {
                 }
 
-                public override Task<CheckResult> PerformCheck()
-                {
-                    return Task.FromResult(CheckResult.Failed("Some reason"));
-                }
+                public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default) => Task.FromResult(CheckResult.Failed("Some reason"));
             }
         }
     }

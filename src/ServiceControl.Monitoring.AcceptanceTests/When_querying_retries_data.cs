@@ -43,22 +43,17 @@
 
         class EndpointWithRetries : EndpointConfigurationBuilder
         {
-            public EndpointWithRetries()
-            {
+            public EndpointWithRetries() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromSeconds(1));
                 });
-            }
 
             class Handler : IHandleMessages<SampleMessage>
             {
                 TestContext testContext;
 
-                public Handler(TestContext testContext)
-                {
-                    this.testContext = testContext;
-                }
+                public Handler(TestContext testContext) => this.testContext = testContext;
 
                 public Task Handle(SampleMessage message, IMessageHandlerContext context)
                 {

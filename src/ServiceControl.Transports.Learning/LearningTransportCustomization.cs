@@ -3,59 +3,46 @@
     using System;
     using LearningTransport;
     using NServiceBus;
-    using NServiceBus.Raw;
 
-    public class LearningTransportCustomization : TransportCustomization
+    public class LearningTransportCustomization : TransportCustomization<LearningTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
-        }
+        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeRawSendOnlyEndpoint(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeRawSendOnlyEndpoint(LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeForQueueIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeForQueueIngestion(LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.ReceiveOnly);
-        }
+        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        public override void CustomizeForReturnToSenderIngestion(RawEndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
-        {
-            CustomizeRawEndpoint(endpointConfiguration, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
-        }
+        protected override void CustomizeForReturnToSenderIngestion(LearningTransport transportDefinition,
+            TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        public override IProvideQueueLength CreateQueueLengthProvider()
-        {
-            return new QueueLengthProvider();
-        }
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        static void CustomizeEndpoint(EndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
+        protected override LearningTransport CreateTransport(TransportSettings transportSettings)
         {
-            var transport = endpointConfig.UseTransport<LearningTransport>();
-            transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
-            transport.Transactions(transportTransactionMode);
-            transport.NoPayloadSizeRestriction();
-        }
-
-        static void CustomizeRawEndpoint(RawEndpointConfiguration endpointConfig, TransportSettings transportSettings, TransportTransactionMode transportTransactionMode)
-        {
-            var transport = endpointConfig.UseTransport<LearningTransport>();
-            transport.StorageDirectory(Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString));
-            transport.Transactions(transportTransactionMode);
-            transport.NoPayloadSizeRestriction();
+            var transport = new LearningTransport
+            {
+                StorageDirectory = Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString),
+                RestrictPayloadSize = false
+            };
+            return transport;
         }
     }
 }

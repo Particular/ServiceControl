@@ -15,7 +15,7 @@ namespace ServiceControl.Recoverability
             this.errorMessageStore = errorMessageStore;
         }
 
-        public virtual async Task HandleMessage(MessageContext message, IDispatchMessages sender, string errorQueueTransportAddress)
+        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
@@ -23,7 +23,7 @@ namespace ServiceControl.Recoverability
             outgoingHeaders["ServiceControl.Retry.AcknowledgementQueue"] = errorQueueTransportAddress;
 
             byte[] body = null;
-            var messageId = message.MessageId;
+            var messageId = message.NativeMessageId;
             if (Log.IsDebugEnabled)
             {
                 Log.DebugFormat("{0}: Retrieving message body", messageId);
@@ -62,7 +62,7 @@ namespace ServiceControl.Recoverability
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
-            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, message.Extensions);
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction);
 
             if (Log.IsDebugEnabled)
             {

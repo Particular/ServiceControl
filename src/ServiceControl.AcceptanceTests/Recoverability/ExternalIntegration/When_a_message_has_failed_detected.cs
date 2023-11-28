@@ -76,26 +76,28 @@
             {
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
             public class FailureHandler : IHandleMessages<MessageFailed>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public FailureHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
-                    if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != Context.TestRunId.ToString())
+                    if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != testContext.TestRunId.ToString())
                     {
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     var serializedMessage = JsonConvert.SerializeObject(message);
-                    Context.Event = serializedMessage;
-                    Context.EventDelivered = true;
-                    return Task.FromResult(0);
+                    testContext.Event = serializedMessage;
+                    testContext.EventDelivered = true;
+                    return Task.CompletedTask;
                 }
             }
         }

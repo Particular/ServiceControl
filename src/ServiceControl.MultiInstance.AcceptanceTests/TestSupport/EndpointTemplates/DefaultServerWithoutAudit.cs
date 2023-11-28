@@ -8,13 +8,11 @@
 
     public class DefaultServerWithoutAudit : IEndpointSetupTemplate
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
-        {
-            return new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, b =>
+        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
+            new DefaultServerWithAudit().GetConfiguration(runDescriptor, endpointConfiguration, async b =>
             {
                 b.DisableFeature<Audit>();
-                configurationBuilderCustomization(b);
+                await configurationBuilderCustomization(b);
             });
-        }
     }
 }

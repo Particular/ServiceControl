@@ -36,11 +36,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
             return runner;
         }
 
-        ITransportIntegration transportIntegration;
-        AcceptanceTestStorageConfiguration persistenceToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<IHostBuilder> hostBuilderCustomization;
+        readonly ITransportIntegration transportIntegration;
+        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly Action<Settings> setSettings;
+        readonly Action<EndpointConfiguration> customConfiguration;
+        readonly Action<IHostBuilder> hostBuilderCustomization;
         ServiceControlComponentRunner runner;
     }
 }

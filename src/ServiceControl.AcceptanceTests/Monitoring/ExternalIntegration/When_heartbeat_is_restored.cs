@@ -60,23 +60,23 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatRestored>(Settings.DEFAULT_SERVICE_NAME); });
-            }
 
             public class FailureHandler : IHandleMessages<HeartbeatRestored>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+
+                public FailureHandler(MyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(HeartbeatRestored message, IMessageHandlerContext context)
                 {
-                    Context.NotificationDelivered = true;
-                    return Task.FromResult(0);
+                    testContext.NotificationDelivered = true;
+                    return Task.CompletedTask;
                 }
             }
         }

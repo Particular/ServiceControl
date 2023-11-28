@@ -33,7 +33,7 @@ namespace ServiceControl.AcceptanceTesting
 
             //Do not filter out subscribe messages as they can't be stamped
             if (context.Message.Headers.TryGetValue(Headers.MessageIntent, out var intent)
-                && intent == MessageIntentEnum.Subscribe.ToString())
+                && intent == MessageIntent.Subscribe.ToString())
             {
                 return next(context);
             }
@@ -45,7 +45,7 @@ namespace ServiceControl.AcceptanceTesting
                 context.Message.Headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                 context.Message.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var enclosedMessageTypes);
                 log.Debug($"Discarding message '{context.Message.MessageId}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}' Message Types: {enclosedMessageTypes}.");
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             }
 
             return next(context);

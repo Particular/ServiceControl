@@ -7,6 +7,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
@@ -15,6 +16,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using Infrastructure.SignalR;
     using Microsoft.AspNet.SignalR.Client;
     using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -217,7 +219,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         }
 
                         return false;
-                    }, (session, ctx) => Task.FromResult(0));
+                    }, (session, ctx) => Task.CompletedTask);
                 })
                 .Done(c => searchResults.Count == 1)
                 .Run();
@@ -262,33 +264,27 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 })
                 .Run();
 
-
             Assert.AreEqual(1, searchResults.Count, "Result count did not match");
             Assert.IsTrue(searchResults[0].PhysicalAddress.StartsWith(searchEndpointName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR()
-            {
+            public EndpointThatUsesSignalR() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
 
             class SignalRStarterFeature : Feature
             {
-                public SignalRStarterFeature()
-                {
-                    EnableByDefault();
-                }
+                public SignalRStarterFeature() => EnableByDefault();
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
-                    context.Container.ConfigureComponent<SignalRStarter>(DependencyLifecycle.SingleInstance);
-                    context.RegisterStartupTask(b => b.Build<SignalRStarter>());
+                    context.Services.AddSingleton<SignalRStarter>();
+                    context.RegisterStartupTask(provider => provider.GetRequiredService<SignalRStarter>());
                 }
 
                 class SignalRStarter : FeatureStartupTask
@@ -302,18 +298,18 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         };
                     }
 
-                    protected override Task OnStart(IMessageSession session)
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Received += ConnectionOnReceived;
                         connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
 
-                        return session.Send(new MyMessage());
+                        return session.Send(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session)
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         connection.Stop();
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     void ConnectionOnReceived(string s)
@@ -325,34 +321,39 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                         }
                     }
 
-                    MyContext context;
-                    Connection connection;
+                    readonly MyContext context;
+                    readonly Connection connection;
                 }
             }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
@@ -360,37 +361,40 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class ReceiverWithCustomSerializer : EndpointConfigurationBuilder
         {
-            public ReceiverWithCustomSerializer()
-            {
+            public ReceiverWithCustomSerializer() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                     c.UseSerialization<MySuperSerializer>();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext Context { get; set; }
+                readonly MyContext testContext;
+                readonly IReadOnlySettings settings;
+                readonly ReceiveAddresses receiveAddresses;
 
-                public ReadOnlySettings Settings { get; set; }
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                    this.receiveAddresses = receiveAddresses;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    Context.EndpointNameOfReceivingEndpoint = Settings.EndpointName();
-                    Context.LocalAddress = Settings.LocalAddress();
-                    Context.MessageId = context.MessageId.Replace(@"\", "-");
+                    testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
+                    testContext.LocalAddress = receiveAddresses.MainReceiveAddress;
+                    testContext.MessageId = context.MessageId.Replace(@"\", "-");
                     throw new Exception("Simulated exception");
                 }
             }
         }
         class MySuperSerializer : SerializationDefinition
         {
-            public override Func<IMessageMapper, IMessageSerializer> Configure(ReadOnlySettings settings)
-            {
-                return mapper => new MyCustomSerializer();
-            }
+            public override Func<IMessageMapper, IMessageSerializer> Configure(IReadOnlySettings settings)
+                => mapper => new MyCustomSerializer();
         }
 
         public class MyCustomSerializer : IMessageSerializer
@@ -402,11 +406,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 serializer.Serialize(stream, message);
             }
 
-            public object[] Deserialize(Stream stream, IList<Type> messageTypes = null)
+            public object[] Deserialize(ReadOnlyMemory<byte> body, IList<Type> messageTypes = null)
             {
                 var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MyMessage));
 
-                stream.Position = 0;
+                using var stream = new MemoryStream(body.ToArray());
                 var msg = serializer.Deserialize(stream);
 
                 return new[]
@@ -420,31 +424,30 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
+            public FailingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public QueueSearchContext Context { get; set; }
+                public MyMessageHandler(QueueSearchContext queueSearchContext) => this.queueSearchContext = queueSearchContext;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     lock (lockObj)
                     {
-                        Context.FailedMessageCount++;
+                        queueSearchContext.FailedMessageCount++;
                     }
 
                     throw new Exception("Simulated exception");
                 }
 
-                static object lockObj = new object();
+                QueueSearchContext queueSearchContext;
+                static readonly object lockObj = new object();
             }
         }
 

@@ -4,20 +4,23 @@ namespace ServiceControl.Audit.Auditing
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Settings;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
-    using ServiceControl.Audit.Persistence;
-    using ServiceControl.Transports;
+    using Persistence;
+    using Transports;
 
     class ImportFailedAudits
     {
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
-            TransportCustomization transportCustomization,
+            Settings settings,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings)
         {
+            this.settings = settings;
             this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
             this.transportCustomization = transportCustomization;
@@ -38,7 +41,7 @@ namespace ServiceControl.Audit.Auditing
                     {
                         try
                         {
-                            var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                            var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, settings.AuditQueue, EmptyContextBag);
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
@@ -75,11 +78,11 @@ namespace ServiceControl.Audit.Auditing
 
         readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        readonly Settings settings;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
-        static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
         static readonly ContextBag EmptyContextBag = new ContextBag();
         static readonly ILog Logger = LogManager.GetLogger(typeof(ImportFailedAudits));
     }

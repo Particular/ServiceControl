@@ -77,7 +77,7 @@
             var metadata = new Dictionary<string, object>
             {
                 { "MessageId", Guid.NewGuid().ToString() },
-                { "MessageIntent", MessageIntentEnum.Send },
+                { "MessageIntent", MessageIntent.Send },
                 { "CriticalTime", TimeSpan.FromSeconds(5) },
                 { "ProcessingTime", processingTime },
                 { "DeliveryTime", TimeSpan.FromSeconds(4) },
@@ -92,10 +92,10 @@
             {
                 { Headers.MessageId, messageId },
                 { Headers.ProcessingEndpoint, processingEndpoint },
-                { Headers.MessageIntent, nameof(MessageIntentEnum.Send) },
+                { Headers.MessageIntent, nameof(MessageIntent.Send) },
                 { Headers.ConversationId, messageId },
-                { Headers.ProcessingStarted, DateTimeExtensions.ToWireFormattedString(processingStarted) },
-                { Headers.ProcessingEnded, DateTimeExtensions.ToWireFormattedString(processedAt) },
+                { Headers.ProcessingStarted, DateTimeOffsetHelper.ToWireFormattedString(processingStarted) },
+                { Headers.ProcessingEnded, DateTimeOffsetHelper.ToWireFormattedString(processedAt) },
                 { Headers.EnclosedMessageTypes, messageType }
             };
 

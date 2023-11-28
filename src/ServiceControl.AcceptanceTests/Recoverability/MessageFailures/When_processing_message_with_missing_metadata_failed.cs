@@ -76,10 +76,7 @@
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing()
-            {
-                EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
-            }
+            public Failing() => EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
 
             class SendFailedMessage : DispatchRawMessages<MyContext>
             {
@@ -103,7 +100,7 @@
                     };
                     if (context.TimeSent.HasValue)
                     {
-                        headers["NServiceBus.TimeSent"] = DateTimeExtensions.ToWireFormattedString(context.TimeSent.Value);
+                        headers["NServiceBus.TimeSent"] = DateTimeOffsetHelper.ToWireFormattedString(context.TimeSent.Value);
                     }
 
                     var outgoingMessage = new OutgoingMessage(context.MessageId, headers, new byte[0]);

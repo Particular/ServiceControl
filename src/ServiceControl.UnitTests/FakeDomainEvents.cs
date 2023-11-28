@@ -11,7 +11,7 @@
         public Task Raise<T>(T domainEvent) where T : IDomainEvent
         {
             RaisedEvents.Add(domainEvent);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }

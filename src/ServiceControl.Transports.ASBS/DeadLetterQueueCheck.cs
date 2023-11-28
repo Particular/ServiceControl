@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASBS
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Azure.Messaging.ServiceBus.Administration;
     using NServiceBus.CustomChecks;
@@ -17,7 +18,7 @@
             runCheck = settings.RunCustomChecks;
         }
 
-        public override async Task<CheckResult> PerformCheck()
+        public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
             if (!runCheck)
             {
@@ -27,7 +28,7 @@
             Logger.Debug("Checking Dead Letter Queue length");
             var managementClient = new ServiceBusAdministrationClient(connectionString);
 
-            var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue);
+            var queueRuntimeInfo = await managementClient.GetQueueRuntimePropertiesAsync(stagingQueue, cancellationToken);
             var deadLetterMessageCount = queueRuntimeInfo.Value.DeadLetterMessageCount;
 
             if (deadLetterMessageCount > 0)

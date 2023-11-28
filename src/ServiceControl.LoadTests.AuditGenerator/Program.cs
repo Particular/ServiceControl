@@ -7,20 +7,20 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Infrastructure.Metrics;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Features;
     using NServiceBus.Routing;
     using NServiceBus.Support;
     using NServiceBus.Transport;
-    using ServiceControl.Infrastructure.Metrics;
     using Transports;
 
     class Program
     {
         public static readonly string HostId = Guid.NewGuid().ToString();
 
-        public static IDispatchMessages Dispatcher { get; set; }
+        public static IMessageDispatcher Dispatcher { get; set; }
 
         static async Task Main(string[] commandLineArgs)
         {
@@ -31,7 +31,8 @@
 
             var connectionString = commandLineArgs.Length > 2 ? commandLineArgs[2] : null;
 
-            var transportCustomization = (TransportCustomization)Activator.CreateInstance(Type.GetType(transportCustomizationName, true));
+            var transportCustomization =
+                (ITransportCustomization)Activator.CreateInstance(Type.GetType(transportCustomizationName, true));
             var queueLengthProvider = transportCustomization.CreateQueueLengthProvider();
             queueLengthProvider.Initialize(connectionString, CacheQueueLength);
 
@@ -39,7 +40,7 @@
             configuration.EnableFeature<CaptureDispatcherFeature>();
             configuration.SendOnly();
             configuration.UseTransport<MsmqTransport>();
-            configuration.UsePersistence<InMemoryPersistence>();
+            configuration.UsePersistence<NonDurablePersistence>();
             configuration.EnableInstallers();
 
             GenerateLayouts();
@@ -69,23 +70,23 @@
         {
             protected override void Setup(FeatureConfigurationContext context)
             {
-                context.Container.ConfigureComponent<CaptureDispatcherStartupTask>(DependencyLifecycle.SingleInstance);
-                context.RegisterStartupTask(b => b.Build<CaptureDispatcherStartupTask>());
+                context.Services.AddSingleton<CaptureDispatcherStartupTask>();
+                context.RegisterStartupTask(b => b.GetRequiredService<CaptureDispatcherStartupTask>());
             }
 
             class CaptureDispatcherStartupTask : FeatureStartupTask
             {
-                public CaptureDispatcherStartupTask(IDispatchMessages dispatchMessages)
+                public CaptureDispatcherStartupTask(IMessageDispatcher messageDispatcher)
                 {
-                    Dispatcher = dispatchMessages;
+                    Dispatcher = messageDispatcher;
                 }
 
-                protected override Task OnStart(IMessageSession session)
+                protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                 {
                     return Task.CompletedTask;
                 }
 
-                protected override Task OnStop(IMessageSession session)
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                 {
                     return Task.CompletedTask;
                 }
@@ -133,7 +134,7 @@
             QueueLengths.AddOrUpdate(queueAndEndpointName.InputQueue, newValue, (queue, oldValue) => newValue);
         }
 
-        static Task SendAuditMessage(IDispatchMessages dispatcher, string destination, Random random)
+        static Task SendAuditMessage(IMessageDispatcher dispatcher, string destination, Random random)
         {
             // because MSMQ is essentially synchronous
             return Task.Run(async () =>
@@ -147,8 +148,8 @@
                     [Headers.HostDisplayName] = "Load Generator",
                     [Headers.ProcessingMachine] = RuntimeEnvironment.MachineName,
                     [Headers.ProcessingEndpoint] = $"LoadGenerator{random.Next(1, numberOfEndpoints)}",
-                    [Headers.ProcessingStarted] = DateTimeExtensions.ToWireFormattedString(now),
-                    [Headers.ProcessingEnded] = DateTimeExtensions.ToWireFormattedString(now.AddMilliseconds(random.Next(10, 100))),
+                    [Headers.ProcessingStarted] = DateTimeOffsetHelper.ToWireFormattedString(now),
+                    [Headers.ProcessingEnded] = DateTimeOffsetHelper.ToWireFormattedString(now.AddMilliseconds(random.Next(10, 100))),
                 };
 
                 var layoutIndex = random.Next(0, numberOfLayouts);
@@ -162,14 +163,14 @@
                 var transportOperation = new TransportOperation(
                     new OutgoingMessage(Guid.NewGuid().ToString(), headers,
                         Encoding.UTF8.GetBytes(string.Format(layout, propertyValues.ToArray()))),
-                    new UnicastAddressTag(destination), DispatchConsistency.Isolated);
+                    new UnicastAddressTag(destination), requiredDispatchConsistency: DispatchConsistency.Isolated);
 
-                await dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), new ContextBag());
+                await dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction());
                 counter.Mark();
             });
         }
 
-        static async Task ConstantQueueLengthSend(string[] args, IDispatchMessages dispatcher, IProvideQueueLength queueLengthProvider, CancellationToken ct)
+        static async Task ConstantQueueLengthSend(string[] args, IMessageDispatcher dispatcher, IProvideQueueLength queueLengthProvider, CancellationToken ct)
         {
             var maxSenderCount = 20;
             var taskBarriers = new int[maxSenderCount];
@@ -252,7 +253,7 @@
             await Task.WhenAll(new List<Task>(senders) { monitor });
         }
 
-        static async Task ConstantThroughputSend(string[] args, IDispatchMessages dispatcher, CancellationToken ct)
+        static async Task ConstantThroughputSend(string[] args, IMessageDispatcher dispatcher, CancellationToken ct)
         {
             var messagesPerSecond = int.Parse(args[0]);
             var destination = args.Length > 1 ? args[1] : DefaultDestination;

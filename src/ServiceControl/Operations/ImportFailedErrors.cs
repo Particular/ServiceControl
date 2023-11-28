@@ -7,7 +7,7 @@
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Transports;
+    using Transports;
 
     class ImportFailedErrors
     {
@@ -15,7 +15,7 @@
             IFailedErrorImportDataStore store,
             ErrorIngestor errorIngestor,
             Settings settings,
-            TransportCustomization transportCustomization,
+            ITransportCustomization transportCustomization,
             TransportSettings transportSettings)
         {
             this.store = store;
@@ -36,8 +36,7 @@
 
             await store.ProcessFailedErrorImports(async transportMessage =>
             {
-                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers,
-                    transportMessage.Body, EmptyTransaction, EmptyTokenSource, EmptyContextBag);
+                var messageContext = new MessageContext(transportMessage.Id, transportMessage.Headers, transportMessage.Body, EmptyTransaction, settings.ErrorQueue, EmptyContextBag);
                 var taskCompletionSource =
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
@@ -50,10 +49,10 @@
         readonly IFailedErrorImportDataStore store;
         readonly ErrorIngestor errorIngestor;
         readonly Settings settings;
-        readonly TransportCustomization transportCustomization;
+        readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();
-        static readonly CancellationTokenSource EmptyTokenSource = new CancellationTokenSource();
         static readonly ContextBag EmptyContextBag = new ContextBag();
     }
 }

@@ -19,10 +19,7 @@
     class TransportTestFixture
     {
         [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
+        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public virtual Task Setup()
@@ -65,18 +62,17 @@
             {
                 await configuration.Cleanup();
             }
+
+            testCancellationTokenSource.Dispose();
         }
 
         protected string QueueSuffix { get; private set; }
 
-        protected string GetTestQueueName(string name)
-        {
-            return $"{name}-{QueueSuffix}";
-        }
+        protected string GetTestQueueName(string name) => $"{name}-{QueueSuffix}";
 
         protected TaskCompletionSource<TResult> CreateTaskCompletionSource<TResult>()
         {
-            var source = new TaskCompletionSource<TResult>();
+            var source = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             if (!Debugger.IsAttached)
             {
@@ -138,7 +134,7 @@
 
             return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
         }
-        protected Task<IDispatchMessages> CreateDispatcher(string endpointName)
+        protected Task<IMessageDispatcher> CreateDispatcher(string endpointName)
         {
             var transportSettings = new TransportSettings
             {

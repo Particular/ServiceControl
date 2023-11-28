@@ -8,6 +8,7 @@
     using AcceptanceTesting;
     using AcceptanceTests;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
@@ -23,7 +24,7 @@
         public async Task Should_import_all_messages()
         {
             //Make sure the error import attempt fails
-            CustomConfiguration = config => { config.RegisterComponents(c => c.ConfigureComponent<FailOnceEnricher>(DependencyLifecycle.SingleInstance)); };
+            CustomConfiguration = config => { config.RegisterComponents(services => services.AddSingleton<FailOnceEnricher>()); };
 
             var maximumConcurrencyLevel = 5;
 
@@ -53,10 +54,7 @@
 
         class FailOnceEnricher : IEnrichImportedErrorMessages
         {
-            public FailOnceEnricher(MyContext context)
-            {
-                testContext = context;
-            }
+            public FailOnceEnricher(MyContext context) => testContext = context;
 
             public void Enrich(ErrorEnricherContext context)
             {
@@ -69,16 +67,13 @@
                 TestContext.WriteLine("Message processed correctly");
             }
 
-            MyContext testContext;
+            readonly MyContext testContext;
             int attempt;
         }
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public Sendonly() => EndpointSetup<DefaultServer>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {
@@ -93,7 +88,7 @@
                             [Headers.MessageId] = i == 2 ? context.MessageId : Guid.NewGuid().ToString(),
                             ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(Sendonly)),
                             ["$.diagnostics.hostid"] = Guid.NewGuid().ToString(),
-                            ["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow)
+                            ["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow)
 
                         };
 

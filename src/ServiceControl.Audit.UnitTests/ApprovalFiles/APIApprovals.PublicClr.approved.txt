@@ -7,7 +7,7 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Audit.UnitTests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.Loadtests.Reporter")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ServiceControl.MultiInstance.AcceptanceTests")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.7.2", FrameworkDisplayName=".NET Framework 4.7.2")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName=".NET Framework 4.8")]
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
     public class Settings
@@ -41,7 +41,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public string TransportType { get; }
         public bool ValidateConfiguration { get; }
         public string VirtualDirectory { get; }
-        public ServiceControl.Transports.TransportCustomization LoadTransportCustomization() { }
+        public ServiceControl.Transports.ITransportCustomization LoadTransportCustomization() { }
         public static ServiceControl.Audit.Infrastructure.Settings.Settings FromConfiguration(string serviceName) { }
     }
 }

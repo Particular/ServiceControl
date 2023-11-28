@@ -81,36 +81,29 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
-                    var routing = c.ConfigureTransport().Routing();
+                    var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 readonly MyContext scenarioContext;
 
-                public MyMessageHandler(MyContext scenarioContext)
-                {
-                    this.scenarioContext = scenarioContext;
-                }
+                public MyMessageHandler(MyContext scenarioContext) => this.scenarioContext = scenarioContext;
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {

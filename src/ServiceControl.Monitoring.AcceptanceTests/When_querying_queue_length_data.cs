@@ -97,31 +97,24 @@
 
         class SendingEndpoint : EndpointConfigurationBuilder
         {
-            public SendingEndpoint()
-            {
+            public SendingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.LimitMessageProcessingConcurrencyTo(1);
                 });
-            }
 
             class Handler : IHandleMessages<SampleMessage>
             {
                 TestContext testContext;
 
-                public Handler(TestContext testContext)
-                {
-                    this.testContext = testContext;
-                }
+                public Handler(TestContext testContext) => this.testContext = testContext;
 
-                public Task Handle(SampleMessage message, IMessageHandlerContext context)
-                {
+                public Task Handle(SampleMessage message, IMessageHandlerContext context) =>
                     //Concurrency limit 1 and this should block any processing on input queue
-                    return Task.WhenAny(
-                        Task.Delay(TimeSpan.FromSeconds(30)),
-                            testContext.TestEnded.Task
-                        );
-                }
+                    Task.WhenAny(
+                        Task.Delay(TimeSpan.FromSeconds(30), context.CancellationToken),
+                        testContext.TestEnded.Task
+                    );
             }
         }
 

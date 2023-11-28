@@ -139,22 +139,16 @@
 
         class FatMessageEndpoint : EndpointConfigurationBuilder
         {
-            public FatMessageEndpoint()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public FatMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>();
 
             public class BigFatMessageHandler : IHandleMessages<BigFatMessage>
             {
-                public BigFatMessageHandler(Context testContext)
-                {
-                    this.testContext = testContext;
-                }
+                public BigFatMessageHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(BigFatMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessageId = context.MessageHeaders["NServiceBus.MessageId"];
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 }
 
                 readonly Context testContext;

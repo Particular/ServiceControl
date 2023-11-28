@@ -52,24 +52,33 @@
                     config.UseTransport<LearningTransport>().StorageDirectory(Path.Combine(TestContext.CurrentContext.WorkDirectory, "DependencyTest"));
                     return config;
                 })
+                .ConfigureServices(serviceCollection =>
+                {
+                    // This test never starts the ServiceControl instance, that means (with NServiceBus v8) that the transport is never initialized.
+                    // Some of the controllers, though, access through other dependencies the raw endpoint which tries to configure NServiceBus
+                    // The NServiceBus ReceiveComponent fails because the transport is not started and the ReceiveAddress is not properly registered
+                    // The component registration must happen AFTER UseNServiceBus because we want to override components registered by NServiceBus
+                    serviceCollection.AddSingleton(new ReceiveAddresses("mainReceiveAddress"));
+                })
                 .UseServiceControlComponents(new Settings(), ServiceControlMainInstance.Components);
 
             // Act
-            var host = hostBuilder
-                .UseWebApi(new List<Assembly> { assembly }, string.Empty, false)
-                .Build();
-
-            await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-
-            // Assert
-            Assert.That(host, Is.Not.Null);
-
-            // Make sure the list isn't suddenly empty
-            Assert.That(controllerTypes.Length, Is.GreaterThan(10));
-            foreach (var controllerType in controllerTypes)
+            using (var host = hostBuilder
+                       .UseWebApi(new List<Assembly> { assembly }, string.Empty, false)
+                       .Build())
             {
-                Console.WriteLine($"Getting service {controllerType.FullName}");
-                Assert.That(host.Services.GetService(controllerType), Is.Not.Null);
+                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+
+                // Assert
+                Assert.That(host, Is.Not.Null);
+
+                // Make sure the list isn't suddenly empty
+                Assert.That(controllerTypes.Length, Is.GreaterThan(10));
+                foreach (var controllerType in controllerTypes)
+                {
+                    Console.WriteLine($"Getting service {controllerType.FullName}");
+                    Assert.That(host.Services.GetService(controllerType), Is.Not.Null);
+                }
             }
         }
     }

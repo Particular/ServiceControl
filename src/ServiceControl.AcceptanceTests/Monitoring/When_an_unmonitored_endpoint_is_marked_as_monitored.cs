@@ -91,10 +91,7 @@
 
         public class MyEndpoint : EndpointConfigurationBuilder
         {
-            public MyEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public MyEndpoint() => EndpointSetup<DefaultServer>();
         }
     }
 }

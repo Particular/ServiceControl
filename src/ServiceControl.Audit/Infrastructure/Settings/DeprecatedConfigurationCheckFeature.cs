@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using NServiceBus;
@@ -18,7 +19,7 @@
 
         class DeprecatedConfigurationCheck : FeatureStartupTask
         {
-            protected override Task OnStart(IMessageSession session)
+            protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 try
                 {
@@ -54,7 +55,7 @@
                 }
             }
 
-            protected override Task OnStop(IMessageSession session)
+            protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
             {
                 return Task.CompletedTask;
             }

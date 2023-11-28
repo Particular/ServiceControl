@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Contracts.Operations;
     using MessageFailures;
     using Microsoft.Extensions.DependencyInjection;
-    using NServiceBus.Extensibility;
     using NServiceBus.Testing;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -24,7 +24,7 @@
         public EditMessageTests()
         {
             RegisterServices = services => services
-                .AddSingleton<IDispatchMessages>(dispatcher)
+                .AddSingleton<IMessageDispatcher>(dispatcher)
                 .AddTransient<EditHandler>();
         }
 
@@ -114,7 +114,7 @@
             Assert.AreEqual(
                 failedMessage.ProcessingAttempts.Last().FailureDetails.AddressOfFailingEndpoint,
                 dispatchedMessage.Item1.Destination);
-            Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body);
+            Assert.AreEqual(newBodyContent, dispatchedMessage.Item1.Message.Body.ToArray());
             Assert.AreEqual("someValue", dispatchedMessage.Item1.Message.Headers["someKey"]);
 
             using (var x = await ErrorMessageDataStore.CreateEditFailedMessageManager())
@@ -242,13 +242,13 @@
         }
     }
 
-    public sealed class TestableUnicastDispatcher : IDispatchMessages
+    public sealed class TestableUnicastDispatcher : IMessageDispatcher
     {
-        public List<(UnicastTransportOperation, TransportTransaction, ContextBag)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction, ContextBag)>();
+        public List<(UnicastTransportOperation, TransportTransaction)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction)>();
 
-        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, ContextBag context)
+        public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
         {
-            DispatchedMessages.AddRange(outgoingMessages.UnicastTransportOperations.Select(m => (m, transaction, context)));
+            DispatchedMessages.AddRange(outgoingMessages.UnicastTransportOperations.Select(m => (m, transaction)));
             return Task.CompletedTask;
         }
     }

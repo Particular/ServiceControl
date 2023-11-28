@@ -99,16 +99,14 @@
             public bool Done { get; set; }
             public Dictionary<string, string> Headers { get; set; }
             public byte[] BodyReceived { get; set; }
-            public byte[] BodyToSend { get; set; } = new byte[0];
+            public byte[] BodyToSend { get; set; } = Array.Empty<byte>();
         }
 
         class VerifyHeader : EndpointConfigurationBuilder
         {
-            public VerifyHeader()
-            {
+            public VerifyHeader() =>
                 EndpointSetup<DefaultServer>(
                     (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
-            }
 
             class FakeSender : DispatchRawMessages<TestContext>
             {
@@ -128,7 +126,7 @@
 
                     headers["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader));
                     headers["$.diagnostics.hostid"] = Guid.NewGuid().ToString();
-                    headers["NServiceBus.TimeOfFailure"] = DateTimeExtensions.ToWireFormattedString(DateTime.UtcNow);
+                    headers["NServiceBus.TimeOfFailure"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow);
 
                     var outgoingMessage = new OutgoingMessage(messageId, headers, context.BodyToSend);
 
@@ -138,20 +136,17 @@
 
             class CaptureIncomingMessage : Behavior<ITransportReceiveContext>
             {
-                public CaptureIncomingMessage(TestContext context)
-                {
-                    testContext = context;
-                }
+                public CaptureIncomingMessage(TestContext context) => testContext = context;
 
                 public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {
                     testContext.Headers = context.Message.Headers;
-                    testContext.BodyReceived = context.Message.Body;
+                    testContext.BodyReceived = context.Message.Body.ToArray();
                     testContext.Done = true;
                     return Task.CompletedTask;
                 }
 
-                TestContext testContext;
+                readonly TestContext testContext;
             }
 
             class MyMessage : ICommand

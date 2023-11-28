@@ -35,12 +35,11 @@
             Assert.IsTrue(entry.RelatedTo.Any(item => item == "/host/" + hostIdentifier));
         }
 
-        static Guid hostIdentifier = Guid.NewGuid();
+        static readonly Guid hostIdentifier = Guid.NewGuid();
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint()
-            {
+            public StartingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
@@ -48,7 +47,6 @@
                     c.GetSettings().Set("ServiceControl.CustomHostIdentifier", hostIdentifier);
                     c.UniquelyIdentifyRunningInstance().UsingCustomIdentifier(hostIdentifier);
                 });
-            }
         }
     }
 }

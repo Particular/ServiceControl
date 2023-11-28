@@ -13,7 +13,8 @@ namespace ServiceBus.Management.Infrastructure
 
     static class NServiceBusFactory
     {
-        public static void Configure(Settings.Settings settings, TransportCustomization transportCustomization, TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
+        public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
+            TransportSettings transportSettings, LoggingSettings loggingSettings, EndpointConfiguration configuration)
         {
             if (configuration == null)
             {
@@ -49,7 +50,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.Conventions().DefiningEventsAs(t => typeof(IEvent).IsAssignableFrom(t) || IsExternalContract(t));
 
-            configuration.DefineCriticalErrorAction(CriticalErrorCustomCheck.OnCriticalError);
+            configuration.DefineCriticalErrorAction((criticalErrorContext, _) => CriticalErrorCustomCheck.OnCriticalError(criticalErrorContext));
         }
 
         static bool IsExternalContract(Type t)

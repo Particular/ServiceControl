@@ -8,7 +8,6 @@
     using Infrastructure.Settings;
     using Monitoring;
     using NServiceBus;
-    using NServiceBus.Extensibility;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
@@ -51,7 +50,7 @@
             auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
         }
 
-        public async Task Ingest(List<MessageContext> contexts, IDispatchMessages dispatcher)
+        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher)
         {
             if (log.IsDebugEnabled)
             {
@@ -92,7 +91,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IDispatchMessages dispatcher)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IMessageDispatcher dispatcher)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -107,7 +106,7 @@
 
                 anyContext = messageContext;
                 var outgoingMessage = new OutgoingMessage(
-                    messageContext.MessageId,
+                    messageContext.NativeMessageId,
                     messageContext.Headers,
                     messageContext.Body);
 
@@ -121,13 +120,12 @@
             return anyContext != null
                 ? dispatcher.Dispatch(
                     new TransportOperations(transportOperations),
-                    anyContext.TransportTransaction,
-                    anyContext.Extensions
+                    anyContext.TransportTransaction
                 )
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(IDispatchMessages dispatcher)
+        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher)
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -145,7 +143,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction(), new ContextBag());
+                await dispatcher.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {

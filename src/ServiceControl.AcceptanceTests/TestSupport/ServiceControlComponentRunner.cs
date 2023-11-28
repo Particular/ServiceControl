@@ -65,7 +65,7 @@
                 MessageFilter = messageContext =>
                 {
                     var headers = messageContext.Headers;
-                    var id = messageContext.MessageId;
+                    var id = messageContext.NativeMessageId;
                     var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
@@ -79,7 +79,7 @@
 
                     //Do not filter out subscribe messages as they can't be stamped
                     if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                        && intent == MessageIntentEnum.Subscribe.ToString())
+                        && intent == MessageIntent.Subscribe.ToString())
                     {
                         return false;
                     }
@@ -114,8 +114,8 @@
 
             configuration.RegisterComponents(r =>
             {
-                r.RegisterSingleton(context.GetType(), context);
-                r.RegisterSingleton(typeof(ScenarioContext), context);
+                r.AddSingleton(context.GetType(), context);
+                r.AddSingleton(typeof(ScenarioContext), context);
             });
 
             configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
@@ -205,11 +205,11 @@
 
         IHost host;
         Bootstrapper bootstrapper;
-        ITransportIntegration transportToUse;
-        AcceptanceTestStorageConfiguration persistenceToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<IHostBuilder> hostBuilderCustomization;
-        string instanceName = Settings.DEFAULT_SERVICE_NAME;
+        readonly ITransportIntegration transportToUse;
+        readonly AcceptanceTestStorageConfiguration persistenceToUse;
+        readonly Action<Settings> setSettings;
+        readonly Action<EndpointConfiguration> customConfiguration;
+        readonly Action<IHostBuilder> hostBuilderCustomization;
+        readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

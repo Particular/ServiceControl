@@ -9,6 +9,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using AcceptanceTesting;
     using Infrastructure;
     using Infrastructure.WebApi;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
     using Monitoring;
@@ -37,10 +38,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public Settings Settings { get; set; }
         public OwinHttpMessageHandler Handler { get; set; }
 
-        public Task Initialize(RunDescriptor run)
-        {
-            return InitializeServiceControl(run.ScenarioContext);
-        }
+        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
@@ -71,7 +69,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                     //Do not filter out subscribe messages as they can't be stamped
                     if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                            && intent == MessageIntentEnum.Subscribe.ToString())
+                            && intent == MessageIntent.Subscribe.ToString())
                     {
                         return @continue();
                     }
@@ -80,7 +78,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
                     {
                         log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return Task.FromResult(0);
+                        return Task.CompletedTask;
                     }
 
                     return @continue();
@@ -104,8 +102,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             configuration.RegisterComponents(r =>
             {
-                r.RegisterSingleton(context.GetType(), context);
-                r.RegisterSingleton(typeof(ScenarioContext), context);
+                r.AddSingleton(context.GetType(), context);
+                r.AddSingleton(typeof(ScenarioContext), context);
             });
 
             configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
@@ -122,17 +120,17 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                bootstrapper = new Bootstrapper(ctx =>
+                bootstrapper = new Bootstrapper((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.ServiceName,
                         Level = LogLevel.Fatal,
                         LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{ctx.Error}{Environment.NewLine}{ctx.Exception}"
+                        Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };
                     context.Logs.Enqueue(logitem);
-                    ctx.Stop().GetAwaiter().GetResult();
+                    return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
                 bootstrapper.HostBuilder.ConfigureLogging(logging => logging.AddScenarioContextLogging());

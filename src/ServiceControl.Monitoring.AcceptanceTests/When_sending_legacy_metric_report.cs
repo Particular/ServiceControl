@@ -29,10 +29,7 @@
 
         class EndpointSendingLegacyMetricReport : EndpointConfigurationBuilder
         {
-            public EndpointSendingLegacyMetricReport()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public EndpointSendingLegacyMetricReport() => EndpointSetup<DefaultServer>();
         }
 
         class SomeContext : ScenarioContext

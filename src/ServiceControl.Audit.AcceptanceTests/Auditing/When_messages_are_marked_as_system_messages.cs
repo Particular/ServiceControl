@@ -126,10 +126,7 @@
 
         class SystemMessageEndpoint : EndpointConfigurationBuilder
         {
-            public SystemMessageEndpoint()
-            {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
+            public SystemMessageEndpoint() => EndpointSetup<DefaultServerWithAudit>();
 
             public class SendMessageLowLevel : DispatchRawMessages<SystemMessageTestContext>
             {
@@ -166,12 +163,14 @@
 
             class MyHandler : IHandleMessages<DoQueryAllowed>
             {
-                public SystemMessageTestContext Context { get; set; }
+                SystemMessageTestContext testContext;
+
+                public MyHandler(SystemMessageTestContext context) => testContext = context;
 
                 public Task Handle(DoQueryAllowed message, IMessageHandlerContext context)
                 {
-                    Context.QueryForMessages = true;
-                    return Task.FromResult(0);
+                    testContext.QueryForMessages = true;
+                    return Task.CompletedTask;
                 }
             }
         }
