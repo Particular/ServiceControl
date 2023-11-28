@@ -69,10 +69,7 @@
 
         class AnEndpoint : EndpointConfigurationBuilder
         {
-            public AnEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public AnEndpoint() => EndpointSetup<DefaultServer>();
 
             class FailedMessagesSender : DispatchRawMessages<TestContext>
             {

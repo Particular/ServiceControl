@@ -16,8 +16,7 @@
     class When_a_pending_retry_is_retried_by_queue_and_timeframe : AcceptanceTest
     {
         [Test]
-        public async Task Should_succeed()
-        {
+        public async Task Should_succeed() =>
             await Define<Context>()
                 .WithEndpoint<Failing>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("DetectFailure", async ctx =>
@@ -47,12 +46,10 @@
                 })
                 .Done(ctx => ctx.RetryCount == 2)
                 .Run();
-        }
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing()
-            {
+            public Failing() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     //Do not inform SC that the message has been already successfully handled
@@ -60,7 +57,6 @@
                     c.NoRetries();
                     c.NoOutbox();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

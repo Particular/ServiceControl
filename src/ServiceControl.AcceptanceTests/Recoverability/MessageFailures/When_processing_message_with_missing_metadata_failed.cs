@@ -76,10 +76,7 @@
 
         public class Failing : EndpointConfigurationBuilder
         {
-            public Failing()
-            {
-                EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
-            }
+            public Failing() => EndpointSetup<DefaultServer>(c => { c.Recoverability().Delayed(x => x.NumberOfRetries(0)); });
 
             class SendFailedMessage : DispatchRawMessages<MyContext>
             {

@@ -43,15 +43,13 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {

@@ -90,10 +90,7 @@
 
         class FailingEditedMessageReceiver : EndpointConfigurationBuilder
         {
-            public FailingEditedMessageReceiver()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public FailingEditedMessageReceiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             class FailingMessageHandler : IHandleMessages<FailingMessage>
             {

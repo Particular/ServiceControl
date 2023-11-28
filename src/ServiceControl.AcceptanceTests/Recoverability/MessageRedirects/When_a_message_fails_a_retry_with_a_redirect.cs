@@ -68,10 +68,7 @@
 
         class OriginalEndpoint : EndpointConfigurationBuilder
         {
-            public OriginalEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public OriginalEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
@@ -97,18 +94,17 @@
 
         class NewEndpoint : EndpointConfigurationBuilder
         {
-            public NewEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
-            }
+            public NewEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
             public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
             {
-                public Context Context { get; set; }
+                readonly Context testContext;
+
+                public MessageToRetryHandler(Context testContext) => this.testContext = testContext;
 
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
-                    Context.ProcessedAgain = true;
+                    testContext.ProcessedAgain = true;
                     throw new Exception("Message Failed In New Endpoint Too");
                 }
             }

@@ -68,15 +68,13 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoDelayedRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                     c.Pipeline.Register(services => new LookForControlMessage(services.GetRequiredService<MyContext>()), "Look for control messages");
                 });
-            }
 
             public class SendControlMessage : DispatchRawMessages<MyContext>
             {
@@ -116,10 +114,7 @@
 
             public class LookForControlMessage : Behavior<IIncomingPhysicalMessageContext>
             {
-                public LookForControlMessage(MyContext context)
-                {
-                    myContext = context;
-                }
+                public LookForControlMessage(MyContext context) => myContext = context;
 
                 public override Task Invoke(IIncomingPhysicalMessageContext context, Func<Task> next)
                 {

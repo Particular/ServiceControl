@@ -104,11 +104,9 @@
 
         class VerifyHeader : EndpointConfigurationBuilder
         {
-            public VerifyHeader()
-            {
+            public VerifyHeader() =>
                 EndpointSetup<DefaultServer>(
                     (c, r) => c.Pipeline.Register(new CaptureIncomingMessage((TestContext)r.ScenarioContext), "Captures the incoming message"));
-            }
 
             class FakeSender : DispatchRawMessages<TestContext>
             {
@@ -138,10 +136,7 @@
 
             class CaptureIncomingMessage : Behavior<ITransportReceiveContext>
             {
-                public CaptureIncomingMessage(TestContext context)
-                {
-                    testContext = context;
-                }
+                public CaptureIncomingMessage(TestContext context) => testContext = context;
 
                 public override Task Invoke(ITransportReceiveContext context, Func<Task> next)
                 {

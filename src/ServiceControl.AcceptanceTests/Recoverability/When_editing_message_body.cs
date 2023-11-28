@@ -71,13 +71,11 @@
 
         class EditedMessageReceiver : EndpointConfigurationBuilder
         {
-            public EditedMessageReceiver()
-            {
+            public EditedMessageReceiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                 });
-            }
 
             class EditedMessageHandler : IHandleMessages<EditMessage>
             {

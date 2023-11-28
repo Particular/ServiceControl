@@ -272,21 +272,16 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR()
-            {
+            public EndpointThatUsesSignalR() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
 
             class SignalRStarterFeature : Feature
             {
-                public SignalRStarterFeature()
-                {
-                    EnableByDefault();
-                }
+                public SignalRStarterFeature() => EnableByDefault();
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
@@ -336,14 +331,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
@@ -370,15 +363,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class ReceiverWithCustomSerializer : EndpointConfigurationBuilder
         {
-            public ReceiverWithCustomSerializer()
-            {
+            public ReceiverWithCustomSerializer() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                     c.UseSerialization<MySuperSerializer>();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

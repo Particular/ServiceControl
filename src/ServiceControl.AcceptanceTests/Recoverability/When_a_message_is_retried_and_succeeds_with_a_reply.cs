@@ -71,11 +71,13 @@
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
-                public RetryReplyContext Context { get; set; }
+                readonly RetryReplyContext testContext;
+
+                public ReplyMessageHandler(RetryReplyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
-                    Context.ReplyHandledBy = "Originating Endpoint";
+                    testContext.ReplyHandledBy = "Originating Endpoint";
                     return Task.CompletedTask;
                 }
             }
@@ -87,16 +89,22 @@
 
             public class OriginalMessageHandler : IHandleMessages<OriginalMessage>
             {
-                public RetryReplyContext Context { get; set; }
-                public IReadOnlySettings Settings { get; set; }
+                readonly IReadOnlySettings settings;
+                readonly RetryReplyContext testContext;
+
+                public OriginalMessageHandler(RetryReplyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(OriginalMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    Context.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    testContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
 
-                    if (!Context.RetryIssued)
+                    if (!testContext.RetryIssued)
                     {
                         throw new Exception("This is still the original attempt");
                     }
@@ -107,11 +115,13 @@
 
             public class ReplyMessageHandler : IHandleMessages<ReplyMessage>
             {
-                public RetryReplyContext Context { get; set; }
+                readonly RetryReplyContext testContext;
+
+                public ReplyMessageHandler(RetryReplyContext testContext) => this.testContext = testContext;
 
                 public Task Handle(ReplyMessage message, IMessageHandlerContext context)
                 {
-                    Context.ReplyHandledBy = "Receiving Endpoint";
+                    testContext.ReplyHandledBy = "Receiving Endpoint";
                     return Task.CompletedTask;
                 }
             }

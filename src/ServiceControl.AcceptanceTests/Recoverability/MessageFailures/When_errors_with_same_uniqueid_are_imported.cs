@@ -65,18 +65,15 @@
 
         class CounterEnricher : IEnrichImportedErrorMessages
         {
-            readonly MyContext scenarioContext;
+            readonly MyContext testContext;
 
-            public CounterEnricher(MyContext scenarioContext)
-            {
-                this.scenarioContext = scenarioContext;
-            }
+            public CounterEnricher(MyContext testContext) => this.testContext = testContext;
 
             public void Enrich(ErrorEnricherContext context)
             {
                 if (context.Headers.TryGetValue("Counter", out var counter))
                 {
-                    scenarioContext.OnMessage(counter);
+                    testContext.OnMessage(counter);
                 }
                 else
                 {
@@ -87,10 +84,7 @@
 
         public class SourceEndpoint : EndpointConfigurationBuilder
         {
-            public SourceEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public SourceEndpoint() => EndpointSetup<DefaultServer>();
 
             class SendMultipleFailedMessagesWithSameUniqueId : DispatchRawMessages<MyContext>
             {
@@ -144,10 +138,7 @@
 
             public DateTime[] FailureTimes { get; set; }
 
-            public void OnMessage(string counter)
-            {
-                receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
-            }
+            public void OnMessage(string counter) => receivedMessages.AddOrUpdate(counter, true, (id, old) => true);
 
             readonly ConcurrentDictionary<string, bool> receivedMessages = new ConcurrentDictionary<string, bool>();
         }

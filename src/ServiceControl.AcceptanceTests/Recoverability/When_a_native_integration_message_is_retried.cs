@@ -61,12 +61,10 @@
 
         class VerifyHeader : EndpointConfigurationBuilder
         {
-            public VerifyHeader()
-            {
+            public VerifyHeader() =>
                 EndpointSetup<DefaultServer>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((TestContext)r.ScenarioContext))
                 );
-            }
 
             class FakeSender : DispatchRawMessages<TestContext>
             {
@@ -79,7 +77,7 @@
                         ["NServiceBus.FailedQ"] = Conventions.EndpointNamingConvention(typeof(VerifyHeader))
                     };
 
-                    var outgoingMessage = new OutgoingMessage(messageId, headers, new byte[0]);
+                    var outgoingMessage = new OutgoingMessage(messageId, headers, Array.Empty<byte>());
 
                     return new TransportOperations(new TransportOperation(outgoingMessage, new UnicastAddressTag("error")));
                 }
@@ -87,10 +85,7 @@
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
-                public VerifyHeaderIsUnchanged(TestContext context)
-                {
-                    testContext = context;
-                }
+                public VerifyHeaderIsUnchanged(TestContext context) => testContext = context;
 
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {

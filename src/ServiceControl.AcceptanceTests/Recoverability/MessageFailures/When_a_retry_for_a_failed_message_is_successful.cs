@@ -192,14 +192,12 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

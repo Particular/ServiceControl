@@ -55,8 +55,7 @@
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
+            public FailingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
@@ -67,31 +66,18 @@
                     recoverability.Immediate(s => s.NumberOfRetries(1));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             class StartFeature : Feature
             {
-                public StartFeature()
-                {
-                    EnableByDefault();
-                }
+                public StartFeature() => EnableByDefault();
 
-                protected override void Setup(FeatureConfigurationContext context)
-                {
-                    context.RegisterStartupTask(new SendMessageAtStart());
-                }
+                protected override void Setup(FeatureConfigurationContext context) => context.RegisterStartupTask(new SendMessageAtStart());
 
                 class SendMessageAtStart : FeatureStartupTask
                 {
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return session.SendLocal(new MyMessage(), cancellationToken);
-                    }
+                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default) => session.SendLocal(new MyMessage(), cancellationToken);
 
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return Task.CompletedTask;
-                    }
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => Task.CompletedTask;
                 }
             }
 

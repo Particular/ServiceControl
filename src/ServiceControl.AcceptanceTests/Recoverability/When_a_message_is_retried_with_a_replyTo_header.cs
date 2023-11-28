@@ -51,12 +51,10 @@
 
         class VerifyHeader : EndpointConfigurationBuilder
         {
-            public VerifyHeader()
-            {
+            public VerifyHeader() =>
                 EndpointSetup<DefaultServer>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((ReplyToContext)r.ScenarioContext))
                 );
-            }
 
             class FakeSender : DispatchRawMessages<ReplyToContext>
             {
@@ -87,23 +85,20 @@
 
             class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
             {
-                public VerifyHeaderIsUnchanged(ReplyToContext context)
-                {
-                    replyToContext = context;
-                }
+                public VerifyHeaderIsUnchanged(ReplyToContext context) => testContext = context;
 
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyToAddress))
                     {
-                        replyToContext.ReceivedReplyToAddress = replyToAddress;
+                        testContext.ReceivedReplyToAddress = replyToAddress;
                     }
 
-                    replyToContext.Done = true;
+                    testContext.Done = true;
                     return Task.CompletedTask;
                 }
 
-                readonly ReplyToContext replyToContext;
+                readonly ReplyToContext testContext;
             }
         }
     }

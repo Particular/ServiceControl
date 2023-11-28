@@ -54,10 +54,7 @@
 
         class FailOnceEnricher : IEnrichImportedErrorMessages
         {
-            public FailOnceEnricher(MyContext context)
-            {
-                testContext = context;
-            }
+            public FailOnceEnricher(MyContext context) => testContext = context;
 
             public void Enrich(ErrorEnricherContext context)
             {
@@ -76,10 +73,7 @@
 
         class Sendonly : EndpointConfigurationBuilder
         {
-            public Sendonly()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public Sendonly() => EndpointSetup<DefaultServer>();
 
             class SendMessage : DispatchRawMessages<MyContext>
             {

@@ -16,8 +16,7 @@
     class When_a_pending_retry_is_resolved_by_selection : AcceptanceTest
     {
         [Test]
-        public async Task Should_succeed()
-        {
+        public async Task Should_succeed() =>
             await Define<Context>()
                 .WithEndpoint<FailingEndpoint>(b => b.When(bus => bus.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
                 .Do("DetectFailure", async ctx =>
@@ -48,12 +47,10 @@
                 })
                 .Done(ctx => true) //We're done once the sequence is finished
                 .Run();
-        }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
+            public FailingEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     //Do not inform SC that the message has been already successfully handled
@@ -61,7 +58,6 @@
                     c.NoRetries();
                     c.NoOutbox();
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {

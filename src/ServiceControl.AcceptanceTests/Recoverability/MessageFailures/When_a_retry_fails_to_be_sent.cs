@@ -66,14 +66,12 @@
 
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
-            public FailureEndpoint()
-            {
+            public FailureEndpoint() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
-            }
 
             public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
             {
@@ -148,10 +146,7 @@
 
         public class FakeReturnToSender : ReturnToSender
         {
-            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore)
-            {
-                this.myContext = myContext;
-            }
+            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore) => this.myContext = myContext;
 
             public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
             {

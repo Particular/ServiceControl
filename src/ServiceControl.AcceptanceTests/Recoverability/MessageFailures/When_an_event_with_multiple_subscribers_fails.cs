@@ -40,10 +40,7 @@
 
         public class FakeFailedSubscribers : EndpointConfigurationBuilder
         {
-            public FakeFailedSubscribers()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public FakeFailedSubscribers() => EndpointSetup<DefaultServer>();
 
             class SendDuplicateMessages : DispatchRawMessages<FailingEventContext>
             {

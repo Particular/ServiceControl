@@ -60,32 +60,36 @@
 
         class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     c.NoRetries();
                     c.RegisterComponents(services => services.AddSingleton<CorrelationIdRemover>());
                 });
-            }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public MyContext TestContext { get; set; }
-                public IReadOnlySettings Settings { get; set; }
+                readonly IReadOnlySettings settings;
+                readonly MyContext testContext;
+
+                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                {
+                    this.testContext = testContext;
+                    this.settings = settings;
+                }
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
 
-                    TestContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, Settings.EndpointName()).ToString();
+                    testContext.UniqueMessageId = DeterministicGuid.MakeId(messageId, settings.EndpointName()).ToString();
 
-                    if (!TestContext.RetryIssued)
+                    if (!testContext.RetryIssued)
                     {
                         throw new Exception("Simulated exception");
                     }
 
-                    TestContext.RetryHandled = true;
+                    testContext.RetryHandled = true;
                     return Task.CompletedTask;
                 }
             }

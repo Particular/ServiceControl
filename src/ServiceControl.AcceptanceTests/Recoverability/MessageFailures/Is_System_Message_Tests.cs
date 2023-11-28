@@ -130,10 +130,7 @@
 
         public class ServerEndpoint : EndpointConfigurationBuilder
         {
-            public ServerEndpoint()
-            {
-                EndpointSetup<DefaultServer>();
-            }
+            public ServerEndpoint() => EndpointSetup<DefaultServer>();
 
             class Foo : DispatchRawMessages<SystemMessageTestContext>
             {
