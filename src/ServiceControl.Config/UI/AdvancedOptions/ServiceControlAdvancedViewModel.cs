@@ -135,6 +135,7 @@ namespace ServiceControl.Config.UI.AdvancedOptions
         }
 
         static readonly SemanticVersion ForcedUpgradeMaxVersion = new(5, 0, 0);
+
         public bool ForcedUpgradeAllowed => VersionComparer.Version.Compare(ServiceControlInstance.Version, ForcedUpgradeMaxVersion) < 0 && ForceUpgradeCommand.CanExecute(this);
 
         public string ForcedUpgradeBackupLocation => ServiceControlInstance.DatabaseBackupPath;
