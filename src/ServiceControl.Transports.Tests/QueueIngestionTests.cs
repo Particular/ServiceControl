@@ -20,7 +20,7 @@
 
             await StartQueueIngestor(
                  queueName,
-                 (_) =>
+                 (_, __) =>
                  {
                      numMessagesIngested++;
 
@@ -31,7 +31,7 @@
 
                      return Task.CompletedTask;
                  },
-                 (_) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
+                 (_, __) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
 
             var dispatcher = await CreateDispatcher(queueName);
 
@@ -56,8 +56,8 @@
 
             await StartQueueIngestor(
                 queueName,
-                (_) => throw new System.Exception("Some failure"),
-                (_) =>
+                (_, __) => throw new System.Exception("Some failure"),
+                (_, __) =>
                 {
                     onErrorCalled.SetResult(true);
                     return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);

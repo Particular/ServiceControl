@@ -8,7 +8,6 @@
     using Audit.Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Persistence;
@@ -46,11 +45,7 @@
     {
         public static string UserNameUsed;
         public static IList<string> QueuesCreated;
-
-        public RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name,
-            Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage,
-            TransportSettings transportSettings) =>
-            throw new NotImplementedException();
+        public Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
@@ -66,10 +61,7 @@
         public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
             throw new NotImplementedException();
 
-        public Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings,
-            Func<MessageContext, Task> onMessage, Func<ErrorContext, Task<ErrorHandleResult>> onError,
-            Func<string, Exception, Task> onCriticalError) =>
-            throw new NotImplementedException();
+        public Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         public Task ProvisionQueues(string username, TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)

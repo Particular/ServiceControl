@@ -8,16 +8,20 @@
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
 
     public interface ITransportCustomization
     {
-        RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name, Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage, TransportSettings transportSettings);
+        Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
+
         void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
         void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
         void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+
         IProvideQueueLength CreateQueueLengthProvider();
+
         Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings);
 
         Task<IQueueIngestor> InitializeQueueIngestor(
@@ -42,13 +46,37 @@
 
         protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
-        public RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name,
-            Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage, TransportSettings transportSettings)
+        public async Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
         {
             var transport = CreateTransport(transportSettings);
+
             CustomizeForReturnToSenderIngestion(transport, transportSettings);
-            var config = RawEndpointConfiguration.Create(name, transport, onMessage, transportSettings.ErrorQueue);
-            return config;
+
+            var hostSettings = new HostSettings(
+                name,
+                "NServiceBus.Raw host for " + name,
+                new StartupDiagnosticEntries(),
+                (msg, exception, cancellationToken) =>
+                {
+                    // Mimic raw fire and forget
+                    _ = Task.Run(() => onCriticalError(msg, exception), cancellationToken);
+                },
+                false, // ???
+                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
+
+            var receivers = new[]{
+                new ReceiveSettings(
+                name,
+                new QueueAddress(name),
+                false,
+                false,
+                transportSettings.ErrorQueue)};
+
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
+            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+
+            return transportInfrastructureReceiver;
         }
 
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -141,8 +169,7 @@
 
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[queueName];
-            await transportInfrastructureReceiver.Initialize(
-                new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
 
             return new QueueIngestor(transportInfrastructureReceiver);
         }

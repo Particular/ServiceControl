@@ -98,8 +98,8 @@
 
         protected async Task StartQueueIngestor(
             string queueName,
-            Func<MessageContext, Task> onMessage,
-            Func<ErrorContext, Task<ErrorHandleResult>> onError)
+            OnMessage onMessage,
+            OnError onError)
         {
             var transportSettings = new TransportSettings
             {

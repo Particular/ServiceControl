@@ -6,7 +6,6 @@ namespace ServiceControl.Recoverability
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
