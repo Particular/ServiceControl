@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="NServiceBus" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>
