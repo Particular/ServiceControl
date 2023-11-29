@@ -79,20 +79,27 @@ class ForceUpgradePrimaryInstanceCommand : AwaitableAbstractCommand<ServiceContr
             if (reportCard.HasErrors || reportCard.HasWarnings)
             {
                 await windowManager.ShowActionReport(reportCard, "ISSUES UPGRADING INSTANCE", "Could not upgrade instance because of the following errors:", "There were some warnings while upgrading the instance:");
+
+                return;
             }
-            else
+
+            if (restartAgain)
             {
-                if (restartAgain)
+                var serviceStarted = await model.StartService(progress, maintenanceMode: false);
+                if (!serviceStarted)
                 {
-                    var serviceStarted = await model.StartService(progress, maintenanceMode: false);
-                    if (!serviceStarted)
-                    {
-                        reportCard.Errors.Add("The Service failed to start. Please consult the ServiceControl logs for this instance");
-                        await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE", "Instance reported this error after upgrade:");
-                    }
+                    reportCard.Errors.Add(
+                        "The Service failed to start. Please consult the ServiceControl logs for this instance");
+                    await windowManager.ShowActionReport(reportCard, "UPGRADE FAILURE",
+                        "Instance reported this error after upgrade:");
+
+                    return;
                 }
             }
         }
+
+        await model.TryCloseAsync(true);
+        await eventAggregator.PublishOnUIThreadAsync(new ResetInstances());
     }
 
     readonly IEventAggregator eventAggregator;
