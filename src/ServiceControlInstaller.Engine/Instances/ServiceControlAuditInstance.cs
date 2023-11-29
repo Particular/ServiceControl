@@ -43,7 +43,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(AuditInstanceSettingsList.AuditQueue, AuditQueue, Version);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(AuditInstanceSettingsList.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString().ToLowerInvariant(), Version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistenceManifest.TypeName);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, PersistenceManifest.Name);
         }
 
         protected override AppConfig CreateAppConfig()

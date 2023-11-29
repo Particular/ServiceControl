@@ -22,7 +22,7 @@
             settings.Set(AuditInstanceSettingsList.LogPath, instance.LogPath);
             settings.Set(AuditInstanceSettingsList.ForwardAuditMessages, instance.ForwardAuditMessages.ToString().ToLowerInvariant());
             settings.Set(AuditInstanceSettingsList.TransportType, instance.TransportPackage.Name, version);
-            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceManifest.Name);
+            settings.Set(AuditInstanceSettingsList.PersistenceType, instance.PersistenceManifest.Name); // TODO: Why is it set here AND at ServiceControlAuditInstance.ApplySettingsChanges 🤬
             settings.Set(AuditInstanceSettingsList.AuditQueue, instance.AuditQueue);
             settings.Set(AuditInstanceSettingsList.AuditLogQueue, instance.ForwardAuditMessages ? instance.AuditLogQueue : null);
             settings.Set(AuditInstanceSettingsList.AuditRetentionPeriod, instance.AuditRetentionPeriod.ToString(), version);

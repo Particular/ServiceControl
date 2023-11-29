@@ -169,7 +169,7 @@ namespace ServiceControlInstaller.Engine.Instances
             settings.Set(ServiceControlSettings.AuditLogQueue, AuditLogQueue, Version);
             settings.Set(ServiceControlSettings.ErrorLogQueue, ErrorLogQueue, Version);
             settings.Set(ServiceControlSettings.EnableFullTextSearchOnBodies, EnableFullTextSearchOnBodies.ToString(), Version);
-            settings.Set(ServiceControlSettings.PersistenceType, PersistenceManifest.TypeName);
+            settings.Set(ServiceControlSettings.PersistenceType, PersistenceManifest.Name);
 
             if (RemoteInstances != null)
             {
