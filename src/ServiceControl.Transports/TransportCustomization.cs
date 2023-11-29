@@ -94,11 +94,11 @@
         public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
             var transport = CreateTransport(transportSettings);
-            var config = RawEndpointConfiguration.CreateSendOnly(name, transport);
-
             CustomizeRawSendOnlyEndpoint(transport, transportSettings);
 
-            return await RawEndpoint.Create(config);
+            // TODO NSB8 does this need to configured as SendOnly (it was previously)
+            var ti = await transport.Initialize(null, null, null);
+            return ti.Dispatcher;
         }
 
         public async Task<IQueueIngestor> InitializeQueueIngestor(
