@@ -68,7 +68,8 @@
 
                 var t = TaskHelpers.Run(() =>
                 {
-                    while (!HasUnderlyingProcessExited())
+                    var workingPath = Path.GetDirectoryName(Service.ExePath);
+                    while (!HasUnderlyingProcessExited() || FilesAreInUse(workingPath, "*.dll"))
                     {
                         Thread.Sleep(250);
                     }
@@ -124,6 +125,31 @@
                         return false;
                     }
                 });
+        }
+
+        static bool FilesAreInUse(string path, string searchPattern, bool recursive = false)
+        {
+            var filePaths = Directory.GetFiles(path, searchPattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+
+            return filePaths.Any(FileIsInUse);
+        }
+
+        static bool FileIsInUse(string path)
+        {
+            try
+            {
+                // Note: Doesn't work on exe files.
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    // Don't actually do anything
+                    return false;
+                }
+            }
+            catch (IOException)
+            {
+                // If file does not exist, it's clearly not in use anymore
+                return File.Exists(path);
+            }
         }
 
         public string BackupAppConfig()
