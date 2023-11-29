@@ -106,20 +106,24 @@
 
         bool HasUnderlyingProcessExited()
         {
-            try
+            if (Service.ExePath == null)
             {
-                if (Service.ExePath != null)
-                {
-                    var process = Process.GetProcesses().FirstOrDefault(p => p.MainModule.FileName == Service.ExePath);
-                    return process == null;
-                }
-            }
-            catch
-            {
-                //Service isn't accessible
+                return true;
             }
 
-            return true;
+            return !Process
+                .GetProcesses()
+                .Any(p =>
+                {
+                    try
+                    {
+                        return p.MainModule.FileName == Service.ExePath;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                });
         }
 
         public string BackupAppConfig()
