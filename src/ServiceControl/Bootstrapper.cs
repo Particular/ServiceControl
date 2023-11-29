@@ -16,7 +16,6 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
     using global::ServiceControl.Persistence;
-    using global::ServiceControl.Recoverability;
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.Extensions.DependencyInjection;
@@ -101,8 +100,6 @@ namespace Particular.ServiceControl
                     services.AddSingleton(transportSettings);
                     services.AddSingleton(transportCustomization);
 
-                    var rawEndpointFactory = new RawEndpointFactory(settings, transportSettings, transportCustomization);
-                    services.AddSingleton(rawEndpointFactory);
                     services.AddSingleton<MessageStreamerConnection>();
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);

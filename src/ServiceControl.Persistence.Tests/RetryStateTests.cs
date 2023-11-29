@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -278,7 +277,7 @@
         class TestReturnToSenderDequeuer : ReturnToSenderDequeuer
         {
             public TestReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore store, IDomainEvents domainEvents, string endpointName)
-                : base(returnToSender, store, domainEvents, null, new Settings(endpointName))
+                : base(returnToSender, store, domainEvents, null, null, new Settings(endpointName))
             {
             }
 
