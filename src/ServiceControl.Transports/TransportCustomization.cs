@@ -117,6 +117,8 @@
         {
             var transport = CreateTransport(transportSettings);
 
+            CustomizeForQueueIngestion(transport, transportSettings);
+
             var hostSettings = new HostSettings(
                 queueName,
                 "NServiceBus.Raw host for " + queueName,
@@ -137,8 +139,6 @@
                     false,
                     transportSettings.ErrorQueue)};
 
-            CustomizeForQueueIngestion(transport, transportSettings);
-
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[queueName];
             await transportInfrastructureReceiver.Initialize(
@@ -147,17 +147,29 @@
             return new QueueIngestor(transportInfrastructureReceiver);
         }
 
-        public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public virtual async Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             var transport = CreateTransport(transportSettings);
-            var config = RawEndpointConfiguration.Create(transportSettings.EndpointName, transport, (_, __, ___) => throw new NotImplementedException(), transportSettings.ErrorQueue);
 
             CustomizeForQueueIngestion(transport, transportSettings);
 
-            config.AutoCreateQueues(additionalQueues.ToArray());
+            var hostSettings = new HostSettings(
+                transportSettings.EndpointName,
+                $"Queue creator for {transportSettings.EndpointName}",
+                new StartupDiagnosticEntries(),
+                (_, __, ___) => { },
+                true,
+                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
-            //No need to start the raw endpoint to create queues
-            return RawEndpoint.Create(config);
+            var receivers = new[]{
+                new ReceiveSettings(
+                    transportSettings.EndpointName,
+                    new QueueAddress(transportSettings.EndpointName),
+                    false,
+                    false,
+                    transportSettings.ErrorQueue)};
+
+            await transport.Initialize(hostSettings, receivers, additionalQueues.ToArray());
         }
 
         protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);
