@@ -172,7 +172,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext)
+        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
@@ -184,7 +184,7 @@
 
             receivedMeter.Mark();
 
-            await channel.Writer.WriteAsync(messageContext);
+            await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
         }
 

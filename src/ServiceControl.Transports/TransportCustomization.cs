@@ -23,8 +23,8 @@
         Task<IQueueIngestor> InitializeQueueIngestor(
             string queueName,
             TransportSettings transportSettings,
-            Func<MessageContext, Task> onMessage,
-            Func<ErrorContext, Task<ErrorHandleResult>> onError,
+            OnMessage onMessage,
+            OnError onError,
             Func<string, Exception, Task> onCriticalError);
 
         Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues);
@@ -96,32 +96,55 @@
             var transport = CreateTransport(transportSettings);
             CustomizeRawSendOnlyEndpoint(transport, transportSettings);
 
-            // TODO NSB8 does this need to configured as SendOnly (it was previously)
-            var ti = await transport.Initialize(null, null, null);
-            return ti.Dispatcher;
+            var hostSettings = new HostSettings(
+                name,
+                $"Dispatcher for {name}",
+                new StartupDiagnosticEntries(),
+                (_, __, ___) => { },
+                false,
+                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
+
+            var transportInfrastructure = await transport.Initialize(hostSettings, Array.Empty<ReceiveSettings>(), Array.Empty<string>());
+            return transportInfrastructure.Dispatcher;
         }
 
         public async Task<IQueueIngestor> InitializeQueueIngestor(
             string queueName,
             TransportSettings transportSettings,
-            Func<MessageContext, Task> onMessage,
-            Func<ErrorContext, Task<ErrorHandleResult>> onError,
+            OnMessage onMessage,
+            OnError onError,
             Func<string, Exception, Task> onCriticalError)
         {
             var transport = CreateTransport(transportSettings);
-            var config = RawEndpointConfiguration.Create(queueName, transport, (mt, _, __) => onMessage(mt), transportSettings.ErrorQueue);
-            config.LimitMessageProcessingConcurrencyTo(transportSettings.MaxConcurrency);
 
-            // TODO NSB8 Pass around the cancellation token
-            Task OnCriticalErrorAction(ICriticalErrorContext cet, CancellationToken cancellationToken) => onCriticalError(cet.Error, cet.Exception);
+            var hostSettings = new HostSettings(
+                queueName,
+                "NServiceBus.Raw host for " + queueName,
+                new StartupDiagnosticEntries(),
+                (msg, exception, cancellationToken) =>
+                {
+                    // Mimic raw fire and forget
+                    _ = Task.Run(() => onCriticalError(msg, exception), cancellationToken);
+                },
+                false, // ???
+                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
-            config.CriticalErrorAction(OnCriticalErrorAction);
-            config.CustomErrorHandlingPolicy(new IngestionErrorPolicy(onError));
+            var receivers = new[]{
+                new ReceiveSettings(
+                    queueName,
+                    new QueueAddress(queueName),
+                    false,
+                    false,
+                    transportSettings.ErrorQueue)};
 
             CustomizeForQueueIngestion(transport, transportSettings);
 
-            var startableRaw = await RawEndpoint.Create(config);
-            return new QueueIngestor(startableRaw);
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
+            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[queueName];
+            await transportInfrastructureReceiver.Initialize(
+                new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+
+            return new QueueIngestor(transportInfrastructureReceiver);
         }
 
         public virtual Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
@@ -143,40 +166,17 @@
 
         protected abstract TTransport CreateTransport(TransportSettings transportSettings);
 
-        class IngestionErrorPolicy : IErrorHandlingPolicy
-        {
-            public IngestionErrorPolicy(Func<ErrorContext, Task<ErrorHandleResult>> onError) => this.onError = onError;
-
-            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher, CancellationToken cancellationToken)
-            {
-                return onError(handlingContext.Error);
-            }
-
-            readonly Func<ErrorContext, Task<ErrorHandleResult>> onError;
-        }
-
+        // TODO NSB8 Remove this abstraction
         class QueueIngestor : IQueueIngestor
         {
 
-            public QueueIngestor(IStartableRawEndpoint startableRaw) => this.startableRaw = startableRaw;
+            public QueueIngestor(IMessageReceiver messageReceiver) => this.messageReceiver = messageReceiver;
 
-            public async Task Start()
-            {
-                stoppableRaw = await startableRaw.Start();
-            }
+            public Task Start() => messageReceiver.StartReceive();
 
-            public Task Stop()
-            {
-                if (stoppableRaw != null)
-                {
-                    return stoppableRaw.Stop();
-                }
+            public Task Stop() => messageReceiver.StopReceive();
 
-                return Task.CompletedTask;
-            }
-
-            IStoppableRawEndpoint stoppableRaw;
-            readonly IStartableRawEndpoint startableRaw;
+            readonly IMessageReceiver messageReceiver;
         }
     }
 }

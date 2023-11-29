@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.Settings;
@@ -27,7 +28,7 @@
             Directory.CreateDirectory(logPath);
         }
 
-        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext)
+        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
@@ -35,11 +36,11 @@
                 return ErrorHandleResult.RetryRequired;
             }
 
-            await StoreFailedMessageDocument(errorContext);
+            await StoreFailedMessageDocument(errorContext, cancellationToken);
             return ErrorHandleResult.Handled;
         }
 
-        Task StoreFailedMessageDocument(ErrorContext errorContext)
+        Task StoreFailedMessageDocument(ErrorContext errorContext, CancellationToken cancellationToken)
         {
             var failure = (dynamic)messageBuilder(new FailedTransportMessage
             {
@@ -48,14 +49,14 @@
                 Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
             });
 
-            return Handle(errorContext.Exception, failure);
+            return Handle(errorContext.Exception, failure, cancellationToken);
         }
 
-        async Task Handle(Exception exception, dynamic failure)
+        async Task Handle(Exception exception, dynamic failure, CancellationToken cancellationToken)
         {
             try
             {
-                await DoLogging(exception, failure);
+                await DoLogging(exception, failure, cancellationToken);
             }
             finally
             {
@@ -63,7 +64,9 @@
             }
         }
 
-        async Task DoLogging(Exception exception, dynamic failure)
+#pragma warning disable IDE0060
+        async Task DoLogging(Exception exception, dynamic failure, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
         {
             var id = Guid.NewGuid().ToString();
             failure.Id = id;
