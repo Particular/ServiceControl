@@ -14,7 +14,7 @@ namespace ServiceControl.Audit.Infrastructure
             this.settings = settings;
         }
 
-        public async Task Run(string username)
+        public async Task Run()
         {
             // Validate license:
             if (!ValidateLicense(settings))

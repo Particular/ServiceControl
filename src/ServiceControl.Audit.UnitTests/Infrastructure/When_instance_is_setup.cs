@@ -19,7 +19,6 @@
         public async Task Should_provision_queues()
         {
             var instanceInputQueueName = "SomeInstanceQueue";
-            var userName = "SomeUser";
 
             var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, typeof(FakePersistenceConfiguration).AssemblyQualifiedName)
             {
@@ -28,9 +27,8 @@
 
             var setupBootstrapper = new SetupBootstrapper(settings);
 
-            await setupBootstrapper.Run(userName);
+            await setupBootstrapper.Run();
 
-            Assert.AreEqual(userName, FakeTransport.UserNameUsed);
             CollectionAssert.AreEquivalent(new[]
             {
                 instanceInputQueueName,
@@ -43,7 +41,6 @@
 
     class FakeTransport : ITransportCustomization
     {
-        public static string UserNameUsed;
         public static IList<string> QueuesCreated;
         public Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
@@ -68,7 +65,6 @@
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
         {
-            UserNameUsed = username;
             QueuesCreated = new List<string>(additionalQueues)
             {
                 transportSettings.EndpointName,

@@ -111,7 +111,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             {
 
                 var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             var configuration = new EndpointConfiguration(instanceName);

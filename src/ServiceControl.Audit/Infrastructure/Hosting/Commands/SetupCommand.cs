@@ -9,7 +9,7 @@
         {
             settings.SkipQueueCreation = args.SkipQueueCreation;
 
-            await new SetupBootstrapper(settings).Run(args.Username);
+            await new SetupBootstrapper(settings).Run();
         }
     }
 }
