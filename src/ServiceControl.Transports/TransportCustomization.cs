@@ -194,7 +194,7 @@
                     false,
                     transportSettings.ErrorQueue)};
 
-            await transport.Initialize(hostSettings, receivers, additionalQueues.ToArray());
+            await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
         }
 
         protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);
