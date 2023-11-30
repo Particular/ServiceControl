@@ -194,7 +194,9 @@
                     false,
                     transportSettings.ErrorQueue)};
 
-            await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
+            // TODO NSB8 finally block?
+            await transportInfrastructure.Shutdown();
         }
 
         protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);

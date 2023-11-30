@@ -137,8 +137,7 @@
                 var transportOperations = new TransportOperations(
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
-                            new Dictionary<string, string>(),
-                            new byte[0]),
+                            new Dictionary<string, string>(), Array.Empty<byte>()),
                         new UnicastAddressTag(settings.AuditLogQueue)
                     )
                 );

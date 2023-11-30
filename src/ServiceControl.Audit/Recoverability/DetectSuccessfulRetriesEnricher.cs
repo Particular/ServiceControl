@@ -40,7 +40,7 @@
                 {
                     ["ServiceControl.Retry.Successful"] = DateTimeOffsetHelper.ToWireFormattedString(DateTime.UtcNow),
                     ["ServiceControl.Retry.UniqueMessageId"] = newRetryMessageId
-                }, new byte[0]);
+                }, Array.Empty<byte>());
                 var ackOperation = new TransportOperation(ackMessage, new UnicastAddressTag(ackQueue));
                 context.AddForSend(ackOperation);
             }
