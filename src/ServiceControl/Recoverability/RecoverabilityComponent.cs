@@ -56,7 +56,7 @@
                 collection.AddSingleton<ErrorIngestionCustomCheck.State>();
                 if (settings.IngestErrorMessages)
                 {
-                    collection.AddHostedService(provider => provider.GetRequiredService<ErrorIngestion>());
+                    collection.AddHostedService<ErrorIngestion>();
                 }
 
                 //Retries
