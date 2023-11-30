@@ -121,6 +121,8 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
+                // TODO NSB8 Workaround for Learning transport message pump not working after you've stopped it once
+                await messageReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), Handle, faultManager.OnError, CancellationToken.None);
                 await messageReceiver.StartReceive(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
