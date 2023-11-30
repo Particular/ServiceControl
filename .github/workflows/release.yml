@@ -32,8 +32,10 @@ jobs:
       - name: Download RavenDB Server
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
+      - name: Restore
+        run: dotnet restore src
       - name: Build
-        run: dotnet build src --configuration Release -graph
+        run: dotnet build src --configuration Release -graph --no-restore
       - name: Build ServiceControl Management
         run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --configuration Release --runtime win-x64 --no-build --output assets
       - name: Sign NuGet packages
