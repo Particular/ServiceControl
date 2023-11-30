@@ -49,7 +49,7 @@
 
                 //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
                 collection.AddSingleton<ReturnToSenderDequeuer>();
-                collection.AddHostedService<ReturnToSenderDequeuer>();
+                collection.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
 
                 //Error importer
                 collection.AddSingleton<ErrorIngestor>();

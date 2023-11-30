@@ -104,7 +104,7 @@
             {
 
                 var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             var configuration = new EndpointConfiguration(instanceName);
@@ -130,7 +130,7 @@
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))

@@ -144,7 +144,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             IHost host;

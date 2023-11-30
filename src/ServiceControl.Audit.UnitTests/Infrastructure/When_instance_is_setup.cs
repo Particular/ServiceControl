@@ -45,7 +45,7 @@
     {
         public static string UserNameUsed;
         public static IList<string> QueuesCreated;
-        public Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
+        public Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
@@ -61,9 +61,11 @@
         public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
             throw new NotImplementedException();
 
-        public Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
+        public Task<TransportInfrastructure> CreateRawEndpointForIngestion(string queueName, TransportSettings transportSettings, OnMessage onMessage,
+            OnError onError, Func<string, Exception, Task> onCriticalError) =>
+            throw new NotImplementedException();
 
-        public Task ProvisionQueues(string username, TransportSettings transportSettings,
+        public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
         {
             UserNameUsed = username;

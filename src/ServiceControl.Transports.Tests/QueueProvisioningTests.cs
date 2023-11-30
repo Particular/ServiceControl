@@ -15,9 +15,8 @@
             var errorQueue = queueName + ".error";
             var additionalQueue1 = queueName + ".extra1";
             var additionalQueue2 = queueName + ".extra2";
-            var username = WindowsIdentity.GetCurrent().Name;
 
-            await ProvisionQueues(username, queueName, errorQueue, new List<string> { additionalQueue1, additionalQueue2 });
+            await ProvisionQueues(queueName, errorQueue, new List<string> { additionalQueue1, additionalQueue2 });
 
             var dispatcher = await CreateDispatcher(GetTestQueueName("sender"));
 

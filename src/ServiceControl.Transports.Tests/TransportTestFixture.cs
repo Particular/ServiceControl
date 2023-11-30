@@ -5,7 +5,6 @@
     using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
-    using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
@@ -55,7 +54,12 @@
 
             if (queueIngestor != null)
             {
-                await queueIngestor.Stop();
+                await queueIngestor.StopReceive();
+            }
+
+            if (queueIngestor != null)
+            {
+                await transportInfrastructure.Shutdown();
             }
 
             if (configuration != null)
@@ -108,7 +112,7 @@
                 MaxConcurrency = 1
             };
 
-            queueIngestor = await configuration.TransportCustomization.InitializeQueueIngestor(
+            transportInfrastructure = await configuration.TransportCustomization.CreateRawEndpointForIngestion(
                 queueName,
                 transportSettings,
                 onMessage,
@@ -119,10 +123,12 @@
                     return Task.CompletedTask;
                 });
 
-            await queueIngestor.Start();
+            queueIngestor = transportInfrastructure.Receivers[queueName];
+
+            await queueIngestor.StartReceive();
         }
 
-        protected Task ProvisionQueues(string username, string queueName, string errorQueue, IEnumerable<string> additionalQueues)
+        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues)
         {
             var transportSettings = new TransportSettings
             {
@@ -132,7 +138,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
         }
         protected Task<IMessageDispatcher> CreateDispatcher(string endpointName)
         {
@@ -155,7 +161,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(WindowsIdentity.GetCurrent().Name, transportSettings, new List<string>());
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, new List<string>());
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
@@ -163,6 +169,7 @@
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
-        IQueueIngestor queueIngestor;
+        IMessageReceiver queueIngestor;
+        TransportInfrastructure transportInfrastructure;
     }
 }

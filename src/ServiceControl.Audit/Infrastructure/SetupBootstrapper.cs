@@ -40,7 +40,7 @@ namespace ServiceControl.Audit.Infrastructure
                         additionalQueues.Add(settings.AuditLogQueue);
                     }
 
-                    await transportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
+                    await transportCustomization.ProvisionQueues(transportSettings, additionalQueues);
                 }
             }
 

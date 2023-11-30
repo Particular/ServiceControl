@@ -27,9 +27,22 @@ namespace ServiceControl.Recoverability
 
         public string InputAddress { get; }
 
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            transportInfrastructure = await transportCustomization.CreateRawEndpointForReturnToSenderIngestion(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask);
+            messageReceiver = transportInfrastructure.Receivers[InputAddress];
+            messageDispatcher = transportInfrastructure.Dispatcher;
 
-        public Task StopAsync(CancellationToken cancellationToken) => Stop();
+            errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            timer.Dispose();
+            endedPrematurely = true;
+            await StopInternal();
+            await transportInfrastructure.Shutdown(cancellationToken);
+        }
 
         bool IsCounting => targetMessageCount.HasValue;
 
@@ -92,7 +105,6 @@ namespace ServiceControl.Recoverability
 
         public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
         {
-            IMessageReceiver messageReceiver = null;
             CancellationTokenRegistration? registration = null;
             try
             {
@@ -105,15 +117,9 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat("Starting receiver");
                 }
 
-                messageReceiver = await transportCustomization.CreateRawEndpointForReturnToSenderIngestion(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask);
-
-                messageDispatcher = await transportCustomization.InitializeDispatcher(InputAddress, transportSettings); //TODO NSB8 There has to be a better place to create this
-
                 syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
-
-                errorQueueTransportAddress = errorQueue; //TODO NSB8 Will need to get actual error queue address -- GetErrorQueueTransportAddress(startable);
 
                 await messageReceiver.StartReceive(cancellationToken);
 
@@ -138,7 +144,7 @@ namespace ServiceControl.Recoverability
 
                 await syncEvent.Task;
                 registration?.Dispose();
-                messageReceiver?.StopReceive(cancellationToken);
+                await messageReceiver.StopReceive(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
@@ -149,13 +155,6 @@ namespace ServiceControl.Recoverability
             {
                 throw new Exception("We are in the process of shutting down. Safe to ignore.");
             }
-        }
-
-        public Task Stop()
-        {
-            timer.Dispose();
-            endedPrematurely = true;
-            return StopInternal();
         }
 
         async Task StopInternal()
@@ -186,7 +185,9 @@ namespace ServiceControl.Recoverability
         string errorQueueTransportAddress;
         readonly ITransportCustomization transportCustomization;
         readonly TransportSettings transportSettings;
+        TransportInfrastructure transportInfrastructure;
         IMessageDispatcher messageDispatcher;
+        IMessageReceiver messageReceiver;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 

@@ -12,7 +12,7 @@
 
     public interface ITransportCustomization
     {
-        Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
+        Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
 
         void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
@@ -24,14 +24,14 @@
 
         Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings);
 
-        Task<IQueueIngestor> InitializeQueueIngestor(
+        Task<TransportInfrastructure> CreateRawEndpointForIngestion(
             string queueName,
             TransportSettings transportSettings,
             OnMessage onMessage,
             OnError onError,
             Func<string, Exception, Task> onCriticalError);
 
-        Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues);
+        Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -46,7 +46,7 @@
 
         protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
-        public async Task<IMessageReceiver> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
+        public async Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
         {
             var transport = CreateTransport(transportSettings);
 
@@ -75,8 +75,7 @@
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
             await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
-
-            return transportInfrastructureReceiver;
+            return transportInfrastructure;
         }
 
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
@@ -136,7 +135,7 @@
             return transportInfrastructure.Dispatcher;
         }
 
-        public async Task<IQueueIngestor> InitializeQueueIngestor(
+        public async Task<TransportInfrastructure> CreateRawEndpointForIngestion(
             string queueName,
             TransportSettings transportSettings,
             OnMessage onMessage,
@@ -170,11 +169,10 @@
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[queueName];
             await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
-
-            return new QueueIngestor(transportInfrastructureReceiver);
+            return transportInfrastructure;
         }
 
-        public virtual async Task ProvisionQueues(string username, TransportSettings transportSettings, IEnumerable<string> additionalQueues)
+        public virtual async Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues)
         {
             var transport = CreateTransport(transportSettings);
 
@@ -204,18 +202,5 @@
         protected abstract void CustomizeForQueueIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract TTransport CreateTransport(TransportSettings transportSettings);
-
-        // TODO NSB8 Remove this abstraction
-        class QueueIngestor : IQueueIngestor
-        {
-
-            public QueueIngestor(IMessageReceiver messageReceiver) => this.messageReceiver = messageReceiver;
-
-            public Task Start() => messageReceiver.StartReceive();
-
-            public Task Stop() => messageReceiver.StopReceive();
-
-            readonly IMessageReceiver messageReceiver;
-        }
     }
 }

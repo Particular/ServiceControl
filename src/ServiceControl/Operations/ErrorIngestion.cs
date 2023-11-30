@@ -62,11 +62,15 @@
 
         public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
-        public async Task StopAsync(CancellationToken _)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown(cancellationToken);
+            }
         }
 
         async Task Loop()
@@ -128,7 +132,7 @@
                     {
                         var stoppable = queueIngestor;
                         queueIngestor = null;
-                        await stoppable.Stop();
+                        await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
@@ -139,21 +143,23 @@
                     return; //Already started
                 }
 
-                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                transportInfrastructure = await transportCustomization.CreateRawEndpointForIngestion(
                     errorQueue,
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError);
 
-                dispatcher = await transportCustomization.InitializeDispatcher(errorQueue, transportSettings);
+                queueIngestor = transportInfrastructure.Receivers[errorQueue];
+
+                dispatcher = transportInfrastructure.Dispatcher;
 
                 if (settings.ForwardErrorMessages)
                 {
                     await ingestor.VerifyCanReachForwardingAddress(dispatcher);
                 }
 
-                await queueIngestor.Start();
+                await queueIngestor.StartReceive(cancellationToken);
 
                 logger.Info("Ensure started. Infrastructure started");
             }
@@ -161,7 +167,8 @@
             {
                 if (queueIngestor != null)
                 {
-                    await queueIngestor.Stop();
+                    // TODO NSB8 can throw operation cancelled
+                    await queueIngestor.StopReceive(cancellationToken);
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
@@ -208,8 +215,9 @@
                 }
                 var stoppable = queueIngestor;
                 queueIngestor = null;
-                await stoppable.Stop();
+                await stoppable.StopReceive(cancellationToken);
             }
+            // TODO NSB8 catch OperationCancelled?
             finally
             {
                 startStopSemaphore.Release();
@@ -219,7 +227,8 @@
         SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
-        IQueueIngestor queueIngestor;
+        TransportInfrastructure transportInfrastructure;
+        IMessageReceiver queueIngestor;
         IMessageDispatcher dispatcher;
 
         readonly Settings settings;

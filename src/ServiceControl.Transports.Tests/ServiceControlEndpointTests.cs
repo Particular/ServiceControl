@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
     using System.Collections.Generic;
-    using System.Security.Principal;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -21,7 +20,7 @@
                 EndpointName = endpointName
             };
 
-            await configuration.TransportCustomization.ProvisionQueues(WindowsIdentity.GetCurrent().Name, transportSettings, new List<string>());
+            await configuration.TransportCustomization.ProvisionQueues(transportSettings, new List<string>());
 
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
