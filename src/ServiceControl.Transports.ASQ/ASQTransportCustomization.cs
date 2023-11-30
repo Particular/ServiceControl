@@ -1,7 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
-    using NServiceBus;
     using System;
+    using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
 
     public class ASQTransportCustomization : TransportCustomization<AzureStorageQueueTransport>
@@ -29,7 +29,10 @@
         }
 
         protected override void CustomizeRawSendOnlyEndpoint(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
-            => CustomizeRawEndpoint(transportDefinition);
+        {
+            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison";
+            CustomizeRawEndpoint(transportDefinition);
+        }
 
         protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
             EndpointConfiguration endpointConfiguration,
@@ -37,8 +40,7 @@
             TransportSettings transportSettings)
         {
             //Do not ConfigurePubSub for send-only endpoint
-            var endpointName = endpointConfiguration.GetSettings().EndpointName();
-            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = endpointName + ".poison";
+            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison";
         }
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings)
