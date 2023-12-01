@@ -128,17 +128,17 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (queueIngestor != null)
+                    if (messageReceiver != null)
                     {
-                        var stoppable = queueIngestor;
-                        queueIngestor = null;
+                        var stoppable = messageReceiver;
+                        messageReceiver = null;
                         await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
                 }
 
-                if (queueIngestor != null)
+                if (messageReceiver != null)
                 {
                     return; //Already started
                 }
@@ -150,7 +150,7 @@
                     errorHandlingPolicy.OnError,
                     OnCriticalError);
 
-                queueIngestor = transportInfrastructure.Receivers[errorQueue];
+                messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
                 dispatcher = transportInfrastructure.Dispatcher;
 
@@ -159,19 +159,19 @@
                     await ingestor.VerifyCanReachForwardingAddress(dispatcher);
                 }
 
-                await queueIngestor.StartReceive(cancellationToken);
+                await messageReceiver.StartReceive(cancellationToken);
 
                 logger.Info("Ensure started. Infrastructure started");
             }
             catch
             {
-                if (queueIngestor != null)
+                if (messageReceiver != null)
                 {
                     // TODO NSB8 can throw operation cancelled
-                    await queueIngestor.StopReceive(cancellationToken);
+                    await messageReceiver.StopReceive(cancellationToken);
                 }
 
-                queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
+                messageReceiver = null; // Setting to null so that it doesn't exit when it retries in line 134
 
                 throw;
             }
@@ -209,12 +209,12 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
 
-                if (queueIngestor == null)
+                if (messageReceiver == null)
                 {
                     return; //Already stopped
                 }
-                var stoppable = queueIngestor;
-                queueIngestor = null;
+                var stoppable = messageReceiver;
+                messageReceiver = null;
                 await stoppable.StopReceive(cancellationToken);
             }
             // TODO NSB8 catch OperationCancelled?
@@ -228,7 +228,7 @@
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
-        IMessageReceiver queueIngestor;
+        IMessageReceiver messageReceiver;
         IMessageDispatcher dispatcher;
 
         readonly Settings settings;

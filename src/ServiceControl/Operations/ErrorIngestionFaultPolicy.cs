@@ -47,7 +47,7 @@
                 {
                     Id = errorContext.Message.MessageId,
                     Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
+                    Body = errorContext.Message.Body.ToArray() // TODO NSB8 Can this be adjusted?
                 }
             };
 
