@@ -46,7 +46,7 @@ namespace ServiceControl.Recoverability
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        // TODO NSB8 Forward cancellation token
+        // TODO Forward cancellation token
         async Task Handle(MessageContext message, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
@@ -121,7 +121,7 @@ namespace ServiceControl.Recoverability
                 stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
-                // TODO NSB8 Workaround for Learning transport message pump not working after you've stopped it once
+                // TODO Workaround for Learning transport message pump not working after you've stopped it once
                 await messageReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), Handle, faultManager.OnError, CancellationToken.None);
                 await messageReceiver.StartReceive(cancellationToken);
 
@@ -204,7 +204,7 @@ namespace ServiceControl.Recoverability
 
             public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
             {
-                _ = cancellationToken; //TODO NSB8 we should probably use this somewhere?
+                _ = cancellationToken; //TODO we should probably use this somewhere?
 
                 try
                 {
@@ -214,7 +214,6 @@ namespace ServiceControl.Recoverability
                     Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", errorContext.Exception);
 
                     await dataStore.RevertRetry(messageUniqueId);
-
 
                     string reason;
                     try

@@ -167,7 +167,6 @@
             {
                 if (messageReceiver != null)
                 {
-                    // TODO NSB8 can throw operation cancelled
                     await messageReceiver.StopReceive(cancellationToken);
                 }
 
@@ -217,7 +216,6 @@
                 messageReceiver = null;
                 await stoppable.StopReceive(cancellationToken);
             }
-            // TODO NSB8 catch OperationCancelled?
             finally
             {
                 startStopSemaphore.Release();
