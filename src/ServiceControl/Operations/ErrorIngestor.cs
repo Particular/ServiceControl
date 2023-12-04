@@ -24,7 +24,7 @@
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
             IIngestionUnitOfWorkFactory unitOfWorkFactory,
-            IMessageDispatcher messageDispatcher,
+            Lazy<IMessageDispatcher> messageDispatcher,
             Settings settings)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
@@ -174,7 +174,7 @@
             }
 
             return anyContext != null
-                ? messageDispatcher.Dispatch(
+                ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
                     anyContext.TransportTransaction)
                 : Task.CompletedTask;
@@ -192,7 +192,7 @@
                     )
                 );
 
-                await messageDispatcher.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {
@@ -204,7 +204,7 @@
         readonly Meter bulkInsertDurationMeter;
         readonly Settings settings;
         readonly ErrorProcessor errorProcessor;
-        readonly IMessageDispatcher messageDispatcher;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
         static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
     }

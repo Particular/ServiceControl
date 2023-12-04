@@ -26,7 +26,7 @@
             IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
             Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession,
-            IMessageDispatcher messageDispatcher)
+            Lazy<IMessageDispatcher> messageDispatcher)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.enrichers = enrichers;
@@ -268,7 +268,7 @@
                     await messageSession.Send(commandToEmit);
                 }
 
-                await messageDispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
+                await messageDispatcher.Value.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction()); //Do not hook into the incoming transaction
 
                 if (Logger.IsDebugEnabled)
@@ -306,7 +306,7 @@
         readonly Meter sagaAuditBulkInsertDurationMeter;
         readonly Meter bulkInsertCommitDurationMeter;
         readonly IMessageSession messageSession;
-        readonly IMessageDispatcher messageDispatcher;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;

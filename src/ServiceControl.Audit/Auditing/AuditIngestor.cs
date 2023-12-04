@@ -27,7 +27,7 @@
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
             IMessageSession messageSession,
-            IMessageDispatcher messageDispatcher
+            Lazy<IMessageDispatcher> messageDispatcher
         )
         {
             this.settings = settings;
@@ -120,7 +120,7 @@
             }
 
             return anyContext != null
-                ? messageDispatcher.Dispatch(
+                ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
                     anyContext.TransportTransaction
                 )
@@ -144,7 +144,7 @@
                     )
                 );
 
-                await messageDispatcher.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {
@@ -154,7 +154,7 @@
 
         readonly AuditPersister auditPersister;
         readonly Settings settings;
-        readonly IMessageDispatcher messageDispatcher;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
 
         static readonly ILog log = LogManager.GetLogger<AuditIngestor>();
     }
