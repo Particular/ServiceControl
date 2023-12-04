@@ -28,19 +28,12 @@
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
-        {
-            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison";
-            CustomizeRawEndpoint(transportDefinition);
-        }
-
         protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration,
             AzureStorageQueueTransport transportDefinition,
             TransportSettings transportSettings)
         {
             //Do not ConfigurePubSub for send-only endpoint
-            transportDefinition.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison";
         }
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings)
@@ -59,6 +52,8 @@
             {
                 transport.Subscriptions.SubscriptionTableName = subscriptionTableName;
             }
+
+            transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison"; //TODO any reason we can't just always set this?
 
             return transport;
         }

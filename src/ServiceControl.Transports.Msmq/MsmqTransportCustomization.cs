@@ -14,10 +14,6 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeRawSendOnlyEndpoint(MsmqTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override void CustomizeForQueueIngestion(MsmqTransport transportDefinition,
             TransportSettings transportSettings)
         {
@@ -41,7 +37,7 @@
 
         protected override MsmqTransport CreateTransport(TransportSettings transportSettings)
         {
-            var transport = new MsmqTransport();
+            var transport = new MsmqTransport { TransportTransactionMode = TransportTransactionMode.ReceiveOnly };
             return transport;
         }
     }

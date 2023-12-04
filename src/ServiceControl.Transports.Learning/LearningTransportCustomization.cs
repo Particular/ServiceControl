@@ -16,10 +16,6 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeRawSendOnlyEndpoint(LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override void CustomizeForQueueIngestion(LearningTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -40,8 +36,11 @@
             var transport = new LearningTransport
             {
                 StorageDirectory = Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString),
-                RestrictPayloadSize = false
+                RestrictPayloadSize = false,
+                TransportTransactionMode = TransportTransactionMode.ReceiveOnly
             };
+
+
             return transport;
         }
     }

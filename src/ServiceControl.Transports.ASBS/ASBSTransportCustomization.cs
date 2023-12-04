@@ -25,10 +25,6 @@
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override void CustomizeRawSendOnlyEndpoint(AzureServiceBusTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override void CustomizeForQueueIngestion(AzureServiceBusTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -45,6 +41,9 @@
             }
 
             transport.ConfigureNameShorteners();
+
+            transport.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
             return transport;
         }
     }

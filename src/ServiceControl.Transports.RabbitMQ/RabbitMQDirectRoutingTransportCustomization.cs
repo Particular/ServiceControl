@@ -21,11 +21,6 @@
         {
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(RabbitMQTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
         protected override void CustomizeForQueueIngestion(RabbitMQTransport transportDefinition,
             TransportSettings transportSettings)
         {

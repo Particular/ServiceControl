@@ -22,8 +22,6 @@
 
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
 
-        Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings);
-
         Task<TransportInfrastructure> CreateRawEndpointForIngestion(string queueName, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
 
         Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
@@ -104,13 +102,6 @@
             await transportInfrastructure.Shutdown();
         }
 
-        public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
-        {
-            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeRawSendOnlyEndpoint, Array.Empty<ReceiveSettings>(), (_, __) => Task.CompletedTask);
-
-            return transportInfrastructure.Dispatcher;
-        }
-
         public async Task<TransportInfrastructure> CreateRawEndpointForIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
         {
             var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
@@ -153,8 +144,6 @@
 
             return transportInfrastructure;
         }
-
-        protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract void CustomizeForQueueIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 

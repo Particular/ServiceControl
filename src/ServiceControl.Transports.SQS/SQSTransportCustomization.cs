@@ -29,11 +29,6 @@
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
         protected override void CustomizeForQueueIngestion(SqsTransport transportDefinition,
             TransportSettings transportSettings)
         {
