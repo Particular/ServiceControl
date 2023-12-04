@@ -1,3 +1,7 @@
+# Testing scenarios
+
+A long (though not exhaustive) list, although not every change will merit running every single test.
+
 ## Instance management installation
 
 - [ ] Create a new instance of ServiceControl using the docker images
@@ -35,7 +39,7 @@
 - [ ] Audits
    - [ ] Generate messages e.g. `send 1 10` and check if these are accessible in ServiceInsight
    - [ ] Generate message messages with non-trivial content using `send-fulltext 1 10`. Open ServiceInsight and check if a message can be found in the search box using one of the strings from the `LongString` property
-   - [ ] Generate messages using `fanout` and check in the [Sequece Diagram] view in ServiceInsight that the graph is properly visualized
+   - [ ] Generate messages using `fanout` and check in the [Sequence Diagram] view in ServiceInsight that the graph is properly visualized
 - [ ] Saga Auditing
    - [ ] Generate messages using `saga-audits 1` and check in the [Saga] view in ServieInsight that the graph is properly visualized
 - [ ] Integration Events
@@ -48,7 +52,7 @@
 
 ## Chaos testing
 
-Try to break ServiceControl instances by gracefully (CTRL+C) and ungracefully (kill) processes to validate if both storage and logic behavior correctly. This type of testing is very difficult to 
+Try to break ServiceControl instances by gracefully (CTRL+C) and ungracefully (kill) processes to validate if both storage and logic behavior correctly. This type of testing is very difficult to automate.
 
 - [ ] Ingestion, have the smoketest tool or the load generator generator create a large number of messsages:
   - [ ] Gracefully stop (CTRL+C) processes
