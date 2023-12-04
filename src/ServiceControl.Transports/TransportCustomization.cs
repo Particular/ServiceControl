@@ -48,33 +48,13 @@
 
         public async Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
         {
-            var transport = CreateTransport(transportSettings);
+            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
 
-            CustomizeForReturnToSenderIngestion(transport, transportSettings);
+            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForReturnToSenderIngestion, receivers, onCriticalError);
 
-            var hostSettings = new HostSettings(
-                name,
-                "NServiceBus.Raw host for " + name,
-                new StartupDiagnosticEntries(),
-                (msg, exception, cancellationToken) =>
-                {
-                    // Mimic raw fire and forget
-                    _ = Task.Run(() => onCriticalError(msg, exception), cancellationToken);
-                },
-                false, // ???
-                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
-
-            var receivers = new[]{
-                new ReceiveSettings(
-                name,
-                new QueueAddress(name),
-                false,
-                false,
-                transportSettings.ErrorQueue)};
-
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
             await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+
             return transportInfrastructure;
         }
 
@@ -120,55 +100,20 @@
 
         public async Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings)
         {
-            var transport = CreateTransport(transportSettings);
-            CustomizeRawSendOnlyEndpoint(transport, transportSettings);
+            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeRawSendOnlyEndpoint, Array.Empty<ReceiveSettings>(), (_, __) => Task.CompletedTask);
 
-            var hostSettings = new HostSettings(
-                name,
-                $"Dispatcher for {name}",
-                new StartupDiagnosticEntries(),
-                (_, __, ___) => { },
-                false,
-                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
-
-            var transportInfrastructure = await transport.Initialize(hostSettings, Array.Empty<ReceiveSettings>(), Array.Empty<string>());
             return transportInfrastructure.Dispatcher;
         }
 
-        public async Task<TransportInfrastructure> CreateRawEndpointForIngestion(
-            string queueName,
-            TransportSettings transportSettings,
-            OnMessage onMessage,
-            OnError onError,
-            Func<string, Exception, Task> onCriticalError)
+        public async Task<TransportInfrastructure> CreateRawEndpointForIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
         {
-            var transport = CreateTransport(transportSettings);
+            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
 
-            CustomizeForQueueIngestion(transport, transportSettings);
+            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForQueueIngestion, receivers, onCriticalError);
 
-            var hostSettings = new HostSettings(
-                queueName,
-                "NServiceBus.Raw host for " + queueName,
-                new StartupDiagnosticEntries(),
-                (msg, exception, cancellationToken) =>
-                {
-                    // Mimic raw fire and forget
-                    _ = Task.Run(() => onCriticalError(msg, exception), cancellationToken);
-                },
-                false, // ???
-                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
-
-            var receivers = new[]{
-                new ReceiveSettings(
-                    queueName,
-                    new QueueAddress(queueName),
-                    false,
-                    false,
-                    transportSettings.ErrorQueue)};
-
-            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
-            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[queueName];
+            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
             await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+
             return transportInfrastructure;
         }
 
@@ -197,6 +142,25 @@
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
             // TODO NSB8 finally block?
             await transportInfrastructure.Shutdown();
+        }
+
+        async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, Action<TTransport, TransportSettings> customizeTransportAction, ReceiveSettings[] receivers, Func<string, Exception, Task> onCriticalError)
+        {
+            var transport = CreateTransport(transportSettings);
+
+            customizeTransportAction(transport, transportSettings);
+
+            var hostSettings = new HostSettings(
+                name,
+                "TransportInfrastructure for " + name,
+                new StartupDiagnosticEntries(),
+                (msg, exception, cancellationToken) => Task.Run(() => onCriticalError(msg, exception), cancellationToken),
+                false, // ???
+                null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
+
+            var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
+
+            return transportInfrastructure;
         }
 
         protected abstract void CustomizeRawSendOnlyEndpoint(TTransport transportDefinition, TransportSettings transportSettings);
