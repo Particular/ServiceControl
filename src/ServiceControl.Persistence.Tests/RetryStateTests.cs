@@ -58,12 +58,12 @@
             await CreateAFailedMessageAndMarkAsPartOfRetryBatch(retryManager, "Test-group", true, 2001);
 
             var sender = new TestSender();
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, sender);
 
             // Needs index RetryBatches_ByStatus_ReduceInitialBatchSize
             CompleteDatabaseOperation();
 
-            await processor.ProcessBatches(sender); // mark ready
+            await processor.ProcessBatches(); // mark ready
 
             // Simulate SC restart
             retryManager = new RetryingManager(domainEvents);
@@ -72,9 +72,9 @@
 
             await documentManager.RebuildRetryOperationState();
 
-            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint"), retryManager, sender);
 
-            await processor.ProcessBatches(sender);
+            await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.AreEqual(2001, status.TotalNumberOfMessages);
@@ -91,10 +91,10 @@
             var sender = new TestSender();
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, sender);
 
-            await processor.ProcessBatches(sender); // mark ready
-            await processor.ProcessBatches(sender);
+            await processor.ProcessBatches(); // mark ready
+            await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.AreEqual(RetryState.Completed, status.RetryState);
@@ -121,14 +121,14 @@
             };
 
             var returnToSender = new TestReturnToSenderDequeuer(new ReturnToSender(ErrorStore), ErrorStore, domainEvents, "TestEndpoint");
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, returnToSender, retryManager, sender);
 
             bool c;
             do
             {
                 try
                 {
-                    c = await processor.ProcessBatches(sender);
+                    c = await processor.ProcessBatches();
                 }
                 catch (Exception)
                 {
@@ -158,12 +158,12 @@
 
             var sender = new TestSender();
 
-            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager);
+            var processor = new RetryProcessor(RetryBatchesStore, domainEvents, new TestReturnToSenderDequeuer(returnToSender, ErrorStore, domainEvents, "TestEndpoint"), retryManager, sender);
 
             CompleteDatabaseOperation();
 
-            await processor.ProcessBatches(sender); // mark ready
-            await processor.ProcessBatches(sender);
+            await processor.ProcessBatches(); // mark ready
+            await processor.ProcessBatches();
 
             var status = retryManager.GetStatusForRetryOperation("Test-group", RetryType.FailureGroup);
             Assert.AreEqual(RetryState.Forwarding, status.RetryState);

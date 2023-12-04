@@ -18,7 +18,6 @@
 
     class ErrorIngestion : IHostedService
     {
-        static ILog log = LogManager.GetLogger<ErrorIngestion>();
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public ErrorIngestion(
@@ -55,7 +54,7 @@
 
             errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
+            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, Logger);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
@@ -91,7 +90,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await ingestor.Ingest(contexts, dispatcher);
+                        await ingestor.Ingest(contexts);
                     }
                 }
                 catch (OperationCanceledException)
@@ -101,9 +100,9 @@
                 }
                 catch (Exception e) // show must go on
                 {
-                    if (log.IsInfoEnabled)
+                    if (Logger.IsInfoEnabled)
                     {
-                        log.Info("Ingesting messages failed", e);
+                        Logger.Info("Ingesting messages failed", e);
                     }
 
                     // signal all message handling tasks to terminate
@@ -133,7 +132,7 @@
                         var stoppable = messageReceiver;
                         messageReceiver = null;
                         await stoppable.StopReceive(cancellationToken);
-                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
+                        Logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
                 }
@@ -152,16 +151,14 @@
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
-                dispatcher = transportInfrastructure.Dispatcher;
-
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress(dispatcher);
+                    await ingestor.VerifyCanReachForwardingAddress();
                 }
 
                 await messageReceiver.StartReceive(cancellationToken);
 
-                logger.Info("Ensure started. Infrastructure started");
+                Logger.Info("Ensure started. Infrastructure started");
             }
             catch
             {
@@ -198,7 +195,7 @@
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Fatal($"OnCriticalError. '{failure}'", exception);
+            Logger.Fatal($"OnCriticalError. '{failure}'", exception);
             return watchdog.OnFailure(failure);
         }
 
@@ -227,7 +224,6 @@
         ErrorIngestionFaultPolicy errorHandlingPolicy;
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver messageReceiver;
-        IMessageDispatcher dispatcher;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
@@ -241,6 +237,6 @@
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
-        static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
+        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

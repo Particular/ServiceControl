@@ -25,7 +25,8 @@
         public AuditPersister(IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             IEnrichImportedAuditMessages[] enrichers,
             Counter ingestedAuditMeter, Counter ingestedSagaAuditMeter, Meter auditBulkInsertDurationMeter,
-            Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession)
+            Meter sagaAuditBulkInsertDurationMeter, Meter bulkInsertCommitDurationMeter, IMessageSession messageSession,
+            IMessageDispatcher messageDispatcher)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.enrichers = enrichers;
@@ -36,9 +37,10 @@
             this.sagaAuditBulkInsertDurationMeter = sagaAuditBulkInsertDurationMeter;
             this.bulkInsertCommitDurationMeter = bulkInsertCommitDurationMeter;
             this.messageSession = messageSession;
+            this.messageDispatcher = messageDispatcher;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts, IMessageDispatcher dispatcher)
+        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -57,7 +59,7 @@
                 var inserts = new List<Task>(contexts.Count);
                 foreach (var context in contexts)
                 {
-                    inserts.Add(ProcessMessage(context, dispatcher));
+                    inserts.Add(ProcessMessage(context));
                 }
 
                 await Task.WhenAll(inserts);
@@ -190,7 +192,7 @@
             knownEndpoint.LastSeen = processedMessage.ProcessedAt > knownEndpoint.LastSeen ? processedMessage.ProcessedAt : knownEndpoint.LastSeen;
         }
 
-        async Task ProcessMessage(MessageContext context, IMessageDispatcher dispatcher)
+        async Task ProcessMessage(MessageContext context)
         {
             if (context.Headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageType)
                 && messageType == typeof(SagaUpdatedMessage).FullName)
@@ -199,7 +201,7 @@
             }
             else
             {
-                await ProcessAuditMessage(context, dispatcher);
+                await ProcessAuditMessage(context);
             }
         }
 
@@ -231,7 +233,7 @@
             }
         }
 
-        async Task ProcessAuditMessage(MessageContext context, IMessageDispatcher dispatcher)
+        async Task ProcessAuditMessage(MessageContext context)
         {
             if (!context.Headers.TryGetValue(Headers.MessageId, out var messageId))
             {
@@ -266,7 +268,7 @@
                     await messageSession.Send(commandToEmit);
                 }
 
-                await dispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
+                await messageDispatcher.Dispatch(new TransportOperations(messagesToEmit.ToArray()),
                     new TransportTransaction()); //Do not hook into the incoming transaction
 
                 if (Logger.IsDebugEnabled)
@@ -304,6 +306,7 @@
         readonly Meter sagaAuditBulkInsertDurationMeter;
         readonly Meter bulkInsertCommitDurationMeter;
         readonly IMessageSession messageSession;
+        readonly IMessageDispatcher messageDispatcher;
 
         readonly JsonSerializer sagaAuditSerializer = new JsonSerializer();
         readonly IEnrichImportedAuditMessages[] enrichers;

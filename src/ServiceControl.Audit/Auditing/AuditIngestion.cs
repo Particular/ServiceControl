@@ -125,9 +125,7 @@
 
                 queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
 
-                dispatcher = transportInfrastructure.Dispatcher;
-
-                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher);
+                await auditIngestor.VerifyCanReachForwardingAddress();
 
                 await queueIngestor.StartReceive(cancellationToken);
 
@@ -215,7 +213,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await auditIngestor.Ingest(contexts, dispatcher);
+                        await auditIngestor.Ingest(contexts);
                     }
                 }
                 catch (OperationCanceledException)
@@ -246,7 +244,6 @@
 
         TransportInfrastructure transportInfrastructure;
         IMessageReceiver queueIngestor;
-        IMessageDispatcher dispatcher;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;

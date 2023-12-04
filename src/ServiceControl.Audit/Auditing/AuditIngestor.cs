@@ -26,10 +26,12 @@
             IAuditIngestionUnitOfWorkFactory unitOfWorkFactory,
             EndpointInstanceMonitoring endpointInstanceMonitoring,
             IEnumerable<IEnrichImportedAuditMessages> auditEnrichers, // allows extending message enrichers with custom enrichers registered in the DI container
-            IMessageSession messageSession
+            IMessageSession messageSession,
+            IMessageDispatcher messageDispatcher
         )
         {
             this.settings = settings;
+            this.messageDispatcher = messageDispatcher;
 
             var ingestedAuditMeter = metrics.GetCounter("Audit ingestion - ingested audit");
             var ingestedSagaAuditMeter = metrics.GetCounter("Audit ingestion - ingested saga audit");
@@ -47,17 +49,17 @@
                 new SagaRelationshipsEnricher()
             }.Concat(auditEnrichers).ToArray();
 
-            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession);
+            auditPersister = new AuditPersister(unitOfWorkFactory, enrichers, ingestedAuditMeter, ingestedSagaAuditMeter, auditBulkInsertDurationMeter, sagaAuditBulkInsertDurationMeter, bulkInsertCommitDurationMeter, messageSession, messageDispatcher);
         }
 
-        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher)
+        public async Task Ingest(List<MessageContext> contexts)
         {
             if (log.IsDebugEnabled)
             {
                 log.Debug($"Ingesting {contexts.Count} message contexts");
             }
 
-            var stored = await auditPersister.Persist(contexts, dispatcher);
+            var stored = await auditPersister.Persist(contexts);
 
             try
             {
@@ -67,7 +69,7 @@
                     {
                         log.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(stored, settings.AuditLogQueue, dispatcher);
+                    await Forward(stored, settings.AuditLogQueue);
                     if (log.IsDebugEnabled)
                     {
                         log.Debug("Forwarded messages");
@@ -91,7 +93,7 @@
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress, IMessageDispatcher dispatcher)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, string forwardingAddress)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -118,14 +120,14 @@
             }
 
             return anyContext != null
-                ? dispatcher.Dispatch(
+                ? messageDispatcher.Dispatch(
                     new TransportOperations(transportOperations),
                     anyContext.TransportTransaction
                 )
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher)
+        public async Task VerifyCanReachForwardingAddress()
         {
             if (!settings.ForwardAuditMessages)
             {
@@ -142,7 +144,7 @@
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {
@@ -152,6 +154,7 @@
 
         readonly AuditPersister auditPersister;
         readonly Settings settings;
+        readonly IMessageDispatcher messageDispatcher;
 
         static readonly ILog log = LogManager.GetLogger<AuditIngestor>();
     }
