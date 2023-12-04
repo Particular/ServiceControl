@@ -25,6 +25,7 @@ namespace Particular.ServiceControl
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -104,6 +105,11 @@ namespace Particular.ServiceControl
                     services.AddSingleton(loggingSettings);
                     services.AddSingleton(settings);
                     services.AddSingleton(sp => HttpClientFactory);
+                    // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
+                    // is only available though after the NServiceBus hosted service has started. Any hosted service
+                    // or component injected into a hosted service can only depend on this lazy instead of the dispatcher
+                    // directly and to make things more complex of course the order of registration still matters ;)
+                    services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
                 })
                 .UseLicenseCheck()
                 .SetupPersistence(settings)

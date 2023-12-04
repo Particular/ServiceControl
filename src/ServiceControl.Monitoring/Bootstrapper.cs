@@ -17,6 +17,7 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using NServiceBus.Pipeline;
+    using NServiceBus.Transport;
     using QueueLength;
     using Timings;
     using Transports;
@@ -62,6 +63,12 @@
                     services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
                     services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
                     services.RegisterAsSelfAndImplementedInterfaces<QueueLengthStore>();
+
+                    // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
+                    // is only available though after the NServiceBus hosted service has started. Any hosted service
+                    // or component injected into a hosted service can only depend on this lazy instead of the dispatcher
+                    // directly and to make things more complex of course the order of registration still matters ;)
+                    services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
                 })
                 .UseNServiceBus(builder =>
                 {

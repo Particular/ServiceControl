@@ -15,6 +15,7 @@ namespace ServiceControl.Audit.Infrastructure
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
+    using NServiceBus.Transport;
     using Persistence;
     using Settings;
     using Transports;
@@ -77,6 +78,11 @@ namespace ServiceControl.Audit.Infrastructure
                     services.AddSingleton<AuditIngestor>();
                     services.AddSingleton<ImportFailedAudits>();
                     services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
+                    // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
+                    // is only available though after the NServiceBus hosted service has started. Any hosted service
+                    // or component injected into a hosted service can only depend on this lazy instead of the dispatcher
+                    // directly and to make things more complex of course the order of registration still matters ;)
+                    services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
                 })
                 .UseMetrics(settings.PrintMetrics)
                 .SetupPersistence(persistenceSettings, persistenceConfiguration)
