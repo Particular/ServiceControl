@@ -46,18 +46,6 @@
 
         protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
-        public async Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
-        {
-            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
-
-            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForReturnToSenderIngestion, receivers, onCriticalError);
-
-            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
-
-            return transportInfrastructure;
-        }
-
         public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
@@ -110,6 +98,18 @@
             var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
 
             var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForQueueIngestion, receivers, onCriticalError);
+
+            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+
+            return transportInfrastructure;
+        }
+
+        public async Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
+        {
+            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
+
+            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForReturnToSenderIngestion, receivers, onCriticalError);
 
             IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
             await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
