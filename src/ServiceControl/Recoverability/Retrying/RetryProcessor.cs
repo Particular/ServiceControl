@@ -16,7 +16,7 @@ namespace ServiceControl.Recoverability
 
     class RetryProcessor
     {
-        public RetryProcessor(IRetryBatchesDataStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, IMessageDispatcher messageDispatcher)
+        public RetryProcessor(IRetryBatchesDataStore store, IDomainEvents domainEvents, ReturnToSenderDequeuer returnToSender, RetryingManager retryingManager, Lazy<IMessageDispatcher> messageDispatcher)
         {
             this.store = store;
             this.returnToSender = returnToSender;
@@ -28,7 +28,7 @@ namespace ServiceControl.Recoverability
 
         Task Enqueue(TransportOperations outgoingMessages)
         {
-            return messageDispatcher.Dispatch(outgoingMessages, new TransportTransaction());
+            return messageDispatcher.Value.Dispatch(outgoingMessages, new TransportTransaction());
         }
 
         public async Task<bool> ProcessBatches(CancellationToken cancellationToken = default)
@@ -342,7 +342,7 @@ namespace ServiceControl.Recoverability
         readonly IRetryBatchesDataStore store;
         readonly ReturnToSenderDequeuer returnToSender;
         readonly RetryingManager retryingManager;
-        readonly IMessageDispatcher messageDispatcher;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
 
         MessageRedirectsCollection redirects;
         bool isRecoveringFromPrematureShutdown = true;
