@@ -9,7 +9,7 @@
         protected override void CustomizeForQueueIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
             => CustomizeRawEndpoint(transportDefinition);
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration,
             AzureStorageQueueTransport transportDefinition,
             TransportSettings transportSettings)
@@ -19,7 +19,7 @@
         protected override void CustomizeForReturnToSenderIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
             => CustomizeRawEndpoint(transportDefinition);
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration,
             AzureStorageQueueTransport transportDefinition,
             TransportSettings transportSettings)
@@ -34,7 +34,7 @@
             CustomizeRawEndpoint(transportDefinition);
         }
 
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration,
             AzureStorageQueueTransport transportDefinition,
             TransportSettings transportSettings)

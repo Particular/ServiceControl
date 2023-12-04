@@ -4,12 +4,12 @@
 
     public class MsmqTransportCustomization : TransportCustomization<MsmqTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
@@ -25,7 +25,7 @@
             transportDefinition.IgnoreIncomingTimeToBeReceivedHeaders = true;
         }
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;

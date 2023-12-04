@@ -6,12 +6,12 @@
 
     public class LearningTransportCustomization : TransportCustomization<LearningTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
@@ -24,7 +24,7 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;

@@ -25,7 +25,7 @@
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>
                 {
-                    configuration.TransportCustomization.CustomizeServiceControlEndpoint(ec, transportSettings);
+                    configuration.TransportCustomization.CustomizePrimaryEndpoint(ec, transportSettings);
                 }))
                 .Done(c => c.EndpointsStarted)
                 .Run();

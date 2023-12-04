@@ -19,7 +19,7 @@
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<SendOnlyEndpoint>(c => c.CustomConfig(ec =>
                 {
-                    configuration.TransportCustomization.CustomizeSendOnlyEndpoint(ec, transportSettings);
+                    configuration.TransportCustomization.CustomizeAuditEndpoint(ec, transportSettings);
                 }))
                 .Done(c => c.EndpointsStarted)
                 .Run();

@@ -25,7 +25,7 @@ namespace ServiceBus.Management.Infrastructure
 
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
-            transportCustomization.CustomizeServiceControlEndpoint(configuration, transportSettings);
+            transportCustomization.CustomizePrimaryEndpoint(configuration, transportSettings);
 
             configuration.GetSettings().Set(loggingSettings);
             configuration.SetDiagnosticsPath(loggingSettings.LogPath);

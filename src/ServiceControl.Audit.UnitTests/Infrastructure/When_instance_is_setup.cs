@@ -44,10 +44,10 @@
         public static IList<string> QueuesCreated;
         public Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
-        public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration,
+        public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration,
+        public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,

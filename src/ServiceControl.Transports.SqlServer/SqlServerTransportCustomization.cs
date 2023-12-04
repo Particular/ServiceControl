@@ -8,13 +8,13 @@
 
     public class SqlServerTransportCustomization : TransportCustomization<SqlServerTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
             TransportSettings transportSettings)
         {
@@ -31,7 +31,7 @@
             TransportSettings transportSettings) =>
             CustomizeRawEndpoint(transportDefinition, TransportTransactionMode.ReceiveOnly);
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
             TransportSettings transportSettings) =>
             CustomizeEndpoint(transportDefinition, transportSettings, TransportTransactionMode.ReceiveOnly);

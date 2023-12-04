@@ -14,14 +14,14 @@
 
     public class SQSTransportCustomization : TransportCustomization<SqsTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
             TransportSettings transportSettings)
         {
             //Do not ConfigurePubSub for send-only endpoint
         }
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
             TransportSettings transportSettings)
         {
@@ -39,7 +39,7 @@
         {
         }
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
             TransportSettings transportSettings)
         {

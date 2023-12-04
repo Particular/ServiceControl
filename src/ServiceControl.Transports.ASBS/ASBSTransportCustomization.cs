@@ -4,7 +4,7 @@
 
     public class ASBSTransportCustomization : TransportCustomization<AzureServiceBusTransport>
     {
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
@@ -13,12 +13,12 @@
             TransportSettings transportSettings) => transportDefinition.TransportTransactionMode =
             TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, AzureServiceBusTransport transportDefinition,
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;

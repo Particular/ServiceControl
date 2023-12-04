@@ -9,13 +9,13 @@
 
         protected RabbitMQDirectRoutingTransportCustomization(QueueType queueType) => this.queueType = queueType;
 
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
+        protected override void CustomizeTransportForAuditEndpoint(
             EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
             TransportSettings transportSettings)
         {
         }
 
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
             TransportSettings transportSettings)
         {
@@ -31,7 +31,7 @@
         {
         }
 
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
+        protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
             TransportSettings transportSettings)
         {

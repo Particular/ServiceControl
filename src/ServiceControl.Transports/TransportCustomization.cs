@@ -14,9 +14,9 @@
     {
         Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
 
-        void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
-        void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
+        void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
         void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings);
 
@@ -36,30 +36,30 @@
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
     {
-        protected abstract void CustomizeTransportSpecificServiceControlEndpointSettings(
+        protected abstract void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration, TTransport transportDefinition,
             TransportSettings transportSettings);
 
-        protected abstract void CustomizeTransportSpecificSendOnlyEndpointSettings(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
+        protected abstract void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
 
-        protected abstract void CustomizeTransportSpecificMonitoringEndpointSettings(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
+        protected abstract void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
-        public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
             endpointConfiguration.UseTransport(transport);
-            CustomizeTransportSpecificServiceControlEndpointSettings(endpointConfiguration, transport, transportSettings);
+            CustomizeTransportForPrimaryEndpoint(endpointConfiguration, transport, transportSettings);
         }
 
-        public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
+        public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
             endpointConfiguration.UseTransport(transport);
-            CustomizeTransportSpecificSendOnlyEndpointSettings(endpointConfiguration, transport, transportSettings);
+            CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
 
             endpointConfiguration.SendOnly();
 
@@ -72,7 +72,7 @@
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
             var transport = CreateTransport(transportSettings);
             endpointConfiguration.UseTransport(transport);
-            CustomizeTransportSpecificMonitoringEndpointSettings(endpointConfiguration, transport, transportSettings);
+            CustomizeTransportForMonitoringEndpoint(endpointConfiguration, transport, transportSettings);
         }
 
         protected void ConfigureDefaultEndpointSettings(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
