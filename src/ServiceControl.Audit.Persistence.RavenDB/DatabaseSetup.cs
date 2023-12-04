@@ -46,6 +46,20 @@
                 new SagaDetailsIndex()
             };
 
+            // We need to replace the SagaDetailsIndex with a version that has a Take operation.
+            // Doing this side-by-side results in the index never swapping if there is constant ingestion.
+            // We thus check if the index includes the Take operation or not. If it does not include the Take
+            // operation, then we delete the old index so that the new index is created without trying
+            // to do a side-by-side upgrade.
+            // This needs to stay in place until the next major version as the user could upgrade from an
+            // older version which might still have the incorrect index.
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await documentStore.Maintenance.SendAsync(sagaDetailsIndexOperation, cancellationToken);
+            if (sagaDetailsIndexDefinition != null && !sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"))
+            {
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
+            }
+
             if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
