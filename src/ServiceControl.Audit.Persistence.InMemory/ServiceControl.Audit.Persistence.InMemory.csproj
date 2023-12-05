@@ -10,10 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="persistence.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
