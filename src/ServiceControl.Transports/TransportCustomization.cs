@@ -101,10 +101,7 @@
         {
             var transport = CreateTransport(transportSettings, preferredTransactionMode);
 
-            if (onCriticalError == null)
-            {
-                onCriticalError = (_, __) => Task.CompletedTask;
-            }
+            onCriticalError ??= (_, __) => Task.CompletedTask;
 
             var hostSettings = new HostSettings(
                 name,

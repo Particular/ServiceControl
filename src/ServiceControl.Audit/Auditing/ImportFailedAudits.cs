@@ -39,7 +39,7 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext });
+                            await auditIngestor.Ingest([messageContext]);
 
                             await taskCompletionSource.Task;
 

@@ -237,7 +237,7 @@
         {
             var query = Request.RequestUri.ParseQueryString();
 
-            return HistoryPeriod.FromMinutes(query["history"] == null || query["history"] == "undefined" ? DefaultHistory : int.Parse(query["history"]));
+            return HistoryPeriod.FromMinutes(query["history"] is null or "undefined" ? DefaultHistory : int.Parse(query["history"]));
         }
 
         static MonitoredMetric<BreakdownT> CreateMetric<BreakdownT, StoreT>(string name, Aggregation<BreakdownT> aggregation)
@@ -264,14 +264,14 @@
 
         public const int DefaultHistory = 5;
 
-        static HashSet<string> DetailedMetrics = new HashSet<string>
-        {
+        static HashSet<string> DetailedMetrics =
+        [
             "Throughput",
             "QueueLength",
             "ProcessingTime",
             "CriticalTime",
             "Retries"
-        };
+        ];
 
         static MonitoredMetric<EndpointInstanceId>[] InstanceMetrics =
         {

@@ -24,15 +24,15 @@
                     Id = "1",
                     UniqueMessageId = "xyz",
                     Status = FailedMessageStatus.Unresolved,
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
+                    ProcessingAttempts =
+                    [
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.UtcNow,
-                            MessageMetadata = new Dictionary<string, object>(),
+                            MessageMetadata = [],
                             FailureDetails = new FailureDetails()
                         }
-                    }
+                    ]
                 };
 
                 session.Store(processedMessage);

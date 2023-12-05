@@ -11,6 +11,6 @@
         [JsonConverter(typeof(MessageTypeConverter))]
         public MessageType MessageType { get; set; }
 
-        public List<SubscriptionClient> Subscribers { get; set; } = new List<SubscriptionClient>();
+        public List<SubscriptionClient> Subscribers { get; set; } = [];
     }
 }

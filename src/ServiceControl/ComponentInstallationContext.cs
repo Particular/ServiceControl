@@ -7,11 +7,11 @@ namespace Particular.ServiceControl
 
     class ComponentInstallationContext : IComponentInstallationContext
     {
-        public List<string> Queues { get; } = new List<string>();
+        public List<string> Queues { get; } = [];
 
-        public List<Assembly> IndexAssemblies { get; } = new List<Assembly>();
+        public List<Assembly> IndexAssemblies { get; } = [];
 
-        public List<Func<Task>> InstallationTasks { get; } = new List<Func<Task>>();
+        public List<Func<Task>> InstallationTasks { get; } = [];
 
         public void CreateQueue(string queueName) => Queues.Add(queueName);
 

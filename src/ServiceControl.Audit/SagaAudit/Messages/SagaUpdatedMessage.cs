@@ -8,7 +8,7 @@
     {
         public SagaUpdatedMessage()
         {
-            ResultingMessages = new List<SagaChangeOutput>();
+            ResultingMessages = [];
         }
 
         public string SagaState { get; set; }

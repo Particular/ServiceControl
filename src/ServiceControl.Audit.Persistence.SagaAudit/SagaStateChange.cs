@@ -7,7 +7,7 @@ namespace ServiceControl.SagaAudit
     {
         public SagaStateChange()
         {
-            OutgoingMessages = new List<ResultingMessage>();
+            OutgoingMessages = [];
         }
 
         public DateTime StartTime { get; set; }

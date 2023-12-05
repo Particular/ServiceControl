@@ -50,7 +50,7 @@
 
         class FakeEventAggregator : IEventAggregator
         {
-            public List<object> Subscribers = new List<object>();
+            public List<object> Subscribers = [];
 
             public bool HandlerExistsFor(Type messageType) => throw new NotImplementedException();
 

@@ -233,8 +233,8 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        static HashSet<string> AsyncDocumentQuerySortOptions = new HashSet<string>
-        {
+        static HashSet<string> AsyncDocumentQuerySortOptions =
+        [
             "id",
             "message_id",
             "message_type",
@@ -242,7 +242,7 @@ namespace ServiceControl.Persistence
             "status",
             "modified",
             "time_of_failure"
-        };
+        ];
 
         static string[] SplitChars =
         {

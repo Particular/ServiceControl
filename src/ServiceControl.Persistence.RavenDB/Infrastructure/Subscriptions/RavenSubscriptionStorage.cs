@@ -126,10 +126,10 @@
             subscription = new Subscription
             {
                 Id = key,
-                Subscribers = new List<SubscriptionClient>
-                {
+                Subscribers =
+                [
                     subscriptionClient
-                },
+                ],
                 MessageType = messageType
             };
             subscriptions.All.Add(key, subscription);

@@ -34,7 +34,7 @@
                     new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                await errorIngestor.Ingest(new List<MessageContext> { messageContext });
+                await errorIngestor.Ingest([messageContext]);
                 await taskCompletionSource.Task;
             }, cancellationToken);
         }

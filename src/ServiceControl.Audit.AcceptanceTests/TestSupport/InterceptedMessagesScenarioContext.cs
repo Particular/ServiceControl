@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
     public class InterceptedMessagesScenarioContext : ScenarioContext
     {
-        public ConcurrentBag<RegisterNewEndpoint> SentRegisterEndpointCommands { get; } = new ConcurrentBag<RegisterNewEndpoint>();
-        public ConcurrentBag<MarkMessageFailureResolvedByRetry> SentMarkMessageFailureResolvedByRetriesCommands { get; } = new ConcurrentBag<MarkMessageFailureResolvedByRetry>();
+        public ConcurrentBag<RegisterNewEndpoint> SentRegisterEndpointCommands { get; } = [];
+        public ConcurrentBag<MarkMessageFailureResolvedByRetry> SentMarkMessageFailureResolvedByRetriesCommands { get; } = [];
     }
 }

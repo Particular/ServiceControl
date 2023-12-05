@@ -54,14 +54,14 @@
             logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
-                CommandLineArgs = new List<string>
-                {
+                CommandLineArgs =
+                [
                     $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
                     $"--Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
-                },
+                ],
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
                 ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,

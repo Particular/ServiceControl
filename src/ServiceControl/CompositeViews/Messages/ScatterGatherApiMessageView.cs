@@ -21,10 +21,7 @@ namespace ServiceControl.CompositeViews.Messages
                 var messagesViews = queryResult?.Results ?? new List<MessagesView>();
                 foreach (var result in messagesViews)
                 {
-                    if (result.InstanceId == null)
-                    {
-                        result.InstanceId = queryResult.InstanceId;
-                    }
+                    result.InstanceId ??= queryResult.InstanceId;
 
                     if (result.BodyUrl != null && !result.BodyUrl.Contains("instance_id"))
                     {
