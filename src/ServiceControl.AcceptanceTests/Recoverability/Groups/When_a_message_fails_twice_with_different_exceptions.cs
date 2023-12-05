@@ -4,7 +4,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Web;
     using AcceptanceTesting;
     using Infrastructure;
     using NServiceBus;
@@ -103,7 +102,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
                         throw new IOException("The disk is full");
                     }
 
-                    throw new HttpException("The website is not responding");
+                    throw new Exception("The website is not responding");
                 }
             }
         }
