@@ -120,7 +120,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             var scanner = configuration.AssemblyScanner();
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
+                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.Location),
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name
             };
             scanner.ExcludeAssemblies(excludedAssemblies);
@@ -235,7 +235,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             var excludedAssemblies = new[]
             {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase), // ServiceControl.exe
+                Path.GetFileName(typeof(Settings).Assembly.Location), // ServiceControl.exe
                 "ServiceControl.Persistence.RavenDB.dll",
                 typeof(ServiceControlComponentRunner).Assembly.GetName().Name // This project
             };
