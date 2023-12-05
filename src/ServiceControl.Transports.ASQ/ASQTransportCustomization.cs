@@ -50,7 +50,7 @@
             }
 
             transport.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
-            transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison"; //TODO any reason we can't just always set this?
+            transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.ErrorQueue;
 
             return transport;
         }
