@@ -46,13 +46,12 @@
                 new SagaDetailsIndex()
             };
 
-            // We need to replace the SagaDetailsIndex with a version that has a Take operation.
-            // Doing this side-by-side results in the index never swapping if there is constant ingestion.
-            // We thus check if the index includes the Take operation or not. If it does not include the Take
-            // operation, then we delete the old index so that the new index is created without trying
-            // to do a side-by-side upgrade.
-            // This needs to stay in place until the next major version as the user could upgrade from an
-            // older version which might still have the incorrect index.
+            // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
+            // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.
+            // Doing a side-by-side migration results in the index never swapping if there is constant ingestion as RavenDB will wait.
+            // for the index to not be stale before swapping to the new index. Constant ingestion means the index will never be not-stale.
+            // This needs to stay in place until the next major version as the user could upgrade from an older version of the current
+            // Major (v5.x.x) which might still have the incorrect index.
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await documentStore.Maintenance.SendAsync(sagaDetailsIndexOperation, cancellationToken);
             if (sagaDetailsIndexDefinition != null && !sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"))
