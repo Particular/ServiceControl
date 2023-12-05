@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Web.Http.Controllers;
     using System.Web.Http.Hosting;
@@ -30,7 +31,7 @@
         public void RootPathValue()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
-            request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
+            request.Options.TryAdd(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
 
             var settings = CreateTestSettings();
 
