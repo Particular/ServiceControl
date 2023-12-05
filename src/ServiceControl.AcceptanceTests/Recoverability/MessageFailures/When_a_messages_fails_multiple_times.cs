@@ -64,7 +64,7 @@
         class TestContext : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
-            public List<string> LatestFailureTimes { get; set; } = new List<string>();
+            public List<string> LatestFailureTimes { get; set; } = [];
         }
 
         class AnEndpoint : EndpointConfigurationBuilder

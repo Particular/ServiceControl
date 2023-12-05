@@ -89,8 +89,8 @@
             severityFunc = severity;
         }
 
-        readonly List<Func<T, string>> relatedToLinks = new List<Func<T, string>>();
-        readonly List<Func<T, IEnumerable<string>>> relatedToMultiLinks = new List<Func<T, IEnumerable<string>>>();
+        readonly List<Func<T, string>> relatedToLinks = [];
+        readonly List<Func<T, IEnumerable<string>>> relatedToMultiLinks = [];
         Func<T, string> descriptionFunc = m => m.ToString();
         Func<T, Severity> severityFunc = arg => EventLog.Severity.Info;
 

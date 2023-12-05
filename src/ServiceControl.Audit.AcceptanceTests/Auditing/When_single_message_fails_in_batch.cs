@@ -100,7 +100,7 @@
         public class MyContext : ScenarioContext
         {
             public string MessageId { get; set; }
-            public List<string> MessageIds { get; } = new List<string>();
+            public List<string> MessageIds { get; } = [];
         }
     }
 }

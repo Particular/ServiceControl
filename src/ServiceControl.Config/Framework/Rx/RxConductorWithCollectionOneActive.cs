@@ -203,7 +203,7 @@
                 return base.EnsureItem(newItem);
             }
 
-            readonly BindableCollection<T> items = new BindableCollection<T>();
+            readonly BindableCollection<T> items = [];
         }
     }
 }
