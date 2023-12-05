@@ -20,7 +20,7 @@
         public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
-        public virtual Task Setup()
+        public virtual async Task Setup()
         {
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
@@ -36,7 +36,9 @@
                 return endpointBuilder + QueueSuffix;
             };
 
-            return configuration.Configure();
+            await configuration.Configure();
+
+            dispatcherTransportInfrastructure = await CreateDispatcherTransportInfrastructure();
         }
 
         [TearDown]
@@ -52,10 +54,12 @@
                 await queueIngestor.StopReceive();
             }
 
-            if (queueIngestor != null)
+            if (transportInfrastructure != null)
             {
                 await transportInfrastructure.Shutdown();
             }
+
+            await dispatcherTransportInfrastructure.Shutdown();
 
             if (configuration != null)
             {
@@ -65,6 +69,7 @@
             testCancellationTokenSource.Dispose();
         }
 
+        protected IMessageDispatcher Dispatcher => dispatcherTransportInfrastructure.Dispatcher;
         protected string QueueSuffix { get; private set; }
 
         protected string GetTestQueueName(string name) => $"{name}-{QueueSuffix}";
@@ -138,20 +143,6 @@
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
         }
 
-        protected async Task<IMessageDispatcher> CreateDispatcher(string endpointName)
-        {
-            var transportSettings = new TransportSettings
-            {
-                EndpointName = endpointName,
-                ConnectionString = configuration.ConnectionString,
-                MaxConcurrency = 1
-            };
-
-            var transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(endpointName, transportSettings);
-
-            return transportInfrastructure.Dispatcher;
-        }
-
         protected Task CreateTestQueue(string queueName)
         {
             var transportSettings = new TransportSettings
@@ -166,10 +157,23 @@
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
 
+        async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = "TransportTestDispatcher",
+                ConnectionString = configuration.ConnectionString,
+                MaxConcurrency = 1
+            };
+
+            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
+        }
+
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
         IMessageReceiver queueIngestor;
         TransportInfrastructure transportInfrastructure;
+        TransportInfrastructure dispatcherTransportInfrastructure;
     }
 }

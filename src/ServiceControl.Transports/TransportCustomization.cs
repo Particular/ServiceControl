@@ -94,7 +94,6 @@
                     transportSettings.ErrorQueue)};
 
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, additionalQueues.Union(new[] { transportSettings.ErrorQueue }).ToArray());
-            // TODO NSB8 finally block?
             await transportInfrastructure.Shutdown();
         }
 
@@ -114,10 +113,10 @@
 
             var hostSettings = new HostSettings(
                 name,
-                "TransportInfrastructure for " + name,
+                $"TransportInfrastructure for {name}",
                 new StartupDiagnosticEntries(),
                 (msg, exception, cancellationToken) => Task.Run(() => onCriticalError(msg, exception), cancellationToken),
-                false, // ???
+                false,
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
 

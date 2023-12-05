@@ -33,11 +33,9 @@
                  },
                  (_, __) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
 
-            var dispatcher = await CreateDispatcher(queueName);
-
             for (int i = 0; i < numMessagesToIngest; i++)
             {
-                await dispatcher.SendTestMessage(queueName, $"message{i}");
+                await Dispatcher.SendTestMessage(queueName, $"message{i}");
             }
 
             var allMessagesProcessed = await onMessagesProcessed.Task;
@@ -63,9 +61,7 @@
                     return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);
                 });
 
-            var dispatcher = await CreateDispatcher(queueName);
-
-            await dispatcher.SendTestMessage(queueName, $"some failing message");
+            await Dispatcher.SendTestMessage(queueName, $"some failing message");
 
             var onErrorWasCalled = await onErrorCalled.Task;
 
