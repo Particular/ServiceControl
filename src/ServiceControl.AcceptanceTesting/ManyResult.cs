@@ -35,7 +35,7 @@ namespace ServiceControl.AcceptanceTesting
         public static ManyResult<T> Empty = new ManyResult<T>
         {
             HasResult = false,
-            Items = new List<T>()
+            Items = []
         };
     }
 }

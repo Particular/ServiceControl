@@ -22,11 +22,11 @@
         public InMemoryAuditDataStore(IBodyStorage bodyStorage)
         {
             this.bodyStorage = bodyStorage;
-            sagaHistories = new List<SagaHistory>();
-            messageViews = new List<MessagesView>();
-            processedMessages = new List<ProcessedMessage>();
-            knownEndpoints = new List<KnownEndpoint>();
-            failedAuditImports = new List<FailedAuditImport>();
+            sagaHistories = [];
+            messageViews = [];
+            processedMessages = [];
+            knownEndpoints = [];
+            failedAuditImports = [];
         }
 
         public async Task<QueryResult<SagaHistory>> QuerySagaHistoryById(Guid input)

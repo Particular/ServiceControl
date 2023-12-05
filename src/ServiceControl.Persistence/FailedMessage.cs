@@ -8,8 +8,8 @@
     {
         public FailedMessage()
         {
-            ProcessingAttempts = new List<ProcessingAttempt>();
-            FailureGroups = new List<FailureGroup>();
+            ProcessingAttempts = [];
+            FailureGroups = [];
         }
 
         public string Id { get; set; }
@@ -26,8 +26,8 @@
         {
             public ProcessingAttempt()
             {
-                MessageMetadata = new Dictionary<string, object>();
-                Headers = new Dictionary<string, string>();
+                MessageMetadata = [];
+                Headers = [];
             }
 
             public Dictionary<string, object> MessageMetadata { get; set; }

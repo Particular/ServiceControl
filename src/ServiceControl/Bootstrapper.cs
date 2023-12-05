@@ -39,10 +39,10 @@ namespace Particular.ServiceControl
             this.loggingSettings = loggingSettings;
             this.settings = settings;
 
-            ApiAssemblies = new List<Assembly>
-            {
+            ApiAssemblies =
+            [
                 Assembly.GetExecutingAssembly()
-            };
+            ];
 
             CreateHost();
         }

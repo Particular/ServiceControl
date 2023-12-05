@@ -27,7 +27,7 @@ namespace ServiceControl.Persistence
                 switch (format[i])
                 {
                     case 'y':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -36,7 +36,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 'M':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -45,7 +45,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 'd':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -54,7 +54,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 'H':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -63,7 +63,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 'm':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -72,7 +72,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 's':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -81,7 +81,7 @@ namespace ServiceControl.Persistence
                         break;
 
                     case 'f':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
