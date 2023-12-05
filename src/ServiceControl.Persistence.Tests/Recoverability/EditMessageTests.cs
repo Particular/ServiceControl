@@ -218,7 +218,7 @@
 
         async Task<FailedMessage> CreateAndStoreFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
         {
-            failedMessageId = failedMessageId ?? Guid.NewGuid().ToString();
+            failedMessageId ??= Guid.NewGuid().ToString();
 
             var failedMessage = new FailedMessage
             {

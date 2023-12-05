@@ -8,7 +8,6 @@
     using NServiceBus;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure;
-    using DateTimeExtensions = ServiceControl.Audit.Auditing.DateTimeExtensions;
 
     [TestFixture]
     class AuditTests : PersistenceTestFixture
@@ -230,10 +229,10 @@
             string messageType = null
         )
         {
-            messageId = messageId ?? Guid.NewGuid().ToString();
-            conversationId = conversationId ?? Guid.NewGuid().ToString();
-            processingEndpoint = processingEndpoint ?? "SomeEndpoint";
-            messageType = messageType ?? "MyMessageType";
+            messageId ??= Guid.NewGuid().ToString();
+            conversationId ??= Guid.NewGuid().ToString();
+            processingEndpoint ??= "SomeEndpoint";
+            messageType ??= "MyMessageType";
 
             var metadata = new Dictionary<string, object>
             {
