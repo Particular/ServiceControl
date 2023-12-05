@@ -41,7 +41,9 @@
                 {
                     var directorySecurity = new DirectorySecurity();
                     directorySecurity.SetOwner(windowsIdentity.User);
-                    Directory.SetAccessControl(path, directorySecurity);
+
+                    var directory = new DirectoryInfo(path);
+                    directory.SetAccessControl(directorySecurity);
                 }
 
                 if (!(Directory.GetFiles(path).Any() || Directory.GetDirectories(path).Any()))
