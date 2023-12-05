@@ -257,12 +257,12 @@
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> { { "MessageIntent", "1" } }
                         },
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
-                            MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
+                            MessageMetadata = new Dictionary<string, object> { { "MessageIntent", "1" } }
                         }
                     ]
                 });
