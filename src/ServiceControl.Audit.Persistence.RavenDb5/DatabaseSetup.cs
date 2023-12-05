@@ -48,6 +48,18 @@
                 new SagaDetailsIndex()
             };
 
+            // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
+            // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.
+            // Doing a side-by-side migration results in the index never swapping if there is constant ingestion as RavenDB will wait.
+            // for the index to not be stale before swapping to the new index. Constant ingestion means the index will never be not-stale.
+            // This needs to stay in place on version v4.x.x indefinitely.
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await documentStore.Maintenance.SendAsync(sagaDetailsIndexOperation, cancellationToken).ConfigureAwait(false);
+            if (sagaDetailsIndexDefinition != null && !sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"))
+            {
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken).ConfigureAwait(false);
+            }
+
             if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
