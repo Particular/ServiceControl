@@ -7,20 +7,18 @@
 
     static class QueryStringExtension
     {
+        static readonly HttpRequestOptionsKey<Dictionary<string, string>> optionsKey = new("QueryStringAsDictionary");
+
         public static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
         {
-            Dictionary<string, string> queryStringDictionary;
-            if (!request.Properties.TryGetValue("QueryStringAsDictionary", out var dictionaryAsObject))
+            if (!request.Options.TryGetValue(optionsKey, out var queryStringDictionary))
             {
                 queryStringDictionary = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-                request.Properties["QueryStringAsDictionary"] = queryStringDictionary;
-            }
-            else
-            {
-                queryStringDictionary = (Dictionary<string, string>)dictionaryAsObject;
+                request.Options.Set(optionsKey, queryStringDictionary);
             }
 
             queryStringDictionary.TryGetValue(key, out var value);
+
             if (string.IsNullOrEmpty(value))
             {
                 return defaultValue;
