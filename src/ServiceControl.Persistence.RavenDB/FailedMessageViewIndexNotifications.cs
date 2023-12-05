@@ -69,7 +69,7 @@
                 throw new ArgumentNullException(nameof(callback));
             }
 
-            if (!(subscriber is null))
+            if (subscriber is not null)
             {
                 throw new InvalidOperationException("Already a subscriber, only a single subscriber supported");
             }
