@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml.Linq;
@@ -23,7 +22,7 @@
             {
                 try
                 {
-                    var config = XDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+                    var config = XDocument.Load("AppDomain.CurrentDomain.SetupInformation.ConfigurationFile"); //TODO replace this with ConfigurationManager?
                     var sections = config?.Element("configuration");
 
                     if (sections != null)
@@ -42,7 +41,7 @@
                 var element = configSections.Element("AzureServiceBusQueueConfig");
                 if (element != null)
                 {
-                    logging.Warn("The use of AzureServiceBusQueueConfig within ServiceControl has been deprecated. A Transport Adapater (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
+                    logging.Warn("The use of AzureServiceBusQueueConfig within ServiceControl has been deprecated. A Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
                 }
             }
 
@@ -51,7 +50,7 @@
                 var element = configSections.Element("AzureQueueConfig");
                 if (element != null)
                 {
-                    logging.Warn("The use of AzureQueueConfig within ServiceControl has been deprecated. A Transport Adapater (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
+                    logging.Warn("The use of AzureQueueConfig within ServiceControl has been deprecated. A Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/) can be used if there are transport defaults that are not suitable for this environment.");
                 }
             }
 
