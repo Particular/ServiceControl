@@ -2,7 +2,6 @@ namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
@@ -46,10 +45,6 @@ namespace ServiceControl.Audit.AcceptanceTests
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
-
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
