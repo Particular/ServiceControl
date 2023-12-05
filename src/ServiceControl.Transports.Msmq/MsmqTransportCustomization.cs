@@ -5,19 +5,13 @@
 
     public class MsmqTransportCustomization : TransportCustomization<MsmqTransport>
     {
-        protected override void CustomizeTransportForAuditEndpoint(
-            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
-        protected override void CustomizeTransportForPrimaryEndpoint(
-            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
-            TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForMonitoringEndpoint(
-            EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
-            TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
@@ -34,6 +28,7 @@
             };
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+
             return transport;
         }
     }

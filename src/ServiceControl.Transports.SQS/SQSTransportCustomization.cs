@@ -14,26 +14,16 @@
 
     public class SQSTransportCustomization : TransportCustomization<SqsTransport>
     {
-        protected override void CustomizeTransportForAuditEndpoint(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-            //Do not ConfigurePubSub for send-only endpoint
-        }
-
-        protected override void CustomizeTransportForPrimaryEndpoint(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings)
         {
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeTransportForMonitoringEndpoint(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        //Do not ConfigurePubSub for send-only endpoint
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
+
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
@@ -107,8 +97,7 @@
                     }
                     else
                     {
-                        log.Info(
-                            "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
+                        log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
                         s3Client = new AmazonS3Client();
                     }
 
@@ -123,6 +112,7 @@
             }
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+
             return transport;
         }
 

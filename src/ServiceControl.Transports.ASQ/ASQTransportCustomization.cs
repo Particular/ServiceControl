@@ -7,34 +7,22 @@
 
     public class ASQTransportCustomization : TransportCustomization<AzureStorageQueueTransport>
     {
-        protected override void CustomizeTransportForMonitoringEndpoint(
-            EndpointConfiguration endpointConfiguration,
-            AzureStorageQueueTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
-        protected override void CustomizeTransportForPrimaryEndpoint(
-            EndpointConfiguration endpointConfiguration,
-            AzureStorageQueueTransport transportDefinition,
-            TransportSettings transportSettings)
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
         {
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeTransportForAuditEndpoint(
-            EndpointConfiguration endpointConfiguration,
-            AzureStorageQueueTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-            //Do not ConfigurePubSub for send-only endpoint
-        }
+        //Do not ConfigurePubSub for send-only endpoint
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
+
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
+
+        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
         protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
-            var connectionString = transportSettings.ConnectionString
-                .RemoveCustomConnectionStringParts(out var subscriptionTableName);
+            var connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
             var transport = new AzureStorageQueueTransport(connectionString)
             {
@@ -54,7 +42,5 @@
 
             return transport;
         }
-
-        public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
     }
 }

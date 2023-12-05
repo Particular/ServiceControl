@@ -10,23 +10,11 @@
 
         protected RabbitMQConventionalRoutingTransportCustomization(QueueType queueType) => this.queueType = queueType;
 
-        protected override void CustomizeTransportForAuditEndpoint(
-            EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
-        protected override void CustomizeTransportForPrimaryEndpoint(
-            EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
-        protected override void CustomizeTransportForMonitoringEndpoint(
-            EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition, TransportSettings transportSettings) { }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
@@ -39,6 +27,7 @@
 
             var transport = new RabbitMQTransport(RoutingTopology.Conventional(queueType), transportSettings.ConnectionString);
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
+
             return transport;
         }
     }

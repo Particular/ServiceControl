@@ -44,7 +44,7 @@
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            var transport = CreateTransport(transportSettings, TransportTransactionMode.ReceiveOnly);
+            var transport = CreateTransport(transportSettings);
             endpointConfiguration.UseTransport(transport);
             CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
 

@@ -7,19 +7,13 @@
 
     public class LearningTransportCustomization : TransportCustomization<LearningTransport>
     {
-        protected override void CustomizeTransportForAuditEndpoint(
-            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
-        protected override void CustomizeTransportForPrimaryEndpoint(
-            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeTransportForMonitoringEndpoint(
-            EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition, TransportSettings transportSettings) =>
+        transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
+
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition, TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
