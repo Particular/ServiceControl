@@ -63,12 +63,12 @@
     <PackageVersion Include="PublicApiGenerator" Version="11.0.0" />
     <PackageVersion Include="RavenDB.Embedded" Version="5.4.112" />
     <PackageVersion Include="ReactiveUI.WPF" Version="19.5.1" />
-    <PackageVersion Include="Rx-Linq" Version="2.2.5" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
     <PackageVersion Include="System.Management.Automation" Version="7.2.17" />
+    <PackageVersion Include="System.Reactive.Linq" Version="6.0.0" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
     <PackageVersion Include="System.Text.Json" Version="8.0.0" />
     <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
