@@ -10,10 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NServiceBus.Transport.Msmq" />
     <PackageReference Include="NServiceBus.CustomChecks" />
   </ItemGroup>
