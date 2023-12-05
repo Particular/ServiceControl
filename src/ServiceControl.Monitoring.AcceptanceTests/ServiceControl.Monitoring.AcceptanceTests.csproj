@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Net.Http" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
     <PackageReference Include="HdrHistogram" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

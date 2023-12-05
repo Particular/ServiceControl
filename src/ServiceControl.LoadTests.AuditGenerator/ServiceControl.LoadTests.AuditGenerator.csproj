@@ -13,10 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
   </ItemGroup>
 
