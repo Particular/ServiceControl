@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
-    using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
