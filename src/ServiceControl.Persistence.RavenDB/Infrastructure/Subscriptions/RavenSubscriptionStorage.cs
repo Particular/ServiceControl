@@ -179,14 +179,11 @@
         {
             // use MD5 hash to get a 16-byte hash of the string
             var inputBytes = Encoding.Default.GetBytes($"{messageType.TypeName}/{messageType.Version.Major}");
-            using (var provider = new MD5CryptoServiceProvider())
-            {
-                var hashBytes = provider.ComputeHash(inputBytes);
+            var hashBytes = MD5.HashData(inputBytes);
 
-                // generate a guid from the hash:
-                var id = new Guid(hashBytes);
-                return $"Subscriptions/{id}";
-            }
+            // generate a guid from the hash:
+            var id = new Guid(hashBytes);
+            return $"Subscriptions/{id}";
         }
 
         async Task SetSubscriptions(Subscriptions newSubscriptions)
