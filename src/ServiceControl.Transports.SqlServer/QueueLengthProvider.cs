@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading.Tasks;
-    using System.Collections.Concurrent;
-    using System.Data.SqlClient;
     using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Data.SqlClient;
     using NServiceBus.Logging;
 
     class QueueLengthProvider : IProvideQueueLength
