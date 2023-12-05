@@ -8,7 +8,7 @@
         public static SortInfo GetSortInfo(this HttpRequestMessage request, string defaultSortDirection = "desc")
         {
             var direction = request.GetQueryStringValue("direction", defaultSortDirection);
-            if (direction != "asc" && direction != "desc")
+            if (direction is not "asc" and not "desc")
             {
                 direction = defaultSortDirection;
             }
@@ -22,8 +22,8 @@
             return new SortInfo(sort, direction);
         }
 
-        static HashSet<string> AllowableSortOptions = new HashSet<string>
-        {
+        static HashSet<string> AllowableSortOptions =
+        [
             "processed_at",
             "id",
             "message_type",
@@ -33,6 +33,6 @@
             "processing_time",
             "status",
             "message_id"
-        };
+        ];
     }
 }

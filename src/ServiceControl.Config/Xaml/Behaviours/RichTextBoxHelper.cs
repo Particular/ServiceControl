@@ -24,7 +24,7 @@
             obj.SetValue(DocumentXamlProperty, value);
         }
 
-        static HashSet<Thread> recursionProtection = new HashSet<Thread>();
+        static HashSet<Thread> recursionProtection = [];
 
         static readonly Regex doubleNewlineRegex = new Regex(@"\r?\n\r?\n", RegexOptions.Compiled);
         static readonly Regex singleNewlineRegex = new Regex(@"\r?\n", RegexOptions.Compiled);

@@ -9,7 +9,7 @@
 
     class FakeDomainEvents : IDomainEvents
     {
-        public List<object> RaisedEvents { get; } = new List<object>();
+        public List<object> RaisedEvents { get; } = [];
 
         public Task Raise<T>(T domainEvent) where T : IDomainEvent
         {

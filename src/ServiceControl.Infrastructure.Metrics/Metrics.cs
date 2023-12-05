@@ -5,8 +5,8 @@
 
     public class Metrics
     {
-        readonly Dictionary<string, Counter> counters = new Dictionary<string, Counter>();
-        readonly Dictionary<string, Meter> meters = new Dictionary<string, Meter>();
+        readonly Dictionary<string, Counter> counters = [];
+        readonly Dictionary<string, Meter> meters = [];
 
         public bool Enabled { get; set; }
 

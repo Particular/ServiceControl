@@ -13,9 +13,9 @@
         public static Task SendTestMessage(this IMessageDispatcher dispatcher, string queue, string content)
         {
             var transportOperation = new TransportOperation(
-             new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>(),
+             new OutgoingMessage(Guid.NewGuid().ToString(), [],
                  Encoding.UTF8.GetBytes(content)),
-             new UnicastAddressTag(queue), new DispatchProperties());
+             new UnicastAddressTag(queue), []);
 
             return dispatcher.Dispatch(new TransportOperations(transportOperation), new TransportTransaction(), CancellationToken.None);
         }

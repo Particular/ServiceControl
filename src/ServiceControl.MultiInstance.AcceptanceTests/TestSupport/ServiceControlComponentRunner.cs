@@ -37,9 +37,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
+        public Dictionary<string, HttpClient> HttpClients { get; } = [];
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public Dictionary<string, dynamic> SettingsPerInstance { get; } = new Dictionary<string, dynamic>();
+        public Dictionary<string, dynamic> SettingsPerInstance { get; } = [];
 
         public async Task Initialize(RunDescriptor run)
         {
@@ -364,10 +364,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             return httpClient;
         }
 
-        Dictionary<string, IHost> hosts = new Dictionary<string, IHost>();
+        Dictionary<string, IHost> hosts = [];
 
-        Dictionary<string, OwinHttpMessageHandler> handlers = new Dictionary<string, OwinHttpMessageHandler>();
-        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
+        Dictionary<string, OwinHttpMessageHandler> handlers = [];
+        Dictionary<int, HttpMessageHandler> portToHandler = [];
         ITransportIntegration transportToUse;
         DataStoreConfiguration dataStoreConfiguration;
         Action<EndpointConfiguration> customEndpointConfiguration;

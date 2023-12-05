@@ -167,7 +167,7 @@
 
         RxPropertyChanged target;
         IValidator validator;
-        List<ValidationFailure> validationResults = new List<ValidationFailure>();
+        List<ValidationFailure> validationResults = [];
         Subject<DataErrorsChangedEventArgs> errorsChangedSubject;
         HashSet<string> properties;
         static ConcurrentDictionary<RuntimeTypeHandle, IValidator> validators = new ConcurrentDictionary<RuntimeTypeHandle, IValidator>();

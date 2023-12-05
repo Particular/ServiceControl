@@ -37,7 +37,7 @@ namespace Tests
 
         public static IEnumerable<DeploymentPackage> All => GetDeployDirectory()
                 .EnumerateDirectories()
-                .Where(d => d.Name != "PowerShellModules" && d.Name != "Transports" && d.Name != "RavenDBServer")
+                .Where(d => d.Name is not "PowerShellModules" and not "Transports" and not "RavenDBServer")
                 .Select(d => new DeploymentPackage(d));
 
         public static DirectoryInfo GetDeployDirectory()

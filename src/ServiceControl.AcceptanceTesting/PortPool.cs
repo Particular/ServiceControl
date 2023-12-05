@@ -14,7 +14,7 @@
         public PortPool(int startingPort)
         {
             this.startingPort = startingPort;
-            inUse = new HashSet<int>();
+            inUse = [];
         }
 
         public PortLease GetLease() => new PortLease(this);
@@ -48,7 +48,7 @@
         internal PortLease(PortPool owner)
         {
             this.owner = owner;
-            leasedPorts = new List<int>();
+            leasedPorts = [];
         }
 
         public int GetPort()

@@ -8,7 +8,7 @@
     {
         public VariableHistoryIntervalStore()
         {
-            histories = new Dictionary<HistoryPeriod, IntervalsStore<BreakdownT>>();
+            histories = [];
 
             foreach (var period in HistoryPeriod.All)
             {

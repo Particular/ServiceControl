@@ -7,7 +7,7 @@ namespace ServiceControl.SagaAudit
     {
         public SagaHistory()
         {
-            Changes = new List<SagaStateChange>();
+            Changes = [];
         }
 
         public Guid Id { get; set; }
