@@ -23,9 +23,6 @@
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeForQueueIngestion(SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
             TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;

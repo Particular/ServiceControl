@@ -42,7 +42,6 @@
     class FakeTransport : ITransportCustomization
     {
         public static IList<string> QueuesCreated;
-        public Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError) => throw new NotImplementedException();
 
         public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
@@ -58,10 +57,6 @@
         public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
             throw new NotImplementedException();
 
-        public Task<TransportInfrastructure> CreateRawEndpointForIngestion(string queueName, TransportSettings transportSettings, OnMessage onMessage,
-            OnError onError, Func<string, Exception, Task> onCriticalError) =>
-            throw new NotImplementedException();
-
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
         {
@@ -72,6 +67,8 @@
             };
             return Task.CompletedTask;
         }
+
+        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null) => throw new NotImplementedException();
     }
 
     class FakePersistenceConfiguration : IPersistenceConfiguration

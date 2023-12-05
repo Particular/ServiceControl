@@ -16,10 +16,6 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeForQueueIngestion(LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, LearningTransport transportDefinition,
             TransportSettings transportSettings) =>
@@ -39,7 +35,6 @@
                 RestrictPayloadSize = false,
                 TransportTransactionMode = TransportTransactionMode.ReceiveOnly
             };
-
 
             return transport;
         }

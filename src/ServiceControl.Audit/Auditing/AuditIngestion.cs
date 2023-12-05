@@ -116,9 +116,10 @@
 
                 logger.Info("Ensure started. Infrastructure starting");
 
-                transportInfrastructure = await transportCustomization.CreateRawEndpointForIngestion(
+                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
+                    false,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError);

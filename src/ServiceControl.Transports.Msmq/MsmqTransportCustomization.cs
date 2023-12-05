@@ -14,13 +14,6 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
 
-        protected override void CustomizeForQueueIngestion(MsmqTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-            transportDefinition.IgnoreIncomingTimeToBeReceivedHeaders = true;
-        }
-
         protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, MsmqTransport transportDefinition,
             TransportSettings transportSettings) =>

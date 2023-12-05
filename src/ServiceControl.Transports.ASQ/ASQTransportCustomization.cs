@@ -6,9 +6,6 @@
 
     public class ASQTransportCustomization : TransportCustomization<AzureStorageQueueTransport>
     {
-        protected override void CustomizeForQueueIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
-            => CustomizeRawEndpoint(transportDefinition);
-
         protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration,
             AzureStorageQueueTransport transportDefinition,
@@ -16,8 +13,7 @@
         {
         }
 
-        protected override void CustomizeForReturnToSenderIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings)
-            => CustomizeRawEndpoint(transportDefinition);
+        protected override void CustomizeForReturnToSenderIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
 
         protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration,
@@ -53,13 +49,11 @@
                 transport.Subscriptions.SubscriptionTableName = subscriptionTableName;
             }
 
+            transport.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
             transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.EndpointName + ".poison"; //TODO any reason we can't just always set this?
 
             return transport;
         }
-
-        static void CustomizeRawEndpoint(AzureStorageQueueTransport transportDefinition)
-            => transportDefinition.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
     }

@@ -22,9 +22,7 @@
 
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
 
-        Task<TransportInfrastructure> CreateRawEndpointForIngestion(string queueName, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
-
-        Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError);
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -79,8 +77,6 @@
         {
             var transport = CreateTransport(transportSettings);
 
-            CustomizeForQueueIngestion(transport, transportSettings);
-
             var hostSettings = new HostSettings(
                 transportSettings.EndpointName,
                 $"Queue creator for {transportSettings.EndpointName}",
@@ -102,35 +98,19 @@
             await transportInfrastructure.Shutdown();
         }
 
-        public async Task<TransportInfrastructure> CreateRawEndpointForIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
-        {
-            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
-
-            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForQueueIngestion, receivers, onCriticalError);
-
-            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
-
-            return transportInfrastructure;
-        }
-
-        public async Task<TransportInfrastructure> CreateRawEndpointForReturnToSenderIngestion(string name, TransportSettings transportSettings, OnMessage onMessage, OnError onError, Func<string, Exception, Task> onCriticalError)
-        {
-            var receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
-
-            var transportInfrastructure = await CreateTransportInfrastructure(name, transportSettings, CustomizeForReturnToSenderIngestion, receivers, onCriticalError);
-
-            IMessageReceiver transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
-            await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
-
-            return transportInfrastructure;
-        }
-
-        async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, Action<TTransport, TransportSettings> customizeTransportAction, ReceiveSettings[] receivers, Func<string, Exception, Task> onCriticalError)
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null)
         {
             var transport = CreateTransport(transportSettings);
 
-            customizeTransportAction(transport, transportSettings);
+            if (customizeForReturnToSenderIngestion)
+            {
+                CustomizeForReturnToSenderIngestion(transport, transportSettings);
+            }
+
+            if (onCriticalError == null)
+            {
+                onCriticalError = (_, __) => Task.CompletedTask;
+            }
 
             var hostSettings = new HostSettings(
                 name,
@@ -140,12 +120,29 @@
                 false, // ???
                 null); //null means "not hosted by core", transport SHOULD adjust accordingly to not assume things
 
+
+            ReceiveSettings[] receivers;
+            var createReceiver = onMessage != null && onError != null;
+
+            if (createReceiver)
+            {
+                receivers = new[] { new ReceiveSettings(name, new QueueAddress(name), false, false, transportSettings.ErrorQueue) };
+            }
+            else
+            {
+                receivers = Array.Empty<ReceiveSettings>();
+            }
+
             var transportInfrastructure = await transport.Initialize(hostSettings, receivers, new[] { transportSettings.ErrorQueue });
+
+            if (createReceiver)
+            {
+                var transportInfrastructureReceiver = transportInfrastructure.Receivers[name];
+                await transportInfrastructureReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), onMessage, onError, CancellationToken.None);
+            }
 
             return transportInfrastructure;
         }
-
-        protected abstract void CustomizeForQueueIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 
         protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
 

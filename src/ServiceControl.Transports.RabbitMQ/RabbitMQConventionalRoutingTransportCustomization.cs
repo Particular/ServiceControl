@@ -21,11 +21,6 @@
         {
         }
 
-        protected override void CustomizeForQueueIngestion(RabbitMQTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
         protected override void CustomizeTransportForMonitoringEndpoint(
             EndpointConfiguration endpointConfiguration, RabbitMQTransport transportDefinition,
             TransportSettings transportSettings)

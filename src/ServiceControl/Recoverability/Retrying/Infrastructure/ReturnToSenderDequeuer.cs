@@ -29,7 +29,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            transportInfrastructure = await transportCustomization.CreateRawEndpointForReturnToSenderIngestion(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask);
+            transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, true, Handle, faultManager.OnError, (_, __) => Task.CompletedTask);
             messageReceiver = transportInfrastructure.Receivers[InputAddress];
             messageDispatcher = transportInfrastructure.Dispatcher;
 

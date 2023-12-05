@@ -82,6 +82,7 @@
 
             return source;
         }
+
         protected TransportTestsConfiguration configuration;
 
         protected Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
@@ -107,9 +108,10 @@
                 MaxConcurrency = 1
             };
 
-            transportInfrastructure = await configuration.TransportCustomization.CreateRawEndpointForIngestion(
+            transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(
                 queueName,
                 transportSettings,
+                false,
                 onMessage,
                 onError,
                 (_, __) =>
@@ -135,7 +137,8 @@
 
             return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
         }
-        protected Task<IMessageDispatcher> CreateDispatcher(string endpointName)
+
+        protected async Task<IMessageDispatcher> CreateDispatcher(string endpointName)
         {
             var transportSettings = new TransportSettings
             {
@@ -144,7 +147,9 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.InitializeDispatcher(endpointName, transportSettings);
+            var transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(endpointName, transportSettings);
+
+            return transportInfrastructure.Dispatcher;
         }
 
         protected Task CreateTestQueue(string queueName)

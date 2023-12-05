@@ -142,9 +142,10 @@
                     return; //Already started
                 }
 
-                transportInfrastructure = await transportCustomization.CreateRawEndpointForIngestion(
+                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
+                    false,
                     OnMessage,
                     errorHandlingPolicy.OnError,
                     OnCriticalError);

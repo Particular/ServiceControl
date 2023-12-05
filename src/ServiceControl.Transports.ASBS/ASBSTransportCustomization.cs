@@ -25,10 +25,6 @@
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override void CustomizeForQueueIngestion(AzureServiceBusTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
         protected override AzureServiceBusTransport CreateTransport(TransportSettings transportSettings)
         {
             var connectionSettings = ConnectionStringParser.Parse(transportSettings.ConnectionString);
