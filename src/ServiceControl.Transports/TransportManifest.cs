@@ -40,7 +40,7 @@
 
     public static class TransportManifestLibrary
     {
-        public static List<TransportManifest> TransportManifests { get; } = new List<TransportManifest>();
+        public static List<TransportManifest> TransportManifests { get; } = [];
 
         static TransportManifestLibrary()
         {

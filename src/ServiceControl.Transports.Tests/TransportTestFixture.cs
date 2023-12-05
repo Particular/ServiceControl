@@ -24,7 +24,7 @@
         {
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
-            registrations = new List<CancellationTokenRegistration>();
+            registrations = [];
             QueueSuffix = $"-{System.IO.Path.GetRandomFileName().Replace(".", string.Empty)}";
 
             Conventions.EndpointNamingConvention = t =>

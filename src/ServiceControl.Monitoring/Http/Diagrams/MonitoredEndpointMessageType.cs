@@ -16,6 +16,6 @@
 
         public string PublicKeyToken { get; set; }
 
-        public Dictionary<string, MonitoredValues> Metrics { get; } = new Dictionary<string, MonitoredValues>();
+        public Dictionary<string, MonitoredValues> Metrics { get; } = [];
     }
 }

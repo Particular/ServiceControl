@@ -16,8 +16,8 @@ namespace ServiceControl.Recoverability
             return archiveSummary?.ArchiveState != ArchiveState.ArchiveCompleted && isUnarchiveOpration && unarchiveSummary.ArchiveState != ArchiveState.ArchiveCompleted;
         }
 
-        public Dictionary<string, InMemoryUnarchive> UnarchiveOperations { get; } = new Dictionary<string, InMemoryUnarchive>();
+        public Dictionary<string, InMemoryUnarchive> UnarchiveOperations { get; } = [];
 
-        public Dictionary<string, InMemoryArchive> ArchiveOperations { get; } = new Dictionary<string, InMemoryArchive>();
+        public Dictionary<string, InMemoryArchive> ArchiveOperations { get; } = [];
     }
 }

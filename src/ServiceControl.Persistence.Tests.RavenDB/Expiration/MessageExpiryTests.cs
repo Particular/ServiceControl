@@ -38,7 +38,7 @@
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, new List<FailedMessage.FailureGroup>());
+                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
                 await uow.Complete();
             }
@@ -67,8 +67,8 @@
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordFailedProcessingAttempt(contextA, attemptA, new List<FailedMessage.FailureGroup> { new FailedMessage.FailureGroup { Id = groupIdA } });
-                await uow.Recoverability.RecordFailedProcessingAttempt(contextB, attemptB, new List<FailedMessage.FailureGroup> { new FailedMessage.FailureGroup { Id = groupIdB } });
+                await uow.Recoverability.RecordFailedProcessingAttempt(contextA, attemptA, [new FailedMessage.FailureGroup { Id = groupIdA }]);
+                await uow.Recoverability.RecordFailedProcessingAttempt(contextB, attemptB, [new FailedMessage.FailureGroup { Id = groupIdB }]);
 
                 await uow.Complete();
             }
@@ -99,7 +99,7 @@
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, new List<FailedMessage.FailureGroup> { new FailedMessage.FailureGroup { Id = groupId } });
+                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, [new FailedMessage.FailureGroup { Id = groupId }]);
 
                 await uow.Complete();
             }
@@ -122,7 +122,7 @@
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, new List<FailedMessage.FailureGroup>());
+                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
                 await uow.Complete();
             }
@@ -145,7 +145,7 @@
 
             using (var uow = await IngestionUnitOfWorkFactory.StartNew())
             {
-                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, new List<FailedMessage.FailureGroup>());
+                await uow.Recoverability.RecordFailedProcessingAttempt(context, attempt, []);
 
                 await uow.Complete();
             }

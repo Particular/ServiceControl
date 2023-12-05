@@ -64,7 +64,7 @@
             return false;
         }
 
-        List<Func<TContext, Task<bool>>> steps = new List<Func<TContext, Task<bool>>>();
-        List<string> stepNames = new List<string>();
+        List<Func<TContext, Task<bool>>> steps = [];
+        List<string> stepNames = [];
     }
 }

@@ -5,7 +5,7 @@
 
     static class DevelopmentPersistenceLocations
     {
-        public static List<string> ManifestFiles { get; } = new List<string>();
+        public static List<string> ManifestFiles { get; } = [];
 
         static DevelopmentPersistenceLocations()
         {

@@ -72,8 +72,8 @@
             CollectionAssert.AreEqual(context.BodyToSend, context.BodyReceived);
         }
 
-        static readonly List<string> HeadersThatShouldBeRemoved = new List<string>
-        {
+        static readonly List<string> HeadersThatShouldBeRemoved =
+        [
             "NServiceBus.Retries",
             "NServiceBus.Retries.Timestamp",
             "NServiceBus.FailedQ",
@@ -91,7 +91,7 @@
             "NServiceBus.ProcessingEndpoint",
             "$.diagnostics.hostid",
             "$.diagnostics.hostdisplayname"
-        };
+        ];
 
         class TestContext : ScenarioContext
         {

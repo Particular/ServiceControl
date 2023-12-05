@@ -5,7 +5,7 @@
 
     static class DevelopmentTransportLocations
     {
-        public static List<string> ManifestFiles { get; } = new List<string>();
+        public static List<string> ManifestFiles { get; } = [];
 
         static DevelopmentTransportLocations()
         {

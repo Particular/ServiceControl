@@ -61,7 +61,7 @@
 
                 await EmailSender.Send(notifications.Email, message.Subject, message.Body, emailDropFolder);
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 if (message.FailureNotification)
                 {

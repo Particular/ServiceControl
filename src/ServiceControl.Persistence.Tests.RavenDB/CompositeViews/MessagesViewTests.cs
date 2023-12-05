@@ -210,8 +210,8 @@
                 session.Store(new FailedMessage
                 {
                     Id = "1",
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
+                    ProcessingAttempts =
+                    [
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
@@ -221,7 +221,7 @@
                                 ["CriticalTime"] = TimeSpan.FromSeconds(1)
                             }
                         }
-                    },
+                    ],
                     Status = failedMessageStatus
                 });
 
@@ -252,8 +252,8 @@
                 session.Store(new FailedMessage
                 {
                     Id = "1",
-                    ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
+                    ProcessingAttempts =
+                    [
                         new FailedMessage.ProcessingAttempt
                         {
                             AttemptedAt = DateTime.Today,
@@ -264,7 +264,7 @@
                             AttemptedAt = DateTime.Today,
                             MessageMetadata = new Dictionary<string, object> {{"MessageIntent", "1"}}
                         }
-                    }
+                    ]
                 });
 
                 session.SaveChanges();
