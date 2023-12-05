@@ -1,7 +1,6 @@
 namespace ServiceControl.AcceptanceTests
 {
     using System;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
@@ -51,10 +50,6 @@ namespace ServiceControl.AcceptanceTests
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
-
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
