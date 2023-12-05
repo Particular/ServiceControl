@@ -137,8 +137,6 @@ namespace Particular.ServiceControl.Hosting
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.IO;
-    using System.Runtime.Serialization;
-    using System.Security.Permissions;
     using System.Text;
     using System.Text.RegularExpressions;
 
@@ -581,7 +579,6 @@ namespace Particular.ServiceControl.Hosting
         };
     }
 
-    [Serializable]
     class OptionException : Exception
     {
         public OptionException()
@@ -600,20 +597,7 @@ namespace Particular.ServiceControl.Hosting
             OptionName = optionName;
         }
 
-        protected OptionException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            OptionName = info.GetString("OptionName");
-        }
-
         public string OptionName { get; }
-
-        [SecurityPermission(SecurityAction.LinkDemand, SerializationFormatter = true)]
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-            info.AddValue("OptionName", OptionName);
-        }
     }
 
     delegate void OptionAction<TKey, TValue>(TKey key, TValue value);
