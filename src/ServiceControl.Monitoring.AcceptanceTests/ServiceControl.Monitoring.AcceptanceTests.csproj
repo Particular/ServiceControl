@@ -21,7 +21,6 @@
     <PackageReference Include="HdrHistogram" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
-    <PackageReference Include="NServiceBus.Metrics" />
     <PackageReference Include="NServiceBus.Metrics.ServiceControl" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />

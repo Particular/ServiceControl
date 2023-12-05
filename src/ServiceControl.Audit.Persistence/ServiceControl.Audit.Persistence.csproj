@@ -11,9 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-    <PackageReference Include="NServiceBus" />
-    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>

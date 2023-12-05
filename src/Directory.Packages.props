@@ -10,7 +10,6 @@
     <PackageVersion Include="Azure.Identity" Version="1.10.4" />
     <PackageVersion Include="ByteSize" Version="2.1.1" />
     <PackageVersion Include="Caliburn.Micro" Version="4.0.212" />
-    <PackageVersion Include="Dapper" Version="2.1.21" />
     <PackageVersion Include="DotNetZip" Version="1.16.0" />
     <PackageVersion Include="FluentValidation" Version="11.8.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
@@ -22,7 +21,6 @@
     <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
@@ -39,9 +37,7 @@
     <PackageVersion Include="NServiceBus.Extensions.Hosting" Version="2.0.0" />
     <PackageVersion Include="NServiceBus.Extensions.Logging" Version="2.0.0" />
     <PackageVersion Include="NServiceBus.Heartbeat" Version="4.0.0" />
-    <PackageVersion Include="NServiceBus.Metrics" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="4.0.0" />
-    <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="3.0.0" />
     <PackageVersion Include="NServiceBus.Persistence.NonDurable" Version="1.0.0" />
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="8.0.3" />
@@ -69,17 +65,12 @@
     <PackageVersion Include="System.Management" Version="7.0.2" />
     <PackageVersion Include="System.Management.Automation" Version="7.2.17" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="7.0.1" />
-    <PackageVersion Include="System.Text.Json" Version="7.0.3" />
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
     <PackageVersion Include="Microsoft.Owin.Hosting" Version="4.2.2" />
-    <PackageVersion Include="System.Collections.Immutable" Version="7.0.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="7.0.2" />
-    <PackageVersion Include="System.Memory" Version="4.5.5" />
-    <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

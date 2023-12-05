@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.Primary.props"  />
+  <Import Project="..\ProjectReferences.Persisters.Primary.props" />
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
@@ -24,15 +24,12 @@
     <PackageReference Include="Microsoft.AspNet.SignalR" />
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Microsoft.Owin.Cors" />
     <PackageReference Include="NLog.Extensions.Logging" />
-    <PackageReference Include="NServiceBus.CustomChecks" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="Particular.Licensing.Sources" />
-    <PackageReference Include="Rx-Linq" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
