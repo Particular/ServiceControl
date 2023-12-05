@@ -36,7 +36,7 @@
         public void RootPathValue()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
-            request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
+            request.Options.TryAdd(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
 
             var settings = CreateTestSettings();
 
