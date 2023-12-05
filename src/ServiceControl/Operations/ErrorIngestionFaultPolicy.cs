@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
     using ServiceBus.Management.Infrastructure.Installers;
@@ -26,7 +27,7 @@
             Directory.CreateDirectory(logPath);
         }
 
-        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext)
+        public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
         {
             //Same as recoverability policy in NServiceBusFactory
             if (errorContext.ImmediateProcessingFailures < 3)
@@ -34,11 +35,11 @@
                 return ErrorHandleResult.RetryRequired;
             }
 
-            await Handle(errorContext);
+            await Handle(errorContext, cancellationToken);
             return ErrorHandleResult.Handled;
         }
 
-        Task Handle(ErrorContext errorContext)
+        Task Handle(ErrorContext errorContext, CancellationToken cancellationToken)
         {
             var failure = new FailedErrorImport
             {
@@ -46,18 +47,18 @@
                 {
                     Id = errorContext.Message.MessageId,
                     Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body.ToArray() //TODO Can this be adjusted?
+                    Body = errorContext.Message.Body.ToArray() // TODO NSB8 Can this be adjusted?
                 }
             };
 
-            return Handle(errorContext.Exception, failure);
+            return Handle(errorContext.Exception, failure, cancellationToken);
         }
 
-        async Task Handle(Exception exception, FailedErrorImport failure)
+        async Task Handle(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
         {
             try
             {
-                await DoLogging(exception, failure);
+                await DoLogging(exception, failure, cancellationToken);
             }
             finally
             {
@@ -65,7 +66,9 @@
             }
         }
 
-        async Task DoLogging(Exception exception, FailedErrorImport failure)
+#pragma warning disable IDE0060
+        async Task DoLogging(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
+#pragma warning restore IDE0060
         {
             failure.Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid());
 

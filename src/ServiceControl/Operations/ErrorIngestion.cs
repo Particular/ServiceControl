@@ -9,6 +9,7 @@
     using Infrastructure;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -18,7 +19,6 @@
 
     class ErrorIngestion : IHostedService
     {
-        static ILog log = LogManager.GetLogger<ErrorIngestion>();
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
         public ErrorIngestion(
@@ -55,18 +55,22 @@
 
             errorHandlingPolicy = new ErrorIngestionFaultPolicy(dataStore, loggingSettings, OnCriticalError);
 
-            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, log);
+            watchdog = new Watchdog("failed message ingestion", EnsureStarted, EnsureStopped, ingestionState.ReportError, ingestionState.Clear, settings.TimeToRestartErrorIngestionAfterFailure, Logger);
 
             ingestionWorker = Task.Run(() => Loop(), CancellationToken.None);
         }
 
         public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
-        public async Task StopAsync(CancellationToken _)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown(cancellationToken);
+            }
         }
 
         async Task Loop()
@@ -87,7 +91,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await ingestor.Ingest(contexts, dispatcher);
+                        await ingestor.Ingest(contexts);
                     }
                 }
                 catch (OperationCanceledException)
@@ -97,9 +101,9 @@
                 }
                 catch (Exception e) // show must go on
                 {
-                    if (log.IsInfoEnabled)
+                    if (Logger.IsInfoEnabled)
                     {
-                        log.Info("Ingesting messages failed", e);
+                        Logger.Info("Ingesting messages failed", e);
                     }
 
                     // signal all message handling tasks to terminate
@@ -124,47 +128,48 @@
 
                 if (!unitOfWorkFactory.CanIngestMore())
                 {
-                    if (queueIngestor != null)
+                    if (messageReceiver != null)
                     {
-                        var stoppable = queueIngestor;
-                        queueIngestor = null;
-                        await stoppable.Stop();
-                        logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
+                        var stoppable = messageReceiver;
+                        messageReceiver = null;
+                        await stoppable.StopReceive(cancellationToken);
+                        Logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
                 }
 
-                if (queueIngestor != null)
+                if (messageReceiver != null)
                 {
                     return; //Already started
                 }
 
-                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError);
+                    OnCriticalError,
+                    TransportTransactionMode.ReceiveOnly);
 
-                dispatcher = await transportCustomization.InitializeDispatcher(errorQueue, transportSettings);
+                messageReceiver = transportInfrastructure.Receivers[errorQueue];
 
                 if (settings.ForwardErrorMessages)
                 {
-                    await ingestor.VerifyCanReachForwardingAddress(dispatcher);
+                    await ingestor.VerifyCanReachForwardingAddress();
                 }
 
-                await queueIngestor.Start();
+                await messageReceiver.StartReceive(cancellationToken);
 
-                logger.Info("Ensure started. Infrastructure started");
+                Logger.Info("Ensure started. Infrastructure started");
             }
             catch
             {
-                if (queueIngestor != null)
+                if (messageReceiver != null)
                 {
-                    await queueIngestor.Stop();
+                    await messageReceiver.StopReceive(cancellationToken);
                 }
 
-                queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 134
+                messageReceiver = null; // Setting to null so that it doesn't exit when it retries in line 134
 
                 throw;
             }
@@ -174,7 +179,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext)
+        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
@@ -186,13 +191,13 @@
 
             receivedMeter.Mark();
 
-            await channel.Writer.WriteAsync(messageContext);
+            await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
         }
 
         Task OnCriticalError(string failure, Exception exception)
         {
-            logger.Fatal($"OnCriticalError. '{failure}'", exception);
+            Logger.Fatal($"OnCriticalError. '{failure}'", exception);
             return watchdog.OnFailure(failure);
         }
 
@@ -202,13 +207,13 @@
             {
                 await startStopSemaphore.WaitAsync(cancellationToken);
 
-                if (queueIngestor == null)
+                if (messageReceiver == null)
                 {
                     return; //Already stopped
                 }
-                var stoppable = queueIngestor;
-                queueIngestor = null;
-                await stoppable.Stop();
+                var stoppable = messageReceiver;
+                messageReceiver = null;
+                await stoppable.StopReceive(cancellationToken);
             }
             finally
             {
@@ -219,8 +224,8 @@
         SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         string errorQueue;
         ErrorIngestionFaultPolicy errorHandlingPolicy;
-        IQueueIngestor queueIngestor;
-        IMessageDispatcher dispatcher;
+        TransportInfrastructure transportInfrastructure;
+        IMessageReceiver messageReceiver;
 
         readonly Settings settings;
         readonly ITransportCustomization transportCustomization;
@@ -234,6 +239,6 @@
         readonly ErrorIngestor ingestor;
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly IHostApplicationLifetime applicationLifetime;
-        static readonly ILog logger = LogManager.GetLogger<ErrorIngestion>();
+        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestion>();
     }
 }

@@ -37,9 +37,7 @@ namespace ServiceControl.Monitoring.Infrastructure
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
 
-            return transportCustomization.ProvisionQueues(
-                settings.Username,
-                transportSettings,
+            return transportCustomization.ProvisionQueues(transportSettings,
                 new List<string>());
         }
 

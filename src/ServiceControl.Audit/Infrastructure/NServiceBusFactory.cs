@@ -31,7 +31,7 @@ namespace ServiceControl.Audit.Infrastructure
 
             configuration.GetSettings().Set("ServiceControl.Settings", settings);
 
-            transportCustomization.CustomizeSendOnlyEndpoint(configuration, transportSettings);
+            transportCustomization.CustomizeAuditEndpoint(configuration, transportSettings);
 
             var serviceControlLogicalQueue = settings.ServiceControlQueueAddress;
             if (!string.IsNullOrWhiteSpace(serviceControlLogicalQueue))

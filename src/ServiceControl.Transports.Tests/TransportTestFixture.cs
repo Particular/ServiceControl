@@ -2,10 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
-    using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
@@ -22,7 +20,7 @@
         public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
-        public virtual Task Setup()
+        public virtual async Task Setup()
         {
             configuration = new TransportTestsConfiguration();
             testCancellationTokenSource = Debugger.IsAttached ? new CancellationTokenSource() : new CancellationTokenSource(TestTimeout);
@@ -38,11 +36,9 @@
                 return endpointBuilder + QueueSuffix;
             };
 
-#if !NETCOREAPP2_0 // To make the SQS tests work
-            ConfigurationManager.GetSection("X");
-#endif
+            await configuration.Configure();
 
-            return configuration.Configure();
+            dispatcherTransportInfrastructure = await CreateDispatcherTransportInfrastructure();
         }
 
         [TearDown]
@@ -55,8 +51,15 @@
 
             if (queueIngestor != null)
             {
-                await queueIngestor.Stop();
+                await queueIngestor.StopReceive();
             }
+
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown();
+            }
+
+            await dispatcherTransportInfrastructure.Shutdown();
 
             if (configuration != null)
             {
@@ -66,6 +69,7 @@
             testCancellationTokenSource.Dispose();
         }
 
+        protected IMessageDispatcher Dispatcher => dispatcherTransportInfrastructure.Dispatcher;
         protected string QueueSuffix { get; private set; }
 
         protected string GetTestQueueName(string name) => $"{name}-{QueueSuffix}";
@@ -83,6 +87,7 @@
 
             return source;
         }
+
         protected TransportTestsConfiguration configuration;
 
         protected Task StartQueueLengthProvider(string queueName, Action<QueueLengthEntry> onQueueLengthReported)
@@ -98,8 +103,8 @@
 
         protected async Task StartQueueIngestor(
             string queueName,
-            Func<MessageContext, Task> onMessage,
-            Func<ErrorContext, Task<ErrorHandleResult>> onError)
+            OnMessage onMessage,
+            OnError onError)
         {
             var transportSettings = new TransportSettings
             {
@@ -108,7 +113,7 @@
                 MaxConcurrency = 1
             };
 
-            queueIngestor = await configuration.TransportCustomization.InitializeQueueIngestor(
+            transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(
                 queueName,
                 transportSettings,
                 onMessage,
@@ -119,10 +124,12 @@
                     return Task.CompletedTask;
                 });
 
-            await queueIngestor.Start();
+            queueIngestor = transportInfrastructure.Receivers[queueName];
+
+            await queueIngestor.StartReceive();
         }
 
-        protected Task ProvisionQueues(string username, string queueName, string errorQueue, IEnumerable<string> additionalQueues)
+        protected Task ProvisionQueues(string queueName, string errorQueue, IEnumerable<string> additionalQueues)
         {
             var transportSettings = new TransportSettings
             {
@@ -132,18 +139,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(username, transportSettings, additionalQueues);
-        }
-        protected Task<IMessageDispatcher> CreateDispatcher(string endpointName)
-        {
-            var transportSettings = new TransportSettings
-            {
-                EndpointName = endpointName,
-                ConnectionString = configuration.ConnectionString,
-                MaxConcurrency = 1
-            };
-
-            return configuration.TransportCustomization.InitializeDispatcher(endpointName, transportSettings);
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, additionalQueues);
         }
 
         protected Task CreateTestQueue(string queueName)
@@ -155,14 +151,28 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(WindowsIdentity.GetCurrent().Name, transportSettings, new List<string>());
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, new List<string>());
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);
 
+        async Task<TransportInfrastructure> CreateDispatcherTransportInfrastructure()
+        {
+            var transportSettings = new TransportSettings
+            {
+                EndpointName = "TransportTestDispatcher",
+                ConnectionString = configuration.ConnectionString,
+                MaxConcurrency = 1
+            };
+
+            return await configuration.TransportCustomization.CreateTransportInfrastructure("TransportTestDispatcher", transportSettings);
+        }
+
         CancellationTokenSource testCancellationTokenSource;
         List<CancellationTokenRegistration> registrations;
         IProvideQueueLength queueLengthProvider;
-        IQueueIngestor queueIngestor;
+        IMessageReceiver queueIngestor;
+        TransportInfrastructure transportInfrastructure;
+        TransportInfrastructure dispatcherTransportInfrastructure;
     }
 }

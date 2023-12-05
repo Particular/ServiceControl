@@ -15,7 +15,7 @@ namespace Particular.ServiceControl
             this.settings = settings;
         }
 
-        public async Task Run(string username)
+        public async Task Run()
         {
             // Validate license:
             if (!ValidateLicense(settings))
@@ -52,9 +52,7 @@ namespace Particular.ServiceControl
                 var transportSettings = MapSettings(settings);
                 var transportCustomization = settings.LoadTransportCustomization();
 
-                await transportCustomization.ProvisionQueues(
-                    username,
-                    transportSettings,
+                await transportCustomization.ProvisionQueues(transportSettings,
                     componentSetupContext.Queues);
             }
         }

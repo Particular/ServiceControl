@@ -4,10 +4,6 @@
 
     public class RabbitMQQuorumConventionalRoutingTransportCustomization : RabbitMQConventionalRoutingTransportCustomization
     {
-        public RabbitMQQuorumConventionalRoutingTransportCustomization()
-            : base(QueueType.Quorum)
-        {
-
-        }
+        public RabbitMQQuorumConventionalRoutingTransportCustomization() : base(QueueType.Quorum) { }
     }
 }

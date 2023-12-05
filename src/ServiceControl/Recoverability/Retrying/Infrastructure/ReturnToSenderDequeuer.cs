@@ -5,28 +5,22 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl.Transports;
 
     class ReturnToSenderDequeuer : IHostedService
     {
-        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents, RawEndpointFactory rawEndpointFactory, Settings settings)
+        public ReturnToSenderDequeuer(ReturnToSender returnToSender, IErrorMessageDataStore dataStore, IDomainEvents domainEvents, ITransportCustomization transportCustomization, TransportSettings transportSettings, Settings settings)
         {
             InputAddress = settings.StagingQueue;
             this.returnToSender = returnToSender;
             errorQueue = settings.ErrorQueue;
-
-            createEndpointConfiguration = () =>
-            {
-                var config = rawEndpointFactory.CreateReturnToSenderDequeuer(InputAddress, Handle);
-
-                config.CustomErrorHandlingPolicy(faultManager);
-
-                return config;
-            };
+            this.transportCustomization = transportCustomization;
+            this.transportSettings = transportSettings;
 
             faultManager = new CaptureIfMessageSendingFails(dataStore, domainEvents, IncrementCounterOrProlongTimer);
             timer = new Timer(state => StopInternal().GetAwaiter().GetResult());
@@ -34,14 +28,27 @@ namespace ServiceControl.Recoverability
 
         public string InputAddress { get; }
 
-        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
+            messageReceiver = transportInfrastructure.Receivers[InputAddress];
+            messageDispatcher = transportInfrastructure.Dispatcher;
 
-        public Task StopAsync(CancellationToken cancellationToken) => Stop();
+            errorQueueTransportAddress = transportInfrastructure.ToTransportAddress(new QueueAddress(errorQueue));
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            timer.Dispose();
+            endedPrematurely = true;
+            await StopInternal();
+            await transportInfrastructure.Shutdown(cancellationToken);
+        }
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        // TODO NSB8 Forward cancellation token
-        async Task Handle(MessageContext message, IMessageDispatcher sender, CancellationToken cancellationToken)
+        // TODO Forward cancellation token
+        async Task Handle(MessageContext message, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
             {
@@ -51,7 +58,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, sender, errorQueueTransportAddress);
+                await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress);
                 IncrementCounterOrProlongTimer();
             }
             else
@@ -99,7 +106,6 @@ namespace ServiceControl.Recoverability
 
         public virtual async Task Run(string forwardingBatchId, Predicate<MessageContext> filter, int? expectedMessageCount, CancellationToken cancellationToken = default)
         {
-            IReceivingRawEndpoint processor = null;
             CancellationTokenRegistration? registration = null;
             try
             {
@@ -112,18 +118,15 @@ namespace ServiceControl.Recoverability
                     Log.DebugFormat("Starting receiver");
                 }
 
-                var config = createEndpointConfiguration();
                 syncEvent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 stopCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                 registration = cancellationToken.Register(() => _ = syncEvent.TrySetResult(true));
 
-                var startable = await RawEndpoint.Create(config, cancellationToken);
+                // TODO Workaround for Learning transport message pump not working after you've stopped it once
+                await messageReceiver.Initialize(new PushRuntimeSettings(transportSettings.MaxConcurrency), Handle, faultManager.OnError, CancellationToken.None);
+                await messageReceiver.StartReceive(cancellationToken);
 
-                errorQueueTransportAddress = GetErrorQueueTransportAddress(startable);
-
-                processor = await startable.Start(cancellationToken);
-
-                Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {processor.TransportAddress}.");
+                Log.Info($"Forwarder for batch {forwardingBatchId} started receiving messages from {messageReceiver.ReceiveAddress}.");
 
                 if (!expectedMessageCount.HasValue)
                 {
@@ -144,10 +147,7 @@ namespace ServiceControl.Recoverability
 
                 await syncEvent.Task;
                 registration?.Dispose();
-                if (processor != null)
-                {
-                    await processor.Stop(cancellationToken);
-                }
+                await messageReceiver.StopReceive(cancellationToken);
 
                 Log.Info($"Forwarder for batch {forwardingBatchId} finished forwarding all messages.");
 
@@ -158,15 +158,6 @@ namespace ServiceControl.Recoverability
             {
                 throw new Exception("We are in the process of shutting down. Safe to ignore.");
             }
-        }
-
-        string GetErrorQueueTransportAddress(IStartableRawEndpoint startable) => startable.ToTransportAddress(new QueueAddress(errorQueue));
-
-        public Task Stop()
-        {
-            timer.Dispose();
-            endedPrematurely = true;
-            return StopInternal();
         }
 
         async Task StopInternal()
@@ -192,14 +183,18 @@ namespace ServiceControl.Recoverability
         int actualMessageCount;
         Predicate<MessageContext> shouldProcess;
         CaptureIfMessageSendingFails faultManager;
-        Func<RawEndpointConfiguration> createEndpointConfiguration;
         ReturnToSender returnToSender;
         readonly string errorQueue;
         string errorQueueTransportAddress;
+        readonly ITransportCustomization transportCustomization;
+        readonly TransportSettings transportSettings;
+        TransportInfrastructure transportInfrastructure;
+        IMessageDispatcher messageDispatcher;
+        IMessageReceiver messageReceiver;
 
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSenderDequeuer));
 
-        class CaptureIfMessageSendingFails : IErrorHandlingPolicy
+        class CaptureIfMessageSendingFails
         {
             public CaptureIfMessageSendingFails(IErrorMessageDataStore dataStore, IDomainEvents domainEvents, Action executeOnFailure)
             {
@@ -208,22 +203,23 @@ namespace ServiceControl.Recoverability
                 this.domainEvents = domainEvents;
             }
 
-            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IMessageDispatcher dispatcher, CancellationToken cancellationToken = default)
+            public async Task<ErrorHandleResult> OnError(ErrorContext errorContext, CancellationToken cancellationToken = default)
             {
+                _ = cancellationToken; //TODO we should probably use this somewhere?
+
                 try
                 {
-                    var message = handlingContext.Error.Message;
+                    var message = errorContext.Message;
                     var destination = message.Headers["ServiceControl.TargetEndpointAddress"];
                     var messageUniqueId = message.Headers["ServiceControl.Retry.UniqueMessageId"];
-                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", handlingContext.Error.Exception);
+                    Log.Warn($"Failed to send '{messageUniqueId}' message to '{destination}' for retry. Attempting to revert message status to unresolved so it can be tried again.", errorContext.Exception);
 
                     await dataStore.RevertRetry(messageUniqueId);
-
 
                     string reason;
                     try
                     {
-                        reason = handlingContext.Error.Exception.GetBaseException().Message;
+                        reason = errorContext.Exception.GetBaseException().Message;
                     }
                     catch (Exception)
                     {

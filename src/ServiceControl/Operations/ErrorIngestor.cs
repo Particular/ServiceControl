@@ -23,9 +23,12 @@
             IEnumerable<IEnrichImportedErrorMessages> errorEnrichers,
             IEnumerable<IFailedMessageEnricher> failedMessageEnrichers,
             IDomainEvents domainEvents,
-            IIngestionUnitOfWorkFactory unitOfWorkFactory, Settings settings)
+            IIngestionUnitOfWorkFactory unitOfWorkFactory,
+            Lazy<IMessageDispatcher> messageDispatcher,
+            Settings settings)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
+            this.messageDispatcher = messageDispatcher;
             this.settings = settings;
 
             bulkInsertDurationMeter = metrics.GetMeter("Error ingestion - bulk insert duration", FrequencyInMilliseconds);
@@ -43,7 +46,7 @@
             retryConfirmationProcessor = new RetryConfirmationProcessor(domainEvents);
         }
 
-        public async Task Ingest(List<MessageContext> contexts, IMessageDispatcher dispatcher)
+        public async Task Ingest(List<MessageContext> contexts)
         {
             var failedMessages = new List<MessageContext>(contexts.Count);
             var retriedMessages = new List<MessageContext>(contexts.Count);
@@ -79,14 +82,14 @@
 
                 if (settings.ForwardErrorMessages)
                 {
-                    if (log.IsDebugEnabled)
+                    if (Logger.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarding {contexts.Count} messages");
+                        Logger.Debug($"Forwarding {contexts.Count} messages");
                     }
-                    await Forward(storedFailed, dispatcher);
-                    if (log.IsDebugEnabled)
+                    await Forward(storedFailed);
+                    if (Logger.IsDebugEnabled)
                     {
-                        log.Debug("Forwarded messages");
+                        Logger.Debug("Forwarded messages");
                     }
                 }
 
@@ -97,9 +100,9 @@
             }
             catch (Exception e)
             {
-                if (log.IsWarnEnabled)
+                if (Logger.IsWarnEnabled)
                 {
-                    log.Warn("Forwarding messages failed", e);
+                    Logger.Warn("Forwarding messages failed", e);
                 }
 
                 // making sure to rethrow so that all messages get marked as failed
@@ -111,9 +114,9 @@
         {
             var stopwatch = Stopwatch.StartNew();
 
-            if (log.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                log.Debug($"Batch size {failedMessageContexts.Count}");
+                Logger.Debug($"Batch size {failedMessageContexts.Count}");
             }
 
             try
@@ -132,9 +135,9 @@
             }
             catch (Exception e)
             {
-                if (log.IsWarnEnabled)
+                if (Logger.IsWarnEnabled)
                 {
-                    log.Warn("Bulk insertion failed", e);
+                    Logger.Warn("Bulk insertion failed", e);
                 }
 
                 // making sure to rethrow so that all messages get marked as failed
@@ -143,14 +146,14 @@
             finally
             {
                 stopwatch.Stop();
-                if (log.IsDebugEnabled)
+                if (Logger.IsDebugEnabled)
                 {
-                    log.Debug($"Batch size {failedMessageContexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
+                    Logger.Debug($"Batch size {failedMessageContexts.Count} took {stopwatch.ElapsedMilliseconds} ms");
                 }
             }
         }
 
-        Task Forward(IReadOnlyCollection<MessageContext> messageContexts, IMessageDispatcher dispatcher)
+        Task Forward(IReadOnlyCollection<MessageContext> messageContexts)
         {
             var transportOperations = new TransportOperation[messageContexts.Count]; //We could allocate based on the actual number of ProcessedMessages but this should be OK
             var index = 0;
@@ -171,26 +174,25 @@
             }
 
             return anyContext != null
-                ? dispatcher.Dispatch(
+                ? messageDispatcher.Value.Dispatch(
                     new TransportOperations(transportOperations),
                     anyContext.TransportTransaction)
                 : Task.CompletedTask;
         }
 
-        public async Task VerifyCanReachForwardingAddress(IMessageDispatcher dispatcher)
+        public async Task VerifyCanReachForwardingAddress()
         {
             try
             {
                 var transportOperations = new TransportOperations(
                     new TransportOperation(
                         new OutgoingMessage(Guid.Empty.ToString("N"),
-                            new Dictionary<string, string>(),
-                            new byte[0]),
+                            new Dictionary<string, string>(), Array.Empty<byte>()),
                         new UnicastAddressTag(settings.ErrorLogQueue)
                     )
                 );
 
-                await dispatcher.Dispatch(transportOperations, new TransportTransaction());
+                await messageDispatcher.Value.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception e)
             {
@@ -201,8 +203,9 @@
         readonly IIngestionUnitOfWorkFactory unitOfWorkFactory;
         readonly Meter bulkInsertDurationMeter;
         readonly Settings settings;
-        ErrorProcessor errorProcessor;
+        readonly ErrorProcessor errorProcessor;
+        readonly Lazy<IMessageDispatcher> messageDispatcher;
         readonly RetryConfirmationProcessor retryConfirmationProcessor;
-        static ILog log = LogManager.GetLogger<ErrorIngestor>();
+        static readonly ILog Logger = LogManager.GetLogger<ErrorIngestor>();
     }
 }

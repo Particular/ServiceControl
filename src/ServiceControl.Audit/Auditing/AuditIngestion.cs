@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -61,11 +62,16 @@
 
         public Task StartAsync(CancellationToken _) => watchdog.Start(() => applicationLifetime.StopApplication());
 
-        public async Task StopAsync(CancellationToken _)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             await watchdog.Stop();
             channel.Writer.Complete();
             await ingestionWorker;
+
+            if (transportInfrastructure != null)
+            {
+                await transportInfrastructure.Shutdown(cancellationToken);
+            }
         }
 
         FailedAuditImport FailedMessageFactory(FailedTransportMessage msg)
@@ -97,7 +103,7 @@
                         var stoppable = queueIngestor;
                         queueIngestor = null;
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down commencing");
-                        await stoppable.Stop();
+                        await stoppable.StopReceive(cancellationToken);
                         logger.Info("Shutting down due to failed persistence health check. Infrastructure shut down completed");
                     }
                     return;
@@ -111,18 +117,19 @@
 
                 logger.Info("Ensure started. Infrastructure starting");
 
-                queueIngestor = await transportCustomization.InitializeQueueIngestor(
+                transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError);
+                    OnCriticalError,
+                    TransportTransactionMode.ReceiveOnly);
 
-                dispatcher = await transportCustomization.InitializeDispatcher(inputEndpoint, transportSettings);
+                queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
 
-                await auditIngestor.VerifyCanReachForwardingAddress(dispatcher);
+                await auditIngestor.VerifyCanReachForwardingAddress();
 
-                await queueIngestor.Start();
+                await queueIngestor.StartReceive(cancellationToken);
 
                 logger.Info("Ensure started. Infrastructure started");
             }
@@ -130,7 +137,8 @@
             {
                 if (queueIngestor != null)
                 {
-                    await queueIngestor.Stop();
+                    // TODO NSB8 can raise cancellation exception
+                    await queueIngestor.StopReceive(cancellationToken);
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
@@ -161,9 +169,10 @@
                 var stoppable = queueIngestor;
                 queueIngestor = null;
                 logger.Info("Shutting down. Infrastructure shut down commencing");
-                await stoppable.Stop();
+                await stoppable.StopReceive(cancellationToken);
                 logger.Info("Shutting down. Infrastructure shut down completed");
             }
+            // TODO NSB8 catch cancellation?
             finally
             {
                 logger.Info("Shutting down. Start/stop semaphore releasing");
@@ -172,7 +181,7 @@
             }
         }
 
-        async Task OnMessage(MessageContext messageContext)
+        async Task OnMessage(MessageContext messageContext, CancellationToken cancellationToken)
         {
             if (settings.MessageFilter != null && settings.MessageFilter(messageContext))
             {
@@ -184,7 +193,7 @@
 
             receivedMeter.Mark();
 
-            await channel.Writer.WriteAsync(messageContext);
+            await channel.Writer.WriteAsync(messageContext, cancellationToken);
             await taskCompletionSource.Task;
         }
 
@@ -206,7 +215,7 @@
                     batchSizeMeter.Mark(contexts.Count);
                     using (batchDurationMeter.Measure())
                     {
-                        await auditIngestor.Ingest(contexts, dispatcher);
+                        await auditIngestor.Ingest(contexts);
                     }
                 }
                 catch (OperationCanceledException)
@@ -235,8 +244,8 @@
             // will fall out here when writer is completed
         }
 
-        IQueueIngestor queueIngestor;
-        IMessageDispatcher dispatcher;
+        TransportInfrastructure transportInfrastructure;
+        IMessageReceiver queueIngestor;
 
         readonly SemaphoreSlim startStopSemaphore = new SemaphoreSlim(1);
         readonly string inputEndpoint;

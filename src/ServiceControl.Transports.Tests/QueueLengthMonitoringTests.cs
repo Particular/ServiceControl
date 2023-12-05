@@ -24,9 +24,7 @@
                 }
             });
 
-            var dispatcher = await CreateDispatcher(queueName);
-
-            await dispatcher.SendTestMessage(queueName, "some content");
+            await Dispatcher.SendTestMessage(queueName, "some content");
 
             var queueLengthEntry = await onQueueLengthEntryReceived.Task;
 

@@ -144,7 +144,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             IHost host;
@@ -246,7 +246,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings);
-                await setupBootstrapper.Run(null);
+                await setupBootstrapper.Run();
             }
 
             var configuration = new EndpointConfiguration(instanceName);

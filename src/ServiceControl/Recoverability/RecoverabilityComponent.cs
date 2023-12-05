@@ -14,13 +14,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
-    using NServiceBus.Transport;
     using Operations;
     using Particular.ServiceControl;
     using Persistence;
     using Retrying;
     using ServiceBus.Management.Infrastructure.Settings;
-    using Transports;
 
     class RecoverabilityComponent : ServiceControlComponent
     {
@@ -49,7 +47,7 @@
 
                 //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
                 collection.AddSingleton<ReturnToSenderDequeuer>();
-                collection.AddHostedService<ReturnToSenderDequeuer>();
+                collection.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
 
                 //Error importer
                 collection.AddSingleton<ErrorIngestor>();
@@ -255,44 +253,36 @@
             public ProcessRetryBatchesHostedService(
                 RetryProcessor processor,
                 Settings settings,
-                IAsyncTimer scheduler,
-                ITransportCustomization transportCustomization,
-                TransportSettings transportSettings)
+                IAsyncTimer scheduler)
             {
                 this.processor = processor;
                 this.settings = settings;
                 this.scheduler = scheduler;
-                this.transportCustomization = transportCustomization;
-                this.transportSettings = transportSettings;
             }
 
-            public async Task StartAsync(CancellationToken cancellationToken)
+            public Task StartAsync(CancellationToken cancellationToken)
             {
-                dispatcher = await transportCustomization.InitializeDispatcher("RetryProcessor", transportSettings);
-
                 timer = scheduler.Schedule(Process, TimeSpan.Zero, settings.ProcessRetryBatchesFrequency, e => { log.Error("Unhandled exception while processing retry batches", e); });
+                return Task.CompletedTask;
             }
 
-            public Task StopAsync(CancellationToken cancellationToken)
+            public async Task StopAsync(CancellationToken cancellationToken)
             {
-                return timer.Stop();
+                await timer.Stop();
             }
 
             async Task<TimerJobExecutionResult> Process(CancellationToken cancellationToken)
             {
-                var batchesProcessed = await processor.ProcessBatches(dispatcher, cancellationToken);
+                var batchesProcessed = await processor.ProcessBatches(cancellationToken);
                 return batchesProcessed ? TimerJobExecutionResult.ExecuteImmediately : TimerJobExecutionResult.ScheduleNextExecution;
             }
 
             readonly Settings settings;
             readonly IAsyncTimer scheduler;
-            readonly ITransportCustomization transportCustomization;
-            readonly TransportSettings transportSettings;
             TimerJob timer;
 
             RetryProcessor processor;
             static ILog log = LogManager.GetLogger(typeof(ProcessRetryBatchesHostedService));
-            IMessageDispatcher dispatcher;
         }
     }
 }

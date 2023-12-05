@@ -16,22 +16,16 @@ namespace ServiceControl.Audit.Auditing
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
             AuditIngestor auditIngestor,
-            Settings settings,
-            ITransportCustomization transportCustomization,
-            TransportSettings transportSettings)
+            Settings settings)
         {
             this.settings = settings;
             this.failedAuditStore = failedAuditStore;
             this.auditIngestor = auditIngestor;
-            this.transportCustomization = transportCustomization;
-            this.transportSettings = transportSettings;
         }
 
         public async Task Run(CancellationToken cancellationToken = default)
         {
-            var dispatcher = await transportCustomization.InitializeDispatcher("ImportFailedAudits", transportSettings);
-
-            await auditIngestor.VerifyCanReachForwardingAddress(dispatcher);
+            await auditIngestor.VerifyCanReachForwardingAddress();
 
             var succeeded = 0;
             var failed = 0;
@@ -45,7 +39,7 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext }, dispatcher);
+                            await auditIngestor.Ingest(new List<MessageContext> { messageContext });
 
                             await taskCompletionSource.Task;
 
@@ -78,8 +72,6 @@ namespace ServiceControl.Audit.Auditing
 
         readonly IFailedAuditStorage failedAuditStore;
         readonly AuditIngestor auditIngestor;
-        readonly ITransportCustomization transportCustomization;
-        readonly TransportSettings transportSettings;
         readonly Settings settings;
 
         static readonly TransportTransaction EmptyTransaction = new TransportTransaction();

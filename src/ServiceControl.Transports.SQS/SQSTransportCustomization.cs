@@ -14,45 +14,20 @@
 
     public class SQSTransportCustomization : TransportCustomization<SqsTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-            //Do not ConfigurePubSub for send-only endpoint
-        }
-
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings)
         {
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        //Do not ConfigurePubSub for send-only endpoint
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
-        protected override void CustomizeForQueueIngestion(SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
-        protected override void CustomizeForReturnToSenderIngestion(SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqsTransport transportDefinition, TransportSettings transportSettings) { }
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override SqsTransport CreateTransport(TransportSettings transportSettings)
+        protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
@@ -84,11 +59,7 @@
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
 
-            var transport =
-                new SqsTransport(sqsClient, snsClient)
-                {
-                    TransportTransactionMode = TransportTransactionMode.ReceiveOnly
-                };
+            var transport = new SqsTransport(sqsClient, snsClient);
 
             if (builder.TryGetValue("QueueNamePrefix", out object queueNamePrefix))
             {
@@ -126,8 +97,7 @@
                     }
                     else
                     {
-                        log.Info(
-                            "BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
+                        log.Info("BasicAWSCredentials have not been supplied in the connection string. Attempting to use existing environment or IAM role credentials for S3 Client.");
                         s3Client = new AmazonS3Client();
                     }
 
@@ -140,6 +110,8 @@
             {
                 transport.DoNotWrapOutgoingMessages = doNotWrapOutgoingMessagesAsBool;
             }
+
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }

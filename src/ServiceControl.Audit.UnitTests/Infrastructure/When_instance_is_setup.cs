@@ -8,7 +8,6 @@
     using Audit.Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
-    using NServiceBus.Raw;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Persistence;
@@ -20,7 +19,6 @@
         public async Task Should_provision_queues()
         {
             var instanceInputQueueName = "SomeInstanceQueue";
-            var userName = "SomeUser";
 
             var settings = new Settings(instanceInputQueueName, typeof(FakeTransport).AssemblyQualifiedName, typeof(FakePersistenceConfiguration).AssemblyQualifiedName)
             {
@@ -29,9 +27,8 @@
 
             var setupBootstrapper = new SetupBootstrapper(settings);
 
-            await setupBootstrapper.Run(userName);
+            await setupBootstrapper.Run();
 
-            Assert.AreEqual(userName, FakeTransport.UserNameUsed);
             CollectionAssert.AreEquivalent(new[]
             {
                 instanceInputQueueName,
@@ -44,18 +41,12 @@
 
     class FakeTransport : ITransportCustomization
     {
-        public static string UserNameUsed;
         public static IList<string> QueuesCreated;
 
-        public RawEndpointConfiguration CreateRawEndpointForReturnToSenderIngestion(string name,
-            Func<MessageContext, IMessageDispatcher, CancellationToken, Task> onMessage,
-            TransportSettings transportSettings) =>
-            throw new NotImplementedException();
-
-        public void CustomizeServiceControlEndpoint(EndpointConfiguration endpointConfiguration,
+        public void CustomizePrimaryEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
-        public void CustomizeSendOnlyEndpoint(EndpointConfiguration endpointConfiguration,
+        public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration,
             TransportSettings transportSettings) => throw new NotImplementedException();
 
         public void CustomizeMonitoringEndpoint(EndpointConfiguration endpointConfiguration,
@@ -63,18 +54,9 @@
 
         public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
 
-        public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
-            throw new NotImplementedException();
-
-        public Task<IQueueIngestor> InitializeQueueIngestor(string queueName, TransportSettings transportSettings,
-            Func<MessageContext, Task> onMessage, Func<ErrorContext, Task<ErrorHandleResult>> onError,
-            Func<string, Exception, Task> onCriticalError) =>
-            throw new NotImplementedException();
-
-        public Task ProvisionQueues(string username, TransportSettings transportSettings,
+        public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
         {
-            UserNameUsed = username;
             QueuesCreated = new List<string>(additionalQueues)
             {
                 transportSettings.EndpointName,
@@ -82,6 +64,11 @@
             };
             return Task.CompletedTask;
         }
+
+        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null,
+            OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
+            TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
+            throw new NotImplementedException();
     }
 
     class FakePersistenceConfiguration : IPersistenceConfiguration

@@ -20,7 +20,7 @@
 
             await StartQueueIngestor(
                  queueName,
-                 (_) =>
+                 (_, __) =>
                  {
                      numMessagesIngested++;
 
@@ -31,13 +31,11 @@
 
                      return Task.CompletedTask;
                  },
-                 (_) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
-
-            var dispatcher = await CreateDispatcher(queueName);
+                 (_, __) => { Assert.Fail("There should be no errors"); return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled); });
 
             for (int i = 0; i < numMessagesToIngest; i++)
             {
-                await dispatcher.SendTestMessage(queueName, $"message{i}");
+                await Dispatcher.SendTestMessage(queueName, $"message{i}");
             }
 
             var allMessagesProcessed = await onMessagesProcessed.Task;
@@ -56,16 +54,14 @@
 
             await StartQueueIngestor(
                 queueName,
-                (_) => throw new System.Exception("Some failure"),
-                (_) =>
+                (_, __) => throw new System.Exception("Some failure"),
+                (_, __) =>
                 {
                     onErrorCalled.SetResult(true);
                     return Task.FromResult(NServiceBus.Transport.ErrorHandleResult.Handled);
                 });
 
-            var dispatcher = await CreateDispatcher(queueName);
-
-            await dispatcher.SendTestMessage(queueName, $"some failing message");
+            await Dispatcher.SendTestMessage(queueName, $"some failing message");
 
             var onErrorWasCalled = await onErrorCalled.Task;
 

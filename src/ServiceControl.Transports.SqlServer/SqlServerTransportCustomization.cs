@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System.Linq;
     using System.Reflection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -8,44 +9,25 @@
 
     public class SqlServerTransportCustomization : TransportCustomization<SqlServerTransport>
     {
-        protected override void CustomizeTransportSpecificSendOnlyEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
-
-        //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
-        protected override void CustomizeTransportSpecificServiceControlEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
-            TransportSettings transportSettings)
+        protected override void CustomizeTransportForPrimaryEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings)
         {
-            CustomizeEndpoint(transportDefinition, transportSettings, TransportTransactionMode.SendsAtomicWithReceive);
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
             var routing = new RoutingSettings(endpointConfiguration.GetSettings());
             routing.EnableMessageDrivenPubSubCompatibilityMode();
         }
 
-        protected override void CustomizeRawSendOnlyEndpoint(SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            CustomizeRawEndpoint(transportDefinition, TransportTransactionMode.ReceiveOnly);
+        //Do not EnableMessageDrivenPubSubCompatibilityMode for send-only endpoint
+        protected override void CustomizeTransportForAuditEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeForQueueIngestion(SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            CustomizeRawEndpoint(transportDefinition, TransportTransactionMode.ReceiveOnly);
-
-        protected override void CustomizeTransportSpecificMonitoringEndpointSettings(
-            EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            CustomizeEndpoint(transportDefinition, transportSettings, TransportTransactionMode.ReceiveOnly);
-
-        protected override void CustomizeForReturnToSenderIngestion(SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) => CustomizeRawEndpoint(transportDefinition,
-            TransportTransactionMode.SendsAtomicWithReceive);
+        protected override void CustomizeTransportForMonitoringEndpoint(EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition, TransportSettings transportSettings) =>
+            transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override SqlServerTransport CreateTransport(TransportSettings transportSettings)
+        protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
-            var connectionString = transportSettings.ConnectionString
-                .RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
+            var connectionString = transportSettings.ConnectionString.RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
 
             var transport = new SqlServerTransport(connectionString);
 
@@ -54,8 +36,7 @@
             if (customSchema != null)
             {
                 transport.DefaultSchema = customSchema;
-                subscriptions.SubscriptionTableName =
-                    new SubscriptionTableName(defaultSubscriptionTableName, customSchema);
+                subscriptions.SubscriptionTableName = new SubscriptionTableName(defaultSubscriptionTableName, customSchema);
             }
 
             if (subscriptionsTableSetting != null)
@@ -68,33 +49,17 @@
                         subscriptionsAddress.Catalog);
             }
 
-            return transport;
-        }
-
-        static void CustomizeEndpoint(SqlServerTransport transport, TransportSettings transportSettings,
-            TransportTransactionMode transportTransactionMode)
-        {
             if (transportSettings.GetOrDefault<bool>("TransportSettings.EnableDtc"))
             {
-                Logger.Error(
-                    "The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
+                Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
             // TODO NSB8 replace with UnsafeAccessor?
-            transport.GetType().GetProperty("DisableDelayedDelivery", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(transport, true);
+            transport.GetType().GetProperty("DisableDelayedDelivery", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(transport, true);
 
-            transport.TransportTransactionMode = transportTransactionMode;
-        }
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
-        static void CustomizeRawEndpoint(SqlServerTransport transport,
-            TransportTransactionMode transportTransactionMode)
-        {
-            // TODO NSB8 replace with UnsafeAccessor?
-            transport.GetType().GetProperty("DisableDelayedDelivery", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(transport, true);
-
-            transport.TransportTransactionMode = transportTransactionMode;
+            return transport;
         }
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
