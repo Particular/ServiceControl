@@ -22,7 +22,7 @@
 
         Task ProvisionQueues(TransportSettings transportSettings, IEnumerable<string> additionalQueues);
 
-        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null);
+        Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
     }
 
     public abstract class TransportCustomization<TTransport> : ITransportCustomization where TTransport : TransportDefinition
@@ -44,7 +44,7 @@
         public void CustomizeAuditEndpoint(EndpointConfiguration endpointConfiguration, TransportSettings transportSettings)
         {
             ConfigureDefaultEndpointSettings(endpointConfiguration, transportSettings);
-            var transport = CreateTransport(transportSettings);
+            var transport = CreateTransport(transportSettings, TransportTransactionMode.ReceiveOnly);
             endpointConfiguration.UseTransport(transport);
             CustomizeTransportForAuditEndpoint(endpointConfiguration, transport, transportSettings);
 
@@ -97,14 +97,9 @@
             await transportInfrastructure.Shutdown();
         }
 
-        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null)
+        public async Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
-            var transport = CreateTransport(transportSettings);
-
-            if (customizeForReturnToSenderIngestion)
-            {
-                CustomizeForReturnToSenderIngestion(transport, transportSettings);
-            }
+            var transport = CreateTransport(transportSettings, preferredTransactionMode);
 
             if (onCriticalError == null)
             {
@@ -143,8 +138,6 @@
             return transportInfrastructure;
         }
 
-        protected abstract void CustomizeForReturnToSenderIngestion(TTransport transportDefinition, TransportSettings transportSettings);
-
-        protected abstract TTransport CreateTransport(TransportSettings transportSettings);
+        protected abstract TTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly);
     }
 }

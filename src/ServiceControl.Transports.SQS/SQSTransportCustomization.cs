@@ -35,14 +35,9 @@
         {
         }
 
-        protected override void CustomizeForReturnToSenderIngestion(SqsTransport transportDefinition,
-            TransportSettings transportSettings)
-        {
-        }
-
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override SqsTransport CreateTransport(TransportSettings transportSettings)
+        protected override SqsTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var builder = new DbConnectionStringBuilder { ConnectionString = transportSettings.ConnectionString };
 
@@ -74,11 +69,7 @@
                 snsClient = new AmazonSimpleNotificationServiceClient();
             }
 
-            var transport =
-                new SqsTransport(sqsClient, snsClient)
-                {
-                    TransportTransactionMode = TransportTransactionMode.ReceiveOnly
-                };
+            var transport = new SqsTransport(sqsClient, snsClient);
 
             if (builder.TryGetValue("QueueNamePrefix", out object queueNamePrefix))
             {
@@ -131,6 +122,7 @@
                 transport.DoNotWrapOutgoingMessages = doNotWrapOutgoingMessagesAsBool;
             }
 
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
             return transport;
         }
 

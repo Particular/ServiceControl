@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.Learning
 {
     using System;
+    using System.Linq;
     using LearningTransport;
     using NServiceBus;
 
@@ -21,20 +22,17 @@
             TransportSettings transportSettings) =>
             transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeForReturnToSenderIngestion(LearningTransport transportDefinition,
-            TransportSettings transportSettings) =>
-            transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
-
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override LearningTransport CreateTransport(TransportSettings transportSettings)
+        protected override LearningTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var transport = new LearningTransport
             {
                 StorageDirectory = Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString),
                 RestrictPayloadSize = false,
-                TransportTransactionMode = TransportTransactionMode.ReceiveOnly
             };
+
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }

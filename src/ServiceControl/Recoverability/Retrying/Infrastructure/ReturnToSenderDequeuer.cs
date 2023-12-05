@@ -5,6 +5,7 @@ namespace ServiceControl.Recoverability
     using System.Threading.Tasks;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -29,7 +30,7 @@ namespace ServiceControl.Recoverability
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, true, Handle, faultManager.OnError, (_, __) => Task.CompletedTask);
+            transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(InputAddress, transportSettings, Handle, faultManager.OnError, (_, __) => Task.CompletedTask, TransportTransactionMode.SendsAtomicWithReceive);
             messageReceiver = transportInfrastructure.Receivers[InputAddress];
             messageDispatcher = transportInfrastructure.Dispatcher;
 

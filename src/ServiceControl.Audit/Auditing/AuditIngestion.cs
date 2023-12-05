@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Infrastructure.Settings;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -119,10 +120,10 @@
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     inputEndpoint,
                     transportSettings,
-                    false,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError);
+                    OnCriticalError,
+                    TransportTransactionMode.ReceiveOnly);
 
                 queueIngestor = transportInfrastructure.Receivers[inputEndpoint];
 

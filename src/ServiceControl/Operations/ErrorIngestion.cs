@@ -9,6 +9,7 @@
     using Infrastructure;
     using Infrastructure.Metrics;
     using Microsoft.Extensions.Hosting;
+    using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
@@ -145,10 +146,10 @@
                 transportInfrastructure = await transportCustomization.CreateTransportInfrastructure(
                     errorQueue,
                     transportSettings,
-                    false,
                     OnMessage,
                     errorHandlingPolicy.OnError,
-                    OnCriticalError);
+                    OnCriticalError,
+                    TransportTransactionMode.ReceiveOnly);
 
                 messageReceiver = transportInfrastructure.Receivers[errorQueue];
 

@@ -54,9 +54,6 @@
 
         public IProvideQueueLength CreateQueueLengthProvider() => throw new NotImplementedException();
 
-        public Task<IMessageDispatcher> InitializeDispatcher(string name, TransportSettings transportSettings) =>
-            throw new NotImplementedException();
-
         public Task ProvisionQueues(TransportSettings transportSettings,
             IEnumerable<string> additionalQueues)
         {
@@ -68,7 +65,10 @@
             return Task.CompletedTask;
         }
 
-        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, bool customizeForReturnToSenderIngestion = false, OnMessage onMessage = null, OnError onError = null, Func<string, Exception, Task> onCriticalError = null) => throw new NotImplementedException();
+        public Task<TransportInfrastructure> CreateTransportInfrastructure(string name, TransportSettings transportSettings, OnMessage onMessage = null,
+            OnError onError = null, Func<string, Exception, Task> onCriticalError = null,
+            TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly) =>
+            throw new NotImplementedException();
     }
 
     class FakePersistenceConfiguration : IPersistenceConfiguration

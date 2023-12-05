@@ -116,7 +116,6 @@
             transportInfrastructure = await configuration.TransportCustomization.CreateTransportInfrastructure(
                 queueName,
                 transportSettings,
-                false,
                 onMessage,
                 onError,
                 (_, __) =>

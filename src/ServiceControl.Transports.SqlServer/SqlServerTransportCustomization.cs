@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Transports.SqlServer
 {
+    using System.Linq;
     using System.Reflection;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -27,17 +28,14 @@
             EndpointConfiguration endpointConfiguration, SqlServerTransport transportDefinition,
             TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.ReceiveOnly;
 
-        protected override void CustomizeForReturnToSenderIngestion(SqlServerTransport transportDefinition,
-            TransportSettings transportSettings) => transportDefinition.TransportTransactionMode = TransportTransactionMode.SendsAtomicWithReceive;
-
         public override IProvideQueueLength CreateQueueLengthProvider() => new QueueLengthProvider();
 
-        protected override SqlServerTransport CreateTransport(TransportSettings transportSettings)
+        protected override SqlServerTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var connectionString = transportSettings.ConnectionString
                 .RemoveCustomConnectionStringParts(out var customSchema, out var subscriptionsTableSetting);
 
-            var transport = new SqlServerTransport(connectionString) { TransportTransactionMode = TransportTransactionMode.ReceiveOnly };
+            var transport = new SqlServerTransport(connectionString);
 
             var subscriptions = transport.Subscriptions;
 
@@ -67,6 +65,8 @@
             // TODO NSB8 replace with UnsafeAccessor?
             transport.GetType().GetProperty("DisableDelayedDelivery", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(transport, true);
+
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }

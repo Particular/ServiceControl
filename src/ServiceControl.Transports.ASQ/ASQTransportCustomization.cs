@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.ASQ
 {
     using System;
+    using System.Linq;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
 
@@ -12,8 +13,6 @@
             TransportSettings transportSettings)
         {
         }
-
-        protected override void CustomizeForReturnToSenderIngestion(AzureStorageQueueTransport transportDefinition, TransportSettings transportSettings) { }
 
         protected override void CustomizeTransportForPrimaryEndpoint(
             EndpointConfiguration endpointConfiguration,
@@ -32,14 +31,13 @@
             //Do not ConfigurePubSub for send-only endpoint
         }
 
-        protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings)
+        protected override AzureStorageQueueTransport CreateTransport(TransportSettings transportSettings, TransportTransactionMode preferredTransactionMode = TransportTransactionMode.ReceiveOnly)
         {
             var connectionString = transportSettings.ConnectionString
                 .RemoveCustomConnectionStringParts(out var subscriptionTableName);
 
             var transport = new AzureStorageQueueTransport(connectionString)
             {
-                TransportTransactionMode = TransportTransactionMode.ReceiveOnly,
                 QueueNameSanitizer = BackwardsCompatibleQueueNameSanitizer.Sanitize,
                 MessageInvisibleTime = TimeSpan.FromMinutes(1)
             };
@@ -51,6 +49,8 @@
 
             transport.MessageWrapperSerializationDefinition = new NewtonsoftJsonSerializer();
             transport.DelayedDelivery.DelayedDeliveryPoisonQueue = transportSettings.ErrorQueue;
+
+            transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }
