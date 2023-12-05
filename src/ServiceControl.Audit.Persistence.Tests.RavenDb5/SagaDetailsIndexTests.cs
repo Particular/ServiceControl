@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
     using Raven.Client.Documents.Indexes;
@@ -59,9 +60,12 @@
             // Execute the operation by passing it to Maintenance.Send
             configuration.DocumentStore.Maintenance.Send(putIndexesOp);
 
-            configuration = new PersistenceTestsConfiguration();
+            await RavenDb.DatabaseSetup.RecreateSagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
-            await configuration.Configure(SetSettings);
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsTrue(sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
         }
 
         [Test]
