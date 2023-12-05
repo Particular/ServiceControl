@@ -180,26 +180,26 @@
             {
                 Id = FailedMessageIdGenerator.MakeDocumentId(id),
                 UniqueMessageId = id,
-                FailureGroups = new List<FailedMessage.FailureGroup>
-                {
+                FailureGroups =
+                [
                     new FailedMessage.FailureGroup
                     {
                         Id = groupId,
                         Title = groupId,
                         Type = groupId
                     }
-                },
+                ],
                 Status = FailedMessageStatus.Unresolved,
-                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                {
+                ProcessingAttempts =
+                [
                     new FailedMessage.ProcessingAttempt
                     {
                         AttemptedAt = DateTime.UtcNow,
-                        MessageMetadata = new Dictionary<string, object>(),
+                        MessageMetadata = [],
                         FailureDetails = new FailureDetails(),
-                        Headers = new Dictionary<string, string>()
+                        Headers = []
                     }
-                }
+                ]
             }).ToArray();
 
             await ErrorStore.StoreFailedMessagesForTestsOnly(messages);

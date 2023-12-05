@@ -169,7 +169,7 @@
             readonly FailedMessageStatus messageStatus;
             string messageType = "SomeMessage";
             string contentType = "application/json";
-            List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = new List<Action<FailedMessage.ProcessingAttempt>>();
+            List<Action<FailedMessage.ProcessingAttempt>> processingAttempts = [];
         }
     }
 }

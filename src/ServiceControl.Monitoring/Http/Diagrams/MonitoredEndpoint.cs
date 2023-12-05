@@ -7,7 +7,7 @@ namespace ServiceControl.Monitoring.Http.Diagrams
         public string Name { get; set; }
         public bool IsStale { get; set; }
         public string[] EndpointInstanceIds { get; set; }
-        public Dictionary<string, MonitoredValues> Metrics { get; } = new Dictionary<string, MonitoredValues>();
+        public Dictionary<string, MonitoredValues> Metrics { get; } = [];
         public int DisconnectedCount { get; set; }
         public int ConnectedCount { get; set; }
     }

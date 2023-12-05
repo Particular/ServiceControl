@@ -7,6 +7,6 @@
         public string Name { get; set; }
         public string Id { get; set; }
         public bool IsStale { get; set; }
-        public Dictionary<string, MonitoredValues> Metrics { get; } = new Dictionary<string, MonitoredValues>();
+        public Dictionary<string, MonitoredValues> Metrics { get; } = [];
     }
 }

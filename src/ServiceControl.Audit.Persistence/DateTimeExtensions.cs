@@ -27,7 +27,7 @@ namespace ServiceControl.Audit.Auditing
                 switch (format[i])
                 {
                     case 'y':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -36,7 +36,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 'M':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -45,7 +45,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 'd':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -54,7 +54,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 'H':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -63,7 +63,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 'm':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -72,7 +72,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 's':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }
@@ -81,7 +81,7 @@ namespace ServiceControl.Audit.Auditing
                         break;
 
                     case 'f':
-                        if (digit < '0' || digit > '9')
+                        if (digit is < '0' or > '9')
                         {
                             throw new FormatException(errorMessage);
                         }

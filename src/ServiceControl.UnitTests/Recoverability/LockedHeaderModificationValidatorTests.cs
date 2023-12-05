@@ -21,7 +21,7 @@
         {
             lockedHeaders = new[] { "NServiceBus.MessageId" };
             editedMessageHeaders = new Dictionary<string, string> { { "NServiceBus.MessageId", "asdf" } };
-            originalMessageHeaders = new Dictionary<string, string>();
+            originalMessageHeaders = [];
             Assert.IsFalse(LockedHeaderModificationValidator.Check(lockedHeaders, editedMessageHeaders, originalMessageHeaders));
         }
 

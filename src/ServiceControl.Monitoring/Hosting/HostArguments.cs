@@ -58,7 +58,7 @@
 
         public bool Portable { get; set; }
 
-        public List<Type> Commands { get; } = new List<Type>();
+        public List<Type> Commands { get; } = [];
 
         public void ApplyOverridesTo(Settings settings)
         {

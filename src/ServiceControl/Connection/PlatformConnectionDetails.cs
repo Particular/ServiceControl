@@ -24,6 +24,6 @@
 
         public IDictionary<string, object> ToDictionary() => values;
 
-        public ConcurrentBag<string> Errors { get; } = new ConcurrentBag<string>();
+        public ConcurrentBag<string> Errors { get; } = [];
     }
 }

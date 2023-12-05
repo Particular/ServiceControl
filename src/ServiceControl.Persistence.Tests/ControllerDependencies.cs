@@ -64,7 +64,7 @@
 
             // Act
             using (var host = hostBuilder
-                       .UseWebApi(new List<Assembly> { assembly }, string.Empty, false)
+                       .UseWebApi([assembly], string.Empty, false)
                        .Build())
             {
                 await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();

@@ -36,6 +36,6 @@
             return mapping.Apply(@event);
         }
 
-        Dictionary<Type, IEventLogMappingDefinition> mappings = new Dictionary<Type, IEventLogMappingDefinition>();
+        Dictionary<Type, IEventLogMappingDefinition> mappings = [];
     }
 }
