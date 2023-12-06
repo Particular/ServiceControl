@@ -5,14 +5,11 @@
 
     static class MetricsHostBuilderExtensions
     {
-        public static IHostBuilder UseMetrics(this IHostBuilder hostBuilder, bool printMetrics)
+        public static IHostApplicationBuilder UseMetrics(this IHostApplicationBuilder hostBuilder, bool printMetrics)
         {
-            hostBuilder.ConfigureServices(sc =>
-            {
-                sc.AddSingleton(new Metrics { Enabled = printMetrics });
-                sc.AddHostedService<MetricsReporterHostedService>();
-            });
-
+            var services= hostBuilder.Services;
+            services.AddSingleton(new Metrics { Enabled = printMetrics });
+            services.AddHostedService<MetricsReporterHostedService>();
             return hostBuilder;
         }
     }

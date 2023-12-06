@@ -6,14 +6,12 @@
 
     static class EmailNotificationHostBuilderExtensions
     {
-        public static IHostBuilder UseEmailNotifications(this IHostBuilder hostBuilder)
+        public static IHostApplicationBuilder UseEmailNotifications(this IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddSingleton<EmailThrottlingState>();
-                collection.AddDomainEventHandler<CustomChecksMailNotification>();
-                collection.AddHostedService<EmailNotificationHostedService>();
-            });
+            var services = hostBuilder.Services;
+            services.AddSingleton<EmailThrottlingState>();
+            services.AddDomainEventHandler<CustomChecksMailNotification>();
+            services.AddHostedService<EmailNotificationHostedService>();
             return hostBuilder;
         }
     }
