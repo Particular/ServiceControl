@@ -12,60 +12,76 @@
     class SagaDetailsIndexTests : PersistenceTestFixture
     {
         [Test]
-        public async Task Deletes_Index_That_Does_Not_Have_Cap_of_50000()
+        public async Task Deletes_index_that_does_not_have_cap_of_50000()
         {
+            await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"));
+
             var indexWithout50000capDefinition = new IndexDefinition
             {
                 Name = "SagaDetailsIndex",
                 Maps = new System.Collections.Generic.HashSet<string>
-                {
-                    @"from doc in docs
-                                         select new
-                                         {
-                                             doc.SagaId,
-                                             Id = doc.SagaId,
-                                             doc.SagaType,
-                                             Changes = new[]
-                                             {
-                        new
-                        {
-                            Endpoint = doc.Endpoint,
-                            FinishTime = doc.FinishTime,
-                            InitiatingMessage = doc.InitiatingMessage,
-                            OutgoingMessages = doc.OutgoingMessages,
-                            StartTime = doc.StartTime,
-                            StateAfterChange = doc.StateAfterChange,
-                            Status = doc.Status
-                        }
-                    }
-}"
-                },
+                            {
+                                @"from doc in docs
+                                                     select new
+                                                     {
+                                                         doc.SagaId,
+                                                         Id = doc.SagaId,
+                                                         doc.SagaType,
+                                                         Changes = new[]
+                                                         {
+                                    new
+                                    {
+                                        Endpoint = doc.Endpoint,
+                                        FinishTime = doc.FinishTime,
+                                        InitiatingMessage = doc.InitiatingMessage,
+                                        OutgoingMessages = doc.OutgoingMessages,
+                                        StartTime = doc.StartTime,
+                                        StateAfterChange = doc.StateAfterChange,
+                                        Status = doc.Status
+                                    }
+                                }
+            }"
+                            },
                 Reduce = @"from result in results
-                                group result by result.SagaId
-                into g
-                                let first = g.First()
-                                select new
-                                {
-                                    Id = first.SagaId,
-                                    SagaId = first.SagaId,
-                                    SagaType = first.SagaType,
-                                    Changes = g.SelectMany(x => x.Changes)
-                                        .OrderByDescending(x => x.FinishTime)
-                                        .ToList()
-                                }"
+                                            group result by result.SagaId
+                            into g
+                                            let first = g.First()
+                                            select new
+                                            {
+                                                Id = first.SagaId,
+                                                SagaId = first.SagaId,
+                                                SagaType = first.SagaType,
+                                                Changes = g.SelectMany(x => x.Changes)
+                                                    .OrderByDescending(x => x.FinishTime)
+                                                    .ToList()
+                                            }"
             };
 
             var putIndexesOp = new PutIndexesOperation(indexWithout50000capDefinition);
 
-            // Execute the operation by passing it to Maintenance.Send
-            configuration.DocumentStore.Maintenance.Send(putIndexesOp);
+            await configuration.DocumentStore.Maintenance.SendAsync(putIndexesOp);
 
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
+
+            await RavenDb.DatabaseSetup.RecreateSagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+
+            sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsNull(sagaDetailsIndexDefinition);
+        }
+
+        [Test]
+        public async Task Does_not_delete_index_that_does_have_cap_of_50000()
+        {
             await RavenDb.DatabaseSetup.RecreateSagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
-            Assert.IsTrue(sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"), "The SagaDetails index definition does not contain a .Take(50000) to limit the number of saga state changes that are reduced by the map/reduce");
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
         }
 
         [Test]
