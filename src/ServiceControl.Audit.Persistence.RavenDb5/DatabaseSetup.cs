@@ -48,7 +48,7 @@
                 new SagaDetailsIndex()
             };
 
-            await RecreateSagaDetailsIndex(documentStore, cancellationToken).ConfigureAwait(false);
+            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken).ConfigureAwait(false);
 
             if (configuration.EnableFullTextSearch)
             {
@@ -76,7 +76,7 @@
                 .ConfigureAwait(false);
         }
 
-        public static async Task RecreateSagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
+        public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
         {
             // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
             // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.

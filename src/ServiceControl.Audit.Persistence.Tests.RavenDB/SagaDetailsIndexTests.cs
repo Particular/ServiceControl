@@ -1,13 +1,86 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Configuration;
+    using System.Threading;
     using System.Threading.Tasks;
+    using global::Raven.Abstractions.Indexing;
     using NUnit.Framework;
+    using ServiceControl.Audit.Persistence.RavenDb;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
     class SagaDetailsIndexTests : PersistenceTestFixture
     {
+        [Test]
+        public void Deletes_index_that_does_not_have_cap_of_50000()
+        {
+            configuration.DocumentStore.DatabaseCommands.DeleteIndex("SagaDetailsIndex");
+
+            var indexWithout50000capDefinition = new IndexDefinition
+            {
+                Name = "SagaDetailsIndex",
+                Maps = new System.Collections.Generic.HashSet<string>
+                            {
+                                @"from doc in docs
+                                                     select new
+                                                     {
+                                                         doc.SagaId,
+                                                         Id = doc.SagaId,
+                                                         doc.SagaType,
+                                                         Changes = new[]
+                                                         {
+                                    new
+                                    {
+                                        Endpoint = doc.Endpoint,
+                                        FinishTime = doc.FinishTime,
+                                        InitiatingMessage = doc.InitiatingMessage,
+                                        OutgoingMessages = doc.OutgoingMessages,
+                                        StartTime = doc.StartTime,
+                                        StateAfterChange = doc.StateAfterChange,
+                                        Status = doc.Status
+                                    }
+                                }
+            }"
+                            },
+                Reduce = @"from result in results
+                                            group result by result.SagaId
+                            into g
+                                            let first = g.First()
+                                            select new
+                                            {
+                                                Id = first.SagaId,
+                                                SagaId = first.SagaId,
+                                                SagaType = first.SagaType,
+                                                Changes = g.SelectMany(x => x.Changes)
+                                                    .OrderByDescending(x => x.FinishTime)
+                                                    .ToList()
+                                            }"
+            };
+
+            configuration.DocumentStore.DatabaseCommands.PutIndex("SagaDetailsIndex", indexWithout50000capDefinition);
+
+            var sagaDetailsIndexDefinition = configuration.DocumentStore.DatabaseCommands.GetIndex("SagaDetailsIndex");
+
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
+
+            RavenDbInstaller.DeleteLegacySagaDetailsIndex(configuration.DocumentStore);
+
+            sagaDetailsIndexDefinition = configuration.DocumentStore.DatabaseCommands.GetIndex("SagaDetailsIndex");
+
+            Assert.IsNull(sagaDetailsIndexDefinition);
+        }
+
+        [Test]
+        public void Does_not_delete_index_that_does_have_cap_of_50000()
+        {
+            RavenDbInstaller.DeleteLegacySagaDetailsIndex(configuration.DocumentStore);
+
+            var sagaDetailsIndexDefinition = configuration.DocumentStore.DatabaseCommands.GetIndex("SagaDetailsIndex");
+
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
+        }
+
         [Test]
         public async Task Should_only_reduce_the_last_50000_saga_state_changes()
         {
