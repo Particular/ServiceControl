@@ -66,7 +66,7 @@
 
             Assert.IsNotNull(sagaDetailsIndexDefinition);
 
-            await RavenDb.DatabaseSetup.RecreateSagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+            await RavenDb.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
             sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
 
@@ -76,7 +76,7 @@
         [Test]
         public async Task Does_not_delete_index_that_does_have_cap_of_50000()
         {
-            await RavenDb.DatabaseSetup.RecreateSagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+            await RavenDb.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
 
             var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
             var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
