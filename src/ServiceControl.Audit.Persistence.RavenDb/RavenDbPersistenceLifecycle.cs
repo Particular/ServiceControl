@@ -22,6 +22,8 @@
             documentStore.Initialize();
             Logger.Info("Database initialization complete");
 
+            RavenDbInstaller.DeleteLegacySagaDetailsIndex(documentStore);
+
             Logger.Info("Index creation started");
             var indexProvider = ravenStartup.CreateIndexProvider();
             await IndexCreation.CreateIndexesAsync(indexProvider, documentStore)
