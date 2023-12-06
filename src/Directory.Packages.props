@@ -16,10 +16,6 @@
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Metrics.NET" Version="0.5.5" />
-    <PackageVersion Include="Microsoft.AspNet.SignalR" Version="2.4.3" />
-    <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
-    <PackageVersion Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.5" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
@@ -28,7 +24,6 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageVersion Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageVersion Include="Mindscape.Raygun4Net.NetCore" Version="7.1.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
@@ -75,7 +70,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.Owin.Hosting" Version="4.2.2" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
   </ItemGroup>
 
