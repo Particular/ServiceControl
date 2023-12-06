@@ -5,11 +5,7 @@
 
     static class AsyncTimerHostBuilderExtensions
     {
-        public static IHostBuilder UseAsyncTimer(this IHostBuilder hostBuilder) =>
-            hostBuilder.ConfigureServices(services =>
-            {
-                var asyncTimer = new AsyncTimer();
-                services.AddSingleton<IAsyncTimer>(asyncTimer);
-            });
+        public static void UseAsyncTimer(this IHostApplicationBuilder hostBuilder) =>
+            hostBuilder.Services.AddSingleton<IAsyncTimer, AsyncTimer>();
     }
 }
