@@ -24,7 +24,7 @@
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
@@ -146,8 +146,7 @@
 
                 // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-                bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging());
+                bootstrapper.HostBuilder.Logging.AddScenarioContextLogging();
 
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
@@ -209,7 +208,7 @@
         readonly AcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
-        readonly Action<IHostBuilder> hostBuilderCustomization;
+        readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

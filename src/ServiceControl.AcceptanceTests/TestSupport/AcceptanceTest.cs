@@ -120,7 +120,7 @@ namespace ServiceControl.AcceptanceTests
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
-        protected Action<IHostBuilder> CustomizeHostBuilder = _ => { };
+        protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 
