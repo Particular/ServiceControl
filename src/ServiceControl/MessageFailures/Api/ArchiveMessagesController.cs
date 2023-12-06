@@ -2,17 +2,14 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using InternalMessages;
     using NServiceBus;
-    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Net.Http.Headers;
     using ServiceControl.Persistence;
-    using ServiceControl.Persistence.Infrastructure;
 
-    class ArchiveMessagesController : ApiController
+    class ArchiveMessagesController : Controller
     {
         public ArchiveMessagesController(IMessageSession session, IErrorMessageDataStore dataStore)
         {
@@ -23,11 +20,11 @@ namespace ServiceControl.MessageFailures.Api
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<HttpResponseMessage> ArchiveBatch(List<string> messageIds)
+        public async Task<IActionResult> ArchiveBatch(List<string> messageIds)
         {
             if (messageIds.Any(string.IsNullOrEmpty))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             foreach (var id in messageIds)
@@ -37,46 +34,45 @@ namespace ServiceControl.MessageFailures.Api
                 await messageSession.SendLocal(request);
             }
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("errors/groups/{classifier?}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
+        public async Task<IActionResult> GetArchiveMessageGroups(string classifier = "Exception Type and Stack Trace")
         {
             var results = await dataStore.GetFailureGroupsByClassifier(classifier);
 
-            return Negotiator.FromModel(Request, results)
-                .WithDeterministicEtag(EtagHelper.CalculateEtag(results));
+            if (results is { Count: > 0 })
+            {
+                HttpContext.Response.Headers[HeaderNames.ETag] = EtagHelper.CalculateEtag(results);
+            }
+            return Ok(results);
         }
 
-        [Route("errors/{messageid}/archive")]
+        [Route("errors/{messageId}/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<HttpResponseMessage> Archive(string messageId)
+        public async Task<IActionResult> Archive(string messageId)
         {
             if (string.IsNullOrEmpty(messageId))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             await messageSession.SendLocal<ArchiveMessage>(m => { m.FailedMessageId = messageId; });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("archive/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroup(string groupId)
+        public async Task<IActionResult> GetGroup(string groupId, [FromQuery(Name = "status")] string status = default, [FromQuery(Name = "modified")] string modified = default)
         {
-            string status = Request.GetStatus();
-            string modified = Request.GetModified();
-
             var result = await dataStore.GetFailureGroupView(groupId, status, modified);
 
-            return Negotiator
-                .FromModel(Request, result.Results)
-                .WithEtag(result.QueryStats.ETag);
+            HttpContext.Response.Headers[HeaderNames.ETag] = result.QueryStats.ETag;
+            return Ok(result.Results);
         }
 
         readonly IErrorMessageDataStore dataStore;
