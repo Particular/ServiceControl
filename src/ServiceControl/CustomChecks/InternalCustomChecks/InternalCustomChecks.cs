@@ -11,21 +11,19 @@
 
     static class InternalCustomChecks
     {
-        public static IHostBuilder UseInternalCustomChecks(this IHostBuilder hostBuilder)
+        public static IHostApplicationBuilder UseInternalCustomChecks(this IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddCustomCheck<CriticalErrorCustomCheck>();
-                collection.AddCustomCheck<CheckRemotes>();
+            var services = hostBuilder.Services;
+            services.AddCustomCheck<CriticalErrorCustomCheck>();
+            services.AddCustomCheck<CheckRemotes>();
 
 
-                collection.AddHostedService(provider => new InternalCustomChecksHostedService(
-                    provider.GetServices<ICustomCheck>().ToList(),
-                    provider.GetRequiredService<HostInformation>(),
-                    provider.GetRequiredService<IAsyncTimer>(),
-                    provider.GetRequiredService<CustomCheckResultProcessor>(),
-                    provider.GetRequiredService<Settings>().ServiceName));
-            });
+            services.AddHostedService(provider => new InternalCustomChecksHostedService(
+                provider.GetServices<ICustomCheck>().ToList(),
+                provider.GetRequiredService<HostInformation>(),
+                provider.GetRequiredService<IAsyncTimer>(),
+                provider.GetRequiredService<CustomCheckResultProcessor>(),
+                provider.GetRequiredService<Settings>().ServiceName));
             return hostBuilder;
         }
     }

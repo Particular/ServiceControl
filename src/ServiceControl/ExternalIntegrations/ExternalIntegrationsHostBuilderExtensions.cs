@@ -6,13 +6,11 @@ namespace ServiceControl.ExternalIntegrations
 
     static class ExternalIntegrationsHostBuilderExtensions
     {
-        public static IHostBuilder UseExternalIntegrationEvents(this IHostBuilder hostBuilder)
+        public static IHostApplicationBuilder UseExternalIntegrationEvents(this IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddHostedService<EventDispatcherHostedService>();
-                collection.AddDomainEventHandler<IntegrationEventWriter>();
-            });
+            var services = hostBuilder.Services;
+            services.AddHostedService<EventDispatcherHostedService>();
+            services.AddDomainEventHandler<IntegrationEventWriter>();
             return hostBuilder;
         }
     }
