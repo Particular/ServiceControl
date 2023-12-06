@@ -1,15 +1,89 @@
 ﻿namespace ServiceControl.Audit.Persistence.Tests
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Raven.Client.Documents;
+    using Raven.Client.Documents.Indexes;
     using Raven.Client.Documents.Operations.Indexes;
     using ServiceControl.SagaAudit;
 
     [TestFixture]
     class SagaDetailsIndexTests : PersistenceTestFixture
     {
+        [Test]
+        public async Task Deletes_index_that_does_not_have_cap_of_50000()
+        {
+            await configuration.DocumentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"));
+
+            var indexWithout50000capDefinition = new IndexDefinition
+            {
+                Name = "SagaDetailsIndex",
+                Maps = new System.Collections.Generic.HashSet<string>
+                            {
+                                @"from doc in docs
+                                                     select new
+                                                     {
+                                                         doc.SagaId,
+                                                         Id = doc.SagaId,
+                                                         doc.SagaType,
+                                                         Changes = new[]
+                                                         {
+                                    new
+                                    {
+                                        Endpoint = doc.Endpoint,
+                                        FinishTime = doc.FinishTime,
+                                        InitiatingMessage = doc.InitiatingMessage,
+                                        OutgoingMessages = doc.OutgoingMessages,
+                                        StartTime = doc.StartTime,
+                                        StateAfterChange = doc.StateAfterChange,
+                                        Status = doc.Status
+                                    }
+                                }
+            }"
+                            },
+                Reduce = @"from result in results
+                                            group result by result.SagaId
+                            into g
+                                            let first = g.First()
+                                            select new
+                                            {
+                                                Id = first.SagaId,
+                                                SagaId = first.SagaId,
+                                                SagaType = first.SagaType,
+                                                Changes = g.SelectMany(x => x.Changes)
+                                                    .OrderByDescending(x => x.FinishTime)
+                                                    .ToList()
+                                            }"
+            };
+
+            var putIndexesOp = new PutIndexesOperation(indexWithout50000capDefinition);
+
+            await configuration.DocumentStore.Maintenance.SendAsync(putIndexesOp);
+
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
+
+            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+
+            sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsNull(sagaDetailsIndexDefinition);
+        }
+
+        [Test]
+        public async Task Does_not_delete_index_that_does_have_cap_of_50000()
+        {
+            await Persistence.RavenDB.DatabaseSetup.DeleteLegacySagaDetailsIndex(configuration.DocumentStore, CancellationToken.None);
+
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await configuration.DocumentStore.Maintenance.SendAsync(sagaDetailsIndexOperation);
+
+            Assert.IsNotNull(sagaDetailsIndexDefinition);
+        }
+
         [Test]
         public async Task Should_only_reduce_the_last_50000_saga_state_changes()
         {
