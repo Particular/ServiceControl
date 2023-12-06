@@ -6,12 +6,10 @@ namespace ServiceControl.ExternalIntegrations
 
     class ExternalIntegrationsComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(services =>
-            {
-                services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();
-            });
+            var services = hostBuilder.Services;
+            services.AddEventLogMapping<ExternalIntegrationEventFailedToBePublishedDefinition>();
         }
     }
 }

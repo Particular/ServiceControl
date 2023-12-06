@@ -8,12 +8,12 @@ namespace Particular.ServiceControl
 
     class HostingComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostBuilder hostBuilder) =>
-            hostBuilder.ConfigureServices(services =>
-            {
-                services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
-                services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
-            });
+        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
+        {
+            var services = hostBuilder.Services;
+            services.AddPlatformConnectionProvider<RemotePlatformConnectionDetailsProvider>();
+            services.AddSingleton<IPlatformConnectionBuilder, PlatformConnectionBuilder>();
+        }
 
         public override void Setup(Settings settings, IComponentInstallationContext context) => context.CreateQueue(settings.ServiceName);
     }

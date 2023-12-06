@@ -22,86 +22,84 @@
 
     class RecoverabilityComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
+            var services = hostBuilder.Services;
+            services.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
+
+            //Archiving
+            services.AddSingleton<OperationsManager>();
+
+            //Grouping
+            services.AddSingleton<IFailureClassifier, ExceptionTypeAndStackTraceFailureClassifier>();
+            services.AddSingleton<IFailureClassifier, MessageTypeFailureClassifier>();
+            services.AddSingleton<IFailureClassifier, AddressOfFailingEndpointClassifier>();
+            services.AddSingleton<IFailureClassifier, EndpointInstanceClassifier>();
+            services.AddSingleton<IFailureClassifier, EndpointNameClassifier>();
+            services.AddSingleton<IFailedMessageEnricher, ClassifyFailedMessageEnricher>();
+
+            //Retrying
+            services.AddSingleton<RetryingManager>();
+            services.AddSingleton<GroupFetcher>();
+            services.AddDomainEventHandler<StoreHistoryHandler>();
+            services.AddDomainEventHandler<FailedMessageRetryCleaner>();
+
+            //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
+            services.AddSingleton<ReturnToSenderDequeuer>();
+            services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
+
+            //Error importer
+            services.AddSingleton<ErrorIngestor>();
+            services.AddSingleton<ErrorIngestionCustomCheck.State>();
+            if (settings.IngestErrorMessages)
             {
-                collection.AddPlatformConnectionProvider<RecoverabilityPlatformConnectionDetailsProvider>();
+                services.AddHostedService<ErrorIngestion>();
+            }
 
-                //Archiving
-                collection.AddSingleton<OperationsManager>();
+            //Retries
+            if (settings.RunRetryProcessor)
+            {
+                services.AddSingleton<RetryDocumentManager>();
+                services.AddSingleton<RetriesGateway>();
+                services.AddSingleton<RetryProcessor>();
 
-                //Grouping
-                collection.AddSingleton<IFailureClassifier, ExceptionTypeAndStackTraceFailureClassifier>();
-                collection.AddSingleton<IFailureClassifier, MessageTypeFailureClassifier>();
-                collection.AddSingleton<IFailureClassifier, AddressOfFailingEndpointClassifier>();
-                collection.AddSingleton<IFailureClassifier, EndpointInstanceClassifier>();
-                collection.AddSingleton<IFailureClassifier, EndpointNameClassifier>();
-                collection.AddSingleton<IFailedMessageEnricher, ClassifyFailedMessageEnricher>();
+                services.AddHostedService<RebuildRetryGroupStatusesHostedService>();
+                services.AddHostedService<BulkRetryBatchCreationHostedService>();
+                services.AddHostedService<AdoptOrphanBatchesFromPreviousSessionHostedService>();
+                services.AddHostedService<ProcessRetryBatchesHostedService>();
+            }
 
-                //Retrying
-                collection.AddSingleton<RetryingManager>();
-                collection.AddSingleton<GroupFetcher>();
-                collection.AddDomainEventHandler<StoreHistoryHandler>();
-                collection.AddDomainEventHandler<FailedMessageRetryCleaner>();
+            //Failed messages
+            services.AddHostedService<FailedMessageNotificationsHostedService>();
 
-                //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
-                collection.AddSingleton<ReturnToSenderDequeuer>();
-                collection.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
+            //Health checks
+            services.AddCustomCheck<ErrorIngestionCustomCheck>();
+            services.AddCustomCheck<FailedErrorImportCustomCheck>();
 
-                //Error importer
-                collection.AddSingleton<ErrorIngestor>();
-                collection.AddSingleton<ErrorIngestionCustomCheck.State>();
-                if (settings.IngestErrorMessages)
-                {
-                    collection.AddHostedService<ErrorIngestion>();
-                }
+            //External integration
+            services.AddIntegrationEventPublisher<FailedMessageArchivedPublisher>();
+            services.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
+            services.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();
+            services.AddIntegrationEventPublisher<FailedMessagesUnarchivedPublisher>();
+            services.AddIntegrationEventPublisher<MessageFailedPublisher>();
+            services.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
+            services.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
 
-                //Retries
-                if (settings.RunRetryProcessor)
-                {
-                    collection.AddSingleton<RetryDocumentManager>();
-                    collection.AddSingleton<RetriesGateway>();
-                    collection.AddSingleton<RetryProcessor>();
-
-                    collection.AddHostedService<RebuildRetryGroupStatusesHostedService>();
-                    collection.AddHostedService<BulkRetryBatchCreationHostedService>();
-                    collection.AddHostedService<AdoptOrphanBatchesFromPreviousSessionHostedService>();
-                    collection.AddHostedService<ProcessRetryBatchesHostedService>();
-                }
-
-                //Failed messages
-                collection.AddHostedService<FailedMessageNotificationsHostedService>();
-
-                //Health checks
-                collection.AddCustomCheck<ErrorIngestionCustomCheck>();
-                collection.AddCustomCheck<FailedErrorImportCustomCheck>();
-
-                //External integration
-                collection.AddIntegrationEventPublisher<FailedMessageArchivedPublisher>();
-                collection.AddIntegrationEventPublisher<FailedMessageGroupBatchArchivedPublisher>();
-                collection.AddIntegrationEventPublisher<FailedMessageGroupBatchUnarchivedPublisher>();
-                collection.AddIntegrationEventPublisher<FailedMessagesUnarchivedPublisher>();
-                collection.AddIntegrationEventPublisher<MessageFailedPublisher>();
-                collection.AddIntegrationEventPublisher<MessageFailureResolvedByRetryPublisher>();
-                collection.AddIntegrationEventPublisher<MessageFailureResolvedManuallyPublisher>();
-
-                //Event log
-                collection.AddEventLogMapping<FailedMessageArchivedDefinition>();
-                collection.AddEventLogMapping<FailedMessageGroupArchivedDefinition>();
-                collection.AddEventLogMapping<FailedMessageGroupUnarchivedDefinition>();
-                collection.AddEventLogMapping<FailedMessageUnArchivedDefinition>();
-                collection.AddEventLogMapping<MessageFailedDefinition>();
-                collection.AddEventLogMapping<MessageFailedInStagingDefinition>();
-                collection.AddEventLogMapping<MessageFailureResolvedByRetryDefinition>();
-                collection.AddEventLogMapping<MessageFailureResolvedManuallyDefinition>();
-                collection.AddEventLogMapping<MessageRedirectChangedDefinition>();
-                collection.AddEventLogMapping<MessageRedirectCreatedDefinition>();
-                collection.AddEventLogMapping<MessageRedirectRemovedDefinition>();
-                collection.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
-                collection.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
-                collection.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
-            });
+            //Event log
+            services.AddEventLogMapping<FailedMessageArchivedDefinition>();
+            services.AddEventLogMapping<FailedMessageGroupArchivedDefinition>();
+            services.AddEventLogMapping<FailedMessageGroupUnarchivedDefinition>();
+            services.AddEventLogMapping<FailedMessageUnArchivedDefinition>();
+            services.AddEventLogMapping<MessageFailedDefinition>();
+            services.AddEventLogMapping<MessageFailedInStagingDefinition>();
+            services.AddEventLogMapping<MessageFailureResolvedByRetryDefinition>();
+            services.AddEventLogMapping<MessageFailureResolvedManuallyDefinition>();
+            services.AddEventLogMapping<MessageRedirectChangedDefinition>();
+            services.AddEventLogMapping<MessageRedirectCreatedDefinition>();
+            services.AddEventLogMapping<MessageRedirectRemovedDefinition>();
+            services.AddEventLogMapping<MessageSubmittedForRetryDefinition>();
+            services.AddEventLogMapping<MessagesSubmittedForRetryDefinition>();
+            services.AddEventLogMapping<MessagesSubmittedForRetryFailedDefinition>();
         }
 
         public override void Setup(Settings settings, IComponentInstallationContext context)

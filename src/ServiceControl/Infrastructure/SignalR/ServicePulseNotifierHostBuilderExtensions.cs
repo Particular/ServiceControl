@@ -6,13 +6,11 @@ namespace ServiceControl.Infrastructure.DomainEvents
 
     static class ServicePulseNotifierHostBuilderExtensions
     {
-        public static IHostBuilder UseServicePulseSignalRNotifier(this IHostBuilder hostBuilder)
+        public static IHostApplicationBuilder UseServicePulseSignalRNotifier(this IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddDomainEventHandler<ServicePulseNotifier>();
-                collection.AddSingleton<GlobalEventHandler>();
-            });
+            var services = hostBuilder.Services;
+            services.AddDomainEventHandler<ServicePulseNotifier>();
+            services.AddSingleton<GlobalEventHandler>();
             return hostBuilder;
         }
     }
