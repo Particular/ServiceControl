@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Licensing
 {
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class LicenseController : ApiController
+    class LicenseController : Controller
     {
         public LicenseController(ActiveLicense activeLicense, Settings settings)
         {
@@ -14,7 +14,7 @@
 
         [Route("license")]
         [HttpGet]
-        public IHttpActionResult License(bool? refresh = null)
+        public IActionResult License(bool? refresh = null)
         {
             if (refresh == true)
             {
