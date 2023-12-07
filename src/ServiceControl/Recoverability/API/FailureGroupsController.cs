@@ -2,9 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
+    using MessageFailures.Api;
     using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
@@ -65,11 +65,12 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
+        public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
         {
             var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
 
-            return Negotiator.FromQueryResult(Request, results);
+            //return Negotiator.FromQueryResult(Request, results);
+            return results;
         }
 
 
