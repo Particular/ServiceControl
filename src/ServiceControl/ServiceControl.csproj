@@ -31,7 +31,6 @@
     <PackageReference Include="Particular.Licensing.Sources" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Reactive.Linq" />
-    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
 
   <ItemGroup>

@@ -64,13 +64,10 @@
     <PackageVersion Include="System.Management" Version="8.0.0" />
     <PackageVersion Include="System.Management.Automation" Version="7.2.18" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.0" />
-    <PackageVersion Include="System.Threading.Channels" Version="8.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
