@@ -53,6 +53,7 @@ namespace ServiceControl.SagaAudit
                     SagaType = first.SagaType,
                     Changes = g.SelectMany(x => x.Changes)
                         .OrderByDescending(x => x.FinishTime)
+                        .Take(50000)
                         .ToList()
                 };
 

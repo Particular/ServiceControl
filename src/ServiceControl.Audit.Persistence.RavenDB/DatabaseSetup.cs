@@ -46,6 +46,8 @@
                 new SagaDetailsIndex()
             };
 
+            await DeleteLegacySagaDetailsIndex(documentStore, cancellationToken);
+
             if (configuration.EnableFullTextSearch)
             {
                 indexList.Add(new MessagesViewIndexWithFullTextSearch());
@@ -67,6 +69,22 @@
             };
 
             await documentStore.Maintenance.SendAsync(new ConfigureExpirationOperation(expirationConfig), cancellationToken);
+        }
+
+        public static async Task DeleteLegacySagaDetailsIndex(IDocumentStore documentStore, CancellationToken cancellationToken)
+        {
+            // If the SagaDetailsIndex exists but does not have a .Take(50000), then we remove the current SagaDetailsIndex and
+            // create a new one. If we do not remove the current one, then RavenDB will attempt to do a side-by-side migration.
+            // Doing a side-by-side migration results in the index never swapping if there is constant ingestion as RavenDB will wait.
+            // for the index to not be stale before swapping to the new index. Constant ingestion means the index will never be not-stale.
+            // This needs to stay in place until the next major version as the user could upgrade from an older version of the current
+            // Major (v5.x.x) which might still have the incorrect index.
+            var sagaDetailsIndexOperation = new GetIndexOperation("SagaDetailsIndex");
+            var sagaDetailsIndexDefinition = await documentStore.Maintenance.SendAsync(sagaDetailsIndexOperation, cancellationToken);
+            if (sagaDetailsIndexDefinition != null && !sagaDetailsIndexDefinition.Reduce.Contains("Take(50000)"))
+            {
+                await documentStore.Maintenance.SendAsync(new DeleteIndexOperation("SagaDetailsIndex"), cancellationToken);
+            }
         }
 
         readonly DatabaseConfiguration configuration;
