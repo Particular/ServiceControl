@@ -8,8 +8,37 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Primitives;
     using ServiceControl.Persistence.Infrastructure;
     using QueryResult = Persistence.Infrastructure.QueryResult;
+
+    static class RequestExtensions
+    {
+        public static void WithTotalCount(this HttpResponse response, int totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
+
+        public static void WithEtag(this HttpResponse response, StringValues value) => response.Headers.ETag = value;
+
+        public static void WithQueryStatsInfo(this HttpResponse response, QueryStatsInfo queryStatsInfo)
+        {
+            response.WithTotalCount(queryStatsInfo.TotalCount);
+            response.WithEtag(queryStatsInfo.ETag);
+        }
+
+        public static void WithDeterministicEtag(this HttpResponse response, string data)
+        {
+            if (string.IsNullOrEmpty(data))
+            {
+                return;
+            }
+
+            var guid = DeterministicGuid.MakeId(data);
+            response.WithEtag(guid.ToString());
+        }
+
+        static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
+    }
 
     static class Negotiator
     {
