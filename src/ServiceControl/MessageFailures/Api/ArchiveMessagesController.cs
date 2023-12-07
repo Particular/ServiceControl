@@ -4,19 +4,15 @@ namespace ServiceControl.MessageFailures.Api
     using System.Linq;
     using System.Threading.Tasks;
     using InternalMessages;
-    using NServiceBus;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Net.Http.Headers;
+    using NServiceBus;
     using ServiceControl.Persistence;
+    using ServiceControl.Recoverability;
 
-    class ArchiveMessagesController : Controller
+    [ApiController]
+    public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore) : ControllerBase
     {
-        public ArchiveMessagesController(IMessageSession session, IErrorMessageDataStore dataStore)
-        {
-            messageSession = session;
-            this.dataStore = dataStore;
-        }
-
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
@@ -47,6 +43,7 @@ namespace ServiceControl.MessageFailures.Api
             {
                 HttpContext.Response.Headers[HeaderNames.ETag] = EtagHelper.CalculateEtag(results);
             }
+
             return Ok(results);
         }
 
@@ -60,22 +57,20 @@ namespace ServiceControl.MessageFailures.Api
                 return BadRequest();
             }
 
-            await messageSession.SendLocal<ArchiveMessage>(m => { m.FailedMessageId = messageId; });
+            await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = messageId);
 
             return Accepted();
         }
 
         [Route("archive/groups/id/{groupId}")]
         [HttpGet]
-        public async Task<IActionResult> GetGroup(string groupId, [FromQuery(Name = "status")] string status = default, [FromQuery(Name = "modified")] string modified = default)
+        public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
         {
             var result = await dataStore.GetFailureGroupView(groupId, status, modified);
 
             HttpContext.Response.Headers[HeaderNames.ETag] = result.QueryStats.ETag;
-            return Ok(result.Results);
-        }
 
-        readonly IErrorMessageDataStore dataStore;
-        readonly IMessageSession messageSession;
+            return result.Results;
+        }
     }
 }
