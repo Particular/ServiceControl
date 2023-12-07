@@ -6,7 +6,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
 
-    class GroupFetcher
+    public class GroupFetcher
     {
         public GroupFetcher(IGroupsDataStore store, IRetryHistoryDataStore retryStore, RetryingManager retryingManager, IArchiveMessages archiver)
         {
