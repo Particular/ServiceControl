@@ -9,12 +9,13 @@
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
-    class FailureGroupsController(
+    [ApiController]
+    public class FailureGroupsController(
         IEnumerable<IFailureClassifier> classifiers,
         GroupFetcher fetcher,
         IErrorMessageDataStore store,
         IRetryHistoryDataStore retryStore)
-        : Controller
+        : ControllerBase
     {
         [Route("recoverability/classifiers")]
         [HttpGet]
