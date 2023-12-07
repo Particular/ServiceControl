@@ -3,7 +3,7 @@
     using NServiceBus.Logging;
     using Particular.Licensing;
 
-    class ActiveLicense
+    public class ActiveLicense
     {
         public ActiveLicense()
         {
