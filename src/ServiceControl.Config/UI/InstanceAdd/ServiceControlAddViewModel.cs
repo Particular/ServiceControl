@@ -25,7 +25,7 @@
             while (ConventionName != ErrorInstanceName)
             {
                 ConventionName = $"Particular.ServiceControl.{++i}";
-                OnConventionNameChanged();
+                // ErrorInstanceName updated via OnConventionNameChanged added by Fody
             }
         }
 
