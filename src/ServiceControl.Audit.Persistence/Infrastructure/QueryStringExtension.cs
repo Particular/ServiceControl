@@ -1,14 +1,15 @@
-namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
 
     static class QueryStringExtension
     {
         static readonly HttpRequestOptionsKey<Dictionary<string, string>> optionsKey = new("QueryStringAsDictionary");
 
-        public static T GetQueryStringValue<T>(this HttpRequest request, string key, T defaultValue = default)
+        public static T GetQueryStringValue<T>(this HttpRequestMessage request, string key, T defaultValue = default)
         {
             if (!request.Options.TryGetValue(optionsKey, out var queryStringDictionary))
             {
