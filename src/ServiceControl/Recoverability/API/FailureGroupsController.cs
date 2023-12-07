@@ -65,11 +65,8 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetGroupErrors(string groupId, string status = default, string modified = default)
+        public async Task<HttpResponseMessage> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
         {
-            var sortInfo = Request.GetSortInfo();
-            var pagingInfo = Request.GetPagingInfo();
-
             var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
 
             return Negotiator.FromQueryResult(Request, results);
