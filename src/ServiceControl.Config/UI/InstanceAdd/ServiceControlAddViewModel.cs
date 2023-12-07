@@ -18,6 +18,15 @@
         {
             DisplayName = "ADD SERVICECONTROL";
             GetWindowsServiceNames = () => ServiceController.GetServices().Select(windowsService => windowsService.ServiceName).ToArray();
+            ConventionName = "Particular.ServiceControl";
+            OnConventionNameChanged();
+
+            var i = 0;
+            while (ConventionName != ErrorInstanceName)
+            {
+                ConventionName = $"Particular.ServiceControl.{++i}";
+                // ErrorInstanceName updated via OnConventionNameChanged added by Fody
+            }
         }
 
         public Func<string[]> GetWindowsServiceNames { get; set; }
