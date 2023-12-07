@@ -3,9 +3,9 @@ namespace ServiceControl.MessageFailures.Api
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Infrastructure.WebApi;
     using InternalMessages;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Net.Http.Headers;
     using NServiceBus;
     using ServiceControl.Persistence;
     using ServiceControl.Recoverability;
@@ -39,10 +39,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var results = await dataStore.GetFailureGroupsByClassifier(classifier);
 
-            if (results is { Count: > 0 })
-            {
-                HttpContext.Response.Headers[HeaderNames.ETag] = EtagHelper.CalculateEtag(results);
-            }
+            Response.WithDeterministicEtag(EtagHelper.CalculateEtag(results));
 
             return Ok(results);
         }
@@ -68,7 +65,7 @@ namespace ServiceControl.MessageFailures.Api
         {
             var result = await dataStore.GetFailureGroupView(groupId, status, modified);
 
-            HttpContext.Response.Headers[HeaderNames.ETag] = result.QueryStats.ETag;
+            Response.WithEtag(result.QueryStats.ETag);
 
             return result.Results;
         }
