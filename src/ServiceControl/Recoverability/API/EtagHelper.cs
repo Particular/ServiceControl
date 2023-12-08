@@ -1,11 +1,16 @@
-using ServiceControl.Recoverability;
 using System.Collections.Generic;
 using System.Text;
+using ServiceControl.Recoverability;
 
 static class EtagHelper
 {
-    public static string CalculateEtag(IEnumerable<GroupOperation> groups)
+    public static string CalculateEtag(GroupOperation[] groups)
     {
+        if (groups.Length == 0)
+        {
+            return string.Empty;
+        }
+
         var data = new StringBuilder();
         foreach (var g in groups)
         {
@@ -17,6 +22,11 @@ static class EtagHelper
 
     internal static string CalculateEtag(IList<FailureGroupView> results)
     {
+        if (results.Count == 0)
+        {
+            return string.Empty;
+        }
+
         var data = new StringBuilder();
         foreach (var g in results)
         {
