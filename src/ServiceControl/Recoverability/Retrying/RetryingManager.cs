@@ -7,7 +7,7 @@
     using Infrastructure.DomainEvents;
     using ServiceControl.Persistence;
 
-    class RetryingManager
+    public class RetryingManager
     {
         public RetryingManager(IDomainEvents domainEvents)
         {
