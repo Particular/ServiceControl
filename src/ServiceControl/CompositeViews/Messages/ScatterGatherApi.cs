@@ -11,6 +11,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
+    using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -42,14 +43,14 @@ namespace ServiceControl.CompositeViews.Messages
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
 
-        public async Task<HttpResponseMessage> Execute(PagingInfo pageInfo, TIn input)
+        public async Task<TOut> Execute(ControllerBase controllerBase, TIn input)
         {
             var remotes = Settings.RemoteInstances;
-            var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
+            var pathAndQuery = controllerBase.Request.GetEncodedPathAndQuery();
             var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalCall(input, instanceId)
+                LocalCall(controllerBase.Request, input, instanceId)
             };
             foreach (var remote in remotes)
             {
@@ -58,23 +59,25 @@ namespace ServiceControl.CompositeViews.Messages
                     continue;
                 }
 
-                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote);
+                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote));
             }
 
             var results = await Task.WhenAll(tasks);
             var response = AggregateResults(results);
 
-            return Negotiator.FromQueryResult(response);
+            httpContextAccessor.HttpContext.Response.WithQueryResults(response.QueryStats, pagingInfo);
+
+            return response.Results;
         }
 
-        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(PagingInfo pagingInfo, TIn input, string instanceId)
         {
-            var result = await LocalQuery(input);
+            var result = await LocalQuery(pagingInfo, input);
             result.InstanceId = instanceId;
             return result;
         }
 
-        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
+        protected abstract Task<QueryResult<TOut>> LocalQuery(PagingInfo pagingInfo, TIn input);
 
         internal QueryResult<TOut> AggregateResults(QueryResult<TOut>[] results)
         {
@@ -170,25 +173,5 @@ namespace ServiceControl.CompositeViews.Messages
 
         readonly ILog Logger;
         readonly IHttpContextAccessor httpContextAccessor;
-    }
-
-    abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
-        where TOut : class
-    {
-        protected ScatterGatherApiNoInput(TStore store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
-        {
-        }
-
-        public Task<HttpResponseMessage> Execute(ApiController controller)
-        {
-            return Execute(controller, NoInput.Instance);
-        }
-
-        protected override Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request, NoInput input)
-        {
-            return LocalQuery(request);
-        }
-
-        protected abstract Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request);
     }
 }

@@ -4,16 +4,17 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
 
     abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
     {
-        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
+        protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
         {
         }
 
-        protected override IList<MessagesView> ProcessResults(HttpRequestMessage request, QueryResult<IList<MessagesView>>[] results)
+        protected override IList<MessagesView> ProcessResults(QueryResult<IList<MessagesView>>[] results)
         {
             var deduplicated = new Dictionary<string, MessagesView>();
             foreach (var queryResult in results)
@@ -40,7 +41,7 @@ namespace ServiceControl.CompositeViews.Messages
             }
 
             var combined = deduplicated.Values.ToList();
-            var comparer = FinalOrder(request);
+            var comparer = FinalOrder();
             if (comparer != null)
             {
                 combined.Sort(comparer);
@@ -49,6 +50,6 @@ namespace ServiceControl.CompositeViews.Messages
             return combined;
         }
 
-        IComparer<MessagesView> FinalOrder(HttpRequestMessage request) => MessageViewComparer.FromRequest(request);
+        IComparer<MessagesView> FinalOrder() => MessageViewComparer.FromSortInfo(request);
     }
 }
