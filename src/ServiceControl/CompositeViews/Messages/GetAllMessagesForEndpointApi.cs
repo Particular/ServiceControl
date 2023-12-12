@@ -14,9 +14,8 @@ namespace ServiceControl.CompositeViews.Messages
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string endpointName)
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(PagingInfo pagingInfo, string endpointName)
         {
-            var pagingInfo = request.GetPagingInfo();
             var sortInfo = request.GetSortInfo();
             var includeSystemMessages = request.GetIncludeSystemMessages();
 

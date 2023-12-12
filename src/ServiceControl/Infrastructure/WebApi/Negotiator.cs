@@ -99,14 +99,19 @@ namespace ServiceControl.Infrastructure.WebApi
             links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }
 
-        public static void WithQueryResults(this HttpResponse response, QueryResult queryResult)
+        // TODO This name might need to change to better reflect what it does
+        public static void WithQueryResults(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
-            var queryStats = queryResult.QueryStats;
-
+            response.WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances,
+                pagingInfo);
             response.WithDeterministicEtag(queryStats.ETag);
-            
-            return response.WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
-                .WithDeterministicEtag(queryStats.ETag);
+        }
+
+        public static void WithPagingLinksAndTotalCount(this HttpResponse response, int totalCount, int highestTotalCountOfAllInstances,
+            PagingInfo pagingInfo)
+        {
+            response.WithTotalCount(totalCount);
+            response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances, totalCount);
         }
     }
 
