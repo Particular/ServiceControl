@@ -12,6 +12,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
+    using global::ServiceControl.Infrastructure.Settings;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -104,6 +105,16 @@ namespace Particular.ServiceControl
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
             services.AddSingleton(sp => HttpClientFactory);
+
+            // TODO move this configuration to an extension method 
+            foreach (var remoteInstance in settings.RemoteInstances)
+            {
+                remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
+                services.AddHttpClient(remoteInstance.InstanceId, client =>
+                {
+                    client.BaseAddress = new Uri(remoteInstance.ApiUri);
+                });
+            }
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
             // is only available though after the NServiceBus hosted service has started. Any hosted service
             // or component injected into a hosted service can only depend on this lazy instead of the dispatcher

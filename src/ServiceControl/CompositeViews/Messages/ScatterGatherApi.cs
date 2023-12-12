@@ -7,9 +7,10 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -28,8 +29,9 @@ namespace ServiceControl.CompositeViews.Messages
     abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
         where TOut : class
     {
-        protected ScatterGatherApi(TDataStore store, Settings settings, Func<HttpClient> httpClientFactory)
+        protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
+            this.httpContextAccessor = httpContextAccessor;
             DataStore = store;
             Settings = settings;
             HttpClientFactory = httpClientFactory;
@@ -38,17 +40,16 @@ namespace ServiceControl.CompositeViews.Messages
 
         protected TDataStore DataStore { get; }
         Settings Settings { get; }
-        Func<HttpClient> HttpClientFactory { get; }
+        IHttpClientFactory HttpClientFactory { get; }
 
-        public async Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
+        public async Task<HttpResponseMessage> Execute(PagingInfo pageInfo, TIn input)
         {
             var remotes = Settings.RemoteInstances;
-            var currentRequest = controller.Request;
-
+            var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
             var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalCall(currentRequest, input, instanceId)
+                LocalCall(input, instanceId)
             };
             foreach (var remote in remotes)
             {
@@ -57,27 +58,27 @@ namespace ServiceControl.CompositeViews.Messages
                     continue;
                 }
 
-                tasks.Add(RemoteCall(currentRequest, remote.ApiAsUri, InstanceIdGenerator.FromApiUrl(remote.ApiUri)));
+                tasks.Add(RemoteCall(HttpClientFactory.CreateClient(remote.InstanceId), pathAndQuery, remote);
             }
 
             var results = await Task.WhenAll(tasks);
-            var response = AggregateResults(currentRequest, results);
+            var response = AggregateResults(results);
 
-            return Negotiator.FromQueryResult(currentRequest, response);
+            return Negotiator.FromQueryResult(response);
         }
 
-        async Task<QueryResult<TOut>> LocalCall(HttpRequestMessage request, TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
         {
-            var result = await LocalQuery(request, input);
+            var result = await LocalQuery(input);
             result.InstanceId = instanceId;
             return result;
         }
 
-        protected abstract Task<QueryResult<TOut>> LocalQuery(HttpRequestMessage request, TIn input);
+        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
 
-        internal QueryResult<TOut> AggregateResults(HttpRequestMessage request, QueryResult<TOut>[] results)
+        internal QueryResult<TOut> AggregateResults(QueryResult<TOut>[] results)
         {
-            var combinedResults = ProcessResults(request, results);
+            var combinedResults = ProcessResults(results);
 
             return new QueryResult<TOut>(
                 combinedResults,
@@ -85,7 +86,7 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        protected abstract TOut ProcessResults(HttpRequestMessage request, QueryResult<TOut>[] results);
+        protected abstract TOut ProcessResults(QueryResult<TOut>[] results);
 
         protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
@@ -99,21 +100,19 @@ namespace ServiceControl.CompositeViews.Messages
             );
         }
 
-        async Task<QueryResult<TOut>> RemoteCall(HttpRequestMessage currentRequest, Uri remoteUri, string instanceId)
+        async Task<QueryResult<TOut>> RemoteCall(HttpClient client, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting)
         {
-            var fetched = await FetchAndParse(currentRequest, remoteUri);
-            fetched.InstanceId = instanceId;
+            var fetched = await FetchAndParse(client, pathAndQuery, remoteInstanceSetting);
+            fetched.InstanceId = remoteInstanceSetting.InstanceId;
             return fetched;
         }
 
-        async Task<QueryResult<TOut>> FetchAndParse(HttpRequestMessage currentRequest, Uri remoteUri)
+        async Task<QueryResult<TOut>> FetchAndParse(HttpClient httpClient, string pathAndQuery, RemoteInstanceSetting remoteInstanceSetting)
         {
-            var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
-            var httpClient = HttpClientFactory();
             try
             {
                 // Assuming SendAsync returns uncompressed response and the AutomaticDecompression is enabled on the http client.
-                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, instanceUri));
+                var rawResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, pathAndQuery));
                 // special case - queried by conversation ID and nothing was found
                 if (rawResponse.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -124,26 +123,21 @@ namespace ServiceControl.CompositeViews.Messages
             }
             catch (HttpRequestException httpRequestException)
             {
-                DisableRemoteInstance(remoteUri);
-                Logger.Warn($"An HttpRequestException occurred when quering remote instance at {remoteUri}. The instance at uri: {remoteUri} will be temporarily disabled.",
+                remoteInstanceSetting.TemporarilyUnavailable = true;
+                Logger.Warn($"An HttpRequestException occurred when querying remote instance at {remoteInstanceSetting.ApiUri}. The instance at uri: {remoteInstanceSetting.ApiUri} will be temporarily disabled.",
                     httpRequestException);
                 return QueryResult<TOut>.Empty();
             }
             catch (OperationCanceledException)
             {
-                Logger.Warn($"Failed to query remote instance at {remoteUri} due to a timeout");
+                Logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.ApiUri} due to a timeout");
                 return QueryResult<TOut>.Empty();
             }
             catch (Exception exception)
             {
-                Logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
+                Logger.Warn($"Failed to query remote instance at {remoteInstanceSetting.ApiUri}.", exception);
                 return QueryResult<TOut>.Empty();
             }
-        }
-
-        void DisableRemoteInstance(Uri remoteUri)
-        {
-            Settings.RemoteInstances.Single(remoteInstance => remoteInstance.ApiAsUri == remoteUri).TemporarilyUnavailable = true;
         }
 
         static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
@@ -175,6 +169,7 @@ namespace ServiceControl.CompositeViews.Messages
         }
 
         readonly ILog Logger;
+        readonly IHttpContextAccessor httpContextAccessor;
     }
 
     abstract class ScatterGatherApiNoInput<TStore, TOut> : ScatterGatherApi<TStore, NoInput, TOut>
