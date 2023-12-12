@@ -9,6 +9,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Net.Http.Headers;
     using System.Text;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
     using ServiceControl.Persistence.Infrastructure;
@@ -38,6 +39,75 @@ namespace ServiceControl.Infrastructure.WebApi
         }
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
+
+        static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, int highestTotalCountOfAllInstances, int totalResults)
+        {
+            if (totalResults <= PagingInfo.DefaultPageSize)
+            {
+                return;
+            }
+
+            var links = new List<string>();
+            var lastPage = (int)Math.Ceiling((double)highestTotalCountOfAllInstances / pageInfo.PageSize);
+
+            // No need to add a Link header if page does not exist!
+            if (pageInfo.Page > lastPage)
+            {
+                return;
+            }
+
+            var path = response.HttpContext.Request.GetEncodedUrl().Substring(5); // NOTE: Strips off the /api/ for backwards compat
+            var query = new StringBuilder();
+
+            query.Append("?");
+            foreach (var pair in response.HttpContext.Request.Query.Where(pair => pair.Key != "page"))
+            {
+                query.AppendFormat("{0}={1}&", pair.Key, pair.Value);
+            }
+
+            var queryParams = query.ToString();
+
+            if (pageInfo.Page != 1)
+            {
+                AddLink(links, 1, "first", path, queryParams);
+            }
+
+            if (pageInfo.Page > 1)
+            {
+                AddLink(links, pageInfo.Page - 1, "prev", path, queryParams);
+            }
+
+            if (pageInfo.Page != lastPage)
+            {
+                AddLink(links, lastPage, "last", path, queryParams);
+            }
+
+            if (pageInfo.Page < lastPage)
+            {
+                AddLink(links, pageInfo.Page + 1, "next", path, queryParams);
+            }
+
+            // TODO can this be new StringValues(links.ToArray())) ? we don't know what the separator will be
+            // https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Primitives/src/StringValues.cs#L235
+            response.WithHeader("Link", new StringValues(string.Join(", ", links)));
+        }
+
+        static void AddLink(ICollection<string> links, int page, string rel, string uriPath, string queryParams)
+        {
+            var query = $"{queryParams}page={page}";
+
+            links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
+        }
+
+        public static void WithQueryResults(this HttpResponse response, QueryResult queryResult)
+        {
+            var queryStats = queryResult.QueryStats;
+
+            response.WithDeterministicEtag(queryStats.ETag);
+            
+            return response.WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances, request)
+                .WithDeterministicEtag(queryStats.ETag);
+        }
     }
 
     static class Negotiator
