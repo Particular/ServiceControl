@@ -163,7 +163,7 @@
             var queryString = string.Join("&", queryStringParts);
 
             var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://get/messages?{queryString}");
-            return MessageViewComparer.FromRequest(request);
+            return MessageViewComparer.FromSortInfo(request);
         }
 
         const int ASCENDING = -1;

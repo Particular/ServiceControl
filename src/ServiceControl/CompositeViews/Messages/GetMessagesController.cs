@@ -3,7 +3,9 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using Operations.BodyStorage.Api;
+    using Persistence.Infrastructure;
     using ServiceControl.CompositeViews.MessageCounting;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
@@ -32,7 +34,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
-        public Task<HttpResponseMessage> MessagesForEndpoint(string endpoint) => getAllMessagesForEndpointApi.Execute(this, endpoint);
+        public Task<HttpResponseMessage> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint) => getAllMessagesForEndpointApi.Execute((pagingInfo, sortInfo, endpoint));
 
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]

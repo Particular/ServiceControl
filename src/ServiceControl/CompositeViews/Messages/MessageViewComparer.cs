@@ -2,30 +2,18 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Net.Http;
+    using Persistence.Infrastructure;
 
     static class MessageViewComparer
     {
-        public static IComparer<MessagesView> FromRequest(HttpRequestMessage request)
+        public static IComparer<MessagesView> FromSortInfo(SortInfo sortInfo)
         {
-            var queryString = request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
-            //Set the default sort to time_sent if not already set
-            var sortBy = queryString.ContainsKey("sort")
-                ? queryString["sort"]
-                : "time_sent";
-
-            //Set the default sort direction to `desc` if not already set
-            var sortOrder = queryString.ContainsKey("direction")
-                ? queryString["direction"]
-                : "desc";
-
-            if (!SortByMap.TryGetValue(sortBy, out var comparer))
+            if (!SortByMap.TryGetValue(sortInfo.Sort, out var comparer))
             {
-                throw new ArgumentOutOfRangeException(nameof(sortBy));
+                throw new ArgumentOutOfRangeException(nameof(sortInfo));
             }
 
-            return string.Equals(sortOrder, "desc", StringComparison.CurrentCultureIgnoreCase)
+            return string.Equals(sortInfo.Direction, "desc", StringComparison.CurrentCultureIgnoreCase)
                 ? comparer.Reverse()
                 : comparer;
         }
