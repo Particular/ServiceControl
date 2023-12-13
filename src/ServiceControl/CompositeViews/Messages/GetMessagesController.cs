@@ -1,8 +1,8 @@
 namespace ServiceControl.CompositeViews.Messages
 {
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Microsoft.AspNetCore.Mvc;
     using Operations.BodyStorage.Api;
     using Persistence.Infrastructure;
@@ -10,7 +10,8 @@ namespace ServiceControl.CompositeViews.Messages
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
-    class GetMessagesController : ApiController
+    [ApiController]
+    class GetMessagesController : ControllerBase
     {
         public GetMessagesController(
             GetAllMessagesApi getAllMessagesApi,
@@ -30,15 +31,21 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages")]
         [HttpGet]
-        public Task<HttpResponseMessage> Messages() => getAllMessagesApi.Execute(this, NoInput.Instance);
+        public Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
+            [FromQuery(Name = "include_system_messages")] bool includeSystemMessages) => getAllMessagesApi.Execute(
+            new(pagingInfo, sortInfo, includeSystemMessages));
 
         [Route("endpoints/{endpoint}/messages")]
         [HttpGet]
-        public Task<HttpResponseMessage> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint) => getAllMessagesForEndpointApi.Execute((pagingInfo, sortInfo, endpoint));
+        public Task<IList<MessagesView>> MessagesForEndpoint([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
+            [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint) =>
+            getAllMessagesForEndpointApi.Execute(new(pagingInfo, sortInfo, includeSystemMessages, endpoint));
 
+        // the endpoint name is needed in the route to match the route and forward it as path and query to the remotes
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
-        public Task<HttpResponseMessage> GetEndpointAuditCounts(string endpoint) => getAuditCountsForEndpointApi.Execute(this, endpoint);
+        public Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo) =>
+            getAuditCountsForEndpointApi.Execute(new(pagingInfo));
 
         [Route("messages/{id}/body")]
         [HttpGet]
@@ -65,23 +72,18 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/search/{keyword}")]
         [HttpGet]
-        public Task<HttpResponseMessage> SearchByKeyWord(string keyword) => searchApi.Execute(this, keyword?.Replace("/", @"\"));
+        public Task<HttpResponseMessage> SearchByKeyWord(string keyword) =>
+            searchApi.Execute(this, keyword?.Replace("/", @"\"));
 
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
-        public Task<HttpResponseMessage> Search(string endpoint, string q) => searchEndpointApi.Execute(this, new SearchEndpointApi.Input
-        {
-            Endpoint = endpoint,
-            Keyword = q
-        });
+        public Task<HttpResponseMessage> Search(string endpoint, string q) =>
+            searchEndpointApi.Execute(this, new SearchEndpointApi.Input { Endpoint = endpoint, Keyword = q });
 
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
-        public Task<HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) => searchEndpointApi.Execute(this, new SearchEndpointApi.Input
-        {
-            Endpoint = endpoint,
-            Keyword = keyword
-        });
+        public Task<HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) =>
+            searchEndpointApi.Execute(this, new SearchEndpointApi.Input { Endpoint = endpoint, Keyword = keyword });
 
         readonly GetAllMessagesApi getAllMessagesApi;
         readonly GetAllMessagesForEndpointApi getAllMessagesForEndpointApi;
