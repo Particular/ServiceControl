@@ -11,7 +11,6 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
-    using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -27,7 +26,10 @@ namespace ServiceControl.CompositeViews.Messages
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
+    public record ScatterGatherContext(PagingInfo PagingInfo);
+
     abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
+        where TIn : ScatterGatherContext
         where TOut : class
     {
         protected ScatterGatherApi(TDataStore store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
@@ -43,14 +45,14 @@ namespace ServiceControl.CompositeViews.Messages
         Settings Settings { get; }
         IHttpClientFactory HttpClientFactory { get; }
 
-        public async Task<TOut> Execute(ControllerBase controllerBase, TIn input)
+        public async Task<TOut> Execute(TIn input)
         {
             var remotes = Settings.RemoteInstances;
-            var pathAndQuery = controllerBase.Request.GetEncodedPathAndQuery();
+            var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
             var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
-                LocalCall(controllerBase.Request, input, instanceId)
+                LocalCall(input, instanceId)
             };
             foreach (var remote in remotes)
             {
@@ -63,35 +65,35 @@ namespace ServiceControl.CompositeViews.Messages
             }
 
             var results = await Task.WhenAll(tasks);
-            var response = AggregateResults(results);
+            var response = AggregateResults(input, results);
 
-            httpContextAccessor.HttpContext.Response.WithQueryResults(response.QueryStats, pagingInfo);
+            httpContextAccessor.HttpContext!.Response.WithQueryResults(response.QueryStats, input.PagingInfo);
 
             return response.Results;
         }
 
-        async Task<QueryResult<TOut>> LocalCall(PagingInfo pagingInfo, TIn input, string instanceId)
+        async Task<QueryResult<TOut>> LocalCall(TIn input, string instanceId)
         {
-            var result = await LocalQuery(pagingInfo, input);
+            var result = await LocalQuery(input);
             result.InstanceId = instanceId;
             return result;
         }
 
-        protected abstract Task<QueryResult<TOut>> LocalQuery(PagingInfo pagingInfo, TIn input);
+        protected abstract Task<QueryResult<TOut>> LocalQuery(TIn input);
 
-        internal QueryResult<TOut> AggregateResults(QueryResult<TOut>[] results)
+        internal QueryResult<TOut> AggregateResults(TIn input, QueryResult<TOut>[] results)
         {
-            var combinedResults = ProcessResults(results);
+            var combinedResults = ProcessResults(input, results);
 
             return new QueryResult<TOut>(
                 combinedResults,
-                AggregateStats(results, combinedResults)
+                AggregateStats(input, results, combinedResults)
             );
         }
 
-        protected abstract TOut ProcessResults(QueryResult<TOut>[] results);
+        protected abstract TOut ProcessResults(TIn input, QueryResult<TOut>[] results);
 
-        protected virtual QueryStatsInfo AggregateStats(IEnumerable<QueryResult<TOut>> results, TOut processedResults)
+        protected virtual QueryStatsInfo AggregateStats(TIn input, IEnumerable<QueryResult<TOut>> results, TOut processedResults)
         {
             var infos = results.Select(x => x.QueryStats).ToArray();
 

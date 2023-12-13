@@ -10,7 +10,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAuditCountsForEndpointApi : ScatterGatherApi<IErrorMessageDataStore, string, IList<AuditCount>>
+    class GetAuditCountsForEndpointApi : ScatterGatherApi<IErrorMessageDataStore, ScatterGatherContext, IList<AuditCount>>
     {
         static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
@@ -19,11 +19,11 @@
         {
         }
 
-        protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(string input) =>
+        protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(ScatterGatherContext input) =>
             // Will never be implemented on the primary instance
             Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
-        protected override IList<AuditCount> ProcessResults(QueryResult<IList<AuditCount>>[] results) =>
+        protected override IList<AuditCount> ProcessResults(ScatterGatherContext input, QueryResult<IList<AuditCount>>[] results) =>
             results.SelectMany(r => r.Results)
                 .GroupBy(r => r.UtcDate)
                 .Select(g => new AuditCount

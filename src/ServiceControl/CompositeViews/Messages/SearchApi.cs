@@ -1,24 +1,28 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, string>
+    public record SearchApiContext(
+        PagingInfo PagingInfo,
+        SortInfo SortInfo,
+        string SearchQuery)
+        : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
+
+    class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
     {
-        public SearchApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
+        public SearchApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory,
+            IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory,
+            httpContextAccessor)
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, string input)
-        {
-            var pagingInfo = request.GetPagingInfo();
-            var sortInfo = request.GetSortInfo();
-            return DataStore.GetAllMessagesForSearch(input, pagingInfo, sortInfo);
-        }
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchApiContext input) =>
+            DataStore.GetAllMessagesForSearch(input.SearchQuery, input.PagingInfo, input.SortInfo);
     }
 }
