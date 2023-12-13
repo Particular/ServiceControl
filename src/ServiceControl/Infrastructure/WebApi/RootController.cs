@@ -5,26 +5,23 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RootController : ApiController
+    [ApiController]
+    public class RootController(
+        ActiveLicense license,
+        LoggingSettings loggingSettings,
+        Settings settings,
+        IHttpClientFactory httpClientFactory)
+        : ControllerBase
     {
-        public RootController(ActiveLicense license, LoggingSettings loggingSettings, Settings settings, Func<HttpClient> httpClientFactory)
-        {
-            this.settings = settings;
-            this.license = license;
-            this.loggingSettings = loggingSettings;
-            this.httpClientFactory = httpClientFactory;
-        }
-
         [Route("")]
         [HttpGet]
-        public OkNegotiatedContentResult<RootUrls> Urls()
+        public RootUrls Urls()
         {
             var baseUrl = Url.Content("~/");
 
@@ -54,13 +51,13 @@
                 GetArchiveGroup = baseUrl + "archive/groups/id/{groupId}",
             };
 
-            return Ok(model);
+            return model;
         }
 
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public OkNegotiatedContentResult<object> Config()
+        public object Config()
         {
             object content = new
             {
@@ -97,12 +94,12 @@
                 }
             };
 
-            return Ok(content);
+            return content;
         }
 
         [Route("configuration/remotes")]
         [HttpGet]
-        public async Task<HttpResponseMessage> RemoteConfig()
+        public async Task<IActionResult> RemoteConfig()
         {
             var remotes = settings.RemoteInstances;
             var tasks = remotes
@@ -110,25 +107,22 @@
                 {
                     var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
                     var version = "Unknown";
-                    var uri = remote.ApiUri.TrimEnd('/') + "/configuration";
-                    var httpClient = httpClientFactory();
+                    var httpClient = httpClientFactory.CreateClient(remote.InstanceId);
                     JObject config = null;
 
                     try
                     {
-                        var response = await httpClient.GetAsync(uri);
+                        var response = await httpClient.GetAsync("/configuration");
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {
                             version = values.FirstOrDefault() ?? "Missing";
                         }
 
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        using (var reader = new StreamReader(stream))
-                        using (var jsonReader = new JsonTextReader(reader))
-                        {
-                            config = jsonSerializer.Deserialize<JObject>(jsonReader);
-                        }
+                        await using var stream = await response.Content.ReadAsStreamAsync();
+                        using var reader = new StreamReader(stream);
+                        using var jsonReader = new JsonTextReader(reader);
+                        config = jsonSerializer.Deserialize<JObject>(jsonReader);
                     }
                     catch (Exception)
                     {
@@ -147,13 +141,8 @@
 
             var results = await Task.WhenAll(tasks);
 
-            return Negotiator.FromModel(Request, results);
+            return Ok(results);
         }
-
-        readonly LoggingSettings loggingSettings;
-        readonly ActiveLicense license;
-        readonly Settings settings;
-        readonly Func<HttpClient> httpClientFactory;
 
         static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
 

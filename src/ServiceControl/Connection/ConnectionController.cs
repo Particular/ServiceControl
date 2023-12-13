@@ -1,30 +1,19 @@
 ﻿namespace ServiceControl.Connection
 {
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Mvc;
 
-    class ConnectionController : ApiController
+    [ApiController]
+    public class ConnectionController(IPlatformConnectionBuilder builder) : ControllerBase
     {
-        readonly IPlatformConnectionBuilder connectionBuilder;
-        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-
-        public ConnectionController(IPlatformConnectionBuilder connectionBuilder) => this.connectionBuilder = connectionBuilder;
-
         [Route("connection")]
         [HttpGet]
-        public async Task<IHttpActionResult> GetConnectionDetails()
+        public async Task<IActionResult> GetConnectionDetails()
         {
-            var connectionDetails = await connectionBuilder.BuildPlatformConnection();
+            var connectionDetails = await builder.BuildPlatformConnection();
 
-            return Json(
-                new
-                {
-                    settings = connectionDetails.ToDictionary(),
-                    errors = connectionDetails.Errors
-                },
-                jsonSerializerSettings
-            );
+            // TODO previously this was using a default json serializer setting. Why was that needed? Let's verify
+            return Ok(new { settings = connectionDetails.ToDictionary(), errors = connectionDetails.Errors });
         }
     }
 }
