@@ -1,6 +1,5 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
@@ -8,13 +7,21 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
 
+    public record ScatterGatherApiMessageViewWithSystemMessagesContext(
+        PagingInfo PagingInfo,
+        SortInfo SortInfo,
+        bool IncludeSystemMessages) : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
+
+    public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo) : ScatterGatherContext(PagingInfo);
+
     abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
+        where TInput : ScatterGatherApiMessageViewContext
     {
         protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
         {
         }
 
-        protected override IList<MessagesView> ProcessResults(QueryResult<IList<MessagesView>>[] results)
+        protected override IList<MessagesView> ProcessResults(TInput input, QueryResult<IList<MessagesView>>[] results)
         {
             var deduplicated = new Dictionary<string, MessagesView>();
             foreach (var queryResult in results)
@@ -33,15 +40,12 @@ namespace ServiceControl.CompositeViews.Messages
                     //The Execute method guarantees that the first item in the results collection comes from the main SC instance so the data fetched from failed messages has
                     //precedence over the data from the audit instances.
                     var key = $"{result.ReceivingEndpoint?.Name}-{result.MessageId}";
-                    if (!deduplicated.ContainsKey(key))
-                    {
-                        deduplicated.Add(key, result);
-                    }
+                    deduplicated.TryAdd(key, result);
                 }
             }
 
             var combined = deduplicated.Values.ToList();
-            var comparer = FinalOrder();
+            var comparer = FinalOrder(input.SortInfo);
             if (comparer != null)
             {
                 combined.Sort(comparer);
@@ -50,6 +54,6 @@ namespace ServiceControl.CompositeViews.Messages
             return combined;
         }
 
-        IComparer<MessagesView> FinalOrder() => MessageViewComparer.FromSortInfo(request);
+        IComparer<MessagesView> FinalOrder(SortInfo sortInfo) => MessageViewComparer.FromSortInfo(sortInfo);
     }
 }
