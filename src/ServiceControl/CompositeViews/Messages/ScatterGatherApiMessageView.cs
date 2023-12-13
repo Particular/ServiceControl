@@ -14,7 +14,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public record ScatterGatherApiMessageViewContext(PagingInfo PagingInfo, SortInfo SortInfo) : ScatterGatherContext(PagingInfo);
 
-    abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
+    public abstract class ScatterGatherApiMessageView<TDataStore, TInput> : ScatterGatherApi<TDataStore, TInput, IList<MessagesView>>
         where TInput : ScatterGatherApiMessageViewContext
     {
         protected ScatterGatherApiMessageView(TDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
