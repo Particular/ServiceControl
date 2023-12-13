@@ -1,33 +1,25 @@
 ﻿namespace ServiceControl.EventLog
 {
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
-    class EventLogApiController : ApiController
+    [ApiController]
+    public class EventLogApiController(IEventLogDataStore logDataStore) : ControllerBase
     {
-        public EventLogApiController(IEventLogDataStore eventLogDataStore)
-        {
-            this.eventLogDataStore = eventLogDataStore;
-        }
-
         [Route("eventlogitems")]
         [HttpGet]
-        public async Task<HttpResponseMessage> Items()
+        public async Task<IList<EventLogItem>> Items([FromQuery] PagingInfo pagingInfo)
         {
-            var pagingInfo = Request.GetPagingInfo();
+            var (results, totalCount, version) = await logDataStore.GetEventLogItems(pagingInfo);
 
-            var (results, totalCount, version) = await eventLogDataStore.GetEventLogItems(pagingInfo);
+            Response.WithPagingLinksAndTotalCount(pagingInfo, totalCount);
+            Response.WithEtag(version);
 
-
-            return Negotiator.FromModel(Request, results)
-                .WithPagingLinksAndTotalCount(totalCount, Request)
-                .WithEtag(version);
+            return results;
         }
-
-        readonly IEventLogDataStore eventLogDataStore;
     }
 }
