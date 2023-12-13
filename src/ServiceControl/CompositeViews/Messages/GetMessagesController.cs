@@ -68,22 +68,22 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/search")]
         [HttpGet]
-        public Task<HttpResponseMessage> Search(string q) => searchApi.Execute(this, q);
+        public Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q) => searchApi.Execute(new SearchApiContext(pagingInfo, sortInfo, q));
 
         [Route("messages/search/{keyword}")]
         [HttpGet]
-        public Task<HttpResponseMessage> SearchByKeyWord(string keyword) =>
-            searchApi.Execute(this, keyword?.Replace("/", @"\"));
+        public Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword) =>
+            searchApi.Execute(new SearchApiContext(pagingInfo, sortInfo, keyword?.Replace("/", @"\")));
 
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
-        public Task<HttpResponseMessage> Search(string endpoint, string q) =>
-            searchEndpointApi.Execute(this, new SearchEndpointApi.Input { Endpoint = endpoint, Keyword = q });
+        public Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q) =>
+            searchEndpointApi.Execute(new SearchEndpointContext(pagingInfo, sortInfo, endpoint, q));
 
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
-        public Task<HttpResponseMessage> SearchByKeyword(string endpoint, string keyword) =>
-            searchEndpointApi.Execute(this, new SearchEndpointApi.Input { Endpoint = endpoint, Keyword = keyword });
+        public Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword) =>
+            searchEndpointApi.Execute(new SearchEndpointContext(pagingInfo, sortInfo, endpoint, keyword));
 
         readonly GetAllMessagesApi getAllMessagesApi;
         readonly GetAllMessagesForEndpointApi getAllMessagesForEndpointApi;
