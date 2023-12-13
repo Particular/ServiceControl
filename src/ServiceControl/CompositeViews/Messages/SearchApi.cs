@@ -14,7 +14,7 @@ namespace ServiceControl.CompositeViews.Messages
         string SearchQuery)
         : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
 
-    class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
+    public class SearchApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchApiContext>
     {
         public SearchApi(IErrorMessageDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory,
             IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory,
