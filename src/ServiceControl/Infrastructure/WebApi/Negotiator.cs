@@ -102,13 +102,12 @@ namespace ServiceControl.Infrastructure.WebApi
         // TODO This name might need to change to better reflect what it does
         public static void WithQueryResults(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
-            response.WithPagingLinksAndTotalCount(queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances,
-                pagingInfo);
+            response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
             response.WithDeterministicEtag(queryStats.ETag);
         }
 
-        public static void WithPagingLinksAndTotalCount(this HttpResponse response, int totalCount, int highestTotalCountOfAllInstances,
-            PagingInfo pagingInfo)
+        public static void WithPagingLinksAndTotalCount(this HttpResponse response,
+            PagingInfo pagingInfo, int totalCount, int highestTotalCountOfAllInstances = 1)
         {
             response.WithTotalCount(totalCount);
             response.WithPagingLinks(pagingInfo, highestTotalCountOfAllInstances, totalCount);

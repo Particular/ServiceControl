@@ -1,31 +1,20 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
-    class GetAllErrorsController : ApiController
+    [ApiController]
+    public class GetAllErrorsController(IErrorMessageDataStore store) : ControllerBase
     {
-        public GetAllErrorsController(IErrorMessageDataStore dataStore)
-        {
-            this.dataStore = dataStore;
-        }
-
         [Route("errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsGet()
+        public async Task<IList<FailedMessageView>> ErrorsGet([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string queueAddress)
         {
-            string status = Request.GetStatus();
-            string modified = Request.GetModified();
-            string queueAddress = Request.GetQueueAddress();
-
-            var sortInfo = Request.GetSortInfo();
-            var pagingInfo = Request.GetPagingInfo();
-
-            var results = await dataStore.ErrorGet(
+            var results = await store.ErrorGet(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress,
@@ -33,39 +22,29 @@
                     sortInfo
                     );
 
-            return Negotiator.FromQueryResult(Request, results);
+            Response.WithQueryResults(results.QueryStats, pagingInfo);
+
+            return results.Results;
         }
 
         [Route("errors")]
         [HttpHead]
-        public async Task<HttpResponseMessage> ErrorsHead()
+        public async Task ErrorsHead(string status, string modified, string queueAddress)
         {
-            string status = Request.GetStatus();
-            string modified = Request.GetModified();
-            string queueAddress = Request.GetQueueAddress();
-
-            var queryResult = await dataStore.ErrorsHead(
+            var queryResult = await store.ErrorsHead(
                     status: status,
                     modified: modified,
                     queueAddress: queueAddress
                     );
 
-
-            return Negotiator.FromQueryStatsInfo(Request, queryResult);
+            Response.WithQueryStatsInfo(queryResult);
         }
 
         [Route("endpoints/{endpointname}/errors")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsByEndpointName()
+        public async Task<IList<FailedMessageView>> ErrorsByEndpointName([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string status, string modified, string endpointName)
         {
-            string status = Request.GetStatus();
-            string modified = Request.GetModified();
-            string endpointName = Request.GetEndpointName();
-
-            var sortInfo = Request.GetSortInfo();
-            var pagingInfo = Request.GetPagingInfo();
-
-            var results = await dataStore.ErrorsByEndpointName(
+            var results = await store.ErrorsByEndpointName(
                 status: status,
                 endpointName: endpointName,
                 modified: modified,
@@ -73,18 +52,13 @@
                 sortInfo
                 );
 
-            return Negotiator.FromQueryResult(Request, results);
+            Response.WithQueryResults(results.QueryStats, pagingInfo);
+
+            return results.Results;
         }
 
         [Route("errors/summary")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorsSummary()
-        {
-            var results = await dataStore.ErrorsSummary();
-
-            return Negotiator.FromModel(Request, results);
-        }
-
-        readonly IErrorMessageDataStore dataStore;
+        public async Task<IDictionary<string, object>> ErrorsSummary() => await store.ErrorsSummary();
     }
 }
