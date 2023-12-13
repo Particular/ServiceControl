@@ -3,43 +3,39 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using NServiceBus.Logging;
     using Persistence;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class EditFailedMessagesController : ApiController
+    [ApiController]
+    public class EditFailedMessagesController(
+        Settings settings,
+        IErrorMessageDataStore store,
+        IMessageSession session)
+        : ControllerBase
     {
-        public EditFailedMessagesController(Settings settings, IErrorMessageDataStore store, IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-            this.store = store;
-            this.settings = settings;
-        }
-
         [Route("edit/config")]
         [HttpGet]
-        public OkNegotiatedContentResult<EditConfigurationModel> Config() => Ok(GetEditConfiguration());
+        public EditConfigurationModel Config() => GetEditConfiguration();
 
         [Route("edit/{failedmessageid}")]
         [HttpPost]
-        public async Task<StatusCodeResult> Edit(string failedMessageId, EditMessageModel edit)
+        public async Task<IActionResult> Edit(string failedMessageId, EditMessageModel edit)
         {
             if (!settings.AllowMessageEditing)
             {
                 logging.Info("Message edit-retry has not been enabled.");
-                return StatusCode(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
             if (string.IsNullOrEmpty(failedMessageId))
             {
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             var failedMessage = await store.ErrorBy(failedMessageId);
@@ -47,7 +43,7 @@
             if (failedMessage == null)
             {
                 logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             //WARN
@@ -63,31 +59,30 @@
             if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x => x.Value), failedMessage.ProcessingAttempts.Last().Headers))
             {
                 logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
             {
                 logging.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             // Encode the body in base64 so that the new body doesn't have to be escaped
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(edit.MessageBody));
-            await messageSession.SendLocal(new EditAndSend
+            await session.SendLocal(new EditAndSend
             {
                 FailedMessageId = failedMessageId,
                 NewBody = base64String,
                 NewHeaders = edit.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
             });
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
 
-        EditConfigurationModel GetEditConfiguration()
-        {
-            return new EditConfigurationModel
+        EditConfigurationModel GetEditConfiguration() =>
+            new()
             {
                 Enabled = settings.AllowMessageEditing,
                 LockedHeaders = new[]
@@ -130,13 +125,8 @@
                     "Header"
                 }
             };
-        }
 
-        Settings settings;
-        IErrorMessageDataStore store;
-        IMessageSession messageSession;
-
-        static ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
+        static readonly ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
     }
 
     public class EditConfigurationModel
