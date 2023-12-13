@@ -28,7 +28,7 @@ namespace ServiceControl.CompositeViews.Messages
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
 
-    abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
+    public abstract class ScatterGatherApi<TDataStore, TIn, TOut> : ScatterGatherApiBase, IApi
         where TIn : ScatterGatherContext
         where TOut : class
     {
