@@ -8,7 +8,7 @@
     using CompositeViews.Messages;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class GetBodyByIdApi : RoutedApi<string>
+    public class GetBodyByIdApi : RoutedApi<string>
     {
         public GetBodyByIdApi(IBodyStorage bodyStorage, Settings settings, Func<HttpClient> httpClientFactory)
         {
