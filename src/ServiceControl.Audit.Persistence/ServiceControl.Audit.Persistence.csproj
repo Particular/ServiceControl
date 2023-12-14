@@ -14,4 +14,8 @@
     <PackageReference Include="NServiceBus" />
   </ItemGroup>
 
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="Microsoft.AspNet.WebApi" />
+  </ItemGroup>
+
 </Project>

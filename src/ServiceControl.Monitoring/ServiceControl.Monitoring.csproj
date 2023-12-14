@@ -25,6 +25,11 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
+    <PackageReference Include="Microsoft.Owin.Cors" />
+  </ItemGroup>
+
   <ItemGroup>
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt;*-configuration.txt" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
   </ItemGroup>

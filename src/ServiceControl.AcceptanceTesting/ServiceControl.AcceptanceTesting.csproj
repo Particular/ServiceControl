@@ -14,6 +14,11 @@
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
+
+  </ItemGroup>
+
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 
