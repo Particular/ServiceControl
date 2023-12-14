@@ -1,8 +1,10 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
+    using System.IO;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Operations.BodyStorage.Api;
     using Persistence.Infrastructure;
@@ -40,7 +42,10 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/{id}/body")]
         [HttpGet]
-        public Task<HttpResponseMessage> Get(string id) => bodyByIdApi.Execute(this, id);
+        public Task<Stream> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
+        {
+            return bodyByIdApi.Execute(new GetByBodyContext(instanceId, id));
+        }
 
         // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
         // and then the "normal" route above will not activate, resulting in 404 if this route is not present.

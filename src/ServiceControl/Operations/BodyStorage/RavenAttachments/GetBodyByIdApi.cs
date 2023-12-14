@@ -6,34 +6,35 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public class GetBodyByIdApi : RoutedApi<string>
+    public record GetByBodyContext(string InstanceId, string MessageId) : RoutedApiContext(InstanceId);
+
+    public class GetBodyByIdApi : RoutedApi<GetByBodyContext>
     {
-        public GetBodyByIdApi(IBodyStorage bodyStorage, Settings settings, Func<HttpClient> httpClientFactory)
+        public GetBodyByIdApi(IBodyStorage bodyStorage, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+            : base(settings, httpClientFactory, httpContextAccessor)
         {
             this.bodyStorage = bodyStorage;
-            Settings = settings;
-            HttpClientFactory = httpClientFactory;
         }
 
-        protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
+        protected override async Task<HttpResponseMessage> LocalQuery(GetByBodyContext input)
         {
-            var messageId = input;
-
-            var result = await bodyStorage.TryFetch(messageId);
+            var result = await bodyStorage.TryFetch(input.MessageId);
 
             if (result == null)
             {
-                return request.CreateResponse(HttpStatusCode.NotFound);
+                return new HttpResponseMessage(HttpStatusCode.NotFound);
             }
 
             if (!result.HasResult)
             {
-                return request.CreateResponse(HttpStatusCode.NoContent);
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
             }
 
-            var response = request.CreateResponse(HttpStatusCode.OK);
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
             var content = new StreamContent(result.Stream);
             MediaTypeHeaderValue.TryParse(result.ContentType, out var parsedContentType);
             content.Headers.ContentType = parsedContentType ?? new MediaTypeHeaderValue("text/*");
