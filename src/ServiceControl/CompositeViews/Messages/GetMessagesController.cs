@@ -1,10 +1,8 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
-    using System.IO;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Operations.BodyStorage.Api;
     using Persistence.Infrastructure;
@@ -42,8 +40,10 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/{id}/body")]
         [HttpGet]
-        public Task<Stream> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
+        public Task<HttpResponseMessage> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
         {
+            // TODO we probably can't stream this directly. See https://stackoverflow.com/questions/54136488/correct-way-to-return-httpresponsemessage-as-iactionresult-in-net-core-2-2
+            // Revisit once we have things compiling
             return bodyByIdApi.Execute(new GetByBodyContext(instanceId, id));
         }
 

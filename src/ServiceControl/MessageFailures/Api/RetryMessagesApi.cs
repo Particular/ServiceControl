@@ -1,28 +1,29 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using InternalMessages;
+    using Microsoft.AspNetCore.Http;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RetryMessagesApi : RoutedApi<string>
+    public record RetryMessagesApiContext(string InstanceId, string FailedMessageId) : RoutedApiContext(InstanceId);
+
+    public class RetryMessagesApi : RoutedApi<RetryMessagesApiContext>
     {
-        public RetryMessagesApi(IMessageSession messageSession, Settings settings, Func<HttpClient> httpClientFactory)
+        public RetryMessagesApi(IMessageSession messageSession, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+            : base(settings, httpClientFactory, httpContextAccessor)
         {
             this.messageSession = messageSession;
-            Settings = settings;
-            HttpClientFactory = httpClientFactory;
         }
 
-        protected override async Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, string input, string instanceId)
+        protected override async Task<HttpResponseMessage> LocalQuery(RetryMessagesApiContext input)
         {
-            await messageSession.SendLocal<RetryMessage>(m => { m.FailedMessageId = input; });
+            await messageSession.SendLocal<RetryMessage>(m => { m.FailedMessageId = input.FailedMessageId; });
 
-            return request.CreateResponse(HttpStatusCode.Accepted);
+            return new HttpResponseMessage(HttpStatusCode.Accepted);
         }
 
         readonly IMessageSession messageSession;
