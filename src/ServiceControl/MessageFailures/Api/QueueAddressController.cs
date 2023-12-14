@@ -1,45 +1,40 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
-    using System.Net;
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using Persistence.Infrastructure;
     using ServiceControl.Persistence;
 
-    class QueueAddressController : ApiController
+    [ApiController]
+    public class QueueAddressController(IQueueAddressStore store) : ControllerBase
     {
-        public QueueAddressController(IQueueAddressStore dataStore)
-        {
-            this.dataStore = dataStore;
-        }
-
         [Route("errors/queues/addresses")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetAddresses()
+        public async Task<IList<QueueAddress>> GetAddresses([FromQuery] PagingInfo pagingInfo)
         {
-            var pagingInfo = Request.GetPagingInfo();
-            var result = await dataStore.GetAddresses(pagingInfo);
+            var result = await store.GetAddresses(pagingInfo);
 
-            return Negotiator.FromQueryResult(Request, result);
+            Response.WithQueryResults(result.QueryStats, pagingInfo);
+
+            return result.Results;
         }
 
         [Route("errors/queues/addresses/search/{search}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetAddressesBySearchTerm(string search = null)
+        public async Task<ActionResult<IList<QueueAddress>>> GetAddressesBySearchTerm([FromQuery] PagingInfo pagingInfo, string search = null)
         {
             if (string.IsNullOrWhiteSpace(search))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            var pagingInfo = Request.GetPagingInfo();
-            var result = await dataStore.GetAddressesBySearchTerm(search, pagingInfo);
+            var result = await store.GetAddressesBySearchTerm(search, pagingInfo);
 
-            return Negotiator.FromQueryResult(Request, result);
+            Response.WithQueryResults(result.QueryStats, pagingInfo);
+
+            return Ok(result.Results);
         }
-
-        readonly IQueueAddressStore dataStore;
     }
 }

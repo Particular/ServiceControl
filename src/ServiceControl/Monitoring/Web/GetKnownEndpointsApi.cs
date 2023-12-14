@@ -10,7 +10,7 @@
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetKnownEndpointsApi : ScatterGatherApiNoInput<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
+    public class GetKnownEndpointsApi : ScatterGatherApiNoInput<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
     {
         public GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
         {

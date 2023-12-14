@@ -5,31 +5,29 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Contracts.MessageRedirects;
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using MessageFailures.InternalMessages;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence.MessageRedirects;
 
-    class MessageRedirectsController : ApiController
+    [ApiController]
+    public class MessageRedirectsController(
+        IMessageSession session,
+        IMessageRedirectsDataStore store,
+        IDomainEvents events)
+        : ControllerBase
     {
-        public MessageRedirectsController(IMessageSession messageSession, IMessageRedirectsDataStore redirectsStore, IDomainEvents domainEvents)
-        {
-            this.redirectsStore = redirectsStore;
-            this.domainEvents = domainEvents;
-            this.messageSession = messageSession;
-        }
-
         [Route("redirects")]
         [HttpPost]
-        public async Task<HttpResponseMessage> NewRedirects(MessageRedirectRequest request)
+        public async Task<IActionResult> NewRedirects(MessageRedirectRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.fromphysicaladdress) || string.IsNullOrWhiteSpace(request.tophysicaladdress))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             var messageRedirect = new MessageRedirect
@@ -39,7 +37,7 @@
                 LastModifiedTicks = DateTime.UtcNow.Ticks
             };
 
-            var collection = await redirectsStore.GetOrCreate();
+            var collection = await store.GetOrCreate();
 
             var existing = collection[messageRedirect.MessageRedirectId];
 
@@ -59,9 +57,9 @@
 
             collection.Redirects.Add(messageRedirect);
 
-            await redirectsStore.Save(collection);
+            await store.Save(collection);
 
-            await domainEvents.Raise(new MessageRedirectCreated
+            await events.Raise(new MessageRedirectCreated
             {
                 MessageRedirectId = messageRedirect.MessageRedirectId,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
@@ -70,7 +68,7 @@
 
             if (request.retryexisting)
             {
-                await messageSession.SendLocal(new RetryPendingMessages
+                await session.SendLocal(new RetryPendingMessages
                 {
                     QueueAddress = messageRedirect.FromPhysicalAddress,
                     PeriodFrom = DateTime.MinValue,
@@ -78,32 +76,32 @@
                 });
             }
 
-            return Request.CreateResponse(HttpStatusCode.Created);
+            return Accepted();
         }
 
         [Route("redirects/{messageredirectid:guid}")]
         [HttpPut]
-        public async Task<HttpResponseMessage> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request)
+        public async Task<IActionResult> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.tophysicaladdress))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await store.GetOrCreate();
 
             var messageRedirect = redirects[messageRedirectId];
 
             if (messageRedirect == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
             var toMessageRedirectId = DeterministicGuid.MakeId(request.tophysicaladdress);
 
             if (redirects[toMessageRedirectId] != null)
             {
-                return Request.CreateResponse(HttpStatusCode.Conflict);
+                return Conflict();
             }
 
             var messageRedirectChanged = new MessageRedirectChanged
@@ -116,56 +114,55 @@
 
             messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
 
-            await redirectsStore.Save(redirects);
+            await store.Save(redirects);
 
-            await domainEvents.Raise(messageRedirectChanged);
+            await events.Raise(messageRedirectChanged);
 
-            return Request.CreateResponse(HttpStatusCode.NoContent);
+            return NoContent();
         }
 
         [Route("redirects/{messageredirectid:guid}")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> DeleteRedirect(Guid messageRedirectId)
+        public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
         {
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await store.GetOrCreate();
 
             var messageRedirect = redirects[messageRedirectId];
 
             if (messageRedirect == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NoContent);
+                return NoContent();
             }
 
             redirects.Redirects.Remove(messageRedirect);
 
-            await redirectsStore.Save(redirects);
+            await store.Save(redirects);
 
-            await domainEvents.Raise(new MessageRedirectRemoved
+            await events.Raise(new MessageRedirectRemoved
             {
                 MessageRedirectId = messageRedirectId,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress
             });
 
-            return Request.CreateResponse(HttpStatusCode.NoContent);
+            return NoContent();
         }
 
         [Route("redirect")]
         [HttpHead]
-        public async Task<HttpResponseMessage> CountRedirects()
+        public async Task CountRedirects()
         {
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await store.GetOrCreate();
 
-            return Request.CreateResponse(HttpStatusCode.OK)
-                .WithEtag(redirects.ETag)
-                .WithTotalCount(redirects.Redirects.Count);
+            Response.WithEtag(redirects.ETag);
+            Response.WithTotalCount(redirects.Redirects.Count);
         }
 
         [Route("redirects")]
         [HttpGet]
         public async Task<HttpResponseMessage> Redirects()
         {
-            var redirects = await redirectsStore.GetOrCreate();
+            var redirects = await store.GetOrCreate();
 
             var queryResult = redirects
                 .Sort(Request)
@@ -183,10 +180,6 @@
                 .WithEtag(redirects.ETag)
                 .WithPagingLinksAndTotalCount(redirects.Redirects.Count, Request);
         }
-
-        readonly IDomainEvents domainEvents;
-        readonly IMessageRedirectsDataStore redirectsStore;
-        readonly IMessageSession messageSession;
 
         public class MessageRedirectRequest
         {
