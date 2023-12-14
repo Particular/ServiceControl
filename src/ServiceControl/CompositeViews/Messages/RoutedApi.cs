@@ -64,7 +64,7 @@ namespace ServiceControl.CompositeViews.Messages
                     httpRequestMessage.Content = new StreamContent(currentRequest.Body);
                 }
                 var rawResponse = await httpClient.SendAsync(httpRequestMessage);
-                httpContextAccessor.HttpContext.Response.Headers
+
                 return rawResponse;
             }
             catch (Exception exception)
