@@ -7,35 +7,46 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.Settings;
+    using Microsoft.AspNetCore.Http;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    abstract class RoutedApi<TIn> : IApi
+    public record RoutedApiContext(string InstanceId);
+
+    public abstract class RoutedApi<TIn>
+        : IApi
+        where TIn : RoutedApiContext
     {
-        public Settings Settings { get; set; }
-        public Func<HttpClient> HttpClientFactory { get; set; }
+        Settings settings;
+        IHttpClientFactory httpClientFactory;
+        IHttpContextAccessor httpContextAccessor;
 
-        public Task<HttpResponseMessage> Execute(ApiController controller, TIn input)
+        protected RoutedApi(Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
         {
-            var currentRequest = controller.Request;
+            this.settings = settings;
+            this.httpClientFactory = httpClientFactory;
+            this.httpContextAccessor = httpContextAccessor;
+        }
 
-            var instanceId = GetInstance(currentRequest, input);
+        public Task<HttpResponseMessage> Execute(TIn input)
+        {
+            var currentRequest = httpContextAccessor.HttpContext.Request;
 
-            var localInstanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
+            var localInstanceId = settings.InstanceId;
 
-            if (!string.IsNullOrWhiteSpace(instanceId) && instanceId != localInstanceId)
+            if (!string.IsNullOrWhiteSpace(input.InstanceId) && input.InstanceId != localInstanceId)
             {
-                return RemoteCall(currentRequest, instanceId);
+                return RemoteCall(currentRequest, input.InstanceId);
             }
 
             return LocalQuery(currentRequest, input, localInstanceId);
         }
 
-        protected virtual string GetInstance(HttpRequestMessage currentRequest, TIn input)
-        {
-            return currentRequest.GetQueryNameValuePairs().Where(x => x.Key == "instance_id")
-                .Select(x => x.Value).SingleOrDefault();
-        }
+        // protected virtual string GetInstance(HttpRequestMessage currentRequest, TIn input)
+        // {
+        //     return currentRequest.GetQueryNameValuePairs().Where(x => x.Key == "instance_id")
+        //         .Select(x => x.Value).SingleOrDefault();
+        // }
 
         protected abstract Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, TIn input, string instanceId);
 

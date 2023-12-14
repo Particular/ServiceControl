@@ -9,6 +9,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
+    using ServiceControl.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
@@ -93,6 +94,20 @@ namespace ServiceBus.Management.Infrastructure.Settings
         }
 
         public string ApiUrl => $"{RootUrl}api";
+
+        string _instanceId;
+        public string InstanceId
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_instanceId))
+                {
+                    _instanceId = InstanceIdGenerator.FromApiUrl(ApiUrl);
+                }
+
+                return _instanceId;
+            }
+        }
 
         public string StorageUrl => $"{RootUrl}storage";
 
