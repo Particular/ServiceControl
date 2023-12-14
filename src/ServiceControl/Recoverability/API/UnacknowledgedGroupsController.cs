@@ -1,42 +1,32 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Recoverability;
 
-    class UnacknowledgedGroupsController : ApiController
+    [ApiController]
+    class UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver) : ControllerBase
     {
-        public UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver)
-        {
-            this.retryStore = retryStore;
-            this.archiver = archiver;
-        }
-
         [Route("recoverability/unacknowledgedgroups/{groupId}")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> AcknowledgeOperation(string groupId)
+        public async Task<IActionResult> AcknowledgeOperation(string groupId)
         {
             if (archiver.IsArchiveInProgressFor(groupId))
             {
                 archiver.DismissArchiveOperation(groupId, ArchiveType.FailureGroup);
-                return Request.CreateResponse(HttpStatusCode.OK);
+                return Ok();
             }
 
             var success = await retryStore.AcknowledgeRetryGroup(groupId);
 
             if (success)
             {
-                return Request.CreateResponse(HttpStatusCode.OK);
+                return Ok();
             }
 
 
-            return Request.CreateResponse(HttpStatusCode.NotFound);
+            return NotFound();
         }
-
-        readonly IRetryHistoryDataStore retryStore;
-        readonly IArchiveMessages archiver;
     }
 }
