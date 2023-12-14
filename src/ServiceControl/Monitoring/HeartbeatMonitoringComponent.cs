@@ -14,28 +14,25 @@
 
     class HeartbeatMonitoringComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices(collection =>
-            {
-                collection.AddHostedService<HeartbeatMonitoringHostedService>();
-                collection.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
+            hostBuilder.Services.AddHostedService<HeartbeatMonitoringHostedService>();
+            hostBuilder.Services.AddSingleton<IEndpointInstanceMonitoring, EndpointInstanceMonitoring>();
 
-                collection.AddDomainEventHandler<MonitoringDataPersister>();
+            hostBuilder.Services.AddDomainEventHandler<MonitoringDataPersister>();
 
-                collection.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
-                collection.AddEventLogMapping<HeartbeatingEndpointDetectedDefinition>();
-                collection.AddEventLogMapping<EndpointHeartbeatRestoredDefinition>();
-                collection.AddEventLogMapping<EndpointStartedDefinition>();
-                collection.AddEventLogMapping<KnownEndpointUpdatedDefinition>();
+            hostBuilder.Services.AddEventLogMapping<EndpointFailedToHeartbeatDefinition>();
+            hostBuilder.Services.AddEventLogMapping<HeartbeatingEndpointDetectedDefinition>();
+            hostBuilder.Services.AddEventLogMapping<EndpointHeartbeatRestoredDefinition>();
+            hostBuilder.Services.AddEventLogMapping<EndpointStartedDefinition>();
+            hostBuilder.Services.AddEventLogMapping<KnownEndpointUpdatedDefinition>();
 
-                collection.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
-                collection.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
+            hostBuilder.Services.AddIntegrationEventPublisher<HeartbeatRestoredPublisher>();
+            hostBuilder.Services.AddIntegrationEventPublisher<HeartbeatStoppedPublisher>();
 
-                collection.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
+            hostBuilder.Services.AddErrorMessageEnricher<DetectNewEndpointsFromErrorImportsEnricher>();
 
-                collection.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
-            });
+            hostBuilder.Services.AddPlatformConnectionProvider<HeartbeatsPlatformConnectionDetailsProvider>();
         }
     }
 }
