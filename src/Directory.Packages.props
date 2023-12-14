@@ -49,7 +49,6 @@
     <PackageVersion Include="NuGet.Versioning" Version="6.8.0" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
     <PackageVersion Include="Particular.Approvals" Version="0.5.0" />
     <PackageVersion Include="Particular.Licensing.Sources" Version="5.1.0" />
     <PackageVersion Include="PropertyChanged.Fody" Version="4.1.0" />
@@ -73,6 +72,14 @@
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.10" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.302" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
+    <PackageVersion Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
+    <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
+    <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
   </ItemGroup>
 
 </Project>

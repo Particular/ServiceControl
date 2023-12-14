@@ -29,6 +29,11 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
+    <PackageReference Include="Microsoft.Owin.Cors" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Remove="Infrastructure\Hosting\Help.txt" />
     <EmbeddedResource Include="Infrastructure\Hosting\Help.txt" />
