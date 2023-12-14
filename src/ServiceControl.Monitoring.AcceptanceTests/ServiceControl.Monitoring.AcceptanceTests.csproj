@@ -20,6 +20,9 @@
     <PackageReference Include="NServiceBus.Metrics.ServiceControl" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
+  </ItemGroup>
+
+  <ItemGroup Label="Keep to make projects compile for now">
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 
