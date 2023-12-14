@@ -4,14 +4,17 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Infrastructure.Settings;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
+    using Microsoft.Net.Http.Headers;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    public record RoutedApiContext(string InstanceId);
+    public abstract record RoutedApiContext(string InstanceId);
 
     public abstract class RoutedApi<TIn>
         : IApi
@@ -30,16 +33,15 @@ namespace ServiceControl.CompositeViews.Messages
 
         public Task<HttpResponseMessage> Execute(TIn input)
         {
-            var currentRequest = httpContextAccessor.HttpContext.Request;
+            var currentRequest = httpContextAccessor.HttpContext!.Request;
+            var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
 
-            var localInstanceId = settings.InstanceId;
-
-            if (!string.IsNullOrWhiteSpace(input.InstanceId) && input.InstanceId != localInstanceId)
+            if (!string.IsNullOrWhiteSpace(input.InstanceId) && input.InstanceId != settings.InstanceId)
             {
-                return RemoteCall(currentRequest, input.InstanceId);
+                return RemoteCall(currentRequest, pathAndQuery, input.InstanceId);
             }
 
-            return LocalQuery(currentRequest, input, localInstanceId);
+            return LocalQuery(input);
         }
 
         // protected virtual string GetInstance(HttpRequestMessage currentRequest, TIn input)
@@ -48,32 +50,35 @@ namespace ServiceControl.CompositeViews.Messages
         //         .Select(x => x.Value).SingleOrDefault();
         // }
 
-        protected abstract Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, TIn input, string instanceId);
+        protected abstract Task<HttpResponseMessage> LocalQuery(TIn input);
 
-        async Task<HttpResponseMessage> RemoteCall(HttpRequestMessage currentRequest, string instanceId)
+        async Task<HttpResponseMessage> RemoteCall(HttpRequest currentRequest, string pathAndQuery, string instanceId)
         {
-            var remoteUri = InstanceIdGenerator.ToApiUri(instanceId);
-
-            var instanceUri = currentRequest.RedirectToRemoteUri(remoteUri);
-
-            var httpClient = HttpClientFactory();
+            var httpClient = httpClientFactory.CreateClient(instanceId);
             try
             {
-                currentRequest.RequestUri = instanceUri;
-                if (currentRequest.Method == HttpMethod.Get)
+                var httpRequestMessage = new HttpRequestMessage(new HttpMethod(currentRequest.Method), pathAndQuery);
+                // We need to forward all the incoming headers
+                foreach (var currentRequestHeader in currentRequest.Headers)
                 {
-                    currentRequest.Content = null;
+                    // TODO double check this is needed
+                    if (currentRequestHeader.Key == HeaderNames.Host)
+                    {
+                        continue;
+                    }
+                    httpRequestMessage.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value.ToString());
                 }
 
-                currentRequest.Headers.Host = remoteUri.Authority; //switch the host header to the new instance host
-
-                var rawResponse = await httpClient.SendAsync(currentRequest);
-
+                if (currentRequest.Method != HttpMethod.Get.ToString() && currentRequest.Method != HttpMethod.Head.ToString())
+                {
+                    httpRequestMessage.Content = new StreamContent(currentRequest.Body);
+                }
+                var rawResponse = await httpClient.SendAsync(httpRequestMessage);
                 return rawResponse;
             }
             catch (Exception exception)
             {
-                logger.Warn($"Failed to query remote instance at {remoteUri}.", exception);
+                logger.Warn($"Failed to query remote instance at {httpClient.BaseAddress + pathAndQuery}.", exception);
 
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
