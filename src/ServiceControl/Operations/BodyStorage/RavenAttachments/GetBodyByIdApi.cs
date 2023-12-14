@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Operations.BodyStorage.Api
 {
-    using System;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Mvc;
     using ServiceBus.Management.Infrastructure.Settings;
 
     public record GetByBodyContext(string InstanceId, string MessageId) : RoutedApiContext(InstanceId);
