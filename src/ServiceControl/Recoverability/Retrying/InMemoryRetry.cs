@@ -6,7 +6,7 @@
     using NServiceBus.Logging;
     using ServiceControl.Persistence;
 
-    class InMemoryRetry
+    public class InMemoryRetry
     {
         public InMemoryRetry(string requestId, RetryType retryType, IDomainEvents domainEvents)
         {
