@@ -1,11 +1,13 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     public class EndpointUpdateModel
     {
@@ -53,8 +55,7 @@
 
         [Route("endpoints/known")]
         [HttpGet]
-        public Task<HttpResponseMessage> KnownEndpoints() => knownEndpointsApi.Execute(this);
-
+        public Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo) => knownEndpointsApi.Execute(new ScatterGatherContext(pagingInfo));
 
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
