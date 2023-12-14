@@ -4,37 +4,31 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using InternalMessages;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
-    class ResolveMessagesController : ApiController
+    [ApiController]
+    public class ResolveMessagesController(IMessageSession session) : ControllerBase
     {
-        public ResolveMessagesController(IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-        }
-
         [Route("pendingretries/resolve")]
         [HttpPatch]
-        public async Task<HttpResponseMessage> ResolveBy(ResolveRequest request)
+        public async Task<IActionResult> ResolveBy(ResolveRequest request)
         {
             if (request.uniquemessageids != null)
             {
                 if (request.uniquemessageids.Any(string.IsNullOrEmpty))
                 {
-                    return Request.CreateResponse(HttpStatusCode.BadRequest);
+                    return BadRequest();
                 }
 
                 foreach (var id in request.uniquemessageids)
                 {
-                    await messageSession.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
+                    await session.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
                 }
 
-                return Request.CreateResponse(HttpStatusCode.Accepted);
+                return Accepted();
             }
 
             DateTime from, to;
@@ -46,25 +40,29 @@
             }
             catch (Exception)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "From/To");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "From/To") which might be returning a complex object
+                // Let's verify
+                return BadRequest("From/To");
             }
 
-            await messageSession.SendLocal<MarkPendingRetriesAsResolved>(m =>
+            await session.SendLocal<MarkPendingRetriesAsResolved>(m =>
             {
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
             });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]
-        public async Task<HttpResponseMessage> ResolveByQueue(ResolveRequest request)
+        public async Task<IActionResult> ResolveByQueue(ResolveRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.queueaddress))
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, QueueAddress") which might be returning a complex object
+                // Let's verify
+                return BadRequest("QueueAddress");
             }
 
             DateTime from, to;
@@ -76,20 +74,20 @@
             }
             catch (Exception)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "From/To");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, From/To") which might be returning a complex object
+                // Let's verify
+                return BadRequest("From/To");
             }
 
-            await messageSession.SendLocal<MarkPendingRetriesAsResolved>(m =>
+            await session.SendLocal<MarkPendingRetriesAsResolved>(m =>
             {
                 m.QueueAddress = request.queueaddress;
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
             });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        readonly IMessageSession messageSession;
 
         public class ResolveRequest
         {
