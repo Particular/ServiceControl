@@ -1,13 +1,9 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System;
-    using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using Infrastructure.Settings;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.Net.Http.Headers;
@@ -44,12 +40,6 @@ namespace ServiceControl.CompositeViews.Messages
             return LocalQuery(input);
         }
 
-        // protected virtual string GetInstance(HttpRequestMessage currentRequest, TIn input)
-        // {
-        //     return currentRequest.GetQueryNameValuePairs().Where(x => x.Key == "instance_id")
-        //         .Select(x => x.Value).SingleOrDefault();
-        // }
-
         protected abstract Task<HttpResponseMessage> LocalQuery(TIn input);
 
         async Task<HttpResponseMessage> RemoteCall(HttpRequest currentRequest, string pathAndQuery, string instanceId)
@@ -74,6 +64,7 @@ namespace ServiceControl.CompositeViews.Messages
                     httpRequestMessage.Content = new StreamContent(currentRequest.Body);
                 }
                 var rawResponse = await httpClient.SendAsync(httpRequestMessage);
+                httpContextAccessor.HttpContext.Response.Headers
                 return rawResponse;
             }
             catch (Exception exception)

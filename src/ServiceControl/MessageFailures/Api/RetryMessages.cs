@@ -5,12 +5,13 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using InternalMessages;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using Recoverability;
 
-    class RetryMessagesController : ApiController
+    [ApiController]
+    public class RetryMessagesController : ControllerBase
     {
         public RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)
         {
@@ -20,37 +21,41 @@
 
         [Route("errors/{failedmessageid}/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryMessageBy(string failedMessageId)
+        public async Task<HttpResponseMessage> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
         {
+            // TODO we probably can't stream this directly. See https://stackoverflow.com/questions/54136488/correct-way-to-return-httpresponsemessage-as-iactionresult-in-net-core-2-2
+            // Revisit once we have things compiling
+
             if (string.IsNullOrEmpty(failedMessageId))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
             }
 
-            return await retryMessagesApi.Execute(this, failedMessageId);
+            return await retryMessagesApi.Execute(new RetryMessagesApiContext(instanceId, failedMessageId));
         }
 
         [Route("errors/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryAllBy(List<string> messageIds)
+        public async Task<IActionResult> RetryAllBy(List<string> messageIds)
         {
             if (messageIds.Any(string.IsNullOrEmpty))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             await messageSession.SendLocal<RetryMessagesById>(m => m.MessageUniqueIds = messageIds.ToArray());
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("errors/queues/{queueaddress}/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryAllBy(string queueAddress)
+        public async Task<IActionResult> RetryAllBy(string queueAddress)
         {
             if (string.IsNullOrWhiteSpace(queueAddress))
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "queueaddress URL parameter must be provided");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress") which might be returning a complex object
+                return BadRequest("queueaddress URL parameter must be provided");
             }
 
             await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
@@ -59,25 +64,25 @@
                 m.Status = FailedMessageStatus.Unresolved;
             });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("errors/retry/all")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryAll()
+        public async Task<IActionResult> RetryAll()
         {
             await messageSession.SendLocal(new RequestRetryAll());
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("errors/{endpointname}/retry/all")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryAllByEndpoint(string endpointName)
+        public async Task<IActionResult> RetryAllByEndpoint(string endpointName)
         {
             await messageSession.SendLocal(new RequestRetryAll { Endpoint = endpointName });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         readonly RetryMessagesApi retryMessagesApi;
