@@ -9,18 +9,15 @@
 
     class CustomChecksComponent : ServiceControlComponent
     {
-        public override void Configure(Settings settings, IHostBuilder hostBuilder)
+        public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder)
         {
-            hostBuilder.ConfigureServices((ctx, serviceCollection) =>
-            {
-                serviceCollection.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
-                serviceCollection.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
-                serviceCollection.AddEventLogMapping<CustomCheckDeletedDefinition>();
-                serviceCollection.AddEventLogMapping<CustomCheckFailedDefinition>();
-                serviceCollection.AddEventLogMapping<CustomCheckSucceededDefinition>();
-                serviceCollection.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
-                serviceCollection.AddSingleton<CustomCheckResultProcessor>();
-            });
+            hostBuilder.Services.AddIntegrationEventPublisher<CustomCheckFailedPublisher>();
+            hostBuilder.Services.AddIntegrationEventPublisher<CustomCheckSucceededPublisher>();
+            hostBuilder.Services.AddEventLogMapping<CustomCheckDeletedDefinition>();
+            hostBuilder.Services.AddEventLogMapping<CustomCheckFailedDefinition>();
+            hostBuilder.Services.AddEventLogMapping<CustomCheckSucceededDefinition>();
+            hostBuilder.Services.AddPlatformConnectionProvider<CustomChecksPlatformConnectionDetailsProvider>();
+            hostBuilder.Services.AddSingleton<CustomCheckResultProcessor>();
         }
     }
 }
