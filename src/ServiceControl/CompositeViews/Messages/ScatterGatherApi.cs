@@ -7,7 +7,6 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure.Settings;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
@@ -21,7 +20,7 @@ namespace ServiceControl.CompositeViews.Messages
     }
 
     // used to hoist the static jsonSerializer field across the generic instances
-    abstract class ScatterGatherApiBase
+    public abstract class ScatterGatherApiBase
     {
         protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
