@@ -5,17 +5,20 @@ namespace ServiceControl.Audit.Persistence
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostApplicationBuilder SetupPersistence(this IHostApplicationBuilder hostBuilder,
+        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder,
             PersistenceSettings persistenceSettings,
             IPersistenceConfiguration persistenceConfiguration)
         {
             var persistence = persistenceConfiguration.Create(persistenceSettings);
 
-            var services = hostBuilder.Services;
-            var lifecycle = persistence.Configure(services);
+            hostBuilder.ConfigureServices(serviceCollection =>
+            {
+                var lifecycle = persistence.Configure(serviceCollection);
 
-            services.AddSingleton(new PersistenceLifecycleHostedService(lifecycle));
-            services.AddHostedService(sp => sp.GetRequiredService<PersistenceLifecycleHostedService>());
+                serviceCollection.AddSingleton(new PersistenceLifecycleHostedService(lifecycle));
+                serviceCollection.AddHostedService(sp => sp.GetRequiredService<PersistenceLifecycleHostedService>());
+            });
+
             return hostBuilder;
         }
     }
