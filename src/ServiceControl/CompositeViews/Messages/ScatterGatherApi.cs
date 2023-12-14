@@ -49,7 +49,7 @@ namespace ServiceControl.CompositeViews.Messages
         {
             var remotes = Settings.RemoteInstances;
             var pathAndQuery = httpContextAccessor.HttpContext!.Request.GetEncodedPathAndQuery();
-            var instanceId = InstanceIdGenerator.FromApiUrl(Settings.ApiUrl);
+            var instanceId = Settings.InstanceId;
             var tasks = new List<Task<QueryResult<TOut>>>(remotes.Length + 1)
             {
                 LocalCall(input, instanceId)
