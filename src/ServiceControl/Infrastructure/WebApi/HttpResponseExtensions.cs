@@ -10,7 +10,7 @@ namespace ServiceControl.Infrastructure.WebApi
     using Microsoft.Extensions.Primitives;
     using ServiceControl.Persistence.Infrastructure;
 
-    static class RequestExtensions
+    static class HttpResponseExtensions
     {
         public static void WithTotalCount(this HttpResponse response, int totalCount) => response.WithHeader("Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
 
