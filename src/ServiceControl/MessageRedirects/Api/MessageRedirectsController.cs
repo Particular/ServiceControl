@@ -1,18 +1,19 @@
 ﻿namespace ServiceControl.MessageRedirects.Api
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Contracts.MessageRedirects;
-    using Infrastructure;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using MessageFailures.InternalMessages;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Persistence.MessageRedirects;
+
+    using DeterministicGuid = Infrastructure.DeterministicGuid;
 
     [ApiController]
     public class MessageRedirectsController(
@@ -43,16 +44,18 @@
 
             if (existing != null)
             {
+                //TODO verify both of these return the same as the previous code
                 return existing.ToPhysicalAddress == messageRedirect.ToPhysicalAddress
-                    ? Negotiator.FromModel(Request, messageRedirect, HttpStatusCode.Created)
-                    : Negotiator.FromModel(Request, existing, HttpStatusCode.Conflict).WithReasonPhrase("Duplicate");
+                    ? Created()
+                    : Conflict("Duplicate");
             }
 
             var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.fromphysicaladdress).ToList();
 
             if (dependents.Any())
             {
-                return Negotiator.FromModel(Request, dependents, HttpStatusCode.Conflict).WithReasonPhrase("Dependents");
+                //TODO verify this returns the same as the previous code
+                return Conflict("Dependents");
             }
 
             collection.Redirects.Add(messageRedirect);
@@ -160,26 +163,28 @@
 
         [Route("redirects")]
         [HttpGet]
-        public async Task<HttpResponseMessage> Redirects()
+        public async Task<IEnumerable<RedirectsQueryResult>> Redirects(string sort, string direction, [FromQuery] PagingInfo pagingInfo)
         {
             var redirects = await store.GetOrCreate();
 
             var queryResult = redirects
-                .Sort(Request)
-                .Paging(Request)
-                .Select(r => new
-                {
+                .Sort(sort, direction)
+                .Paging(pagingInfo)
+                .Select(r => new RedirectsQueryResult
+                (
                     r.MessageRedirectId,
                     r.FromPhysicalAddress,
                     r.ToPhysicalAddress,
-                    LastModified = new DateTime(r.LastModifiedTicks)
-                });
+                    new DateTime(r.LastModifiedTicks)
+                ));
 
-            return Negotiator
-                .FromModel(Request, queryResult)
-                .WithEtag(redirects.ETag)
-                .WithPagingLinksAndTotalCount(redirects.Redirects.Count, Request);
+            Response.WithEtag(redirects.ETag);
+            Response.WithPagingLinksAndTotalCount(pagingInfo, redirects.Redirects.Count);
+
+            return queryResult;
         }
+
+        public record class RedirectsQueryResult(Guid MessageRedirectId, string FromPhysicalAddress, string ToPhysicalAddress, DateTime LastModified);
 
         public class MessageRedirectRequest
         {
