@@ -41,10 +41,7 @@ namespace Particular.ServiceControl
             this.loggingSettings = loggingSettings;
             this.settings = settings;
 
-            ApiAssemblies =
-            [
-                Assembly.GetExecutingAssembly()
-            ];
+            ApiAssemblies = [Assembly.GetExecutingAssembly()];
 
             CreateHost();
         }
@@ -65,6 +62,7 @@ namespace Particular.ServiceControl
         };
 
         public WebApplicationBuilder HostBuilder { get; private set; }
+
         public List<Assembly> ApiAssemblies { get; }
 
         void CreateHost()
@@ -87,7 +85,6 @@ namespace Particular.ServiceControl
             transportCustomization = settings.LoadTransportCustomization();
             transportSettings = MapSettings(settings);
 
-
             HostBuilder = WebApplication.CreateBuilder();
             var logging = HostBuilder.Logging;
             logging.ClearProviders();
@@ -106,15 +103,13 @@ namespace Particular.ServiceControl
             services.AddSingleton(settings);
             services.AddSingleton(sp => HttpClientFactory);
 
-            // TODO move this configuration to an extension method 
+            // TODO move this configuration to an extension method
             foreach (var remoteInstance in settings.RemoteInstances)
             {
                 remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
-                services.AddHttpClient(remoteInstance.InstanceId, client =>
-                {
-                    client.BaseAddress = new Uri(remoteInstance.ApiUri);
-                });
+                services.AddHttpClient(remoteInstance.InstanceId, client => client.BaseAddress = new Uri(remoteInstance.ApiUri));
             }
+
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
             // is only available though after the NServiceBus hosted service has started. Any hosted service
             // or component injected into a hosted service can only depend on this lazy instead of the dispatcher
@@ -126,16 +121,16 @@ namespace Particular.ServiceControl
             HostBuilder.UseMetrics(settings.PrintMetrics);
             HostBuilder.Host.UseNServiceBus(context =>
             {
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                    configuration);
+                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                 return configuration;
             });
+
             if (!settings.DisableExternalIntegrationsPublishing)
             {
                 HostBuilder.UseExternalIntegrationEvents();
             }
-            // TODO Wire up controllers
-            //HostBuilder..UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi)
+
+            HostBuilder.UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi);
             HostBuilder.UseServicePulseSignalRNotifier();
             HostBuilder.UseEmailNotifications();
             HostBuilder.UseAsyncTimer();
@@ -144,6 +139,7 @@ namespace Particular.ServiceControl
             {
                 HostBuilder.UseInternalCustomChecks();
             }
+
             HostBuilder.UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
