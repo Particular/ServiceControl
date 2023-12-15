@@ -1,7 +1,10 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using System.Threading.Tasks;
+    using global::ServiceControl.Persistence;
     using Hosting;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -21,12 +24,20 @@
             var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
             var hostBuilder = bootstrapper.HostBuilder;
 
-            hostBuilder.AddPersistenceInitializingLifetime(args.RunAsWindowsService);
-
-            using (var host = hostBuilder.Build())
+            if (args.RunAsWindowsService)
             {
-                await host.RunAsync();
+                hostBuilder.Services.AddWindowsService();
             }
+
+            using var app = hostBuilder.Build();
+
+            // TODO move these into central class to re-use?
+            app.UseCors();
+            app.MapControllers();
+
+            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+            await app.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            await app.RunAsync(settings.RootUrl);
         }
     }
 }
