@@ -19,8 +19,8 @@
             var indexWithout50000capDefinition = new IndexDefinition
             {
                 Name = "SagaDetailsIndex",
-                Maps = new System.Collections.Generic.HashSet<string>
-                            {
+                Maps =
+                            [
                                 @"from doc in docs
                                                      select new
                                                      {
@@ -41,7 +41,7 @@
                                     }
                                 }
             }"
-                            },
+                            ],
                 Reduce = @"from result in results
                                             group result by result.SagaId
                             into g
