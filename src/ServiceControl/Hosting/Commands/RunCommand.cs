@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using global::ServiceControl.Persistence;
     using Hosting;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
@@ -25,19 +26,18 @@
 
             if (args.RunAsWindowsService)
             {
-                hostBuilder.UseWindowsService();
-            }
-            else
-            {
-                hostBuilder.UseConsoleLifetime();
+                hostBuilder.Services.AddWindowsService();
             }
 
-            using (var host = hostBuilder.Build())
-            {
-                // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
-                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-                await host.RunAsync();
-            }
+            using var app = hostBuilder.Build();
+
+            // TODO move these into central class to re-use?
+            app.UseCors();
+            app.MapControllers();
+
+            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+            await app.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            await app.RunAsync(settings.RootUrl);
         }
     }
 }
