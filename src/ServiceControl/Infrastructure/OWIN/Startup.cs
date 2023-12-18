@@ -8,6 +8,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.Infrastructure.WebApi;
 
+    // TODO this is only used by the ServiceControlComponentRunner
     class Startup
     {
         public Startup(IServiceProvider serviceProvider, List<Assembly> assemblies)
