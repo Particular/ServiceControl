@@ -292,10 +292,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     public SignalRStarter(MyContext context)
                     {
                         this.context = context;
-                        connection = new Connection("http://localhost/api/messagestream")
-                        {
-                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                        };
+                        connection = new Connection("http://localhost/api/messagestream");
                     }
 
                     protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
