@@ -36,8 +36,6 @@
                 jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
                 config.Formatters.Remove(config.Formatters.XmlFormatter);
 
-                config.DependencyResolver = new ExternallyOwnedContainerDependencyResolver(serviceProvider);
-
                 config.MessageHandlers.Add(new XParticularVersionHttpHandler());
                 config.MessageHandlers.Add(new CompressionEncodingHttpHandler());
                 config.MessageHandlers.Add(new CachingHttpHandler());
@@ -49,45 +47,6 @@
 
         readonly IServiceProvider serviceProvider;
         readonly List<Assembly> assemblies;
-    }
-
-    class ExternallyOwnedContainerDependencyResolver : System.Web.Http.Dependencies.IDependencyResolver
-    {
-        IServiceProvider impl;
-
-        public ExternallyOwnedContainerDependencyResolver(IServiceProvider serviceProvider)
-        {
-            impl = serviceProvider;
-        }
-
-        public void Dispose()
-        {
-            //NOOP We don't dispose the underlying container
-        }
-
-        public object GetService(Type serviceType) => impl.GetService(serviceType);
-
-        public IEnumerable<object> GetServices(Type serviceType) => impl.GetServices(serviceType);
-
-        public IDependencyScope BeginScope() => new ServiceProviderScope(impl.CreateScope());
-
-        class ServiceProviderScope : IDependencyScope
-        {
-            readonly IServiceScope scope;
-
-            public ServiceProviderScope(IServiceScope scope)
-            {
-                this.scope = scope;
-            }
-
-            public void Dispose() => scope.Dispose();
-
-            public object GetService(Type serviceType) =>
-                scope.ServiceProvider.GetService(serviceType);
-
-            public IEnumerable<object> GetServices(Type serviceType) =>
-                scope.ServiceProvider.GetServices(serviceType);
-        }
     }
 
     class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
