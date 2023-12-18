@@ -83,7 +83,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(transportSettings);
             services.AddSingleton(transportCustomization);
 
-            services.AddSingleton<MessageStreamerConnection>();
+            services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
 

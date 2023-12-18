@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.AspNet.SignalR;
+    using Microsoft.AspNetCore.SignalR;
     using Newtonsoft.Json.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -13,9 +13,9 @@
     using NServiceBus.Settings;
     using NServiceBus.Transport;
 
-    class MessageStreamerConnection : PersistentConnection
+    class MessageStreamerHub : Hub
     {
-        public MessageStreamerConnection(IMessageDispatcher sender, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
+        public MessageStreamerHub(IMessageDispatcher sender, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
         {
             var conventions = settings.Get<Conventions>();
             this.sender = sender;
@@ -27,7 +27,8 @@
             localAddress = receiveAddresses.MainReceiveAddress;
         }
 
-        protected override async Task OnReceived(IRequest request, string connectionId, string data)
+        // TODO Change service pulse to call this method instead?
+        public async Task SendMessage(string data)
         {
             try
             {
@@ -43,7 +44,7 @@
                 var transportOperation = new TransportOperation(message, new UnicastAddressTag(localAddress));
                 var transportOperations = new TransportOperations(transportOperation);
 
-                await sender.Dispatch(transportOperations, transportTransaction);
+                await sender.Dispatch(transportOperations, new TransportTransaction());
             }
             catch (Exception ex)
             {
@@ -56,7 +57,6 @@
         readonly IMessageDispatcher sender;
         string localAddress;
 
-        static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerConnection));
-        static TransportTransaction transportTransaction = new TransportTransaction();
+        static readonly ILog Log = LogManager.GetLogger(typeof(MessageStreamerHub));
     }
 }

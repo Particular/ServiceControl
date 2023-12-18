@@ -6,21 +6,14 @@ namespace ServiceControl.Infrastructure.SignalR
     /// <summary>
     /// Forwards all domain events via SignalR
     /// </summary>
-    class ServicePulseNotifier : IDomainHandler<IDomainEvent>
+    class ServicePulseNotifier(GlobalEventHandler broadcaster) : IDomainHandler<IDomainEvent>
     {
-        public ServicePulseNotifier(GlobalEventHandler broadcaster)
-        {
-            this.broadcaster = broadcaster;
-        }
-
         public async Task Handle(IDomainEvent domainEvent)
         {
-            if (domainEvent is IUserInterfaceEvent userInteraceEvent)
+            if (domainEvent is IUserInterfaceEvent userInterfaceEvent)
             {
-                await broadcaster.Broadcast(userInteraceEvent);
+                await broadcaster.Broadcast(userInterfaceEvent);
             }
         }
-
-        GlobalEventHandler broadcaster;
     }
 }
