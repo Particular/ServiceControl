@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http.Headers;
     using System.Reflection;
     using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +28,6 @@
                 var config = new HttpConfiguration();
                 config.MapHttpAttributeRoutes();
 
-                config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
-
                 var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
                 jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
                 jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
@@ -47,26 +44,6 @@
 
         readonly IServiceProvider serviceProvider;
         readonly List<Assembly> assemblies;
-    }
-
-    class OnlyExecutingAssemblyResolver : DefaultAssembliesResolver
-    {
-        public OnlyExecutingAssemblyResolver(Assembly additionalAssembly)
-        {
-            this.additionalAssembly = additionalAssembly;
-        }
-
-        public override ICollection<Assembly> GetAssemblies()
-        {
-            if (additionalAssembly != null)
-            {
-                return new[] { Assembly.GetExecutingAssembly(), additionalAssembly };
-            }
-
-            return new[] { Assembly.GetExecutingAssembly() };
-        }
-
-        readonly Assembly additionalAssembly;
     }
 
     class MicrosoftDependencyResolver : DefaultDependencyResolver
