@@ -155,10 +155,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings);
 
                 host = bootstrapper.HostBuilder.Build();
                 await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
@@ -355,13 +352,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             HttpClients.Clear();
             portToHandler.Clear();
             handlers.Clear();
-        }
-
-        HttpClient HttpClientFactory()
-        {
-            var httpClient = new HttpClient(new ForwardingHandler(portToHandler));
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
         }
 
         Dictionary<string, IHost> hosts = [];

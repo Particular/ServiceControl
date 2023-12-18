@@ -46,21 +46,6 @@ namespace Particular.ServiceControl
             CreateHost();
         }
 
-        public Func<HttpClient> HttpClientFactory { get; set; } = () =>
-        {
-            if (httpClient == null)
-            {
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                };
-                httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            }
-
-            return httpClient;
-        };
-
         public WebApplicationBuilder HostBuilder { get; private set; }
 
         public List<Assembly> ApiAssemblies { get; }
@@ -101,13 +86,23 @@ namespace Particular.ServiceControl
             services.AddSingleton<MessageStreamerConnection>();
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
-            services.AddSingleton(sp => HttpClientFactory);
+
+            services.AddHttpContextAccessor();
 
             // TODO move this configuration to an extension method
             foreach (var remoteInstance in settings.RemoteInstances)
             {
                 remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
-                services.AddHttpClient(remoteInstance.InstanceId, client => client.BaseAddress = new Uri(remoteInstance.ApiUri));
+                var httpClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.BaseAddress = new Uri(remoteInstance.ApiUri);
+                });
+
+                httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                });
             }
 
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher

@@ -139,10 +139,7 @@
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
+                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings);
 
                 // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
@@ -189,17 +186,6 @@
             bootstrapper = null;
             HttpClient = null;
             Handler = null;
-        }
-
-        HttpClient HttpClientFactory()
-        {
-            if (Handler == null)
-            {
-                throw new InvalidOperationException("Handler field not yet initialized");
-            }
-            var httpClient = new HttpClient(Handler);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
         }
 
         IHost host;
