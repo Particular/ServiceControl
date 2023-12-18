@@ -45,23 +45,4 @@
         readonly IServiceProvider serviceProvider;
         readonly List<Assembly> assemblies;
     }
-
-    class MicrosoftDependencyResolver : DefaultDependencyResolver
-    {
-        public MicrosoftDependencyResolver(IServiceProvider serviceProvider) => this.serviceProvider = serviceProvider;
-
-        public override object GetService(Type serviceType)
-        {
-            return serviceProvider.GetService(serviceType) ??
-                   base.GetService(serviceType);
-        }
-
-        public override IEnumerable<object> GetServices(Type serviceType)
-        {
-            return serviceProvider.GetServices(serviceType) ??
-                   base.GetServices(serviceType);
-        }
-
-        readonly IServiceProvider serviceProvider;
-    }
 }
