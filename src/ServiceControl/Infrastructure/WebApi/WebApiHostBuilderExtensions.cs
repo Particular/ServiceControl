@@ -24,6 +24,7 @@
 
             hostBuilder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
+            hostBuilder.Services.AddRouting();
             hostBuilder.Services.AddControllers();
             hostBuilder.Services.AddSignalR();
         }
