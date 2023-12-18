@@ -10,6 +10,7 @@
 
     static class WebApiHostBuilderExtensions
     {
+        // TODO this doesn't need to extend the IHostApplicationBuilder it operates only on IServiceCollection
         public static void UseWebApi(this IHostApplicationBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl, bool startOwinHost)
         {
             //TODO Either use these or remove them
