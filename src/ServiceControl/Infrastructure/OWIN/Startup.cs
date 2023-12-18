@@ -30,7 +30,6 @@
                 config.MapHttpAttributeRoutes();
 
                 config.Services.Replace(typeof(IAssembliesResolver), new OnlyExecutingAssemblyResolver(additionalAssembly));
-                config.Services.Replace(typeof(IHttpControllerTypeResolver), new InternalControllerTypeResolver());
 
                 var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
                 jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
@@ -128,48 +127,5 @@
         }
 
         readonly IServiceProvider serviceProvider;
-    }
-
-    /// <summary>
-    /// Replaces the <see cref="DefaultHttpControllerTypeResolver"/> with a similar implementation that allows non-public controllers.
-    /// </summary>
-    class InternalControllerTypeResolver : IHttpControllerTypeResolver
-    {
-        public ICollection<Type> GetControllerTypes(IAssembliesResolver assembliesResolver)
-        {
-            var controllerTypes = new List<Type>();
-            foreach (Assembly assembly in assembliesResolver.GetAssemblies())
-            {
-                if (assembly != null && !assembly.IsDynamic)
-                {
-                    Type[] source;
-                    try
-                    {
-                        source = assembly.GetTypes();
-
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-
-                    controllerTypes.AddRange(source.Where(t =>
-                        t != null &&
-                        t.IsClass &&
-                        !t.IsAbstract &&
-                        typeof(IHttpController).IsAssignableFrom(t) &&
-                        HasValidControllerName(t)));
-                }
-            }
-
-            return controllerTypes;
-        }
-
-        internal static bool HasValidControllerName(Type controllerType)
-        {
-            string controllerSuffix = DefaultHttpControllerSelector.ControllerSuffix;
-            return controllerType.Name.Length > controllerSuffix.Length &&
-                   controllerType.Name.EndsWith(controllerSuffix, StringComparison.OrdinalIgnoreCase);
-        }
     }
 }
