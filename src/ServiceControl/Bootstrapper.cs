@@ -88,22 +88,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(settings);
 
             services.AddHttpContextAccessor();
-
-            // TODO move this configuration to an extension method
-            foreach (var remoteInstance in settings.RemoteInstances)
-            {
-                remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
-                var httpClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
-                {
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.BaseAddress = new Uri(remoteInstance.ApiUri);
-                });
-
-                httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-                {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-                });
-            }
+            services.AddRemoteInstancesHttpClients(settings);
 
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
             // is only available though after the NServiceBus hosted service has started. Any hosted service
