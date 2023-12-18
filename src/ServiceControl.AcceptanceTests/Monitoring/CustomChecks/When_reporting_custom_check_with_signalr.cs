@@ -61,10 +61,7 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection("http://localhost/api/messagestream")
-                    {
-                        JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                    };
+                    connection = new Connection("http://localhost/api/messagestream");
                 }
 
                 void ConnectionOnReceived(string s)

@@ -35,13 +35,6 @@
 
             app.Map("/api", b =>
             {
-                b.Use<BodyUrlRouteFix>();
-                b.Use<LogApiCalls>();
-
-                b.UseCors(Cors.AuditCorsOptions);
-
-                ConfigureSignalR(b);
-
                 var config = new HttpConfiguration();
                 config.MapHttpAttributeRoutes();
 
@@ -62,27 +55,6 @@
 
                 b.UseWebApi(config);
             });
-        }
-
-        void ConfigureSignalR(IAppBuilder app)
-        {
-            var resolver = new MicrosoftDependencyResolver(serviceProvider);
-
-            app.Map("/messagestream", map =>
-            {
-                map.UseCors(CorsOptions.AllowAll);
-                map.RunSignalR<MessageStreamerConnection>(
-                    new ConnectionConfiguration
-                    {
-                        EnableJSONP = true,
-                        Resolver = resolver
-                    });
-            });
-
-            GlobalHost.DependencyResolver = resolver;
-
-            var jsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault());
-            GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => jsonSerializer);
         }
 
         readonly IServiceProvider serviceProvider;
