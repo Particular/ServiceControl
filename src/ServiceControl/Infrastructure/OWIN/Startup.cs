@@ -5,17 +5,7 @@
     using System.Linq;
     using System.Net.Http.Headers;
     using System.Reflection;
-    using System.Web.Http;
-    using System.Web.Http.Controllers;
-    using System.Web.Http.Dependencies;
-    using System.Web.Http.Dispatcher;
-    using Microsoft.AspNet.SignalR;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Owin.Cors;
-    using Newtonsoft.Json;
-    using Owin;
-    using ServiceControl.Infrastructure.OWIN;
-    using ServiceControl.Infrastructure.SignalR;
     using ServiceControl.Infrastructure.WebApi;
 
     class Startup
