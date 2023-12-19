@@ -1,26 +1,27 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class CachingHttpHandler : DelegatingHandler
+    class CachingHttpHandler : IResultFilter
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+        public void OnResultExecuting(ResultExecutingContext context)
         {
-            var response = await base.SendAsync(request, cancellationToken);
+            // NOP
+        }
 
-            if (!response.Headers.Contains("Cache-Control"))
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // TODO do we even need to do this
+            var response = context.HttpContext.Response;
+            if (!response.Headers.ContainsKey("Cache-Control"))
             {
-                response.Headers.Add("Cache-Control", "private, max-age=0");
+                response.Headers["Cache-Control"] = "private, max-age=0";
             }
 
-            if (!response.Headers.Contains("Vary"))
+            if (!response.Headers.ContainsKey("Vary"))
             {
-                response.Headers.Add("Vary", "Accept");
+                response.Headers["Vary"] = "Accept";
             }
-
-            return response;
         }
     }
 }

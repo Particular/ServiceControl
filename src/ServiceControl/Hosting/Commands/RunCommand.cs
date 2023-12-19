@@ -34,6 +34,7 @@
             using var app = hostBuilder.Build();
 
             // TODO move these into central class to re-use?
+            app.UseResponseCompression();
             app.UseMiddleware<BodyUrlRouteFix>();
             app.UseMiddleware<LogApiCalls>();
             app.MapHub<MessageStreamerHub>("/api/messagestream");
