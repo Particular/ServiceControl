@@ -14,13 +14,14 @@
 
         static Assembly Resolve(AssemblyLoadContext defaultLoadContext, AssemblyName assemblyName)
         {
-            if (assemblyName.Name.Contains("ServiceControlInstaller.Engine"))
+            // Don't try to use InstallerEngineAssemblyLoadContext to resolve the assembly it has a dependency on
+            if (assemblyName.Name.Contains("Microsoft.Extensions.DependencyModel"))
             {
-                return installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
+                return null;
             }
             else
             {
-                return null;
+                return installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
             }
         }
     }
