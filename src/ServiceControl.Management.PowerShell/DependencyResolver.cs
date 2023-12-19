@@ -49,6 +49,8 @@ class DependencyResolver
             return null;
         }
 
+        // If we had dependencies that had satellite resource assemblies, we'd need to use assemblyName.CultureName and library.ResourceAssemblies instead
+
         return SearchRuntimeAssets(library.RuntimeAssemblyGroups);
     }
 
