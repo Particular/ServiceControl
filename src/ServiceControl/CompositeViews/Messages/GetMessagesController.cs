@@ -51,12 +51,12 @@ namespace ServiceControl.CompositeViews.Messages
         // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
         [Route("messages/{*catchAll}")]
         [HttpGet]
-        public Task<HttpResponseMessage> CatchAll(string catchAll)
+        public Task<HttpResponseMessage> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
         {
             if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
             {
                 var id = catchAll.Substring(0, catchAll.Length - 5);
-                return Get(id);
+                return Get(id, instanceId);
             }
 
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
