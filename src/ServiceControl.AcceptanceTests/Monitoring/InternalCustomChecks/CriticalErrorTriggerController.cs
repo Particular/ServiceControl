@@ -1,27 +1,14 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring.InternalCustomChecks
 {
     using System;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
-    class CriticalErrorTriggerController : ApiController
+    [ApiController]
+    public class CriticalErrorTriggerController(CriticalError error) : ControllerBase
     {
-        readonly CriticalError criticalError;
-
-        public CriticalErrorTriggerController(CriticalError criticalError)
-        {
-            this.criticalError = criticalError;
-        }
-
         [Route("criticalerror/trigger")]
         [HttpPost]
-        public Task<HttpResponseMessage> Trigger(string message)
-        {
-            criticalError.Raise(message, new Exception());
-            return Task.FromResult(Request.CreateResponse(HttpStatusCode.OK));
-        }
+        public void Trigger(string message) => error.Raise(message, new Exception());
     }
 }

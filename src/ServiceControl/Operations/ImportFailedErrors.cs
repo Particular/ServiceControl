@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Operations
 {
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Extensibility;
@@ -8,7 +7,7 @@
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class ImportFailedErrors
+    public class ImportFailedErrors
     {
         public ImportFailedErrors(
             IFailedErrorImportDataStore store,
