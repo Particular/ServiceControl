@@ -97,7 +97,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
             HostBuilder.UseLicenseCheck();
-            HostBuilder.SetupPersistence(settings);
+            HostBuilder.Host.SetupPersistence(settings);
             HostBuilder.UseMetrics(settings.PrintMetrics);
             HostBuilder.Host.UseNServiceBus(context =>
             {
@@ -165,6 +165,5 @@ Selected Transport Customization:   {settings.TransportType}
         Settings settings;
         TransportSettings transportSettings;
         ITransportCustomization transportCustomization;
-        static HttpClient httpClient;
     }
 }
