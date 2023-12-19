@@ -1,17 +1,24 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Formatters;
+    using Microsoft.AspNetCore.ResponseCompression;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Net.Http.Headers;
     using ServiceControl.CompositeViews.Messages;
 
     static class WebApiHostBuilderExtensions
     {
         // TODO this doesn't need to extend the IHostApplicationBuilder it operates only on IServiceCollection
-        public static void UseWebApi(this IHostApplicationBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl, bool startOwinHost)
+        public static void UseWebApi(this IHostApplicationBuilder hostBuilder, List<Assembly> apiAssemblies,
+            string rootUrl, bool startOwinHost)
         {
             //TODO Either use these or remove them
             _ = rootUrl;
@@ -26,7 +33,22 @@
             hostBuilder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
             hostBuilder.Services.AddRouting();
-            hostBuilder.Services.AddControllers();
+            // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
+            hostBuilder.Services.AddResponseCompression();
+            hostBuilder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<XParticularVersionHttpHandler>();
+                options.Filters.Add<CachingHttpHandler>();
+                options.Filters.Add<NotModifiedStatusHttpHandler>();
+
+                options.OutputFormatters.Clear();
+                var formatter = new NewtonsoftJsonOutputFormatter(JsonNetSerializerSettings.CreateDefault(),
+                    ArrayPool<char>.Shared, options, new MvcNewtonsoftJsonOptions())
+                {
+                    SupportedMediaTypes = { new MediaTypeHeaderValue("application/vnd.particular.1+json") }
+                };
+                options.OutputFormatters.Add(formatter);
+            });
             hostBuilder.Services.AddSignalR();
         }
 
@@ -34,9 +56,9 @@
         {
             var apiTypes = assembly.DefinedTypes
                 .Where(ti => ti.IsClass &&
-                            !ti.IsAbstract &&
-                            !ti.IsGenericTypeDefinition &&
-                            ti.GetInterfaces().Any(t => t == typeof(IApi)))
+                             !ti.IsAbstract &&
+                             !ti.IsGenericTypeDefinition &&
+                             ti.GetInterfaces().Any(t => t == typeof(IApi)))
                 .Select(ti => ti.AsType());
 
 
@@ -53,10 +75,10 @@
         {
             var concreteTypes = assembly.DefinedTypes
                 .Where(ti => ti.IsClass &&
-                            !ti.IsAbstract &&
-                            !ti.IsSubclassOf(typeof(Delegate)) &&
-                            !ti.IsGenericTypeDefinition &&
-                            !ti.GetInterfaces().Any())
+                             !ti.IsAbstract &&
+                             !ti.IsSubclassOf(typeof(Delegate)) &&
+                             !ti.IsGenericTypeDefinition &&
+                             !ti.GetInterfaces().Any())
                 .Select(ti => ti.AsType());
 
             foreach (var concreteType in concreteTypes)
