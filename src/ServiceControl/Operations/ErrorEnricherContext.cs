@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    class ErrorEnricherContext
+    public class ErrorEnricherContext
     {
         List<EndpointDetails> newEndpoints;
 
