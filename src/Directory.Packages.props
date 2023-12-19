@@ -1,10 +1,8 @@
 <Project>
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup Label="Versions for direct package references">
     <PackageVersion Include="Autofac" Version="7.1.0" />
     <PackageVersion Include="Azure.Identity" Version="1.10.4" />
@@ -15,6 +13,7 @@
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.3.3" />
     <PackageVersion Include="HdrHistogram" Version="2.5.0" />
     <PackageVersion Include="Metrics.NET" Version="0.5.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="8.0.0" />
@@ -65,16 +64,13 @@
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
     <PackageVersion Include="Validar.Fody" Version="1.9.0" />
   </ItemGroup>
-
   <ItemGroup Label="Versions to pin transitive references">
   </ItemGroup>
-
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.2" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.282" />
     <GlobalPackageReference Include="Particular.Packaging" Version="4.0.0" />
   </ItemGroup>
-
   <ItemGroup Label="Keep to make projects compile for now">
     <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
     <PackageVersion Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
@@ -82,5 +78,4 @@
     <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
     <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
   </ItemGroup>
-
 </Project>
