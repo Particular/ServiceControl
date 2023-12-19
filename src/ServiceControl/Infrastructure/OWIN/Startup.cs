@@ -25,19 +25,6 @@
 
             app.Map("/api", b =>
             {
-                var config = new HttpConfiguration();
-                config.MapHttpAttributeRoutes();
-
-                var jsonMediaTypeFormatter = config.Formatters.JsonFormatter;
-                jsonMediaTypeFormatter.SerializerSettings = JsonNetSerializerSettings.CreateDefault();
-                jsonMediaTypeFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/vnd.particular.1+json"));
-                config.Formatters.Remove(config.Formatters.XmlFormatter);
-
-                config.MessageHandlers.Add(new XParticularVersionHttpHandler());
-                config.MessageHandlers.Add(new CompressionEncodingHttpHandler());
-                config.MessageHandlers.Add(new CachingHttpHandler());
-                config.MessageHandlers.Add(new NotModifiedStatusHttpHandler());
-
                 b.UseWebApi(config);
             });
         }

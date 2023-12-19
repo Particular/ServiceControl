@@ -2,37 +2,14 @@
 {
     using System;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Headers;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class NotModifiedStatusHttpHandler : DelegatingHandler
+    class NotModifiedStatusHttpHandler : IResultFilter
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-        {
-            var response = await base.SendAsync(request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return response;
-            }
-
-            var requestHeaders = request.Headers;
-            var responseHeaders = response.Headers;
-
-            var ifNoneMatch = IfNoneMatch(requestHeaders, responseHeaders);
-            var ifNotModifiedSince = IfNotModifiedSince(requestHeaders.IfModifiedSince, response.Content?.Headers?.LastModified);
-
-            if (ifNoneMatch || ifNotModifiedSince)
-            {
-                return Get304ResponseMessage(responseHeaders, response.Content?.Headers?.LastModified, request);
-            }
-
-            return response;
-        }
-
-        static bool IfNoneMatch(HttpRequestHeaders requestHeaders, HttpResponseHeaders responseHeaders)
+        static bool IfNoneMatch(RequestHeaders requestHeaders, ResponseHeaders responseHeaders)
         {
             return responseHeaders.ETag != null && requestHeaders.IfNoneMatch.Contains(responseHeaders.ETag);
         }
@@ -47,20 +24,47 @@
             return lastModified <= ifModifiedSince;
         }
 
-        // currently lastModified is not supported without returning a content which would violate the HTTP spec
-        // it can be resurrected once ASP.NET Core is in place.
-#pragma warning disable IDE0060 // Remove unused parameter
-        static HttpResponseMessage Get304ResponseMessage(HttpResponseHeaders responseHeaders, DateTimeOffset? lastModified, HttpRequestMessage request)
-#pragma warning restore IDE0060 // Remove unused parameter
+//         // currently lastModified is not supported without returning a content which would violate the HTTP spec
+//         // it can be resurrected once ASP.NET Core is in place.
+// #pragma warning disable IDE0060 // Remove unused parameter
+//         static HttpResponseMessage Get304ResponseMessage(HttpResponseHeaders responseHeaders,
+//             DateTimeOffset? lastModified, HttpRequestMessage request)
+// #pragma warning restore IDE0060 // Remove unused parameter
+//         {
+//             var response = request.CreateResponse(HttpStatusCode.NotModified);
+//
+//             if (responseHeaders.ETag.Tag != null)
+//             {
+//                 response.Headers.ETag = responseHeaders.ETag;
+//             }
+//
+//             return response;
+//         }
+
+        public void OnResultExecuting(ResultExecutingContext context)
         {
-            var response = request.CreateResponse(HttpStatusCode.NotModified);
+            // TODO how do we this?
+            // if (!context.HttpContext IsSuccessStatusCode)
+            // {
+            //     return response;
+            // }
 
-            if (responseHeaders.ETag.Tag != null)
+            var requestHeaders = context.HttpContext.Request.GetTypedHeaders();
+            var responseHeaders = context.HttpContext.Response.GetTypedHeaders();
+
+            var ifNoneMatch = IfNoneMatch(requestHeaders, responseHeaders);
+            var ifNotModifiedSince = IfNotModifiedSince(requestHeaders.IfModifiedSince, responseHeaders?.LastModified);
+
+            if (ifNoneMatch || ifNotModifiedSince)
             {
-                response.Headers.ETag = responseHeaders.ETag;
+                // TODO previously we wewre creating a brand new response, now we're adding more headers than before
+                context.Result = new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
+        }
 
-            return response;
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // NOP
         }
     }
 }
