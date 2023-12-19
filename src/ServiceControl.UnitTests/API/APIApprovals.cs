@@ -3,12 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Reflection;
     using System.Text;
-    using System.Web.Http.Controllers;
-    using System.Web.Http.Hosting;
-    using System.Web.Http.Routing;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Routing;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -23,9 +21,6 @@
         [Test]
         public void RootPathValue()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
-            request.Options.TryAdd(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
-
             var controller = new RootController(
                 new ActiveLicense { IsValid = true },
                 new LoggingSettings("testEndpoint"),
@@ -33,12 +28,27 @@
                 httpClientFactory: null
                 )
             {
-                Url = new UrlHelper(request)
+                Url = new FakeUrlHelper()
             };
 
             var result = controller.Urls();
 
-            Approver.Verify(result.Content);
+            Approver.Verify(result);
+        }
+
+        class FakeUrlHelper : IUrlHelper
+        {
+            public string Action(UrlActionContext actionContext) => throw new NotImplementedException();
+
+            public string Content(string contentPath) => "http://localhost";
+
+            public bool IsLocalUrl(string url) => throw new NotImplementedException();
+
+            public string RouteUrl(UrlRouteContext routeContext) => throw new NotImplementedException();
+
+            public string Link(string routeName, object values) => throw new NotImplementedException();
+
+            public ActionContext ActionContext { get; }
         }
 
         [Test]
@@ -50,7 +60,7 @@
                     var type = pair.Method.DeclaringType;
                     var httpMethods = pair.Method.GetCustomAttributes(true)
                         .OfType<IActionHttpMethodProvider>()
-                           .SelectMany(att => att.HttpMethods.Select(m => m.Method))
+                           .SelectMany(att => att.HttpMethods.Select(m => m))
                            .Distinct()
                            .OrderBy(httpMethod => httpMethod);
 
@@ -83,16 +93,16 @@
             Approver.Verify(httpApi);
         }
 
-        IEnumerable<(MethodInfo Method, IHttpRouteInfoProvider Route)> GetControllerRoutes()
+        IEnumerable<(MethodInfo Method, IRouteTemplateProvider Route)> GetControllerRoutes()
         {
             var controllers = typeof(Program).Assembly.GetTypes()
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t));
+                .Where(t => typeof(ControllerBase).IsAssignableFrom(t));
 
             foreach (var type in controllers)
             {
                 foreach (var methodInfo in type.GetMethods())
                 {
-                    var routeAtts = methodInfo.GetCustomAttributes(true).OfType<IHttpRouteInfoProvider>();
+                    var routeAtts = methodInfo.GetCustomAttributes(true).OfType<IRouteTemplateProvider>();
                     foreach (var routeAtt in routeAtts)
                     {
                         yield return (methodInfo, routeAtt);
