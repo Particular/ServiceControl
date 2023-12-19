@@ -15,7 +15,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.UnitOfWork;
 
-    class ErrorIngestor
+    public class ErrorIngestor
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
