@@ -7,7 +7,7 @@
     {
         public static IHostApplicationBuilder UseMetrics(this IHostApplicationBuilder hostBuilder, bool printMetrics)
         {
-            var services= hostBuilder.Services;
+            var services = hostBuilder.Services;
             services.AddSingleton(new Metrics { Enabled = printMetrics });
             services.AddHostedService<MetricsReporterHostedService>();
             return hostBuilder;
