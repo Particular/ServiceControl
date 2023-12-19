@@ -8,7 +8,6 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Formatters;
-    using Microsoft.AspNetCore.ResponseCompression;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Net.Http.Headers;
@@ -42,6 +41,7 @@
                 options.Filters.Add<NotModifiedStatusHttpHandler>();
 
                 options.OutputFormatters.Clear();
+                // TODO Revisit to see if we can switch to System.Text.Json
                 var formatter = new NewtonsoftJsonOutputFormatter(JsonNetSerializerSettings.CreateDefault(),
                     ArrayPool<char>.Shared, options, new MvcNewtonsoftJsonOptions())
                 {
