@@ -26,13 +26,16 @@ class DependencyResolver
         dependencyContext = reader.Read(fileStream);
 
         var runtimeGraph = DependencyContext.Default?.RuntimeGraph.SingleOrDefault(r => r.Runtime.Equals(RuntimeInformation.RuntimeIdentifier, StringComparison.Ordinal));
+
+        // PowerShell is still building against OS-specific RIDs on Windows, so the expected runtime graph information isn't in the default deps.json file.
+        // Try looking it up again using the RID specified in the deps.json file instead.
         runtimeGraph ??= DependencyContext.Default?.RuntimeGraph.SingleOrDefault(r => r.Runtime.Equals(DependencyContext.Default.Target.Runtime, StringComparison.Ordinal));
 
         if (runtimeGraph is not null)
         {
             runtimes = [runtimeGraph.Runtime, .. runtimeGraph.Fallbacks, string.Empty];
         }
-        else // Fallback information isn't available when running in WinRM, so assume we're running on Windows if null at this point
+        else // Runtime graph information isn't available when running in WinRM, so assume we're running on Windows if null at this point
         {
             runtimes = [Environment.Is64BitProcess ? "win-x64" : "win-x86", "win", "any", "base", string.Empty];
         }
