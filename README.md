@@ -1,32 +1,24 @@
 # ServiceControl ![Current Version](https://img.shields.io/github/release/particular/servicecontrol.svg?style=flat&label=current%20version)
 
-ServiceControl is the monitoring brain in the Particular Service Platform. It collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
+ServiceControl is the monitoring brain in the [Particular Service Platform](https://particular.net/service-platform), which includes [NServiceBus](https://particular.net/nservicebus) and tools to build, monitor, and debug distributed systems. ServiceControl collects data on every single message flowing through the system (Audit Queue), errors (Error Queue), as well as additional information regarding sagas, endpoints heartbeats, and custom checks (Control Queue). The information is then exposed to [ServicePulse](https://particular.net/servicepulse) and [ServiceInsight](https://particular.net/serviceinsight) via an HTTP API and SignalR notifications.
 
-## Where to Download
-
-The current version of ServiceControl can be downloaded from https://particular.net/downloads.
-
-## User Documentation
-
-Documentation for ServiceControl is located on the Particular Docs website at the following address:
-
-https://docs.particular.net/servicecontrol/
+See the [ServiceControl documentation](https://docs.particular.net/servicecontrol/) for more information.
 
 ## How to build
 
-- Enable Windows Feature .NET Framework 3.5 support, which is needed to support the Wix components in the ServiceControl installer.
-- If not using Visual Studio, you may need to install .NET 4.0 SDK according to https://stackoverflow.com/a/45509430
-- Follow the [Coding and design guidelines](/docs/coding-and-design-guidelines.md)
+- Enable Windows Feature .NET Framework 3.5 support, which is needed to support the Wix components in the ServiceControl installer
+- If not using Visual Studio, you may need to install the .NET 4.0 SDK as described in this [StackOverflow post](https://stackoverflow.com/a/45509430)
+- Follow the [ServiceControl coding and design guidelines](/docs/coding-and-design-guidelines.md)
 
 ## How to run/debug locally
 
-ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/debugged locally by following the following steps:
+ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/debugged locally by following these steps:
 
-- Edit the `app.config` file of the instance type to run/debug to select which transport and persistence to use.
+- Edit the `app.config` file of the instance type that needs to be run/debugged to select which transport and persistence to use.
   - The configuration file contains commented settings for each supported transport and persistence. It also provides some guidance on additional required settings for specific persisters.
 - Run or debug the project as usual
 
-A video demo, showing how to set it up, is available on the Particular YouTube channel:
+A video demo showing how to set it up is available on the Particular YouTube channel:
 
 [![](https://img.youtube.com/vi/w3tYnj11dQ8/0.jpg)](https://www.youtube.com/watch?v=w3tYnj11dQ8)
 
@@ -132,11 +124,11 @@ Steps:
 
 ## How to build and run Docker images
 
-NOTE: The following instructions are provided to ease development stages only. To run container images in production refer to the ones available on Docker Hub.
+NOTE: The following instructions are provided to ease development stages only. To run container images in production, refer to the ones available on Docker Hub.
 
-Docker images are built by the `ServiceControl.DockerImages` project. The project is not automatically built when building the solution to keep the overall build time under control. To build Docker images explicitly build that project using the IDE or MSBuild from the command line.
+Docker images are built by the `ServiceControl.DockerImages` project. In order to keep the overall build time under control, the project is not automatically built when building the solution. To explicitly build Docker images, build that project using the IDE or MSBuild from the command line.
 
-NOTE: The project will build Docker images for all supported transports. To build images for a subset of the transports, edit the `.csproj` file and comment out, or delete the not needed transport definitions in the `SupportedTransport` `ItemGroup`.
+NOTE: The project will build Docker images for all supported transports. To build images for a subset of the transports, edit the `.csproj` file and comment out, or delete the unneeded transport definitions in the `SupportedTransport` `ItemGroup`.
 
 Once the images are built, the instances can be started by first running the init container to provision the required queues and databases (using RabbitMQ Conventional topology as an example):
 
@@ -168,7 +160,7 @@ docker run --name servicecontrol.monitoring -p 33633:33633 -e "Monitoring/Connec
 
 ### Notes
 
-- RabbitMQ can either be installed on the host or run in another [Docker container](https://github.com/Particular/Platform/blob/main/scripts/docker-images.md).  In either case, the ServiceControl connection strings will need to refer to the host IP address.
+- RabbitMQ can either be installed on the host or run in another Docker container.  In either case, the ServiceControl connection strings will need to refer to the host IP address.
 - The special DNS name `host.docker.internal` does [not](https://github.com/docker/for-win/issues/12673) [work](https://github.com/docker/for-win/issues/1976) on Docker Desktop for Windows, and it also doesn't support host networks.  To get the IP address of the host for the connection string environment variables, use `ipconfig` and find the IP address of the vEthernet adapter Docker is using, e.g.
 
 ```txt
