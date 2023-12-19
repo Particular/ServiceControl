@@ -12,6 +12,16 @@
 
         public void OnRemove(PSModuleInfo psModuleInfo) => AssemblyLoadContext.Default.Resolving -= Resolve;
 
-        static Assembly Resolve(AssemblyLoadContext defaultLoadContext, AssemblyName assemblyName) => installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
+        static Assembly Resolve(AssemblyLoadContext defaultLoadContext, AssemblyName assemblyName)
+        {
+            if (assemblyName.Name.Contains("ServiceControlInstaller.Engine"))
+            {
+                return installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
