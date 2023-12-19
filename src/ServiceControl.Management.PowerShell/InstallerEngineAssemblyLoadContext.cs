@@ -14,7 +14,7 @@ class InstallerEngineAssemblyLoadContext : AssemblyLoadContext
         var executingAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         var assemblyPath = Path.Combine(executingAssemblyDirectory, "InstallerEngine", "ServiceControlInstaller.Engine.dll");
 
-        resolver = new DependencyResolver(assemblyPath);
+        resolver = new(assemblyPath);
     }
 
     protected override Assembly Load(AssemblyName assemblyName)
