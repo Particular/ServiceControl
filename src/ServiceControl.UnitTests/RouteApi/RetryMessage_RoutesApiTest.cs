@@ -9,10 +9,15 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc.Testing;
     using NUnit.Framework;
+    using Particular.ServiceControl;
+    using Particular.ServiceControl.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
+    using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
     public class RetryMessage_RoutesApiTest
@@ -20,26 +25,29 @@
         [SetUp]
         public void SetUp()
         {
+            // TODO we might need to change the type here to point to something else
+            factory = new WebApplicationFactory<RootController>();
             ConfigurationManager.AppSettings["ServiceControl/ForwardErrorMessages"] = bool.FalseString;
             ConfigurationManager.AppSettings["ServiceControl/ErrorRetentionPeriod"] = TimeSpan.FromDays(10).ToString();
 
-            testApi = new TestApi
+            var settings = new Settings("TestService")
             {
-                Settings = new Settings("TestService")
+                Port = 3333,
+                RemoteInstances = new[]
                 {
-                    Port = 3333,
-                    RemoteInstances = new[]
+                    new RemoteInstanceSetting
                     {
-                        new RemoteInstanceSetting
-                        {
-                            ApiUri = "http://localhost:33334/api"
-                        }
+                        ApiUri = "http://localhost:33334/api"
                     }
                 }
             };
+            testApi = new TestApi
+            {
+                Settings = settings
+            };
 
-            localInstanceId = InstanceIdGenerator.FromApiUrl(testApi.Settings.ApiUrl);
-            remote1InstanceId = InstanceIdGenerator.FromApiUrl(testApi.Settings.RemoteInstances[0].ApiUri);
+            localInstanceId = InstanceIdGenerator.FromApiUrl(settings.ApiUrl);
+            remote1InstanceId = InstanceIdGenerator.FromApiUrl(settings.RemoteInstances[0].ApiUri);
         }
 
         [Test]
@@ -134,6 +142,7 @@
 
         string localInstanceId;
         string remote1InstanceId;
+        private WebApplicationFactory<RootController> factory;
 
         class InterceptingHandler : HttpClientHandler
         {
@@ -150,25 +159,33 @@
             Func<HttpRequestMessage, HttpResponseMessage> interceptor;
         }
 
-        class TestApi : RoutedApi<NoInput>
+        class TestApi : RoutedApi<FakeContext>
         {
-            public Task<HttpResponseMessage> Execute(HttpRequestMessage request, Func<HttpRequestMessage, HttpResponseMessage> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
+            // public Task<HttpResponseMessage> Execute(HttpRequestMessage request, Func<HttpRequestMessage, HttpResponseMessage> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
+            // {
+            //     this.localResponse = localResponse;
+            //     HttpClientFactory = () => new HttpClient(new InterceptingHandler(remoteResponse));
+            //     return Execute(new FakeController
+            //     {
+            //         Request = request
+            //     }, NoInput.Instance);
+            // }
+
+            // protected override Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, NoInput input, string instanceId)
+            // {
+            //     return Task.FromResult(localResponse(request));
+            // }
+
+            Func<FakeContext, HttpResponseMessage> localResponse;
+
+            public TestApi(Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(settings, httpClientFactory, httpContextAccessor)
             {
-                this.localResponse = localResponse;
-                HttpClientFactory = () => new HttpClient(new InterceptingHandler(remoteResponse));
-                return Execute(new FakeController
-                {
-                    Request = request
-                }, NoInput.Instance);
             }
 
-            protected override Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, NoInput input, string instanceId)
-            {
-                return Task.FromResult(localResponse(request));
-            }
-
-            Func<HttpRequestMessage, HttpResponseMessage> localResponse;
+            protected override Task<HttpResponseMessage> LocalQuery(FakeContext input) => Task.FromResult(localResponse(input));
         }
+
+        record class FakeContext(string InstanceId) : RoutedApiContext(InstanceId);
 
         class FakeController : ApiController
         {
