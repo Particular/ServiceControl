@@ -25,13 +25,13 @@
 
         public void Configure(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<PersistenceSettings>(settings);
+            serviceCollection.AddSingleton(settings);
+
             if (settings.MaintenanceMode)
             {
                 return;
             }
-
-            serviceCollection.AddSingleton<PersistenceSettings>(settings);
-            serviceCollection.AddSingleton(settings);
 
             serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
             serviceCollection.AddSingleton<ISubscriptionStorage>(p => p.GetRequiredService<IServiceControlSubscriptionStorage>());
