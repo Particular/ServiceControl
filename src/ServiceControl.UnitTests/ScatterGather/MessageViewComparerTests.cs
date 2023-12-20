@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using NUnit.Framework;
+    using Persistence.Infrastructure;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
 
@@ -146,25 +146,7 @@
             Assert.AreEqual(compareResult, comparer.Compare(lower, higher), "Should sort messages the other way around");
         }
 
-        IComparer<MessagesView> GetComparerFromRequest(string sort, string direction)
-        {
-            var queryStringParts = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(sort))
-            {
-                queryStringParts.Add($"sort={sort}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(direction))
-            {
-                queryStringParts.Add($"direction={direction}");
-            }
-
-            var queryString = string.Join("&", queryStringParts);
-
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://get/messages?{queryString}");
-            return MessageViewComparer.FromSortInfo(request);
-        }
+        IComparer<MessagesView> GetComparerFromRequest(string sort, string direction) => MessageViewComparer.FromSortInfo(new SortInfo(sort, direction));
 
         const int ASCENDING = -1;
         const int DESCENDING = 1;
