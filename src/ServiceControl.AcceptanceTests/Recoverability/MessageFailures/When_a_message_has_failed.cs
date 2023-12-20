@@ -13,9 +13,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using CompositeViews.Messages;
     using EventLog;
     using Infrastructure;
-    using Infrastructure.SignalR;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -31,7 +29,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using ServiceControl.Persistence;
     using TestSupport;
     using TestSupport.EndpointTemplates;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class When_a_message_has_failed : AcceptanceTest
     {
@@ -292,23 +289,29 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     public SignalRStarter(MyContext context)
                     {
                         this.context = context;
-                        connection = new Connection("http://localhost/api/messagestream");
+                        connection = new HubConnectionBuilder()
+                            .WithUrl("http://localhost/api/messagestream")
+                            // TODO Can we replace OWIN handler with some sort of replacement in the Services collection here?
+                            .Build();
                     }
 
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
+                    protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Received += ConnectionOnReceived;
-                        connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+                        // TODO Align this name with the one chosen for GlobalEventHandler
+                        // We might also be able to strongly type this to match instead of just getting a string?
+                        connection.On<string>("PushEnvelope", ConnectionOnReceived);
 
-                        return session.Send(new MyMessage(), cancellationToken);
+                        await connection.StartAsync(cancellationToken);
+
+                        await session.Send(new MyMessage(), cancellationToken);
                     }
 
                     protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Stop();
-                        return Task.CompletedTask;
+                        return connection.StopAsync(cancellationToken);
                     }
 
+                    // TODO rename to better match what this is actually doing
                     void ConnectionOnReceived(string s)
                     {
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
@@ -319,7 +322,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     }
 
                     readonly MyContext context;
-                    readonly Connection connection;
+                    readonly HubConnection connection;
                 }
             }
         }
@@ -456,7 +459,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
 
-            public Func<HttpMessageHandler> Handler { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; } // TODO this needs to be removed/replaced
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
