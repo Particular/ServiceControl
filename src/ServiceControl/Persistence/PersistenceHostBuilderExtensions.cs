@@ -6,14 +6,13 @@ namespace ServiceControl.Persistence
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostBuilder SetupPersistence(this IHostBuilder hostBuilder, Settings settings, bool maintenanceMode = false)
+        public static IHostApplicationBuilder SetupPersistence(this IHostApplicationBuilder hostBuilder, Settings settings, bool maintenanceMode = false)
         {
             var persistence = PersistenceFactory.Create(settings, maintenanceMode);
 
-            hostBuilder.ConfigureServices(services =>
-            {
-                CreatePersisterLifecyle(services, persistence);
-            });
+            var services = hostBuilder.Services;
+
+            CreatePersisterLifecyle(services, persistence);
 
             return hostBuilder;
         }
