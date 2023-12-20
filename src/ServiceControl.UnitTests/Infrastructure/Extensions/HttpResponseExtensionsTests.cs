@@ -3,6 +3,8 @@
     using System;
     using System.Linq;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.WebUtilities;
+    using Microsoft.Extensions.Primitives;
     using NUnit.Framework;
     using Persistence.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
@@ -113,11 +115,27 @@
             string path = null,
             string queryParams = null)
         {
-            var queryString = "?";
+            var queryParameters = QueryHelpers.ParseQuery(queryParams);
 
-            queryString += queryParams;
+            if (resultsPerPage.HasValue)
+            {
+                queryParameters["per_page"] = new StringValues(resultsPerPage.Value.ToString());
+            }
 
-            var httpContext = new DefaultHttpContext { Request = { Method = "GET", Path = $"/api/{path ?? string.Empty}{queryString.TrimEnd('&')}" } };
+            if (currentPage.HasValue)
+            {
+                queryParameters["page"] = new StringValues(currentPage.Value.ToString());
+            }
+
+            var httpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Method = "GET",
+                    Path = $"/api/{path ?? string.Empty}",
+                    Query = new QueryCollection(queryParameters)
+                }
+            };
 
             httpContext.Response.WithPagingLinks(new PagingInfo(currentPage, resultsPerPage), highestTotalCountOfAllInstances ?? totalResults, totalResults);
 
