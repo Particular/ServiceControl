@@ -4,9 +4,8 @@ namespace ServiceControl.Infrastructure.WebApi
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Text;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Extensions;
+    using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Primitives;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -42,7 +41,7 @@ namespace ServiceControl.Infrastructure.WebApi
                 return;
             }
 
-            var links = new List<string>();
+            var links = new List<string>(4);
             var lastPage = (int)Math.Ceiling((double)highestTotalCountOfAllInstances / pageInfo.PageSize);
 
             // No need to add a Link header if page does not exist!
@@ -51,36 +50,32 @@ namespace ServiceControl.Infrastructure.WebApi
                 return;
             }
 
-            var path = Uri.UnescapeDataString(response.HttpContext.Request.GetEncodedPathAndQuery())
+            var path = Uri.UnescapeDataString(response.HttpContext.Request.Path)
                 .Replace("/api/", string.Empty); // NOTE: Strips off the /api/ for backwards compat
-            var query = new StringBuilder();
 
-            query.Append("?");
-            foreach (var pair in response.HttpContext.Request.Query.Where(pair => pair.Key != "page"))
-            {
-                query.AppendFormat("{0}={1}&", pair.Key, pair.Value);
-            }
-
-            var queryParams = query.ToString();
+            // Currently not making a copy of the query collection for every add link call because the code assumes
+            // AddLink will always set the page property and thus override previously assigned values
+            var originalQueryCollection = response.HttpContext.Request.Query.Where(pair => pair.Key != "page")
+                .ToDictionary();
 
             if (pageInfo.Page != 1)
             {
-                AddLink(links, 1, "first", path, queryParams);
+                AddLink(links, 1, "first", path, originalQueryCollection);
             }
 
             if (pageInfo.Page > 1)
             {
-                AddLink(links, pageInfo.Page - 1, "prev", path, queryParams);
+                AddLink(links, pageInfo.Page - 1, "prev", path, originalQueryCollection);
             }
 
             if (pageInfo.Page != lastPage)
             {
-                AddLink(links, lastPage, "last", path, queryParams);
+                AddLink(links, lastPage, "last", path, originalQueryCollection);
             }
 
             if (pageInfo.Page < lastPage)
             {
-                AddLink(links, pageInfo.Page + 1, "next", path, queryParams);
+                AddLink(links, pageInfo.Page + 1, "next", path, originalQueryCollection);
             }
 
             // TODO can this be new StringValues(links.ToArray())) ? we don't know what the separator will be
@@ -88,11 +83,11 @@ namespace ServiceControl.Infrastructure.WebApi
             response.WithHeader("Link", new StringValues(string.Join(", ", links)));
         }
 
-        static void AddLink(ICollection<string> links, int page, string rel, string uriPath, string queryParams)
+        static void AddLink(ICollection<string> links, int page, string rel, string uriPath, Dictionary<string, StringValues> queryParams)
         {
-            var query = $"{queryParams}page={page}";
-
-            links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
+            queryParams["page"] = new StringValues(page.ToString(CultureInfo.InvariantCulture));
+            var pathWithQuery = QueryHelpers.AddQueryString(uriPath, queryParams);
+            links.Add($"<{pathWithQuery}>; rel=\"{rel}\"");
         }
 
         // TODO This name might need to change to better reflect what it does
