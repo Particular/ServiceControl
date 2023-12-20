@@ -2,13 +2,12 @@
 {
     using System;
     using System.Configuration;
+    using System.IO;
     using System.Net;
     using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
@@ -23,32 +22,25 @@
             ConfigurationManager.AppSettings["ServiceControl/ForwardErrorMessages"] = bool.FalseString;
             ConfigurationManager.AppSettings["ServiceControl/ErrorRetentionPeriod"] = TimeSpan.FromDays(10).ToString();
 
-            testApi = new TestApi
+            settings = new Settings("TestService")
             {
-                Settings = new Settings("TestService")
-                {
-                    Port = 3333,
-                    RemoteInstances = new[]
-                    {
-                        new RemoteInstanceSetting
-                        {
-                            ApiUri = "http://localhost:33334/api"
-                        }
-                    }
-                }
+                Port = 3333,
+                RemoteInstances = new[] { new RemoteInstanceSetting { ApiUri = "http://localhost:33334/api" } }
             };
 
-            localInstanceId = InstanceIdGenerator.FromApiUrl(testApi.Settings.ApiUrl);
-            remote1InstanceId = InstanceIdGenerator.FromApiUrl(testApi.Settings.RemoteInstances[0].ApiUri);
+            localInstanceId = InstanceIdGenerator.FromApiUrl(settings.ApiUrl);
+            remote1InstanceId = InstanceIdGenerator.FromApiUrl(settings.RemoteInstances[0].ApiUri);
         }
 
         [Test]
         public async Task LocalResponseReturnedWhenInstanceIdMatchesLocal()
         {
             var localResponse = new HttpResponseMessage();
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={localInstanceId}");
 
-            var response = await testApi.Execute(request, _ => localResponse, _ => { throw new InvalidOperationException("should not be called"); });
+            var testApi = new TestApi(settings, new DefaultHttpContext(), _ => localResponse,
+                _ => throw new InvalidOperationException("should not be called"));
+
+            var response = await testApi.Execute(new(localInstanceId));
 
             Assert.AreSame(localResponse, response);
         }
@@ -58,49 +50,40 @@
         {
             HttpRequestMessage interceptedRequest = null;
 
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={remote1InstanceId}");
-            request.Headers.Add("SomeRequestHeader", "SomeValue");
+            var defaultHttpContext = new DefaultHttpContext();
+            defaultHttpContext.Request.Headers.Append("SomeRequestHeader", "SomeValue");
 
-            var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
-            {
-                interceptedRequest = r;
-                return new HttpResponseMessage
+            var testApi = new TestApi(settings, defaultHttpContext,
+                _ => throw new InvalidOperationException("should not be called"),
+                r =>
                 {
-                    Headers =
+                    interceptedRequest = r;
+                    return new HttpResponseMessage
                     {
-                        {"SomeHeader", "SomeValue"}
-                    },
-                    Content = new StringContent("")
-                    {
-                        Headers =
+                        Headers = { { "SomeHeader", "SomeValue" } },
+                        Content = new StringContent("")
                         {
-                            {"SomeContentHeader", "SomeContentValue"}
+                            Headers = { { "SomeContentHeader", "SomeContentValue" } }
                         }
-                    }
-                };
-            });
+                    };
+                });
 
+            var response = await testApi.Execute(new(remote1InstanceId));
 
-            CollectionAssert.IsSubsetOf(new[]
-            {
-                "SomeValue"
-            }, interceptedRequest.Headers.GetValues("SomeRequestHeader"));
-            CollectionAssert.IsSubsetOf(new[]
-            {
-                "SomeValue"
-            }, response.Headers.GetValues("SomeHeader"));
-            CollectionAssert.IsSubsetOf(new[]
-            {
-                "SomeContentValue"
-            }, response.Content.Headers.GetValues("SomeContentHeader"));
+            CollectionAssert.IsSubsetOf(new[] { "SomeValue" },
+                interceptedRequest.Headers.GetValues("SomeRequestHeader"));
+            CollectionAssert.IsSubsetOf(new[] { "SomeValue" }, response.Headers.GetValues("SomeHeader"));
+            CollectionAssert.IsSubsetOf(new[] { "SomeContentValue" },
+                response.Content.Headers.GetValues("SomeContentHeader"));
         }
 
         [Test]
         public async Task RemoteThrowsReturnsEmptyResultWithServerError()
         {
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesntmatter?instance_id={remote1InstanceId}");
+            var testApi = new TestApi(settings, new DefaultHttpContext(), _ => default,
+                r => throw new InvalidOperationException(""));
 
-            var response = await testApi.Execute(request, _ => new HttpResponseMessage(), r => { throw new InvalidOperationException(""); });
+            var response = await testApi.Execute(new(remote1InstanceId));
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         }
@@ -111,29 +94,27 @@
         public async Task ContentForwardedToRemote(string method)
         {
             string interceptedStreamResult = null;
-            var request = new HttpRequestMessage(new HttpMethod(method), $"http://doesntmatter?instance_id={remote1InstanceId}");
 
-            var binaryContent = new ByteArrayContent(Encoding.UTF8.GetBytes("RequestContet"));
-            binaryContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            request.Content = binaryContent;
+            var defaultHttpContext = new DefaultHttpContext();
+            defaultHttpContext.Request.Headers.ContentType = "application/octet-stream";
+            defaultHttpContext.Request.Body = new MemoryStream("RequestContent"u8.ToArray());
 
-            var response = await testApi.Execute(request, _ => { throw new InvalidOperationException("should not be called"); }, r =>
-            {
-                interceptedStreamResult = r.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                return new HttpResponseMessage
+            var testApi = new TestApi(settings, defaultHttpContext, _ => default,
+                r =>
                 {
-                    Content = new StringContent("ResponseContent")
-                };
-            });
+                    interceptedStreamResult = r.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return new HttpResponseMessage { Content = new StringContent("ResponseContent") };
+                });
 
-            Assert.AreEqual("RequestContet", interceptedStreamResult);
+            var response = await testApi.Execute(new(remote1InstanceId));
+
+            Assert.AreEqual("RequestContent", interceptedStreamResult);
             Assert.AreEqual("ResponseContent", await response.Content.ReadAsStringAsync());
         }
 
-        TestApi testApi;
-
         string localInstanceId;
         string remote1InstanceId;
+        Settings settings;
 
         class InterceptingHandler : HttpClientHandler
         {
@@ -142,7 +123,8 @@
                 this.interceptor = interceptor;
             }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+                CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(interceptor(request));
             }
@@ -150,28 +132,31 @@
             Func<HttpRequestMessage, HttpResponseMessage> interceptor;
         }
 
-        class TestApi : RoutedApi<NoInput>
+        class TestApi : RoutedApi<TestApiContext>
         {
-            public Task<HttpResponseMessage> Execute(HttpRequestMessage request, Func<HttpRequestMessage, HttpResponseMessage> localResponse, Func<HttpRequestMessage, HttpResponseMessage> remoteResponse)
-            {
+            Func<TestApiContext, HttpResponseMessage> localResponse;
+
+            public TestApi(Settings settings, HttpContext httpContext,
+                Func<TestApiContext, HttpResponseMessage> localResponse,
+                Func<HttpRequestMessage, HttpResponseMessage> remoteResponse) : base(settings,
+                new HttpClientFakeFactory(remoteResponse), new HttpContextAccessorFake(httpContext)) =>
                 this.localResponse = localResponse;
-                HttpClientFactory = () => new HttpClient(new InterceptingHandler(remoteResponse));
-                return Execute(new FakeController
-                {
-                    Request = request
-                }, NoInput.Instance);
-            }
 
-            protected override Task<HttpResponseMessage> LocalQuery(HttpRequestMessage request, NoInput input, string instanceId)
+            protected override Task<HttpResponseMessage> LocalQuery(TestApiContext testApiContext) =>
+                Task.FromResult(localResponse(testApiContext));
+
+            class HttpClientFakeFactory(Func<HttpRequestMessage, HttpResponseMessage> response)
+                : IHttpClientFactory
             {
-                return Task.FromResult(localResponse(request));
+                public HttpClient CreateClient(string name) => new(new InterceptingHandler(response));
             }
 
-            Func<HttpRequestMessage, HttpResponseMessage> localResponse;
+            class HttpContextAccessorFake(HttpContext httpContext) : IHttpContextAccessor
+            {
+                public HttpContext HttpContext { get; set; } = httpContext;
+            }
         }
 
-        class FakeController : ApiController
-        {
-        }
+        public record TestApiContext(string InstanceId) : RoutedApiContext(InstanceId);
     }
 }
