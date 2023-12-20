@@ -2,12 +2,13 @@
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
+    using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
+    using Persistence.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
-    public class NegotiatorExtensionsTests
+    public class HttpResponseExtensionsTests
     {
         [Test]
         public void WithPagingLinks_ReturnsLinksWithRelativeUriButWithoutApiPrefix()
@@ -114,27 +115,18 @@
         {
             var queryString = "?";
 
-            if (resultsPerPage.HasValue)
-            {
-                queryString += $"per_page={resultsPerPage.Value}&";
-            }
-
-            if (currentPage.HasValue)
-            {
-                queryString += $"page={currentPage.Value}&";
-            }
-
             queryString += queryParams;
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://name.tld:99/api/{path ?? string.Empty}{queryString.TrimEnd('&')}");
 
-            var response = request.CreateResponse().WithPagingLinks(totalResults, highestTotalCountOfAllInstances ?? totalResults, request);
+            var httpContext = new DefaultHttpContext { Request = { Method = "GET", Path = $"/api/{path ?? string.Empty}{queryString.TrimEnd('&')}" } };
 
-            if (response.Headers.TryGetValues("Link", out var links))
+            httpContext.Response.WithPagingLinks(new PagingInfo(currentPage, resultsPerPage), highestTotalCountOfAllInstances ?? totalResults, totalResults);
+
+            if (httpContext.Response.Headers.TryGetValue("Link", out var links))
             {
                 return links.Single().Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            return new string[0];
+            return Array.Empty<string>();
         }
     }
 }

@@ -35,7 +35,7 @@ namespace ServiceControl.Infrastructure.WebApi
 
         static void WithHeader(this HttpResponse response, string header, StringValues value) => response.Headers.Append(header, value);
 
-        static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, int highestTotalCountOfAllInstances, int totalResults)
+        public static void WithPagingLinks(this HttpResponse response, PagingInfo pageInfo, int highestTotalCountOfAllInstances, int totalResults)
         {
             if (totalResults <= PagingInfo.DefaultPageSize)
             {
@@ -51,7 +51,8 @@ namespace ServiceControl.Infrastructure.WebApi
                 return;
             }
 
-            var path = response.HttpContext.Request.GetEncodedUrl().Substring(5); // NOTE: Strips off the /api/ for backwards compat
+            var path = Uri.UnescapeDataString(response.HttpContext.Request.GetEncodedPathAndQuery())
+                .Replace("/api/", string.Empty); // NOTE: Strips off the /api/ for backwards compat
             var query = new StringBuilder();
 
             query.Append("?");
