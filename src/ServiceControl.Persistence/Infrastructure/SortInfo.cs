@@ -3,9 +3,9 @@
     using System.Diagnostics;
 
     [DebuggerDisplay("{Sort} {Direction}")]
-    public class SortInfo(string sort, string direction = "desc")
+    public class SortInfo(string sort = null, string direction = null)
     {
-        public string Direction { get; } = direction;
-        public string Sort { get; } = sort;
+        public string Direction { get; } = string.IsNullOrWhiteSpace(direction) ? "desc" : direction;
+        public string Sort { get; } = string.IsNullOrWhiteSpace(sort) ? "time_sent" : sort;
     }
 }

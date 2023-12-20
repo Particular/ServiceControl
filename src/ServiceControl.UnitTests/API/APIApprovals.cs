@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Routing;
     using NServiceBus.CustomChecks;
@@ -21,6 +22,9 @@
         [Test]
         public void RootPathValue()
         {
+            var httpContext = new DefaultHttpContext { Request = { PathBase = "http://localhost" } };
+            var actionContext = new ActionContext { HttpContext = httpContext };
+
             var controller = new RootController(
                 new ActiveLicense { IsValid = true },
                 new LoggingSettings("testEndpoint"),
@@ -28,27 +32,12 @@
                 httpClientFactory: null
                 )
             {
-                Url = new FakeUrlHelper()
+                Url = new UrlHelper(actionContext)
             };
 
             var result = controller.Urls();
 
             Approver.Verify(result);
-        }
-
-        class FakeUrlHelper : IUrlHelper
-        {
-            public string Action(UrlActionContext actionContext) => throw new NotImplementedException();
-
-            public string Content(string contentPath) => "http://localhost";
-
-            public bool IsLocalUrl(string url) => throw new NotImplementedException();
-
-            public string RouteUrl(UrlRouteContext routeContext) => throw new NotImplementedException();
-
-            public string Link(string routeName, object values) => throw new NotImplementedException();
-
-            public ActionContext ActionContext { get; }
         }
 
         [Test]
