@@ -6,10 +6,12 @@ namespace Particular.ServiceControl
 
     class MaintenanceBootstrapper
     {
-        public IHostBuilder HostBuilder { get; set; }
+        public HostApplicationBuilder HostBuilder { get; set; }
 
-        public MaintenanceBootstrapper(Settings settings) =>
-            HostBuilder = new HostBuilder()
-                .SetupPersistence(settings, maintenanceMode: true);
+        public MaintenanceBootstrapper(Settings settings)
+        {
+            HostBuilder = Host.CreateApplicationBuilder();
+            HostBuilder.SetupPersistence(settings, maintenanceMode: true);
+        }
     }
 }

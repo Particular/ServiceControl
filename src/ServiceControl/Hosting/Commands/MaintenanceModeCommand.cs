@@ -1,10 +1,13 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
+    using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class MaintenanceModeCommand : AbstractCommand
@@ -14,12 +17,20 @@
             var bootstrapper = new MaintenanceBootstrapper(settings);
             var hostBuilder = bootstrapper.HostBuilder;
 
-            hostBuilder.AddPersistenceInitializingLifetime(args.RunAsWindowsService);
-
-            using (var host = hostBuilder.Build())
+            if (args.RunAsWindowsService)
             {
-                await host.RunAsync();
+                hostBuilder.Services.AddWindowsService();
             }
+            else
+            {
+                await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit");
+            }
+
+            using var host = hostBuilder.Build();
+
+            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+            await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            await host.RunAsync();
         }
     }
 }

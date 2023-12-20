@@ -4,15 +4,12 @@ namespace Particular.ServiceControl
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Reflection;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
-    using global::ServiceControl.Infrastructure.Settings;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -97,7 +94,7 @@ namespace Particular.ServiceControl
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
             HostBuilder.UseLicenseCheck();
-            HostBuilder.Host.SetupPersistence(settings);
+            HostBuilder.SetupPersistence(settings);
             HostBuilder.UseMetrics(settings.PrintMetrics);
             HostBuilder.Host.UseNServiceBus(context =>
             {
