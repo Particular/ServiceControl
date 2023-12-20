@@ -12,9 +12,9 @@
     class RemotePlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
     {
         readonly Settings settings;
-        readonly Func<HttpClient> httpClientFactory;
+        readonly IHttpClientFactory httpClientFactory;
 
-        public RemotePlatformConnectionDetailsProvider(Settings settings, Func<HttpClient> httpClientFactory)
+        public RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory httpClientFactory)
         {
             this.settings = settings;
             this.httpClientFactory = httpClientFactory;
@@ -30,10 +30,10 @@
         {
             var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
 
-            var client = httpClientFactory();
+            var client = httpClientFactory.CreateClient(remote.InstanceId);
             try
             {
-                var result = await client.GetStringAsync(remoteConnectionUri);
+                var result = await client.GetStringAsync("/connection");
                 var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
                 if (dictionary == null)
                 {
