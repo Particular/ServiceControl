@@ -4,10 +4,7 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using AcceptanceTesting;
-    using Infrastructure.SignalR;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -16,7 +13,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     class When_reporting_custom_check_with_signalr : AcceptanceTest
@@ -36,7 +32,7 @@
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; } // TODO this needs to be removed/replaced
             public string SignalrData { get; set; }
         }
 
@@ -61,9 +57,13 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection("http://localhost/api/messagestream");
+                    connection = new HubConnectionBuilder()
+                        .WithUrl("http://localhost/api/messagestream")
+                        // TODO Can we replace OWIN handler with some sort of replacement in the Services collection here?
+                        .Build();
                 }
 
+                // TODO rename to better match what this is actually doing
                 void ConnectionOnReceived(string s)
                 {
                     if (s.IndexOf("\"EventLogItemAdded\"") > 0)
@@ -78,19 +78,20 @@
 
                 protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                 {
-                    connection.Received += ConnectionOnReceived;
+                    // TODO Align this name with the one chosen for GlobalEventHandler
+                    // We might also be able to strongly type this to match instead of just getting a string?
+                    connection.On<string>("PushEnvelope", ConnectionOnReceived);
 
-                    return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
+                    return connection.StartAsync(cancellationToken);
                 }
 
                 protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                 {
-                    connection.Stop();
-                    return Task.CompletedTask;
+                    return connection.StopAsync(cancellationToken);
                 }
 
                 readonly MyContext context;
-                readonly Connection connection;
+                readonly HubConnection connection;
             }
         }
 

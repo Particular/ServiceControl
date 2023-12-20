@@ -8,9 +8,7 @@
     using AcceptanceTesting;
     using Contracts.CustomChecks;
     using EventLog;
-    using Infrastructure.SignalR;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -20,7 +18,6 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     class When_a_periodic_custom_check_fails : AcceptanceTest
@@ -62,7 +59,7 @@
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; }
+            public Func<HttpMessageHandler> Handler { get; set; } // TODO this needs to be removed/replaced
             public bool SignalrStarted { get; set; }
         }
 
@@ -83,7 +80,10 @@
                     public SignalrStarter(MyContext context)
                     {
                         this.context = context;
-                        connection = new Connection("http://localhost/api/messagestream");
+                        connection = new HubConnectionBuilder()
+                            .WithUrl("http://localhost/api/messagestream")
+                            // TODO Can we replace OWIN handler with some sort of replacement in the Services collection here?
+                            .Build();
                     }
 
                     void ConnectionOnReceived(string s)
@@ -95,22 +95,24 @@
                         }
                     }
 
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
+                    protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Received += ConnectionOnReceived;
-                        connection.StateChanged += change => { context.SignalrStarted = change.NewState == ConnectionState.Connected; };
+                        // TODO Align this name with the one chosen for GlobalEventHandler
+                        // We might also be able to strongly type this to match instead of just getting a string?
+                        connection.On<string>("PushEnvelope", ConnectionOnReceived);
 
-                        return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
+                        await connection.StartAsync(cancellationToken);
+
+                        context.SignalrStarted = connection.State == HubConnectionState.Connected;
                     }
 
                     protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Stop();
-                        return Task.CompletedTask;
+                        return connection.StopAsync(cancellationToken);
                     }
 
                     readonly MyContext context;
-                    readonly Connection connection;
+                    readonly HubConnection connection;
                 }
             }
         }
