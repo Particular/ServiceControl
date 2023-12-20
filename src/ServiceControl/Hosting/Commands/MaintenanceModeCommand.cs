@@ -19,21 +19,18 @@
 
             if (args.RunAsWindowsService)
             {
-                hostBuilder.UseWindowsService();
+                hostBuilder.Services.AddWindowsService();
             }
             else
             {
                 await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit");
-
-                hostBuilder.UseConsoleLifetime();
             }
 
-            using (var host = hostBuilder.Build())
-            {
-                // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
-                await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-                await host.RunAsync();
-            }
+            using var host = hostBuilder.Build();
+
+            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+            await host.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            await host.RunAsync();
         }
     }
 }
