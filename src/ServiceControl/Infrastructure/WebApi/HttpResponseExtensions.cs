@@ -51,17 +51,21 @@ namespace ServiceControl.Infrastructure.WebApi
                 return;
             }
 
-            var path = Uri.UnescapeDataString(response.HttpContext.Request.GetEncodedPathAndQuery())
+            var path = Uri.UnescapeDataString(response.HttpContext.Request.Path)
                 .Replace("/api/", string.Empty); // NOTE: Strips off the /api/ for backwards compat
             var query = new StringBuilder();
 
-            query.Append("?");
+            // if (path.IndexOf('?') == -1)
+            // {
+            //     query.Append("?");
+            // }
+
             foreach (var pair in response.HttpContext.Request.Query.Where(pair => pair.Key != "page"))
             {
                 query.AppendFormat("{0}={1}&", pair.Key, pair.Value);
             }
 
-            var queryParams = query.ToString();
+            var queryParams = query.ToString().TrimEnd('&');
 
             if (pageInfo.Page != 1)
             {
@@ -90,7 +94,11 @@ namespace ServiceControl.Infrastructure.WebApi
 
         static void AddLink(ICollection<string> links, int page, string rel, string uriPath, string queryParams)
         {
-            var query = $"{queryParams}page={page}";
+            var query = $"page={page}";
+            if (!string.IsNullOrWhiteSpace(queryParams))
+            {
+                query = $"{queryParams}&page={page}";
+            }
 
             links.Add($"<{uriPath + query}>; rel=\"{rel}\"");
         }

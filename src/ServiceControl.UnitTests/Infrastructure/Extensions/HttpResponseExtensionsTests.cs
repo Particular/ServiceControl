@@ -1,8 +1,10 @@
 ﻿namespace ServiceControl.UnitTests.Infrastructure.Extensions
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Primitives;
     using NUnit.Framework;
     using Persistence.Infrastructure;
     using ServiceControl.Infrastructure.WebApi;
@@ -116,8 +118,16 @@
             var queryString = "?";
 
             queryString += queryParams;
-
-            var httpContext = new DefaultHttpContext { Request = { Method = "GET", Path = $"/api/{path ?? string.Empty}{queryString.TrimEnd('&')}" } };
+            var queryCollectionStore = queryString.Split('&').ToDictionary(s => s.Split('=').First(), s => new StringValues(s.Split('=').Last()));
+            var httpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Method = "GET",
+                    Path = $"/api/{path ?? string.Empty}",
+                    Query = new QueryCollection(queryCollectionStore)
+                }
+            };
 
             httpContext.Response.WithPagingLinks(new PagingInfo(currentPage, resultsPerPage), highestTotalCountOfAllInstances ?? totalResults, totalResults);
 
