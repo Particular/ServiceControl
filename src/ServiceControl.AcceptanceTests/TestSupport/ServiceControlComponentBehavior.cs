@@ -40,7 +40,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         readonly AcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
-        readonly Action<IHostBuilder> hostBuilderCustomization;
+        readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         ServiceControlComponentRunner runner;
     }
 }
