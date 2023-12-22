@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Commands;
     using global::ServiceControl.Persistence;
@@ -17,8 +18,8 @@
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
+            AssemblyLoadContext.Default.Resolving += ResolveAssembly;
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
 
@@ -35,36 +36,32 @@
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
-        static void LogException(Exception ex)
-        {
-            Logger.Error("Unhandled exception was caught.", ex);
-        }
 
-        static Assembly ResolveAssembly(string name)
+        static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
         {
             var assemblyLocation = Assembly.GetEntryAssembly().Location;
             var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            var requestingName = new AssemblyName(name).Name;
+            var requestingName = assemblyName.Name;
 
             var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
+            var assembly = File.Exists(combine) ? loadContext.LoadFromAssemblyPath(combine) : null;
 
             if (assembly == null && settings != null)
             {
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                assembly = TryLoadAssembly(transportFolder, requestingName);
+                assembly = TryLoadAssembly(loadContext, transportFolder, requestingName);
             }
 
             if (assembly == null && settings != null)
             {
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
-                assembly = TryLoadAssembly(persistenceFolder, requestingName);
+                assembly = TryLoadAssembly(loadContext, persistenceFolder, requestingName);
             }
 
             return assembly;
         }
 
-        static Assembly TryLoadAssembly(string folderPath, string requestingName)
+        static Assembly TryLoadAssembly(AssemblyLoadContext loadContext, string folderPath, string requestingName)
         {
             if (folderPath != null)
             {
@@ -72,7 +69,7 @@
 
                 if (File.Exists(path))
                 {
-                    return Assembly.LoadFrom(path);
+                    return loadContext.LoadFromAssemblyPath(path);
                 }
             }
 
