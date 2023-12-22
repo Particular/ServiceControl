@@ -39,33 +39,28 @@
 
         static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
         {
-            var assemblyLocation = Assembly.GetEntryAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            var requestingName = assemblyName.Name;
-
-            var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            var assembly = File.Exists(combine) ? loadContext.LoadFromAssemblyPath(combine) : null;
-
-            if (assembly == null && settings != null)
+            if (settings == null)
             {
-                var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                assembly = TryLoadAssembly(loadContext, transportFolder, requestingName);
+                return null;
             }
 
-            if (assembly == null && settings != null)
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            var assembly = TryLoadAssembly(loadContext, transportFolder, assemblyName);
+
+            if (assembly == null)
             {
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
-                assembly = TryLoadAssembly(loadContext, persistenceFolder, requestingName);
+                assembly = TryLoadAssembly(loadContext, persistenceFolder, assemblyName);
             }
 
             return assembly;
         }
 
-        static Assembly TryLoadAssembly(AssemblyLoadContext loadContext, string folderPath, string requestingName)
+        static Assembly TryLoadAssembly(AssemblyLoadContext loadContext, string folderPath, AssemblyName assemblyName)
         {
             if (folderPath != null)
             {
-                var path = Path.Combine(folderPath, $"{requestingName}.dll");
+                var path = Path.Combine(folderPath, $"{assemblyName.Name}.dll");
 
                 if (File.Exists(path))
                 {
