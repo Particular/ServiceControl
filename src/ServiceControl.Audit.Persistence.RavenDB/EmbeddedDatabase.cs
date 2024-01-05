@@ -58,6 +58,7 @@
             {
                 // Under maintenance mode it is intentional to allow the database to take a long time to start as RavenDB sometimes will recover corrupted/deleted file system data
                 maxServerStartupTimeDuration = TimeSpan.FromDays(365);
+                logsMode = Sparrow.Logging.LogMode.Information;
             }
 
 
