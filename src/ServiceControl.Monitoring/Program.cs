@@ -13,18 +13,25 @@ namespace ServiceControl.Monitoring
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
+            try
+            {
+                AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
+                AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
 
-            var arguments = new HostArguments(args);
+                var arguments = new HostArguments(args);
 
-            LoadSettings(arguments);
+                LoadSettings(arguments);
 
-            var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
-            LoggingConfigurator.Configure(settings, !runAsWindowsService);
+                var runAsWindowsService = !Environment.UserInteractive && !arguments.Portable;
+                LoggingConfigurator.Configure(settings, !runAsWindowsService);
 
-            await new CommandRunner(arguments.Commands)
-                .Run(settings);
+                await new CommandRunner(arguments.Commands)
+                    .Run(settings);
+            }
+            finally
+            {
+                NLog.LogManager.Shutdown();
+            }
         }
 
         static void LoadSettings(HostArguments args)

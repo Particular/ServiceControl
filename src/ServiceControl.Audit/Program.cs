@@ -18,23 +18,30 @@
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
-
-            var arguments = new HostArguments(args);
-
-            if (arguments.Help)
+            try
             {
-                arguments.PrintUsage();
-                return;
+                AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
+                AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
+
+                var arguments = new HostArguments(args);
+
+                if (arguments.Help)
+                {
+                    arguments.PrintUsage();
+                    return;
+                }
+
+                var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
+                LoggingConfigurator.ConfigureLogging(loggingSettings);
+
+                settings = Settings.FromConfiguration(arguments.ServiceName);
+
+                await new CommandRunner(arguments.Commands).Execute(arguments, settings);
             }
-
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
-            LoggingConfigurator.ConfigureLogging(loggingSettings);
-
-            settings = Settings.FromConfiguration(arguments.ServiceName);
-
-            await new CommandRunner(arguments.Commands).Execute(arguments, settings);
+            finally
+            {
+                NLog.LogManager.Shutdown();
+            }
         }
 
         static void LogException(Exception ex)
