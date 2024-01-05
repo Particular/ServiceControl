@@ -24,11 +24,11 @@ class RavenPersisterSettings : PersistenceSettings
     public string ConnectionString { get; set; }
     public bool UseEmbeddedServer => string.IsNullOrWhiteSpace(ConnectionString);
     public string LogPath { get; set; }
-    public string LogsMode { get; set; } = LogsModeDefault;
+    public Sparrow.Logging.LogMode LogsMode { get; set; } = LogsModeDefault;
     public string DatabaseName { get; set; } = DatabaseNameDefault;
 
     public const string DatabaseNameDefault = "primary";
     public const int DatabaseMaintenancePortDefault = 33334;
     public const int ExpirationProcessTimerInSecondsDefault = 600;
-    public const string LogsModeDefault = "Operations";
+    public const Sparrow.Logging.LogMode LogsModeDefault = Sparrow.Logging.LogMode.Operations;
 }

@@ -51,13 +51,14 @@
 
             var nugetPackagesPath = Path.Combine(databaseConfiguration.ServerConfiguration.DbPath, "Packages", "NuGet");
 
+            var logsMode = databaseConfiguration.ServerConfiguration.LogsMode;
             logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
                 CommandLineArgs = new List<string>
                 {
                     $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
-                    $"--Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}",
+                    $"--Logs.Mode={logsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""

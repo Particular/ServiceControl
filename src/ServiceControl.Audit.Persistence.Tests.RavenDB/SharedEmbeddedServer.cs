@@ -23,7 +23,7 @@
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
                 var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
-                var logsMode = "Operations";
+                var logsMode = Sparrow.Logging.LogMode.Operations;
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
                 embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));

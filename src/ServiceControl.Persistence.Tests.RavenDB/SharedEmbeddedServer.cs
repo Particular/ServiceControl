@@ -18,7 +18,7 @@ static class SharedEmbeddedServer
         {
             DatabasePath = dbPath,
             LogPath = Path.Combine(basePath, "Logs"),
-            LogsMode = "Operations",
+            LogsMode = Sparrow.Logging.LogMode.Operations,
             DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
         };
 

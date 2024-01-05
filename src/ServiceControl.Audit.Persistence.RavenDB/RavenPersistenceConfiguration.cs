@@ -68,11 +68,11 @@
                     throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
                 }
 
-                var logsMode = "Operations";
+                var logsMode = Sparrow.Logging.LogMode.Operations;
 
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
-                    logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
+                    logsMode = (Sparrow.Logging.LogMode)Enum.Parse(typeof(Sparrow.Logging.LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
