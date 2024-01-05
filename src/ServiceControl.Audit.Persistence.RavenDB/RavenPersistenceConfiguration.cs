@@ -105,7 +105,9 @@
                 settings.AuditRetentionPeriod,
                 settings.MaxBodySizeToStore,
                 minimumStorageLeftRequiredForIngestion,
-                serverConfiguration);
+                serverConfiguration,
+                settings.MaintenanceMode
+                );
         }
 
         static int GetExpirationProcessTimerInSeconds(PersistenceSettings settings)

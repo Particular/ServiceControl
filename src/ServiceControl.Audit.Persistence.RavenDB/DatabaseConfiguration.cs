@@ -11,7 +11,8 @@
             TimeSpan auditRetentionPeriod,
             int maxBodySizeToStore,
             int minimumStorageLeftRequiredForIngestion,
-            ServerConfiguration serverConfiguration)
+            ServerConfiguration serverConfiguration,
+            bool maintenanceMode)
         {
             Name = name;
             ExpirationProcessTimerInSeconds = expirationProcessTimerInSeconds;
@@ -20,6 +21,7 @@
             MaxBodySizeToStore = maxBodySizeToStore;
             ServerConfiguration = serverConfiguration;
             MinimumStorageLeftRequiredForIngestion = minimumStorageLeftRequiredForIngestion;
+            MaintenanceMode = maintenanceMode;
         }
 
         public string Name { get; }
@@ -37,5 +39,7 @@
         public int MaxBodySizeToStore { get; }
 
         public int MinimumStorageLeftRequiredForIngestion { get; internal set; } //Setting for ATT only
+
+        public bool MaintenanceMode { get; internal set; }
     }
 }

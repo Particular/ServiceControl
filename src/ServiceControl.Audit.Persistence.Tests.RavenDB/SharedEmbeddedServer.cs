@@ -26,7 +26,7 @@
                 var logsMode = Sparrow.Logging.LogMode.Operations;
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
-                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));
+                embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode), maintenanceMode: false));
 
                 //make sure that the database is up
                 while (true)

@@ -50,10 +50,19 @@
 
             var nugetPackagesPath = Path.Combine(settings.DatabasePath, "Packages", "NuGet");
 
+            var maxServerStartupTimeDuration = TimeSpan.FromSeconds(120); // Aligns it with the Windows default max startup duration of 125s https://stackoverflow.com/a/29928342/199551
             var logsMode = settings.LogsMode;
+
+            if (settings.MaintenanceMode)
+            {
+                // Under maintenance mode it is intentional to allow the database to take a long time to start as RavenDB sometimes will recover corrupted/deleted file system data
+                maxServerStartupTimeDuration = TimeSpan.FromDays(365);
+            }
+
             logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
+                MaxServerStartupTimeDuration = maxServerStartupTimeDuration,
                 CommandLineArgs = new List<string>
                 {
                     $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
