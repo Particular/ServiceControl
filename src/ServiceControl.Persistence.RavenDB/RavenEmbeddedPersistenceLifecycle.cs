@@ -44,7 +44,7 @@
 
         ~RavenEmbeddedPersistenceLifecycle()
         {
-            Trace.WriteLine("ERROR: RavenDbEmbeddedPersistenceLifecycle isn't properly disposed");
+            Trace.WriteLine($"ERROR: {nameof(RavenEmbeddedPersistenceLifecycle)} isn't properly disposed");
         }
     }
 }
