@@ -41,7 +41,7 @@
             }
 
             var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
+            var logsMode = (Sparrow.Logging.LogMode)Enum.Parse(typeof(Sparrow.Logging.LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
 
             var settings = new RavenPersisterSettings
             {

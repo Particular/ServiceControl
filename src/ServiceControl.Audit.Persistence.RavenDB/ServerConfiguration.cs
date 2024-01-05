@@ -8,7 +8,7 @@
             ConnectionString = connectionString;
         }
 
-        public ServerConfiguration(string dbPath, string serverUrl, string logPath, string logsMode)
+        public ServerConfiguration(string dbPath, string serverUrl, string logPath, Sparrow.Logging.LogMode logsMode)
         {
             UseEmbeddedServer = true;
             DbPath = dbPath;
@@ -22,6 +22,6 @@
         public string DbPath { get; internal set; } //Setter for ATT only
         public string ServerUrl { get; }
         public string LogPath { get; }
-        public string LogsMode { get; set; }
+        public Sparrow.Logging.LogMode LogsMode { get; set; }
     }
 }
