@@ -2,6 +2,7 @@
 {
     using System;
     using ServiceControl.Operations;
+    using Sparrow.Logging;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
     {
@@ -40,8 +41,14 @@
                 }
             }
 
-            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
-            var logsMode = (Sparrow.Logging.LogMode)Enum.Parse(typeof(Sparrow.Logging.LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
+            var maintenanceMode = GetSetting(MaintenanceModeKey, false);
+
+            var ravenDbLogLevelDefault = maintenanceMode
+                ? nameof(LogMode.Information)
+                : nameof(LogMode.Operations);
+
+            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, ravenDbLogLevelDefault);
+            var logsMode = (LogMode)Enum.Parse(typeof(LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
 
             var settings = new RavenPersisterSettings
             {
@@ -56,11 +63,12 @@
                 EventsRetentionPeriod = GetSetting(EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
                 AuditRetentionPeriod = GetSetting(AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
-                MaintenanceMode = GetSetting(MaintenanceModeKey, false),
+                MaintenanceMode = maintenanceMode,
                 LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
                 LogsMode = logsMode,
                 EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
             };
+
 
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);

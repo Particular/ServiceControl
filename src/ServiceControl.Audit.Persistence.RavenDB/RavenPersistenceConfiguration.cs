@@ -70,6 +70,11 @@
 
                 var logsMode = Sparrow.Logging.LogMode.Operations;
 
+                if (settings.MaintenanceMode)
+                {
+                    logsMode = Sparrow.Logging.LogMode.Information;
+                }
+
                 if (settings.PersisterSpecificSettings.TryGetValue(RavenDbLogLevelKey, out var ravenDbLogLevel))
                 {
                     logsMode = (Sparrow.Logging.LogMode)Enum.Parse(typeof(Sparrow.Logging.LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
