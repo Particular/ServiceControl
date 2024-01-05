@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using NUnit.Framework;
     using ServiceControl.Audit.Persistence.RavenDB;
     using TestHelper;
@@ -40,8 +41,9 @@
 
                         return embeddedDatabase;
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Log.Warn("Could not connect to database. Retrying in 500ms...", e);
                         await Task.Delay(500, cancellationToken);
                     }
                 }
@@ -68,5 +70,6 @@
 
         static EmbeddedDatabase embeddedDatabase;
         static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
+        static readonly ILog Log = LogManager.GetLogger(typeof(SharedEmbeddedServer));
     }
 }

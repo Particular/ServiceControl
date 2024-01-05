@@ -4,7 +4,9 @@
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using NServiceBus.Logging;
     using Raven.Client.Documents;
+    using Raven.Client.Exceptions.Database;
     using ServiceControl.Persistence;
 
     class RavenEmbeddedPersistenceLifecycle : IPersistenceLifecycle, IDisposable
@@ -27,7 +29,21 @@
         public async Task Initialize(CancellationToken cancellationToken)
         {
             database = EmbeddedDatabase.Start(databaseConfiguration);
-            documentStore = await database.Connect(cancellationToken);
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    documentStore = await database.Connect(cancellationToken);
+                }
+                catch (DatabaseLoadTimeoutException e)
+                {
+                    Log.Warn("Could not connect to database. Retrying in 500ms...", e);
+                    await Task.Delay(500, cancellationToken);
+                }
+            }
         }
 
         public void Dispose()
@@ -41,6 +57,7 @@
         EmbeddedDatabase database;
 
         readonly RavenPersisterSettings databaseConfiguration;
+        static readonly ILog Log = LogManager.GetLogger(typeof(RavenEmbeddedPersistenceLifecycle));
 
         ~RavenEmbeddedPersistenceLifecycle()
         {
