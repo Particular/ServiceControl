@@ -41,14 +41,26 @@
                 }
             }
 
+            bool TryGetSetting<T>(string key, out T result)
+            {
+                var (exists, value) = tryReadSetting(key, typeof(T));
+                result = exists ? (T)value : default;
+                return exists;
+            }
+
             var maintenanceMode = GetSetting(MaintenanceModeKey, false);
 
-            var ravenDbLogLevelDefault = maintenanceMode
-                ? nameof(LogMode.Information)
-                : nameof(LogMode.Operations);
+            var logsMode = LogMode.Operations;
 
-            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, ravenDbLogLevelDefault);
-            var logsMode = (LogMode)Enum.Parse(typeof(LogMode), RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel));
+            if (maintenanceMode)
+            {
+                logsMode = LogMode.Information;
+            }
+
+            if (TryGetSetting<string>(RavenBootstrapper.RavenDbLogLevelKey, out var logsModeValue))
+            {
+                logsMode = (LogMode)Enum.Parse(typeof(LogMode), RavenDbLogLevelToLogsModeMapper.Map(logsModeValue));
+            }
 
             var settings = new RavenPersisterSettings
             {
