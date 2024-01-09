@@ -11,7 +11,6 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
-    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class ImportFailedErrorsCommand : AbstractCommand
@@ -20,28 +19,25 @@
         {
             settings.IngestErrorMessages = false;
             settings.RunRetryProcessor = false;
+            settings.RunAsWindowsService = false;
             settings.DisableHealthChecks = true;
 
-            EndpointConfiguration busConfiguration = CreateEndpointConfiguration(settings);
+            EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);
 
             var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
-            var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
 
-            using var app = bootstrapper.HostBuilder.Build();
+            // TODO: Ideally we would never want to actually bootstrap the web api. Figure out how
+            var hostBuilder = WebApplication.CreateBuilder();
+            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            var app = hostBuilder.Build();
 
-            // TODO move these into central class to re-use?
-            app.UseCors();
-            app.MapControllers();
-
-            var lifeCycle = app.Services.GetRequiredService<IPersistenceLifecycle>();
-            await lifeCycle.Initialize(); // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
-
-            await app.StartAsync(CancellationToken.None);
+            app.UseServiceControl();
+            await app.StartServiceControl();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
 
             using var tokenSource = new CancellationTokenSource();
-            Console.CancelKeyPress += (sender, eventArgs) => tokenSource.Cancel();
+            Console.CancelKeyPress += (_, _) => tokenSource.Cancel();
 
             try
             {
@@ -59,11 +55,11 @@
 
         protected virtual EndpointConfiguration CreateEndpointConfiguration(Settings settings)
         {
-            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
-            var assemblyScanner = busConfiguration.AssemblyScanner();
+            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var assemblyScanner = endpointConfiguration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
-            return busConfiguration;
+            return endpointConfiguration;
         }
     }
 }

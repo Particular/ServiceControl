@@ -10,8 +10,9 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
+        // TODO: Revisit the default server base having a bootstrapper reference
         public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
-            new DefaultServerBase<Bootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, async b =>
+            new DefaultServerBase<SetupBootstrapper>().GetConfiguration(runDescriptor, endpointConfiguration, async b =>
             {
                 b.DisableFeature<Audit>();
 
