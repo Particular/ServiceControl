@@ -25,7 +25,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public Settings Settings => runner.Settings;
-        public OwinHttpMessageHandler Handler => runner.Handler;
         public string Port => runner.Port;
         public IDomainEvents DomainEvents => runner.DomainEvents;
 

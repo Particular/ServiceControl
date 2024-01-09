@@ -37,10 +37,7 @@
 
             CustomizeHostBuilder = builder =>
             {
-                builder.ConfigureServices((context, collection) =>
-                {
-                    collection.AddTransient<ICustomCheck, FailingCustomCheck>();
-                });
+                builder.Services.AddTransient<ICustomCheck, FailingCustomCheck>();
             };
 
             EventLogItem entry = null;

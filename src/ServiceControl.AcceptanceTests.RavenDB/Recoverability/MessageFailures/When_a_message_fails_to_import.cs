@@ -42,7 +42,7 @@
                 settings.ErrorLogQueue = Conventions.EndpointNamingConvention(typeof(ErrorLogSpy));
             };
 
-            CustomizeHostBuilder = builder => builder.ConfigureServices(services => services.AddScoped<FailedErrorsController>());
+            CustomizeHostBuilder = builder => builder.Services.AddScoped<FailedErrorsController>();
 
             var runResult = await Define<MyContext>()
                 .WithEndpoint<Sender>(b => b.When((bus, c) => bus.Send(new MyMessage())))
