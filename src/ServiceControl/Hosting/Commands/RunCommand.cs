@@ -1,7 +1,10 @@
 ﻿namespace Particular.ServiceControl.Commands
 {
     using System.Threading.Tasks;
+    using global::ServiceControl;
     using Hosting;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -18,8 +21,13 @@
 
             var loggingSettings = new LoggingSettings(args.ServiceName);
 
-            var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
-            await bootstrapper.Boot();
+            var hostBuilder = WebApplication.CreateBuilder();
+            hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
+            var app = hostBuilder.Build();
+
+            app.UseServiceControl();
+            await app.StartServiceControl();
+            await app.WaitForShutdownAsync();
         }
     }
 }

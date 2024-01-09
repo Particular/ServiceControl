@@ -6,22 +6,18 @@
     using System.Linq;
     using System.Reflection;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Formatters;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Net.Http.Headers;
     using ServiceControl.CompositeViews.Messages;
 
     static class WebApiHostBuilderExtensions
     {
-        // TODO this doesn't need to extend the IHostApplicationBuilder it operates only on IServiceCollection
-        public static void UseWebApi(this IHostApplicationBuilder hostBuilder, List<Assembly> apiAssemblies,
-            string rootUrl, bool startOwinHost)
+        public static void AddWebApi(this WebApplicationBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl)
         {
-            //TODO Either use these or remove them
-            _ = rootUrl;
-            _ = startOwinHost;
+            hostBuilder.WebHost.UseUrls(rootUrl);
 
             foreach (var apiAssembly in apiAssemblies)
             {
