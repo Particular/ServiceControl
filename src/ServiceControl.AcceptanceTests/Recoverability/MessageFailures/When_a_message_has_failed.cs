@@ -14,6 +14,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using EventLog;
     using Infrastructure;
     using Microsoft.AspNetCore.SignalR.Client;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -189,8 +190,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         {
             var context = await Define<MyContext>(ctx =>
                 {
-                    // TODO: Make this work again
-                    //ctx.Handler = () => Handler;
+                    ctx.HttpMessageHandlerFactory = HttpMessageHandlerFactory;
                 })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -294,8 +294,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     {
                         this.context = context;
                         connection = new HubConnectionBuilder()
-                            .WithUrl("http://localhost/api/messagestream")
-                            // TODO Can we replace OWIN handler with some sort of replacement in the Services collection here?
+                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = context.HttpMessageHandlerFactory)
                             .Build();
                     }
 
@@ -460,13 +459,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         {
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-
-            public Func<HttpMessageHandler> Handler { get; set; } // TODO this needs to be removed/replaced
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
+            public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext
