@@ -146,6 +146,7 @@ namespace Particular.ServiceControl
             // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
             // TODO: isn't it better to make the Initialize method idempotent and move the initialization to the container dependency factory?
             await app.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            // TODO: this blocks. We might need to use StartAsync if we need to return the IHost
             await app.RunAsync(settings.RootUrl);
         }
 
