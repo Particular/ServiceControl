@@ -8,8 +8,10 @@
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NLog;
@@ -148,6 +150,9 @@
                 bootstrapper.HostBuilder.Services.AddControllers()
                     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
+                // TODO: Is there a better way to customize the client factory? At first sight we couldn't find anything
+                bootstrapper.HostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(DelegateHttpClientFactory)));
+
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
@@ -181,5 +186,18 @@
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
+
+        class DelegateHttpClientFactory(IServer server) : IHttpClientFactory
+        {
+            readonly TestServer server = (TestServer)server;
+
+            public HttpClient CreateClient(string name)
+            {
+                var client = server.CreateClient();
+                // TODO: This is currently duplicated and we might want to change that or verify if it is really needed
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                return client;
+            }
+        }
     }
 }
