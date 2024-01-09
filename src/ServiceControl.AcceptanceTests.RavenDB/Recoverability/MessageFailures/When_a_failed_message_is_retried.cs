@@ -22,14 +22,12 @@
 
     class When_a_failed_message_is_retried : AcceptanceTest
     {
-        public When_a_failed_message_is_retried()
-        {
-            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) =>
+        public When_a_failed_message_is_retried() =>
+            CustomizeHostBuilder = builder =>
             {
-                services.AddScoped<FailedMessageRetriesController>();
-                services.AddScoped<FailedErrorsController>();
-            });
-        }
+                builder.Services.AddScoped<FailedMessageRetriesController>();
+                builder.Services.AddScoped<FailedErrorsController>();
+            };
 
         [Test]
         public async Task Should_remove_failedmessageretries_when_retrying_groups()
