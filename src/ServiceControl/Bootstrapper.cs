@@ -130,6 +130,7 @@ namespace Particular.ServiceControl
             HostBuilder.UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
+        // TODO: this needs to return the IHost, ServiceControlComponentRunner needs it. It changes the lifecycle and who's responsible to dispose it 
         public async Task Boot()
         {
             using var app = HostBuilder.Build();
