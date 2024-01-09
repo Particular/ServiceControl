@@ -53,8 +53,8 @@
             // The NServiceBus ReceiveComponent fails because the transport is not started and the ReceiveAddress is not properly registered
             // The component registration must happen AFTER UseNServiceBus because we want to override components registered by NServiceBus
             hostBuilder.Services.AddSingleton(new ReceiveAddresses("mainReceiveAddress"));
-            hostBuilder.UseServiceControlComponents(new Settings(errorRetentionPeriod: TimeSpan.FromDays(7), forwardErrorMessages: false), ServiceControlMainInstance.Components);
-            hostBuilder.UseWebApi([assembly], string.Empty, false);
+            hostBuilder.AddServiceControlComponents(new Settings(errorRetentionPeriod: TimeSpan.FromDays(7), forwardErrorMessages: false), ServiceControlMainInstance.Components);
+            hostBuilder.AddWebApi([assembly], string.Empty);
 
             // Act
             await using var host = hostBuilder.Build();
