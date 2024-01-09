@@ -32,8 +32,7 @@
                 settings.EmailDropFolder = emailDropPath;
             };
 
-            CustomizeHostBuilder = hostBuilder =>
-                hostBuilder.ConfigureServices(services => services.AddHostedService<SetupNotificationSettings>());
+            CustomizeHostBuilder = hostBuilder => hostBuilder.Services.AddHostedService<SetupNotificationSettings>();
 
             await Define<MyContext>(c =>
                 {
