@@ -27,4 +27,8 @@
     <Compile Remove="..\ServiceControl.Audit.AcceptanceTests\TestsFilter.cs" />
   </ItemGroup>
 
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="OwinHttpMessageHandler" />
+  </ItemGroup>
+
 </Project>

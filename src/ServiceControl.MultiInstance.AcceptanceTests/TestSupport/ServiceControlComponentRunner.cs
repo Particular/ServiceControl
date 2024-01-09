@@ -11,6 +11,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.Infrastructure.OWIN;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Owin.Builder;
@@ -23,6 +24,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Infrastructure.WebApi;
+
+    using EndpointConfiguration = NServiceBus.EndpointConfiguration;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
@@ -147,40 +150,44 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 await setupBootstrapper.Run();
             }
 
-            IHost host;
-            Bootstrapper bootstrapper;
             using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings);
 
-                host = bootstrapper.HostBuilder.Build();
-                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
-                await host.StartAsync();
-                hosts[instanceName] = host;
+                var hostBuilder = WebApplication.CreateBuilder();
+                hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
+
+                var app = hostBuilder.Build();
+
+                app.UseServiceControl();
+                await app.StartServiceControl();
+
+                // TODO update this collection store WebApplication instances instead
+                //hosts[instanceName] = host;
             }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app);
-                var appFunc = app.Build();
+            // TODO we shouldn't need this separate section anymore, but see if there is any config settings that need to be lifted to the section above before removing
+            //using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
+            //{
+            //    var app = new AppBuilder();
+            //    var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(host.Services, bootstrapper.ApiAssemblies);
+            //    startup.Configuration(app);
+            //    var appFunc = app.Build();
 
-                var handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                handlers[instanceName] = handler;
-                portToHandler[settings.Port] = handler; // port should be unique enough
-                var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClients[instanceName] = httpClient;
-            }
+            //    var handler = new OwinHttpMessageHandler(appFunc)
+            //    {
+            //        UseCookies = false,
+            //        AllowAutoRedirect = false
+            //    };
+            //    handlers[instanceName] = handler;
+            //    portToHandler[settings.Port] = handler; // port should be unique enough
+            //    var httpClient = new HttpClient(handler);
+            //    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //    HttpClients[instanceName] = httpClient;
+            //}
         }
 
         async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort)
