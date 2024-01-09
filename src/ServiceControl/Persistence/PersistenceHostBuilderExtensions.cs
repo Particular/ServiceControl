@@ -6,7 +6,7 @@ namespace ServiceControl.Persistence
 
     static class PersistenceHostBuilderExtensions
     {
-        public static IHostApplicationBuilder SetupPersistence(this IHostApplicationBuilder hostBuilder, Settings settings, bool maintenanceMode = false)
+        public static IHostApplicationBuilder AddPersistence(this IHostApplicationBuilder hostBuilder, Settings settings, bool maintenanceMode = false)
         {
             var persistence = PersistenceFactory.Create(settings, maintenanceMode);
 

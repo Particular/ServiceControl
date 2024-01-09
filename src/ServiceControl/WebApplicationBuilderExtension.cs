@@ -1,17 +1,14 @@
 namespace Particular.ServiceControl
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Net;
     using System.Reflection;
-    using System.Threading.Tasks;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
-    using global::ServiceControl.Infrastructure.OWIN;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -31,29 +28,13 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    // TODO: Shall we craft an AbstractBootstrapper class to force consistency across the various bootstrapper?
-    class Bootstrapper
+    static class WebApplicationBuilderExtension
     {
-        // Windows Service
-        public Bootstrapper(Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
+        public static void AddServiceControl(this WebApplicationBuilder hostBuilder, Settings settings, EndpointConfiguration configuration, LoggingSettings loggingSettings)
         {
-            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            this.loggingSettings = loggingSettings;
-            this.settings = settings;
+            ArgumentNullException.ThrowIfNull(configuration);
 
-            ApiAssemblies = [Assembly.GetExecutingAssembly()];
-
-            CreateHost();
-        }
-
-        // TODO: do we need to keep this public?
-        public WebApplicationBuilder HostBuilder { get; private set; }
-
-        public List<Assembly> ApiAssemblies { get; }
-
-        void CreateHost()
-        {
-            RecordStartup(loggingSettings, configuration);
+            RecordStartup(settings, loggingSettings, configuration);
 
             if (!string.IsNullOrWhiteSpace(settings.LicenseFileText))
             {
@@ -68,17 +49,16 @@ namespace Particular.ServiceControl
             // .NET default limit is 10. RavenDB in conjunction with transports that use HTTP exceeds that limit.
             ServicePointManager.DefaultConnectionLimit = settings.HttpDefaultConnectionLimit;
 
-            transportCustomization = settings.LoadTransportCustomization();
-            transportSettings = MapSettings(settings);
+            var transportCustomization = settings.LoadTransportCustomization();
+            var transportSettings = MapSettings(settings);
 
-            HostBuilder = WebApplication.CreateBuilder();
-            var logging = HostBuilder.Logging;
+            var logging = hostBuilder.Logging;
             logging.ClearProviders();
             //HINT: configuration used by NLog comes from LoggingConfigurator.cs
             logging.AddNLog();
             logging.SetMinimumLevel(loggingSettings.ToHostLogLevel());
 
-            var services = HostBuilder.Services;
+            var services = hostBuilder.Services;
             services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
             services.AddSingleton<IDomainEvents, DomainEvents>();
             services.AddSingleton(transportSettings);
@@ -97,10 +77,12 @@ namespace Particular.ServiceControl
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-            HostBuilder.UseLicenseCheck();
-            HostBuilder.SetupPersistence(settings);
-            HostBuilder.UseMetrics(settings.PrintMetrics);
-            HostBuilder.Host.UseNServiceBus(context =>
+            // TODO: rename these to be Add* instead of Use*
+            hostBuilder.UseLicenseCheck();
+            hostBuilder.AddPersistence(settings);
+            // TODO: rename these to be Add* instead of Use*
+            hostBuilder.UseMetrics(settings.PrintMetrics);
+            hostBuilder.Host.UseNServiceBus(context =>
             {
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                 return configuration;
@@ -108,49 +90,32 @@ namespace Particular.ServiceControl
 
             if (!settings.DisableExternalIntegrationsPublishing)
             {
-                HostBuilder.UseExternalIntegrationEvents();
+                // TODO: rename these to be Add* instead of Use*
+                hostBuilder.UseExternalIntegrationEvents();
             }
 
-            HostBuilder.UseWebApi(ApiAssemblies, settings.RootUrl, settings.ExposeApi);
-            HostBuilder.UseServicePulseSignalRNotifier();
-            HostBuilder.UseEmailNotifications();
-            HostBuilder.UseAsyncTimer();
+            hostBuilder.AddWebApi([Assembly.GetExecutingAssembly()], settings.RootUrl);
+
+            // TODO: rename these to be Add* instead of Use*
+            hostBuilder.UseServicePulseSignalRNotifier();
+            hostBuilder.UseEmailNotifications();
+            hostBuilder.UseAsyncTimer();
 
             if (!settings.DisableHealthChecks)
             {
-                HostBuilder.UseInternalCustomChecks();
+                // TODO: rename these to be Add* instead of Use*
+                hostBuilder.UseInternalCustomChecks();
             }
 
             if (settings.RunAsWindowsService)
             {
-
-                HostBuilder.Services.AddWindowsService();
+                hostBuilder.Services.AddWindowsService();
             }
 
-            HostBuilder.UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
+            hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
         }
 
-        // TODO: this needs to return the IHost, ServiceControlComponentRunner needs it. It changes the lifecycle and who's responsible to dispose it 
-        public async Task Boot()
-        {
-            using var app = HostBuilder.Build();
-
-            app.UseResponseCompression();
-            app.UseMiddleware<BodyUrlRouteFix>();
-            app.UseMiddleware<LogApiCalls>();
-            app.MapHub<MessageStreamerHub>("/api/messagestream");
-            app.UseCors();
-            app.UseRouting();
-            app.MapControllers();
-
-            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
-            // TODO: isn't it better to make the Initialize method idempotent and move the initialization to the container dependency factory?
-            await app.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
-            // TODO: this blocks. We might need to use StartAsync if we need to return the IHost
-            await app.RunAsync(settings.RootUrl);
-        }
-
-        TransportSettings MapSettings(Settings settings)
+        static TransportSettings MapSettings(Settings settings)
         {
             var transportSettings = new TransportSettings
             {
@@ -163,9 +128,9 @@ namespace Particular.ServiceControl
             return transportSettings;
         }
 
-        void RecordStartup(LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
+        static void RecordStartup(Settings settings, LoggingSettings loggingSettings, EndpointConfiguration endpointConfiguration)
         {
-            var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var version = FileVersionInfo.GetVersionInfo(typeof(WebApplicationBuilderExtension).Assembly.Location).ProductVersion;
 
             var startupMessage = $@"
 -------------------------------------------------------------
@@ -178,7 +143,7 @@ ServiceControl Logging Level:       {loggingSettings.LoggingLevel}
 Selected Transport Customization:   {settings.TransportType}
 -------------------------------------------------------------";
 
-            var logger = LogManager.GetLogger(typeof(Bootstrapper));
+            var logger = LogManager.GetLogger(typeof(WebApplicationBuilderExtension));
             logger.Info(startupMessage);
             endpointConfiguration.GetSettings().AddStartupDiagnosticsSection("Startup", new
             {
@@ -186,11 +151,5 @@ Selected Transport Customization:   {settings.TransportType}
                 LoggingSettings = loggingSettings
             });
         }
-
-        EndpointConfiguration configuration;
-        LoggingSettings loggingSettings;
-        Settings settings;
-        TransportSettings transportSettings;
-        ITransportCustomization transportCustomization;
     }
 }
