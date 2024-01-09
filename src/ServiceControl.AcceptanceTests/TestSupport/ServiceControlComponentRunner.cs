@@ -147,23 +147,27 @@
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
                 hostBuilder.Logging.AddScenarioContextLogging();
 
-                // TODO: the following three lines could go into a AddServiceControlTesting() extension
+                // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer();
+                // This facilitates receiving the test server anywhere where DI is available
+                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
                 hostBuilder.Services.AddControllers()
                     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
-                // TODO: Is there a better way to customize the client factory? At first sight we couldn't find anything
-                hostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(TestHttpClientFactory)));
+                hostBuilder.Services.ConfigureHttpClientDefaults(b =>
+                {
+                    b.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
+                    b.ConfigureHttpClient(httpClient => httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")));
+                });
 
                 hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
                 host.UseServiceControl();
                 await host.StartServiceControl();
-                DomainEvents = host.Services.GetService<IDomainEvents>();
-                HttpClient = host.GetTestClient();
-                HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
+                HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
             }
         }
 
@@ -173,7 +177,7 @@
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                ((IHost)host).Dispose();
+                await host.DisposeAsync();
                 DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
 
@@ -187,18 +191,5 @@
         readonly Action<EndpointConfiguration> customConfiguration;
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
-
-        class TestHttpClientFactory(IServer server) : IHttpClientFactory
-        {
-            readonly TestServer server = (TestServer)server;
-
-            public HttpClient CreateClient(string name)
-            {
-                var client = server.CreateClient();
-                // TODO: This is currently duplicated and we might want to change that or verify if it is really needed
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                return client;
-            }
-        }
     }
 }
