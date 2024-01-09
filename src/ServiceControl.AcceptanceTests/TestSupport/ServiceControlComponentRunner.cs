@@ -8,6 +8,7 @@
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
@@ -139,25 +140,27 @@
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings);
+                var hostBuilder = WebApplication.CreateBuilder();
+                hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
 
                 // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-                bootstrapper.HostBuilder.Logging.AddScenarioContextLogging();
+                hostBuilder.Logging.AddScenarioContextLogging();
 
-                bootstrapper.HostBuilder.WebHost.UseTestServer();
+                // TODO: the following three lines could go into a AddServiceControlTesting() extension
+                hostBuilder.WebHost.UseTestServer();
 
-                bootstrapper.HostBuilder.Services.AddControllers()
+                hostBuilder.Services.AddControllers()
                     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
                 // TODO: Is there a better way to customize the client factory? At first sight we couldn't find anything
-                bootstrapper.HostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(TestHttpClientFactory)));
+                hostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(TestHttpClientFactory)));
 
-                hostBuilderCustomization(bootstrapper.HostBuilder);
+                hostBuilderCustomization(hostBuilder);
 
-                host = bootstrapper.HostBuilder.Build();
-                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
-                await host.StartAsync();
+                host = hostBuilder.Build();
+                host.UseServiceControl();
+                await host.StartServiceControl();
                 DomainEvents = host.Services.GetService<IDomainEvents>();
                 HttpClient = host.GetTestClient();
                 HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -170,16 +173,14 @@
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                host.Dispose();
+                ((IHost)host).Dispose();
                 DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
 
-            bootstrapper = null;
             HttpClient = null;
         }
 
-        IHost host;
-        Bootstrapper bootstrapper;
+        WebApplication host;
         readonly ITransportIntegration transportToUse;
         readonly AcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
