@@ -36,16 +36,13 @@
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public Settings Settings { get; set; }
-        public HttpClient HttpClient { get; set; }
+        public Settings Settings { get; private set; }
+        public HttpClient HttpClient { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
-        public IDomainEvents DomainEvents { get; set; }
+        public IDomainEvents DomainEvents { get; private set; }
 
-        public Task Initialize(RunDescriptor run)
-        {
-            return InitializeServiceControl(run.ScenarioContext);
-        }
+        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
@@ -134,7 +131,7 @@
                 await setupBootstrapper.Run();
             }
 
-            using (new DiagnosticTimer($"Creating and starting Bus and Api for {instanceName}"))
+            using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
