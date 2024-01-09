@@ -11,6 +11,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
+    using global::ServiceControl.Infrastructure.OWIN;
     using global::ServiceControl.Infrastructure.SignalR;
     using global::ServiceControl.Infrastructure.WebApi;
     using global::ServiceControl.Notifications.Email;
@@ -125,6 +126,24 @@ namespace Particular.ServiceControl
             }
 
             HostBuilder.UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
+        }
+
+        public async Task Boot()
+        {
+            using var app = HostBuilder.Build();
+
+            app.UseResponseCompression();
+            app.UseMiddleware<BodyUrlRouteFix>();
+            app.UseMiddleware<LogApiCalls>();
+            app.MapHub<MessageStreamerHub>("/api/messagestream");
+            app.UseCors();
+            app.UseRouting();
+            app.MapControllers();
+
+            // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
+            // TODO: isn't it better to make the Initialize method idempotent and move the initialization to the container dependency factory?
+            await app.Services.GetRequiredService<IPersistenceLifecycle>().Initialize();
+            await app.RunAsync(settings.RootUrl);
         }
 
         TransportSettings MapSettings(Settings settings)
