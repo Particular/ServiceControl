@@ -151,7 +151,7 @@
                     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
                 // TODO: Is there a better way to customize the client factory? At first sight we couldn't find anything
-                bootstrapper.HostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(DelegateHttpClientFactory)));
+                bootstrapper.HostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), typeof(TestHttpClientFactory)));
 
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
@@ -187,7 +187,7 @@
         readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
 
-        class DelegateHttpClientFactory(IServer server) : IHttpClientFactory
+        class TestHttpClientFactory(IServer server) : IHttpClientFactory
         {
             readonly TestServer server = (TestServer)server;
 
