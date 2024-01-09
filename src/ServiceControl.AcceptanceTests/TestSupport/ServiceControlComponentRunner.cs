@@ -40,6 +40,7 @@
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
+        public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
@@ -155,6 +156,7 @@
                 hostBuilder.Services.ConfigureHttpClientDefaults(b =>
                 {
                     b.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
+                    // TODO: See if this is even still needed or should be moved to the named instance for the tests only
                     b.ConfigureHttpClient(httpClient => httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")));
                 });
 
@@ -165,6 +167,7 @@
                 await host.StartServiceControl();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
+                HttpMessageHandlerFactory = _ => host.GetTestServer().CreateHandler();
             }
         }
 
