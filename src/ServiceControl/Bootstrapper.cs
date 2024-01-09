@@ -5,6 +5,7 @@ namespace Particular.ServiceControl
     using System.Diagnostics;
     using System.Net;
     using System.Reflection;
+    using System.Threading.Tasks;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
@@ -115,6 +116,12 @@ namespace Particular.ServiceControl
             if (!settings.DisableHealthChecks)
             {
                 HostBuilder.UseInternalCustomChecks();
+            }
+
+            if (settings.RunAsWindowsService)
+            {
+
+                HostBuilder.Services.AddWindowsService();
             }
 
             HostBuilder.UseServiceControlComponents(settings, ServiceControlMainInstance.Components);
