@@ -24,4 +24,8 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
+  <ItemGroup Label="Keep to make projects compile for now">
+    <PackageReference Include="OwinHttpMessageHandler" />
+  </ItemGroup>
+
 </Project>
