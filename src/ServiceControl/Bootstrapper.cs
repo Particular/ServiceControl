@@ -31,6 +31,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
 
+    // TODO: Shall we craft an AbstractBootstrapper class to force consistency across the various bootstrapper?
     class Bootstrapper
     {
         // Windows Service
@@ -45,6 +46,7 @@ namespace Particular.ServiceControl
             CreateHost();
         }
 
+        // TODO: do we need to keep this public?
         public WebApplicationBuilder HostBuilder { get; private set; }
 
         public List<Assembly> ApiAssemblies { get; }
