@@ -48,8 +48,7 @@
             var context = await Define<MyContext>(
                     ctx =>
                     {
-                        // TODO: Make sure this works again
-                        //ctx.Handler = () => Handler;
+                        ctx.HttpMessageHandlerFactory = HttpMessageHandlerFactory;
                     })
                 .WithEndpoint<WithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -63,7 +62,7 @@
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; } // TODO this needs to be removed/replaced
+            public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
             public bool SignalrStarted { get; set; }
         }
 
@@ -85,8 +84,7 @@
                     {
                         this.context = context;
                         connection = new HubConnectionBuilder()
-                            .WithUrl("http://localhost/api/messagestream")
-                            // TODO Can we replace OWIN handler with some sort of replacement in the Services collection here?
+                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = context.HttpMessageHandlerFactory)
                             .Build();
                     }
 

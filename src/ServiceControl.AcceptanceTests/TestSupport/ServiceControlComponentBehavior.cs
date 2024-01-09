@@ -27,6 +27,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public Settings Settings => runner.Settings;
         public string Port => runner.Port;
         public IDomainEvents DomainEvents => runner.DomainEvents;
+        public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory => runner.HttpMessageHandlerFactory;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
