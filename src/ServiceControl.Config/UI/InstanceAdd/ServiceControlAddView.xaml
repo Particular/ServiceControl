@@ -78,7 +78,7 @@
                             Foreground="{StaticResource ErrorBrush}"
                             Text="Must select either an audit or an error instance." />
 
-                <CheckBox Padding="0, -10, 0, 0" IsChecked="{Binding InstallErrorInstance}">
+                <CheckBox IsThreeState="True" Padding="0, -10, 0, 0" IsChecked="{Binding InstallErrorInstance}" KeyDown ="CheckBoxError_Indeterminate" Checked="CheckBoxError_Indeterminate">
                     <StackPanel>
                         <Expander Header="ServiceControl" IsExpanded="{Binding IsServiceControlExpanded}" Margin="0,5,0,5">
                             <StackPanel Margin="60,0,60,0">
@@ -240,7 +240,7 @@
                     </StackPanel>
                 </CheckBox>
 
-                <CheckBox Padding="0, -10, 0, 0" IsChecked="{Binding InstallAuditInstance}">
+                <CheckBox IsThreeState="True" Padding="0, -10, 0, 0" IsChecked="{Binding InstallAuditInstance}" KeyDown ="CheckBoxAudit_Indeterminate" Checked="CheckBoxAudit_Indeterminate">
                     <Expander Header="ServiceControl Audit" IsExpanded="{Binding IsServiceControlAuditExpanded}" Margin="0,5,0,5">
                         <StackPanel Margin="60,0,60,0">
                             <Border Margin="0,40,0,20"
