@@ -17,6 +17,7 @@
             var bootstrapper = new MaintenanceBootstrapper(settings);
             var hostBuilder = bootstrapper.HostBuilder;
 
+            // TODO: Move into the bootstrapper
             if (args.RunAsWindowsService)
             {
                 hostBuilder.Services.AddWindowsService();
@@ -26,6 +27,7 @@
                 await Console.Out.WriteLineAsync("RavenDB Maintenance Mode - Press CTRL+C to exit");
             }
 
+            // TODO: Update to use the same pattern as the main Bootstrapper
             using var host = hostBuilder.Build();
 
             // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
