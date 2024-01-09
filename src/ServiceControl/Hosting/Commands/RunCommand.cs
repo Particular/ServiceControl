@@ -20,16 +20,12 @@
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             settings.RunCleanupBundle = true;
+            settings.RunAsWindowsService = args.RunAsWindowsService;
 
             var loggingSettings = new LoggingSettings(args.ServiceName);
 
             var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
             var hostBuilder = bootstrapper.HostBuilder;
-
-            if (args.RunAsWindowsService)
-            {
-                hostBuilder.Services.AddWindowsService();
-            }
 
             using var app = hostBuilder.Build();
 
