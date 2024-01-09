@@ -22,16 +22,13 @@
 
             CustomizeHostBuilder = hostBuilder =>
             {
-                hostBuilder.ConfigureServices((hostBuilderContext, services) =>
+                hostBuilder.Services.AddSingleton(new Settings(serviceName, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
                 {
-                    services.AddSingleton(new Settings(serviceName, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+                    RemoteInstances = new[]
                     {
-                        RemoteInstances = new[]
-                        {
-                            new RemoteInstanceSetting { ApiUri = localApiUrl },
-                            new RemoteInstanceSetting { ApiUri = localApiUrl }
-                        }
-                    });
+                        new RemoteInstanceSetting { ApiUri = localApiUrl },
+                        new RemoteInstanceSetting { ApiUri = localApiUrl }
+                    }
                 });
             };
 

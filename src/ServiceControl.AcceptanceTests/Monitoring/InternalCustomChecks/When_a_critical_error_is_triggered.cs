@@ -17,11 +17,11 @@
         [Test]
         public async Task Service_control_is_not_killed_and_error_is_reported_via_custom_check()
         {
-            CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) =>
+            CustomizeHostBuilder = builder =>
             {
-                services.AddScoped<CriticalErrorTriggerController>();
-                services.AddTransient(_ => new CriticalErrorCustomCheck(TimeSpan.FromSeconds(1))); // Overrides existing registration to have an increased test interval
-            });
+                builder.Services.AddScoped<CriticalErrorTriggerController>();
+                builder.Services.AddTransient(_ => new CriticalErrorCustomCheck(TimeSpan.FromSeconds(1))); // Overrides existing registration to have an increased test interval
+            };
 
             SetSettings = settings =>
             {

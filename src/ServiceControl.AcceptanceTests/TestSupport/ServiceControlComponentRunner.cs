@@ -8,9 +8,9 @@
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NLog;
     using NServiceBus;
@@ -18,7 +18,6 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using ServiceBus.Management.Infrastructure.OWIN;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestHelper;
 
@@ -35,7 +34,6 @@
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
         public HttpClient HttpClient { get; set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
@@ -133,7 +131,7 @@
                 await setupBootstrapper.Run();
             }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+            using (new DiagnosticTimer($"Creating and starting Bus and Api for {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -145,30 +143,19 @@
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
                 bootstrapper.HostBuilder.Logging.AddScenarioContextLogging();
 
+                bootstrapper.HostBuilder.WebHost.UseTestServer();
+
+                bootstrapper.HostBuilder.Services.AddControllers()
+                    .AddApplicationPart(typeof(AcceptanceTest).Assembly);
+
                 hostBuilderCustomization(bootstrapper.HostBuilder);
 
                 host = bootstrapper.HostBuilder.Build();
                 await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
                 await host.StartAsync();
                 DomainEvents = host.Services.GetService<IDomainEvents>();
-            }
-
-            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app, typeof(AcceptanceTest).Assembly);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
+                HttpClient = host.GetTestClient();
+                HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             }
         }
 
@@ -178,14 +165,12 @@
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                Handler.Dispose();
                 host.Dispose();
                 DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
 
             bootstrapper = null;
             HttpClient = null;
-            Handler = null;
         }
 
         IHost host;
