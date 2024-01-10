@@ -13,6 +13,7 @@
     }
 
     [ApiController]
+    [Route("api")]
     public class FailedErrorsController(IDocumentStore store, ImportFailedErrors failedErrors)
         : ControllerBase
     {
