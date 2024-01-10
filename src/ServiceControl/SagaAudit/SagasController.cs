@@ -6,6 +6,7 @@ namespace ServiceControl.SagaAudit
     using ServiceControl.Persistence.Infrastructure;
 
     [ApiController]
+    [Route("api")]
     class SagasController(GetSagaByIdApi getSagaByIdApi) : ControllerBase
     {
         [Route("sagas/{id}")]

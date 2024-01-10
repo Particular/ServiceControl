@@ -8,6 +8,7 @@
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class EventLogApiController(IEventLogDataStore logDataStore) : ControllerBase
     {
         [Route("eventlogitems")]
