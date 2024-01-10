@@ -138,7 +138,11 @@
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
-                var hostBuilder = WebApplication.CreateBuilder();
+                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions()
+                {
+                    // TODO this is needed because for some reason we're registering all concrete types for no reason
+                    EnvironmentName = Environments.Production
+                });
                 hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
 
                 // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
@@ -150,8 +154,9 @@
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
-                hostBuilder.Services.AddControllers()
-                    .AddApplicationPart(typeof(AcceptanceTest).Assembly);
+                // TODO bring this back
+                // hostBuilder.Services.AddControllers()
+                //     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
                 hostBuilder.Services.ConfigureHttpClientDefaults(b =>
                 {
@@ -166,7 +171,8 @@
                 host.UseServiceControl();
                 await host.StartServiceControl();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
-                HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
+                // Bring this back and look into the base address of the client
+                HttpClient = host.GetTestServer().CreateClient(); // .Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
                 HttpMessageHandlerFactory = _ => host.GetTestServer().CreateHandler();
             }
         }
