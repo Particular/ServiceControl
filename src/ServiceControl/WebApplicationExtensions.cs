@@ -16,7 +16,6 @@ public static class WebApplicationExtensions
         app.UseMiddleware<LogApiCalls>();
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
-        app.UseRouting();
         app.MapControllers();
     }
 

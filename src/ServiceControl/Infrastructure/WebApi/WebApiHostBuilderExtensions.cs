@@ -22,12 +22,12 @@
             foreach (var apiAssembly in apiAssemblies)
             {
                 hostBuilder.Services.RegisterApiTypes(apiAssembly);
+                // TODO Why are we registering all concrete types? This blows up the ASP.Net Core DI container
                 hostBuilder.Services.RegisterConcreteTypes(apiAssembly);
             }
 
             hostBuilder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
-            hostBuilder.Services.AddRouting();
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             hostBuilder.Services.AddResponseCompression();
             hostBuilder.Services.AddControllers(options =>
@@ -44,7 +44,7 @@
                     SupportedMediaTypes = { new MediaTypeHeaderValue("application/vnd.particular.1+json") }
                 };
                 options.OutputFormatters.Add(formatter);
-            });
+            }).AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
             hostBuilder.Services.AddSignalR();
         }
 

@@ -33,10 +33,11 @@ namespace ServiceControl.AcceptanceTesting
 
         public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
+            // TODO: we're not sure if this overrides the test client logic
+            // if (!url.StartsWith("http://"))
+            // {
+            //     url = $"http://localhost:{provider.Port}{url}";
+            // }
 
             var httpClient = provider.HttpClient;
             return httpClient.GetAsync(url);
