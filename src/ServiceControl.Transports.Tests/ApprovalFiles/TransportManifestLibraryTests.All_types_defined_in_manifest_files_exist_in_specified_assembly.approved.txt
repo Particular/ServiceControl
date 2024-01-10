@@ -3,7 +3,6 @@
   "AzureStorageQueue",
   "LearningTransport",
   "LearningTransport",
-  "MSMQ",
   "NetStandardAzureServiceBus",
   "RabbitMQ.ClassicConventionalRouting",
   "RabbitMQ.ClassicDirectRouting",
