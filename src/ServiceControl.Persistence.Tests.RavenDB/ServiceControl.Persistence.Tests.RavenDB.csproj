@@ -26,4 +26,8 @@
     <Compile Include="..\ServiceControl.Persistence.Tests\**\*.cs" LinkBase="Shared" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="testhost.dll.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
