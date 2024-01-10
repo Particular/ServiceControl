@@ -46,47 +46,47 @@
             var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
             Assert.IsNotEmpty(errors);
-
         }
 
-        [TestTheseTransports("MSMQ")]
-        public void Transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_audit_instance(
-           string transportInfoName)
-        {
-            var viewModel = new ServiceControlAuditEditViewModel
-            {
-                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
-                SubmitAttempted = true,
-                ConnectionString = string.Empty
-            };
+        // TODO uncomment tests when MSMQ is added back
+        //[TestTheseTransports("MSMQ")]
+        //public void Transport_connection_string_can_be_empty_if_sample_connection_string_is_not_present_when_editing_audit_instance(
+        //   string transportInfoName)
+        //{
+        //    var viewModel = new ServiceControlAuditEditViewModel
+        //    {
+        //        SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+        //        SubmitAttempted = true,
+        //        ConnectionString = string.Empty
+        //    };
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+        //    var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+        //    var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsEmpty(errors);
-        }
+        //    Assert.IsEmpty(errors);
+        //}
 
-        [TestTheseTransports("MSMQ")]
-        public void Transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_audit_instance(
-            string transportInfoName)
-        {
-            var viewModel = new ServiceControlAuditEditViewModel
-            {
-                SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
-                SubmitAttempted = true,
-                ConnectionString = null
-            };
+        //[TestTheseTransports("MSMQ")]
+        //public void Transport_connection_string_can_be_null_if_sample_connection_string_is_not_present_when_editing_audit_instance(
+        //    string transportInfoName)
+        //{
+        //    var viewModel = new ServiceControlAuditEditViewModel
+        //    {
+        //        SelectedTransport = ServiceControlCoreTransports.Find(transportInfoName),
+        //        SubmitAttempted = true,
+        //        ConnectionString = null
+        //    };
 
-            viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
+        //    viewModel.NotifyOfPropertyChange(nameof(viewModel.ConnectionString));
 
-            var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
+        //    var notifyErrorInfo = GetNotifyErrorInfo(viewModel);
 
-            var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
+        //    var errors = notifyErrorInfo.GetErrors(nameof(viewModel.ConnectionString));
 
-            Assert.IsEmpty(errors);
+        //    Assert.IsEmpty(errors);
 
-        }
+        //}
 
         #endregion
 
@@ -339,7 +339,7 @@
             Assert.IsNotEmpty(notifyErrorInfo.GetErrors(nameof(viewModel.LogPath)));
 
         }
-        #endregion      
+        #endregion
 
         #region auditqueuename
         [Test]
