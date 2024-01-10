@@ -19,7 +19,6 @@
         {
             CustomizeHostBuilder = builder =>
             {
-                builder.Services.AddScoped<CriticalErrorTriggerController>();
                 builder.Services.AddTransient(_ => new CriticalErrorCustomCheck(TimeSpan.FromSeconds(1))); // Overrides existing registration to have an increased test interval
             };
 

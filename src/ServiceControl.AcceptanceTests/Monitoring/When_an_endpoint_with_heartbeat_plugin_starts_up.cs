@@ -38,8 +38,6 @@
         [Test]
         public async Task Should_be_persisted()
         {
-            CustomizeHostBuilder = builder => builder.Services.AddScoped<KnownEndpointPersistenceQueryController>();
-
             var endpointName = Conventions.EndpointNamingConvention(typeof(StartingEndpoint));
             KnownEndpoint endpoint = default;
 
