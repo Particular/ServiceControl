@@ -42,7 +42,7 @@
                 }
 
                 newInstance.InstallPath = installPath;
-                newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
+                newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
 
                 newInstance.DBPath = dbPath;
                 newInstance.LogPath = logPath;
