@@ -5,6 +5,7 @@
     using NServiceBus;
 
     [ApiController]
+    [Route("api")]
     public class CriticalErrorTriggerController(CriticalError error) : ControllerBase
     {
         [Route("criticalerror/trigger")]
