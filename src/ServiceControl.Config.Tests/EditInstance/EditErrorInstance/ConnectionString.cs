@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Config.Tests.EditInstance.EditMonitoringInstance
+﻿namespace ServiceControl.Config.Tests.EditInstance.EditErrorInstance
 {
     using NUnit.Framework;
     using ServiceControl.Config.UI.InstanceEdit;
