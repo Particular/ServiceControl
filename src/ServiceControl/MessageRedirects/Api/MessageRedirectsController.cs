@@ -16,6 +16,7 @@
     using DeterministicGuid = Infrastructure.DeterministicGuid;
 
     [ApiController]
+    [Route("api")]
     public class MessageRedirectsController(
         IMessageSession session,
         IMessageRedirectsDataStore store,

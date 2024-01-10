@@ -6,6 +6,7 @@
     using Persistence;
 
     [ApiController]
+    [Route("api")]
     public class GetErrorByIdController(IErrorMessageDataStore store) : ControllerBase
     {
         [Route("errors/{failedmessageid:guid}")]

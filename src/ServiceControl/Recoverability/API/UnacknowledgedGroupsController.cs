@@ -6,6 +6,7 @@
     using ServiceControl.Persistence.Recoverability;
 
     [ApiController]
+    [Route("api")]
     class UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver) : ControllerBase
     {
         [Route("recoverability/unacknowledgedgroups/{groupId}")]

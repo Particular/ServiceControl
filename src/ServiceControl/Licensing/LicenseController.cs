@@ -5,10 +5,11 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
     {
         [HttpGet]
+        [Route("license")]
         public ActionResult<LicenseInfo> License(bool refresh)
         {
             if (refresh)
