@@ -10,6 +10,7 @@
     using NServiceBus;
 
     [ApiController]
+    [Route("api")]
     public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
     {
         [Route("errors/unarchive")]

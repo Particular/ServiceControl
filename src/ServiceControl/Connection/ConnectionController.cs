@@ -4,6 +4,7 @@
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
+    [Route("api")]
     public class ConnectionController(IPlatformConnectionBuilder builder) : ControllerBase
     {
         [Route("connection")]

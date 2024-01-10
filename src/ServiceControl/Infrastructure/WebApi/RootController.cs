@@ -12,6 +12,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
+    [Route("api")]
     public class RootController(
         ActiveLicense license,
         LoggingSettings loggingSettings,

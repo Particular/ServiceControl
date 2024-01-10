@@ -8,6 +8,7 @@
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class QueueAddressController(IQueueAddressStore store) : ControllerBase
     {
         [Route("errors/queues/addresses")]

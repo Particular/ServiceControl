@@ -6,6 +6,7 @@
     using ServiceControl.Persistence.Recoverability;
 
     [ApiController]
+    [Route("api")]
     class FailureGroupsArchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
     {
         [Route("recoverability/groups/{groupId}/errors/archive")]

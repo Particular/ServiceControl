@@ -8,6 +8,7 @@
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class GetAllErrorsController(IErrorMessageDataStore store) : ControllerBase
     {
         [Route("errors")]

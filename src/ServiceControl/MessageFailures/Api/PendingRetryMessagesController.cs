@@ -10,6 +10,7 @@
     using NServiceBus;
 
     [ApiController]
+    [Route("api")]
     public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
     {
         [Route("pendingretries/retry")]

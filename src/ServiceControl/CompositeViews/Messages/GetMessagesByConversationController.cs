@@ -6,6 +6,7 @@
     using Persistence.Infrastructure;
 
     [ApiController]
+    [Route("api")]
     public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
         : ControllerBase
     {
