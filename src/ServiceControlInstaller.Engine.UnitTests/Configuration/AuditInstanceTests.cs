@@ -20,7 +20,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";
@@ -58,7 +58,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
 
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
@@ -74,7 +74,7 @@
 
             var persisterFilePath = Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll");
 
-            //delete the persitence dll to make sure it gets re-installed
+            //delete the persistence dll to make sure it gets re-installed
             File.Delete(persisterFilePath);
 
             instance.UpgradeFiles(zipResourceName);
@@ -87,7 +87,7 @@
             var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
 
             newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.Find("MSMQ");
+            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
             newInstance.DBPath = DbPath;
             newInstance.LogPath = LogPath;
             newInstance.HostName = "localhost";
