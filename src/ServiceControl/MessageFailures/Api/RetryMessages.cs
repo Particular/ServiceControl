@@ -11,6 +11,7 @@
     using Recoverability;
 
     [ApiController]
+    [Route("api")]
     public class RetryMessagesController : ControllerBase
     {
         public RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)

@@ -8,6 +8,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
+    [Route("api")]
     public class NotificationsController(IErrorMessageDataStore store, Settings settings) : ControllerBase
     {
         [Route("notifications/email")]

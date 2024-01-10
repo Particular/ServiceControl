@@ -10,6 +10,7 @@
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class FailureGroupsController(
         IEnumerable<IFailureClassifier> classifiers,
         GroupFetcher fetcher,

@@ -7,6 +7,7 @@ namespace ServiceControl.Recoverability.API
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class FailureGroupsRetryController : ControllerBase
     {
         public FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)

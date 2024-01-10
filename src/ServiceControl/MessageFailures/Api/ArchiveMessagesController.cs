@@ -11,6 +11,7 @@ namespace ServiceControl.MessageFailures.Api
     using ServiceControl.Recoverability;
 
     [ApiController]
+    [Route("api")]
     public class ArchiveMessagesController(IMessageSession messageSession, IErrorMessageDataStore dataStore) : ControllerBase
     {
         [Route("errors/archive")]

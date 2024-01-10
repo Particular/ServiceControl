@@ -13,6 +13,7 @@
     using ServiceBus.Management.Infrastructure.Settings;
 
     [ApiController]
+    [Route("api")]
     public class EditFailedMessagesController(
         Settings settings,
         IErrorMessageDataStore store,
