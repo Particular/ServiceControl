@@ -6,6 +6,7 @@
     using ServiceControl.Persistence;
 
     [ApiController]
+    [Route("api")]
     public class KnownEndpointPersistenceQueryController(IMonitoringDataStore dataStore) : ControllerBase
     {
         [Route("test/knownendpoints/query")]
