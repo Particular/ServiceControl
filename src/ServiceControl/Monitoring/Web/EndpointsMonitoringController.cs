@@ -15,6 +15,7 @@
     }
 
     [ApiController]
+    [Route("api")]
     public class EndpointsMonitoringController(
         IEndpointInstanceMonitoring monitoring,
         GetKnownEndpointsApi knownEndpointsApi,
