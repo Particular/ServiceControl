@@ -44,7 +44,7 @@
                     SupportedMediaTypes = { new MediaTypeHeaderValue("application/vnd.particular.1+json") }
                 };
                 options.OutputFormatters.Add(formatter);
-            }).AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
+            });
             hostBuilder.Services.AddSignalR();
         }
 

@@ -154,9 +154,12 @@
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
-                // TODO bring this back
-                // hostBuilder.Services.AddControllers()
-                //     .AddApplicationPart(typeof(AcceptanceTest).Assembly);
+                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
+                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
+                // so we are explicitly registering all necessary application parts.
+                var addControllers = hostBuilder.Services.AddControllers();
+                addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
+                addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
                 hostBuilder.Services.ConfigureHttpClientDefaults(b =>
                 {
@@ -172,7 +175,7 @@
                 await host.StartServiceControl();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
-                HttpClient = host.GetTestServer().CreateClient(); // .Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
+                HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
                 HttpMessageHandlerFactory = _ => host.GetTestServer().CreateHandler();
             }
         }
