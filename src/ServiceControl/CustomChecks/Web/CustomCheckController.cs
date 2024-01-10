@@ -11,6 +11,7 @@
     using ServiceControl.Persistence.Infrastructure;
 
     [ApiController]
+    [Route("api")]
     public class CustomCheckController(ICustomChecksDataStore checksDataStore, IMessageSession session)
         : ControllerBase
     {
