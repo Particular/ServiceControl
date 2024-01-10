@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <MinVerMinimumMajorMinor>5.0</MinVerMinimumMajorMinor>
-    <MinVerAutoIncrement>minor</MinVerAutoIncrement>
+    <MinVerAutoIncrement>patch</MinVerAutoIncrement>
   </PropertyGroup>
 
   <PropertyGroup>
