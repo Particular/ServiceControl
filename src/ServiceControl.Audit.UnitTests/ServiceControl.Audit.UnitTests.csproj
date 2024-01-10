@@ -21,4 +21,8 @@
     <PackageReference Include="PublicApiGenerator" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="testhost.dll.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

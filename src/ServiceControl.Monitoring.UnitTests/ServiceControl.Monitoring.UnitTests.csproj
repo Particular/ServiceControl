@@ -17,4 +17,8 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="testhost.dll.config" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
