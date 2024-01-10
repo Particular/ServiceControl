@@ -1,4 +1,6 @@
-﻿namespace ServiceBus.Management.Infrastructure.Installers
+﻿using System.Runtime.InteropServices;
+
+namespace ServiceBus.Management.Infrastructure.Installers
 {
     using System.Diagnostics;
 
@@ -6,7 +8,7 @@
     {
         public static void Create()
         {
-            if (!EventLog.SourceExists(SourceName))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !EventLog.SourceExists(SourceName))
             {
                 EventLog.CreateEventSource(SourceName, null);
             }
