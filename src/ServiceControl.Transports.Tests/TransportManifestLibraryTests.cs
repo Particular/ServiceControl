@@ -4,6 +4,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceControl.Transports;
@@ -90,12 +91,17 @@
             {
                 foundTransportNames.Add(definition.Name);
 
+                var runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+                var resolver = new PathAssemblyResolver(runtimeAssemblies);
+                var metadataLoadContext = new MetadataLoadContext(resolver);
+
                 var transportFolder = TransportManifestLibrary.GetTransportFolder(definition.Name);
                 var assemblyName = definition.TypeName.Split(',')[1].Trim();
                 var assemblyFile = Path.Combine(transportFolder, assemblyName + ".dll");
-                var assembly = Assembly.LoadFrom(assemblyFile);
 
+                var assembly = metadataLoadContext.LoadFromAssemblyPath(assemblyFile);
                 Assert.IsNotNull(assembly, $"Could not load assembly {assemblyName}");
+
                 var typeFullName = definition.TypeName.Split(',').FirstOrDefault();
                 var foundType = assembly.GetType(typeFullName);
                 Assert.IsNotNull(foundType, $"Transport type {definition.TypeName} not found in assembly {assemblyName}");
