@@ -12,6 +12,7 @@
     }
 
     [ApiController]
+    [Route("api")]
     public class FailedMessageRetriesController(IDocumentStore store) : ControllerBase
     {
         [Route("failedmessageretries/count")]
