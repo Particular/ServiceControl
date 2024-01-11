@@ -11,7 +11,7 @@
                 RetryState.Preparing => numberOfMessagesPrepared / total,
                 RetryState.Forwarding => (numberOfMessagesForwarded + numberOfMessagesSkipped) / total,
                 RetryState.Completed => 1.0,
-                RetryState.Waiting => throw new System.NotImplementedException(), //TODO what should this case do?
+                RetryState.Waiting => 0.0,
                 _ => 0.0,
             };
         }
@@ -24,7 +24,7 @@
             {
                 ArchiveState.ArchiveProgressing => numberOfMessagesArchived / total,
                 ArchiveState.ArchiveFinalizing or ArchiveState.ArchiveCompleted => 1.0,
-                ArchiveState.ArchiveStarted => throw new System.NotImplementedException(), //TODO what should this case do?
+                ArchiveState.ArchiveStarted => 0.0,
                 _ => 0.0,
             };
         }
