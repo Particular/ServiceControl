@@ -13,17 +13,12 @@
 
     abstract class MessageView_ScatterGatherTest
     {
-        protected virtual string QueryString => string.Empty;
-
         [SetUp]
         public void SetUp()
         {
             var api = new TestApi(null, null, null, null);
 
-            // var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesnt/really/matter?{QueryString}");
-
-            // TODO Fix this because it will throw NullRef
-            Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(null, null), GetData());
+            Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(null, new SortInfo()), GetData());
         }
 
         protected abstract QueryResult<IList<MessagesView>>[] GetData();
