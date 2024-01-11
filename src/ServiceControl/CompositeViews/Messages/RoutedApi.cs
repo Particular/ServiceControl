@@ -52,7 +52,8 @@ namespace ServiceControl.CompositeViews.Messages
                 foreach (var currentRequestHeader in currentRequest.Headers)
                 {
                     // TODO double check this is needed
-                    if (currentRequestHeader.Key == HeaderNames.Host)
+                    // TODO The starts with is an evil hack that we need to re-evaluate
+                    if (currentRequestHeader.Key == HeaderNames.Host || currentRequestHeader.Key.StartsWith("Content"))
                     {
                         continue;
                     }
@@ -62,6 +63,15 @@ namespace ServiceControl.CompositeViews.Messages
                 if (currentRequest.Method != HttpMethod.Get.ToString() && currentRequest.Method != HttpMethod.Head.ToString())
                 {
                     httpRequestMessage.Content = new StreamContent(currentRequest.Body);
+
+                    foreach (var currentRequestHeader in currentRequest.Headers)
+                    {
+                        // TODO The starts with is an evil hack that we need to re-evaluate
+                        if (currentRequestHeader.Key.StartsWith("Content"))
+                        {
+                            httpRequestMessage.Content.Headers.Add(currentRequestHeader.Key, currentRequestHeader.Value.ToString());
+                        }
+                    }
                 }
                 var rawResponse = await httpClient.SendAsync(httpRequestMessage);
 

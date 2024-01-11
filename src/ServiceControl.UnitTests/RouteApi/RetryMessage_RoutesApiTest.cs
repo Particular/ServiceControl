@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.UnitTests.RouteApi
 {
     using System;
-    using System.Configuration;
     using System.IO;
     using System.Net;
     using System.Net.Http;
@@ -19,9 +18,6 @@
         [SetUp]
         public void SetUp()
         {
-            ConfigurationManager.AppSettings["ServiceControl/ForwardErrorMessages"] = bool.FalseString;
-            ConfigurationManager.AppSettings["ServiceControl/ErrorRetentionPeriod"] = TimeSpan.FromDays(10).ToString();
-
             settings = new Settings("TestService")
             {
                 Port = 3333,
@@ -50,7 +46,7 @@
         {
             HttpRequestMessage interceptedRequest = null;
 
-            var defaultHttpContext = new DefaultHttpContext();
+            var defaultHttpContext = new DefaultHttpContext { Request = { Method = "GET" } };
             defaultHttpContext.Request.Headers.Append("SomeRequestHeader", "SomeValue");
 
             var testApi = new TestApi(settings, defaultHttpContext,
@@ -80,7 +76,8 @@
         [Test]
         public async Task RemoteThrowsReturnsEmptyResultWithServerError()
         {
-            var testApi = new TestApi(settings, new DefaultHttpContext(), _ => default,
+            var testApi = new TestApi(settings,
+                new DefaultHttpContext { Request = { Method = "GET" } }, _ => default,
                 r => throw new InvalidOperationException(""));
 
             var response = await testApi.Execute(new(remote1InstanceId));
@@ -95,7 +92,7 @@
         {
             string interceptedStreamResult = null;
 
-            var defaultHttpContext = new DefaultHttpContext();
+            var defaultHttpContext = new DefaultHttpContext { Request = { Method = method } };
             defaultHttpContext.Request.Headers.ContentType = "application/octet-stream";
             defaultHttpContext.Request.Body = new MemoryStream("RequestContent"u8.ToArray());
 
@@ -116,25 +113,16 @@
         string remote1InstanceId;
         Settings settings;
 
-        class InterceptingHandler : HttpClientHandler
+        class InterceptingHandler(Func<HttpRequestMessage, HttpResponseMessage> interceptor) : HttpClientHandler
         {
-            public InterceptingHandler(Func<HttpRequestMessage, HttpResponseMessage> interceptor)
-            {
-                this.interceptor = interceptor;
-            }
-
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-                CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(interceptor(request));
-            }
-
-            Func<HttpRequestMessage, HttpResponseMessage> interceptor;
+                CancellationToken cancellationToken = default) =>
+                Task.FromResult(interceptor(request));
         }
 
         class TestApi : RoutedApi<TestApiContext>
         {
-            Func<TestApiContext, HttpResponseMessage> localResponse;
+            readonly Func<TestApiContext, HttpResponseMessage> localResponse;
 
             public TestApi(Settings settings, HttpContext httpContext,
                 Func<TestApiContext, HttpResponseMessage> localResponse,
@@ -148,7 +136,7 @@
             class HttpClientFakeFactory(Func<HttpRequestMessage, HttpResponseMessage> response)
                 : IHttpClientFactory
             {
-                public HttpClient CreateClient(string name) => new(new InterceptingHandler(response));
+                public HttpClient CreateClient(string name) => new(new InterceptingHandler(response)) { BaseAddress = new Uri("http://doesntmatter") };
             }
 
             class HttpContextAccessorFake(HttpContext httpContext) : IHttpContextAccessor
