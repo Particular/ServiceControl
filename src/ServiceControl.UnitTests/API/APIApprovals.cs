@@ -22,7 +22,7 @@
         [Test]
         public void RootPathValue()
         {
-            var httpContext = new DefaultHttpContext { Request = { PathBase = "http://localhost" } };
+            var httpContext = new DefaultHttpContext { Request = { PathBase = "/" } };
             var actionContext = new ActionContext { HttpContext = httpContext };
 
             var controller = new RootController(
