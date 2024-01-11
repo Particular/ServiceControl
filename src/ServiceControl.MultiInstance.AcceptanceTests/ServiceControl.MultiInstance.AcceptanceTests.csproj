@@ -24,10 +24,6 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="testhost.dll.config" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
   <ItemGroup Label="Keep to make projects compile for now">
     <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
