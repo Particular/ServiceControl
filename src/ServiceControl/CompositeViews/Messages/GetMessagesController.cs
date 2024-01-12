@@ -36,8 +36,8 @@ namespace ServiceControl.CompositeViews.Messages
         // the endpoint name is needed in the route to match the route and forward it as path and query to the remotes
         [Route("endpoints/{endpoint}/audit-count")]
         [HttpGet]
-        public Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo) =>
-            auditCountsForEndpointApi.Execute(new(pagingInfo));
+        public Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint) =>
+            auditCountsForEndpointApi.Execute(new(pagingInfo, endpoint));
 
         [Route("messages/{id}/body")]
         [HttpGet]
