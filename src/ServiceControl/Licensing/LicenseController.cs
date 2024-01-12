@@ -10,9 +10,9 @@
     {
         [HttpGet]
         [Route("license")]
-        public ActionResult<LicenseInfo> License(bool refresh)
+        public ActionResult<LicenseInfo> License(bool? refresh = null)
         {
-            if (refresh)
+            if (refresh == true)
             {
                 activeLicense.Refresh();
             }
