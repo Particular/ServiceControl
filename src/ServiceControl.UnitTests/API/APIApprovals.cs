@@ -23,7 +23,7 @@
         public void RootPathValue()
         {
             var httpContext = new DefaultHttpContext { Request = { PathBase = "/" } };
-            var actionContext = new ActionContext { HttpContext = httpContext };
+            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData() };
 
             var controller = new RootController(
                 new ActiveLicense { IsValid = true },
