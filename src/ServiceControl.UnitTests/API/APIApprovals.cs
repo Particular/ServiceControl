@@ -7,7 +7,9 @@
     using System.Text;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Routing;
+    using Microsoft.AspNetCore.Routing;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using Particular.Approvals;
@@ -22,8 +24,9 @@
         [Test]
         public void RootPathValue()
         {
-            var httpContext = new DefaultHttpContext { Request = { PathBase = "/" } };
-            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData() };
+            var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
+            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
+            var controllerContext = new ControllerContext(actionContext);
 
             var controller = new RootController(
                 new ActiveLicense { IsValid = true },
@@ -32,6 +35,7 @@
                 httpClientFactory: null
                 )
             {
+                ControllerContext = controllerContext,
                 Url = new UrlHelper(actionContext)
             };
 
