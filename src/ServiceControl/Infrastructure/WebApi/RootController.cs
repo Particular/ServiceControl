@@ -24,7 +24,7 @@
         [HttpGet]
         public RootUrls Urls()
         {
-            var baseUrl = Url.Content("~/");
+            var baseUrl = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1).Uri.AbsoluteUri;
 
             var model = new RootUrls
             {
