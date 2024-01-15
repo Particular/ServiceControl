@@ -18,24 +18,39 @@
 
         public IDocumentStore GetDocumentStore()
         {
-            if (documentStore == null)
+            if (database == null)
             {
                 throw new InvalidOperationException("Document store is not available. Ensure `IPersistenceLifecycle.Initialize` is invoked");
             }
-
+            if (documentStore != null)
+            {
+                return documentStore;
+            }
+            lock (this)
+            {
+                if (documentStore == null)
+                {
+                    CreateDocumentStore(CancellationToken.None).GetAwaiter().GetResult();
+                }
+            }
             return documentStore;
         }
 
         public async Task Initialize(CancellationToken cancellationToken)
         {
             database = EmbeddedDatabase.Start(databaseConfiguration);
+            await CreateDocumentStore(cancellationToken);
+        }
 
+        async Task CreateDocumentStore(CancellationToken cancellationToken)
+        {
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
+                    // Can take over 30 seconds after which a timeout is raised
                     documentStore = await database.Connect(cancellationToken);
                     return;
                 }
