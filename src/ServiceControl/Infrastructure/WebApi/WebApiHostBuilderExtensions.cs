@@ -45,6 +45,9 @@
                     SupportedMediaTypes = { new MediaTypeHeaderValue("application/vnd.particular.1+json") }
                 };
                 options.OutputFormatters.Add(formatter);
+
+                options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
+                options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             hostBuilder.Services.AddSignalR();
         }
