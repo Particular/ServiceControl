@@ -32,10 +32,9 @@
             hostBuilder.Services.AddResponseCompression();
             hostBuilder.Services.AddControllers(options =>
             {
-                // TODO: Figure out a way how to modify the response without running into response has already started
-                // options.Filters.Add<XParticularVersionHttpHandler>();
-                // options.Filters.Add<CachingHttpHandler>();
-                // options.Filters.Add<NotModifiedStatusHttpHandler>();
+                options.Filters.Add<XParticularVersionHttpHandler>();
+                options.Filters.Add<CachingHttpHandler>();
+                options.Filters.Add<NotModifiedStatusHttpHandler>();
 
                 options.OutputFormatters.Clear();
                 // TODO Revisit to see if we can switch to System.Text.Json
