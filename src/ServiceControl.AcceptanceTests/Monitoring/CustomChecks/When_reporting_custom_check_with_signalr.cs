@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.SignalR.Client;
@@ -22,7 +23,7 @@
         {
             var context = await Define<MyContext>(ctx =>
                 {
-                    ctx.HttpMessageHandlerFactory = HttpMessageHandlerFactory;
+                    ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
                 })
                 .WithEndpoint<EndpointWithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -35,7 +36,7 @@
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
-            public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
+            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
             public string SignalrData { get; set; }
         }
 
@@ -61,13 +62,14 @@
                 {
                     this.context = context;
                     connection = new HubConnectionBuilder()
-                        .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = context.HttpMessageHandlerFactory)
+                        .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
                         .Build();
                 }
 
                 // TODO rename to better match what this is actually doing
-                void ConnectionOnReceived(string s)
+                void ConnectionOnReceived(JsonElement jElement)
                 {
+                    var s = jElement.ToString();
                     if (s.IndexOf("\"EventLogItemAdded\"") > 0)
                     {
                         if (s.IndexOf("EventLogItem/CustomChecks/CustomCheckFailed") > 0)
@@ -82,7 +84,7 @@
                 {
                     // TODO Align this name with the one chosen for GlobalEventHandler
                     // We might also be able to strongly type this to match instead of just getting a string?
-                    connection.On<string>("PushEnvelope", ConnectionOnReceived);
+                    connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
 
                     return connection.StartAsync(cancellationToken);
                 }
