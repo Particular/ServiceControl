@@ -11,7 +11,7 @@
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
             remoteInstanceSetting = settings.RemoteInstances;
@@ -20,41 +20,39 @@
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var httpClient = httpClientFactory();
+            var httpClient = httpClientFactory.CreateClient(nameof(CheckRemotes));
 
             try
             {
                 var queryTimeout = TimeSpan.FromSeconds(10);
-                using (var cancellationTokenSource = new CancellationTokenSource(queryTimeout))
+                using var cancellationTokenSource = new CancellationTokenSource(queryTimeout);
+                foreach (var remote in remoteInstanceSetting)
                 {
-                    foreach (var remote in remoteInstanceSetting)
-                    {
-                        remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, queryTimeout, cancellationTokenSource.Token));
-                    }
+                    remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, queryTimeout, cancellationTokenSource.Token));
+                }
 
-                    try
-                    {
-                        await Task.WhenAll(remoteQueryTasks);
-                        return CheckResult.Pass;
-                    }
-                    catch (Exception)
-                    {
-                        var builder = new StringBuilder();
+                try
+                {
+                    await Task.WhenAll(remoteQueryTasks);
+                    return CheckResult.Pass;
+                }
+                catch (Exception)
+                {
+                    var builder = new StringBuilder();
 
-                        foreach (var task in remoteQueryTasks)
+                    foreach (var task in remoteQueryTasks)
+                    {
+                        try
                         {
-                            try
-                            {
-                                await task;
-                            }
-                            catch (TimeoutException e)
-                            {
-                                builder.AppendLine(e.Message);
-                            }
+                            await task;
                         }
-
-                        return CheckResult.Failed(builder.ToString());
+                        catch (TimeoutException e)
+                        {
+                            builder.AppendLine(e.Message);
+                        }
                     }
+
+                    return CheckResult.Failed(builder.ToString());
                 }
             }
             finally
@@ -83,7 +81,7 @@
             }
         }
 
-        readonly Func<HttpClient> httpClientFactory;
+        readonly IHttpClientFactory httpClientFactory;
         RemoteInstanceSetting[] remoteInstanceSetting;
         List<Task> remoteQueryTasks;
     }
