@@ -27,12 +27,12 @@
         static readonly string FileVersion;
         public void OnResultExecuting(ResultExecutingContext context)
         {
-            // NOP
+            context.HttpContext.Response.Headers["X-Particular-Version"] = FileVersion;
         }
 
         public void OnResultExecuted(ResultExecutedContext context)
         {
-            context.HttpContext.Response.Headers["X-Particular-Version"] = FileVersion;
+            // NOP
         }
     }
 }

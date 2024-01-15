@@ -6,11 +6,6 @@
     {
         public void OnResultExecuting(ResultExecutingContext context)
         {
-            // NOP
-        }
-
-        public void OnResultExecuted(ResultExecutedContext context)
-        {
             // TODO do we even need to do this
             var response = context.HttpContext.Response;
             if (!response.Headers.ContainsKey("Cache-Control"))
@@ -22,6 +17,11 @@
             {
                 response.Headers["Vary"] = "Accept";
             }
+        }
+
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // NOP
         }
     }
 }
