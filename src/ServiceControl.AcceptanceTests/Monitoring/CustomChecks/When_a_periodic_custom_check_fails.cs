@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -48,7 +49,7 @@
             var context = await Define<MyContext>(
                     ctx =>
                     {
-                        ctx.HttpMessageHandlerFactory = HttpMessageHandlerFactory;
+                        ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
                     })
                 .WithEndpoint<WithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -62,7 +63,7 @@
         {
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
-            public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
+            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
             public bool SignalrStarted { get; set; }
         }
 
@@ -84,12 +85,13 @@
                     {
                         this.context = context;
                         connection = new HubConnectionBuilder()
-                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = context.HttpMessageHandlerFactory)
+                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
                             .Build();
                     }
 
-                    void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(JsonElement jElement)
                     {
+                        var s = jElement.ToString();
                         if (s.IndexOf("\"CustomCheckFailed\"") > 0)
                         {
                             context.SignalrData = s;
@@ -99,9 +101,8 @@
 
                     protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        // TODO Align this name with the one chosen for GlobalEventHandler
                         // We might also be able to strongly type this to match instead of just getting a string?
-                        connection.On<string>("PushEnvelope", ConnectionOnReceived);
+                        connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
 
                         await connection.StartAsync(cancellationToken);
 

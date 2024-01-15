@@ -7,6 +7,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -294,7 +295,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     {
                         this.context = context;
                         connection = new HubConnectionBuilder()
-                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = context.HttpMessageHandlerFactory)
+                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
                             .Build();
                     }
 
@@ -302,7 +303,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     {
                         // TODO Align this name with the one chosen for GlobalEventHandler
                         // We might also be able to strongly type this to match instead of just getting a string?
-                        connection.On<string>("PushEnvelope", ConnectionOnReceived);
+                        connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
 
                         await connection.StartAsync(cancellationToken);
 
@@ -315,8 +316,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     }
 
                     // TODO rename to better match what this is actually doing
-                    void ConnectionOnReceived(string s)
+                    void ConnectionOnReceived(JsonElement jElement)
                     {
+                        var s = jElement.ToString();
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                         {
                             context.SignalrData = s;
@@ -463,7 +465,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
-            public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
+            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext

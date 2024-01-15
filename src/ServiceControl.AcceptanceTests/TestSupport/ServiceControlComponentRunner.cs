@@ -12,7 +12,6 @@
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
     using NLog;
@@ -40,7 +39,7 @@
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => Settings.Port.ToString();
-        public Func<HttpMessageHandler, HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
+        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
@@ -176,7 +175,7 @@
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
                 HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
-                HttpMessageHandlerFactory = _ => host.GetTestServer().CreateHandler();
+                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 
