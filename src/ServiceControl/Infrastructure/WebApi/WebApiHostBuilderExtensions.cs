@@ -5,6 +5,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
@@ -48,7 +50,8 @@
                 options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
-            hostBuilder.Services.AddSignalR();
+            hostBuilder.Services.AddSignalR()
+                .AddJsonProtocol(options => options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
         }
 
         static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)
