@@ -2,7 +2,6 @@ namespace ServiceControl.CompositeViews.Messages
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -10,10 +9,10 @@ namespace ServiceControl.CompositeViews.Messages
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
-    using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence.Infrastructure;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     interface IApi
     {
@@ -22,7 +21,6 @@ namespace ServiceControl.CompositeViews.Messages
     // used to hoist the static jsonSerializer field across the generic instances
     public abstract class ScatterGatherApiBase
     {
-        protected static JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
     }
 
     public record ScatterGatherContext(PagingInfo PagingInfo);
@@ -146,30 +144,27 @@ namespace ServiceControl.CompositeViews.Messages
 
         static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
-            using (var responseStream = await responseMessage.Content.ReadAsStreamAsync())
-            using (var jsonReader = new JsonTextReader(new StreamReader(responseStream)))
+            await using var responseStream = await responseMessage.Content.ReadAsStreamAsync();
+            var remoteResults = await JsonSerializer.DeserializeAsync<TOut>(responseStream);
+
+            var totalCount = 0;
+            if (responseMessage.Headers.TryGetValues("Total-Count", out var totalCounts))
             {
-                var remoteResults = jsonSerializer.Deserialize<TOut>(jsonReader);
-
-                var totalCount = 0;
-                if (responseMessage.Headers.TryGetValues("Total-Count", out var totalCounts))
-                {
-                    totalCount = int.Parse(totalCounts.ElementAt(0));
-                }
-
-                string etag = responseMessage.Headers.ETag?.Tag;
-                if (etag != null)
-                {
-                    // Strip quotes from Etag, checking for " which isn't really needed as Etag always has quotes but not 100% certain.
-                    // Later the value is joined into a new Etag when the results are aggregated and returned
-                    if (etag.StartsWith("\""))
-                    {
-                        etag = etag.Substring(1, etag.Length - 2);
-                    }
-                }
-
-                return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
+                totalCount = int.Parse(totalCounts.ElementAt(0));
             }
+
+            string etag = responseMessage.Headers.ETag?.Tag;
+            if (etag != null)
+            {
+                // Strip quotes from Etag, checking for " which isn't really needed as Etag always has quotes but not 100% certain.
+                // Later the value is joined into a new Etag when the results are aggregated and returned
+                if (etag.StartsWith("\""))
+                {
+                    etag = etag.Substring(1, etag.Length - 2);
+                }
+            }
+
+            return new QueryResult<TOut>(remoteResults, new QueryStatsInfo(etag, totalCount, isStale: false));
         }
 
         readonly ILog Logger;

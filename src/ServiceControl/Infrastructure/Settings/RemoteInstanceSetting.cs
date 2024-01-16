@@ -1,7 +1,6 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Settings
 {
-    using System;
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     public class RemoteInstanceSetting
     {

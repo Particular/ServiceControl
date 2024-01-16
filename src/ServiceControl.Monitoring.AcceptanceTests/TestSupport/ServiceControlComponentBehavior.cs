@@ -2,6 +2,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 {
     using System;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Monitoring;
@@ -19,6 +20,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
+        public JsonSerializerOptions SerializerOptions { get; }
         public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
         public string Port => runner.Port;
         public Settings Settings => runner.Settings;

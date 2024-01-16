@@ -5,8 +5,8 @@ namespace ServiceControl.AcceptanceTesting
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Json;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
 
     public static class HttpExtensions
     {
@@ -19,9 +19,8 @@ namespace ServiceControl.AcceptanceTesting
 
             requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
 
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PutAsync(url, new StringContent(json, null, "application/json"));
+            var response = await httpClient.PutAsJsonAsync(url, payload, provider.SerializerOptions);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
@@ -75,9 +74,8 @@ namespace ServiceControl.AcceptanceTesting
                 url = $"http://localhost:{provider.Port}{url}";
             }
 
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json"));
+            var response = await httpClient.PatchAsJsonAsync(url, payload, provider.SerializerOptions);
 
             Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
 
@@ -164,9 +162,8 @@ namespace ServiceControl.AcceptanceTesting
                 url = $"http://localhost:{provider.Port}{url}";
             }
 
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json"));
+            var response = await httpClient.PostAsJsonAsync(url, payload, provider.SerializerOptions);
 
             Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
@@ -242,9 +239,9 @@ namespace ServiceControl.AcceptanceTesting
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} {Environment.NewLine} {content}");
             }
 
-            var body = await response.Content.ReadAsStringAsync();
+            var payload = await response.Content.ReadFromJsonAsync<T>(provider.SerializerOptions);
             LogRequest();
-            return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
+            return payload;
 
             void LogRequest(string additionalInfo = null)
             {
