@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.AcceptanceTests.Legacy
 {
-    using System;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
-    using Microsoft.Extensions.DependencyInjection;
-    using Newtonsoft.Json.Linq;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
