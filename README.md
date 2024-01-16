@@ -4,12 +4,6 @@ ServiceControl is the monitoring brain in the [Particular Service Platform](http
 
 See the [ServiceControl documentation](https://docs.particular.net/servicecontrol/) for more information.
 
-## How to build
-
-- Enable Windows Feature .NET Framework 3.5 support, which is needed to support the Wix components in the ServiceControl installer
-- If not using Visual Studio, you may need to install the .NET 4.0 SDK as described in this [StackOverflow post](https://stackoverflow.com/a/45509430)
-- Follow the [ServiceControl coding and design guidelines](/docs/coding-and-design-guidelines.md)
-
 ## How to run/debug locally
 
 ServiceControl, ServiceControl.Audit, and ServiceControl.Monitoring can be run/debugged locally by following these steps:
