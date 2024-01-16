@@ -6,6 +6,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using AcceptanceTesting;
     using Monitoring;
     using Newtonsoft.Json;
@@ -30,6 +31,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
 
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
+        public JsonSerializerOptions SerializerOptions { get; }
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public string Port => Settings.HttpPort;
         public Settings Settings => serviceControlRunnerBehavior.Settings;

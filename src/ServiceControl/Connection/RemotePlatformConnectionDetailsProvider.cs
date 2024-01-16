@@ -1,25 +1,16 @@
 ﻿namespace ServiceControl.Connection
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RemotePlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
+    class RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory clientFactory)
+        : IProvidePlatformConnectionDetails
     {
-        readonly Settings settings;
-        readonly IHttpClientFactory httpClientFactory;
-
-        public RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory httpClientFactory)
-        {
-            this.settings = settings;
-            this.httpClientFactory = httpClientFactory;
-        }
-
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection) =>
             Task.WhenAll(
                 settings.RemoteInstances
@@ -30,20 +21,14 @@
         {
             var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
 
-            var client = httpClientFactory.CreateClient(remote.InstanceId);
+            var client = clientFactory.CreateClient(remote.InstanceId);
             try
             {
-                var result = await client.GetStringAsync("/connection");
-                var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
-                if (dictionary == null)
+                await using var stream = await client.GetStreamAsync("/connection");
+                var document = await JsonDocument.ParseAsync(stream);
+                foreach (var property in document.RootElement.EnumerateObject())
                 {
-                    Log.Warn($"Unexpected response from {remoteConnectionUri}: {result}");
-                    return;
-                }
-
-                foreach (var kvp in dictionary)
-                {
-                    connection.Add(kvp.Key, kvp.Value);
+                    connection.Add(property.Name, property.Value);
                 }
             }
             catch (Exception ex)

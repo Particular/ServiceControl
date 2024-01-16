@@ -3,9 +3,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System;
     using System.Collections.Generic;
     using System.Configuration;
-    using System.IO;
     using System.Linq;
-    using Newtonsoft.Json;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -13,6 +11,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using ServiceControl.Infrastructure.WebApi;
     using ServiceControl.Persistence;
     using ServiceControl.Transports;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     public class Settings
     {
@@ -358,14 +357,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return Array.Empty<RemoteInstanceSetting>();
         }
 
-        internal static IList<RemoteInstanceSetting> ParseRemoteInstances(string value)
-        {
-            var jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
-            using (var jsonReader = new JsonTextReader(new StringReader(value)))
-            {
-                return jsonSerializer.Deserialize<RemoteInstanceSetting[]>(jsonReader) ?? new RemoteInstanceSetting[0];
-            }
-        }
+        internal static RemoteInstanceSetting[] ParseRemoteInstances(string value) =>
+            JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value, SerializerOptions.Default) ?? [];
 
         static string Subscope(string address)
         {

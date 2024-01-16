@@ -1,69 +1,34 @@
 ﻿namespace ServiceControl.UnitTests.Infrastructure
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
-    using System.Threading;
-    using Newtonsoft.Json;
     using NUnit.Framework;
     using ServiceControl.Infrastructure.WebApi;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     [TestFixture]
     public class SerializationTests
     {
         [Test]
+        [SetCulture("tr-TR")]
         public void Should_use_invariant_culture_when_converting_property_names_to_underscore()
         {
             var expected = "{\"message_id\":\"1234\"}";
 
-            using (new DisposableCulture("tr-TR"))
-            {
-                var serializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
-                var stream = new MemoryStream();
-                var messages = CreateMessages();
+            var messages = CreateMessages();
 
-                using (var writer = new JsonTextWriter(new StreamWriter(stream)))
-                {
-                    serializer.Serialize(writer, messages);
-                }
+            var actual = JsonSerializer.Serialize(messages, SerializerOptions.Default);
 
-                Assert.AreEqual(expected, Encoding.Default.GetString(stream.ToArray()));
-            }
+            Assert.AreEqual(expected, actual);
         }
 
-        DTO CreateMessages()
-        {
-            return new DTO
+        DTO CreateMessages() =>
+            new()
             {
                 MessageId = "1234"
             };
-        }
 
         class DTO
         {
             public string MessageId { get; set; }
         }
-    }
-
-    public class DisposableCulture : IDisposable
-    {
-        public DisposableCulture(string culture)
-        {
-            oldCulture = CultureInfo.CurrentCulture;
-            oldUICulture = CultureInfo.CurrentUICulture;
-
-            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
-        }
-
-        public void Dispose()
-        {
-            Thread.CurrentThread.CurrentCulture = oldCulture;
-            Thread.CurrentThread.CurrentUICulture = oldUICulture;
-        }
-
-        CultureInfo oldCulture;
-        CultureInfo oldUICulture;
     }
 }

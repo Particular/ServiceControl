@@ -41,7 +41,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Dictionary<string, HttpClient> HttpClients { get; } = [];
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public JsonSerializerSettings SerializerSettings { get; } = new();
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = [];
 
         public async Task Initialize(RunDescriptor run)

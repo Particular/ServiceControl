@@ -3,6 +3,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Newtonsoft.Json;
@@ -61,6 +62,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     {
         public JsonSerializerSettings SerializerSettings { get; set; }
         public HttpClient HttpClient { get; set; }
+        public JsonSerializerOptions SerializerOptions { get; }
         public string Port { get; set; }
     }
 }
