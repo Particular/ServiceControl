@@ -38,15 +38,6 @@
                 options.Filters.Add<CachingHttpHandler>();
                 options.Filters.Add<NotModifiedStatusHttpHandler>();
 
-                options.OutputFormatters.Clear();
-                // TODO Revisit to see if we can switch to System.Text.Json
-                var formatter = new NewtonsoftJsonOutputFormatter(JsonNetSerializerSettings.CreateDefault(),
-                    ArrayPool<char>.Shared, options, new MvcNewtonsoftJsonOptions())
-                {
-                    SupportedMediaTypes = { new MediaTypeHeaderValue("application/vnd.particular.1+json") }
-                };
-                options.OutputFormatters.Add(formatter);
-
                 options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
