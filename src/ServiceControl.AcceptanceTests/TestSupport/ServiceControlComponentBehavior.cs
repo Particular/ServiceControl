@@ -2,11 +2,11 @@ namespace ServiceControl.AcceptanceTests.TestSupport
 {
     using System;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,7 +23,7 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
+        public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public Settings Settings => runner.Settings;
         public string Port => runner.Port;
         public IDomainEvents DomainEvents => runner.DomainEvents;

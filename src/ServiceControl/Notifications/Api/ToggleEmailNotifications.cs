@@ -1,10 +1,11 @@
 ﻿namespace ServiceControl.Notifications.Api
 {
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     public class ToggleEmailNotifications
     {
-        [JsonProperty(PropertyName = "enabled")]
+        // TODO In theory this is not needed because we are using the snake case converter
+        [JsonPropertyName("enabled")]
         public bool Enabled { get; set; }
     }
 }

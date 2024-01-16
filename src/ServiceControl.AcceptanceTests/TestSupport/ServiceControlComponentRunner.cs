@@ -4,6 +4,7 @@
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
@@ -13,7 +14,6 @@
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Newtonsoft.Json;
     using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -37,7 +37,7 @@
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public string Port => Settings.Port.ToString();
         public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }

@@ -4,9 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.SignalR;
-    using Newtonsoft.Json.Linq;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
@@ -32,10 +32,10 @@
         {
             try
             {
-                var jObject = JObject.Parse(data);
+                var jsonNode = JsonNode.Parse(data);
 
-                var jsonMessage = jObject["message"].ToString();
-                var messageType = jObject["type"].ToString();
+                var jsonMessage = jsonNode["message"].ToString();
+                var messageType = jsonNode["type"].ToString();
 
                 var message = new OutgoingMessage(Guid.NewGuid().ToString(), new Dictionary<string, string>
                 {
