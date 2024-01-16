@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Auditing;
@@ -41,6 +42,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
+        public JsonSerializerOptions SerializerOptions { get; }
         public IServiceProvider ServiceProvider { get; private set; }
         public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
         public string Port => settings.Port.ToString();

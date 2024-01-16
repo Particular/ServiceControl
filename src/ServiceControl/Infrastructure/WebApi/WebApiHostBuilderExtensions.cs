@@ -11,6 +11,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Formatters;
+    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Net.Http.Headers;
     using ServiceControl.CompositeViews.Messages;
@@ -32,7 +33,7 @@
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
             hostBuilder.Services.AddResponseCompression();
-            hostBuilder.Services.AddControllers(options =>
+            var controllers = hostBuilder.Services.AddControllers(options =>
             {
                 options.Filters.Add<XParticularVersionHttpHandler>();
                 options.Filters.Add<CachingHttpHandler>();
@@ -41,8 +42,10 @@
                 options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
-            hostBuilder.Services.AddSignalR()
-                .AddJsonProtocol(options => options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
+            controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
+
+            var signalR = hostBuilder.Services.AddSignalR();
+            signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
         }
 
         static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)

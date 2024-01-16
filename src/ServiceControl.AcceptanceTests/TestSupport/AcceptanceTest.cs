@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -34,7 +35,7 @@ namespace ServiceControl.AcceptanceTests
 
         public IDomainEvents DomainEvents => serviceControlRunnerBehavior.DomainEvents;
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public string Port => serviceControlRunnerBehavior.Port;
         public Func<HttpMessageHandler> HttpMessageHandlerFactory => serviceControlRunnerBehavior.HttpMessageHandlerFactory;

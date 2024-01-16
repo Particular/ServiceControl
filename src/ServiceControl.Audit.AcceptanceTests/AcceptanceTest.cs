@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Newtonsoft.Json;
@@ -30,6 +31,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
+        public JsonSerializerOptions SerializerOptions { get; }
         public IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
         public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
         public string Port => serviceControlRunnerBehavior.Port;

@@ -1,13 +1,11 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -109,7 +107,7 @@
                     var status = remote.TemporarilyUnavailable ? "unavailable" : "online";
                     var version = "Unknown";
                     var httpClient = httpClientFactory.CreateClient(remote.InstanceId);
-                    JObject config = null;
+                    JsonNode config = null;
 
                     try
                     {
@@ -121,9 +119,7 @@
                         }
 
                         await using var stream = await response.Content.ReadAsStreamAsync();
-                        using var reader = new StreamReader(stream);
-                        using var jsonReader = new JsonTextReader(reader);
-                        config = jsonSerializer.Deserialize<JObject>(jsonReader);
+                        config = await JsonNode.ParseAsync(stream);
                     }
                     catch (Exception)
                     {
@@ -144,8 +140,6 @@
 
             return Ok(results);
         }
-
-        static readonly JsonSerializer jsonSerializer = JsonSerializer.Create(JsonNetSerializerSettings.CreateDefault());
 
         public class RootUrls
         {
