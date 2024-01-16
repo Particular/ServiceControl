@@ -18,26 +18,24 @@
             // Since we don't have an audit instance running in a test, use the primary instance
             // configuration URL just to ensure the JSON is combined correctly.
             const string localApiUrl = "http://localhost:33333/api";
-            var serviceName = Guid.NewGuid().ToString("n");
+            string serviceName = null;
 
-            CustomizeHostBuilder = hostBuilder =>
+            SetSettings = settings =>
             {
-                hostBuilder.Services.AddSingleton(new Settings(serviceName, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
+                settings.RemoteInstances = new[]
                 {
-                    RemoteInstances = new[]
-                    {
-                        new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote1" },
-                        new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote2" }
-                    }
-                });
+                    new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote1" },
+                    // new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote2" }
+                };
+                serviceName = settings.ServiceName;
             };
 
-            JArray config = null;
+            JsonArray config = null;
 
             var context = await Define<ScenarioContext>() // Don't need a context
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<JArray>("/api/configuration/remotes");
+                    var result = await this.TryGet<JsonArray>("/api/configuration/remotes");
                     config = result.Item;
                     return result.HasResult;
                 })
@@ -53,9 +51,9 @@
 
             Assert.That(config1Str, Is.EqualTo(config2Str));
 
-            Assert.That(config1["api_uri"].Value<string>(), Is.EqualTo(localApiUrl));
-            Assert.That(config1["status"].Value<string>(), Is.EqualTo("online"));
-            Assert.That(config1["version"].Value<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
+            Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(localApiUrl));
+            Assert.That(config1["status"].GetValue<string>(), Is.EqualTo("online"));
+            Assert.That(config1["version"].GetValue<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
             Assert.That(config1Str, Contains.Substring(serviceName));
         }
     }
