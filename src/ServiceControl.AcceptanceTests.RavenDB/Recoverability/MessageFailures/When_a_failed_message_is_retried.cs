@@ -7,7 +7,6 @@
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
-    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -22,13 +21,6 @@
 
     class When_a_failed_message_is_retried : AcceptanceTest
     {
-        public When_a_failed_message_is_retried() =>
-            CustomizeHostBuilder = builder =>
-            {
-                builder.Services.AddScoped<FailedMessageRetriesController>();
-                builder.Services.AddScoped<FailedErrorsController>();
-            };
-
         [Test]
         public async Task Should_remove_failedmessageretries_when_retrying_groups()
         {
