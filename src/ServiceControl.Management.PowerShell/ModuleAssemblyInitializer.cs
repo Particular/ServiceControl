@@ -12,6 +12,17 @@
 
         public void OnRemove(PSModuleInfo psModuleInfo) => AssemblyLoadContext.Default.Resolving -= Resolve;
 
-        static Assembly Resolve(AssemblyLoadContext defaultLoadContext, AssemblyName assemblyName) => installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
+        static Assembly Resolve(AssemblyLoadContext defaultLoadContext, AssemblyName assemblyName)
+        {
+            // Don't try to use InstallerEngineAssemblyLoadContext to resolve the assembly it has a dependency on
+            if (assemblyName.Name.Contains("Microsoft.Extensions.DependencyModel"))
+            {
+                return null;
+            }
+            else
+            {
+                return installerEngineLoadContext.LoadFromAssemblyName(assemblyName);
+            }
+        }
     }
 }

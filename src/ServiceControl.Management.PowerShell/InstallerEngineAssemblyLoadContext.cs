@@ -1,44 +1,43 @@
-﻿namespace ServiceControl.Management.PowerShell
+﻿namespace ServiceControl.Management.PowerShell;
+
+using System;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
+
+class InstallerEngineAssemblyLoadContext : AssemblyLoadContext
 {
-    using System;
-    using System.IO;
-    using System.Reflection;
-    using System.Runtime.Loader;
+    readonly DependencyResolver resolver;
 
-    class InstallerEngineAssemblyLoadContext : AssemblyLoadContext
+    public InstallerEngineAssemblyLoadContext()
     {
-        readonly AssemblyDependencyResolver resolver;
+        var executingAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var assemblyPath = Path.Combine(executingAssemblyDirectory, "InstallerEngine", "ServiceControlInstaller.Engine.dll");
 
-        public InstallerEngineAssemblyLoadContext()
+        resolver = new(assemblyPath);
+    }
+
+    protected override Assembly Load(AssemblyName assemblyName)
+    {
+        var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
+
+        if (assemblyPath != null)
         {
-            var executingAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var assemblyPath = Path.Combine(executingAssemblyDirectory, "InstallerEngine", "ServiceControlInstaller.Engine.dll");
-
-            resolver = new AssemblyDependencyResolver(assemblyPath);
+            return LoadFromAssemblyPath(assemblyPath);
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        return null;
+    }
+
+    protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+    {
+        var unmanagedDllPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+
+        if (unmanagedDllPath != null)
         {
-            var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-
-            if (assemblyPath != null)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
-
-            return null;
+            return LoadUnmanagedDllFromPath(unmanagedDllPath);
         }
 
-        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
-        {
-            var unmanagedDllPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-
-            if (unmanagedDllPath != null)
-            {
-                return LoadUnmanagedDllFromPath(unmanagedDllPath);
-            }
-
-            return IntPtr.Zero;
-        }
+        return IntPtr.Zero;
     }
 }
