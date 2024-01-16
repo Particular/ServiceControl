@@ -21,7 +21,7 @@
             var bootstrapper = new Bootstrapper(settings, endpointConfiguration, loggingSettings);
             var hostBuilder = bootstrapper.HostBuilder;
 
-            hostBuilder.SetupLifetime(args.RunAsWindowsService);
+            hostBuilder.AddPersistenceInitializingLifetime(args.RunAsWindowsService);
 
             using (var host = hostBuilder.Build())
             {

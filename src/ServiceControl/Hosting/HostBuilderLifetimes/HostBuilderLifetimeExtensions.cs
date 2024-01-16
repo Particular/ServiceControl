@@ -1,11 +1,11 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace Microsoft.Extensions.Hosting
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
+    using ServiceControl.Hosting;
 
     static class HostBuilderLifetimeExtensions
     {
-        public static void SetupLifetime(this IHostBuilder hostBuilder, bool runAsWindowsService)
+        public static void AddPersistenceInitializingLifetime(this IHostBuilder hostBuilder, bool runAsWindowsService)
         {
             if (runAsWindowsService)
             {
