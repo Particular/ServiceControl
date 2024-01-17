@@ -60,7 +60,7 @@
 
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
-        public async Task<IActionResult> Foo(Guid endpointId, EndpointUpdateModel data)
+        public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data)
         {
             if (data.MonitorHeartbeat)
             {
