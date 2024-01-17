@@ -13,6 +13,7 @@
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using NLog;
     using NServiceBus;
@@ -168,6 +169,17 @@
                 });
 
                 hostBuilderCustomization(hostBuilder);
+                hostBuilder.Services.Replace(new ServiceDescriptor(typeof(IHttpClientFactory), new TestsHttpClientFactory(
+                    name =>
+                    {
+                        var client = host.GetTestServer().CreateClient();
+
+                        // As per this comment https://github.com/aspnet/Hosting/issues/1254#issuecomment-341901793
+                        // setting the BaseAddress for the test client is useless
+                        //client.BaseAddress = new Uri(settings.ApiUrl);
+
+                        return client;
+                    })));
 
                 host = hostBuilder.Build();
                 host.UseServiceControl();
