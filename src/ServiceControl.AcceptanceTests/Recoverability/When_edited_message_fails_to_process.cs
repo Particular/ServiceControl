@@ -46,7 +46,7 @@
                         var editModel = new EditMessageModel
                         {
                             MessageBody = editedMessage,
-                            MessageHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers)
+                            MessageHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers
                         };
                         await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editModel);
 
@@ -76,7 +76,7 @@
             Assert.AreEqual(FailedMessageStatus.Unresolved, context.EditedMessageFailure.Status);
             Assert.AreEqual(
                 context.OriginalMessageFailure.Id,
-                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["service_control.edit_of"]);
+                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"]);
         }
 
         class EditMessageFailureContext : ScenarioContext

@@ -40,8 +40,8 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var newHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers);
-                        newHeaders.Add(new KeyValuePair<string, string>("AcceptanceTest.NewHeader", "42"));
+                        var newHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers.ToDictionary();
+                        newHeaders.Add("AcceptanceTest.NewHeader", "42");
                         var editModel = new EditMessageModel
                         {
                             MessageBody = JsonConvert.SerializeObject(new EditMessage()),

@@ -2,11 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
     using Infrastructure;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -40,14 +40,14 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var editedMessage = JsonConvert.SerializeObject(new EditMessage
+                        var editedMessage = JsonSerializer.Serialize(new EditMessage
                         {
                             SomeProperty = "StarWars rocks"
                         });
                         var editModel = new EditMessageModel
                         {
                             MessageBody = editedMessage,
-                            MessageHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers)
+                            MessageHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers
                         };
                         await this.Post($"/api/edit/{ctx.UniqueMessageId}", editModel);
                         return false;
