@@ -26,11 +26,11 @@
 
         [Route("edit/{failedmessageid}")]
         [HttpPost]
-        public async Task<IActionResult> Edit(string failedMessageId, EditMessageModel edit)
+        public async Task<IActionResult> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
         {
             if (!settings.AllowMessageEditing)
             {
-                logging.Info("Message edit-retry has not been enabled.");
+                Log.Info("Message edit-retry has not been enabled.");
                 return NotFound();
             }
 
@@ -43,7 +43,7 @@
 
             if (failedMessage == null)
             {
-                logging.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
+                Log.WarnFormat("The original failed message could not be loaded for id={0}", failedMessageId);
                 return BadRequest();
             }
 
@@ -57,15 +57,15 @@
              * one with the same MessageID
              */
 
-            if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders.ToDictionary(x => x.Key, x => x.Value), failedMessage.ProcessingAttempts.Last().Headers))
+            if (LockedHeaderModificationValidator.Check(GetEditConfiguration().LockedHeaders, edit.MessageHeaders, failedMessage.ProcessingAttempts.Last().Headers))
             {
-                logging.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
+                Log.WarnFormat("Locked headers have been modified on the edit-retry for MessageID {0}.", failedMessageId);
                 return BadRequest();
             }
 
             if (string.IsNullOrWhiteSpace(edit.MessageBody) || edit.MessageHeaders == null)
             {
-                logging.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
+                Log.WarnFormat("There is no message body on the edit-retry for MessageID {0}.", failedMessageId);
                 return BadRequest();
             }
 
@@ -75,7 +75,7 @@
             {
                 FailedMessageId = failedMessageId,
                 NewBody = base64String,
-                NewHeaders = edit.MessageHeaders.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                NewHeaders = edit.MessageHeaders
             });
 
             return Accepted();
@@ -127,7 +127,7 @@
                 }
             };
 
-        static readonly ILog logging = LogManager.GetLogger(typeof(EditFailedMessagesController));
+        static readonly ILog Log = LogManager.GetLogger(typeof(EditFailedMessagesController));
     }
 
     public class EditConfigurationModel
@@ -141,7 +141,6 @@
     {
         public string MessageBody { get; set; }
 
-        // this way dictionary keys won't be converted to properties and renamed due to the UnderscoreMappingResolver
-        public IEnumerable<KeyValuePair<string, string>> MessageHeaders { get; set; }
+        public Dictionary<string, string> MessageHeaders { get; set; }
     }
 }
