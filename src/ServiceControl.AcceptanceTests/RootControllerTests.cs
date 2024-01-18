@@ -22,8 +22,8 @@
             {
                 settings.RemoteInstances = new[]
                 {
-                    new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote1" },
-                    // new RemoteInstanceSetting { ApiUri = localApiUrl, InstanceId = "remote2" }
+                    new RemoteInstanceSetting { ApiUri = localApiUrl },
+                    new RemoteInstanceSetting { ApiUri = localApiUrl }
                 };
                 serviceName = settings.ServiceName;
             };
