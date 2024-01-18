@@ -167,6 +167,12 @@
                     b.ConfigureHttpClient(httpClient => httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")));
                 });
 
+                foreach (var remoteInstance in settings.RemoteInstances)
+                {
+                    var builder = hostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
+                    builder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
+                }
+
                 hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
