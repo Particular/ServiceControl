@@ -111,7 +111,7 @@
 
                     try
                     {
-                        var response = await httpClient.GetAsync("/configuration");
+                        var response = await httpClient.GetAsync("/api/configuration");
 
                         if (response.Headers.TryGetValues("X-Particular-Version", out var values))
                         {

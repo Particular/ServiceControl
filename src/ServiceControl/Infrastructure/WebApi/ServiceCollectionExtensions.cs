@@ -16,13 +16,14 @@ static class ServiceCollectionExtensions
         foreach (var remoteInstance in settings.RemoteInstances)
         {
             remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
-            var httpClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
+            var remoteClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
             {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.BaseAddress = new Uri(remoteInstance.ApiUri);
+                // Application settings might contain remote URLs with /api. We strip that away to be a real base address.
+                client.BaseAddress = new Uri(remoteInstance.ApiUri.Replace("/api", string.Empty));
             });
 
-            httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            remoteClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             });
