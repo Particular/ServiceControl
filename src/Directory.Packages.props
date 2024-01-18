@@ -21,7 +21,7 @@
     <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
     <PackageVersion Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.2.9" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="2.1.2" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="2.1.7" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
