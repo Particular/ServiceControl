@@ -5,7 +5,6 @@
     using EventLog;
     using Persistence.Infrastructure;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.Session;
 
     class EventLogDataStore : IEventLogDataStore
     {
@@ -32,7 +31,7 @@
                 var results = await session
                     .Query<EventLogItem>()
                     .Statistics(out var stats)
-                    .OrderByDescending(p => p.RaisedAt, OrderingType.Double)
+                    .OrderByDescending(p => p.RaisedAt)
                     .Paging(pagingInfo)
                     .ToListAsync();
 
