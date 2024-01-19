@@ -13,8 +13,7 @@
         public CheckFreeDiskSpace(RavenPersisterSettings settings) : base("ServiceControl database", "Storage space", TimeSpan.FromMinutes(5))
         {
             dataPath = settings.DatabasePath;
-            percentageThreshold = settings.DataSpaceRemainingThreshold;
-
+            percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }
 
