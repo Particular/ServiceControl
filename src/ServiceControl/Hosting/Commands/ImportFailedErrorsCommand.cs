@@ -27,6 +27,7 @@
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             using (var host = bootstrapper.HostBuilder.Build())
             {
+                // TODO: Put in BackgroundService, take a dependency on IApplicationLifetime and invoke IApplicationLifetime.StopApplication();
                 var lifeCycle = host.Services.GetRequiredService<IPersistenceLifecycle>();
                 await lifeCycle.Initialize(); // Initialized IDocumentStore, this is needed as many hosted services have (indirect) dependencies on it.
 
