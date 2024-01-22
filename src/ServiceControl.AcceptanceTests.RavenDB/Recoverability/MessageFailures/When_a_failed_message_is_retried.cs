@@ -102,7 +102,7 @@
                 })
                 .Run();
 
-            Assert.AreEqual(failedMessageRetries.Count, 0, "FaileMessageRetries not removed");
+            Assert.AreEqual(failedMessageRetries.Count, 0, "FailedMessageRetries not removed");
         }
 
         [Test]
