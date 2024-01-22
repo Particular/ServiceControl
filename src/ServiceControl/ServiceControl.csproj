@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <!-- Needed for build ordering -->
-  <Import Project="..\ProjectReferences.Persisters.Primary.props"  />
+  <Import Project="..\ProjectReferences.Persisters.Primary.props" />
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
