@@ -15,7 +15,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using EventLog;
     using Infrastructure;
     using Microsoft.AspNetCore.SignalR.Client;
-    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
