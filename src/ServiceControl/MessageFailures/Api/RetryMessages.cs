@@ -2,37 +2,44 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using InternalMessages;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using Recoverability;
+    using ServiceBus.Management.Infrastructure.Settings;
+    using Yarp.ReverseProxy.Forwarder;
 
     [ApiController]
     [Route("api")]
-    public class RetryMessagesController : ControllerBase
+    public class RetryMessagesController(Settings settings, HttpMessageInvoker httpMessageInvoker, IHttpForwarder forwarder, IMessageSession messageSession) : ControllerBase
     {
-        public RetryMessagesController(RetryMessagesApi retryMessagesApi, IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-            this.retryMessagesApi = retryMessagesApi;
-        }
-
         [Route("errors/{failedmessageid}/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
+        public async Task<IActionResult> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
         {
-            // TODO we probably can't stream this directly. See https://stackoverflow.com/questions/54136488/correct-way-to-return-httpresponsemessage-as-iactionresult-in-net-core-2-2
-            // Revisit once we have things compiling
-
             if (string.IsNullOrEmpty(failedMessageId))
             {
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            return await retryMessagesApi.Execute(new RetryMessagesApiContext(instanceId, failedMessageId));
+            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
+            {
+                await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
+                return Accepted();
+            }
+
+            var remote = settings.RemoteInstances.FirstOrDefault(r => r.InstanceId == instanceId);
+
+            if (remote == null)
+            {
+                return BadRequest();
+            }
+
+            await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+
+            return StatusCode(Response.StatusCode);
         }
 
         [Route("errors/retry")]
@@ -85,8 +92,5 @@
 
             return Accepted();
         }
-
-        readonly RetryMessagesApi retryMessagesApi;
-        readonly IMessageSession messageSession;
     }
 }

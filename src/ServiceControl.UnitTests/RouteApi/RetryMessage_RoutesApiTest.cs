@@ -9,7 +9,6 @@
     using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Infrastructure.Settings;
 
     [TestFixture]

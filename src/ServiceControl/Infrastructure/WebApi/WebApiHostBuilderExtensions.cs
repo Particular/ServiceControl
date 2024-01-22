@@ -1,39 +1,36 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
     using System;
-    using System.Buffers;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Net;
+    using System.Net.Http;
     using System.Reflection;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Formatters;
-    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Net.Http.Headers;
     using ServiceControl.CompositeViews.Messages;
+    using Yarp.ReverseProxy.Forwarder;
 
     static class WebApiHostBuilderExtensions
     {
-        public static void AddWebApi(this WebApplicationBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl)
+        public static void AddWebApi(this WebApplicationBuilder builder, List<Assembly> apiAssemblies, string rootUrl)
         {
-            hostBuilder.WebHost.UseUrls(rootUrl);
+            builder.WebHost.UseUrls(rootUrl);
 
             foreach (var apiAssembly in apiAssemblies)
             {
-                hostBuilder.Services.RegisterApiTypes(apiAssembly);
+                builder.Services.RegisterApiTypes(apiAssembly);
                 // TODO Why are we registering all concrete types? This blows up the ASP.Net Core DI container
-                hostBuilder.Services.RegisterConcreteTypes(apiAssembly);
+                builder.Services.RegisterConcreteTypes(apiAssembly);
             }
 
-            hostBuilder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
 
             // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
-            hostBuilder.Services.AddResponseCompression();
-            var controllers = hostBuilder.Services.AddControllers(options =>
+            builder.Services.AddResponseCompression();
+            var controllers = builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<XParticularVersionHttpHandler>();
                 options.Filters.Add<CachingHttpHandler>();
@@ -44,7 +41,21 @@
             });
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
 
-            var signalR = hostBuilder.Services.AddSignalR();
+            builder.Services.AddHttpForwarder();
+
+            var httpMessageInvoker = new HttpMessageInvoker(new SocketsHttpHandler()
+            {
+                UseProxy = false,
+                AllowAutoRedirect = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                UseCookies = false,
+                ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
+                ConnectTimeout = TimeSpan.FromSeconds(15),
+            });
+
+            builder.Services.AddSingleton(typeof(HttpMessageInvoker), httpMessageInvoker);
+
+            var signalR = builder.Services.AddSignalR();
             signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
         }
 
