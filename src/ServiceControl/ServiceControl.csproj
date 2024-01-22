@@ -32,6 +32,7 @@
     <PackageReference Include="Particular.Licensing.Sources" />
     <PackageReference Include="ServiceControl.Contracts" />
     <PackageReference Include="System.Reactive.Linq" />
+    <PackageReference Include="Yarp.ReverseProxy" />
   </ItemGroup>
 
   <ItemGroup>

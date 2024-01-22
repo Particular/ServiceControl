@@ -1,22 +1,29 @@
 namespace ServiceControl.CompositeViews.Messages
 {
     using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
-    using Operations.BodyStorage.Api;
     using Persistence.Infrastructure;
+    using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.MessageCounting;
+    using ServiceControl.Operations.BodyStorage;
+    using Yarp.ReverseProxy.Forwarder;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
     [ApiController]
     [Route("api")]
     public class GetMessagesController(
+        IBodyStorage bodyStorage,
+        Settings settings,
+        HttpMessageInvoker httpMessageInvoker,
+        IHttpForwarder forwarder,
         GetAllMessagesApi allMessagesApi,
         GetAllMessagesForEndpointApi allMessagesForEndpointApi,
         GetAuditCountsForEndpointApi auditCountsForEndpointApi,
-        GetBodyByIdApi bodyByIdApi,
         SearchApi api,
         SearchEndpointApi endpointApi)
         : ControllerBase
@@ -41,26 +48,53 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/{id}/body")]
         [HttpGet]
-        public Task<HttpResponseMessage> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
+        public async Task<ActionResult<Stream>> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
         {
-            // TODO we probably can't stream this directly. See https://stackoverflow.com/questions/54136488/correct-way-to-return-httpresponsemessage-as-iactionresult-in-net-core-2-2
-            // Revisit once we have things compiling
-            return bodyByIdApi.Execute(new GetByBodyContext(instanceId, id));
+            if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
+            {
+                var result = await bodyStorage.TryFetch(id);
+
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                if (!result.HasResult)
+                {
+                    return NoContent();
+                }
+
+                Response.Headers.ETag = result.Etag;
+
+                return result.Stream;
+            }
+
+            var remote = settings.RemoteInstances.FirstOrDefault(r => r.InstanceId == instanceId);
+
+            if (remote == null)
+            {
+                return BadRequest();
+            }
+
+            await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+
+            return StatusCode(Response.StatusCode);
         }
 
+        // TODO Is this still needed?
         // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
         // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
         [Route("messages/{*catchAll}")]
         [HttpGet]
-        public Task<HttpResponseMessage> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
+        public async Task<ActionResult<Stream>> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
         {
             if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
             {
-                var id = catchAll.Substring(0, catchAll.Length - 5);
-                return Get(id, instanceId);
+                var id = catchAll[..^5];
+                return await Get(id, instanceId);
             }
 
-            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+            return NotFound();
         }
 
         [Route("messages/search")]
