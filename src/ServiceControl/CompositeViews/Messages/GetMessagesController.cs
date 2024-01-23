@@ -15,6 +15,7 @@ namespace ServiceControl.CompositeViews.Messages
     using ServiceControl.CompositeViews.MessageCounting;
     using ServiceControl.Operations.BodyStorage;
     using Yarp.ReverseProxy.Forwarder;
+    using static Infrastructure.WebApi.RemoteInstanceServiceCollectionExtensions;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
@@ -23,7 +24,7 @@ namespace ServiceControl.CompositeViews.Messages
     public class GetMessagesController(
         IBodyStorage bodyStorage,
         Settings settings,
-        HttpMessageInvoker httpMessageInvoker,
+        IHttpClientFactory httpClientFactory,
         IHttpForwarder forwarder,
         GetAllMessagesApi allMessagesApi,
         GetAllMessagesForEndpointApi allMessagesForEndpointApi,
@@ -81,15 +82,13 @@ namespace ServiceControl.CompositeViews.Messages
                 return BadRequest();
             }
 
-            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
-            if (forwarderError != ForwarderError.None)
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpClientFactory.CreateClient(RemoteForwardingHttpClientName));
+            if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                var errorFeature = HttpContext.GetForwarderErrorFeature();
-                var exception = errorFeature.Exception;
                 logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
             }
 
-            return StatusCode(Response.StatusCode);
+            return Empty;
         }
 
         // TODO Is this still needed?

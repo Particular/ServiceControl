@@ -2,16 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Reflection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using ServiceControl.CompositeViews.Messages;
-    using Yarp.ReverseProxy.Forwarder;
 
     static class WebApiHostBuilderExtensions
     {
@@ -40,20 +36,6 @@
                 options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
             controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
-
-            builder.Services.AddHttpForwarder();
-
-            var httpMessageInvoker = new HttpMessageInvoker(new SocketsHttpHandler()
-            {
-                UseProxy = false,
-                AllowAutoRedirect = false,
-                AutomaticDecompression = DecompressionMethods.None,
-                UseCookies = false,
-                ActivityHeadersPropagator = new ReverseProxyPropagator(DistributedContextPropagator.Current),
-                ConnectTimeout = TimeSpan.FromSeconds(15),
-            });
-
-            builder.Services.AddSingleton(typeof(HttpMessageInvoker), httpMessageInvoker);
 
             var signalR = builder.Services.AddSignalR();
             signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
