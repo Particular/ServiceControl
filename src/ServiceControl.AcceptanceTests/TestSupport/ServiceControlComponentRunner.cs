@@ -3,7 +3,6 @@
     using System;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -20,9 +19,9 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
+    using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestHelper;
-    using static Infrastructure.WebApi.RemoteInstanceServiceCollectionExtensions;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -152,6 +151,7 @@
                 // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer();
                 // This facilitates receiving the test server anywhere where DI is available
+                IServiceCollection hostBuilderServices = hostBuilder.Services;
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
                 // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
@@ -161,21 +161,7 @@
                 addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
                 addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
-                var testInstanceHttpClientBuilder = hostBuilder.Services.AddHttpClient(instanceName);
-                testInstanceHttpClientBuilder.ConfigureHttpClient(httpClient =>
-                {
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                });
-                testInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
-
-                var forwardingHttpClientBuilder = hostBuilder.Services.AddHttpClient(RemoteForwardingHttpClientName);
-                forwardingHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
-
-                foreach (var remoteInstance in settings.RemoteInstances)
-                {
-                    var remoteInstanceHttpClientBuilder = hostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
-                    remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
-                }
+                hostBuilder.Services.OverrideHttpClientDefaults(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
