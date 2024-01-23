@@ -22,6 +22,7 @@
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestHelper;
+    using static Infrastructure.WebApi.RemoteInstanceServiceCollectionExtensions;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -160,17 +161,20 @@
                 addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
                 addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
-                hostBuilder.Services.ConfigureHttpClientDefaults(b =>
+                var testInstanceHttpClientBuilder = hostBuilder.Services.AddHttpClient(instanceName);
+                testInstanceHttpClientBuilder.ConfigureHttpClient(httpClient =>
                 {
-                    b.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
-                    // TODO: See if this is even still needed or should be moved to the named instance for the tests only
-                    b.ConfigureHttpClient(httpClient => httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json")));
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 });
+                testInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
+
+                var forwardingHttpClientBuilder = hostBuilder.Services.AddHttpClient(RemoteForwardingHttpClientName);
+                forwardingHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
 
                 foreach (var remoteInstance in settings.RemoteInstances)
                 {
-                    var builder = hostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
-                    builder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
+                    var remoteInstanceHttpClientBuilder = hostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
+                    remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredService<TestServer>().CreateHandler());
                 }
 
                 hostBuilderCustomization(hostBuilder);
