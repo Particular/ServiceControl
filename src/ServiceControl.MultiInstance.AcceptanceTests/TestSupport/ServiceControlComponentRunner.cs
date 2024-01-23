@@ -74,13 +74,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 HttpDefaultConnectionLimit = int.MaxValue,
                 DisableHealthChecks = true,
                 ExposeApi = false,
-                RemoteInstances = new[]
-                {
-                    new RemoteInstanceSetting
-                    {
-                        ApiUri = $"http://localhost:{auditInstanceApiPort}/api" // evil assumption for now
-                    }
-                },
+                RemoteInstances =
+                [
+                    new RemoteInstanceSetting($"http://localhost:{auditInstanceApiPort}/api") // evil assumption for now
+                ],
                 MessageFilter = messageContext =>
                 {
                     var headers = messageContext.Headers;
