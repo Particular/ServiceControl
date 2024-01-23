@@ -137,10 +137,10 @@
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
-                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions()
+                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
                 {
-                    // TODO this is needed because for some reason we're registering all concrete types for no reason
-                    EnvironmentName = Environments.Production
+                    // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
+                    EnvironmentName = Environments.Development
                 });
                 hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
 
@@ -151,7 +151,6 @@
                 // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer();
                 // This facilitates receiving the test server anywhere where DI is available
-                IServiceCollection hostBuilderServices = hostBuilder.Services;
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
                 // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
