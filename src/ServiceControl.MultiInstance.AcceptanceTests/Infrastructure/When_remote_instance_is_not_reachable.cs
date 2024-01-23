@@ -21,11 +21,7 @@
                 var currentSetting = s.RemoteInstances[0];
                 s.RemoteInstances = new[]
                 {
-                    currentSetting,
-                    new RemoteInstanceSetting
-                    {
-                        ApiUri = "http://localhost:12121"
-                    }
+                    currentSetting, new RemoteInstanceSetting("http://localhost:12121")
                 };
             };
 
