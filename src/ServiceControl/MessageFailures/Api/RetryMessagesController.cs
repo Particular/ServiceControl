@@ -5,8 +5,11 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using InternalMessages;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
+    using NServiceBus.Logging;
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using Yarp.ReverseProxy.Forwarder;
@@ -37,9 +40,15 @@
                 return BadRequest();
             }
 
-            await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+            if (forwarderError != ForwarderError.None)
+            {
+                var errorFeature = HttpContext.GetForwarderErrorFeature();
+                var exception = errorFeature.Exception;
+                logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+            }
 
-            return StatusCode(Response.StatusCode);
+            return Empty;
         }
 
         [Route("errors/retry")]
@@ -92,5 +101,7 @@
 
             return Accepted();
         }
+
+        static ILog logger = LogManager.GetLogger(typeof(RetryMessagesController));
     }
 }
