@@ -15,14 +15,8 @@
 
             CollectionAssert.AreEqual(remoteInstances, new[]
             {
-                new RemoteInstanceSetting
-                {
-                    ApiUri = "http://instance1"
-                },
-                new RemoteInstanceSetting
-                {
-                    ApiUri = "http://instance2"
-                }
+                new RemoteInstanceSetting("http://instance1"),
+                new RemoteInstanceSetting("http://instance2")
             }, new RemoteInstanceSettingComparer());
         }
 

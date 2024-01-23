@@ -32,7 +32,6 @@ static class RemoteInstanceServiceCollectionExtensions
     {
         foreach (var remoteInstance in settings.RemoteInstances)
         {
-            remoteInstance.InstanceId = InstanceIdGenerator.FromApiUrl(remoteInstance.ApiUri);
             var remoteClientBuilder = services.AddHttpClient(remoteInstance.InstanceId, client =>
             {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
