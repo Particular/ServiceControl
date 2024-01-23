@@ -13,10 +13,11 @@
     using Recoverability;
     using ServiceBus.Management.Infrastructure.Settings;
     using Yarp.ReverseProxy.Forwarder;
+    using static Infrastructure.WebApi.RemoteInstanceServiceCollectionExtensions;
 
     [ApiController]
     [Route("api")]
-    public class RetryMessagesController(Settings settings, HttpMessageInvoker httpMessageInvoker, IHttpForwarder forwarder, IMessageSession messageSession) : ControllerBase
+    public class RetryMessagesController(Settings settings, IHttpClientFactory httClientFactory, IHttpForwarder forwarder, IMessageSession messageSession) : ControllerBase
     {
         [Route("errors/{failedmessageid}/retry")]
         [HttpPost]
@@ -40,11 +41,9 @@
                 return BadRequest();
             }
 
-            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
-            if (forwarderError != ForwarderError.None)
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httClientFactory.CreateClient(RemoteForwardingHttpClientName));
+            if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                var errorFeature = HttpContext.GetForwarderErrorFeature();
-                var exception = errorFeature.Exception;
                 logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
             }
 

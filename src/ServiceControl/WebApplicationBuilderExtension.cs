@@ -3,6 +3,7 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Net;
+    using System.Net.Http;
     using System.Reflection;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
@@ -27,6 +28,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
+    using Yarp.ReverseProxy.Forwarder;
 
     static class WebApplicationBuilderExtension
     {
@@ -68,7 +70,10 @@ namespace Particular.ServiceControl
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
 
+            // TODO Maybe after we have touched scatter gather this isn't required anymore?
             services.AddHttpContextAccessor();
+
+            services.AddHttpForwarding();
             services.AddRemoteInstancesHttpClients(settings);
 
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
