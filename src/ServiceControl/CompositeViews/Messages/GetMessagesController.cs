@@ -5,8 +5,11 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Primitives;
+    using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.MessageCounting;
@@ -78,7 +81,13 @@ namespace ServiceControl.CompositeViews.Messages
                 return BadRequest();
             }
 
-            await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+            if (forwarderError != ForwarderError.None)
+            {
+                var errorFeature = HttpContext.GetForwarderErrorFeature();
+                var exception = errorFeature.Exception;
+                logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+            }
 
             return StatusCode(Response.StatusCode);
         }
@@ -117,5 +126,7 @@ namespace ServiceControl.CompositeViews.Messages
         [HttpGet]
         public Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword) =>
             endpointApi.Execute(new(pagingInfo, sortInfo, endpoint, keyword));
+
+        static ILog logger = LogManager.GetLogger(typeof(GetMessagesController));
     }
 }
