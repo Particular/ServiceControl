@@ -1,12 +1,12 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using ServiceControl.CompositeViews.Messages;
 
     static class WebApiHostBuilderExtensions
@@ -18,8 +18,6 @@
             foreach (var apiAssembly in apiAssemblies)
             {
                 builder.Services.RegisterApiTypes(apiAssembly);
-                // TODO Why are we registering all concrete types? This blows up the ASP.Net Core DI container
-                builder.Services.RegisterConcreteTypes(apiAssembly);
             }
 
             builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
@@ -53,29 +51,7 @@
 
             foreach (var apiType in apiTypes)
             {
-                if (!serviceCollection.Any(sd => sd.ServiceType == apiType))
-                {
-                    serviceCollection.AddSingleton(apiType);
-                }
-            }
-        }
-
-        static void RegisterConcreteTypes(this IServiceCollection serviceCollection, Assembly assembly)
-        {
-            var concreteTypes = assembly.DefinedTypes
-                .Where(ti => ti.IsClass &&
-                             !ti.IsAbstract &&
-                             !ti.IsSubclassOf(typeof(Delegate)) &&
-                             !ti.IsGenericTypeDefinition &&
-                             !ti.GetInterfaces().Any())
-                .Select(ti => ti.AsType());
-
-            foreach (var concreteType in concreteTypes)
-            {
-                if (!serviceCollection.Any(sd => sd.ServiceType == concreteType))
-                {
-                    serviceCollection.AddSingleton(concreteType);
-                }
+                serviceCollection.TryAddSingleton(apiType);
             }
         }
     }
