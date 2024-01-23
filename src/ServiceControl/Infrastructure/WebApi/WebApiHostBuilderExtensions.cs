@@ -17,6 +17,8 @@
 
             foreach (var apiAssembly in apiAssemblies)
             {
+                // This registers concrete classes that implement IApi. Currently it is hard to find out to what
+                // component those APIs should belong to so we leave it here for now.
                 builder.Services.RegisterApiTypes(apiAssembly);
             }
 
@@ -42,9 +44,8 @@
         static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)
         {
             var apiTypes = assembly.DefinedTypes
-                .Where(ti => ti.IsClass &&
-                             !ti.IsAbstract &&
-                             !ti.IsGenericTypeDefinition &&
+                .Where(ti =>
+                             ti is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false } &&
                              ti.GetInterfaces().Any(t => t == typeof(IApi)))
                 .Select(ti => ti.AsType());
 
