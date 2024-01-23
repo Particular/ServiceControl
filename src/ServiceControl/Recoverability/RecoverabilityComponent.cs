@@ -45,6 +45,7 @@
             services.AddDomainEventHandler<FailedMessageRetryCleaner>();
 
             //Return to sender - registered both as singleton and hosted service because it is a dependency of the RetryProcessor
+            services.AddSingleton<ReturnToSender>();
             services.AddSingleton<ReturnToSenderDequeuer>();
             services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
 
