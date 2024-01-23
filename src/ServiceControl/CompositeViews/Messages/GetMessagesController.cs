@@ -6,6 +6,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Primitives;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.MessageCounting;
@@ -65,6 +66,7 @@ namespace ServiceControl.CompositeViews.Messages
                 }
 
                 Response.Headers.ETag = result.Etag;
+                Response.Headers.ContentType = new StringValues(result.ContentType ?? "text/*");
 
                 return result.Stream;
             }
