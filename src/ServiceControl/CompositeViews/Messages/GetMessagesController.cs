@@ -70,7 +70,8 @@ namespace ServiceControl.CompositeViews.Messages
                 }
 
                 Response.Headers.ETag = result.Etag;
-                Response.Headers.ContentType = new StringValues(result.ContentType ?? "text/*");
+                Response.Headers.ContentType = result.ContentType ?? "text/*";
+                Response.Headers.ContentLength = result.BodySize;
 
                 return result.Stream;
             }
