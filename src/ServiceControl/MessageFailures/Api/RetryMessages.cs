@@ -30,7 +30,7 @@
                 return Accepted();
             }
 
-            var remote = settings.RemoteInstances.FirstOrDefault(r => r.InstanceId == instanceId);
+            var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);
 
             if (remote == null)
             {
