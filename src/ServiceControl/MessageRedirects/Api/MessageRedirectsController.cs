@@ -16,6 +16,7 @@
 
     using DeterministicGuid = Infrastructure.DeterministicGuid;
 
+    // TODO Re-evaluate the use of status codes in this controller
     [ApiController]
     [Route("api")]
     public class MessageRedirectsController(
