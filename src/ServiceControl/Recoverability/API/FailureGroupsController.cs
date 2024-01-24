@@ -66,23 +66,22 @@
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpGet]
-        public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
+        public async Task<IList<FailedMessageView>> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
         {
             var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
 
-            //return Negotiator.FromQueryResult(Request, results);
-            return results;
+            Response.WithQueryResults(results.QueryStats, pagingInfo);
+            return results.Results;
         }
 
 
         [Route("recoverability/groups/{groupId}/errors")]
         [HttpHead]
-        public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status = default, string modified = default)
+        public async Task GetGroupErrorsCount(string groupId, string status = default, string modified = default)
         {
             var results = await store.GetGroupErrorsCount(groupId, status, modified);
 
             Response.WithQueryStatsInfo(results);
-            return results;
         }
 
         [Route("recoverability/history")]
