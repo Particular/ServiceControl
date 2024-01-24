@@ -4,10 +4,8 @@
 
     static class ConnectionProvidersServiceCollectionExtensions
     {
-        public static void AddPlatformConnectionProvider<T>(this IServiceCollection serviceCollection)
-            where T : class, IProvidePlatformConnectionDetails
-        {
-            serviceCollection.AddSingleton<IProvidePlatformConnectionDetails, T>();
-        }
+        public static void AddPlatformConnectionProvider<T>(this IServiceCollection services)
+            where T : class, IProvidePlatformConnectionDetails =>
+            services.AddSingleton<IProvidePlatformConnectionDetails, T>();
     }
 }

@@ -4,13 +4,9 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    class PlatformConnectionBuilder : IPlatformConnectionBuilder
+    class PlatformConnectionBuilder(IEnumerable<IProvidePlatformConnectionDetails> platformConnectionProviders)
+        : IPlatformConnectionBuilder
     {
-        readonly IEnumerable<IProvidePlatformConnectionDetails> platformConnectionProviders;
-
-        public PlatformConnectionBuilder(IEnumerable<IProvidePlatformConnectionDetails> platformConnectionProviders)
-            => this.platformConnectionProviders = platformConnectionProviders;
-
         public async Task<PlatformConnectionDetails> BuildPlatformConnection()
         {
             var connectionDetails = new PlatformConnectionDetails();
