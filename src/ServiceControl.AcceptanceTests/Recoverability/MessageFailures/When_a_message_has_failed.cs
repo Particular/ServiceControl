@@ -1,6 +1,4 @@
-﻿using NServiceBus;
-
-namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Generic;
@@ -54,7 +52,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
-            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
+            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count, "Failed count should be 1");
             Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
         }
@@ -190,7 +188,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         {
             var context = await Define<MyContext>(ctx =>
                 {
-                    ctx.HttpMessageHandlerFactory = HttpMessageHandlerFactory;
+                    ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
                 })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
@@ -417,10 +415,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 using var stream = new MemoryStream(body.ToArray());
                 var msg = serializer.Deserialize(stream);
 
-                return new[]
-                {
+                return
+                [
                     msg
-                };
+                ];
             }
 
             public string ContentType => "MyCustomSerializer";
@@ -442,16 +440,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    lock (lockObj)
-                    {
-                        queueSearchContext.FailedMessageCount++;
-                    }
+                    queueSearchContext.IncrementFailureCount();
 
                     throw new Exception("Simulated exception");
                 }
 
                 QueueSearchContext queueSearchContext;
-                static readonly object lockObj = new object();
             }
         }
 
@@ -469,12 +463,16 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
         public class QueueSearchContext : ScenarioContext
         {
-            public int FailedMessageCount { get; set; }
+            long failedMessageCount;
+
+            public int FailedMessageCount => (int)Interlocked.Read(ref failedMessageCount);
+
+            public void IncrementFailureCount() => Interlocked.Increment(ref failedMessageCount);
+        }
+
+        public class MyMessage : ICommand
+        {
+            public string Content { get; set; }
         }
     }
-}
-
-public class MyMessage : ICommand
-{
-    public string Content { get; set; }
 }
