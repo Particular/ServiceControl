@@ -80,7 +80,7 @@
                 });
             }
 
-            return Accepted();
+            return Created();
         }
 
         [Route("redirects/{messageredirectid:guid}")]
