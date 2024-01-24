@@ -74,6 +74,7 @@ namespace Particular.ServiceControl
             services.AddHttpContextAccessor();
 
             services.AddHttpForwarding();
+            services.AddHttpClient();
             services.AddRemoteInstancesHttpClients(settings);
 
             // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
