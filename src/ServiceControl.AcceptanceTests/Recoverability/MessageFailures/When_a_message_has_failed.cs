@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
+﻿using NServiceBus;
+
+namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 {
     using System;
     using System.Collections.Generic;
@@ -338,19 +340,12 @@
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                MyContext testContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -371,19 +366,12 @@
                     c.UseSerialization<MySuperSerializer>();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                MyContext testContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -434,18 +422,14 @@
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(QueueSearchContext queueSearchContext) : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(QueueSearchContext queueSearchContext) => this.queueSearchContext = queueSearchContext;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     queueSearchContext.IncrementFailureCount();
 
                     throw new Exception("Simulated exception");
                 }
-
-                QueueSearchContext queueSearchContext;
             }
         }
 
@@ -469,10 +453,11 @@
 
             public void IncrementFailureCount() => Interlocked.Increment(ref failedMessageCount);
         }
-
-        public class MyMessage : ICommand
-        {
-            public string Content { get; set; }
-        }
     }
+}
+
+// This class is deliberately outside the namespace to make the type visible for the custom Xml serializer logic in this test
+public class MyMessage : ICommand
+{
+    public string Content { get; set; }
 }
