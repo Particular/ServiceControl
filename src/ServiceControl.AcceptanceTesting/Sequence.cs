@@ -7,14 +7,13 @@
     class Sequence<TContext>
         where TContext : ISequenceContext
     {
-        public Sequence<TContext> Do(string step, Func<TContext, Task<bool>> handler)
+        public void Do(string step, Func<TContext, Task<bool>> handler)
         {
             steps.Add(handler);
             stepNames.Add(step);
-            return this;
         }
 
-        public Sequence<TContext> Do(string step, Func<TContext, Task> handler)
+        public void Do(string step, Func<TContext, Task> handler)
         {
             steps.Add(async context =>
             {
@@ -22,7 +21,6 @@
                 return true;
             });
             stepNames.Add(step);
-            return this;
         }
 
         public bool IsFinished(TContext context) => context.Step >= steps.Count;
