@@ -1,36 +1,36 @@
 ﻿namespace ServiceControl.Monitoring.Connection
 {
     using System;
-    using System.Web.Http;
-    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
-    public class ConnectionController : ApiController
+    [ApiController]
+    public class ConnectionController(ReceiveAddresses receiveAddresses) : ControllerBase
     {
-        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-        readonly string mainInputQueue;
+        readonly string mainInputQueue = receiveAddresses.MainReceiveAddress;
         readonly TimeSpan defaultInterval = TimeSpan.FromSeconds(1);
-
-        public ConnectionController(ReceiveAddresses receiveAddresses) => mainInputQueue = receiveAddresses.MainReceiveAddress;
 
         [Route("connection")]
         [HttpGet]
-        public IHttpActionResult GetConnectionDetails() =>
-            Json(
-                new
+        public ActionResult<ResultsWrapper> GetConnectionDetails() =>
+            new ResultsWrapper
+            {
+                Metrics = new MetricsConnectionDetails
                 {
-                    Metrics = new MetricsConnectionDetails
-                    {
-                        Enabled = true,
-                        MetricsQueue = mainInputQueue,
-                        Interval = defaultInterval
-                    }
-                },
-                jsonSerializerSettings
-        );
+                    Enabled = true,
+                    MetricsQueue = mainInputQueue,
+                    Interval = defaultInterval
+                }
+            };
+
+        // TODO Can we get rid of this wrapper and just return the details directly?
+        public class ResultsWrapper
+        {
+            public MetricsConnectionDetails Metrics { get; set; }
+        }
 
         // HINT: This should match the type in the PlatformConnector package
-        class MetricsConnectionDetails
+        public class MetricsConnectionDetails
         {
             public bool Enabled { get; set; }
             public string MetricsQueue { get; set; }
