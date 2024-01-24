@@ -3,10 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -71,7 +71,7 @@
             Assert.AreEqual(2, exceptionTypeAndStackTraceGroups.Count, "There should be 2 Exception Type and Stack Trace Groups");
             Assert.AreEqual(2, messageTypeGroups.Count, "There should be 2 Message Type Groups");
 
-            defaultGroups.ForEach(g => Console.WriteLine(JsonConvert.SerializeObject(g)));
+            defaultGroups.ForEach(g => Console.WriteLine(JsonSerializer.Serialize(g)));
 
             Assert.IsEmpty(exceptionTypeAndStackTraceGroups.Select(g => g.Id).Except(defaultGroups.Select(g => g.Id)), "/api/recoverability/groups did not retrieve Exception Type and Stack Trace Group");
 
@@ -95,20 +95,10 @@
         {
             public Receiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
 
-            public class MyMessageHandler :
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings) :
                 IHandleMessages<MyMessageA>,
                 IHandleMessages<MyMessageB>
             {
-
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessageA message, IMessageHandlerContext context)
                 {
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
