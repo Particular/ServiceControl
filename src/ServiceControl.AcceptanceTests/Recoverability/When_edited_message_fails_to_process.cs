@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
     using Infrastructure;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -39,7 +39,7 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var editedMessage = JsonConvert.SerializeObject(new FailingMessage
+                        var editedMessage = JsonSerializer.Serialize(new FailingMessage
                         {
                             HasBeenEdited = true
                         });

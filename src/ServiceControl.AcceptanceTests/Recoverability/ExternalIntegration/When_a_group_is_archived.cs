@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
@@ -10,7 +11,6 @@
     using ServiceControl.Contracts;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
-    using Newtonsoft.Json;
 
     class When_a_group_is_archived : ExternalIntegrationAcceptanceTest
     {
@@ -64,7 +64,7 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesArchived>(context.Event);
             Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
             CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
         }
@@ -78,15 +78,11 @@
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<FailedMessagesArchived>
+            public class FailureHandler(Context testContext) : IHandleMessages<FailedMessagesArchived>
             {
-                readonly Context testContext;
-
-                public FailureHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(FailedMessagesArchived message, IMessageHandlerContext context)
                 {
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;

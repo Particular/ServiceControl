@@ -10,8 +10,8 @@
     using Contracts;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
-    using Newtonsoft.Json;
     using System.Collections.Generic;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     class When_a_failed_message_is_resolved_manually : ExternalIntegrationAcceptanceTest
     {
@@ -59,7 +59,7 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<MessageFailureResolvedManually>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<MessageFailureResolvedManually>(context.Event);
             Assert.IsTrue(deserializedEvent.FailedMessageId == context.FailedMessageId.ToString());
         }
 
@@ -72,15 +72,11 @@
                     routing.RouteToEndpoint(typeof(MessageFailureResolvedManually).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailureResolvedManually>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<MessageFailureResolvedManually>
+            public class FailureHandler(Context testContext) : IHandleMessages<MessageFailureResolvedManually>
             {
-                readonly Context testContext;
-
-                public FailureHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageFailureResolvedManually message, IMessageHandlerContext context)
                 {
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;
