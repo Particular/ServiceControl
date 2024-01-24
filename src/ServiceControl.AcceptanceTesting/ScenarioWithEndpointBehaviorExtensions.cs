@@ -17,16 +17,12 @@
             return endpointBehavior.WithComponent(behavior).Done(ctx => behavior.Done);
         }
 
-        public static EndpointBehaviorBuilder<TContext> When<TContext>(this EndpointBehaviorBuilder<TContext> endpointBehavior, Func<TContext, Task<bool>> predicate, Func<IMessageSession, TContext, Task> action) where TContext : ScenarioContext
-        {
-            return endpointBehavior.When(ctx => predicate(ctx).GetAwaiter().GetResult(), action);
-        }
+        public static EndpointBehaviorBuilder<TContext> When<TContext>(this EndpointBehaviorBuilder<TContext> endpointBehavior, Func<TContext, Task<bool>> predicate, Func<IMessageSession, TContext, Task> action) where TContext : ScenarioContext => endpointBehavior.When(ctx => predicate(ctx).GetAwaiter().GetResult(), action);
 
-        public static SequenceBuilder<TContext> Do<TContext>(this IScenarioWithEndpointBehavior<TContext> endpointBehavior, string step, Func<TContext, Task<bool>> handler)
-            where TContext : ScenarioContext, ISequenceContext
-        {
-            return new SequenceBuilder<TContext>(endpointBehavior, step, handler);
-        }
+        public static SequenceBuilder<TContext> Do<TContext>(
+            this IScenarioWithEndpointBehavior<TContext> endpointBehavior, string step,
+            Func<TContext, Task<bool>> handler) where TContext : ScenarioContext, ISequenceContext =>
+            new(endpointBehavior, step, handler);
     }
 
     public class SequenceBuilder<TContext>
@@ -61,11 +57,9 @@
                     {
                         return true;
                     }
-                    else
-                    {
-                        // If sequence is done but test is not finished, small delay to avoid tight loop check
-                        await Task.Delay(250);
-                    }
+
+                    // If sequence is done but test is not finished, small delay to avoid tight loop check
+                    await Task.Delay(250);
                 }
 
                 // If sequence is not finished immediately return false, since each step will enforce delays 
@@ -80,10 +74,7 @@
     public class ServiceControlClient<TContext> : IComponentBehavior
         where TContext : ScenarioContext
     {
-        public ServiceControlClient(Func<TContext, Task<bool>> checkDone)
-        {
-            this.checkDone = checkDone;
-        }
+        public ServiceControlClient(Func<TContext, Task<bool>> checkDone) => this.checkDone = checkDone;
 
         public bool Done
         {
@@ -150,7 +141,7 @@
                     return;
                 }
 
-                tokenSource.Cancel();
+                await tokenSource.CancelAsync();
                 try
                 {
                     await checkTask;
