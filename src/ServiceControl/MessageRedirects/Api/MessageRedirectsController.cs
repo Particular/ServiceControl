@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using Contracts.MessageRedirects;
     using Infrastructure.DomainEvents;
@@ -47,7 +48,8 @@
             {
                 //TODO verify both of these return the same as the previous code
                 return existing.ToPhysicalAddress == messageRedirect.ToPhysicalAddress
-                    ? Created()
+                    // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
+                    ? StatusCode((int)HttpStatusCode.Created)
                     : Conflict("Duplicate");
             }
 
@@ -80,7 +82,8 @@
                 });
             }
 
-            return Created();
+            // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
+            return StatusCode((int)HttpStatusCode.Created);
         }
 
         [Route("redirects/{messageredirectid:guid}")]
