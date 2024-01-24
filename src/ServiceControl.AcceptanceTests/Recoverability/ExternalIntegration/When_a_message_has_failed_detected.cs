@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
     using System;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -45,7 +45,7 @@
                 .Done(c => c.EventDelivered)
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<MessageFailed>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<MessageFailed>(context.Event);
 
             Assert.AreEqual("Faulty message", deserializedEvent.FailureDetails.Exception.Message);
             //These are important so check it they are set
@@ -63,30 +63,21 @@
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
-                public Task Handle(MyMessage message, IMessageHandlerContext context)
-                {
-                    throw new Exception(message.Body);
-                }
+                public Task Handle(MyMessage message, IMessageHandlerContext context) => throw new Exception(message.Body);
             }
         }
 
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
-            public ExternalProcessor()
-            {
+            public ExternalProcessor() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<MessageFailed>(Settings.DEFAULT_SERVICE_NAME); });
-            }
 
-            public class FailureHandler : IHandleMessages<MessageFailed>
+            public class FailureHandler(MyContext testContext) : IHandleMessages<MessageFailed>
             {
-                readonly MyContext testContext;
-
-                public FailureHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageFailed message, IMessageHandlerContext context)
                 {
                     if (!message.MessageDetails.Headers.TryGetValue("AcceptanceTestRunId", out var runId) || runId != testContext.TestRunId.ToString())
@@ -94,7 +85,7 @@
                         return Task.CompletedTask;
                     }
 
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;

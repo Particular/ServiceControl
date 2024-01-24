@@ -1,16 +1,15 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
-    using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
+    using JsonSerializer = System.Text.Json.JsonSerializer;
 
     class When_a_failed_message_is_resolved_by_retry : ExternalIntegrationAcceptanceTest
     {
@@ -49,7 +48,7 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<MessageFailureResolvedByRetry>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<MessageFailureResolvedByRetry>(context.Event);
             Assert.IsTrue(deserializedEvent?.FailedMessageId == context.FailedMessageId.ToString());
         }
 
@@ -62,15 +61,11 @@
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<MessageFailureResolvedByRetry>
+            public class FailureHandler(Context testContext) : IHandleMessages<MessageFailureResolvedByRetry>
             {
-                readonly Context testContext;
-
-                public FailureHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageFailureResolvedByRetry message, IMessageHandlerContext context)
                 {
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;

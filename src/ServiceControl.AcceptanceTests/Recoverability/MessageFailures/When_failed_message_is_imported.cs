@@ -3,10 +3,10 @@
     using System;
     using System.Linq;
     using System.Text;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -51,7 +51,7 @@
                 })
                 .Run();
 
-            Console.WriteLine(JsonConvert.SerializeObject(failedMessage));
+            Console.WriteLine(JsonSerializer.Serialize(failedMessage));
 
             Assert.AreEqual(context.MessageId, failedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Failed, failedMessage.Status);
@@ -103,17 +103,9 @@
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     scenarioContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();

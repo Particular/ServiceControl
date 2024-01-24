@@ -1,9 +1,9 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
 {
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Contracts;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
@@ -50,7 +50,7 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesArchived>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesArchived>(context.Event);
             CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
         }
 
@@ -63,15 +63,11 @@
                     routing.RouteToEndpoint(typeof(FailedMessagesArchived).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesArchived>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<FailedMessagesArchived>
+            public class FailureHandler(Context testContext) : IHandleMessages<FailedMessagesArchived>
             {
-                readonly Context testContext;
-
-                public FailureHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(FailedMessagesArchived message, IMessageHandlerContext context)
                 {
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;
