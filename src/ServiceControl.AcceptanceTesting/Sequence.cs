@@ -25,10 +25,7 @@
             return this;
         }
 
-        public bool IsFinished(TContext context)
-        {
-            return context.Step >= steps.Count;
-        }
+        public bool IsFinished(TContext context) => context.Step >= steps.Count;
 
         public async Task<bool> Continue(TContext context)
         {
@@ -44,22 +41,15 @@
             {
                 var nextStep = currentStep + 1;
                 var finished = nextStep >= steps.Count;
-                if (finished)
-                {
-                    Console.WriteLine("Sequence finished");
-                }
-                else
-                {
-                    Console.WriteLine($"Advancing from {stepNames[currentStep]} to {stepNames[nextStep]}");
-                }
+                Console.WriteLine(finished
+                    ? "Sequence finished"
+                    : $"Advancing from {stepNames[currentStep]} to {stepNames[nextStep]}");
 
                 context.Step = nextStep;
                 return finished;
             }
-            else
-            {
-                await Task.Delay(250);
-            }
+
+            await Task.Delay(250);
 
             return false;
         }
