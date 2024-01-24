@@ -6,7 +6,8 @@ namespace Particular.ServiceControl
 
     static class ServiceControlComponentHostBuilderExtensions
     {
-        public static IHostApplicationBuilder AddServiceControlComponents(this IHostApplicationBuilder hostBuilder, Settings settings, params ServiceControlComponent[] components)
+        public static void AddServiceControlComponents(this IHostApplicationBuilder hostBuilder, Settings settings,
+            params ServiceControlComponent[] components)
         {
             var componentContext = new ComponentInstallationContext();
             hostBuilder.Services.AddSingleton(componentContext);
@@ -15,8 +16,6 @@ namespace Particular.ServiceControl
                 component.Setup(settings, componentContext);
                 component.Configure(settings, hostBuilder);
             }
-
-            return hostBuilder;
         }
     }
 }
