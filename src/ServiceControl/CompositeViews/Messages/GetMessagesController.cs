@@ -8,14 +8,12 @@ namespace ServiceControl.CompositeViews.Messages
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Primitives;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.MessageCounting;
     using ServiceControl.Operations.BodyStorage;
     using Yarp.ReverseProxy.Forwarder;
-    using static Infrastructure.WebApi.RemoteInstanceServiceCollectionExtensions;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
@@ -24,7 +22,7 @@ namespace ServiceControl.CompositeViews.Messages
     public class GetMessagesController(
         IBodyStorage bodyStorage,
         Settings settings,
-        IHttpClientFactory httpClientFactory,
+        HttpMessageInvoker httpMessageInvoker,
         IHttpForwarder forwarder,
         GetAllMessagesApi allMessagesApi,
         GetAllMessagesForEndpointApi allMessagesForEndpointApi,
@@ -83,7 +81,7 @@ namespace ServiceControl.CompositeViews.Messages
                 return BadRequest();
             }
 
-            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpClientFactory.CreateClient(RemoteForwardingHttpClientName));
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
                 logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
