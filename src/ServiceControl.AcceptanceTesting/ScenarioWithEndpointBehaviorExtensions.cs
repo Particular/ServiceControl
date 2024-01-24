@@ -51,7 +51,7 @@
             var behavior = new ServiceControlClient<TContext>(context => sequence.Continue(context));
             return endpointBehavior.WithComponent(behavior).Done(async ctx =>
             {
-                if (!sequence.IsFinished(ctx))
+                if (!behavior.Done && !sequence.IsFinished(ctx))
                 {
                     return false;
                 }
@@ -73,11 +73,9 @@
         Sequence<TContext> sequence = new Sequence<TContext>();
     }
 
-    public class ServiceControlClient<TContext> : IComponentBehavior
+    public class ServiceControlClient<TContext>(Func<TContext, Task<bool>> checkDone) : IComponentBehavior
         where TContext : ScenarioContext
     {
-        public ServiceControlClient(Func<TContext, Task<bool>> checkDone) => this.checkDone = checkDone;
-
         public bool Done
         {
             get
@@ -87,25 +85,18 @@
             }
         }
 
-        public Task<ComponentRunner> CreateRunner(RunDescriptor run)
-        {
-            return Task.FromResult<ComponentRunner>(new Runner(checkDone, () => isDone = true, info => exceptionInfo = info, (TContext)run.ScenarioContext));
-        }
+        public Task<ComponentRunner> CreateRunner(RunDescriptor run) => Task.FromResult<ComponentRunner>(new Runner(checkDone, () => isDone = true, info => exceptionInfo = info, (TContext)run.ScenarioContext));
 
-        Func<TContext, Task<bool>> checkDone;
         volatile ExceptionDispatchInfo exceptionInfo;
         volatile bool isDone;
 
-        class Runner : ComponentRunner
+        class Runner(
+            Func<TContext, Task<bool>> isDone,
+            Action setDone,
+            Action<ExceptionDispatchInfo> setException,
+            TContext scenarioContext)
+            : ComponentRunner
         {
-            public Runner(Func<TContext, Task<bool>> isDone, Action setDone, Action<ExceptionDispatchInfo> setException, TContext scenarioContext)
-            {
-                this.setException = setException;
-                this.isDone = isDone;
-                this.setDone = setDone;
-                this.scenarioContext = scenarioContext;
-            }
-
             public override string Name => "ServiceControlClient";
 
             public override Task Start(CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -158,12 +149,8 @@
                 }
             }
 
-            Func<TContext, Task<bool>> isDone;
-            Action setDone;
-            TContext scenarioContext;
             Task checkTask;
             CancellationTokenSource tokenSource;
-            Action<ExceptionDispatchInfo> setException;
         }
     }
 }
