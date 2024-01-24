@@ -59,12 +59,11 @@
             }
 
             //Retries
+            services.AddSingleton<RetryDocumentManager>();
+            services.AddSingleton<RetriesGateway>();
+            services.AddSingleton<RetryProcessor>();
             if (settings.RunRetryProcessor)
             {
-                services.AddSingleton<RetryDocumentManager>();
-                services.AddSingleton<RetriesGateway>();
-                services.AddSingleton<RetryProcessor>();
-
                 services.AddHostedService<RebuildRetryGroupStatusesHostedService>();
                 services.AddHostedService<BulkRetryBatchCreationHostedService>();
                 services.AddHostedService<AdoptOrphanBatchesFromPreviousSessionHostedService>();
