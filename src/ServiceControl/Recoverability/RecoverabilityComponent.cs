@@ -50,6 +50,7 @@
             services.AddHostedService(provider => provider.GetRequiredService<ReturnToSenderDequeuer>());
 
             //Error importer
+            services.AddSingleton<ImportFailedErrors>();
             services.AddSingleton<ErrorIngestor>();
             services.AddSingleton<ErrorIngestionCustomCheck.State>();
             if (settings.IngestErrorMessages)
