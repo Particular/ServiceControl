@@ -26,7 +26,10 @@
         {
             FailedMessage decomissionedFailure = null, successfullyRetried = null;
 
-            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IErrorMessageDataStore>(), provider.GetRequiredService<MyContext>())));
+            CustomizeHostBuilder = hostBuilder =>
+            {
+                hostBuilder.Services.AddSingleton<ReturnToSender>(provider => new FakeReturnToSender(provider.GetRequiredService<IErrorMessageDataStore>(), provider.GetRequiredService<MyContext>()));
+            };
 
             await Define<MyContext>()
                 .WithEndpoint<FailureEndpoint>(b => b.DoNotFailOnErrorMessages()
