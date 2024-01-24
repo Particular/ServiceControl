@@ -11,7 +11,6 @@ namespace ServiceControl.AcceptanceTests
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.Hosting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
