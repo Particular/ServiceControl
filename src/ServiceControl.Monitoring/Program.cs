@@ -3,6 +3,7 @@ namespace ServiceControl.Monitoring
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using ServiceControl.Transports;
@@ -13,8 +14,8 @@ namespace ServiceControl.Monitoring
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
+            AssemblyLoadContext.Default.Resolving += ResolveAssembly;
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
 
@@ -34,38 +35,28 @@ namespace ServiceControl.Monitoring
             settings = _settings;
         }
 
-        static void LogException(Exception ex)
+        static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
         {
-            Logger.Error("Unhandled exception was caught.", ex);
-        }
-
-        static Assembly ResolveAssembly(string name)
-        {
-            var assemblyLocation = Assembly.GetEntryAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            var requestingName = new AssemblyName(name).Name;
-
-            var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-
-            if (assembly == null && settings != null)
+            if (settings == null)
             {
-                var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                assembly = TryLoadAssembly(transportFolder, requestingName);
+                return null;
             }
+
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            var assembly = TryLoadAssembly(loadContext, transportFolder, assemblyName);
 
             return assembly;
         }
 
-        static Assembly TryLoadAssembly(string folderPath, string requestingName)
+        static Assembly TryLoadAssembly(AssemblyLoadContext loadContext, string folderPath, AssemblyName assemblyName)
         {
             if (folderPath != null)
             {
-                var path = Path.Combine(folderPath, $"{requestingName}.dll");
+                var path = Path.Combine(folderPath, $"{assemblyName.Name}.dll");
 
                 if (File.Exists(path))
                 {
-                    return Assembly.LoadFrom(path);
+                    return loadContext.LoadFromAssemblyPath(path);
                 }
             }
 
