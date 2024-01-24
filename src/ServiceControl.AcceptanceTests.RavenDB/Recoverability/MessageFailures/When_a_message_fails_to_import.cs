@@ -7,7 +7,6 @@
     using Infrastructure;
     using Infrastructure.DomainEvents;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -18,22 +17,18 @@
     using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
-
     class When_a_message_fails_to_import : AcceptanceTest
     {
         [Test]
         public async Task It_can_be_reimported()
         {
-            CustomConfiguration = config =>
+            CustomizeHostBuilder = hostBuilder =>
             {
-                config.RegisterComponents(c =>
-                {
-                    //Make sure the error import attempt fails
-                    c.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
+                //Make sure the error import attempt fails
+                hostBuilder.Services.AddSingleton<IEnrichImportedErrorMessages, FailOnceEnricher>();
 
-                    //Register domain event spy
-                    c.AddSingleton<IDomainHandler<MessageFailed>, MessageFailedHandler>();
-                });
+                //Register domain event spy
+                hostBuilder.Services.AddSingleton<IDomainHandler<MessageFailed>, MessageFailedHandler>();
             };
 
             SetSettings = settings =>
@@ -75,14 +70,8 @@
             Assert.IsTrue(runResult.MessageFailedEventPublished);
         }
 
-        class MessageFailedHandler : IDomainHandler<MessageFailed>
+        class MessageFailedHandler(MyContext scenarioContext) : IDomainHandler<MessageFailed>
         {
-            public MessageFailedHandler(MyContext scenarioContext)
-            {
-                this.scenarioContext = scenarioContext;
-            }
-            readonly MyContext scenarioContext;
-
             public Task Handle(MessageFailed domainEvent)
             {
                 scenarioContext.MessageFailedEventPublished = true;
@@ -90,15 +79,8 @@
             }
         }
 
-        class FailOnceEnricher : IEnrichImportedErrorMessages
+        class FailOnceEnricher(MyContext scenarioContext) : IEnrichImportedErrorMessages
         {
-            readonly MyContext scenarioContext;
-
-            public FailOnceEnricher(MyContext scenarioContext)
-            {
-                this.scenarioContext = scenarioContext;
-            }
-
             public void Enrich(ErrorEnricherContext context)
             {
                 if (!scenarioContext.FailedImport)
@@ -113,20 +95,10 @@
 
         public class ErrorLogSpy : EndpointConfigurationBuilder
         {
-            public ErrorLogSpy()
+            public ErrorLogSpy() => EndpointSetup<DefaultServer>();
+
+            public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
             {
-                EndpointSetup<DefaultServer>();
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                readonly MyContext scenarioContext;
-
-                public MyMessageHandler(MyContext scenarioContext)
-                {
-                    this.scenarioContext = scenarioContext;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     scenarioContext.ErrorForwarded = true;
@@ -137,38 +109,27 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
-            {
+            public Receiver() =>
                 EndpointSetup<DefaultServer>(c =>
                 {
                     var recoverability = c.Recoverability();
                     recoverability.Immediate(x => x.NumberOfRetries(0));
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
-            }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     scenarioContext.UniqueMessageId = DeterministicGuid.MakeId(context.MessageId, settings.EndpointName()).ToString();
