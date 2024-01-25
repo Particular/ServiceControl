@@ -38,6 +38,7 @@
   <ItemGroup>
     <None Remove="Hosting\Help.txt" />
     <EmbeddedResource Include="Hosting\Help.txt" />
+    <None Remove="Properties\launchSettings.json" />
   </ItemGroup>
 
   <ItemGroup>
