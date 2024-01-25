@@ -12,8 +12,8 @@
 
         [Route("connection")]
         [HttpGet]
-        public ActionResult<ResultsWrapper> GetConnectionDetails() =>
-            new ResultsWrapper
+        public ActionResult<ConnectionDetails> GetConnectionDetails() =>
+            new ConnectionDetails
             {
                 Metrics = new MetricsConnectionDetails
                 {
@@ -23,8 +23,7 @@
                 }
             };
 
-        // TODO Can we get rid of this wrapper and just return the details directly?
-        public class ResultsWrapper
+        public class ConnectionDetails
         {
             public MetricsConnectionDetails Metrics { get; set; }
         }
