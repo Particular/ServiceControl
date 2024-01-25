@@ -49,10 +49,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
 
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
-
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
             var logFile = Path.Combine(logfilesPath, $"{TestContext.CurrentContext.Test.ID}-{TestContext.CurrentContext.Test.Name}.txt");
