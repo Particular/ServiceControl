@@ -4,23 +4,21 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using System.Configuration;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
-    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
     using Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using ServiceBus.Management.Infrastructure.OWIN;
     using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
@@ -33,12 +31,11 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public HttpClient HttpClient { get; set; }
-        public JsonSerializerOptions SerializerOptions { get; }
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public Settings Settings { get; private set; }
+        public HttpClient HttpClient { get; private set; }
+        public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
         public string Port => Settings.HttpPort;
-        public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
+        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
@@ -46,6 +43,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         {
             var instancePort = PortUtility.FindAvailablePort(33333);
 
+            // TODO Check if we still need this
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 
             var settings = new Settings
@@ -87,17 +85,16 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 }
             };
 
+            setSettings(settings);
+            Settings = settings;
+
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run();
             }
 
-            setSettings(settings);
-            Settings = settings;
-
             var configuration = new EndpointConfiguration(instanceName);
-            configuration.EnableInstallers();
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -122,7 +119,12 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                bootstrapper = new Bootstrapper((criticalErrorContext, cancellationToken) =>
+                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
+                {
+                    // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
+                    EnvironmentName = Environments.Development
+                });
+                hostBuilder.AddServiceControlMonitoring((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
@@ -135,27 +137,18 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
-                bootstrapper.HostBuilder.ConfigureLogging(logging => logging.AddScenarioContextLogging());
+                hostBuilder.Logging.AddScenarioContextLogging();
 
-                host = bootstrapper.HostBuilder.Build();
+                hostBuilder.WebHost.UseTestServer();
+                // This facilitates receiving the test server anywhere where DI is available
+                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
+
+                host = hostBuilder.Build();
+                host.UseServiceControlMonitoring();
                 await host.StartAsync();
-            }
 
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new Startup(host.Services);
-                startup.Configuration(app);
-                var appFunc = app.Build();
-
-                Handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
+                HttpClient = host.Services.GetRequiredService<TestServer>().CreateClient();
+                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 
@@ -165,20 +158,14 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                Handler.Dispose();
-                host.Dispose();
+                await host.DisposeAsync();
             }
-
-            bootstrapper = null;
-            HttpClient = null;
-            Handler = null;
         }
 
-        Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_ENDPOINT_NAME;
-        IHost host;
+        WebApplication host;
     }
 }
