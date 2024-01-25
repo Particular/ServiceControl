@@ -1,7 +1,6 @@
 namespace ServiceControl.Monitoring.AcceptanceTests
 {
     using System;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
@@ -9,7 +8,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
     using System.Text.Json;
     using AcceptanceTesting;
     using Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -31,11 +29,10 @@ namespace ServiceControl.Monitoring.AcceptanceTests
 
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
-        public JsonSerializerOptions SerializerOptions { get; }
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public string Port => Settings.HttpPort;
+        public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
+        public string Port => Settings.HttpPort;
+        public Func<HttpMessageHandler> HttpMessageHandlerFactory => serviceControlRunnerBehavior.HttpMessageHandlerFactory;
 
         [OneTimeSetUp]
         public static void OneTimeSetup()

@@ -100,7 +100,6 @@
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-
                 var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run();
             }
@@ -125,6 +124,7 @@
 
             customConfiguration(configuration);
 
+            // TODO Do we really need to setup the infrastructure twice? It is also like this on master
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
@@ -183,8 +183,6 @@
                 await host.DisposeAsync();
                 DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
             }
-
-            HttpClient = null;
         }
 
         WebApplication host;
