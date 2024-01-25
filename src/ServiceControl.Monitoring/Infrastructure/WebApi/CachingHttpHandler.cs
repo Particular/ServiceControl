@@ -1,42 +1,43 @@
 ﻿namespace ServiceControl.Monitoring.Infrastructure.WebApi
 {
     using System;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class CachingHttpHandler : DelegatingHandler
+    class CachingHttpHandler : IResultFilter
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+        public void OnResultExecuting(ResultExecutingContext context)
         {
-            var response = await base.SendAsync(request, cancellationToken);
+            var response = context.HttpContext.Response;
 
-            if (!response.Content.Headers.Contains("Expires"))
+            if (!response.Headers.ContainsKey("Expires"))
             {
-                response.Content.Headers.Add("Expires", "Tue, 03 Jul 2001 06:00:00 GMT");
+                response.Headers["Expires"] = "Tue, 03 Jul 2001 06:00:00 GMT";
             }
 
-            if (!response.Content.Headers.Contains("Last-Modified"))
+            if (!response.Headers.ContainsKey("Last-Modified"))
             {
-                response.Content.Headers.Add("Last-Modified", DateTime.UtcNow.ToString("R"));
+                response.Headers["Last-Modified"] = DateTime.UtcNow.ToString("R");
             }
 
-            if (!response.Headers.Contains("Cache-Control"))
+            if (!response.Headers.ContainsKey("Cache-Control"))
             {
-                response.Headers.Add("Cache-Control", "private, max-age=0, no-cache, must-revalidate, proxy-revalidate, no-store");
+                response.Headers["Cache-Control"] = "private, max-age=0, no-cache, must-revalidate, proxy-revalidate, no-store";
             }
 
-            if (!response.Headers.Contains("Pragma"))
+            if (!response.Headers.ContainsKey("Pragma"))
             {
-                response.Headers.Add("Pragma", "no-cache");
+                response.Headers["Pragma"] = "no-cache";
             }
 
-            if (!response.Headers.Contains("Vary"))
+            if (!response.Headers.ContainsKey("Vary"))
             {
-                response.Headers.Add("Vary", "Accept");
+                response.Headers["Vary"] = "Accept";
             }
+        }
 
-            return response;
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // NOP
         }
     }
 }
