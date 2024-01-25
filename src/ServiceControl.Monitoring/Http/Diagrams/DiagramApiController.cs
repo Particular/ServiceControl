@@ -13,7 +13,7 @@
     {
         [Route("monitored-endpoints")]
         [HttpGet]
-        public ActionResult<MonitoredEndpoint[]> GetAllEndpointsMetrics([FromQuery] int? history)
+        public ActionResult<MonitoredEndpoint[]> GetAllEndpointsMetrics([FromQuery] int? history = null)
         {
             var metricByInstanceLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInstanceId>>().ToDictionary(i => i.GetType());
 
@@ -53,7 +53,7 @@
 
         [Route("monitored-endpoints/{endpointName}")]
         [HttpGet]
-        public ActionResult<MonitoredEndpointDetails> GetSingleEndpointMetrics(string endpointName, [FromQuery] int? history)
+        public ActionResult<MonitoredEndpointDetails> GetSingleEndpointMetrics(string endpointName, [FromQuery] int? history = null)
         {
             var metricByInstanceLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInstanceId>>().ToDictionary(i => i.GetType());
 
