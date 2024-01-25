@@ -31,11 +31,9 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
-        public string Port => Settings.HttpPort;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
+        public string Port => settings.HttpPort;
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
@@ -46,7 +44,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             // TODO Check if we still need this
             ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
 
-            var settings = new Settings
+            settings = new Settings
             {
                 EndpointName = instanceName,
                 HttpPort = instancePort.ToString(),
@@ -86,7 +84,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             };
 
             setSettings(settings);
-            Settings = settings;
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
@@ -148,7 +145,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 await host.StartAsync();
 
                 HttpClient = host.Services.GetRequiredService<TestServer>().CreateClient();
-                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 
@@ -167,5 +163,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customConfiguration;
         string instanceName = Settings.DEFAULT_ENDPOINT_NAME;
         WebApplication host;
+        Settings settings;
     }
 }

@@ -21,8 +21,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public string Port => runner.Port;
-        public Settings Settings => runner.Settings;
-        public Func<HttpMessageHandler> HttpMessageHandlerFactory => runner.HttpMessageHandlerFactory;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
