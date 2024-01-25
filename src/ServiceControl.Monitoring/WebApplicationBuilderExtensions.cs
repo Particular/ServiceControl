@@ -69,6 +69,8 @@ public static class WebApplicationBuilderExtensions
             return endpointConfiguration;
         });
 
+        // TODO Verify if that even makes sense since we are always starting a webapplication
+        // We also don't do this in the primary instance
         if (!settings.ExposeApi)
         {
             hostBuilder.WebHost.UseUrls(settings.RootUrl);
