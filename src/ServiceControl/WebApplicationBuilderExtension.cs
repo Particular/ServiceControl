@@ -3,10 +3,10 @@ namespace Particular.ServiceControl
     using System;
     using System.Diagnostics;
     using System.Net;
-    using System.Net.Http;
     using System.Reflection;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
+    using global::ServiceControl.Hosting;
     using global::ServiceControl.Infrastructure.BackgroundTasks;
     using global::ServiceControl.Infrastructure.DomainEvents;
     using global::ServiceControl.Infrastructure.Metrics;
@@ -19,6 +19,7 @@ namespace Particular.ServiceControl
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using Microsoft.Extensions.Logging;
     using NLog.Extensions.Logging;
     using NServiceBus;
@@ -28,7 +29,6 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
-    using Yarp.ReverseProxy.Forwarder;
 
     static class WebApplicationBuilderExtension
     {
@@ -113,9 +113,15 @@ namespace Particular.ServiceControl
                 hostBuilder.UseInternalCustomChecks();
             }
 
-            if (settings.RunAsWindowsService)
+            hostBuilder.Services.AddWindowsService();
+
+            if (WindowsServiceHelpers.IsWindowsService())
             {
-                hostBuilder.Services.AddWindowsService();
+                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingWindowsServiceLifetime>();
+            }
+            else
+            {
+                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingConsoleLifetime>();
             }
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
