@@ -69,18 +69,15 @@ public static class WebApplicationBuilderExtensions
             return endpointConfiguration;
         });
 
-        // TODO Verify if that even makes sense since we are always starting a webapplication
+        // TODO Verify if that we need to check the expose API flag
         // We also don't do this in the primary instance
-        if (!settings.ExposeApi)
+        hostBuilder.WebHost.UseUrls(settings.RootUrl);
+        var controllers = hostBuilder.Services.AddControllers(options =>
         {
-            hostBuilder.WebHost.UseUrls(settings.RootUrl);
-            var controllers = hostBuilder.Services.AddControllers(options =>
-            {
-                options.Filters.Add<XParticularVersionHttpHandler>();
-                options.Filters.Add<CachingHttpHandler>();
-            });
-            controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
-        }
+            options.Filters.Add<XParticularVersionHttpHandler>();
+            options.Filters.Add<CachingHttpHandler>();
+        });
+        controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
     }
 
     internal static void ConfigureEndpoint(EndpointConfiguration config, Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, ITransportCustomization transportCustomization, Settings settings)
