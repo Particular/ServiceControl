@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
-    using Monitoring;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Features;
@@ -11,8 +11,9 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
+        // TODO: Revisit the default server base having a bootstrapper reference
         public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
-            new DefaultServerBase<Bootstrapper>(new ConfigureEndpointLearningTransport()).GetConfiguration(runDescriptor, endpointConfiguration, async b =>
+            new DefaultServerBase<SetupBootstrapper>(new ConfigureEndpointLearningTransport()).GetConfiguration(runDescriptor, endpointConfiguration, async b =>
             {
                 b.DisableFeature<Audit>();
 

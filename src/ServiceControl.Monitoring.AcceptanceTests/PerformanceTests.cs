@@ -43,10 +43,8 @@
                 queueLengthStore
             };
 
-            var controller = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
-            {
-                Request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/monitored-endpoint")
-            };
+            var controller = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker,
+                messageTypeRegistry);
 
             GetMonitoredEndpoints = () => controller.GetAllEndpointsMetrics();
             GetMonitoredSingleEndpoint = endpointName => controller.GetSingleEndpointMetrics(endpointName);
