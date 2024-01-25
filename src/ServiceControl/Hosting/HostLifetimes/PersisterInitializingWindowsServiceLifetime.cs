@@ -8,18 +8,9 @@
     using Microsoft.Extensions.Options;
     using ServiceControl.Persistence;
 
-    sealed class PersisterInitializingWindowsServiceLifetime : WindowsServiceLifetime, IHostLifetime
+    sealed class PersisterInitializingWindowsServiceLifetime(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor, IOptions<WindowsServiceLifetimeOptions> windowsServiceOptionsAccessor, IPersistenceLifecycle persistenceLifecycle)
+        : WindowsServiceLifetime(environment, applicationLifetime, loggerFactory, optionsAccessor, windowsServiceOptionsAccessor), IHostLifetime
     {
-        readonly IPersistenceLifecycle persistenceLifecycle;
-
-        public PersisterInitializingWindowsServiceLifetime(
-            IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor, IOptions<WindowsServiceLifetimeOptions> windowsServiceOptionsAccessor, // base constructor
-            IPersistenceLifecycle persistenceLifecycle
-            ) : base(environment, applicationLifetime, loggerFactory, optionsAccessor, windowsServiceOptionsAccessor)
-        {
-            this.persistenceLifecycle = persistenceLifecycle;
-        }
-
         public new async Task WaitForStartAsync(CancellationToken cancellationToken)
         {
             await base.WaitForStartAsync(cancellationToken);

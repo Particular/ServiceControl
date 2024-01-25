@@ -150,6 +150,7 @@
 
                 // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer();
+                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
