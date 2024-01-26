@@ -89,8 +89,7 @@
             Array.ForEach(connected, instance => activityTracker.Record(instance, now));
             Array.ForEach(connected, instance => processingTimeStore.Store(samples, instance, EndpointMessageType.Unknown(instance.EndpointName)));
 
-            var result = apiController.GetAllEndpointsMetrics();
-            var model = result.Value;
+            var model = apiController.GetAllEndpointsMetrics();
             var item = model[0];
 
             Assert.AreEqual(3, item.EndpointInstanceIds.Length, nameof(item.EndpointInstanceIds));
