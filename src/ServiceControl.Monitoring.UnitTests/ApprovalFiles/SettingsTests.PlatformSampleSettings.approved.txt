@@ -19,5 +19,6 @@
   "RootUrl": "http://localhost:9999/",
   "MaximumConcurrencyLevel": 32,
   "LicenseFileText": null,
-  "ExposeApi": true
+  "ExposeApi": true,
+  "RunAsWindowsService": false
 }
