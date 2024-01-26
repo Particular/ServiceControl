@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Infrastructure;
     using ServiceControl.Audit.Persistence;
 
-    class GetAllMessagesForEndpointApi : ApiBase<string, IList<MessagesView>>
+    public class GetAllMessagesForEndpointApi : ApiBase<string, IList<MessagesView>>
     {
         public GetAllMessagesForEndpointApi(IAuditDataStore dataStore) : base(dataStore)
         {

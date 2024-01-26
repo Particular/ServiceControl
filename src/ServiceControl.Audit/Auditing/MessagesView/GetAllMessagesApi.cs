@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Infrastructure;
     using ServiceControl.Audit.Persistence;
 
-    class GetAllMessagesApi : ApiBaseNoInput<IList<MessagesView>>
+    public class GetAllMessagesApi : ApiBaseNoInput<IList<MessagesView>>
     {
         public GetAllMessagesApi(IAuditDataStore dataStore) : base(dataStore)
         {

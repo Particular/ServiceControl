@@ -2,9 +2,11 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
 
-    class MessagesConversationController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class MessagesConversationController : ControllerBase
     {
         public MessagesConversationController(MessagesByConversationApi api)
         {

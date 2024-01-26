@@ -1,20 +1,20 @@
 namespace ServiceControl.Audit.Connection
 {
-    using System.Web.Http;
     using Infrastructure.Settings;
-    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Mvc;
 
-    class ConnectionController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class ConnectionController : ControllerBase
     {
         readonly Settings settings;
-        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
 
         public ConnectionController(Settings settings) => this.settings = settings;
 
         [Route("connection")]
         [HttpGet]
-        public IHttpActionResult GetConnectionDetails() =>
-            Json(new
+        public ConnectionDetails GetConnectionDetails() =>
+            new()
             {
                 MessageAudit = new MessageAuditConnectionDetails
                 {
@@ -26,19 +26,25 @@ namespace ServiceControl.Audit.Connection
                     Enabled = true,
                     SagaAuditQueue = settings.AuditQueue
                 }
-            },
-            jsonSerializerSettings);
+            };
+    }
+
+    public class ConnectionDetails
+    {
+        public MessageAuditConnectionDetails MessageAudit { get; set; }
+        public SagaAuditConnectionDetails SagaAudit { get; set; }
+
     }
 
     // HINT: This should match the type in the PlatformConnector package
-    class MessageAuditConnectionDetails
+    public class MessageAuditConnectionDetails
     {
         public bool Enabled { get; set; }
         public string AuditQueue { get; set; }
     }
 
     // HINT: This should match the type in the PlatformConnector package
-    class SagaAuditConnectionDetails
+    public class SagaAuditConnectionDetails
     {
         public bool Enabled { get; set; }
         public string SagaAuditQueue { get; set; }

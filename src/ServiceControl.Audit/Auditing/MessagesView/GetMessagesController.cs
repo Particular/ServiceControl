@@ -2,11 +2,13 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
 
     // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
     // from `messages/{*catchAll}` if they're in separate controllers.
-    class GetMessagesController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class GetMessagesController : ControllerBase
     {
         public GetMessagesController(GetAllMessagesApi getAllMessagesApi,
             GetAllMessagesForEndpointApi getAllMessagesForEndpointApi,

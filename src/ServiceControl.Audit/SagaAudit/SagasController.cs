@@ -3,9 +3,11 @@ namespace ServiceControl.Audit.SagaAudit
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
 
-    class SagasController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class SagasController : ControllerBase
     {
         public SagasController(GetSagaByIdApi getSagaByIdApi)
         {

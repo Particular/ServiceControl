@@ -2,9 +2,11 @@ namespace ServiceControl.Audit.Monitoring
 {
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
 
-    class KnownEndpointsController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class KnownEndpointsController : ControllerBase
     {
         public KnownEndpointsController(GetKnownEndpointsApi knownEndpointsApi) => getKnownEndpointsApi = knownEndpointsApi;
 

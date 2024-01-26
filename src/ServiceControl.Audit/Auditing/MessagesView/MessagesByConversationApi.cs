@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Infrastructure;
     using ServiceControl.Audit.Persistence;
 
-    class MessagesByConversationApi : ApiBase<string, IList<MessagesView>>
+    public class MessagesByConversationApi : ApiBase<string, IList<MessagesView>>
     {
         public MessagesByConversationApi(IAuditDataStore dataStore) : base(dataStore)
         {

@@ -8,7 +8,7 @@
     using MessagesView;
     using Persistence;
 
-    class GetBodyByIdApi : IApi
+    public class GetBodyByIdApi : IApi
     {
         public GetBodyByIdApi(IAuditDataStore dataStore) => this.dataStore = dataStore;
 
