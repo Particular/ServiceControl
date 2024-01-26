@@ -41,9 +41,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         {
             var instancePort = PortUtility.FindAvailablePort(33333);
 
-            // TODO Check if we still need this
-            ConfigurationManager.AppSettings.Set("Monitoring/TransportType", transportToUse.TypeName);
-
             settings = new Settings
             {
                 EndpointName = instanceName,
