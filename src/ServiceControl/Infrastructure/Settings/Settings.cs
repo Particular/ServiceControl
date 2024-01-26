@@ -357,11 +357,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
             return Array.Empty<RemoteInstanceSetting>();
         }
 
-        internal static RemoteInstanceSetting[] ParseRemoteInstances(string value)
-        {
-            var sanitizedValue = value.Replace("'", "\"");
-            return JsonSerializer.Deserialize<RemoteInstanceSetting[]>(sanitizedValue, SerializerOptions.Default) ?? [];
-        }
+        internal static RemoteInstanceSetting[] ParseRemoteInstances(string value) =>
+            JsonSerializer.Deserialize<RemoteInstanceSetting[]>(value, SerializerOptions.Default) ?? [];
 
         static string Subscope(string address)
         {
