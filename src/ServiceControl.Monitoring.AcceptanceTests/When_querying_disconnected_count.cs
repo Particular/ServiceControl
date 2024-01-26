@@ -17,7 +17,10 @@
         {
             TestContext context = null;
 
-            ConfigurationManager.AppSettings.Set("Monitoring/EndpointUptimeGracePeriod", TimeSpan.FromSeconds(1).ToString());
+            SetSettings = settings =>
+            {
+                settings.EndpointUptimeGracePeriod = TimeSpan.FromSeconds(1);
+            };
 
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
