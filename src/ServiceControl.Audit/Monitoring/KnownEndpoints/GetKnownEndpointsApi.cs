@@ -6,7 +6,7 @@ namespace ServiceControl.Audit.Monitoring
     using Auditing.MessagesView;
     using ServiceControl.Audit.Persistence;
 
-    class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
+    public class GetKnownEndpointsApi : ApiBaseNoInput<IList<KnownEndpointsView>>
     {
         public GetKnownEndpointsApi(IAuditDataStore dataStore) : base(dataStore)
         {

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -27,11 +27,6 @@
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
-  </ItemGroup>
-
-  <ItemGroup Label="Keep to make projects compile for now">
-    <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost" />
-    <PackageReference Include="Microsoft.Owin.Cors" />
   </ItemGroup>
 
   <ItemGroup>

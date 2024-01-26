@@ -7,7 +7,7 @@ namespace ServiceControl.Audit.SagaAudit
     using ServiceControl.Audit.Persistence;
     using ServiceControl.SagaAudit;
 
-    class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
+    public class GetSagaByIdApi : ApiBase<Guid, SagaHistory>
     {
         public GetSagaByIdApi(IAuditDataStore dataStore) : base(dataStore)
         {

@@ -5,7 +5,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence;
 
-    class GetAuditCountsForEndpointApi : ApiBase<string, IList<AuditCount>>
+    public class GetAuditCountsForEndpointApi : ApiBase<string, IList<AuditCount>>
     {
         public GetAuditCountsForEndpointApi(IAuditDataStore dataStore) : base(dataStore)
         {

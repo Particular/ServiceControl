@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System.Web.Http;
     using System.Web.Http.Results;
+    using Microsoft.AspNetCore.Mvc;
     using Settings;
 
-    class RootController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class RootController : ControllerBase
     {
         public RootController(LoggingSettings loggingSettings, Settings settings)
         {
