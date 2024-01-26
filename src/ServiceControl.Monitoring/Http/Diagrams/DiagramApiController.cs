@@ -13,7 +13,7 @@
     {
         [Route("monitored-endpoints")]
         [HttpGet]
-        public ActionResult<MonitoredEndpoint[]> GetAllEndpointsMetrics([FromQuery] int? history = null)
+        public MonitoredEndpoint[] GetAllEndpointsMetrics([FromQuery] int? history = null)
         {
             var metricByInstanceLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInstanceId>>().ToDictionary(i => i.GetType());
 
