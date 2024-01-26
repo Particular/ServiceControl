@@ -1,19 +1,23 @@
 namespace ServiceControl.Audit.Monitoring
 {
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Infrastructure;
+    using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Mvc;
+    using Persistence;
 
     [ApiController]
     [Route("api")]
-    public class KnownEndpointsController : ControllerBase
+    public class KnownEndpointsController(IAuditDataStore dataStore) : ControllerBase
     {
-        public KnownEndpointsController(GetKnownEndpointsApi knownEndpointsApi) => getKnownEndpointsApi = knownEndpointsApi;
-
         [Route("endpoints/known")]
         [HttpGet]
-        public Task<HttpResponseMessage> GetAll() => getKnownEndpointsApi.Execute(this);
-
-        readonly GetKnownEndpointsApi getKnownEndpointsApi;
+        public async Task<IList<KnownEndpointsView>> GetAll([FromQuery] PagingInfo pagingInfo)
+        {
+            var result = await dataStore.QueryKnownEndpoints();
+            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
     }
 }
