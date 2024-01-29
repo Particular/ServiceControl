@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using NLog;
     using NServiceBus;
@@ -15,41 +16,39 @@
         {
             settings.IngestAuditMessages = false;
 
-            var busConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
 
-            using (var tokenSource = new CancellationTokenSource())
+            using var tokenSource = new CancellationTokenSource();
+
+            // TODO: Ideally we would never want to actually bootstrap the web api. Figure out how
+            var hostBuilder = WebApplication.CreateBuilder();
+            hostBuilder.AddServiceControlAudit((_, __) =>
             {
-                var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
-                var bootstrapper = new Bootstrapper(
-                    (_, __) =>
-                    {
-                        tokenSource.Cancel();
-                        return Task.CompletedTask;
-                    },
-                    settings,
-                    busConfiguration,
-                    loggingSettings);
+                tokenSource.Cancel();
+                return Task.CompletedTask;
+            }, settings, endpointConfiguration, loggingSettings);
+            var app = hostBuilder.Build();
 
-                var host = bootstrapper.HostBuilder.Build();
+            app.UseServiceControlAudit();
 
-                await host.StartAsync(tokenSource.Token);
+            await app.StartAsync(tokenSource.Token);
 
-                var importer = host.Services.GetRequiredService<ImportFailedAudits>();
+            var importer = app.Services.GetRequiredService<ImportFailedAudits>();
 
-                Console.CancelKeyPress += (sender, eventArgs) => { tokenSource.Cancel(); };
+            Console.CancelKeyPress += (_, _) => { tokenSource.Cancel(); };
 
-                try
-                {
-                    await importer.Run(tokenSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    // no op
-                }
-                finally
-                {
-                    await host.StopAsync(CancellationToken.None);
-                }
+            try
+            {
+                await importer.Run(tokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // no op
+            }
+            finally
+            {
+                await app.StopAsync(CancellationToken.None);
             }
         }
     }

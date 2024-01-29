@@ -1,32 +1,21 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.OWIN
 {
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using NServiceBus.Logging;
 
-    class LogApiCalls : OwinMiddleware
+    // TODO Is there some built-in mechanism to do that?
+    class LogApiCalls(RequestDelegate next)
     {
-        public LogApiCalls(OwinMiddleware next) : base(next)
+        public Task Invoke(HttpContext context) => log.IsDebugEnabled ? LogAllIncomingCalls(context) : next(context);
+
+        async Task LogAllIncomingCalls(HttpContext context)
         {
-        }
+            log.DebugFormat("Begin {0}: {1} {2}", context.Request.Method, context.Request.Host, context.Request.Path);
 
-        public override Task Invoke(IOwinContext context)
-        {
-            if (log.IsDebugEnabled)
-            {
-                return LogAllIncomingCalls(this, context);
-            }
+            await next(context);
 
-            return Next.Invoke(context);
-        }
-
-        static async Task LogAllIncomingCalls(LogApiCalls middleware, IOwinContext context)
-        {
-            log.DebugFormat("Begin {0}: {1}", context.Request.Method, context.Request.Uri.ToString());
-
-            await middleware.Next.Invoke(context);
-
-            log.DebugFormat("End {0} ({1}): {2}", context.Request.Method, context.Response.StatusCode, context.Request.Uri.ToString());
+            log.DebugFormat("End {0} ({1}): {2} {3}", context.Request.Method, context.Response.StatusCode, context.Request.Host, context.Request.Path);
         }
 
         static ILog log = LogManager.GetLogger<LogApiCalls>();

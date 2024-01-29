@@ -23,7 +23,7 @@ namespace ServiceControl.Audit.Infrastructure
                 return;
             }
 
-            var version = FileVersionInfo.GetVersionInfo(typeof(Bootstrapper).Assembly.Location).ProductVersion;
+            var version = FileVersionInfo.GetVersionInfo(typeof(LoggingConfigurator).Assembly.Location).ProductVersion;
             var nlogConfig = new LoggingConfiguration();
             var simpleLayout = new SimpleLayout("${longdate}|${threadid}|${level}|${logger}|${message}${onexception:|${exception:format=tostring}}");
             var header = $@"-------------------------------------------------------------

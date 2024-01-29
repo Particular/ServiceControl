@@ -47,7 +47,7 @@
 
             var result = controller.Urls();
 
-            Approver.Verify(result.Content);
+            Approver.Verify(result.Value);
         }
 
         [Test]

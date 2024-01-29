@@ -85,10 +85,9 @@ namespace Particular.ServiceControl
 
             // TODO: rename these to be Add* instead of Use*
             hostBuilder.UseLicenseCheck();
-            hostBuilder.AddPersistence(settings);
-            // TODO: rename these to be Add* instead of Use*
-            hostBuilder.UseMetrics(settings.PrintMetrics);
-            hostBuilder.Host.UseNServiceBus(context =>
+            services.AddPersistence(settings);
+            services.AddMetrics(settings.PrintMetrics);
+            hostBuilder.Host.UseNServiceBus(_ =>
             {
                 NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
                 return configuration;

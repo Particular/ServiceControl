@@ -1,16 +1,13 @@
 ﻿namespace ServiceControl.Infrastructure.Metrics
 {
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
 
-    static class MetricsHostBuilderExtensions
+    static class MetricsServiceCollectionExtensions
     {
-        public static IHostApplicationBuilder UseMetrics(this IHostApplicationBuilder hostBuilder, bool printMetrics)
+        public static void AddMetrics(this IServiceCollection services, bool printMetrics)
         {
-            var services = hostBuilder.Services;
             services.AddSingleton(new Metrics { Enabled = printMetrics });
             services.AddHostedService<MetricsReporterHostedService>();
-            return hostBuilder;
         }
     }
 }

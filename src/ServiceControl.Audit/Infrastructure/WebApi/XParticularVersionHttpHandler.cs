@@ -1,25 +1,11 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System.Net.Http;
     using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class XParticularVersionHttpHandler : DelegatingHandler
+    class XParticularVersionHttpHandler : IResultFilter
     {
-        static XParticularVersionHttpHandler()
-        {
-            FileVersion = GetFileVersion();
-        }
-
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-        {
-            var response = await base.SendAsync(request, cancellationToken);
-
-            response.Headers.Add("X-Particular-Version", FileVersion);
-
-            return response;
-        }
+        static XParticularVersionHttpHandler() => FileVersion = GetFileVersion();
 
         static string GetFileVersion()
         {
@@ -36,5 +22,11 @@
         }
 
         static readonly string FileVersion;
+        public void OnResultExecuting(ResultExecutingContext context) => context.HttpContext.Response.Headers["X-Particular-Version"] = FileVersion;
+
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // NOP
+        }
     }
 }

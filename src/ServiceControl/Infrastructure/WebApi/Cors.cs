@@ -2,7 +2,7 @@
 {
     using Microsoft.AspNetCore.Cors.Infrastructure;
 
-    class Cors
+    static class Cors
     {
         public static CorsPolicy GetDefaultPolicy()
         {

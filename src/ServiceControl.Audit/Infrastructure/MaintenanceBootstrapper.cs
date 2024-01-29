@@ -2,32 +2,28 @@ namespace ServiceControl.Audit.Infrastructure
 {
     using System;
     using System.Threading.Tasks;
-    using Hosting;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using ServiceControl.Audit.Persistence;
 
     static class MaintenanceBootstrapper
     {
-        public static async Task Run(HostArguments args, Settings.Settings settings)
+        public static async Task Run(Settings.Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);
 
             persistenceSettings.MaintenanceMode = true;
 
-            var hostBuilder = new HostBuilder()
-                .SetupPersistence(persistenceSettings, persistenceConfiguration);
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
-            if (args.RunAsWindowsService)
+            if (WindowsServiceHelpers.IsWindowsService())
             {
-                hostBuilder.UseWindowsService();
-
                 await hostBuilder.Build().RunAsync();
             }
             else
             {
-                hostBuilder.UseConsoleLifetime();
-
                 await Console.Out.WriteLineAsync("Running in Maintenance Mode - Press CTRL+C to exit");
 
                 await hostBuilder.Build().RunAsync();
