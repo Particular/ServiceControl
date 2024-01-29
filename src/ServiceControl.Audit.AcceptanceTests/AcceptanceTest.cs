@@ -9,6 +9,7 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -44,6 +45,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
+            CustomizeHostBuilder = _ => { };
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
@@ -62,7 +64,7 @@ namespace ServiceControl.Audit.AcceptanceTests
 
             await StorageConfiguration.Configure();
 
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d), hb => CustomizeHostBuilder(hb));
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
         }
 
@@ -86,6 +88,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IDictionary<string, string>> SetStorageConfiguration = _ => { };
+        protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 

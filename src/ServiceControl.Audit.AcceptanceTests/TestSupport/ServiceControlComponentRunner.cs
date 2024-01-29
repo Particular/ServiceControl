@@ -28,13 +28,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         public ServiceControlComponentRunner(ITransportIntegration transportToUse,
             AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings,
             Action<EndpointConfiguration> customConfiguration,
-            Action<IDictionary<string, string>> setStorageConfiguration)
+            Action<IDictionary<string, string>> setStorageConfiguration,
+            Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
             this.customConfiguration = customConfiguration;
             this.setStorageConfiguration = setStorageConfiguration;
             this.setSettings = setSettings;
+            this.hostBuilderCustomization = hostBuilderCustomization;
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
@@ -170,12 +172,12 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
                 addControllers.AddApplicationPart(typeof(FailedAuditsController).Assembly);
 
-                // TODO By introducing this customization we can probably get rid of accessing the ServiceProvider from the test
-                // hostBuilderCustomization(hostBuilder);
+                hostBuilderCustomization(hostBuilder);
 
                 host = hostBuilder.Build();
                 host.UseServiceControlAudit();
                 await host.StartAsync();
+                // TODO We can probably remove this by switching over to the hostBuilderCustomization
                 ServiceProvider = host.Services;
                 HttpClient = host.GetTestServer().CreateClient();
             }
@@ -196,6 +198,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IDictionary<string, string>> setStorageConfiguration;
+        Action<IHostApplicationBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         WebApplication host;
         Settings settings;
