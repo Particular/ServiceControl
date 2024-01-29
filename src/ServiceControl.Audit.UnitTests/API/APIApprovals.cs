@@ -16,7 +16,8 @@
     [TestFixture]
     class APIApprovals
     {
-        // TODO: This test is probably no longer a good idea
+        // TODO: This test is probably no longer a good idea with all the controllers being public and this test probably
+        // previously intending to "abuse" api approvals to verify some sort of contract shared between the primary and the secondary
         [Test]
         public void PublicClr()
         {
