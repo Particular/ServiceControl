@@ -19,10 +19,7 @@
     <PackageReference Include="NServiceBus.SagaAudit" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
-  </ItemGroup>
-
-  <ItemGroup Label="Keep to make projects compile for now">
-    <PackageReference Include="OwinHttpMessageHandler" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
 </Project>

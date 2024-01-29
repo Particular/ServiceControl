@@ -5,26 +5,23 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Configuration;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Auditing;
     using Infrastructure;
-    using Infrastructure.OWIN;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
     using TestHelper;
-    using LogLevel = NServiceBus.Logging.LogLevel;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -42,15 +39,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
-        public JsonSerializerOptions SerializerOptions { get; }
-        public IServiceProvider ServiceProvider { get; private set; }
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
+        public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public string Port => settings.Port.ToString();
+        public IServiceProvider ServiceProvider { get; private set; }
 
-        public Task Initialize(RunDescriptor run)
-        {
-            return InitializeServiceControl(run.ScenarioContext);
-        }
+        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
@@ -69,7 +62,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     var id = messageContext.NativeMessageId;
                     var headers = messageContext.Headers;
 
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
+                    var log = NServiceBus.Logging.LogManager.GetLogger<ServiceControlComponentRunner>();
                     headers.TryGetValue(Headers.MessageId, out var originalMessageId);
                     log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
 
@@ -137,56 +130,54 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Starting host for {instanceName}"))
+            using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
-                var loggingSettings = new LoggingSettings(settings.ServiceName, logPath: logPath);
-
-                bootstrapper = new Bootstrapper((criticalErrorContext, cancellationToken) =>
+                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
+                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
+                {
+                    // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
+                    EnvironmentName = Environments.Development
+                });
+                hostBuilder.AddServiceControlAudit((criticalErrorContext, cancellationToken) =>
                 {
                     var logitem = new ScenarioContext.LogItem
                     {
                         Endpoint = settings.ServiceName,
-                        Level = LogLevel.Fatal,
+                        Level = NServiceBus.Logging.LogLevel.Fatal,
                         LoggerName = $"{settings.ServiceName}.CriticalError",
                         Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
                     };
                     context.Logs.Enqueue(logitem);
                     return criticalErrorContext.Stop(cancellationToken);
-                },
-                settings,
-                configuration,
-                loggingSettings);
+                }, settings, configuration, loggingSettings);
 
-                bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging())
-                    .ConfigureServices(s =>
-                    {
-                        s.AddTransient<FailedAuditsController>();
-                    });
+                // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
+                // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
+                hostBuilder.Logging.AddScenarioContextLogging();
 
-                host = await bootstrapper.HostBuilder.StartAsync();
+                // TODO: the following four lines could go into a AddServiceControlAuditTesting() extension
+                hostBuilder.WebHost.UseTestServer();
+                // This facilitates receiving the test server anywhere where DI is available
+                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
+                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
+                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
+                // so we are explicitly registering all necessary application parts.
+                var addControllers = hostBuilder.Services.AddControllers();
+                addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
+                addControllers.AddApplicationPart(typeof(FailedAuditsController).Assembly);
+
+                // TODO By introducing this customization we can probably get rid of accessing the ServiceProvider from the test
+                // hostBuilderCustomization(hostBuilder);
+
+                host = hostBuilder.Build();
+                host.UseServiceControlAudit();
+                await host.StartAsync();
                 ServiceProvider = host.Services;
-            }
-
-            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new Startup(host.Services);
-                startup.Configuration(app, typeof(FailedAuditsController).Assembly);
-                var appFunc = app.Build();
-
-                handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
+                HttpClient = host.GetTestServer().CreateClient();
             }
         }
 
@@ -196,24 +187,17 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                handler.Dispose();
-                host.Dispose();
+                await host.DisposeAsync();
             }
-
-            bootstrapper = null;
-            HttpClient = null;
-            handler = null;
         }
 
-        Bootstrapper bootstrapper;
         ITransportIntegration transportToUse;
         AcceptanceTestStorageConfiguration persistenceToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
         Action<IDictionary<string, string>> setStorageConfiguration;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
-        IHost host;
+        WebApplication host;
         Settings settings;
-        OwinHttpMessageHandler handler;
     }
 }
