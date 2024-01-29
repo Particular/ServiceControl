@@ -1,13 +1,12 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
-    using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Web.Http.Controllers;
-    using System.Web.Http.Hosting;
-    using System.Web.Http.Routing;
-    using Audit.Infrastructure;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Controllers;
+    using Microsoft.AspNetCore.Mvc.Routing;
+    using Microsoft.AspNetCore.Routing;
     using NUnit.Framework;
     using Particular.Approvals;
     using PublicApiGenerator;
@@ -17,10 +16,11 @@
     [TestFixture]
     class APIApprovals
     {
+        // TODO: This test is probably no longer a good idea
         [Test]
         public void PublicClr()
         {
-            var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
+            var publicApi = typeof(WebApiHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
                 ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
             });
@@ -30,14 +30,19 @@
         [Test]
         public void RootPathValue()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
-            request.Options.TryAdd(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
+            var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
+            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
+            var controllerContext = new ControllerContext(actionContext);
 
             var settings = CreateTestSettings();
 
-            var controller = new RootController(new LoggingSettings("testEndpoint"), settings)
+            var controller = new RootController(
+                new LoggingSettings("testEndpoint"),
+                settings
+            )
             {
-                Url = new UrlHelper(request)
+                ControllerContext = controllerContext,
+                Url = new UrlHelper(actionContext)
             };
 
             var result = controller.Urls();
@@ -57,12 +62,10 @@
             Approver.Verify(settings);
         }
 
-        static Settings CreateTestSettings()
-        {
-            return new Settings(
+        static Settings CreateTestSettings() =>
+            new(
                 Settings.DEFAULT_SERVICE_NAME,
                 typeof(LearningTransportCustomization).AssemblyQualifiedName,
                 typeof(InMemoryPersistence).AssemblyQualifiedName);
-        }
     }
 }
