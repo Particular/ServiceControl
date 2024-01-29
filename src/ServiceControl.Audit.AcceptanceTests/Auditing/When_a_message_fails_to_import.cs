@@ -19,7 +19,7 @@
         public async Task It_can_be_reimported()
         {
             CustomizeHostBuilder = hostBuilder =>
-                //Make sure the error import attempt fails
+                //Make sure the audit import attempt fails
                 hostBuilder.Services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>();
 
             SetSettings = settings =>
