@@ -16,7 +16,7 @@
     using SagaAudit;
     using ServiceControl.Infrastructure.Metrics;
 
-    class AuditIngestor
+    public class AuditIngestor
     {
         static readonly long FrequencyInMilliseconds = Stopwatch.Frequency / 1000;
 
