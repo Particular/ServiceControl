@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -60,25 +61,17 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                 return NoContent();
             }
 
-            // TODO: Verify that this is the correct way to handle this
-            OkObjectResult content;
-            if (result.StringContent != null)
-            {
-                content = new OkObjectResult(result.StringContent);
-            }
-            else if (result.StreamContent != null)
-            {
-                content = new OkObjectResult(result.StreamContent);
-            }
-            else
+            if (result.StringContent == null && result.StreamContent == null)
             {
                 throw new Exception($"Metadata for message '{messageId}' indicated that a body was present but no content could be found in storage");
             }
 
-            Response.Headers.ContentType = result.ContentType ?? "text/*";
+            var contentType = result.ContentType ?? "text/*";
+            // TODO: It seems Content and File does set the Content-Length header so do we need this?
             Response.Headers.ContentLength = result.ContentLength;
             Response.Headers.ETag = result.ETag;
-            return content;
+            // TODO: We are not exactly sure what the consequences of returning File is here, but it seems to work
+            return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
         }
 
         // TODO: Verify if this catch all approach is still relevant today with Kestrel
