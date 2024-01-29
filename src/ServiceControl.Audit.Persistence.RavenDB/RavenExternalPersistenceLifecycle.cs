@@ -40,9 +40,7 @@
                 store.Conventions.FindClrType += configuration.FindClrType;
             }
 
-            store.Initialize();
-
-            documentStore = store;
+            documentStore = store.Initialize();
 
             var databaseSetup = new DatabaseSetup(configuration);
             await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
