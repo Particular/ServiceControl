@@ -22,8 +22,9 @@
         [Test]
         public async Task Should_import_all_messages()
         {
-            //Make sure the audit import attempt fails
-            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>());
+            CustomizeHostBuilder = hostBuilder =>
+                //Make sure the audit import attempt fails
+                hostBuilder.Services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>();
 
             var maximumConcurrencyLevel = 5;
 
