@@ -4,7 +4,7 @@
     using NServiceBus;
     using NServiceBus.Transport;
 
-    class AuditEnricherContext
+    public class AuditEnricherContext
     {
         public AuditEnricherContext(IReadOnlyDictionary<string, string> headers, IList<ICommand> outgoingCommands, IList<TransportOperation> outgoingSends, IDictionary<string, object> metadata)
         {
