@@ -9,7 +9,6 @@ namespace ServiceControl.Audit.AcceptanceTests
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -31,16 +30,14 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
-        public JsonSerializerOptions SerializerOptions { get; }
-        public IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public string Port => serviceControlRunnerBehavior.Port;
 
+        // TODO Check why this is necessary and if it can be removed
+        protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
+
         [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
+        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public async Task Setup()
@@ -80,16 +77,11 @@ namespace ServiceControl.Audit.AcceptanceTests
             return StorageConfiguration.Cleanup();
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            return Define<T>(c => { });
-        }
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new() => Define<T>(c => { });
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
-        {
-            return Scenario.Define(contextInitializer)
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
+            Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };

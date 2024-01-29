@@ -32,9 +32,6 @@
             return Task.CompletedTask;
         }
 
-        public async Task Cleanup()
-        {
-            await databaseInstance.DeleteDatabase(databaseName);
-        }
+        public async Task Cleanup() => await databaseInstance.DeleteDatabase(databaseName);
     }
 }

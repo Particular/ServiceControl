@@ -10,11 +10,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Audit.Infrastructure.OWIN;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
     using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -23,8 +21,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.Logging;
     using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.WebApi;
-
     using EndpointConfiguration = NServiceBus.EndpointConfiguration;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance

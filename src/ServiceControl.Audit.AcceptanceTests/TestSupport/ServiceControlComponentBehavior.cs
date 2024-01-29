@@ -6,7 +6,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Audit.Infrastructure.Settings;
@@ -23,10 +22,9 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
-        public JsonSerializerOptions SerializerOptions { get; }
-        public IServiceProvider ServiceProvider => runner.ServiceProvider;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
+        public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public string Port => runner.Port;
+        public IServiceProvider ServiceProvider => runner.ServiceProvider;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
