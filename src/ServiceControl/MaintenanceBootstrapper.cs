@@ -11,7 +11,7 @@ namespace Particular.ServiceControl
         public MaintenanceBootstrapper(Settings settings)
         {
             HostBuilder = Host.CreateApplicationBuilder();
-            HostBuilder.AddPersistence(settings, maintenanceMode: true);
+            HostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
         }
     }
 }

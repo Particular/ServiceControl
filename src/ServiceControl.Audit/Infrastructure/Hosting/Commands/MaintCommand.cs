@@ -4,6 +4,6 @@
 
     class MaintCommand : AbstractCommand
     {
-        public override Task Execute(HostArguments args, Settings.Settings settings) => MaintenanceBootstrapper.Run(args, settings);
+        public override Task Execute(HostArguments args, Settings.Settings settings) => MaintenanceBootstrapper.Run(settings);
     }
 }

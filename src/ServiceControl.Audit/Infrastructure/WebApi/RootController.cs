@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System.Web.Http.Results;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
 
@@ -16,7 +15,7 @@
 
         [Route("")]
         [HttpGet]
-        public OkNegotiatedContentResult<RootUrls> Urls()
+        public OkObjectResult Urls()
         {
             var baseUrl = Url.Content("~/");
 
@@ -42,7 +41,7 @@
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public OkNegotiatedContentResult<object> Config()
+        public OkObjectResult Config()
         {
             object content = new
             {
