@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
+    using System;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
 
@@ -17,7 +18,7 @@
         [HttpGet]
         public OkObjectResult Urls()
         {
-            var baseUrl = Url.Content("~/");
+            var baseUrl = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1).Uri.AbsoluteUri;
 
             var model = new RootUrls
             {
