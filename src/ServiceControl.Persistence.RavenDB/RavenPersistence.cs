@@ -71,7 +71,6 @@
             serviceCollection.AddSingleton<IRetryBatchesDataStore, RetryBatchesDataStore>();
             serviceCollection.AddSingleton<IRetryDocumentDataStore, RetryDocumentDataStore>();
             serviceCollection.AddSingleton<IRetryHistoryDataStore, RetryHistoryDataStore>();
-            serviceCollection.AddSingleton<IServiceControlSubscriptionStorage, RavenSubscriptionStorage>();
 
             // Forward saga audit messages and warn in ServiceControl 5, remove in 6
             serviceCollection.AddSingleton<ISagaAuditDataStore, SagaAuditDeprecationDataStore>();
