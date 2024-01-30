@@ -22,6 +22,7 @@ namespace ServiceControl.Monitoring
             LogLevel = LoggingConfigurator.InitializeLevel();
             LogPath = SettingsReader<string>.Read("LogPath", DefaultLogLocation());
             ErrorQueue = SettingsReader<string>.Read("ErrorQueue", "error");
+            ServiceControlMonitoringDataQueue = SettingsReader<string>.Read("ServiceControlMonitoringDataQueue", "ServiceControl.MonitoringData");
             HttpHostName = SettingsReader<string>.Read("HttpHostname");
             HttpPort = SettingsReader<string>.Read("HttpPort");
             EndpointName = SettingsReader<string>.Read("EndpointName");
@@ -53,6 +54,7 @@ namespace ServiceControl.Monitoring
         public string LicenseFileText { get; set; }
         public bool ExposeApi { get; set; } = true;
         public bool RunAsWindowsService { get; set; }
+        public string ServiceControlMonitoringDataQueue { get; set; }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe

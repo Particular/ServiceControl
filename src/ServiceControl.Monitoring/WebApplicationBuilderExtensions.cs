@@ -18,6 +18,7 @@ using NLog.Extensions.Logging;
 using NServiceBus;
 using NServiceBus.Configuration.AdvancedExtensibility;
 using NServiceBus.Features;
+using NServiceBus.Metrics;
 using NServiceBus.Transport;
 using QueueLength;
 using Timings;
@@ -55,6 +56,8 @@ public static class WebApplicationBuilderExtensions
         services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<QueueLengthStore>();
+
+        services.AddSingleton<MonitoringDataReportFeatureStartup>();
 
         // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
         // is only available though after the NServiceBus hosted service has started. Any hosted service
@@ -96,6 +99,20 @@ public static class WebApplicationBuilderExtensions
         };
 
         transportCustomization.CustomizeMonitoringEndpoint(config, transportSettings);
+
+        var serviceControlMonitoringDataQueue = settings.ServiceControlMonitoringDataQueue;
+        if (!string.IsNullOrWhiteSpace(serviceControlMonitoringDataQueue))
+        {
+            if (serviceControlMonitoringDataQueue.IndexOf("@") >= 0)
+            {
+                serviceControlMonitoringDataQueue = serviceControlMonitoringDataQueue.Substring(0, serviceControlMonitoringDataQueue.IndexOf("@"));
+            }
+
+            var routing = new RoutingSettings(config.GetSettings());
+            routing.RouteToEndpoint(typeof(RecordEndpointMonitoringData), serviceControlMonitoringDataQueue);
+
+            config.EnableFeature<MonitoringDataReportFeature>();
+        }
 
         if (settings.EnableInstallers)
         {
