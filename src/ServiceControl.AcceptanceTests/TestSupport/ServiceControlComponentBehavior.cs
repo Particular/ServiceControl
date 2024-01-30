@@ -25,7 +25,6 @@ namespace ServiceControl.AcceptanceTests.TestSupport
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public Settings Settings => runner.Settings;
-        public string Port => runner.Port;
         public IDomainEvents DomainEvents => runner.DomainEvents;
         public Func<HttpMessageHandler> HttpMessageHandlerFactory => runner.HttpMessageHandlerFactory;
 

@@ -7,6 +7,5 @@ namespace ServiceControl.AcceptanceTesting
     {
         HttpClient HttpClient { get; }
         JsonSerializerOptions SerializerOptions { get; }
-        string Port { get; }
     }
 }

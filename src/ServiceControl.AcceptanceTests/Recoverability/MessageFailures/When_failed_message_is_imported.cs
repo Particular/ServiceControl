@@ -45,13 +45,11 @@
                         return false;
                     }
 
-                    body = await this.DownloadData(failedMessage.BodyUrl);
+                    body = await this.DownloadData($"/api{failedMessage.BodyUrl}");
 
                     return true;
                 })
                 .Run();
-
-            Console.WriteLine(JsonSerializer.Serialize(failedMessage));
 
             Assert.AreEqual(context.MessageId, failedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Failed, failedMessage.Status);

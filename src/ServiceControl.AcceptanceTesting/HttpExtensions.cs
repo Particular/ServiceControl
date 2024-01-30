@@ -14,7 +14,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
@@ -34,7 +34,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -45,7 +45,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -71,7 +71,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -144,7 +144,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -159,7 +159,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -188,7 +188,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
@@ -207,7 +207,7 @@ namespace ServiceControl.AcceptanceTesting
         {
             if (!url.StartsWith("http://"))
             {
-                url = $"http://localhost:{provider.Port}/api{url}";
+                url = $"http://localhost{url}";
             }
 
             var httpClient = provider.HttpClient;
