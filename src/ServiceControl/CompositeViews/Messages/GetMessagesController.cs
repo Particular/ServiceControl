@@ -8,7 +8,6 @@ namespace ServiceControl.CompositeViews.Messages
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Net.Http.Headers;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -52,7 +51,7 @@ namespace ServiceControl.CompositeViews.Messages
 
         [Route("messages/{id}/body")]
         [HttpGet]
-        public async Task<ActionResult<Stream>> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
+        public async Task<IActionResult> Get(string id, [FromQuery(Name = "instance_id")] string instanceId)
         {
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
@@ -68,7 +67,8 @@ namespace ServiceControl.CompositeViews.Messages
                     return NoContent();
                 }
 
-                return File(result.Stream, result.ContentType ?? "text/*", lastModified: null, new EntityTagHeaderValue(result.Etag));
+                Response.Headers.ETag = result.Etag;
+                return File(result.Stream, result.ContentType ?? "text/*");
             }
 
             var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);
@@ -92,7 +92,7 @@ namespace ServiceControl.CompositeViews.Messages
         // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
         [Route("messages/{*catchAll}")]
         [HttpGet]
-        public async Task<ActionResult<Stream>> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
+        public async Task<IActionResult> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
         {
             if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
             {
