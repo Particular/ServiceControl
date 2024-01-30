@@ -55,6 +55,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
             TimeToRestartErrorIngestionAfterFailure = GetTimeToRestartErrorIngestionAfterFailure();
             DisableExternalIntegrationsPublishing = SettingsReader.Read("DisableExternalIntegrationsPublishing", false);
+            ServiceControlMonitoringDataQueue = SettingsReader.Read("ServiceControlMonitoringDataQueue", "ServiceControl.MonitoringData");
         }
 
         public string NotificationsFilter { get; set; }
@@ -171,6 +172,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool ExposeApi { get; set; } = true;
         public bool RunAsWindowsService { get; set; }
+        public string ServiceControlMonitoringDataQueue { get; set; }
 
         public ITransportCustomization LoadTransportCustomization()
         {

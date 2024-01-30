@@ -10,6 +10,7 @@ namespace ServiceControl.Monitoring
     using System.IO;
     using Newtonsoft.Json;
     using System.Diagnostics;
+    using ServiceBus.Management.Infrastructure.Settings;
 
     class MonitoringDataFeature : Feature
     {
@@ -21,9 +22,12 @@ namespace ServiceControl.Monitoring
         protected override void Setup(FeatureConfigurationContext context)
         {
             //https://docs.particular.net/nservicebus/satellites/
+            context.Settings.TryGet<Settings>("ServiceControl.Settings", out var settings);
+            var serviceControlMonitoringDataQueue = settings.ServiceControlMonitoringDataQueue;
+
             context.AddSatelliteReceiver(
                 name: "ServiceControlMonitoringDataQueue",
-                transportAddress: new QueueAddress("ServiceControl.MonitoringData"),
+                transportAddress: new QueueAddress(serviceControlMonitoringDataQueue),
                 runtimeSettings: PushRuntimeSettings.Default,
                 recoverabilityPolicy: (config, errorContext) =>
                 {
