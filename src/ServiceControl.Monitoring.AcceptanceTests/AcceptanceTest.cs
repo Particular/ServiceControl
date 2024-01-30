@@ -30,7 +30,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
-        public string Port => serviceControlRunnerBehavior.Port;
 
         [OneTimeSetUp]
         public static void OneTimeSetup()

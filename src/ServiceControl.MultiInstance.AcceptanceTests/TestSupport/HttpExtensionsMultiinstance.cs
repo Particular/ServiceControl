@@ -17,7 +17,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             {
                 HttpClient = providerMultiInstance.HttpClients[instanceName],
                 SerializerSettings = providerMultiInstance.SerializerSettings,
-                Port = providerMultiInstance.SettingsPerInstance[instanceName].Port.ToString()
             };
         }
 
@@ -63,6 +62,5 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public JsonSerializerSettings SerializerSettings { get; set; }
         public HttpClient HttpClient { get; set; }
         public JsonSerializerOptions SerializerOptions { get; }
-        public string Port { get; set; }
     }
 }

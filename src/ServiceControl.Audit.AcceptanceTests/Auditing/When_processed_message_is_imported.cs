@@ -45,7 +45,7 @@
                         return false;
                     }
 
-                    body = await this.DownloadData(auditedMessage.BodyUrl);
+                    body = await this.DownloadData($"/api{auditedMessage.BodyUrl}");
 
                     return true;
                 })

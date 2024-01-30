@@ -33,18 +33,14 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
-        public string Port => settings.HttpPort;
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var instancePort = PortUtility.FindAvailablePort(33333);
-
             settings = new Settings
             {
                 EndpointName = instanceName,
-                HttpPort = instancePort.ToString(),
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",

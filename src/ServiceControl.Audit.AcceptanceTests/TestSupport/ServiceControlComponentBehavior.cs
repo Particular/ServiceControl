@@ -25,7 +25,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
-        public string Port => runner.Port;
         public IServiceProvider ServiceProvider => runner.ServiceProvider;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)

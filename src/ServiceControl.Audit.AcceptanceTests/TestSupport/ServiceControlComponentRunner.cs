@@ -21,7 +21,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
-    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -42,18 +41,14 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
-        public string Port => settings.Port.ToString();
         public IServiceProvider ServiceProvider { get; private set; }
 
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var instancePort = PortUtility.FindAvailablePort(33333);
-
             settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType)
             {
-                Port = instancePort,
                 TransportConnectionString = transportToUse.ConnectionString,
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,

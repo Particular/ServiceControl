@@ -42,7 +42,7 @@
                             return false;
                         }
 
-                        body = await this.DownloadData(auditMessage.BodyUrl);
+                        body = await this.DownloadData($"/api{auditMessage.BodyUrl}");
 
                         return true;
                     })
@@ -83,7 +83,7 @@
                             return false;
                         }
 
-                        body = await this.DownloadData(auditMessage.BodyUrl, HttpStatusCode.NoContent);
+                        body = await this.DownloadData($"/api{auditMessage.BodyUrl}", HttpStatusCode.NoContent);
 
                         return true;
                     })
@@ -124,7 +124,7 @@
                             return false;
                         }
 
-                        body = await this.DownloadData(auditMessage.BodyUrl);
+                        body = await this.DownloadData($"/api{auditMessage.BodyUrl}");
 
                         return true;
                     })

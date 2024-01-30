@@ -21,7 +21,6 @@
     using Particular.ServiceControl;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -38,7 +37,6 @@
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
-        public string Port => Settings.Port.ToString();
         public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
@@ -46,12 +44,9 @@
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var instancePort = PortUtility.FindAvailablePort(33333);
-
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 AllowMessageEditing = true,
-                Port = instancePort,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
