@@ -66,11 +66,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
                 throw new Exception($"Metadata for message '{messageId}' indicated that a body was present but no content could be found in storage");
             }
 
-            var contentType = result.ContentType ?? "text/*";
-            // TODO: It seems Content and File does set the Content-Length header so do we need this?
-            Response.Headers.ContentLength = result.ContentLength;
             Response.Headers.ETag = result.ETag;
-            // TODO: We are not exactly sure what the consequences of returning File is here, but it seems to work
+            var contentType = result.ContentType ?? "text/*";
             return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
         }
 

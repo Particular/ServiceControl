@@ -8,6 +8,7 @@ namespace ServiceControl.CompositeViews.Messages
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Net.Http.Headers;
     using NServiceBus.Logging;
     using Persistence.Infrastructure;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -67,11 +68,7 @@ namespace ServiceControl.CompositeViews.Messages
                     return NoContent();
                 }
 
-                Response.Headers.ETag = result.Etag;
-                Response.Headers.ContentType = result.ContentType ?? "text/*";
-                Response.Headers.ContentLength = result.BodySize;
-
-                return result.Stream;
+                return File(result.Stream, result.ContentType ?? "text/*", lastModified: null, new EntityTagHeaderValue(result.Etag));
             }
 
             var remote = settings.RemoteInstances.SingleOrDefault(r => r.InstanceId == instanceId);
