@@ -22,7 +22,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
         public ServiceControlComponentRunner(ITransportIntegration transportToUse,
             AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings,
@@ -42,7 +42,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
         public IServiceProvider ServiceProvider { get; private set; }
-
+        public TestServer InstanceTestServer { get; private set; }
         public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
@@ -174,7 +174,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 await host.StartAsync();
                 // TODO We can probably remove this by switching over to the hostBuilderCustomization
                 ServiceProvider = host.Services;
-                HttpClient = host.GetTestServer().CreateClient();
+                InstanceTestServer = host.GetTestServer();
+                HttpClient = InstanceTestServer.CreateClient();
             }
         }
 
