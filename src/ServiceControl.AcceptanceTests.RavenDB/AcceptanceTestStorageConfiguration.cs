@@ -13,19 +13,12 @@
         readonly DatabaseLease databaseLease = SharedDatabaseSetup.LeaseDatabase();
         readonly PortLease portLease = portPool.GetLease();
 
-        public string PersistenceType { get; protected set; }
+        public string PersistenceType { get; } = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
         public void CustomizeSettings(Settings settings)
         {
             databaseLease.CustomizeSettings(settings);
             settings.Port = portLease.GetPort();
-        }
-
-        public Task Configure()
-        {
-            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
-
-            return Task.CompletedTask;
         }
 
         public async ValueTask Cleanup()

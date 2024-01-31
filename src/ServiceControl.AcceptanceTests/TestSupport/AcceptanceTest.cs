@@ -45,7 +45,7 @@ namespace ServiceControl.AcceptanceTests
         }
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -65,8 +65,6 @@ namespace ServiceControl.AcceptanceTests
             TransportIntegration = new ConfigureEndpointLearningTransport();
 
             StorageConfiguration = new AcceptanceTestStorageConfiguration();
-
-            await StorageConfiguration.Configure();
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
                 TransportIntegration,

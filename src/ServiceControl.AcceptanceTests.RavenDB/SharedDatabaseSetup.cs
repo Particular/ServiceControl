@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿namespace ServiceControl.AcceptanceTests;
+
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceControl.Persistence.RavenDB;

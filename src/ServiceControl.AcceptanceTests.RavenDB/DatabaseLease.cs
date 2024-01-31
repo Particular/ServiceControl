@@ -1,4 +1,6 @@
-﻿using System;
+﻿namespace ServiceControl.AcceptanceTests;
+
+using System;
 using System.Threading.Tasks;
 using Raven.Client.ServerWide.Operations;
 using ServiceBus.Management.Infrastructure.Settings;
