@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using ServiceControl.Audit.Persistence.InMemory;
 
-    class AcceptanceTestStorageConfiguration
+    public class AcceptanceTestStorageConfiguration
     {
         public string PersistenceType { get; protected set; }
 

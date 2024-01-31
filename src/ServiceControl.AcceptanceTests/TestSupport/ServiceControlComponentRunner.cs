@@ -22,7 +22,7 @@
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
         public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {

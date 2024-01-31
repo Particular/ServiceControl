@@ -2,7 +2,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
@@ -60,14 +59,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             TransportIntegration = new ConfigureEndpointLearningTransport();
 
-            DataStoreConfiguration = new DataStoreConfiguration
-            {
-                DataStoreTypeName = "RavenDB"
-            };
-
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
                 TransportIntegration,
-                DataStoreConfiguration,
                 c => CustomEndpointConfiguration(c),
                 c => CustomAuditEndpointConfiguration(c),
                 s => CustomServiceControlSettings(s),
@@ -100,7 +93,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         protected Action<Settings> CustomServiceControlSettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
         protected ITransportIntegration TransportIntegration;
-        protected DataStoreConfiguration DataStoreConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

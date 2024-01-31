@@ -6,6 +6,7 @@
     using NUnit.Framework;
     using TestHelper;
 
+    // TODO is this still needed?
     public class PortPool
     {
         readonly int startingPort;

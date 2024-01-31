@@ -5,7 +5,8 @@
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting;
 
-    class AcceptanceTestStorageConfiguration
+    // TODO move this class into the same Shared folder where the component runner is
+    public class AcceptanceTestStorageConfiguration
     {
         static readonly PortPool portPool = new PortPool(33334);
 
