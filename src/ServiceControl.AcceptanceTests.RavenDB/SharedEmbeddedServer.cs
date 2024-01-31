@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿namespace ServiceControl.AcceptanceTests;
+
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Raven.Client.Documents;
 using Raven.Client.ServerWide.Operations;
 using ServiceControl.Persistence.RavenDB;
 using TestHelper;

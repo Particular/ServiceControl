@@ -8,7 +8,7 @@
 
     public class AcceptanceTestStorageConfiguration
     {
-        public string PersistenceType { get; protected set; }
+        public string PersistenceType { get; } = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
         EmbeddedDatabase databaseInstance;
         string databaseName;
@@ -23,13 +23,6 @@
                 { RavenPersistenceConfiguration.ConnectionStringKey,databaseInstance.ServerUrl },
                 { RavenPersistenceConfiguration.DatabaseNameKey,databaseName}
             };
-        }
-
-        public Task Configure()
-        {
-            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
-
-            return Task.CompletedTask;
         }
 
         public async Task Cleanup() => await databaseInstance.DeleteDatabase(databaseName);

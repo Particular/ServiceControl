@@ -40,7 +40,7 @@ namespace ServiceControl.Audit.AcceptanceTests
         public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
@@ -60,8 +60,6 @@ namespace ServiceControl.Audit.AcceptanceTests
             TransportIntegration = new ConfigureEndpointLearningTransport();
 
             StorageConfiguration = new AcceptanceTestStorageConfiguration();
-
-            await StorageConfiguration.Configure();
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d), hb => CustomizeHostBuilder(hb));
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
