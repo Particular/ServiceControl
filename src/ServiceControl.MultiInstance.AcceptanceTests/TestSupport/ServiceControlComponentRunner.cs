@@ -44,6 +44,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 transportToUse,
                 new AcceptanceTestStorageConfiguration(), auditSettings =>
                 {
+                    auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_SERVICE_NAME;
                     customServiceControlAuditSettings(auditSettings);
                 }, auditEndpointConfiguration =>
                 {
@@ -52,7 +53,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     {
                         "ServiceControl.Persistence.RavenDB.dll",
                         Path.GetFileName(typeof(PrimaryInstanceSettings).Assembly.Location),
-                        typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+                        Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location),
                     };
                     scanner.ExcludeAssemblies(excludedAssemblies);
 
