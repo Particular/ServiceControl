@@ -123,7 +123,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
             configuration.Pipeline.Register(new InterceptMessagesDestinedToServiceControl(context), "Intercepts messages destined to ServiceControl");
 
-            configuration.AssemblyScanner().ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
+            var assemblyScanner = configuration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location));
 
             customConfiguration(configuration);
 
