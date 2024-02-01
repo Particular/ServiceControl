@@ -71,7 +71,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
             SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
 
-            var remoteInstances = new[] { new RemoteInstanceSetting($"http://localhost/") };
+            var remoteInstances = new[] { new RemoteInstanceSetting($"http://localhost:44444/api") };
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
                 new ServiceControl.AcceptanceTests.AcceptanceTestStorageConfiguration(), primarySettings =>
