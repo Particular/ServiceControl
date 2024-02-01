@@ -3,9 +3,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System;
     using System.Collections.Generic;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -22,7 +22,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         }
 
         public Dictionary<string, HttpClient> HttpClients => runner.HttpClients;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
+        public Dictionary<string, JsonSerializerOptions> SerializerOptions => runner.SerializerOptions;
         public Dictionary<string, dynamic> SettingsPerInstance => runner.SettingsPerInstance;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)

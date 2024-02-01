@@ -5,6 +5,7 @@ namespace ServiceControl.CompositeViews.Messages
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
@@ -145,7 +146,7 @@ namespace ServiceControl.CompositeViews.Messages
         static async Task<QueryResult<TOut>> ParseResult(HttpResponseMessage responseMessage)
         {
             await using var responseStream = await responseMessage.Content.ReadAsStreamAsync();
-            var remoteResults = await JsonSerializer.DeserializeAsync<TOut>(responseStream);
+            var remoteResults = await JsonSerializer.DeserializeAsync<TOut>(responseStream, SerializerOptions.Default);
 
             var totalCount = 0;
             if (responseMessage.Headers.TryGetValues("Total-Count", out var totalCounts))
