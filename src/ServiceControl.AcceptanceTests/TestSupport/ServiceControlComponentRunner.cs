@@ -88,7 +88,7 @@
                 },
             };
 
-            persistenceToUse.CustomizeSettings(settings);
+            await persistenceToUse.CustomizeSettings(settings);
 
             setSettings(settings);
             Settings = settings;
@@ -178,7 +178,7 @@
                 await host.StopAsync();
                 HttpClient.Dispose();
                 await host.DisposeAsync();
-                DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
+                await persistenceToUse.Cleanup();
             }
         }
 

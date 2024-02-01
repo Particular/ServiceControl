@@ -15,7 +15,7 @@
 
         public async Task<IDictionary<string, string>> CustomizeSettings()
         {
-            databaseName = Guid.NewGuid().ToString();
+            databaseName = Guid.NewGuid().ToString("n");
             databaseInstance = await SharedEmbeddedServer.GetInstance();
 
             return new Dictionary<string, string>

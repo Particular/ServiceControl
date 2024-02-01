@@ -111,15 +111,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         {
             await auditInstanceComponentRunner.Stop();
             await primaryInstanceComponentRunner.Stop();
-            await databaseLease.DisposeAsync();
         }
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customPrimaryEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
         Action<Settings> customServiceControlSettings;
-
-        DatabaseLease databaseLease = SharedDatabaseSetup.LeaseDatabase();
         Audit.AcceptanceTests.TestSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
         PrimaryInstanceTestsSupport.ServiceControlComponentRunner primaryInstanceComponentRunner;
     }
