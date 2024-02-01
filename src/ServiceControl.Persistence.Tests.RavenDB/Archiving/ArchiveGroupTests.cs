@@ -5,7 +5,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus.Testing;
     using NUnit.Framework;
+    using PersistenceTests;
     using Raven.Client.Documents;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Recoverability;
 
     [TestFixture]
@@ -16,6 +18,7 @@
         public ArchiveGroupTests() =>
             RegisterServices = services =>
             {
+                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
                 services.AddSingleton<ArchiveAllInGroupHandler>();
                 services.AddSingleton<RetryingManager>();
             };

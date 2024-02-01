@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.UnitTests.Operations
+﻿namespace ServiceControl.UnitTests.Recoverability
 {
     using System;
     using NUnit.Framework;

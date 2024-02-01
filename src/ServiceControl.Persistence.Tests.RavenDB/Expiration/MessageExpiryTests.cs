@@ -3,23 +3,31 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using EventLog;
     using MessageFailures;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using Persistence.Infrastructure;
+    using PersistenceTests;
     using Raven.Client.Documents;
     using Raven.Client.Documents.Operations.Expiration;
     using ServiceControl.CompositeViews.Messages;
+    using ServiceControl.Infrastructure.DomainEvents;
     using ServiceControl.Persistence.Tests.RavenDB;
 
     [TestFixture]
     public class MessageExpiryTests : PersistenceTestBase
     {
+        public MessageExpiryTests() =>
+            RegisterServices = services =>
+            {
+                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
+            };
+
         [SetUp]
         public async Task Setup()
         {

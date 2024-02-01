@@ -20,36 +20,43 @@
 
             await semaphoreSlim.WaitAsync(cancellationToken);
 
-            var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
-            var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
-            var logsMode = "Operations";
-
-            var settings = new RavenPersisterSettings
+            try
             {
-                DatabasePath = dbPath,
-                LogPath = logPath,
-                LogsMode = logsMode,
-                DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
-            };
+                var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
+                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
+                var logsMode = "Operations";
 
-            embeddedDatabase = EmbeddedDatabase.Start(settings);
+                var settings = new RavenPersisterSettings
+                {
+                    DatabasePath = dbPath,
+                    LogPath = logPath,
+                    LogsMode = logsMode,
+                    DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
+                };
 
-            //make sure that the database is up
-            using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+                embeddedDatabase = EmbeddedDatabase.Start(settings);
 
-            var cleanupDatabases = new DirectoryInfo(dbPath)
-                .GetDirectories()
-                .Select(di => di.Name)
-                .Where(name => name.Length == 32)
-                .ToArray();
+                //make sure that the database is up
+                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
 
-            if (cleanupDatabases.Length > 0)
-            {
-                var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
-                await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                var cleanupDatabases = new DirectoryInfo(dbPath)
+                    .GetDirectories()
+                    .Select(di => di.Name)
+                    .Where(name => name.Length == 32)
+                    .ToArray();
+
+                if (cleanupDatabases.Length > 0)
+                {
+                    var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
+                    await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                }
+
+                return embeddedDatabase;
             }
-
-            return embeddedDatabase;
+            finally
+            {
+                semaphoreSlim.Release();
+            }
         }
 
         public static async Task Stop(CancellationToken cancellationToken = default)
