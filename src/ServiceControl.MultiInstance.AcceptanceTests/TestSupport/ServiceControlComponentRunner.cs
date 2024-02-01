@@ -5,11 +5,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.IO;
     using System.Net.Http;
     using System.Reflection;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.AcceptanceTests;
     using Microsoft.Extensions.DependencyInjection;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -33,7 +33,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public Dictionary<string, HttpClient> HttpClients { get; } = [];
-        public JsonSerializerSettings SerializerSettings { get; } = new();
+        public Dictionary<string, JsonSerializerOptions> SerializerOptions { get; } = [];
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = [];
 
         public async Task Initialize(RunDescriptor run)
@@ -66,7 +66,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 _ => { });
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, AuditInstanceSettings.DEFAULT_SERVICE_NAME);
             await auditInstanceComponentRunner.Initialize(run);
+
             HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
+            SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
 
             var remoteInstances = new[] { new RemoteInstanceSetting($"http://localhost/") };
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
@@ -104,7 +106,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 });
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_SERVICE_NAME);
             await primaryInstanceComponentRunner.Initialize(run);
+
             HttpClients[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.HttpClient;
+            SerializerOptions[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.SerializerOptions;
         }
 
         public override async Task Stop()

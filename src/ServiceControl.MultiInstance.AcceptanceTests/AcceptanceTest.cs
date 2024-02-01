@@ -6,8 +6,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -32,7 +32,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         protected static string ServiceControlAuditInstanceName { get; } = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public Dictionary<string, JsonSerializerOptions> SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
 
         [OneTimeSetUp]
