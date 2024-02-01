@@ -46,6 +46,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_SERVICE_NAME;
                     customServiceControlAuditSettings(auditSettings);
+                    SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditSettings;
                 }, auditEndpointConfiguration =>
                 {
                     var scanner = auditEndpointConfiguration.AssemblyScanner();
@@ -77,6 +78,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     primarySettings.RemoteInstances = remoteInstances;
                     customServiceControlSettings(primarySettings);
+                    SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primarySettings;
                 },
                 primaryEndpointConfiguration =>
                 {
