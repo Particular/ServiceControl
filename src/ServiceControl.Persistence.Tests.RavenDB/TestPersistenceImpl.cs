@@ -39,7 +39,7 @@
         public override void Configure(IServiceCollection services)
         {
             var persistence = new RavenPersistenceConfiguration().Create(Settings);
-            PersistenceServiceCollectionExtensions.ConfigurePersisterLifecyle(services, persistence);
+            services.ConfigurePersisterLifecyle(persistence);
             services.AddHostedService(p => new FakeServiceToExtractDocumentStore(this, p.GetRequiredService<IDocumentStore>()));
         }
 

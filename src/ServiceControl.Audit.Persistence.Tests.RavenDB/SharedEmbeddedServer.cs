@@ -2,17 +2,23 @@
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.Logging;
     using NUnit.Framework;
-    using ServiceControl.Audit.Persistence.RavenDB;
+    using Persistence.RavenDB;
+    using Raven.Client.ServerWide.Operations;
     using TestHelper;
 
-    class SharedEmbeddedServer
+    static class SharedEmbeddedServer
     {
         public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
+            if (embeddedDatabase != null)
+            {
+                return embeddedDatabase;
+            }
+
             await semaphoreSlim.WaitAsync(cancellationToken);
 
             try
@@ -23,30 +29,28 @@
                 }
 
                 var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "AuditData");
-                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
+                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Audit");
                 var logsMode = "Operations";
                 var serverUrl = $"http://localhost:{PortUtility.FindAvailablePort(33334)}";
 
                 embeddedDatabase = EmbeddedDatabase.Start(new DatabaseConfiguration("audit", 60, true, TimeSpan.FromMinutes(5), 120000, 5, new ServerConfiguration(dbPath, serverUrl, logPath, logsMode)));
 
                 //make sure that the database is up
-                while (true)
-                {
-                    try
-                    {
-                        using (await embeddedDatabase.Connect(cancellationToken))
-                        {
-                            //no-op
-                        }
+                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
 
-                        return embeddedDatabase;
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Warn("Could not connect to database. Retrying in 500ms...", e);
-                        await Task.Delay(500, cancellationToken);
-                    }
+                var cleanupDatabases = new DirectoryInfo(dbPath)
+                    .GetDirectories()
+                    .Select(di => di.Name)
+                    .Where(name => name.Length == 32)
+                    .ToArray();
+
+                if (cleanupDatabases.Length > 0)
+                {
+                    var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
+                    await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
                 }
+
+                return embeddedDatabase;
             }
             finally
             {
@@ -69,7 +73,6 @@
         }
 
         static EmbeddedDatabase embeddedDatabase;
-        static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
-        static readonly ILog Log = LogManager.GetLogger(typeof(SharedEmbeddedServer));
+        static readonly SemaphoreSlim semaphoreSlim = new(1, 1);
     }
 }
