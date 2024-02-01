@@ -57,7 +57,7 @@
                         capturedMessage = messages.Single(msg => msg.MessageId == c.AuditInstanceMessageId);
                     }
 
-                    response = await this.GetRaw($"/api/{capturedMessage.BodyUrl}", ServiceControlInstanceName);
+                    response = await this.GetRaw($"/api{capturedMessage.BodyUrl}", ServiceControlInstanceName);
                     Console.WriteLine($"GetRaw for {c.AuditInstanceMessageId} resulted in {response.StatusCode}");
                     return response.StatusCode == HttpStatusCode.OK;
                 })
