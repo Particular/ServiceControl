@@ -19,7 +19,7 @@
         [Test]
         public async Task Should_find_both_occurrences()
         {
-            CustomEndpointConfiguration = config => config.OnEndpointSubscribed<MyContext>(
+            CustomPrimaryEndpointConfiguration = config => config.OnEndpointSubscribed<MyContext>(
                 (subscription, context) =>
                 {
                     context.Subscriber1Subscribed = subscription.SubscriberEndpoint ==

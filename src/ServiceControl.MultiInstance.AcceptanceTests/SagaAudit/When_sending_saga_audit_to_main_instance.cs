@@ -58,7 +58,7 @@
             SagaHistory sagaHistory = null;
             EventLogItem eventLog = null;
 
-            CustomServiceControlSettings = settings =>
+            CustomServiceControlPrimarySettings = settings =>
             {
                 settings.DisableHealthChecks = false;
                 settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);

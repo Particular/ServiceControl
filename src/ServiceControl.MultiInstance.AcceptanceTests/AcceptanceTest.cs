@@ -41,9 +41,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            CustomEndpointConfiguration = c => { };
+            CustomPrimaryEndpointConfiguration = c => { };
             CustomAuditEndpointConfiguration = c => { };
-            CustomServiceControlSettings = s => { };
+            CustomServiceControlPrimarySettings = s => { };
             CustomServiceControlAuditSettings = s => { };
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
@@ -61,9 +61,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
                 TransportIntegration,
-                c => CustomEndpointConfiguration(c),
+                c => CustomPrimaryEndpointConfiguration(c),
                 c => CustomAuditEndpointConfiguration(c),
-                s => CustomServiceControlSettings(s),
+                s => CustomServiceControlPrimarySettings(s),
                 s => CustomServiceControlAuditSettings(s)
                 );
         }
@@ -88,9 +88,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
                 .WithComponent(serviceControlRunnerBehavior);
         }
 
-        protected Action<EndpointConfiguration> CustomEndpointConfiguration = c => { };
+        protected Action<EndpointConfiguration> CustomPrimaryEndpointConfiguration = c => { };
         protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };
-        protected Action<Settings> CustomServiceControlSettings = c => { };
+        protected Action<Settings> CustomServiceControlPrimarySettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
         protected ITransportIntegration TransportIntegration;
 

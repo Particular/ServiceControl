@@ -16,7 +16,7 @@
         [Test]
         public async Task Should_not_fail()
         {
-            CustomServiceControlSettings = s =>
+            CustomServiceControlPrimarySettings = s =>
             {
                 var currentSetting = s.RemoteInstances[0];
                 s.RemoteInstances = new[]
