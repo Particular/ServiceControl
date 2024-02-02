@@ -25,6 +25,13 @@
             };
         }
 
-        public async Task Cleanup() => await databaseInstance.DeleteDatabase(databaseName);
+        public async Task Cleanup()
+        {
+            if (databaseInstance == null)
+            {
+                return;
+            }
+            await databaseInstance.DeleteDatabase(databaseName);
+        }
     }
 }
