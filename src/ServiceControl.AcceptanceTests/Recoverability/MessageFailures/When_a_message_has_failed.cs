@@ -409,7 +409,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 ];
             }
 
-            public string ContentType => "MyCustomSerializer";
+            public string ContentType => "xml/MyCustomSerializer";
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
