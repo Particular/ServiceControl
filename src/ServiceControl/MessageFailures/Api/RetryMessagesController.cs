@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Infrastructure;
     using InternalMessages;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
@@ -40,7 +41,7 @@
                 return BadRequest();
             }
 
-            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker);
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker, ForwarderRequestConfig.Empty, RemoveApiTransformer.Instance);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
                 logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
