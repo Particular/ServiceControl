@@ -16,8 +16,7 @@ namespace ServiceControl.Audit.Infrastructure
     {
         public static void Configure(Settings.Settings settings, ITransportCustomization transportCustomization,
             TransportSettings transportSettings, LoggingSettings loggingSettings,
-            Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, EndpointConfiguration configuration,
-            bool isRunningAcceptanceTests)
+            Func<ICriticalErrorContext, CancellationToken, Task> onCriticalError, EndpointConfiguration configuration)
         {
             var endpointName = settings.ServiceName;
             if (configuration == null)
@@ -45,10 +44,7 @@ namespace ServiceControl.Audit.Infrastructure
                 routing.RouteToEndpoint(typeof(RegisterNewEndpoint), serviceControlLogicalQueue);
                 routing.RouteToEndpoint(typeof(MarkMessageFailureResolvedByRetry), serviceControlLogicalQueue);
 
-                if (!isRunningAcceptanceTests)
-                {
-                    configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
-                }
+                configuration.ReportCustomChecksTo(settings.ServiceControlQueueAddress);
             }
 
             configuration.GetSettings().Set(loggingSettings);

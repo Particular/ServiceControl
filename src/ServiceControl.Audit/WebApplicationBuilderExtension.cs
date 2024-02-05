@@ -77,7 +77,7 @@ static class WebApplicationBuilderExtension
         builder.Host.UseNServiceBus(_ =>
         {
             NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                onCriticalError, configuration, false);
+                onCriticalError, configuration);
 
             return configuration;
         });
