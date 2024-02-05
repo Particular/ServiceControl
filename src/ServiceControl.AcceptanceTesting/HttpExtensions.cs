@@ -226,7 +226,7 @@ namespace ServiceControl.AcceptanceTesting
             var response = await provider.GetRaw(url);
 
             //for now
-            if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.ServiceUnavailable)
+            if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.NoContent or HttpStatusCode.ServiceUnavailable)
             {
                 LogRequest();
                 return null;
