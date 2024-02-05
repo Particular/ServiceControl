@@ -71,12 +71,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
             SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
 
-            var remoteInstances = new[] { new RemoteInstanceSetting($"http://localhost:44444/api") };
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
                 new ServiceControl.AcceptanceTests.AcceptanceTestStorageConfiguration(), primarySettings =>
                 {
-                    primarySettings.RemoteInstances = remoteInstances;
+                    primarySettings.RemoteInstances = [new RemoteInstanceSetting("http://localhost:44444/api")];
                     customServiceControlSettings(primarySettings);
                     SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primarySettings;
                 },
@@ -100,7 +99,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     // While this code looks generic, it won't support adding more than one remote instance 
                     primaryHostBuilder.Services.AddSingleton(_ => new HttpMessageInvoker(auditInstanceComponentRunner.InstanceTestServer.CreateHandler()));
-                    foreach (var remoteInstance in remoteInstances)
+                    foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
                     {
                         var remoteInstanceHttpClientBuilder = primaryHostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
                         remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(_ => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
@@ -118,6 +117,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             await auditInstanceComponentRunner.Stop();
             await primaryInstanceComponentRunner.Stop();
         }
+
         ITransportIntegration transportToUse;
         Action<EndpointConfiguration> customPrimaryEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
