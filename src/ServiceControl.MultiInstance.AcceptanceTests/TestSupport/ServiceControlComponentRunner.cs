@@ -3,12 +3,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.AcceptanceTests;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -35,6 +37,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         public Dictionary<string, HttpClient> HttpClients { get; } = [];
         public Dictionary<string, JsonSerializerOptions> SerializerOptions { get; } = [];
         public Dictionary<string, dynamic> SettingsPerInstance { get; } = [];
+
+        public Dictionary<string, TestServer> TestServerPerRemoteInstance { get; } = [];
 
         public async Task Initialize(RunDescriptor run)
         {
@@ -70,12 +74,16 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
             SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
+            var auditInstance =
+                new RemoteInstanceSetting(
+                    $"{SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME].RootUrl}api");
+            TestServerPerRemoteInstance[auditInstance.InstanceId] = auditInstanceComponentRunner.InstanceTestServer;
 
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
                 new ServiceControl.AcceptanceTests.AcceptanceTestStorageConfiguration(), primarySettings =>
                 {
-                    primarySettings.RemoteInstances = [new RemoteInstanceSetting("http://localhost:44444/api")];
+                    primarySettings.RemoteInstances = [auditInstance];
                     customServiceControlSettings(primarySettings);
                     SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primarySettings;
                 },
@@ -97,12 +105,15 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 primaryHostBuilder =>
                 {
-                    // While this code looks generic, it won't support adding more than one remote instance 
-                    primaryHostBuilder.Services.AddSingleton(_ => new HttpMessageInvoker(auditInstanceComponentRunner.InstanceTestServer.CreateHandler()));
+                    // While this code looks generic, it won't support adding more than one remote instance
+                    primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", auditInstanceComponentRunner.InstanceTestServer);
+                    // primaryHostBuilder.Services.AddSingleton(_ => new HttpMessageInvoker(auditInstanceComponentRunner.InstanceTestServer.CreateHandler()));
                     foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
                     {
-                        var remoteInstanceHttpClientBuilder = primaryHostBuilder.Services.AddHttpClient(remoteInstance.InstanceId);
-                        remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(_ => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
+                        if (TestServerPerRemoteInstance.TryGetValue(remoteInstance.InstanceId, out var testServer))
+                        {
+                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, testServer);
+                        }
                     }
                 });
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_SERVICE_NAME);

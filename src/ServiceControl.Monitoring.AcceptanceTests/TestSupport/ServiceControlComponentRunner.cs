@@ -131,7 +131,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                 hostBuilder.WebHost.UseTestServer();
                 // This facilitates receiving the test server anywhere where DI is available
-                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
+                hostBuilder.Services.AddKeyedSingleton(instanceName,
+                    (provider, _) => (TestServer)provider.GetRequiredService<IServer>());
 
                 // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
                 // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
@@ -143,7 +144,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                 host.UseServiceControlMonitoring();
                 await host.StartAsync();
 
-                HttpClient = host.Services.GetRequiredService<TestServer>().CreateClient();
+                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(instanceName).CreateClient();
             }
         }
 

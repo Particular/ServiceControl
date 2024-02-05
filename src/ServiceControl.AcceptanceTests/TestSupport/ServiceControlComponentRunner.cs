@@ -37,6 +37,7 @@
         public Settings Settings { get; private set; }
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
+        public string Port => Settings.Port.ToString();
         public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
         public IDomainEvents DomainEvents { get; private set; }
 
@@ -146,9 +147,9 @@
 
                 // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer();
-                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
+                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
 
                 // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
                 // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
@@ -166,7 +167,7 @@
                 await host.StartServiceControl();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
-                HttpClient = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(instanceName);
+                HttpClient = host.GetTestServer().CreateClient();
                 HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
