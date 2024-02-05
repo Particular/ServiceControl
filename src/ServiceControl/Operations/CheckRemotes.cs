@@ -20,15 +20,13 @@
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var httpClient = httpClientFactory.CreateClient(nameof(CheckRemotes));
-
             try
             {
                 var queryTimeout = TimeSpan.FromSeconds(10);
                 using var cancellationTokenSource = new CancellationTokenSource(queryTimeout);
                 foreach (var remote in remoteInstanceSetting)
                 {
-                    remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, queryTimeout, cancellationTokenSource.Token));
+                    remoteQueryTasks.Add(CheckSuccessStatusCode(httpClientFactory, remote, queryTimeout, cancellationTokenSource.Token));
                 }
 
                 try
@@ -61,10 +59,11 @@
             }
         }
 
-        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
+        static async Task CheckSuccessStatusCode(IHttpClientFactory httpClientFactory, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
         {
             try
             {
+                var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
                 var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
