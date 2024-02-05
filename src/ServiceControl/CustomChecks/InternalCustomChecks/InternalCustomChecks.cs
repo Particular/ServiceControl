@@ -11,12 +11,11 @@
 
     static class InternalCustomChecks
     {
-        public static IHostApplicationBuilder UseInternalCustomChecks(this IHostApplicationBuilder hostBuilder)
+        public static IHostApplicationBuilder AddInternalCustomChecks(this IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddCustomCheck<CriticalErrorCustomCheck>();
             services.AddCustomCheck<CheckRemotes>();
-
 
             services.AddHostedService(provider => new InternalCustomChecksHostedService(
                 provider.GetServices<ICustomCheck>().ToList(),

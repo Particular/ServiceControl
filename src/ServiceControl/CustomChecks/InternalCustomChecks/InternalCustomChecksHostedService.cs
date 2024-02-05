@@ -10,26 +10,14 @@
     using NServiceBus.Hosting;
     using ServiceControl.Operations;
 
-    class InternalCustomChecksHostedService : IHostedService
+    class InternalCustomChecksHostedService(
+        IList<ICustomCheck> customChecks,
+        HostInformation hostInfo,
+        IAsyncTimer scheduler,
+        CustomCheckResultProcessor checkResultProcessor,
+        string endpointName)
+        : IHostedService
     {
-        public InternalCustomChecksHostedService(
-            IList<ICustomCheck> customChecks,
-            HostInformation hostInfo,
-            IAsyncTimer scheduler,
-            CustomCheckResultProcessor checkResultProcessor,
-            string endpointName)
-        {
-            this.customChecks = customChecks;
-            this.scheduler = scheduler;
-            this.checkResultProcessor = checkResultProcessor;
-            localEndpointDetails = new EndpointDetails
-            {
-                Host = hostInfo.DisplayName,
-                HostId = hostInfo.HostId,
-                Name = endpointName
-            };
-        }
-
         public Task StartAsync(CancellationToken cancellationToken)
         {
             foreach (var check in customChecks)
@@ -51,10 +39,12 @@
             }
         }
 
-        IList<ICustomCheck> customChecks;
-        readonly IAsyncTimer scheduler;
-        readonly CustomCheckResultProcessor checkResultProcessor;
-        readonly EndpointDetails localEndpointDetails;
+        readonly EndpointDetails localEndpointDetails = new()
+        {
+            Host = hostInfo.DisplayName,
+            HostId = hostInfo.HostId,
+            Name = endpointName
+        };
         IList<InternalCustomCheckManager> managers = new List<InternalCustomCheckManager>();
     }
 }

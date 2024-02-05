@@ -108,8 +108,7 @@ namespace Particular.ServiceControl
 
             if (!settings.DisableHealthChecks)
             {
-                // TODO: rename these to be Add* instead of Use*
-                hostBuilder.UseInternalCustomChecks();
+                hostBuilder.AddInternalCustomChecks();
             }
 
             hostBuilder.Services.AddWindowsService();
