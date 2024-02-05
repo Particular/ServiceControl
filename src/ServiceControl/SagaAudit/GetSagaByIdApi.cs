@@ -12,7 +12,7 @@ namespace ServiceControl.SagaAudit
 
     public record SagaByIdContext(PagingInfo PagingInfo, Guid SagaId) : ScatterGatherContext(PagingInfo);
 
-    class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>
+    public class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>
     {
         public GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
         {

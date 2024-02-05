@@ -7,7 +7,7 @@ namespace ServiceControl.SagaAudit
 
     [ApiController]
     [Route("api")]
-    class SagasController(GetSagaByIdApi getSagaByIdApi) : ControllerBase
+    public class SagasController(GetSagaByIdApi getSagaByIdApi) : ControllerBase
     {
         [Route("sagas/{id}")]
         [HttpGet]
