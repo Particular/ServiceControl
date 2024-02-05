@@ -19,12 +19,10 @@
 
         async Task UpdateFromRemote(RemoteInstanceSetting remote, PlatformConnectionDetails connection)
         {
-            var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
-
             var client = clientFactory.CreateClient(remote.InstanceId);
             try
             {
-                await using var stream = await client.GetStreamAsync("/connection");
+                await using var stream = await client.GetStreamAsync("/api/connection");
                 var document = await JsonDocument.ParseAsync(stream);
                 foreach (var property in document.RootElement.EnumerateObject())
                 {
@@ -33,6 +31,7 @@
             }
             catch (Exception ex)
             {
+                var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
                 var message = $"Unable to get connection details from ServiceControl Audit instance at {remoteConnectionUri}.";
 
                 connection.Errors.Add(message);
