@@ -1,20 +1,18 @@
 namespace ServiceControl.Audit.Connection
 {
+    using System.Text.Json;
     using Infrastructure.Settings;
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
     [Route("api")]
-    public class ConnectionController : ControllerBase
+    public class ConnectionController(Settings settings) : ControllerBase
     {
-        readonly Settings settings;
-
-        public ConnectionController(Settings settings) => this.settings = settings;
-
         [Route("connection")]
         [HttpGet]
-        public ConnectionDetails GetConnectionDetails() =>
-            new()
+        public IActionResult GetConnectionDetails()
+        {
+            var connectionDetails = new ConnectionDetails
             {
                 MessageAudit = new MessageAuditConnectionDetails
                 {
@@ -24,9 +22,13 @@ namespace ServiceControl.Audit.Connection
                 SagaAudit = new SagaAuditConnectionDetails
                 {
                     Enabled = true,
-                    SagaAuditQueue = settings.AuditQueue
+                    SagaAuditQueue = settings.AuditQueue,
                 }
             };
+            // by default snake case is used for serialization so we take care of explicitly serializing here
+            var content = JsonSerializer.Serialize(connectionDetails);
+            return Content(content, "application/json");
+        }
     }
 
     public class ConnectionDetails
