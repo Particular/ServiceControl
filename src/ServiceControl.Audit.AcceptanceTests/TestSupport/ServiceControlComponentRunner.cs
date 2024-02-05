@@ -121,7 +121,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-            configuration.Pipeline.Register(new InterceptMessagesDestinedToServiceControl(context), "Intercepts messages destined to ServiceControl");
 
             var assemblyScanner = configuration.AssemblyScanner();
             assemblyScanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location));

@@ -15,6 +15,12 @@
         [Test]
         public async Task Should_raise_integration_event()
         {
+            CustomConfiguration = endpointConfiguration =>
+            {
+                endpointConfiguration.Pipeline.Register(typeof(InterceptMessagesDestinedToServiceControl),
+                    "Intercepts messages destined to ServiceControl");
+            };
+
             var uniqueMessageIdHeaderName = "ServiceControl.Retry.UniqueMessageId";
 
             var failedMessageId = Guid.NewGuid().ToString();
