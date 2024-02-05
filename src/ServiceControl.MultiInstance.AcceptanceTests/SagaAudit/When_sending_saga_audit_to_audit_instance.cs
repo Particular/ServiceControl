@@ -51,6 +51,7 @@
                         return false;
                     }
 
+                    // TODO: this should retrieve from ServiceControlInstanceName and not from the audit one, at least that's what the test name assumes
                     var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlAuditInstanceName);
                     sagaHistory = result;
                     return result;
