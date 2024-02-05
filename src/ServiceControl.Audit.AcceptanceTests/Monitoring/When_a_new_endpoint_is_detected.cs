@@ -14,6 +14,12 @@
         [Test]
         public async Task Should_notify_service_control()
         {
+            CustomConfiguration = endpointConfiguration =>
+            {
+                endpointConfiguration.Pipeline.Register(typeof(InterceptMessagesDestinedToServiceControl),
+                    "Intercepts messages destined to ServiceControl");
+            };
+
             var context = await Define<InterceptedMessagesScenarioContext>()
                 .WithEndpoint<Receiver>(b => b.When((bus, c) => bus.SendLocal(new MyMessage())))
                 .Done(c => c.SentRegisterEndpointCommands.Any())

@@ -16,6 +16,12 @@
         [Test]
         public async Task Should_set_status_to_resolved()
         {
+            CustomConfiguration = endpointConfiguration =>
+            {
+                endpointConfiguration.Pipeline.Register(typeof(InterceptMessagesDestinedToServiceControl),
+                    "Intercepts messages destined to ServiceControl");
+            };
+
             MessagesView auditedMessage = null;
 
             var messageId = Guid.NewGuid().ToString();
