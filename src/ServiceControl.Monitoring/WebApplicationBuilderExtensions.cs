@@ -11,6 +11,7 @@ using Licensing;
 using Messaging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -55,6 +56,13 @@ public static class WebApplicationBuilderExtensions
         services.RegisterAsSelfAndImplementedInterfaces<CriticalTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<ProcessingTimeStore>();
         services.RegisterAsSelfAndImplementedInterfaces<QueueLengthStore>();
+
+        services.AddHttpLogging(options =>
+        {
+            // TODO Do we need to expose the host?
+            // we could also include the time it took to process the request
+            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+        });
 
         // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
         // is only available though after the NServiceBus hosted service has started. Any hosted service

@@ -17,6 +17,7 @@ namespace Particular.ServiceControl
     using global::ServiceControl.Transports;
     using Licensing;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.HttpLogging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
@@ -69,6 +70,13 @@ namespace Particular.ServiceControl
             services.AddSingleton<MessageStreamerHub>();
             services.AddSingleton(loggingSettings);
             services.AddSingleton(settings);
+
+            services.AddHttpLogging(options =>
+            {
+                // TODO Do we need to expose the host?
+                // we could also include the time it took to process the request
+                options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+            });
 
             // TODO Maybe after we have touched scatter gather this isn't required anymore?
             services.AddHttpContextAccessor();

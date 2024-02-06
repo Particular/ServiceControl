@@ -1,13 +1,12 @@
 namespace ServiceControl.Monitoring.Infrastructure;
 
 using Microsoft.AspNetCore.Builder;
-using OWIN;
 
 public static class WebApplicationExtensions
 {
     public static void UseServiceControlMonitoring(this WebApplication appBuilder)
     {
-        appBuilder.UseMiddleware<LogApiCalls>();
+        appBuilder.UseHttpLogging();
 
         appBuilder.UseCors(policyBuilder =>
         {

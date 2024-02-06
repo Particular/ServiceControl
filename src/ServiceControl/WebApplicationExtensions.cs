@@ -11,7 +11,7 @@ public static class WebApplicationExtensions
     {
         app.UseResponseCompression();
         app.UseMiddleware<BodyUrlRouteFix>();
-        app.UseMiddleware<LogApiCalls>();
+        app.UseHttpLogging();
         app.MapHub<MessageStreamerHub>("/api/messagestream");
         app.UseCors();
         app.MapControllers();

@@ -9,7 +9,7 @@ public static class WebApplicationExtensions
     {
         app.UseResponseCompression();
         app.UseMiddleware<BodyUrlRouteFix>();
-        app.UseMiddleware<LogApiCalls>();
+        app.UseHttpLogging();
         app.UseCors();
         app.MapControllers();
     }

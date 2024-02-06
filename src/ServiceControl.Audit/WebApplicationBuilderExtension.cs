@@ -11,6 +11,7 @@ using Infrastructure.Metrics;
 using Infrastructure.Settings;
 using Infrastructure.WebApi;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -64,6 +65,13 @@ static class WebApplicationBuilderExtension
         services.AddSingleton<AuditIngestor>();
         services.AddSingleton<ImportFailedAudits>();
         services.AddSingleton<AuditIngestionCustomCheck.State>(); // required by the ingestion custom check which is auto-loaded
+
+        services.AddHttpLogging(options =>
+        {
+            // TODO Do we need to expose the host?
+            // we could also include the time it took to process the request
+            options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+        });
 
         // Core registers the message dispatcher to be resolved from the transport seam. The dispatcher
         // is only available though after the NServiceBus hosted service has started. Any hosted service
