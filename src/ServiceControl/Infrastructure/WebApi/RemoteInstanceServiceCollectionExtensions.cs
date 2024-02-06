@@ -36,7 +36,7 @@ static class RemoteInstanceServiceCollectionExtensions
             {
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 // Application settings might contain remote URLs with /api. We strip that away to be a real base address.
-                client.BaseAddress = new Uri(remoteInstance.ApiUri.Replace("/api", string.Empty));
+                client.BaseAddress = new Uri(remoteInstance.BaseAddress);
             });
 
             remoteClientBuilder.UseSocketsHttpHandler((handler, _) =>

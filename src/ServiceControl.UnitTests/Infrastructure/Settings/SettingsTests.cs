@@ -24,7 +24,7 @@
         {
             public override int Compare(RemoteInstanceSetting x, RemoteInstanceSetting y)
             {
-                return x.ApiUri.Equals(y.ApiUri) ? 0 : 1;
+                return x.BaseAddress.Equals(y.BaseAddress) ? 0 : 1;
             }
         }
     }

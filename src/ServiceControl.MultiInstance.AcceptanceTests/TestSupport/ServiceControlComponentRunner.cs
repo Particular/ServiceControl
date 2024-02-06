@@ -74,9 +74,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
             HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
             SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
-            var auditInstance =
-                new RemoteInstanceSetting(
-                    $"{SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME].RootUrl}api");
+            var auditInstance = new RemoteInstanceSetting(auditInstanceComponentRunner.InstanceTestServer.BaseAddress.ToString());
             TestServerPerRemoteInstance[auditInstance.InstanceId] = auditInstanceComponentRunner.InstanceTestServer;
 
             primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
@@ -107,12 +105,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 {
                     // While this code looks generic, it won't support adding more than one remote instance
                     primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", auditInstanceComponentRunner.InstanceTestServer);
-                    // primaryHostBuilder.Services.AddSingleton(_ => new HttpMessageInvoker(auditInstanceComponentRunner.InstanceTestServer.CreateHandler()));
                     foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
                     {
                         if (TestServerPerRemoteInstance.TryGetValue(remoteInstance.InstanceId, out var testServer))
                         {
-                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, testServer);
+                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, (provider, key) => testServer);
                         }
                     }
                 });

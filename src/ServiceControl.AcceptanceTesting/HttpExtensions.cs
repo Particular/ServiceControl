@@ -12,17 +12,10 @@ namespace ServiceControl.AcceptanceTesting
     {
         public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
 
             var httpClient = provider.HttpClient;
             var response = await httpClient.PutAsJsonAsync(url, payload, provider.SerializerOptions);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (requestHasFailed(response.StatusCode))
             {
@@ -32,22 +25,12 @@ namespace ServiceControl.AcceptanceTesting
 
         public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             return httpClient.GetAsync(url);
         }
 
         public static Task<HttpResponseMessage> Options(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var request = new HttpRequestMessage(HttpMethod.Options, url);
             return httpClient.SendAsync(request);
@@ -69,15 +52,8 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.PatchAsJsonAsync(url, payload, provider.SerializerOptions);
-
-            Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -142,30 +118,15 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
             return response.StatusCode;
         }
 
         public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.PostAsJsonAsync(url, payload, provider.SerializerOptions);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (requestHasFailed != null)
             {
@@ -186,15 +147,8 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.DeleteAsync(url);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -205,14 +159,9 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url);
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");

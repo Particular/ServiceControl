@@ -39,8 +39,8 @@
                 })
                 .Run();
 
-            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlInstanceName].ApiUrl);
-            var expectedAuditInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].ApiUrl);
+            var expectedMasterInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlInstanceName].RootUrl);
+            var expectedAuditInstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].RootUrl);
 
             Assert.AreNotEqual(expectedMasterInstanceId, expectedAuditInstanceId);
 

@@ -64,19 +64,19 @@
             try
             {
                 var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
-                var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken);
+                var response = await client.GetAsync("/api", cancellationToken);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
             }
             catch (HttpRequestException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"The remote instance at '{remoteSettings.ApiUri}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
+                throw new TimeoutException($"The remote instance at '{remoteSettings.BaseAddress}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
             catch (OperationCanceledException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"The remote at '{remoteSettings.ApiUri}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
+                throw new TimeoutException($"The remote at '{remoteSettings.BaseAddress}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
             }
         }
 

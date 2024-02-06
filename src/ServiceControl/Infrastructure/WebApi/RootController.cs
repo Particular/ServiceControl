@@ -128,7 +128,7 @@
 
                     return new
                     {
-                        remote.ApiUri,
+                        ApiUri = remote.BaseAddress,
                         Version = version,
                         Status = status,
                         Configuration = config

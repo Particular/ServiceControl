@@ -31,7 +31,7 @@
             }
             catch (Exception ex)
             {
-                var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
+                var remoteConnectionUri = $"{remote.BaseAddress.TrimEnd('/')}/connection";
                 var message = $"Unable to get connection details from ServiceControl Audit instance at {remoteConnectionUri}.";
 
                 connection.Errors.Add(message);

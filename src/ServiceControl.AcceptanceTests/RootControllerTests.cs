@@ -15,17 +15,17 @@
         {
             // Since we don't have an audit instance running in a test, use the primary instance
             // configuration URL just to ensure the JSON is combined correctly.
-            const string localApiUrl = "http://localhost:33333/api";
-            string serviceName = null;
+            string serviceName = null, baseAddress = null;
 
             SetSettings = settings =>
             {
-                settings.RemoteInstances = new[]
-                {
-                    new RemoteInstanceSetting(localApiUrl),
-                    new RemoteInstanceSetting(localApiUrl)
-                };
+                settings.RemoteInstances =
+                [
+                    new RemoteInstanceSetting(settings.RootUrl),
+                    new RemoteInstanceSetting(settings.RootUrl)
+                ];
                 serviceName = settings.ServiceName;
+                baseAddress = settings.RootUrl;
             };
 
             JsonArray config = null;
@@ -49,7 +49,7 @@
 
             Assert.That(config1Str, Is.EqualTo(config2Str));
 
-            Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(localApiUrl));
+            Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(baseAddress));
             Assert.That(config1["status"].GetValue<string>(), Is.EqualTo("online"));
             Assert.That(config1["version"].GetValue<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
             Assert.That(config1Str, Contains.Substring(serviceName));

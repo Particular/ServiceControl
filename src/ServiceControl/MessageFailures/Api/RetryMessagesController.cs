@@ -41,10 +41,10 @@
                 return BadRequest();
             }
 
-            var forwarderError = await forwarder.SendAsync(HttpContext, remote.ApiUri, httpMessageInvoker, ForwarderRequestConfig.Empty, RemoveApiTransformer.Instance);
+            var forwarderError = await forwarder.SendAsync(HttpContext, remote.BaseAddress, httpMessageInvoker);
             if (forwarderError != ForwarderError.None && HttpContext.GetForwarderErrorFeature()?.Exception is { } exception)
             {
-                logger.Warn($"Failed to forward the request ot remote instance at {remote.ApiUri + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
+                logger.Warn($"Failed to forward the request ot remote instance at {remote.BaseAddress + HttpContext.Request.GetEncodedPathAndQuery()}.", exception);
             }
 
             return Empty;

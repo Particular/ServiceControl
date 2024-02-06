@@ -35,7 +35,7 @@
                 })
                 .Run();
 
-            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].ApiUrl);
+            var expectedRemote1InstanceId = InstanceIdGenerator.FromApiUrl(SettingsPerInstance[ServiceControlAuditInstanceName].RootUrl);
 
             var remote1Message = response.SingleOrDefault(msg => msg.MessageId == context.Remote1MessageId);
 

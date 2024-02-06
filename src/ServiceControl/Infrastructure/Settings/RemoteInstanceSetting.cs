@@ -6,13 +6,14 @@
 
     public class RemoteInstanceSetting
     {
-        public RemoteInstanceSetting(string apiUri)
+        public RemoteInstanceSetting(string baseAddress)
         {
-            ApiUri = apiUri ?? throw new ArgumentNullException(nameof(apiUri));
-            InstanceId = InstanceIdGenerator.FromApiUrl(ApiUri);
+            BaseAddress = (baseAddress ?? throw new ArgumentNullException(nameof(baseAddress))).Replace("/api", string.Empty);
+            InstanceId = InstanceIdGenerator.FromApiUrl(BaseAddress);
         }
 
-        public string ApiUri { get; }
+        [JsonPropertyName("ApiUri")] // for legacy reasons this property is serialized as ApiUri
+        public string BaseAddress { get; }
 
         /// <summary>
         /// If we fail to connect to a remote instance, it will be temporarily disabled. Any <see cref="ScatterGatherApiBase"/> query will skip disabled instances. The <see cref="CheckRemotes"/> custom check will enable any disabled remote instance the first time it succeeds in connecting it. 

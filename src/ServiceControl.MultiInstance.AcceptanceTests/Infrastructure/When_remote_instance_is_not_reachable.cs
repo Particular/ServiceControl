@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Infrastructure
 {
+    using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
@@ -16,13 +17,16 @@
         [Test]
         public async Task Should_not_fail()
         {
-            CustomServiceControlPrimarySettings = s =>
+            CustomServiceControlPrimarySettings = settings =>
             {
-                var currentSetting = s.RemoteInstances[0];
-                s.RemoteInstances = new[]
+                var currentSetting = settings.RemoteInstances[0];
+                settings.RemoteInstances = new[]
                 {
                     currentSetting, new RemoteInstanceSetting("http://localhost:12121")
                 };
+
+                settings.DisableHealthChecks = false;
+                settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
             };
 
             //search for the message type

@@ -129,7 +129,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
                 hostBuilder.Logging.AddScenarioContextLogging();
 
-                hostBuilder.WebHost.UseTestServer();
+                hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddKeyedSingleton(instanceName,
                     (provider, _) => (TestServer)provider.GetRequiredService<IServer>());
