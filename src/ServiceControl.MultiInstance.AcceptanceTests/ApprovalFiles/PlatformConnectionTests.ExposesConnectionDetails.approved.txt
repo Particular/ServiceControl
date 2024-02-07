@@ -10,14 +10,14 @@
       "Enabled": true,
       "AuditQueue": "audit"
     },
-    "CustomChecks": {
-      "Enabled": true,
-      "CustomChecksQueue": "Particular.ServiceControl"
-    },
     "ErrorQueue": "error",
     "SagaAudit": {
       "Enabled": true,
       "SagaAuditQueue": "audit"
+    },
+    "CustomChecks": {
+      "Enabled": true,
+      "CustomChecksQueue": "Particular.ServiceControl"
     }
   },
   "errors": []

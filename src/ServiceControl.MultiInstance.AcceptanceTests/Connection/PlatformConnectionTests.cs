@@ -25,11 +25,7 @@
                 })
                 .Run();
 
-            Assert.IsNotNull(config.Connection);
-
-            var formatted = JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(config.Connection), new JsonSerializerOptions { WriteIndented = true });
-
-            Approver.Verify(formatted);
+            Approver.Verify(JsonSerializer.Deserialize<dynamic>(config.Connection));
         }
 
         class MyEndpoint : EndpointConfigurationBuilder
