@@ -12,6 +12,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         }
 
         [Route("conversations/{conversationid}")]
+        [HttpGet]
         public Task<HttpResponseMessage> Get(string conversationid) => api.Execute(this, conversationid);
 
         readonly MessagesByConversationApi api;
