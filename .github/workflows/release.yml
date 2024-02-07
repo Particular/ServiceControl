@@ -33,7 +33,7 @@ jobs:
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
       - name: Build
-        run: dotnet build src --configuration Release -graph
+        run: dotnet build src --configuration -graph
       - name: Build ServiceControl Management
         run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --configuration --runtime win-x64 --no-build --output assets
       - name: Sign NuGet packages
