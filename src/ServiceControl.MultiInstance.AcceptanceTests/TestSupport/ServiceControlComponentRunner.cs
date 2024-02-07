@@ -119,6 +119,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                         {
                             primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, () => testServer.CreateHandler());
                         }
+                        else
+                        {
+                            primaryHostBuilder.Services.AddKeyedSingleton<Func<HttpMessageHandler>>(remoteInstance.InstanceId, () => throw new InvalidOperationException($"There is no registered HttpMessageHandler factory for instance {remoteInstance.BaseAddress}."));
+                        }
                     }
 
                     primaryHostBuilderCustomization(primaryHostBuilder);
