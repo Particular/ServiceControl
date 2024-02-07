@@ -9,25 +9,12 @@
     using Microsoft.AspNetCore.Routing;
     using NUnit.Framework;
     using Particular.Approvals;
-    using PublicApiGenerator;
     using ServiceControl.Audit.Persistence.InMemory;
     using ServiceControl.Transports.Learning;
 
     [TestFixture]
     class APIApprovals
     {
-        // TODO: This test is probably no longer a good idea with all the controllers being public and this test probably
-        // previously intending to "abuse" api approvals to verify some sort of contract shared between the primary and the secondary
-        [Test]
-        public void PublicClr()
-        {
-            var publicApi = typeof(WebApiHostBuilderExtensions).Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
-            Approver.Verify(publicApi);
-        }
-
         [Test]
         public void RootPathValue()
         {
