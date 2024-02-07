@@ -146,9 +146,10 @@
 
                 // TODO: the following four lines could go into a AddServiceControlTesting() extension
                 hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
+                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
+
                 // This facilitates receiving the test server anywhere where DI is available
                 hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
-                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
 
                 // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
                 // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
