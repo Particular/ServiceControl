@@ -8,6 +8,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
     using System.Net.Http;
     using System.Text.Json;
     using AcceptanceTesting;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -64,7 +65,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
                 c => CustomPrimaryEndpointConfiguration(c),
                 c => CustomAuditEndpointConfiguration(c),
                 s => CustomServiceControlPrimarySettings(s),
-                s => CustomServiceControlAuditSettings(s)
+                s => CustomServiceControlAuditSettings(s),
+                b => PrimaryHostBuilderCustomization(b),
+                b => AuditHostBuilderCustomization(b)
                 );
         }
 
@@ -77,21 +80,18 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            return Define<T>(c => { });
-        }
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new() => Define<T>(c => { });
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
-        {
-            return Scenario.Define(contextInitializer)
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
+            Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
 
         protected Action<EndpointConfiguration> CustomPrimaryEndpointConfiguration = c => { };
         protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };
         protected Action<Settings> CustomServiceControlPrimarySettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
+        protected Action<IHostApplicationBuilder> PrimaryHostBuilderCustomization = b => { };
+        protected Action<IHostApplicationBuilder> AuditHostBuilderCustomization = b => { };
         protected ITransportIntegration TransportIntegration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;

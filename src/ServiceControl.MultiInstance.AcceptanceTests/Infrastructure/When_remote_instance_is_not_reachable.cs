@@ -1,9 +1,13 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Infrastructure
 {
     using System;
+    using System.Net;
+    using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
+    using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -14,19 +18,25 @@
 
     class When_remote_instance_is_not_reachable : AcceptanceTest
     {
-        [Test]
-        public async Task Should_not_fail()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_not_fail(bool disableHealthChecks)
         {
+            var remoteInstanceSetting = new RemoteInstanceSetting("http://localhost:12121");
             CustomServiceControlPrimarySettings = settings =>
             {
                 var currentSetting = settings.RemoteInstances[0];
-                settings.RemoteInstances = new[]
-                {
-                    currentSetting, new RemoteInstanceSetting("http://localhost:12121")
-                };
+                settings.RemoteInstances = [currentSetting, remoteInstanceSetting];
 
-                settings.DisableHealthChecks = false;
+                // Toggle the health checks because the behavior should not depend on the health checks running or not running
+                settings.DisableHealthChecks = disableHealthChecks;
                 settings.PersisterSpecificSettings.OverrideCustomCheckRepeatTime = TimeSpan.FromSeconds(2);
+            };
+
+            PrimaryHostBuilderCustomization = builder =>
+            {
+                builder.Services.AddKeyedSingleton<Func<HttpMessageHandler>>(remoteInstanceSetting.InstanceId,
+                    () => new RemoteNotAvailableHandler());
             };
 
             //search for the message type
@@ -38,21 +48,18 @@
                 .Run();
         }
 
+        class RemoteNotAvailableHandler : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
+        }
+
         public class Sender : EndpointConfigurationBuilder
         {
             public Sender() => EndpointSetup<DefaultServerWithAudit>();
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();

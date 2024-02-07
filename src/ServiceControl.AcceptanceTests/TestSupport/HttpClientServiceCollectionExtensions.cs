@@ -1,5 +1,6 @@
 namespace ServiceControl.AcceptanceTests.RavenDB.Shared;
 
+using System;
 using System.Net.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,14 +10,14 @@ static class HttpClientServiceCollectionExtensions
 {
     public static void OverrideHttpClientDefaults(this IServiceCollection services, Settings settings)
     {
-        services.AddKeyedSingleton("Forwarding", (provider, _) => provider.GetRequiredService<TestServer>());
-        services.AddSingleton(p => new HttpMessageInvoker(p.GetRequiredKeyedService<TestServer>("Forwarding").CreateHandler()));
+        services.AddKeyedSingleton<Func<HttpMessageHandler>>("Forwarding", (provider, _) => () => provider.GetRequiredService<TestServer>().CreateHandler());
+        services.AddSingleton(p => new HttpMessageInvoker(p.GetRequiredKeyedService<Func<HttpMessageHandler>>("Forwarding")()));
 
         foreach (var remoteInstance in settings.RemoteInstances)
         {
-            services.AddKeyedSingleton(remoteInstance.InstanceId, (provider, _) => provider.GetRequiredService<TestServer>());
+            services.AddKeyedSingleton<Func<HttpMessageHandler>>(remoteInstance.InstanceId, (provider, _) => () => provider.GetRequiredService<TestServer>().CreateHandler());
             var remoteInstanceHttpClientBuilder = services.AddHttpClient(remoteInstance.InstanceId);
-            remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredKeyedService<TestServer>(remoteInstance.InstanceId).CreateHandler());
+            remoteInstanceHttpClientBuilder.ConfigurePrimaryHttpMessageHandler(p => p.GetRequiredKeyedService<Func<HttpMessageHandler>>(remoteInstance.InstanceId)());
         }
     }
 }

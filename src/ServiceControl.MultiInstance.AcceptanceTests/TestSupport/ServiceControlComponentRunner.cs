@@ -3,7 +3,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
@@ -12,6 +11,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using Audit.AcceptanceTests;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -24,13 +24,21 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<EndpointConfiguration> customPrimaryEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse,
+            Action<EndpointConfiguration> customPrimaryEndpointConfiguration,
+            Action<EndpointConfiguration> customAuditEndpointConfiguration,
+            Action<Settings> customServiceControlSettings,
+            Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings,
+            Action<IHostApplicationBuilder> primaryHostBuilderCustomization,
+            Action<IHostApplicationBuilder> auditHostBuilderCustomization)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
             this.customPrimaryEndpointConfiguration = customPrimaryEndpointConfiguration;
             this.transportToUse = transportToUse;
+            this.primaryHostBuilderCustomization = primaryHostBuilderCustomization;
+            this.auditHostBuilderCustomization = auditHostBuilderCustomization;
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
@@ -68,7 +76,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                     customAuditEndpointConfiguration(auditEndpointConfiguration);
                 },
                 _ => { },
-                _ => { });
+                auditHostBuilder => auditHostBuilderCustomization(auditHostBuilder));
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, AuditInstanceSettings.DEFAULT_SERVICE_NAME);
             await auditInstanceComponentRunner.Initialize(run);
 
@@ -104,14 +112,16 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 primaryHostBuilder =>
                 {
                     // While this code looks generic, it won't support adding more than one remote instance
-                    primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", auditInstanceComponentRunner.InstanceTestServer);
+                    primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", () => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
                     foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
                     {
                         if (TestServerPerRemoteInstance.TryGetValue(remoteInstance.InstanceId, out var testServer))
                         {
-                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, (provider, key) => testServer);
+                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, () => testServer.CreateHandler());
                         }
                     }
+
+                    primaryHostBuilderCustomization(primaryHostBuilder);
                 });
             typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_SERVICE_NAME);
             await primaryInstanceComponentRunner.Initialize(run);
@@ -130,6 +140,8 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         Action<EndpointConfiguration> customPrimaryEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<IHostApplicationBuilder> primaryHostBuilderCustomization;
+        Action<IHostApplicationBuilder> auditHostBuilderCustomization;
         Action<Settings> customServiceControlSettings;
         Audit.AcceptanceTests.TestSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
         PrimaryInstanceTestsSupport.ServiceControlComponentRunner primaryInstanceComponentRunner;
