@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.MultiInstance.AcceptanceTests.Infrastructure
 {
     using System;
-    using System.Net;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -50,7 +49,8 @@
 
         class RemoteNotAvailableHandler : HttpMessageHandler
         {
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+                => throw new HttpRequestException(HttpRequestError.ConnectionError);
         }
 
         public class Sender : EndpointConfigurationBuilder
