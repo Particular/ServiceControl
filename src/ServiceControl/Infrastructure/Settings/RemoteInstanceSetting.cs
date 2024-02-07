@@ -12,7 +12,7 @@
             InstanceId = InstanceIdGenerator.FromApiUrl(BaseAddress);
         }
 
-        [JsonPropertyName("ApiUri")] // for legacy reasons this property is serialized as ApiUri
+        [JsonPropertyName("api_uri")] // for legacy reasons this property is serialized as ApiUri
         public string BaseAddress { get; }
 
         /// <summary>
