@@ -52,6 +52,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
         {
             SettingsPerInstance.Clear();
 
+            // The way we are setting up things here means we assume there is only one remote instance. Should we move away from this approach
+            // parts of the logic in this class would have to be augmented to dynamically spin up multiple audit instances based on some configuration
+            // currently we don't need that so YAGNI.
             auditInstanceComponentRunner = new AuditInstanceTestsSupport.ServiceControlComponentRunner(
                 transportToUse,
                 new AcceptanceTestStorageConfiguration(), auditSettings =>
@@ -111,7 +114,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
                 },
                 primaryHostBuilder =>
                 {
-                    // While this code looks generic, it won't support adding more than one remote instance
+                    // The http message invoker is a singleton and can invoke any arbitrary destination. Hard wiring things to the audit instance
+                    // is not ideal. Once we are introducing more instances than just the audit and the primary this code would have to change.
+                    // For example one way to deal with this is to have a custom invoker that figures out the right target based on the base address
+                    // in the request URI.
                     primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", () => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
                     foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
                     {
