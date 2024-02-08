@@ -56,18 +56,18 @@ Selected Transport:					{settings.TransportType}
             nlogConfig.AddTarget("null", nullTarget);
 
             //Suppress NSB license logging since this will have it's own
-            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Info, nullTarget) { Final = true });
+            nlogConfig.LoggingRules.Add(new LoggingRule("NServiceBus.LicenseManager", LogLevel.Debug, nullTarget) { Final = true });
 
             // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Info, consoleTarget)
+            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Debug, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("ServiceControl.Monitoring.Licensing.*", LogLevel.Debug, consoleTarget)
             {
                 Final = true
             });
 
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Info ? settings.LogLevel : LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", settings.LogLevel < LogLevel.Debug ? settings.LogLevel : LogLevel.Debug, consoleTarget));
 
             if (!logToConsole)
             {
@@ -91,10 +91,10 @@ Selected Transport:					{settings.TransportType}
 
         public static LogLevel InitializeLevel()
         {
-            var level = LogLevel.Warn;
+            var level = LogLevel.Debug;
             try
             {
-                level = LogLevel.FromString(SettingsReader<string>.Read(LogLevelKey, LogLevel.Warn.Name));
+                level = LogLevel.FromString(SettingsReader<string>.Read(LogLevelKey, LogLevel.Debug.Name));
             }
             catch
             {

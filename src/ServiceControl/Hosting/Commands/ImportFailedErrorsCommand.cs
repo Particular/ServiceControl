@@ -23,7 +23,7 @@
 
             EndpointConfiguration busConfiguration = CreateEndpointConfiguration(settings);
 
-            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Info);
+            var loggingSettings = new LoggingSettings(settings.ServiceName, LogLevel.Debug);
             var bootstrapper = new Bootstrapper(settings, busConfiguration, loggingSettings);
             using (var host = bootstrapper.HostBuilder.Build())
             {

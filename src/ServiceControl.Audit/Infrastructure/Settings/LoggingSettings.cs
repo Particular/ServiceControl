@@ -9,7 +9,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
     {
         public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
         {
-            LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
+            LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Debug);
             LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
             LogToConsole = logToConsole;
         }

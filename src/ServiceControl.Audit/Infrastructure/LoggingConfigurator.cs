@@ -66,8 +66,8 @@ ServiceControl Audit Version:				{version}
             nlogConfig.AddTarget("null", nullTarget);
 
             // Always want to see license logging regardless of default logging level
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Info, consoleTarget)
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Debug, fileTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("Particular.ServiceControl.Licensing.*", LogLevel.Debug, consoleTarget)
             {
                 Final = true
             });
@@ -75,7 +75,7 @@ ServiceControl Audit Version:				{version}
 
             // Defaults
             nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel, fileTarget));
-            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Info ? loggingSettings.LoggingLevel : LogLevel.Info, consoleTarget));
+            nlogConfig.LoggingRules.Add(new LoggingRule("*", loggingSettings.LoggingLevel < LogLevel.Debug ? loggingSettings.LoggingLevel : LogLevel.Debug, consoleTarget));
 
 
             if (!loggingSettings.LogToConsole)
