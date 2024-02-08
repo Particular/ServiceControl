@@ -1,5 +1,11 @@
 ﻿namespace ServiceControl.UnitTests.API
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using Audit;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
@@ -44,26 +50,28 @@
             var httpApiMethods = GetControllerRoutes()
                 .Select(pair =>
                 {
-                    var type = pair.Method.DeclaringType;
-                    var httpMethods = pair.Method.GetCustomAttributes(true)
+                    (MethodInfo method, RouteAttribute route) = pair;
+                    var type = method.DeclaringType;
+                    var httpMethods = method.GetCustomAttributes(true)
                         .OfType<IActionHttpMethodProvider>()
-                           .SelectMany(att => att.HttpMethods.Select(m => m.Method))
+                           .SelectMany(att => att.HttpMethods.Select(m => m))
                            .Distinct()
-                           .OrderBy(httpMethod => httpMethod);
+                           .OrderBy(httpMethod => httpMethod)
+                        .ToArray();
 
                     if (!httpMethods.Any())
                     {
-                        throw new Exception($"Method {type.FullName}:{pair.Method.Name} has Route attribute but no method attribute like HttpGet.");
+                        throw new Exception($"Method {type.FullName}:{method.Name} has Route attribute but no method attribute like HttpGet.");
                     }
 
-                    var parametersString = string.Join(", ", pair.Method.GetParameters().Select(p => $"{PrettyTypeName(p.ParameterType)} {p.Name}"));
-                    var methodSignature = $"{type.FullName}:{pair.Method.Name}({parametersString})";
+                    var parametersString = string.Join(", ", method.GetParameters().Select(p => $"{PrettyTypeName(p.ParameterType)} {p.Name}"));
+                    var methodSignature = $"{type.FullName}:{method.Name}({parametersString})";
 
                     return new
                     {
                         MethodSignature = methodSignature,
                         HttpMethods = string.Join("/", httpMethods),
-                        Route = pair.Route.Template
+                        Route = route.Template
                     };
                 })
                 .OrderBy(x => x.Route).ThenBy(x => x.HttpMethods)
@@ -80,19 +88,19 @@
             Approver.Verify(httpApi);
         }
 
-        IEnumerable<(MethodInfo Method, IHttpRouteInfoProvider Route)> GetControllerRoutes()
+        IEnumerable<(MethodInfo Method, RouteAttribute Route)> GetControllerRoutes()
         {
             var controllers = typeof(Program).Assembly.GetTypes()
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t));
+                .Where(t => typeof(ControllerBase).IsAssignableFrom(t));
 
             foreach (var type in controllers)
             {
-                foreach (var methodInfo in type.GetMethods())
+                foreach (var method in type.GetMethods())
                 {
-                    var routeAtts = methodInfo.GetCustomAttributes(true).OfType<IHttpRouteInfoProvider>();
+                    var routeAtts = method.GetCustomAttributes(true).OfType<RouteAttribute>();
                     foreach (var routeAtt in routeAtts)
                     {
-                        yield return (methodInfo, routeAtt);
+                        yield return (method, routeAtt);
                     }
                 }
             }
