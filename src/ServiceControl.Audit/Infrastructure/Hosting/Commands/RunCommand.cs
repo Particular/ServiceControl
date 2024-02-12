@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using Settings;
 

@@ -1,6 +1,5 @@
 namespace ServiceControl.Monitoring
 {
-    using System;
     using System.Threading.Tasks;
     using Infrastructure;
     using Microsoft.AspNetCore.Builder;
@@ -11,7 +10,6 @@ namespace ServiceControl.Monitoring
         public override async Task Execute(Settings settings)
         {
             var endpointConfiguration = new EndpointConfiguration(settings.ServiceName);
-            settings.RunAsWindowsService = !Environment.UserInteractive && !settings.Portable;
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);

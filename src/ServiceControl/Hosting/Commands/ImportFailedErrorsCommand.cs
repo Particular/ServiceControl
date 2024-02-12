@@ -19,7 +19,6 @@
         {
             settings.IngestErrorMessages = false;
             settings.RunRetryProcessor = false;
-            settings.RunAsWindowsService = false;
             settings.DisableHealthChecks = true;
 
             EndpointConfiguration endpointConfiguration = CreateEndpointConfiguration(settings);

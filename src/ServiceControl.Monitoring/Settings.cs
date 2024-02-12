@@ -52,7 +52,6 @@ namespace ServiceControl.Monitoring
         public int MaximumConcurrencyLevel { get; set; }
         public string LicenseFileText { get; set; }
         public bool ExposeApi { get; set; } = true;
-        public bool RunAsWindowsService { get; set; }
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe

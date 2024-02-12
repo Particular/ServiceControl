@@ -17,7 +17,6 @@
             assemblyScanner.ExcludeAssemblies("ServiceControl.Plugin");
 
             settings.RunCleanupBundle = true;
-            settings.RunAsWindowsService = args.RunAsWindowsService;
 
             var loggingSettings = new LoggingSettings(args.ServiceName);
 

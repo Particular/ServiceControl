@@ -9,6 +9,7 @@
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -29,7 +30,7 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
+            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !WindowsServiceHelpers.IsWindowsService());
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             settings = new Settings(arguments.ServiceName);

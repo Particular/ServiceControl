@@ -33,10 +33,7 @@ public static class WebApplicationBuilderExtensions
         var transportCustomization = settings.LoadTransportCustomization();
         var buildQueueLengthProvider = QueueLengthProviderBuilder(settings.ConnectionString, transportCustomization);
 
-        if (settings.RunAsWindowsService)
-        {
-            hostBuilder.Services.AddWindowsService();
-        }
+        hostBuilder.Services.AddWindowsService();
 
         hostBuilder.Logging.ClearProviders();
         //HINT: configuration used by NLog comes from MonitorLog.cs
