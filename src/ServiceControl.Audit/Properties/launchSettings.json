@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ServiceControl.Monitoring": {
+    "ServiceControl.Audit": {
       "commandName": "Project",
       "launchBrowser": false,
       "environmentVariables": {
