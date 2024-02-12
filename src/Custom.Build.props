@@ -27,8 +27,4 @@
     <UseArtifactsOutput>false</UseArtifactsOutput>
   </PropertyGroup>
 
-  <PropertyGroup Label="Keep to make projects compile for now">
-    <NoWarn>$(NoWarn);NU1701</NoWarn>
-  </PropertyGroup>
-
 </Project>

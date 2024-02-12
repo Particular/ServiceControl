@@ -2,7 +2,6 @@
 {
     using System.Linq;
     using System.Reflection;
-    using System.Web.Http.Dispatcher;
     using Microsoft.AspNetCore.Mvc;
     using NUnit.Framework;
     using ServiceControl.Audit.Infrastructure.Settings;
@@ -15,7 +14,7 @@
         {
             var allControllers = typeof(Settings).Assembly.GetTypes().Where(t => typeof(ControllerBase).IsAssignableFrom(t)).ToArray();
             Assert.IsNotEmpty(allControllers);
-            Assert.IsTrue(allControllers.All(c => c.Name.EndsWith(DefaultHttpControllerSelector.ControllerSuffix)));
+            Assert.IsTrue(allControllers.All(c => c.Name.EndsWith("Controller")));
             Assert.IsTrue(allControllers.All(c => c.GetCustomAttributes<ApiControllerAttribute>().Any()));
         }
     }

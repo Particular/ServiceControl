@@ -80,12 +80,4 @@
     <GlobalPackageReference Include="Particular.Packaging" Version="4.0.0" />
   </ItemGroup>
 
-  <ItemGroup Label="Keep to make projects compile for now">
-    <PackageVersion Include="Microsoft.AspNet.SignalR.Client" Version="2.4.3" />
-    <PackageVersion Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.Owin.Cors" Version="4.2.2" />
-    <PackageVersion Include="OwinHttpMessageHandler" Version="2.0.2" />
-  </ItemGroup>
-
 </Project>

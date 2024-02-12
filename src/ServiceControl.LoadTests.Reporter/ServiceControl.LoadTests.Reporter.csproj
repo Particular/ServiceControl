@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Metrics.NET" />
+    <!-- TODO: Replace Metrics.NET with a package that is being maintained -->
+    <!-- Or consider if we even need these load test projects anymore? -->
+    <PackageReference Include="Metrics.NET" NoWarn="NU1701" />
   </ItemGroup>
 
 </Project>
