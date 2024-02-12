@@ -39,6 +39,5 @@
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
   "DisableHealthChecks": false,
-  "ExposeApi": true,
-  "RunAsWindowsService": false
+  "ExposeApi": true
 }
