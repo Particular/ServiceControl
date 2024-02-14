@@ -81,4 +81,10 @@
     <FileUpdate Files="@(ModuleFile)" Pattern="{{Date}}" ReplacementText="$([System.DateTime]::UtcNow.ToString(yyyy))" />
   </Target>
 
+  <Target Name="WorkaroundForSqlClientWindowsFormsReference" BeforeTargets="AddTransitiveFrameworkReferences">
+    <ItemGroup>
+      <TransitiveFrameworkReference Remove="@(TransitiveFrameworkReference)" Condition="'%(TransitiveFrameworkReference.Identity)' == 'Microsoft.WindowsDesktop.App.WindowsForms'" />
+    </ItemGroup>
+  </Target>
+
 </Project>
