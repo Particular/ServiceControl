@@ -2,10 +2,10 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 {
     using System;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
 
@@ -19,10 +19,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         }
 
         public HttpClient HttpClient => runner.HttpClient;
-        public JsonSerializerSettings SerializerSettings => runner.SerializerSettings;
-        public string Port => runner.Port;
-        public Settings Settings => runner.Settings;
-        public OwinHttpMessageHandler Handler => runner.Handler;
+        public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {

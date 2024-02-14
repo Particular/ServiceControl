@@ -2,398 +2,158 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Reflection;
-    using System.Threading;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Audit.Infrastructure.OWIN;
+    using Audit.AcceptanceTests;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
-    using NServiceBus.Configuration.AdvancedExtensibility;
-    using NServiceBus.Logging;
-    using Particular.ServiceControl;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.Infrastructure.WebApi;
+    using EndpointConfiguration = NServiceBus.EndpointConfiguration;
+    using AuditInstanceTestsSupport = ServiceControl.Audit.AcceptanceTests.TestSupport;
+    using PrimaryInstanceTestsSupport = ServiceControl.AcceptanceTests.TestSupport;
+    using PrimaryInstanceSettings = ServiceBus.Management.Infrastructure.Settings.Settings;
+    using AuditInstanceSettings = ServiceControl.Audit.Infrastructure.Settings.Settings;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, DataStoreConfiguration dataStoreConfiguration, Action<EndpointConfiguration> customEndpointConfiguration, Action<EndpointConfiguration> customAuditEndpointConfiguration, Action<Settings> customServiceControlSettings, Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse,
+            Action<EndpointConfiguration> customPrimaryEndpointConfiguration,
+            Action<EndpointConfiguration> customAuditEndpointConfiguration,
+            Action<Settings> customServiceControlSettings,
+            Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings,
+            Action<IHostApplicationBuilder> primaryHostBuilderCustomization,
+            Action<IHostApplicationBuilder> auditHostBuilderCustomization)
         {
             this.customServiceControlSettings = customServiceControlSettings;
             this.customServiceControlAuditSettings = customServiceControlAuditSettings;
             this.customAuditEndpointConfiguration = customAuditEndpointConfiguration;
-            this.customEndpointConfiguration = customEndpointConfiguration;
-            this.dataStoreConfiguration = dataStoreConfiguration;
+            this.customPrimaryEndpointConfiguration = customPrimaryEndpointConfiguration;
             this.transportToUse = transportToUse;
+            this.primaryHostBuilderCustomization = primaryHostBuilderCustomization;
+            this.auditHostBuilderCustomization = auditHostBuilderCustomization;
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public Dictionary<string, HttpClient> HttpClients { get; } = new Dictionary<string, HttpClient>();
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public Dictionary<string, dynamic> SettingsPerInstance { get; } = new Dictionary<string, dynamic>();
+        public Dictionary<string, HttpClient> HttpClients { get; } = [];
+        public Dictionary<string, JsonSerializerOptions> SerializerOptions { get; } = [];
+        public Dictionary<string, dynamic> SettingsPerInstance { get; } = [];
+
+        public Dictionary<string, TestServer> TestServerPerRemoteInstance { get; } = [];
 
         public async Task Initialize(RunDescriptor run)
         {
             SettingsPerInstance.Clear();
 
-            var mainInstancePort = portLeases.GetPort();
-            var auditInstancePort = portLeases.GetPort();
-
-            await InitializeServiceControlAudit(run.ScenarioContext, auditInstancePort);
-            await InitializeServiceControl(run.ScenarioContext, mainInstancePort, auditInstancePort);
-        }
-
-        async Task InitializeServiceControl(ScenarioContext context, int instancePort, int auditInstanceApiPort)
-        {
-            var instanceName = Settings.DEFAULT_SERVICE_NAME;
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
-            ConfigurationManager.AppSettings.Set("ServiceControl/TransportType", transportToUse.TypeName);
-
-            var settings = new Settings(instanceName, transportToUse.TypeName, dataStoreConfiguration.DataStoreTypeName)
-            {
-                Port = instancePort,
-                ForwardErrorMessages = false,
-                TransportType = transportToUse.TypeName,
-                TransportConnectionString = transportToUse.ConnectionString,
-                ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
-                TimeToRestartErrorIngestionAfterFailure = TimeSpan.FromSeconds(2),
-                MaximumConcurrencyLevel = 2,
-                HttpDefaultConnectionLimit = int.MaxValue,
-                DisableHealthChecks = true,
-                ExposeApi = false,
-                RemoteInstances = new[]
+            // The way we are setting up things here means we assume there is only one remote instance. Should we move away from this approach
+            // parts of the logic in this class would have to be augmented to dynamically spin up multiple audit instances based on some configuration
+            // currently we don't need that so YAGNI.
+            auditInstanceComponentRunner = new AuditInstanceTestsSupport.ServiceControlComponentRunner(
+                transportToUse,
+                new AcceptanceTestStorageConfiguration(), auditSettings =>
                 {
-                    new RemoteInstanceSetting
-                    {
-                        ApiUri = $"http://localhost:{auditInstanceApiPort}/api" // evil assumption for now
-                    }
-                },
-                MessageFilter = messageContext =>
+                    auditSettings.ServiceControlQueueAddress = PrimaryInstanceSettings.DEFAULT_SERVICE_NAME;
+                    customServiceControlAuditSettings(auditSettings);
+                    SettingsPerInstance[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditSettings;
+                }, auditEndpointConfiguration =>
                 {
-                    var headers = messageContext.Headers;
-                    var id = messageContext.NativeMessageId;
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
-                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
-
-                    //Do not filter out CC, SA and HB messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                        && messageTypes.StartsWith("ServiceControl."))
+                    var scanner = auditEndpointConfiguration.AssemblyScanner();
+                    // TODO Maybe we need to find a more robust way to do this. For example excluding assemblies we find by convention
+                    var excludedAssemblies = new[]
                     {
-                        return false;
-                    }
-
-                    //Do not filter out subscribe messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                        && intent == MessageIntent.Subscribe.ToString())
-                    {
-                        return false;
-                    }
-
-                    var currentSession = context.TestRunId.ToString();
-                    if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
-                    {
-                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return true;
-                    }
-
-                    return false;
-                }
-            };
-
-            databaseLease.CustomizeSettings(settings);
-
-            customServiceControlSettings(settings);
-            SettingsPerInstance[instanceName] = settings;
-
-            var configuration = new EndpointConfiguration(instanceName);
-            var scanner = configuration.AssemblyScanner();
-            var excludedAssemblies = new[]
-            {
-                Path.GetFileName(typeof(Audit.Infrastructure.Settings.Settings).Assembly.CodeBase),
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name
-            };
-            scanner.ExcludeAssemblies(excludedAssemblies);
-
-            configuration.GetSettings().Set("SC.ScenarioContext", context);
-            configuration.GetSettings().Set(context);
-
-            configuration.RegisterComponents(r =>
-            {
-                r.AddSingleton(context.GetType(), context);
-                r.AddSingleton(typeof(ScenarioContext), context);
-            });
-
-            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-            configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-            customEndpointConfiguration(configuration);
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
-            }
-
-            IHost host;
-            Bootstrapper bootstrapper;
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: NLog.LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
-                {
-                    HttpClientFactory = HttpClientFactory
-                };
-
-                host = bootstrapper.HostBuilder.Build();
-                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
-                await host.StartAsync();
-                hosts[instanceName] = host;
-            }
-
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new ServiceBus.Management.Infrastructure.OWIN.Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app);
-                var appFunc = app.Build();
-
-                var handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                handlers[instanceName] = handler;
-                portToHandler[settings.Port] = handler; // port should be unique enough
-                var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClients[instanceName] = httpClient;
-            }
-        }
-
-        async Task InitializeServiceControlAudit(ScenarioContext context, int instancePort)
-        {
-            var instanceName = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(context, instanceName);
-
-            var settings = new Audit.Infrastructure.Settings.Settings(instanceName, transportToUse.TypeName, typeof(Audit.Persistence.InMemory.InMemoryPersistenceConfiguration).AssemblyQualifiedName)
-            {
-                Port = instancePort,
-                TransportConnectionString = transportToUse.ConnectionString,
-                MaximumConcurrencyLevel = 2,
-                HttpDefaultConnectionLimit = int.MaxValue,
-                ExposeApi = false,
-                ServiceControlQueueAddress = Settings.DEFAULT_SERVICE_NAME,
-                MessageFilter = messageContext =>
-                {
-                    var id = messageContext.NativeMessageId;
-                    var headers = messageContext.Headers;
-
-                    var log = LogManager.GetLogger<ServiceControlComponentRunner>();
-                    headers.TryGetValue(Headers.MessageId, out var originalMessageId);
-                    log.Debug($"OnMessage for message '{id}'({originalMessageId ?? string.Empty}).");
-
-                    //Do not filter out CC, SA and HB messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.EnclosedMessageTypes, out var messageTypes)
-                        && messageTypes.StartsWith("ServiceControl."))
-                    {
-                        return false;
-                    }
-
-                    //Do not filter out subscribe messages as they can't be stamped
-                    if (headers.TryGetValue(Headers.MessageIntent, out var intent)
-                        && intent == MessageIntent.Subscribe.ToString())
-                    {
-                        return false;
-                    }
-
-                    var currentSession = context.TestRunId.ToString();
-                    if (!headers.TryGetValue("SC.SessionID", out var session) || session != currentSession)
-                    {
-                        log.Debug($"Discarding message '{id}'({originalMessageId ?? string.Empty}) because it's session id is '{session}' instead of '{currentSession}'.");
-                        return true;
-                    }
-
-                    return false;
-                }
-            };
-
-            var excludedAssemblies = new[]
-            {
-                Path.GetFileName(typeof(Settings).Assembly.CodeBase), // ServiceControl.exe
-                "ServiceControl.Persistence.RavenDB.dll",
-                typeof(ServiceControlComponentRunner).Assembly.GetName().Name // This project
-            };
-
-            customServiceControlAuditSettings(settings);
-            SettingsPerInstance[instanceName] = settings;
-
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
-            {
-                var setupBootstrapper = new Audit.Infrastructure.SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
-            }
-
-            var configuration = new EndpointConfiguration(instanceName);
-            configuration.EnableInstallers();
-            var scanner = configuration.AssemblyScanner();
-
-            scanner.ExcludeAssemblies(excludedAssemblies);
-
-            configuration.GetSettings().Set("SC.ScenarioContext", context);
-            configuration.GetSettings().Set(context);
-
-            configuration.RegisterComponents(r =>
-            {
-                r.AddSingleton(context.GetType(), context);
-                r.AddSingleton(typeof(ScenarioContext), context);
-            });
-
-            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-            configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-            customAuditEndpointConfiguration(configuration);
-
-            IHost host;
-            using (new DiagnosticTimer($"Initializing Bootstrapper for {instanceName}"))
-            {
-                var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Directory.CreateDirectory(logPath);
-
-                var loggingSettings = new Audit.Infrastructure.Settings.LoggingSettings(settings.ServiceName, logPath: logPath);
-                var bootstrapper = new Audit.Infrastructure.Bootstrapper((criticalErrorContext, cancellationToken) =>
-                {
-                    var logitem = new ScenarioContext.LogItem
-                    {
-                        Endpoint = settings.ServiceName,
-                        Level = LogLevel.Fatal,
-                        LoggerName = $"{settings.ServiceName}.CriticalError",
-                        Message = $"{criticalErrorContext.Error}{Environment.NewLine}{criticalErrorContext.Exception}"
+                        "ServiceControl.Persistence.RavenDB.dll",
+                        "ServiceControl.AcceptanceTests.RavenDB.dll",
+                        "ServiceControl.Audit.AcceptanceTests.dll",
+                        Path.GetFileName(typeof(PrimaryInstanceSettings).Assembly.Location),
+                        Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location),
                     };
-                    context.Logs.Enqueue(logitem);
-                    return criticalErrorContext.Stop(cancellationToken);
+                    scanner.ExcludeAssemblies(excludedAssemblies);
+
+                    customAuditEndpointConfiguration(auditEndpointConfiguration);
                 },
-                settings,
-                configuration,
-                loggingSettings);
+                _ => { },
+                auditHostBuilder => auditHostBuilderCustomization(auditHostBuilder));
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, AuditInstanceSettings.DEFAULT_SERVICE_NAME);
+            await auditInstanceComponentRunner.Initialize(run);
 
-                host = bootstrapper.HostBuilder.Build();
+            HttpClients[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.HttpClient;
+            SerializerOptions[AuditInstanceSettings.DEFAULT_SERVICE_NAME] = auditInstanceComponentRunner.SerializerOptions;
+            var auditInstance = new RemoteInstanceSetting(auditInstanceComponentRunner.InstanceTestServer.BaseAddress.ToString());
+            TestServerPerRemoteInstance[auditInstance.InstanceId] = auditInstanceComponentRunner.InstanceTestServer;
 
-                await host.StartAsync();
-
-                hosts[instanceName] = host;
-            }
-
-            using (new DiagnosticTimer($"Initializing AppBuilder for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new Startup(host.Services);
-
-                startup.Configuration(app);
-                var appFunc = app.Build();
-
-                var handler = new OwinHttpMessageHandler(appFunc)
+            primaryInstanceComponentRunner = new PrimaryInstanceTestsSupport.ServiceControlComponentRunner(
+                transportToUse,
+                new ServiceControl.AcceptanceTests.AcceptanceTestStorageConfiguration(), primarySettings =>
                 {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
-                handlers[instanceName] = handler;
-                portToHandler[settings.Port] = handler; // port should be unique enough
-                var httpClient = new HttpClient(handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClients[instanceName] = httpClient;
-            }
+                    primarySettings.RemoteInstances = [auditInstance];
+                    customServiceControlSettings(primarySettings);
+                    SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primarySettings;
+                },
+                primaryEndpointConfiguration =>
+                {
+                    var scanner = primaryEndpointConfiguration.AssemblyScanner();
+                    // TODO Maybe we need to find a more robust way to do this. For example excluding assemblies we find by convention
+                    var excludedAssemblies = new[]
+                    {
+                        "ServiceControl.Persistence.RavenDB.dll",
+                        "ServiceControl.AcceptanceTests.RavenDB.dll",
+                        "ServiceControl.Audit.AcceptanceTests.dll",
+                        Path.GetFileName(typeof(AuditInstanceSettings).Assembly.Location),
+                        typeof(ServiceControlComponentRunner).Assembly.GetName().Name
+                    };
+                    scanner.ExcludeAssemblies(excludedAssemblies);
+
+                    customPrimaryEndpointConfiguration(primaryEndpointConfiguration);
+                },
+                primaryHostBuilder =>
+                {
+                    // The http message invoker is a singleton and can invoke any arbitrary destination. Hard wiring things to the audit instance
+                    // is not ideal. Once we are introducing more instances than just the audit and the primary this code would have to change.
+                    // For example one way to deal with this is to have a custom invoker that figures out the right target based on the base address
+                    // in the request URI.
+                    primaryHostBuilder.Services.AddKeyedSingleton("Forwarding", () => auditInstanceComponentRunner.InstanceTestServer.CreateHandler());
+                    foreach (var remoteInstance in ((PrimaryInstanceSettings)SettingsPerInstance[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME]).RemoteInstances)
+                    {
+                        if (TestServerPerRemoteInstance.TryGetValue(remoteInstance.InstanceId, out var testServer))
+                        {
+                            primaryHostBuilder.Services.AddKeyedSingleton(remoteInstance.InstanceId, () => testServer.CreateHandler());
+                        }
+                        else
+                        {
+                            primaryHostBuilder.Services.AddKeyedSingleton<Func<HttpMessageHandler>>(remoteInstance.InstanceId, () => throw new InvalidOperationException($"There is no registered HttpMessageHandler factory for instance {remoteInstance.BaseAddress}."));
+                        }
+                    }
+
+                    primaryHostBuilderCustomization(primaryHostBuilder);
+                });
+            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic)?.SetValue(run.ScenarioContext, PrimaryInstanceSettings.DEFAULT_SERVICE_NAME);
+            await primaryInstanceComponentRunner.Initialize(run);
+
+            HttpClients[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.HttpClient;
+            SerializerOptions[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.SerializerOptions;
         }
 
         public override async Task Stop()
         {
-            foreach (var instanceAndSettings in SettingsPerInstance)
-            {
-                var instanceName = instanceAndSettings.Key;
-                var settings = instanceAndSettings.Value;
-                using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
-                {
-                    if (hosts.ContainsKey(instanceName))
-                    {
-                        var host = hosts[instanceName];
-                        await host.StopAsync();
-                        host.Dispose();
-                    }
-                    HttpClients[instanceName].Dispose();
-                    handlers[instanceName].Dispose();
-                    try
-                    {
-                        DirectoryDeleter.Delete(settings.DbPath);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-
-            await databaseLease.DisposeAsync();
-            portLeases?.Dispose();
-
-            hosts.Clear();
-            HttpClients.Clear();
-            portToHandler.Clear();
-            handlers.Clear();
+            await auditInstanceComponentRunner.Stop();
+            await primaryInstanceComponentRunner.Stop();
         }
 
-        HttpClient HttpClientFactory()
-        {
-            var httpClient = new HttpClient(new ForwardingHandler(portToHandler));
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
-        }
-
-        Dictionary<string, IHost> hosts = new Dictionary<string, IHost>();
-
-        Dictionary<string, OwinHttpMessageHandler> handlers = new Dictionary<string, OwinHttpMessageHandler>();
-        Dictionary<int, HttpMessageHandler> portToHandler = new Dictionary<int, HttpMessageHandler>();
         ITransportIntegration transportToUse;
-        DataStoreConfiguration dataStoreConfiguration;
-        Action<EndpointConfiguration> customEndpointConfiguration;
+        Action<EndpointConfiguration> customPrimaryEndpointConfiguration;
         Action<EndpointConfiguration> customAuditEndpointConfiguration;
         Action<Audit.Infrastructure.Settings.Settings> customServiceControlAuditSettings;
+        Action<IHostApplicationBuilder> primaryHostBuilderCustomization;
+        Action<IHostApplicationBuilder> auditHostBuilderCustomization;
         Action<Settings> customServiceControlSettings;
-
-        static readonly PortPool portPool = new PortPool(33335);
-        DatabaseLease databaseLease = SharedDatabaseSetup.LeaseDatabase();
-        PortLease portLeases = portPool.GetLease();
-
-        class ForwardingHandler : DelegatingHandler
-        {
-            public ForwardingHandler(Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers)
-            {
-                this.portsToHttpMessageHandlers = portsToHttpMessageHandlers;
-            }
-
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-            {
-                var delegatingHandler = portsToHttpMessageHandlers[request.RequestUri.Port];
-                InnerHandler = delegatingHandler;
-                return base.SendAsync(request, cancellationToken);
-            }
-
-            Dictionary<int, HttpMessageHandler> portsToHttpMessageHandlers;
-        }
+        Audit.AcceptanceTests.TestSupport.ServiceControlComponentRunner auditInstanceComponentRunner;
+        PrimaryInstanceTestsSupport.ServiceControlComponentRunner primaryInstanceComponentRunner;
     }
 }

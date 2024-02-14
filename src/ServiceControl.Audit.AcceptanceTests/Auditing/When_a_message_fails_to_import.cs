@@ -18,8 +18,9 @@
         [Test]
         public async Task It_can_be_reimported()
         {
-            //Make sure the audit import attempt fails
-            CustomConfiguration = config => config.RegisterComponents(services => services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>());
+            CustomizeHostBuilder = hostBuilder =>
+                //Make sure the audit import attempt fails
+                hostBuilder.Services.AddSingleton<IEnrichImportedAuditMessages, FailOnceEnricher>();
 
             SetSettings = settings =>
             {
@@ -59,12 +60,8 @@
             Assert.IsTrue(runResult.AuditForwarded);
         }
 
-        class FailOnceEnricher : IEnrichImportedAuditMessages
+        class FailOnceEnricher(MyContext testContext) : IEnrichImportedAuditMessages
         {
-            MyContext testContext;
-
-            public FailOnceEnricher(MyContext context) => testContext = context;
-
             public void Enrich(AuditEnricherContext context)
             {
                 if (!testContext.FailedImport)
@@ -81,12 +78,8 @@
         {
             public AuditLogSpy() => EndpointSetup<DefaultServerWithoutAudit>();
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
             {
-                MyContext testContext;
-
-                public MyMessageHandler(MyContext context) => testContext = context;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.AuditForwarded = true;
@@ -97,29 +90,20 @@
 
         public class Sender : EndpointConfigurationBuilder
         {
-            public Sender()
-            {
+            public Sender() =>
                 EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
                 });
-            }
         }
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver()
+            public Receiver() => EndpointSetup<DefaultServerWithAudit>();
+
+            public class MyMessageHandler(MyContext testContext) : IHandleMessages<MyMessage>
             {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
-
-            public class MyMessageHandler : IHandleMessages<MyMessage>
-            {
-                MyContext testContext;
-
-                public MyMessageHandler(MyContext context) => testContext = context;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.MessageId = context.MessageId;

@@ -1,25 +1,16 @@
 ﻿namespace ServiceControl.Connection
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class RemotePlatformConnectionDetailsProvider : IProvidePlatformConnectionDetails
+    class RemotePlatformConnectionDetailsProvider(Settings settings, IHttpClientFactory clientFactory)
+        : IProvidePlatformConnectionDetails
     {
-        readonly Settings settings;
-        readonly Func<HttpClient> httpClientFactory;
-
-        public RemotePlatformConnectionDetailsProvider(Settings settings, Func<HttpClient> httpClientFactory)
-        {
-            this.settings = settings;
-            this.httpClientFactory = httpClientFactory;
-        }
-
         public Task ProvideConnectionDetails(PlatformConnectionDetails connection) =>
             Task.WhenAll(
                 settings.RemoteInstances
@@ -28,26 +19,19 @@
 
         async Task UpdateFromRemote(RemoteInstanceSetting remote, PlatformConnectionDetails connection)
         {
-            var remoteConnectionUri = $"{remote.ApiUri.TrimEnd('/')}/connection";
-
-            var client = httpClientFactory();
+            var client = clientFactory.CreateClient(remote.InstanceId);
             try
             {
-                var result = await client.GetStringAsync(remoteConnectionUri);
-                var dictionary = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result);
-                if (dictionary == null)
+                await using var stream = await client.GetStreamAsync("/api/connection");
+                var document = await JsonDocument.ParseAsync(stream);
+                foreach (var property in document.RootElement.EnumerateObject())
                 {
-                    Log.Warn($"Unexpected response from {remoteConnectionUri}: {result}");
-                    return;
-                }
-
-                foreach (var kvp in dictionary)
-                {
-                    connection.Add(kvp.Key, kvp.Value);
+                    connection.Add(property.Name, property.Value);
                 }
             }
             catch (Exception ex)
             {
+                var remoteConnectionUri = $"{remote.BaseAddress.TrimEnd('/')}/connection";
                 var message = $"Unable to get connection details from ServiceControl Audit instance at {remoteConnectionUri}.";
 
                 connection.Errors.Add(message);

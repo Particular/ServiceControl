@@ -23,16 +23,13 @@
 
         static Guid DeterministicGuidBuilder(string input)
         {
-            Guid g;
+            var inputBytes = Encoding.Default.GetBytes(input);
 
             // use MD5 hash to get a 16-byte hash of the string
-            using (var provider = new MD5CryptoServiceProvider())
-            {
-                var inputBytes = Encoding.Default.GetBytes(input);
-                var hashBytes = provider.ComputeHash(inputBytes);
-                // generate a guid from the hash:
-                g = new Guid(hashBytes);
-            }
+            var hashBytes = MD5.HashData(inputBytes);
+
+            // generate a guid from the hash:
+            var g = new Guid(hashBytes);
 
             return g;
         }

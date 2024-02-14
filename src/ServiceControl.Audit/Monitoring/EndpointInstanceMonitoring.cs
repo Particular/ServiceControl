@@ -4,7 +4,7 @@ namespace ServiceControl.Audit.Monitoring
     using System.Collections.Concurrent;
     using ServiceControl.Audit.Persistence.Infrastructure;
 
-    class EndpointInstanceMonitoring
+    public class EndpointInstanceMonitoring
     {
         public bool IsNewInstance(EndpointDetails newEndpointDetails)
         {

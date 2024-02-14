@@ -53,11 +53,9 @@ namespace ServiceBus.Management.Infrastructure
             configuration.DefineCriticalErrorAction((criticalErrorContext, _) => CriticalErrorCustomCheck.OnCriticalError(criticalErrorContext));
         }
 
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null
-                   && t.Namespace.StartsWith("ServiceControl.Contracts")
-                   && t.Assembly.GetName().Name == "ServiceControl.Contracts";
-        }
+        static bool IsExternalContract(Type t) =>
+            t.Namespace != null
+            && t.Namespace.StartsWith("ServiceControl.Contracts")
+            && t.Assembly.GetName().Name == "ServiceControl.Contracts";
     }
 }

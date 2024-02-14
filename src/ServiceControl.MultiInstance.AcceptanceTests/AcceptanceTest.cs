@@ -2,13 +2,13 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -33,7 +33,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         protected static string ServiceControlAuditInstanceName { get; } = Audit.Infrastructure.Settings.Settings.DEFAULT_SERVICE_NAME;
 
         public Dictionary<string, HttpClient> HttpClients => serviceControlRunnerBehavior.HttpClients;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
+        public Dictionary<string, JsonSerializerOptions> SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
 
         [OneTimeSetUp]
@@ -42,9 +42,9 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         [SetUp]
         public void Setup()
         {
-            CustomEndpointConfiguration = c => { };
+            CustomPrimaryEndpointConfiguration = c => { };
             CustomAuditEndpointConfiguration = c => { };
-            CustomServiceControlSettings = s => { };
+            CustomServiceControlPrimarySettings = s => { };
             CustomServiceControlAuditSettings = s => { };
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
@@ -60,18 +60,14 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
 
             TransportIntegration = new ConfigureEndpointLearningTransport();
 
-            DataStoreConfiguration = new DataStoreConfiguration
-            {
-                DataStoreTypeName = "RavenDB"
-            };
-
             serviceControlRunnerBehavior = new ServiceControlComponentBehavior(
                 TransportIntegration,
-                DataStoreConfiguration,
-                c => CustomEndpointConfiguration(c),
+                c => CustomPrimaryEndpointConfiguration(c),
                 c => CustomAuditEndpointConfiguration(c),
-                s => CustomServiceControlSettings(s),
-                s => CustomServiceControlAuditSettings(s)
+                s => CustomServiceControlPrimarySettings(s),
+                s => CustomServiceControlAuditSettings(s),
+                b => PrimaryHostBuilderCustomization(b),
+                b => AuditHostBuilderCustomization(b)
                 );
         }
 
@@ -84,23 +80,19 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            return Define<T>(c => { });
-        }
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new() => Define<T>(c => { });
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
-        {
-            return Scenario.Define(contextInitializer)
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
+            Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
 
-        protected Action<EndpointConfiguration> CustomEndpointConfiguration = c => { };
+        protected Action<EndpointConfiguration> CustomPrimaryEndpointConfiguration = c => { };
         protected Action<EndpointConfiguration> CustomAuditEndpointConfiguration = c => { };
-        protected Action<Settings> CustomServiceControlSettings = c => { };
+        protected Action<Settings> CustomServiceControlPrimarySettings = c => { };
         protected Action<Audit.Infrastructure.Settings.Settings> CustomServiceControlAuditSettings = c => { };
+        protected Action<IHostApplicationBuilder> PrimaryHostBuilderCustomization = b => { };
+        protected Action<IHostApplicationBuilder> AuditHostBuilderCustomization = b => { };
         protected ITransportIntegration TransportIntegration;
-        protected DataStoreConfiguration DataStoreConfiguration;
 
         ServiceControlComponentBehavior serviceControlRunnerBehavior;
         TextWriterTraceListener textWriterTraceListener;

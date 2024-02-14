@@ -2,9 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.AspNet.SignalR;
+    using Microsoft.AspNetCore.SignalR;
 
-    class GlobalEventHandler
+    class GlobalEventHandler(IHubContext<MessageStreamerHub> hubContext)
     {
         public Task Broadcast(IUserInterfaceEvent @event)
         {
@@ -13,15 +13,8 @@
             {
                 typeName
             };
-            var context = GlobalHost.ConnectionManager.GetConnectionContext<MessageStreamerConnection>();
-
-            return context.Connection.Broadcast(new Envelope
-            {
-                Types = types,
-                Message = @event
-            }, emptyArray);
+            // TODO specify the method we will be using in ServicePulse?
+            return hubContext.Clients.All.SendAsync("PushEnvelope", new Envelope { Types = types, Message = @event });
         }
-
-        static string[] emptyArray = new string[0];
     }
 }

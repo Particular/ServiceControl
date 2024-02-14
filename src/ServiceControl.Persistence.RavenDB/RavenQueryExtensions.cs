@@ -31,42 +31,17 @@ namespace ServiceControl.Persistence
         public static IRavenQueryable<TSource> Sort<TSource>(this IRavenQueryable<TSource> source, SortInfo sortInfo)
             where TSource : MessagesViewIndex.SortAndFilterOptions
         {
-            Expression<Func<TSource, object>> keySelector;
-            switch (sortInfo.Sort)
+            Expression<Func<TSource, object>> keySelector = sortInfo.Sort switch
             {
-                case "id":
-                case "message_id":
-                    keySelector = m => m.MessageId;
-                    break;
-
-                case "message_type":
-                    keySelector = m => m.MessageType;
-                    break;
-
-                case "critical_time":
-                    keySelector = m => m.CriticalTime;
-                    break;
-
-                case "delivery_time":
-                    keySelector = m => m.DeliveryTime;
-                    break;
-
-                case "processing_time":
-                    keySelector = m => m.ProcessingTime;
-                    break;
-
-                case "processed_at":
-                    keySelector = m => m.ProcessedAt;
-                    break;
-
-                case "status":
-                    keySelector = m => m.Status;
-                    break;
-
-                default:
-                    keySelector = m => m.TimeSent;
-                    break;
-            }
+                "id" or "message_id" => m => m.MessageId,
+                "message_type" => m => m.MessageType,
+                "critical_time" => m => m.CriticalTime,
+                "delivery_time" => m => m.DeliveryTime,
+                "processing_time" => m => m.ProcessingTime,
+                "processed_at" => m => m.ProcessedAt,
+                "status" => m => m.Status,
+                _ => m => m.TimeSent,
+            };
 
             if (sortInfo.Direction == "asc")
             {
@@ -106,42 +81,21 @@ namespace ServiceControl.Persistence
                 descending = false;
             }
 
-            string keySelector;
-
             var sort = sortInfo.Sort;
             if (!AsyncDocumentQuerySortOptions.Contains(sort))
             {
                 sort = "time_sent";
             }
 
-            switch (sort)
+            string keySelector = sort switch
             {
-                case "id":
-                case "message_id":
-                    keySelector = "MessageId";
-                    break;
-
-                case "message_type":
-                    keySelector = "MessageType";
-                    break;
-
-                case "status":
-                    keySelector = "Status";
-                    break;
-
-                case "modified":
-                    keySelector = "LastModified";
-                    break;
-
-                case "time_of_failure":
-                    keySelector = "TimeOfFailure";
-                    break;
-
-                default:
-                    keySelector = "TimeSent";
-                    break;
-            }
-
+                "id" or "message_id" => "MessageId",
+                "message_type" => "MessageType",
+                "status" => "Status",
+                "modified" => "LastModified",
+                "time_of_failure" => "TimeOfFailure",
+                _ => "TimeSent",
+            };
             return source.AddOrder(keySelector, descending);
         }
 
@@ -233,8 +187,8 @@ namespace ServiceControl.Persistence
             return source;
         }
 
-        static HashSet<string> AsyncDocumentQuerySortOptions = new HashSet<string>
-        {
+        static HashSet<string> AsyncDocumentQuerySortOptions =
+        [
             "id",
             "message_id",
             "message_type",
@@ -242,7 +196,7 @@ namespace ServiceControl.Persistence
             "status",
             "modified",
             "time_of_failure"
-        };
+        ];
 
         static string[] SplitChars =
         {

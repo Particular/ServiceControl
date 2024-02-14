@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.AcceptanceTests.Legacy
 {
-    using System;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
-    using Microsoft.Extensions.DependencyInjection;
-    using Newtonsoft.Json.Linq;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -17,30 +15,25 @@
         {
             // Since we don't have an audit instance running in a test, use the primary instance
             // configuration URL just to ensure the JSON is combined correctly.
-            const string localApiUrl = "http://localhost:33333/api";
-            var serviceName = Guid.NewGuid().ToString("n");
+            string serviceName = null, baseAddress = null;
 
-            CustomizeHostBuilder = hostBuilder =>
+            SetSettings = settings =>
             {
-                hostBuilder.ConfigureServices((hostBuilderContext, services) =>
-                {
-                    services.AddSingleton(new Settings(serviceName, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
-                    {
-                        RemoteInstances = new[]
-                        {
-                            new RemoteInstanceSetting { ApiUri = localApiUrl },
-                            new RemoteInstanceSetting { ApiUri = localApiUrl }
-                        }
-                    });
-                });
+                settings.RemoteInstances =
+                [
+                    new RemoteInstanceSetting(settings.RootUrl),
+                    new RemoteInstanceSetting(settings.RootUrl)
+                ];
+                serviceName = settings.ServiceName;
+                baseAddress = settings.RootUrl;
             };
 
-            JArray config = null;
+            JsonArray config = null;
 
             var context = await Define<ScenarioContext>() // Don't need a context
                 .Done(async c =>
                 {
-                    var result = await this.TryGet<JArray>("/api/configuration/remotes");
+                    var result = await this.TryGet<JsonArray>("/api/configuration/remotes");
                     config = result.Item;
                     return result.HasResult;
                 })
@@ -56,9 +49,9 @@
 
             Assert.That(config1Str, Is.EqualTo(config2Str));
 
-            Assert.That(config1["api_uri"].Value<string>(), Is.EqualTo(localApiUrl));
-            Assert.That(config1["status"].Value<string>(), Is.EqualTo("online"));
-            Assert.That(config1["version"].Value<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
+            Assert.That(config1["api_uri"].GetValue<string>(), Is.EqualTo(baseAddress));
+            Assert.That(config1["status"].GetValue<string>(), Is.EqualTo("online"));
+            Assert.That(config1["version"].GetValue<string>(), Does.Match(@"^\d+\.\d+\.\d+(-[\w\d\.\-]+)?$"));
             Assert.That(config1Str, Contains.Substring(serviceName));
         }
     }

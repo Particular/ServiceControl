@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,11 +8,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
 using NUnit.Framework;
+using Raven.Client.Documents;
 using ServiceControl.Infrastructure.DomainEvents;
 using ServiceControl.Operations.BodyStorage;
 using ServiceControl.Persistence;
 using ServiceControl.Persistence.MessageRedirects;
+using ServiceControl.Persistence.RavenDB;
 using ServiceControl.Persistence.Recoverability;
+using ServiceControl.Persistence.Tests;
 using ServiceControl.Persistence.UnitOfWork;
 using ServiceControl.PersistenceTests;
 
@@ -19,30 +23,40 @@ using ServiceControl.PersistenceTests;
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 public abstract class PersistenceTestBase
 {
-    IHost host;
-    readonly TestPersistence testPersistence = new TestPersistenceImpl();
+    string databaseName;
+    EmbeddedDatabase embeddedServer;
+    ServiceProvider serviceProvider;
 
     [SetUp]
     public async Task SetUp()
     {
-        var hostBuilder = Host.CreateDefaultBuilder()
-            .ConfigureLogging((hostingContext, logging) =>
-            {
-                logging.AddConsole();
-            }).ConfigureServices(services =>
-            {
-                services.AddSingleton<IDomainEvents, FakeDomainEvents>();
-                services.AddSingleton(new CriticalError(default(Func<ICriticalErrorContext, CancellationToken, Task>)));
+        databaseName = Guid.NewGuid().ToString("n");
+        var retentionPeriod = TimeSpan.FromMinutes(1);
 
-                testPersistence.Configure(services);
-                RegisterServices?.Invoke(services);
-            });
+        await TestContext.Out.WriteLineAsync($"Test Database Name: {databaseName}");
 
-        host = hostBuilder.Build();
+        embeddedServer = await SharedEmbeddedServer.GetInstance();
+
+        PersistenceSettings = new RavenPersisterSettings
+        {
+            AuditRetentionPeriod = retentionPeriod,
+            ErrorRetentionPeriod = retentionPeriod,
+            EventsRetentionPeriod = retentionPeriod,
+            DatabaseName = databaseName,
+            ConnectionString = embeddedServer.ServerUrl
+        };
+
+        var persistence = new RavenPersistenceConfiguration().Create(PersistenceSettings);
+
+        var services = new ServiceCollection();
+
+        services.ConfigurePersisterLifecyle(persistence);
+        RegisterServices?.Invoke(services);
+
+        serviceProvider = services.BuildServiceProvider();
 
         var persistenceLifecycle = GetRequiredService<IPersistenceLifecycle>();
         await persistenceLifecycle.Initialize();
-        await host.StartAsync();
 
         CompleteDatabaseOperation();
     }
@@ -51,20 +65,23 @@ public abstract class PersistenceTestBase
     public async Task TearDown()
     {
         // Needs to go first or database will be disposed
-        await testPersistence.TearDown();
+        await embeddedServer.DeleteDatabase(databaseName);
 
-        await host.StopAsync();
-        host.Dispose();
+        await serviceProvider.DisposeAsync();
     }
 
-    protected PersistenceSettings PersistenceSettings => testPersistence.Settings;
+    protected PersistenceSettings PersistenceSettings
+    {
+        get;
+        private set;
+    }
 
-    protected T GetRequiredService<T>() => host.Services.GetRequiredService<T>();
-    protected object GetRequiredService(Type serviceType) => host.Services.GetRequiredService(serviceType);
+    protected T GetRequiredService<T>() => serviceProvider.GetRequiredService<T>();
+    protected object GetRequiredService(Type serviceType) => serviceProvider.GetRequiredService(serviceType);
 
     protected Action<IServiceCollection> RegisterServices { get; set; }
 
-    protected void CompleteDatabaseOperation() => testPersistence.CompleteDatabaseOperation();
+    protected void CompleteDatabaseOperation() => GetRequiredService<IDocumentStore>().WaitForIndexing();
 
     protected async Task WaitUntil(Func<Task<bool>> conditionChecker, string condition, TimeSpan timeout = default)
     {
@@ -86,7 +103,31 @@ public abstract class PersistenceTestBase
     }
 
     [Conditional("DEBUG")]
-    protected void BlockToInspectDatabase() => testPersistence.BlockToInspectDatabase();
+    protected void BlockToInspectDatabase()
+    {
+        if (!Debugger.IsAttached)
+        {
+            return;
+        }
+
+        var url = embeddedServer.ServerUrl + "/studio/index.html#databases/documents?&database=" + databaseName;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            url = url.Replace("&", "^&");
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            Process.Start("xdg-open", url);
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            Process.Start("open", url);
+        }
+
+        Debugger.Break();
+    }
 
     protected IErrorMessageDataStore ErrorStore => GetRequiredService<IErrorMessageDataStore>();
     protected IRetryDocumentDataStore RetryStore => GetRequiredService<IRetryDocumentDataStore>();

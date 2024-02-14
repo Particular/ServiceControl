@@ -1,26 +1,33 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class CachingHttpHandler : DelegatingHandler
+    class CachingHttpHandler : IResultFilter
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+        public void OnResultExecuting(ResultExecutingContext context)
         {
-            var response = await base.SendAsync(request, cancellationToken);
-
-            if (!response.Headers.Contains("Cache-Control"))
+            if (context.HttpContext.Response.HasStarted)
             {
-                response.Headers.Add("Cache-Control", "private, max-age=0");
+                // In forwarding scenarios we don't want to alter headers set by other instances
+                return;
             }
 
-            if (!response.Headers.Contains("Vary"))
+            // TODO do we even need to do this
+            var response = context.HttpContext.Response;
+            if (!response.Headers.ContainsKey("Cache-Control"))
             {
-                response.Headers.Add("Vary", "Accept");
+                response.Headers["Cache-Control"] = "private, max-age=0";
             }
 
-            return response;
+            if (!response.Headers.ContainsKey("Vary"))
+            {
+                response.Headers["Vary"] = "Accept";
+            }
+        }
+
+        public void OnResultExecuted(ResultExecutedContext context)
+        {
+            // NOP
         }
     }
 }

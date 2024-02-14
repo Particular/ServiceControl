@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +21,7 @@
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json"/>
     <PackageReference Include="NServiceBus.Persistence.NonDurable"/>
+    <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
 
 </Project>

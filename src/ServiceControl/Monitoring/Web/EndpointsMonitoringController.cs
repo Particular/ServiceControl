@@ -1,91 +1,77 @@
 ﻿namespace ServiceControl.Monitoring
 {
     using System;
-    using System.Net;
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Primitives;
+    using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
+    using ServiceControl.Persistence.Infrastructure;
 
     public class EndpointUpdateModel
     {
         public bool MonitorHeartbeat { get; set; }
     }
 
-    class EndpointsMonitoringController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class EndpointsMonitoringController(
+        IEndpointInstanceMonitoring monitoring,
+        GetKnownEndpointsApi knownEndpointsApi,
+        IMonitoringDataStore dataStore)
+        : ControllerBase
     {
-        readonly IMonitoringDataStore monitoringDataStore;
-
-        public EndpointsMonitoringController(IEndpointInstanceMonitoring monitoring, GetKnownEndpointsApi getKnownEndpointsApi, IMonitoringDataStore monitoringDataStore)
-        {
-            this.getKnownEndpointsApi = getKnownEndpointsApi;
-            this.monitoringDataStore = monitoringDataStore;
-            endpointInstanceMonitoring = monitoring;
-        }
-
         [Route("heartbeats/stats")]
         [HttpGet]
-        public OkNegotiatedContentResult<EndpointMonitoringStats> HeartbeatStats() => Ok(endpointInstanceMonitoring.GetStats());
+        public EndpointMonitoringStats HeartbeatStats() => monitoring.GetStats();
 
         [Route("endpoints")]
         [HttpGet]
-        public OkNegotiatedContentResult<EndpointsView[]> Endpoints() => Ok(endpointInstanceMonitoring.GetEndpoints());
+        public EndpointsView[] Endpoints() => monitoring.GetEndpoints();
 
         //Added as a way for SP to check if the DELETE operation is supported by the SC API
         [Route("endpoints")]
         [HttpOptions]
-        public HttpResponseMessage GetSupportedOperations()
+        public void GetSupportedOperations()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.NoContent)
-            {
-                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
-            };
-
-            response.Content.Headers.Allow.Add("GET");
-            response.Content.Headers.Allow.Add("DELETE");
-            response.Content.Headers.Allow.Add("PATCH");
-            response.Content.Headers.Add("Access-Control-Expose-Headers", "Allow");
-            return response;
+            Response.Headers.Allow = new StringValues(["GET", "DELETE", "PATCH"]);
+            Response.Headers.AccessControlExposeHeaders = "Allow";
         }
 
         [Route("endpoints/{endpointId}")]
         [HttpDelete]
-        public async Task<StatusCodeResult> DeleteEndpoint(Guid endpointId)
+        public async Task<IActionResult> DeleteEndpoint(Guid endpointId)
         {
-            if (!endpointInstanceMonitoring.HasEndpoint(endpointId))
+            if (!monitoring.HasEndpoint(endpointId))
             {
-                return StatusCode(HttpStatusCode.NotFound);
+                return NotFound();
             }
 
-            await monitoringDataStore.Delete(endpointId);
+            await dataStore.Delete(endpointId);
 
-            endpointInstanceMonitoring.RemoveEndpoint(endpointId);
-            return StatusCode(HttpStatusCode.NoContent);
+            monitoring.RemoveEndpoint(endpointId);
+            return NoContent();
         }
 
         [Route("endpoints/known")]
         [HttpGet]
-        public Task<HttpResponseMessage> KnownEndpoints() => getKnownEndpointsApi.Execute(this);
-
+        public Task<IList<KnownEndpointsView>> KnownEndpoints([FromQuery] PagingInfo pagingInfo) => knownEndpointsApi.Execute(new ScatterGatherContext(pagingInfo));
 
         [Route("endpoints/{endpointId}")]
         [HttpPatch]
-        public async Task<StatusCodeResult> Foo(Guid endpointId, EndpointUpdateModel data)
+        public async Task<IActionResult> Monitoring(Guid endpointId, [FromBody] EndpointUpdateModel data)
         {
             if (data.MonitorHeartbeat)
             {
-                await endpointInstanceMonitoring.EnableMonitoring(endpointId);
+                await monitoring.EnableMonitoring(endpointId);
             }
             else
             {
-                await endpointInstanceMonitoring.DisableMonitoring(endpointId);
+                await monitoring.DisableMonitoring(endpointId);
             }
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        readonly IEndpointInstanceMonitoring endpointInstanceMonitoring;
-        readonly GetKnownEndpointsApi getKnownEndpointsApi;
     }
 }

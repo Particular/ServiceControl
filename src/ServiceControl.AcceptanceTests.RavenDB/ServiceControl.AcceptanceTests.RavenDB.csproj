@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <RunSettingsFilePath>ServiceControl.runsettings</RunSettingsFilePath>
-    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,15 +15,19 @@
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NServiceBus.SagaAudit" />
     <PackageReference Include="NServiceBus.Heartbeat" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
+    <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
   </ItemGroup>
 
 </Project>

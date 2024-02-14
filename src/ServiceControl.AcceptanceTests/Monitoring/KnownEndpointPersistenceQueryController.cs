@@ -1,26 +1,16 @@
 ﻿namespace ServiceControl.AcceptanceTests.Monitoring
 {
-    using System.Net;
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using ServiceControl.Persistence;
 
-    class KnownEndpointPersistenceQueryController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class KnownEndpointPersistenceQueryController(IMonitoringDataStore dataStore) : ControllerBase
     {
-        readonly IMonitoringDataStore monitoringDataStore;
-
-        public KnownEndpointPersistenceQueryController(IMonitoringDataStore monitoringDataStore)
-        {
-            this.monitoringDataStore = monitoringDataStore;
-        }
-
         [Route("test/knownendpoints/query")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetKnownEndpoints()
-        {
-            var knownEndpoints = await monitoringDataStore.GetAllKnownEndpoints();
-            return Request.CreateResponse(HttpStatusCode.OK, knownEndpoints);
-        }
+        public async Task<IReadOnlyList<KnownEndpoint>> GetKnownEndpoints() => await dataStore.GetAllKnownEndpoints();
     }
 }

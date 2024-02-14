@@ -22,7 +22,7 @@
             string addressOfItself = null;
 
             // instead of setting up a multiple crazy instances we just use the current instance and rely on it forwarding the instance call to itself
-            CustomServiceControlSettings = s => { addressOfItself = s.ApiUrl; };
+            CustomServiceControlPrimarySettings = s => { addressOfItself = s.ApiUrl; };
 
             FailedMessage failure;
 

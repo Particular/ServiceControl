@@ -1,15 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NServiceBus" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
 </Project>

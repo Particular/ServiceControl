@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Reflection;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
     using NServiceBus.AcceptanceTesting;
 
@@ -11,33 +12,40 @@
     {
         public static ILoggingBuilder AddScenarioContextLogging(this ILoggingBuilder builder)
         {
-            builder.Services.AddSingleton<ILoggerProvider>(sp => new ContextLoggerProvider());
-
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ContextLoggerProvider>());
             return builder;
         }
 
         class ContextLoggerProvider : ILoggerProvider
         {
-            ConcurrentDictionary<string, ILogger> loggers = new ConcurrentDictionary<string, ILogger>();
+            readonly ConcurrentDictionary<string, ILogger> loggers = new ConcurrentDictionary<string, ILogger>();
 
             public void Dispose() => loggers.Clear();
 
             public ILogger CreateLogger(string categoryName)
             {
-                return loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+                try
+                {
+                    return loggers.GetOrAdd(categoryName, name => new ContextLogger(name));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to get logger. Exception: {e}");
+                    throw;
+                }
             }
         }
 
         class ContextLogger : ILogger
         {
-            string categoryName;
+            readonly string categoryName;
 
             public ContextLogger(string categoryName)
             {
                 this.categoryName = categoryName;
             }
 
-            public ScenarioContext GetContext()
+            ScenarioContext GetContext()
             {
                 var propertyInfo = typeof(ScenarioContext).GetProperty("Current", BindingFlags.NonPublic | BindingFlags.Static);
 
@@ -45,13 +53,23 @@
             }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
-                Exception exception, Func<TState, Exception, string> formatter) =>
-                GetContext().Logs.Enqueue(new ScenarioContext.LogItem
+                Exception exception, Func<TState, Exception, string> formatter)
+
+            {
+                try
                 {
-                    LoggerName = categoryName,
-                    Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
-                    Level = ConvertLogLevel(logLevel)
-                });
+                    GetContext().Logs.Enqueue(new ScenarioContext.LogItem
+                    {
+                        LoggerName = categoryName,
+                        Message = $"{state}" + (exception == null ? string.Empty : $"\n{exception}"), //HINT: default Microsoft formatter will ignore the exception
+                        Level = ConvertLogLevel(logLevel)
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+            }
 
             NServiceBus.Logging.LogLevel ConvertLogLevel(LogLevel level)
                 => level switch
@@ -66,8 +84,19 @@
                     _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
                 };
 
-            public bool IsEnabled(LogLevel logLevel) =>
-                ConvertLogLevel(logLevel) >= GetContext().LogLevel;
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                try
+                {
+                    return ConvertLogLevel(logLevel) >= GetContext()?.LogLevel;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"#### Fail to log message. Exception: {e}");
+                }
+
+                return false;
+            }
 
             public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 

@@ -1,20 +1,23 @@
 namespace ServiceControl.Audit.Auditing.MessagesView
 {
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Infrastructure;
+    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
+    using Persistence;
 
-    class MessagesConversationController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class MessagesConversationController(IAuditDataStore dataStore) : ControllerBase
     {
-        public MessagesConversationController(MessagesByConversationApi api)
-        {
-            this.api = api;
-        }
-
-        [Route("conversations/{conversationid}")]
+        [Route("conversations/{conversationId}")]
         [HttpGet]
-        public Task<HttpResponseMessage> Get(string conversationid) => api.Execute(this, conversationid);
-
-        readonly MessagesByConversationApi api;
+        public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId)
+        {
+            var result = await dataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo);
+            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
     }
 }

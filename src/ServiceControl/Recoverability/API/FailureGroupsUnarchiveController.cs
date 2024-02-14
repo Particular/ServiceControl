@@ -1,28 +1,22 @@
 ﻿namespace ServiceControl.Recoverability.API
 {
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence.Recoverability;
 
-    class FailureGroupsUnarchiveController : ApiController
+    [ApiController]
+    [Route("api")]
+    class FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
     {
-        public FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver)
-        {
-            this.bus = bus;
-            this.archiver = archiver;
-        }
-
-
         [Route("recoverability/groups/{groupId}/errors/unarchive")]
         [HttpPost]
-        public async Task<HttpResponseMessage> UnarchiveGroupErrors(string groupId)
+        public async Task<IActionResult> UnarchiveGroupErrors(string groupId)
         {
             if (string.IsNullOrWhiteSpace(groupId))
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "missing groupId");
+                //TODO compare to CreateErrorResponse that as here before
+                return BadRequest("missing groupId");
             }
 
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
@@ -32,10 +26,7 @@
                 await bus.SendLocal<UnarchiveAllInGroup>(m => { m.GroupId = groupId; });
             }
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        readonly IMessageSession bus;
-        readonly IArchiveMessages archiver;
     }
 }

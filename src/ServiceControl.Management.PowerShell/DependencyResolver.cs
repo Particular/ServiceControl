@@ -79,7 +79,7 @@ class DependencyResolver
         {
             foreach (var asset in runtimeAssets)
             {
-                if (asset.Runtime.Equals(runtime, StringComparison.Ordinal))
+                if (asset.Runtime?.Equals(runtime, StringComparison.Ordinal) ?? false)
                 {
                     assetPath = asset.AssetPaths[0];
                     break;

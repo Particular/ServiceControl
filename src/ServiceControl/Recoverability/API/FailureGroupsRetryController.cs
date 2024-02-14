@@ -1,14 +1,14 @@
 namespace ServiceControl.Recoverability.API
 {
     using System;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence;
 
-    class FailureGroupsRetryController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class FailureGroupsRetryController : ControllerBase
     {
         public FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)
         {
@@ -19,11 +19,11 @@ namespace ServiceControl.Recoverability.API
 
         [Route("recoverability/groups/{groupId}/errors/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ArchiveGroupErrors(string groupId)
+        public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {
             if (string.IsNullOrWhiteSpace(groupId))
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "missing groupId");
+                return BadRequest("missing groupId");
             }
 
             var started = DateTime.UtcNow;
@@ -39,7 +39,7 @@ namespace ServiceControl.Recoverability.API
                 });
             }
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         readonly IMessageSession bus;

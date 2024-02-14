@@ -4,42 +4,38 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
     using InternalMessages;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
-    class PendingRetryMessagesController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class PendingRetryMessagesController(IMessageSession session) : ControllerBase
     {
-        public PendingRetryMessagesController(IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-        }
-
         [Route("pendingretries/retry")]
         [HttpPost]
-        public async Task<StatusCodeResult> RetryBy(List<string> ids)
+        public async Task<IActionResult> RetryBy(List<string> ids)
         {
             if (ids.Any(string.IsNullOrEmpty))
             {
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            await messageSession.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
+            await session.SendLocal<RetryPendingMessagesById>(m => m.MessageUniqueIds = ids.ToArray());
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("pendingretries/queues/retry")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RetryBy(PendingRetryRequest request)
+        public async Task<IActionResult> RetryBy(PendingRetryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.queueaddress))
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress") which might be returning a complex object
+                // Let's verify
+                return BadRequest("QueueAddress");
             }
 
             DateTime from, to;
@@ -51,20 +47,20 @@
             }
             catch (Exception)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "From/To");
+                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress") which might be returning a complex object
+                // Let's verify
+                return BadRequest("From/To");
             }
 
-            await messageSession.SendLocal<RetryPendingMessages>(m =>
+            await session.SendLocal<RetryPendingMessages>(m =>
             {
                 m.QueueAddress = request.queueaddress;
                 m.PeriodFrom = from;
                 m.PeriodTo = to;
             });
 
-            return Request.CreateResponse(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        readonly IMessageSession messageSession;
 
         public class PendingRetryRequest
         {

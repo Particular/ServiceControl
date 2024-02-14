@@ -1,14 +1,13 @@
 namespace ServiceControl.Monitoring.AcceptanceTests
 {
     using System;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using AcceptanceTesting;
     using Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -30,10 +29,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests
 
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public string Port => Settings.HttpPort;
-        public Settings Settings => serviceControlRunnerBehavior.Settings;
-        public OwinHttpMessageHandler Handler => serviceControlRunnerBehavior.Handler;
+        public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
 
         [OneTimeSetUp]
         public static void OneTimeSetup()
@@ -46,10 +42,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
-
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);

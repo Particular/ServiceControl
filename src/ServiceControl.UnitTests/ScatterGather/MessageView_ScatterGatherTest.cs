@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
@@ -12,16 +13,12 @@
 
     abstract class MessageView_ScatterGatherTest
     {
-        protected virtual string QueryString => string.Empty;
-
         [SetUp]
         public void SetUp()
         {
-            var api = new TestApi(null, null, null);
+            var api = new TestApi(null, null, null, null);
 
-            var request = new HttpRequestMessage(new HttpMethod("GET"), $"http://doesnt/really/matter?{QueryString}");
-
-            Results = api.AggregateResults(request, GetData());
+            Results = api.AggregateResults(new ScatterGatherApiMessageViewContext(null, new SortInfo()), GetData());
         }
 
         protected abstract QueryResult<IList<MessagesView>>[] GetData();
@@ -68,16 +65,14 @@
         protected const string RemoteETag = nameof(RemoteETag);
         protected const int PageSize = 50;
 
-        class TestApi : ScatterGatherApiMessageView<object, NoInput>
+        class TestApi : ScatterGatherApiMessageView<object, ScatterGatherApiMessageViewContext>
         {
-            public TestApi(object documentStore, Settings settings, Func<HttpClient> httpClientFactory) : base(documentStore, settings, httpClientFactory)
+            public TestApi(object dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+                : base(dataStore, settings, httpClientFactory, httpContextAccessor)
             {
             }
 
-            protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, NoInput input)
-            {
-                throw new NotImplementedException();
-            }
+            protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(ScatterGatherApiMessageViewContext input) => throw new NotImplementedException();
         }
     }
 }

@@ -1,46 +1,39 @@
 ﻿namespace ServiceControl.CustomChecks
 {
     using System;
-    using System.Net;
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using Contracts.CustomChecks;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class CustomCheckController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class CustomCheckController(ICustomChecksDataStore checksDataStore, IMessageSession session)
+        : ControllerBase
     {
-        public CustomCheckController(ICustomChecksDataStore customChecksDataStore, IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-            this.customChecksDataStore = customChecksDataStore;
-        }
-
         [Route("customchecks")]
         [HttpGet]
-        public async Task<HttpResponseMessage> CustomChecks(string status = null)
+        public async Task<IList<CustomCheck>> CustomChecks([FromQuery] PagingInfo pagingInfo, string status = null)
         {
-            var paging = Request.GetPagingInfo();
-            var stats = await customChecksDataStore.GetStats(paging, status);
-            return Negotiator
-                .FromModel(Request, stats.Results)
-                .WithPagingLinksAndTotalCount(stats.QueryStats.TotalCount, Request)
-                .WithEtag(stats.QueryStats.ETag);
+            var stats = await checksDataStore.GetStats(pagingInfo, status);
+
+            Response.WithPagingLinksAndTotalCount(pagingInfo, stats.QueryStats.TotalCount);
+            Response.WithEtag(stats.QueryStats.ETag);
+
+            return stats.Results;
         }
 
         [Route("customchecks/{id}")]
         [HttpDelete]
-        public async Task<StatusCodeResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            await messageSession.SendLocal(new DeleteCustomCheck { Id = id });
+            await session.SendLocal(new DeleteCustomCheck { Id = id });
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        ICustomChecksDataStore customChecksDataStore;
-        IMessageSession messageSession;
     }
 }

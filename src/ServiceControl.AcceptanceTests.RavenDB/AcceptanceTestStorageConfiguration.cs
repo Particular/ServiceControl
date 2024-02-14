@@ -1,36 +1,38 @@
 ﻿namespace ServiceControl.AcceptanceTests
 {
+    using System;
     using System.Threading.Tasks;
     using Persistence.RavenDB;
+    using Persistence.Tests;
     using ServiceBus.Management.Infrastructure.Settings;
-    using ServiceControl.AcceptanceTesting;
 
-    class AcceptanceTestStorageConfiguration
+    public class AcceptanceTestStorageConfiguration
     {
-        static readonly PortPool portPool = new PortPool(33334);
+        public string PersistenceType { get; } = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
-        readonly DatabaseLease databaseLease = SharedDatabaseSetup.LeaseDatabase();
-        readonly PortLease portLease = portPool.GetLease();
-
-        public string PersistenceType { get; protected set; }
-
-        public void CustomizeSettings(Settings settings)
+        public async Task CustomizeSettings(Settings settings)
         {
-            databaseLease.CustomizeSettings(settings);
-            settings.Port = portLease.GetPort();
+            databaseName = Guid.NewGuid().ToString("n");
+            databaseInstance = await SharedEmbeddedServer.GetInstance();
+
+            settings.PersisterSpecificSettings = new RavenPersisterSettings
+            {
+                ErrorRetentionPeriod = TimeSpan.FromDays(10),
+                ConnectionString = databaseInstance.ServerUrl,
+                DatabaseName = databaseName
+            };
         }
 
-        public Task Configure()
+        public async Task Cleanup()
         {
-            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
-
-            return Task.CompletedTask;
+            if (databaseInstance == null)
+            {
+                return;
+            }
+            await databaseInstance.DeleteDatabase(databaseName);
         }
 
-        public async ValueTask Cleanup()
-        {
-            portLease.Dispose();
-            await databaseLease.DisposeAsync();
-        }
+        EmbeddedDatabase databaseInstance;
+        string databaseName;
     }
 }

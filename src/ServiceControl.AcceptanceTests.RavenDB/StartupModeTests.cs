@@ -15,34 +15,28 @@
     class StartupModeTests : AcceptanceTest
     {
         Settings settings;
-        DatabaseLease database;
+        AcceptanceTestStorageConfiguration configuration;
 
         [SetUp]
-        public void InitializeSettings()
+        public async Task InitializeSettings()
         {
             var transportIntegration = new ConfigureEndpointLearningTransport();
-
-            database = SharedDatabaseSetup.LeaseDatabase();
 
             settings = new Settings(
                 forwardErrorMessages: false,
                 errorRetentionPeriod: TimeSpan.FromDays(1),
                 persisterType: typeof(RavenPersistenceConfiguration).AssemblyQualifiedName)
             {
-                PersisterSpecificSettings = new RavenPersisterSettings
-                {
-                    ErrorRetentionPeriod = TimeSpan.FromDays(1),
-                    ConnectionString = SharedDatabaseSetup.SharedInstance.ServerUrl,
-                    DatabaseName = database.DatabaseName
-                },
                 TransportType = transportIntegration.TypeName,
                 TransportConnectionString = transportIntegration.ConnectionString,
-
             };
+
+            configuration = new AcceptanceTestStorageConfiguration();
+            await configuration.CustomizeSettings(settings);
         }
 
         [TearDown]
-        public async Task Cleanup() => await database.DisposeAsync();
+        public async Task Cleanup() => await configuration.Cleanup();
 
         [Test]
         public async Task CanRunMaintenanceMode()
@@ -57,9 +51,7 @@
 
         [Test]
         public async Task CanRunImportFailedMessagesMode()
-        {
-            await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
-        }
+            => await new TestableImportFailedErrorsCommand().Execute(new HostArguments(Array.Empty<string>()), settings);
 
         class TestableImportFailedErrorsCommand : ImportFailedErrorsCommand
         {

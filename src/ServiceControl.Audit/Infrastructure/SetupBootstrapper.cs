@@ -7,13 +7,8 @@ namespace ServiceControl.Audit.Infrastructure
     using ServiceControl.Audit.Persistence;
     using Transports;
 
-    class SetupBootstrapper
+    class SetupBootstrapper(Settings.Settings settings)
     {
-        public SetupBootstrapper(Settings.Settings settings)
-        {
-            this.settings = settings;
-        }
-
         public async Task Run()
         {
             // Validate license:
@@ -94,7 +89,6 @@ namespace ServiceControl.Audit.Infrastructure
             return transportSettings;
         }
 
-        readonly Settings.Settings settings;
         static ILog log = LogManager.GetLogger<SetupBootstrapper>();
     }
 }

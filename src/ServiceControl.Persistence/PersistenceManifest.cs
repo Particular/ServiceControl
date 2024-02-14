@@ -33,7 +33,7 @@
 
     public static class PersistenceManifestLibrary
     {
-        public static List<PersistenceManifest> PersistenceManifests { get; } = new List<PersistenceManifest>();
+        public static List<PersistenceManifest> PersistenceManifests { get; } = [];
 
         static PersistenceManifestLibrary()
         {

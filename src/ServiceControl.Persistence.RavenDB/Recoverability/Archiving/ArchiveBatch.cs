@@ -5,7 +5,7 @@
     class ArchiveBatch //raven
     {
         public string Id { get; set; }
-        public List<string> DocumentIds { get; set; } = new List<string>();
+        public List<string> DocumentIds { get; set; } = [];
 
         public static string MakeId(string requestId, ArchiveType archiveType, int batchNumber)
         {

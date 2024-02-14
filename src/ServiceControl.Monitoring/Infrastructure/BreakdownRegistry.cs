@@ -68,8 +68,8 @@ namespace ServiceControl.Monitoring.Infrastructure
                         .ToDictionary(g => g.Key, g => g.Select(i => i).ToArray());
         }
 
-        Dictionary<BreakdownT, BreakdownT> breakdowns = new Dictionary<BreakdownT, BreakdownT>();
-        volatile Dictionary<string, BreakdownT[]> lookup = new Dictionary<string, BreakdownT[]>();
+        Dictionary<BreakdownT, BreakdownT> breakdowns = [];
+        volatile Dictionary<string, BreakdownT[]> lookup = [];
         object @lock = new object();
 
         Func<BreakdownT, string> endpointNameExtractor;

@@ -3,6 +3,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Newtonsoft.Json;
@@ -10,15 +11,12 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     static class HttpExtensionsMultiInstance
     {
-        static IAcceptanceTestInfrastructureProvider ToHttpExtension(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string instanceName)
-        {
-            return new AcceptanceTestInfrastructureProvider
+        static IAcceptanceTestInfrastructureProvider ToHttpExtension(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string instanceName) =>
+            new AcceptanceTestInfrastructureProvider
             {
                 HttpClient = providerMultiInstance.HttpClients[instanceName],
-                SerializerSettings = providerMultiInstance.SerializerSettings,
-                Port = providerMultiInstance.SettingsPerInstance[instanceName].Port.ToString()
+                SerializerOptions = providerMultiInstance.SerializerOptions[instanceName],
             };
-        }
 
         public static Task Put<T>(this IAcceptanceTestInfrastructureProviderMultiInstance providerMultiInstance, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null, string instanceName = Settings.DEFAULT_SERVICE_NAME) where T : class
         {
@@ -59,8 +57,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
 
     class AcceptanceTestInfrastructureProvider : IAcceptanceTestInfrastructureProvider
     {
-        public JsonSerializerSettings SerializerSettings { get; set; }
         public HttpClient HttpClient { get; set; }
-        public string Port { get; set; }
+        public JsonSerializerOptions SerializerOptions { get; set; }
     }
 }

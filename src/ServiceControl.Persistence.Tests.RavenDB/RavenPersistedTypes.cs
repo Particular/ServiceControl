@@ -13,7 +13,7 @@
         [Test]
         public void Verify()
         {
-            var allTypes = typeof(Bootstrapper).Assembly.GetTypes().Concat(typeof(RavenQueryExtensions).Assembly.GetTypes()).Concat(typeof(EndpointsView).Assembly.GetTypes());
+            var allTypes = typeof(WebApplicationBuilderExtension).Assembly.GetTypes().Concat(typeof(RavenQueryExtensions).Assembly.GetTypes()).Concat(typeof(EndpointsView).Assembly.GetTypes());
 
             var documentTypes = allTypes
                 .Where(type => typeof(AbstractIndexCreationTask).IsAssignableFrom(type))

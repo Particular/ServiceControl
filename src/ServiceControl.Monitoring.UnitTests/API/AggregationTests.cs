@@ -2,8 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
-    using System.Web.Http.Results;
     using Http.Diagrams;
     using Messaging;
     using Monitoring.Infrastructure;
@@ -11,6 +9,7 @@
     using QueueLength;
     using Timings;
 
+    [TestFixture]
     public class AggregationTests
     {
         ProcessingTimeStore processingTimeStore;
@@ -35,10 +34,8 @@
                 new RetriesStore(),
                 new QueueLengthStore()
             };
-            apiController = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker, messageTypeRegistry)
-            {
-                Request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/monitored-endpoint")
-            };
+            apiController = new DiagramApiController(breakdownProviders, endpointRegistry, activityTracker,
+                messageTypeRegistry);
         }
 
         [Test]
@@ -56,13 +53,12 @@
             var dataA = new RawMessage.Entry { DateTicks = now.Ticks, Value = 5 };
             var dataB = new RawMessage.Entry { DateTicks = now.Ticks, Value = 10 };
 
-            processingTimeStore.Store(new[] { dataA }, instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
-            processingTimeStore.Store(new[] { dataB }, instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
+            processingTimeStore.Store([dataA], instanceAId, EndpointMessageType.Unknown(instanceAId.EndpointName));
+            processingTimeStore.Store([dataB], instanceBId, EndpointMessageType.Unknown(instanceBId.EndpointName));
 
             var result = apiController.GetSingleEndpointMetrics(instanceAId.EndpointName);
 
-            var contentResult = result as OkNegotiatedContentResult<MonitoredEndpointDetails>;
-            var model = contentResult.Content;
+            var model = result.Value;
 
             Assert.AreEqual(5, model.Instances[0].Metrics["ProcessingTime"].Average);
         }
@@ -93,9 +89,7 @@
             Array.ForEach(connected, instance => activityTracker.Record(instance, now));
             Array.ForEach(connected, instance => processingTimeStore.Store(samples, instance, EndpointMessageType.Unknown(instance.EndpointName)));
 
-            var result = apiController.GetAllEndpointsMetrics();
-            var contentResult = result as OkNegotiatedContentResult<MonitoredEndpoint[]>;
-            var model = contentResult.Content;
+            var model = apiController.GetAllEndpointsMetrics();
             var item = model[0];
 
             Assert.AreEqual(3, item.EndpointInstanceIds.Length, nameof(item.EndpointInstanceIds));

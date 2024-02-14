@@ -37,8 +37,7 @@ namespace ServiceControl.Monitoring.Infrastructure
                 MaxConcurrency = settings.MaximumConcurrencyLevel
             };
 
-            return transportCustomization.ProvisionQueues(transportSettings,
-                new List<string>());
+            return transportCustomization.ProvisionQueues(transportSettings, []);
         }
 
         bool ValidateLicense(Monitoring.Settings settings)

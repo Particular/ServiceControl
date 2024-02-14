@@ -8,7 +8,6 @@
     using AcceptanceTesting;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
@@ -16,7 +15,6 @@
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
     using TestSupport.EndpointTemplates;
-
 
     class When_processed_message_is_imported : AcceptanceTest
     {
@@ -47,13 +45,11 @@
                         return false;
                     }
 
-                    body = await this.DownloadData(auditedMessage.BodyUrl);
+                    body = await this.DownloadData($"/api{auditedMessage.BodyUrl}");
 
                     return true;
                 })
                 .Run();
-
-            Console.WriteLine(JsonConvert.SerializeObject(auditedMessage));
 
             Assert.AreEqual(context.MessageId, auditedMessage.MessageId);
             Assert.AreEqual(MessageStatus.Successful, auditedMessage.Status);

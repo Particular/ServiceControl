@@ -1,49 +1,30 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using Persistence;
 
-    class GetErrorByIdController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class GetErrorByIdController(IErrorMessageDataStore store) : ControllerBase
     {
-        public GetErrorByIdController(IErrorMessageDataStore dataStore)
-        {
-            this.dataStore = dataStore;
-        }
-
         [Route("errors/{failedmessageid:guid}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorBy(Guid failedMessageId)
+        public async Task<ActionResult<FailedMessage>> ErrorBy(Guid failedMessageId)
         {
-            var result = await dataStore.ErrorBy(failedMessageId);
+            var result = await store.ErrorBy(failedMessageId);
 
-            if (result == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
-            }
-
-            return Negotiator.FromModel(Request, result);
+            return result == null ? NotFound() : result;
         }
 
         [Route("errors/last/{failedmessageid:guid}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> ErrorLastBy(Guid failedMessageId)
+        public async Task<ActionResult<FailedMessageView>> ErrorLastBy(Guid failedMessageId)
         {
-            var result = await dataStore.ErrorLastBy(failedMessageId);
+            var result = await store.ErrorLastBy(failedMessageId);
 
-            if (result == null)
-            {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
-            }
-
-
-            return Negotiator.FromModel(Request, result);
+            return result == null ? NotFound() : result;
         }
-
-        readonly IErrorMessageDataStore dataStore;
     }
 }

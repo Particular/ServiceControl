@@ -9,8 +9,8 @@
     {
         public ProcessedMessage()
         {
-            MessageMetadata = new Dictionary<string, object>();
-            Headers = new Dictionary<string, string>();
+            MessageMetadata = [];
+            Headers = [];
         }
 
         public ProcessedMessage(Dictionary<string, string> headers, Dictionary<string, object> metadata)

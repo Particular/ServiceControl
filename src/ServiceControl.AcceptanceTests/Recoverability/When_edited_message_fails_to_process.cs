@@ -1,11 +1,11 @@
 ﻿namespace ServiceControl.AcceptanceTests.Recoverability
 {
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
     using Infrastructure;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -39,14 +39,14 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var editedMessage = JsonConvert.SerializeObject(new FailingMessage
+                        var editedMessage = JsonSerializer.Serialize(new FailingMessage
                         {
                             HasBeenEdited = true
                         });
                         var editModel = new EditMessageModel
                         {
                             MessageBody = editedMessage,
-                            MessageHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers)
+                            MessageHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers
                         };
                         await this.Post($"/api/edit/{ctx.OriginalMessageFailureId}", editModel);
 
@@ -76,7 +76,7 @@
             Assert.AreEqual(FailedMessageStatus.Unresolved, context.EditedMessageFailure.Status);
             Assert.AreEqual(
                 context.OriginalMessageFailure.Id,
-                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["service_control.edit_of"]);
+                "FailedMessages/" + context.EditedMessageFailure.ProcessingAttempts.Last().Headers["ServiceControl.EditOf"]);
         }
 
         class EditMessageFailureContext : ScenarioContext

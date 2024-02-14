@@ -3,11 +3,13 @@
     using System;
     using System.IO;
     using System.Reflection;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Commands;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -17,8 +19,8 @@
 
         static async Task Main(string[] args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += (s, e) => ResolveAssembly(e.Name);
-            AppDomain.CurrentDomain.UnhandledException += (s, e) => LogException(e.ExceptionObject as Exception);
+            AssemblyLoadContext.Default.Resolving += ResolveAssembly;
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
 
             var arguments = new HostArguments(args);
 
@@ -28,51 +30,42 @@
                 return;
             }
 
-            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !arguments.RunAsWindowsService);
+            var loggingSettings = new LoggingSettings(arguments.ServiceName, logToConsole: !WindowsServiceHelpers.IsWindowsService());
             LoggingConfigurator.ConfigureLogging(loggingSettings);
 
             settings = new Settings(arguments.ServiceName);
 
             await new CommandRunner(arguments.Commands).Execute(arguments, settings);
         }
-        static void LogException(Exception ex)
+
+        static Assembly ResolveAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
         {
-            Logger.Error("Unhandled exception was caught.", ex);
-        }
-
-        static Assembly ResolveAssembly(string name)
-        {
-            var assemblyLocation = Assembly.GetEntryAssembly().Location;
-            var appDirectory = Path.GetDirectoryName(assemblyLocation);
-            var requestingName = new AssemblyName(name).Name;
-
-            var combine = Path.Combine(appDirectory, requestingName + ".dll");
-            var assembly = !File.Exists(combine) ? null : Assembly.LoadFrom(combine);
-
-            if (assembly == null && settings != null)
+            if (settings == null)
             {
-                var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
-                assembly = TryLoadAssembly(transportFolder, requestingName);
+                return null;
             }
 
-            if (assembly == null && settings != null)
+            var transportFolder = TransportManifestLibrary.GetTransportFolder(settings.TransportType);
+            var assembly = TryLoadAssembly(loadContext, transportFolder, assemblyName);
+
+            if (assembly == null)
             {
                 var persistenceFolder = PersistenceManifestLibrary.GetPersistenceFolder(settings.PersistenceType);
-                assembly = TryLoadAssembly(persistenceFolder, requestingName);
+                assembly = TryLoadAssembly(loadContext, persistenceFolder, assemblyName);
             }
 
             return assembly;
         }
 
-        static Assembly TryLoadAssembly(string folderPath, string requestingName)
+        static Assembly TryLoadAssembly(AssemblyLoadContext loadContext, string folderPath, AssemblyName assemblyName)
         {
             if (folderPath != null)
             {
-                var path = Path.Combine(folderPath, $"{requestingName}.dll");
+                var path = Path.Combine(folderPath, $"{assemblyName.Name}.dll");
 
                 if (File.Exists(path))
                 {
-                    return Assembly.LoadFrom(path);
+                    return loadContext.LoadFromAssemblyPath(path);
                 }
             }
 

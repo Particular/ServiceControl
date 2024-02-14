@@ -5,23 +5,26 @@ namespace ServiceControl.SagaAudit
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, Guid, SagaHistory>
+    public record SagaByIdContext(PagingInfo PagingInfo, Guid SagaId) : ScatterGatherContext(PagingInfo);
+
+    public class GetSagaByIdApi : ScatterGatherApi<ISagaAuditDataStore, SagaByIdContext, SagaHistory>
     {
-        public GetSagaByIdApi(ISagaAuditDataStore store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
+        public GetSagaByIdApi(ISagaAuditDataStore dataStore, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory, httpContextAccessor)
         {
         }
 
-        protected override async Task<QueryResult<SagaHistory>> LocalQuery(HttpRequestMessage request, Guid input)
+        protected override async Task<QueryResult<SagaHistory>> LocalQuery(SagaByIdContext input)
         {
-            var result = await DataStore.GetSagaById(input);
+            var result = await DataStore.GetSagaById(input.SagaId);
             return result;
         }
 
-        protected override SagaHistory ProcessResults(HttpRequestMessage request, QueryResult<SagaHistory>[] results)
+        protected override SagaHistory ProcessResults(SagaByIdContext input, QueryResult<SagaHistory>[] results)
         {
             var nonEmptyCount = results.Count(x => x.Results != null);
             if (nonEmptyCount == 0)

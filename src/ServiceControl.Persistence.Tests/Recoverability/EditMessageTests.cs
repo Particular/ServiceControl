@@ -212,21 +212,21 @@
             {
                 FailedMessageId = failedMessageId,
                 NewBody = Convert.ToBase64String(newBodyContent ?? Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())),
-                NewHeaders = newHeaders ?? new Dictionary<string, string>()
+                NewHeaders = newHeaders ?? []
             };
         }
 
         async Task<FailedMessage> CreateAndStoreFailedMessage(string failedMessageId = null, FailedMessageStatus status = FailedMessageStatus.Unresolved)
         {
-            failedMessageId = failedMessageId ?? Guid.NewGuid().ToString();
+            failedMessageId ??= Guid.NewGuid().ToString();
 
             var failedMessage = new FailedMessage
             {
                 UniqueMessageId = failedMessageId,
                 Id = FailedMessageIdGenerator.MakeDocumentId(failedMessageId),
                 Status = status,
-                ProcessingAttempts = new List<FailedMessage.ProcessingAttempt>
-                    {
+                ProcessingAttempts =
+                    [
                         new FailedMessage.ProcessingAttempt
                         {
                             MessageId = Guid.NewGuid().ToString(),
@@ -235,7 +235,7 @@
                                 AddressOfFailingEndpoint = "OriginalEndpointAddress"
                             }
                         }
-                    }
+                    ]
             };
             await ErrorMessageDataStore.StoreFailedMessagesForTestsOnly(new[] { failedMessage });
             return failedMessage;
@@ -244,7 +244,7 @@
 
     public sealed class TestableUnicastDispatcher : IMessageDispatcher
     {
-        public List<(UnicastTransportOperation, TransportTransaction)> DispatchedMessages { get; } = new List<(UnicastTransportOperation, TransportTransaction)>();
+        public List<(UnicastTransportOperation, TransportTransaction)> DispatchedMessages { get; } = [];
 
         public Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transaction, CancellationToken cancellationToken)
         {

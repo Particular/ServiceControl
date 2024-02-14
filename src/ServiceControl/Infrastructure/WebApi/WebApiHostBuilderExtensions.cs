@@ -1,91 +1,58 @@
 ﻿namespace ServiceControl.Infrastructure.WebApi
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Web.Http.Controllers;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
-    using ServiceBus.Management.Infrastructure.OWIN;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using ServiceControl.CompositeViews.Messages;
 
     static class WebApiHostBuilderExtensions
     {
-        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder, List<Assembly> apiAssemblies, string rootUrl, bool startOwinHost)
+        public static void AddWebApi(this WebApplicationBuilder builder, List<Assembly> apiAssemblies, string rootUrl)
         {
+            builder.WebHost.UseUrls(rootUrl);
+
             foreach (var apiAssembly in apiAssemblies)
             {
-                hostBuilder.ConfigureServices(serviceCollection =>
-                {
-                    RegisterAssemblyInternalWebApiControllers(serviceCollection, apiAssembly);
-                    RegisterApiTypes(serviceCollection, apiAssembly);
-                    RegisterConcreteTypes(serviceCollection, apiAssembly);
-                });
+                // This registers concrete classes that implement IApi. Currently it is hard to find out to what
+                // component those APIs should belong to so we leave it here for now.
+                builder.Services.RegisterApiTypes(apiAssembly);
             }
 
-            if (startOwinHost)
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+
+            // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
+            builder.Services.AddResponseCompression();
+            var controllers = builder.Services.AddControllers(options =>
             {
-                hostBuilder.ConfigureServices((ctx, serviceCollection) =>
-                {
-                    serviceCollection.AddHostedService(sp =>
-                    {
-                        var startup = new Startup(sp, apiAssemblies);
-                        return new WebApiHostedService(rootUrl, startup);
-                    });
-                });
-            }
+                options.Filters.Add<XParticularVersionHttpHandler>();
+                options.Filters.Add<CachingHttpHandler>();
+                options.Filters.Add<NotModifiedStatusHttpHandler>();
 
-            return hostBuilder;
+                options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
+                options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
+            });
+            controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
+
+            var signalR = builder.Services.AddSignalR();
+            signalR.AddJsonProtocol(options => options.PayloadSerializerOptions.CustomizeDefaults());
         }
 
-        static void RegisterAssemblyInternalWebApiControllers(IServiceCollection serviceCollection, Assembly assembly)
-        {
-            var controllerTypes = assembly.DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                serviceCollection.AddScoped(controllerType);
-            }
-        }
-
-        static void RegisterApiTypes(IServiceCollection serviceCollection, Assembly assembly)
+        static void RegisterApiTypes(this IServiceCollection serviceCollection, Assembly assembly)
         {
             var apiTypes = assembly.DefinedTypes
-                .Where(ti => ti.IsClass &&
-                            !ti.IsAbstract &&
-                            !ti.IsGenericTypeDefinition &&
-                            ti.GetInterfaces().Any(t => t == typeof(IApi)))
+                .Where(ti =>
+                             ti is { IsClass: true, IsAbstract: false, IsGenericTypeDefinition: false } &&
+                             ti.GetInterfaces().Any(t => t == typeof(IApi)))
                 .Select(ti => ti.AsType());
 
 
             foreach (var apiType in apiTypes)
             {
-                if (!serviceCollection.Any(sd => sd.ServiceType == apiType))
-                {
-                    serviceCollection.AddSingleton(apiType);
-                }
-            }
-        }
-
-        static void RegisterConcreteTypes(IServiceCollection serviceCollection, Assembly assembly)
-        {
-            var concreteTypes = assembly.DefinedTypes
-                .Where(ti => ti.IsClass &&
-                            !ti.IsAbstract &&
-                            !ti.IsSubclassOf(typeof(Delegate)) &&
-                            !ti.IsGenericTypeDefinition &&
-                            !ti.GetInterfaces().Any())
-                .Select(ti => ti.AsType());
-
-
-            foreach (var concreteType in concreteTypes)
-            {
-                if (!serviceCollection.Any(sd => sd.ServiceType == concreteType))
-                {
-                    serviceCollection.AddSingleton(concreteType);
-                }
+                serviceCollection.TryAddSingleton(apiType);
             }
         }
     }

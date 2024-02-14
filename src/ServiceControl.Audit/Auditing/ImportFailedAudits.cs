@@ -1,7 +1,6 @@
 namespace ServiceControl.Audit.Auditing
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Infrastructure.Settings;
@@ -9,9 +8,8 @@ namespace ServiceControl.Audit.Auditing
     using NServiceBus.Logging;
     using NServiceBus.Transport;
     using Persistence;
-    using Transports;
 
-    class ImportFailedAudits
+    public class ImportFailedAudits
     {
         public ImportFailedAudits(
             IFailedAuditStorage failedAuditStore,
@@ -39,7 +37,7 @@ namespace ServiceControl.Audit.Auditing
                             var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                             messageContext.SetTaskCompletionSource(taskCompletionSource);
 
-                            await auditIngestor.Ingest(new List<MessageContext> { messageContext });
+                            await auditIngestor.Ingest([messageContext]);
 
                             await taskCompletionSource.Task;
 

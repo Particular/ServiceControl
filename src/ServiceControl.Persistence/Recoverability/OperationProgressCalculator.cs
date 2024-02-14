@@ -6,35 +6,27 @@
         {
             double total = totalNumberOfMessages;
 
-            switch (state)
+            return state switch
             {
-                case RetryState.Preparing:
-                    return numberOfMessagesPrepared / total;
-                case RetryState.Forwarding:
-                    return (numberOfMessagesForwarded + numberOfMessagesSkipped) / total;
-                case RetryState.Completed:
-                    return 1.0;
-                case RetryState.Waiting:
-                default:
-                    return 0.0;
-            }
+                RetryState.Preparing => numberOfMessagesPrepared / total,
+                RetryState.Forwarding => (numberOfMessagesForwarded + numberOfMessagesSkipped) / total,
+                RetryState.Completed => 1.0,
+                RetryState.Waiting => 0.0,
+                _ => 0.0,
+            };
         }
 
         public static double CalculateProgress(int totalNumberOfMessages, int numberOfMessagesArchived, ArchiveState state)
         {
             double total = totalNumberOfMessages;
 
-            switch (state)
+            return state switch
             {
-                case ArchiveState.ArchiveProgressing:
-                    return numberOfMessagesArchived / total;
-                case ArchiveState.ArchiveFinalizing:
-                case ArchiveState.ArchiveCompleted:
-                    return 1.0;
-                case ArchiveState.ArchiveStarted:
-                default:
-                    return 0.0;
-            }
+                ArchiveState.ArchiveProgressing => numberOfMessagesArchived / total,
+                ArchiveState.ArchiveFinalizing or ArchiveState.ArchiveCompleted => 1.0,
+                ArchiveState.ArchiveStarted => 0.0,
+                _ => 0.0,
+            };
         }
     }
 }

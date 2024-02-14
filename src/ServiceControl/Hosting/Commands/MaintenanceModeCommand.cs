@@ -1,7 +1,9 @@
 ﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Hosting.WindowsServices;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
@@ -14,12 +16,22 @@
             var bootstrapper = new MaintenanceBootstrapper(settings);
             var hostBuilder = bootstrapper.HostBuilder;
 
-            hostBuilder.AddPersistenceInitializingLifetime(args.RunAsWindowsService);
+            // TODO: Move into the bootstrapper
+            hostBuilder.Services.AddWindowsService();
 
-            using (var host = hostBuilder.Build())
+            if (WindowsServiceHelpers.IsWindowsService())
             {
-                await host.RunAsync();
+                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingWindowsServiceLifetime>();
             }
+            else
+            {
+                hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingConsoleLifetime>();
+            }
+
+            // TODO: Update to use the same pattern as the main Bootstrapper
+            using var host = hostBuilder.Build();
+
+            await host.RunAsync();
         }
     }
 }

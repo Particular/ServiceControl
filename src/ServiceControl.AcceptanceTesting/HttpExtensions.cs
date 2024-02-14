@@ -5,28 +5,17 @@ namespace ServiceControl.AcceptanceTesting
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Net.Http.Json;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
 
     public static class HttpExtensions
     {
         public static async Task Put<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
+            requestHasFailed ??= statusCode => statusCode is not HttpStatusCode.OK and not HttpStatusCode.Accepted;
 
-            if (requestHasFailed == null)
-            {
-                requestHasFailed = statusCode => statusCode != HttpStatusCode.OK && statusCode != HttpStatusCode.Accepted;
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PutAsync(url, new StringContent(json, null, "application/json"));
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+            var response = await httpClient.PutAsJsonAsync(url, payload, provider.SerializerOptions);
 
             if (requestHasFailed(response.StatusCode))
             {
@@ -36,22 +25,12 @@ namespace ServiceControl.AcceptanceTesting
 
         public static Task<HttpResponseMessage> GetRaw(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
             var httpClient = provider.HttpClient;
             return httpClient.GetAsync(url);
         }
 
         public static Task<HttpResponseMessage> Options(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var request = new HttpRequestMessage(HttpMethod.Options, url);
             return httpClient.SendAsync(request);
@@ -59,10 +38,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<ManyResult<T>> TryGetMany<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<List<T>>(url);
 
@@ -76,16 +52,8 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<HttpStatusCode> Patch<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PatchAsync(url, new StringContent(json, null, "application/json"));
-
-            Console.WriteLine($"PATCH - {url} - {(int)response.StatusCode}");
+            var response = await httpClient.PatchAsJsonAsync(url, payload, provider.SerializerOptions);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -98,10 +66,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<SingleResult<T>> TryGet<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<T>(url);
 
@@ -127,10 +92,7 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<SingleResult<T>> TryGetSingle<T>(this IAcceptanceTestInfrastructureProvider provider, string url, Predicate<T> condition = null) where T : class
         {
-            if (condition == null)
-            {
-                condition = _ => true;
-            }
+            condition ??= _ => true;
 
             var response = await provider.GetInternal<List<T>>(url);
             T item = null;
@@ -156,31 +118,15 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<HttpStatusCode> Get(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
-
             return response.StatusCode;
         }
 
         public static async Task Post<T>(this IAcceptanceTestInfrastructureProvider provider, string url, T payload = null, Func<HttpStatusCode, bool> requestHasFailed = null) where T : class
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
-            var json = JsonConvert.SerializeObject(payload, provider.SerializerSettings);
             var httpClient = provider.HttpClient;
-            var response = await httpClient.PostAsync(url, new StringContent(json, null, "application/json"));
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+            var response = await httpClient.PostAsJsonAsync(url, payload, provider.SerializerOptions);
 
             if (requestHasFailed != null)
             {
@@ -201,15 +147,8 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task Delete(this IAcceptanceTestInfrastructureProvider provider, string url)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.DeleteAsync(url);
-
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -220,14 +159,9 @@ namespace ServiceControl.AcceptanceTesting
 
         public static async Task<byte[]> DownloadData(this IAcceptanceTestInfrastructureProvider provider, string url, HttpStatusCode successCode = HttpStatusCode.OK)
         {
-            if (!url.StartsWith("http://"))
-            {
-                url = $"http://localhost:{provider.Port}/api{url}";
-            }
-
             var httpClient = provider.HttpClient;
             var response = await httpClient.GetAsync(url);
-            Console.WriteLine($"{response.RequestMessage.Method} - {url} - {(int)response.StatusCode}");
+
             if (response.StatusCode != successCode)
             {
                 throw new Exception($"Expected status code of {successCode}, but instead got {response.StatusCode}.");
@@ -241,7 +175,7 @@ namespace ServiceControl.AcceptanceTesting
             var response = await provider.GetRaw(url);
 
             //for now
-            if (response.StatusCode == HttpStatusCode.NotFound || response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.NoContent or HttpStatusCode.ServiceUnavailable)
             {
                 LogRequest();
                 return null;
@@ -254,9 +188,9 @@ namespace ServiceControl.AcceptanceTesting
                 throw new InvalidOperationException($"Call failed: {(int)response.StatusCode} - {response.ReasonPhrase} {Environment.NewLine} {content}");
             }
 
-            var body = await response.Content.ReadAsStringAsync();
+            var payload = await response.Content.ReadFromJsonAsync<T>(provider.SerializerOptions);
             LogRequest();
-            return JsonConvert.DeserializeObject<T>(body, provider.SerializerSettings);
+            return payload;
 
             void LogRequest(string additionalInfo = null)
             {

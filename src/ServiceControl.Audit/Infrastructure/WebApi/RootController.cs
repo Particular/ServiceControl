@@ -1,10 +1,12 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using System;
+    using Microsoft.AspNetCore.Mvc;
     using Settings;
 
-    class RootController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class RootController : ControllerBase
     {
         public RootController(LoggingSettings loggingSettings, Settings settings)
         {
@@ -14,9 +16,9 @@
 
         [Route("")]
         [HttpGet]
-        public OkNegotiatedContentResult<RootUrls> Urls()
+        public OkObjectResult Urls()
         {
-            var baseUrl = Url.Content("~/");
+            var baseUrl = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1).Uri.AbsoluteUri;
 
             var model = new RootUrls
             {
@@ -40,7 +42,7 @@
         [Route("instance-info")]
         [Route("configuration")]
         [HttpGet]
-        public OkNegotiatedContentResult<object> Config()
+        public OkObjectResult Config()
         {
             object content = new
             {

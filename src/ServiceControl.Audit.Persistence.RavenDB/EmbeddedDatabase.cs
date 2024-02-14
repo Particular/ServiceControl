@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
@@ -15,15 +14,9 @@
     using Raven.Client.ServerWide.Operations;
     using Raven.Embedded;
 
-    public class EmbeddedDatabase : IDisposable
+    public class EmbeddedDatabase(DatabaseConfiguration configuration) : IDisposable
     {
-        public EmbeddedDatabase(DatabaseConfiguration configuration)
-        {
-            this.configuration = configuration;
-            ServerUrl = configuration.ServerConfiguration.ServerUrl;
-        }
-
-        public string ServerUrl { get; private set; }
+        public string ServerUrl { get; } = configuration.ServerConfiguration.ServerUrl;
 
         static (string LicenseFileName, string ServerDirectory) GetRavenLicenseFileNameAndServerDirectory()
         {
@@ -54,14 +47,14 @@
             logger.InfoFormat("Loading RavenDB license from {0}", licenseFileNameAndServerDirectory.LicenseFileName);
             var serverOptions = new ServerOptions
             {
-                CommandLineArgs = new List<string>
-                {
+                CommandLineArgs =
+                [
                     $"--License.Path=\"{licenseFileNameAndServerDirectory.LicenseFileName}\"",
                     $"--Logs.Mode={databaseConfiguration.ServerConfiguration.LogsMode}",
                     // HINT: If this is not set, then Raven will pick a default location relative to the server binaries
                     // See https://github.com/ravendb/ravendb/issues/15694
                     $"--Indexing.NuGetPackagesPath=\"{nugetPackagesPath}\""
-                },
+                ],
                 AcceptEula = true,
                 DataDirectory = databaseConfiguration.ServerConfiguration.DbPath,
                 ServerUrl = databaseConfiguration.ServerConfiguration.ServerUrl,
@@ -94,7 +87,7 @@
 
             EmbeddedServer.Instance.StartServer(serverOptions);
 
-            var _ = Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!shutdownTokenSource.IsCancellationRequested)
                 {
@@ -151,10 +144,8 @@
 
         public async Task DeleteDatabase(string dbName)
         {
-            using (var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName) { SkipCreatingDatabase = true }))
-            {
-                await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
-            }
+            using var store = await EmbeddedServer.Instance.GetDocumentStoreAsync(new DatabaseOptions(dbName) { SkipCreatingDatabase = true });
+            await store.Maintenance.Server.SendAsync(new DeleteDatabasesOperation(dbName, true));
         }
 
         public void Dispose()
@@ -232,9 +223,8 @@ RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
             return size;
         }
 
-        CancellationTokenSource shutdownTokenSource = new CancellationTokenSource();
+        CancellationTokenSource shutdownTokenSource = new();
         bool restartRequired;
-        readonly DatabaseConfiguration configuration;
 
         static TimeSpan delayBetweenRestarts = TimeSpan.FromSeconds(60);
         static readonly ILog logger = LogManager.GetLogger<EmbeddedDatabase>();

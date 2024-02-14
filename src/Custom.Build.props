@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ArtifactsPath>$(MSBuildThisFileDirectory)..\deploy\</ArtifactsPath>
     <EnableDefaultArtifacts>false</EnableDefaultArtifacts>
@@ -9,6 +10,7 @@
     <PowerShellModuleArtifactsPath>$(ArtifactsPath)PowerShellModules\$(PowerShellModuleName)\</PowerShellModuleArtifactsPath>
     <!-- Remove after upgrading to NServiceBus 8.x -->
     <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <PropertyGroup>

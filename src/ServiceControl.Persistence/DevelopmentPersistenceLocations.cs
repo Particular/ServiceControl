@@ -5,7 +5,7 @@
 
     static class DevelopmentPersistenceLocations
     {
-        public static List<string> ManifestFiles { get; } = new List<string>();
+        public static List<string> ManifestFiles { get; } = [];
 
         static DevelopmentPersistenceLocations()
         {
@@ -29,8 +29,8 @@
         const string configuration = "Release";
 #endif
 
-#if NET48
-        const string framework = "net48";
+#if NET8_0
+        const string framework = "net8.0";
 #endif
     }
 }

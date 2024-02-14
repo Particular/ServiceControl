@@ -1,22 +1,18 @@
 ﻿namespace ServiceControl.Monitoring
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using CompositeViews.Messages;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetKnownEndpointsApi : ScatterGatherApiNoInput<IEndpointInstanceMonitoring, IList<KnownEndpointsView>>
+    public class GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor) : ScatterGatherApi<IEndpointInstanceMonitoring, ScatterGatherContext, IList<KnownEndpointsView>>(store, settings, httpClientFactory, httpContextAccessor)
     {
-        public GetKnownEndpointsApi(IEndpointInstanceMonitoring store, Settings settings, Func<HttpClient> httpClientFactory) : base(store, settings, httpClientFactory)
-        {
-        }
-
-        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(HttpRequestMessage request)
+        protected override Task<QueryResult<IList<KnownEndpointsView>>> LocalQuery(ScatterGatherContext input)
         {
             var knownEndpoints = DataStore.GetKnownEndpoints();
 
@@ -28,22 +24,13 @@
             );
         }
 
-        protected override IList<KnownEndpointsView> ProcessResults(HttpRequestMessage request, QueryResult<IList<KnownEndpointsView>>[] results)
-        {
-            return results.Where(p => p.Results != null).SelectMany(x => x.Results).Distinct(KnownEndpointsViewComparer.Instance).ToList();
-        }
+        protected override IList<KnownEndpointsView> ProcessResults(ScatterGatherContext input, QueryResult<IList<KnownEndpointsView>>[] results) => results.Where(p => p.Results != null).SelectMany(x => x.Results).Distinct(KnownEndpointsViewComparer.Instance).ToList();
 
         class KnownEndpointsViewComparer : IEqualityComparer<KnownEndpointsView>
         {
-            public bool Equals(KnownEndpointsView x, KnownEndpointsView y)
-            {
-                return y != null && x != null && x.Id.Equals(y.Id);
-            }
+            public bool Equals(KnownEndpointsView x, KnownEndpointsView y) => y != null && x != null && x.Id.Equals(y.Id);
 
-            public int GetHashCode(KnownEndpointsView obj)
-            {
-                return obj.Id.GetHashCode();
-            }
+            public int GetHashCode(KnownEndpointsView obj) => obj.Id.GetHashCode();
 
             public static KnownEndpointsViewComparer Instance = new KnownEndpointsViewComparer();
         }

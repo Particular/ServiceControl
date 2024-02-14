@@ -52,10 +52,7 @@
                         await ensureStarted(shutdownTokenSource.Token).ConfigureAwait(false);
                         clearFailure();
 
-                        if (failedOnStartup == null)
-                        {
-                            failedOnStartup = false;
-                        }
+                        failedOnStartup ??= false;
                     }
                     catch (OperationCanceledException)
                     {

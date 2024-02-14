@@ -22,7 +22,7 @@
             this.instanceDetailsFunc = instanceDetailsFunc;
             DisplayName = "DEPLOYED INSTANCES";
 
-            Instances = new BindableCollection<InstanceDetailsViewModel>();
+            Instances = [];
 
             AddAndRemoveInstances();
         }

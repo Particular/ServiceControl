@@ -1,20 +1,19 @@
 ﻿namespace ServiceControl.CompositeViews.Messages
 {
-    using System.Net.Http;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Persistence.Infrastructure;
 
-    class GetMessagesByConversationController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
+        : ControllerBase
     {
-        public GetMessagesByConversationController(MessagesByConversationApi messagesByConversationApi)
-        {
-            this.messagesByConversationApi = messagesByConversationApi;
-        }
-
         [Route("conversations/{conversationid}")]
         [HttpGet]
-        public Task<HttpResponseMessage> Messages(string conversationId) => messagesByConversationApi.Execute(this, conversationId);
-
-        readonly MessagesByConversationApi messagesByConversationApi;
+        public Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
+            [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string conversationId) =>
+            byConversationApi.Execute(new(pagingInfo, sortInfo, includeSystemMessages, conversationId));
     }
 }

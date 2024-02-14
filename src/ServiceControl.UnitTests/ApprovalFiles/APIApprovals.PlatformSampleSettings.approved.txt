@@ -10,6 +10,7 @@
   "RunCleanupBundle": false,
   "RootUrl": "http://localhost:8888/",
   "ApiUrl": "http://localhost:8888/api",
+  "InstanceId": "aHR0cDovL2xvY2FsaG9zdDo4ODg4L2FwaQ..",
   "StorageUrl": "http://localhost:8888/storage",
   "StagingQueue": "Particular.ServiceControl.staging",
   "Port": 8888,

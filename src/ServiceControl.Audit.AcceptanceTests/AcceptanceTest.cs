@@ -2,14 +2,14 @@ namespace ServiceControl.Audit.AcceptanceTests
 {
     using System;
     using System.Collections.Generic;
-    using System.Configuration;
     using System.Diagnostics;
     using System.IO;
     using System.Net;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
-    using Newtonsoft.Json;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
@@ -31,25 +31,20 @@ namespace ServiceControl.Audit.AcceptanceTests
         }
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
-        public IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
-        public JsonSerializerSettings SerializerSettings => serviceControlRunnerBehavior.SerializerSettings;
-        public string Port => serviceControlRunnerBehavior.Port;
+        public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
+
+        // TODO Check why this is necessary and if it can be removed
+        protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
 
         [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
+        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             SetSettings = _ => { };
             CustomConfiguration = _ => { };
-
-#if !NETCOREAPP2_0
-            ConfigurationManager.GetSection("X");
-#endif
+            CustomizeHostBuilder = _ => { };
 
             var logfilesPath = Path.Combine(TestContext.CurrentContext.TestDirectory, "logs");
             Directory.CreateDirectory(logfilesPath);
@@ -66,9 +61,7 @@ namespace ServiceControl.Audit.AcceptanceTests
 
             StorageConfiguration = new AcceptanceTestStorageConfiguration();
 
-            await StorageConfiguration.Configure();
-
-            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d));
+            serviceControlRunnerBehavior = new ServiceControlComponentBehavior(TransportIntegration, StorageConfiguration, s => SetSettings(s), s => CustomConfiguration(s), d => SetStorageConfiguration(d), hb => CustomizeHostBuilder(hb));
             TestContext.WriteLine($"Using persistence {StorageConfiguration.PersistenceType}");
         }
 
@@ -83,20 +76,16 @@ namespace ServiceControl.Audit.AcceptanceTests
             return StorageConfiguration.Cleanup();
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            return Define<T>(c => { });
-        }
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new() => Define<T>(c => { });
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
-        {
-            return Scenario.Define(contextInitializer)
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
+            Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
         protected Action<IDictionary<string, string>> SetStorageConfiguration = _ => { };
+        protected Action<IHostApplicationBuilder> CustomizeHostBuilder = _ => { };
         protected ITransportIntegration TransportIntegration;
         protected AcceptanceTestStorageConfiguration StorageConfiguration;
 

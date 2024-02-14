@@ -1,28 +1,30 @@
 namespace ServiceControl.CompositeViews.Messages
 {
-    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class SearchEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchEndpointApi.Input>
+    public record SearchEndpointContext(
+        PagingInfo PagingInfo,
+        SortInfo SortInfo,
+        string Keyword,
+        string Endpoint)
+        : ScatterGatherApiMessageViewContext(PagingInfo, SortInfo);
+
+    public class SearchEndpointApi : ScatterGatherApiMessageView<IErrorMessageDataStore, SearchEndpointContext>
     {
-        public SearchEndpointApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory) : base(dataStore, settings, httpClientFactory)
+        public SearchEndpointApi(IErrorMessageDataStore dataStore, Settings settings,
+            IHttpClientFactory httpClientFactory,
+            IHttpContextAccessor httpContextAccessor) : base(dataStore, settings, httpClientFactory,
+            httpContextAccessor)
         {
         }
 
-        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(HttpRequestMessage request, Input input)
-        {
-            return DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, request.GetPagingInfo(), request.GetSortInfo());
-        }
-
-        public class Input
-        {
-            public string Keyword { get; set; }
-            public string Endpoint { get; set; }
-        }
+        protected override Task<QueryResult<IList<MessagesView>>> LocalQuery(SearchEndpointContext input) =>
+            DataStore.SearchEndpointMessages(input.Endpoint, input.Keyword, input.PagingInfo, input.SortInfo);
     }
 }

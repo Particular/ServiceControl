@@ -51,7 +51,7 @@
                         return false;
                     }
 
-                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlAuditInstanceName);
+                    var result = await this.TryGet<SagaHistory>($"/api/sagas/{c.SagaId}", instanceName: ServiceControlInstanceName);
                     sagaHistory = result;
                     return result;
                 })

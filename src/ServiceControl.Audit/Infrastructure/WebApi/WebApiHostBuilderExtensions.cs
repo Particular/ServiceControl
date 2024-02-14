@@ -1,56 +1,29 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
-    using System;
-    using System.Linq;
-    using System.Reflection;
-    using System.Web.Http.Controllers;
-    using Auditing.MessagesView;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
-    using OWIN;
 
     static class WebApiHostBuilderExtensions
     {
-        public static IHostBuilder UseWebApi(this IHostBuilder hostBuilder, string rootUrl, bool startOwinHost)
+        public static void AddWebApi(this WebApplicationBuilder builder, string rootUrl)
         {
-            hostBuilder.ConfigureServices(services =>
+            builder.WebHost.UseUrls(rootUrl);
+
+            builder.Services.AddCors(options => options.AddDefaultPolicy(Cors.GetDefaultPolicy()));
+
+            // We're not explicitly adding Gzip here because it's already in the default list of supported compressors
+            builder.Services.AddResponseCompression();
+            var controllers = builder.Services.AddControllers(options =>
             {
-                RegisterInternalWebApiControllers(services);
-                var apiTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => typeof(IApi).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
-                foreach (var apiType in apiTypes)
-                {
-                    services.AddTransient(apiType);
-                    foreach (var i in apiType.GetInterfaces())
-                    {
-                        services.AddTransient(i, sp => sp.GetRequiredService(apiType));
-                    }
-                }
+                options.Filters.Add<XParticularVersionHttpHandler>();
+                options.Filters.Add<CachingHttpHandler>();
+                options.Filters.Add<NotModifiedStatusHttpHandler>();
+
+                options.ModelBinderProviders.Insert(0, new PagingInfoModelBindingProvider());
+                options.ModelBinderProviders.Insert(0, new SortInfoModelBindingProvider());
             });
-
-            if (startOwinHost)
-            {
-                hostBuilder.ConfigureServices((ctx, serviceCollection) =>
-                {
-                    serviceCollection.AddHostedService(sp =>
-                    {
-                        var startup = new Startup(sp);
-                        return new WebApiHostedService(rootUrl, startup);
-                    });
-                });
-            }
-
-            return hostBuilder;
-        }
-
-        static void RegisterInternalWebApiControllers(IServiceCollection serviceCollection)
-        {
-            var controllerTypes = Assembly.GetExecutingAssembly().DefinedTypes
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t) && t.Name.EndsWith("Controller", StringComparison.Ordinal));
-
-            foreach (var controllerType in controllerTypes)
-            {
-                serviceCollection.AddScoped(controllerType);
-            }
+            controllers.AddJsonOptions(options => options.JsonSerializerOptions.CustomizeDefaults());
         }
     }
 }

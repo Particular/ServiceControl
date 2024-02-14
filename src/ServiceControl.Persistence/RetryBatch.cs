@@ -5,11 +5,6 @@ namespace ServiceControl.Persistence
 
     public class RetryBatch
     {
-        public RetryBatch()
-        {
-            FailureRetries = new List<string>();
-        }
-
         public string Id { get; set; }
         public string Context { get; set; }
         public string RetrySessionId { get; set; }
@@ -22,11 +17,8 @@ namespace ServiceControl.Persistence
         public int InitialBatchSize { get; set; }
         public RetryType RetryType { get; set; }
         public RetryBatchStatus Status { get; set; }
-        public IList<string> FailureRetries { get; set; }
+        public IList<string> FailureRetries { get; set; } = [];
 
-        public static string MakeDocumentId(string messageUniqueId)
-        {
-            return "RetryBatches/" + messageUniqueId;
-        }
+        public static string MakeDocumentId(string messageUniqueId) => "RetryBatches/" + messageUniqueId;
     }
 }

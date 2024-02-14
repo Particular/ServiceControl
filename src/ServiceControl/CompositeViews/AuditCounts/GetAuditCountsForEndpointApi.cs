@@ -1,33 +1,37 @@
 ﻿namespace ServiceControl.CompositeViews.MessageCounting
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.CompositeViews.Messages;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
-    class GetAuditCountsForEndpointApi : ScatterGatherApi<IErrorMessageDataStore, string, IList<AuditCount>>
+    // The endpoint is included for consistency reasons but is actually not required here because the query
+    // is forwarded to the remote instance. But this at least enforces us to declare the controller action
+    // with the necessary parameter and not accessing the endpoint becomes an implementation details of the scatter
+    // gather approach here.
+    public record AuditCountsForEndpointContext(PagingInfo PagingInfo, string Endpoint) : ScatterGatherContext(PagingInfo);
+
+    public class GetAuditCountsForEndpointApi(
+        IErrorMessageDataStore dataStore,
+        Settings settings,
+        IHttpClientFactory httpClientFactory,
+        IHttpContextAccessor httpContextAccessor)
+        : ScatterGatherApi<IErrorMessageDataStore, AuditCountsForEndpointContext, IList<AuditCount>>(dataStore, settings,
+            httpClientFactory, httpContextAccessor)
     {
-        static readonly IList<AuditCount> empty = new List<AuditCount>().AsReadOnly();
+        static readonly IList<AuditCount> Empty = new List<AuditCount>(0).AsReadOnly();
 
-        public GetAuditCountsForEndpointApi(IErrorMessageDataStore dataStore, Settings settings, Func<HttpClient> httpClientFactory)
-            : base(dataStore, settings, httpClientFactory)
-        {
-        }
-
-        protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(HttpRequestMessage request, string input)
-        {
+        protected override Task<QueryResult<IList<AuditCount>>> LocalQuery(AuditCountsForEndpointContext input) =>
             // Will never be implemented on the primary instance
-            return Task.FromResult(new QueryResult<IList<AuditCount>>(empty, QueryStatsInfo.Zero));
-        }
+            Task.FromResult(new QueryResult<IList<AuditCount>>(Empty, QueryStatsInfo.Zero));
 
-        protected override IList<AuditCount> ProcessResults(HttpRequestMessage request, QueryResult<IList<AuditCount>>[] results)
-        {
-            return results.SelectMany(r => r.Results)
+        protected override IList<AuditCount> ProcessResults(AuditCountsForEndpointContext input, QueryResult<IList<AuditCount>>[] results) =>
+            results.SelectMany(r => r.Results)
                 .GroupBy(r => r.UtcDate)
                 .Select(g => new AuditCount
                 {
@@ -36,6 +40,5 @@
                 })
                 .OrderBy(r => r.UtcDate)
                 .ToList();
-        }
     }
 }

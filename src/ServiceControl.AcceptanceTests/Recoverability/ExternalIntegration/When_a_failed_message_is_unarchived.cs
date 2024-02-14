@@ -10,8 +10,8 @@
     using Contracts;
     using ServiceControl.MessageFailures;
     using TestSupport.EndpointTemplates;
-    using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.Text.Json;
 
     class When_a_failed_message_is_unarchived : ExternalIntegrationAcceptanceTest
     {
@@ -65,7 +65,7 @@
                 .Done(ctx => ctx.EventDelivered) //Done when sequence is finished
                 .Run();
 
-            var deserializedEvent = JsonConvert.DeserializeObject<FailedMessagesUnArchived>(context.Event);
+            var deserializedEvent = JsonSerializer.Deserialize<FailedMessagesUnArchived>(context.Event);
             Assert.IsNotNull(deserializedEvent.FailedMessagesIds);
             CollectionAssert.Contains(deserializedEvent.FailedMessagesIds, context.FailedMessageId.ToString());
         }
@@ -81,15 +81,11 @@
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<FailedMessagesUnArchived>(Settings.DEFAULT_SERVICE_NAME); });
             }
 
-            public class FailureHandler : IHandleMessages<FailedMessagesUnArchived>
+            public class FailureHandler(Context testContext) : IHandleMessages<FailedMessagesUnArchived>
             {
-                readonly Context testContext;
-
-                public FailureHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(FailedMessagesUnArchived message, IMessageHandlerContext context)
                 {
-                    var serializedMessage = JsonConvert.SerializeObject(message);
+                    var serializedMessage = JsonSerializer.Serialize(message);
                     testContext.Event = serializedMessage;
                     testContext.EventDelivered = true;
                     return Task.CompletedTask;

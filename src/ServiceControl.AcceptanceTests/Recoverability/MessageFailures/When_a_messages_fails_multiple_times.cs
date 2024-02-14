@@ -36,27 +36,9 @@
 
                     result = await this.TryGet<FailedMessage>($"/api/errors/{c.UniqueMessageId}");
 
-                    var failureTimes = result?.ProcessingAttempts.Select(pa => pa.Headers["n_service_bus.time_of_failure"]).ToArray();
+                    var failureTimes = result?.ProcessingAttempts.Select(pa => pa.Headers["NServiceBus.TimeOfFailure"]).ToArray() ?? [];
 
-                    return result != null && AreSame(failureTimes, c.LatestFailureTimes.ToArray());
-
-                    bool AreSame(string[] a, string[] b)
-                    {
-                        if (a.Length != b.Length)
-                        {
-                            return false;
-                        }
-
-                        for (var i = 0; i < a.Length; i++)
-                        {
-                            if (a[i] != b[i])
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
+                    return failureTimes.SequenceEqual([.. c.LatestFailureTimes]);
                 })
                 .Run();
         }
@@ -64,7 +46,7 @@
         class TestContext : ScenarioContext
         {
             public string UniqueMessageId { get; set; }
-            public List<string> LatestFailureTimes { get; set; } = new List<string>();
+            public List<string> LatestFailureTimes { get; set; } = [];
         }
 
         class AnEndpoint : EndpointConfigurationBuilder

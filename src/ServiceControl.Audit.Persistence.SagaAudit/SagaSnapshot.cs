@@ -7,7 +7,7 @@
     {
         public SagaSnapshot()
         {
-            OutgoingMessages = new List<ResultingMessage>();
+            OutgoingMessages = [];
         }
 
         public string Id { get; set; }

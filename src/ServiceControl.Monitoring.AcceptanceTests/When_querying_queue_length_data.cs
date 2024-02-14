@@ -83,7 +83,8 @@
                          return false;
                      }
 
-                     if (monitoredEndpointDetails.Digest.Metrics["queueLength"].Average == 0.0)
+                     // TODO this should be using camalCase (the same for a few other monitoring acceptance tests, something sounds off with the json options
+                     if (monitoredEndpointDetails.Digest.Metrics.TryGetValue("QueueLength", out var queueLength) && queueLength.Average == 0.0)
                      {
                          return false;
                      }

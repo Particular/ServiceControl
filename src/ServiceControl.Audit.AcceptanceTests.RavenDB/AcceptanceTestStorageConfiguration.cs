@@ -6,16 +6,16 @@
     using ServiceControl.Audit.Persistence.RavenDB;
     using ServiceControl.Audit.Persistence.Tests;
 
-    class AcceptanceTestStorageConfiguration
+    public class AcceptanceTestStorageConfiguration
     {
-        public string PersistenceType { get; protected set; }
+        public string PersistenceType { get; } = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
 
         EmbeddedDatabase databaseInstance;
         string databaseName;
 
         public async Task<IDictionary<string, string>> CustomizeSettings()
         {
-            databaseName = Guid.NewGuid().ToString();
+            databaseName = Guid.NewGuid().ToString("n");
             databaseInstance = await SharedEmbeddedServer.GetInstance();
 
             return new Dictionary<string, string>
@@ -25,15 +25,12 @@
             };
         }
 
-        public Task Configure()
-        {
-            PersistenceType = typeof(RavenPersistenceConfiguration).AssemblyQualifiedName;
-
-            return Task.CompletedTask;
-        }
-
         public async Task Cleanup()
         {
+            if (databaseInstance == null)
+            {
+                return;
+            }
             await databaseInstance.DeleteDatabase(databaseName);
         }
     }

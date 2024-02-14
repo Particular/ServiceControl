@@ -1,21 +1,24 @@
 namespace ServiceControl.Audit.SagaAudit
 {
     using System;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web.Http;
+    using Infrastructure;
+    using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
+    using Persistence;
+    using ServiceControl.SagaAudit;
 
-    class SagasController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class SagasController(IAuditDataStore dataStore) : ControllerBase
     {
-        public SagasController(GetSagaByIdApi getSagaByIdApi)
-        {
-            this.getSagaByIdApi = getSagaByIdApi;
-        }
-
         [Route("sagas/{id}")]
         [HttpGet]
-        public Task<HttpResponseMessage> Sagas(Guid id) => getSagaByIdApi.Execute(this, id);
-
-        readonly GetSagaByIdApi getSagaByIdApi;
+        public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id)
+        {
+            var result = await dataStore.QuerySagaHistoryById(id);
+            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            return result.Results;
+        }
     }
 }

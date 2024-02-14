@@ -2,65 +2,49 @@
 {
     using System;
     using System.Net;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Headers;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Filters;
 
-    class NotModifiedStatusHttpHandler : DelegatingHandler
+    class NotModifiedStatusHttpHandler : IResultFilter
     {
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
-        {
-            var response = await base.SendAsync(request, cancellationToken);
+        static bool IfNoneMatch(RequestHeaders requestHeaders, ResponseHeaders responseHeaders) =>
+            responseHeaders.ETag != null && requestHeaders.IfNoneMatch.Contains(responseHeaders.ETag);
 
-            if (!response.IsSuccessStatusCode)
+        static bool IfNotModifiedSince(DateTimeOffset? ifModifiedSince, DateTimeOffset? lastModified) =>
+            lastModified <= ifModifiedSince;
+
+        public void OnResultExecuting(ResultExecutingContext context)
+        {
+            if (context.HttpContext.Response.HasStarted)
             {
-                return response;
+                // In forwarding scenarios we don't want to alter headers set by other instances
+                return;
             }
 
-            var requestHeaders = request.Headers;
-            var responseHeaders = response.Headers;
+            var statusCode = context.HttpContext.Response.StatusCode;
+            if (statusCode is < 200 or > 299)
+            {
+                return;
+            }
+
+            var requestHeaders = context.HttpContext.Request.GetTypedHeaders();
+            var responseHeaders = context.HttpContext.Response.GetTypedHeaders();
 
             var ifNoneMatch = IfNoneMatch(requestHeaders, responseHeaders);
-            var ifNotModifiedSince = IfNotModifiedSince(requestHeaders.IfModifiedSince, response.Content?.Headers?.LastModified);
+            var ifNotModifiedSince = IfNotModifiedSince(requestHeaders.IfModifiedSince, responseHeaders.LastModified);
 
             if (ifNoneMatch || ifNotModifiedSince)
             {
-                return Get304ResponseMessage(responseHeaders, response.Content?.Headers?.LastModified, request);
+                // TODO previously we were creating a brand new response, now we're adding more headers than before
+                context.Result = new StatusCodeResult((int)HttpStatusCode.NotModified);
             }
-
-            return response;
         }
 
-        static bool IfNoneMatch(HttpRequestHeaders requestHeaders, HttpResponseHeaders responseHeaders)
+        public void OnResultExecuted(ResultExecutedContext context)
         {
-            return responseHeaders.ETag != null && requestHeaders.IfNoneMatch.Contains(responseHeaders.ETag);
-        }
-
-        static bool IfNotModifiedSince(DateTimeOffset? ifModifiedSince, DateTimeOffset? lastModified)
-        {
-            if (lastModified == null)
-            {
-                return false;
-            }
-
-            return lastModified <= ifModifiedSince;
-        }
-
-        // currently lastModified is not supported without returning a content which would violate the HTTP spec
-        // it can be resurrected once ASP.NET Core is in place.
-#pragma warning disable IDE0060 // Remove unused parameter
-        static HttpResponseMessage Get304ResponseMessage(HttpResponseHeaders responseHeaders, DateTimeOffset? lastModified, HttpRequestMessage request)
-#pragma warning restore IDE0060 // Remove unused parameter
-        {
-            var response = request.CreateResponse(HttpStatusCode.NotModified);
-
-            if (responseHeaders.ETag.Tag != null)
-            {
-                response.Headers.ETag = responseHeaders.ETag;
-            }
-
-            return response;
+            // NOP
         }
     }
 }

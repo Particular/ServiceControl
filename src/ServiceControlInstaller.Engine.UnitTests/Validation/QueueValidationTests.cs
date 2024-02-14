@@ -131,11 +131,11 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
                 ConnectionString = @"afakeconnectionstring"
             };
 
-            instances = new List<IServiceControlInstance>
-            {
+            instances =
+            [
                 instanceA,
                 instanceB
-            };
+            ];
         }
 
         [Test]
@@ -149,7 +149,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var p = new QueueNameValidator(newInstance)
             {
-                SCInstances = new List<IServiceControlInstance>()
+                SCInstances = []
             };
             Assert.DoesNotThrow(() => p.CheckQueueNamesAreUniqueWithinInstance());
         }
@@ -170,7 +170,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var validator = new QueueNameValidator(newInstance)
             {
-                AuditInstances = new List<IServiceControlAuditInstance> { existingAudit }
+                AuditInstances = [existingAudit]
             };
 
             Assert.DoesNotThrow(() => validator.CheckQueueNamesAreNotTakenByAnotherAuditInstance());
@@ -188,7 +188,7 @@ namespace ServiceControlInstaller.Engine.UnitTests.Validation
 
             var p = new QueueNameValidator(newInstance)
             {
-                SCInstances = new List<IServiceControlInstance>()
+                SCInstances = []
             };
 
             var ex = Assert.Throws<EngineValidationException>(() => p.CheckQueueNamesAreUniqueWithinInstance());

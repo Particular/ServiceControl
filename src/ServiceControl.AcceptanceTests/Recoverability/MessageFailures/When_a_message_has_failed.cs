@@ -7,15 +7,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using CompositeViews.Messages;
     using EventLog;
     using Infrastructure;
-    using Infrastructure.SignalR;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -31,7 +30,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using ServiceControl.Persistence;
     using TestSupport;
     using TestSupport.EndpointTemplates;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     class When_a_message_has_failed : AcceptanceTest
     {
@@ -56,7 +54,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
             Assert.AreEqual(context.MessageId, failedMessage.ProcessingAttempts.Last().MessageId,
                 "The returned message should match the processed one");
             Assert.AreEqual(FailedMessageStatus.Unresolved, failedMessage.Status, "Status should be set to unresolved");
-            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count(), "Failed count should be 1");
+            Assert.AreEqual(1, failedMessage.ProcessingAttempts.Count, "Failed count should be 1");
             Assert.AreEqual("Simulated exception", failedMessage.ProcessingAttempts.Single().FailureDetails.Exception.Message,
                 "Exception message should be captured");
         }
@@ -190,7 +188,10 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         [Test]
         public async Task Should_raise_a_signalr_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handler; })
+            var context = await Define<MyContext>(ctx =>
+                {
+                    ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
+                })
                 .WithEndpoint<Receiver>(b => b.DoNotFailOnErrorMessages())
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
@@ -292,28 +293,31 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     public SignalRStarter(MyContext context)
                     {
                         this.context = context;
-                        connection = new Connection("http://localhost/api/messagestream")
-                        {
-                            JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                        };
+                        connection = new HubConnectionBuilder()
+                            .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
+                            .Build();
                     }
 
-                    protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
+                    protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Received += ConnectionOnReceived;
-                        connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler()))).GetAwaiter().GetResult();
+                        // TODO Align this name with the one chosen for GlobalEventHandler
+                        // We might also be able to strongly type this to match instead of just getting a string?
+                        connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
 
-                        return session.Send(new MyMessage(), cancellationToken);
+                        await connection.StartAsync(cancellationToken);
+
+                        await session.Send(new MyMessage(), cancellationToken);
                     }
 
                     protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        connection.Stop();
-                        return Task.CompletedTask;
+                        return connection.StopAsync(cancellationToken);
                     }
 
-                    void ConnectionOnReceived(string s)
+                    // TODO rename to better match what this is actually doing
+                    void ConnectionOnReceived(JsonElement jElement)
                     {
+                        var s = jElement.ToString();
                         if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
                         {
                             context.SignalrData = s;
@@ -322,7 +326,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     }
 
                     readonly MyContext context;
-                    readonly Connection connection;
+                    readonly HubConnection connection;
                 }
             }
         }
@@ -336,19 +340,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                MyContext testContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -369,19 +366,12 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     c.UseSerialization<MySuperSerializer>();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                MyContext testContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext testContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(MyContext testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();
@@ -413,13 +403,13 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                 using var stream = new MemoryStream(body.ToArray());
                 var msg = serializer.Deserialize(stream);
 
-                return new[]
-                {
+                return
+                [
                     msg
-                };
+                ];
             }
 
-            public string ContentType => "MyCustomSerializer";
+            public string ContentType => "xml/MyCustomSerializer";
         }
 
         public class FailingEndpoint : EndpointConfigurationBuilder
@@ -432,22 +422,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
                     recoverability.Delayed(x => x.NumberOfRetries(0));
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(QueueSearchContext queueSearchContext) : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(QueueSearchContext queueSearchContext) => this.queueSearchContext = queueSearchContext;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
-                    lock (lockObj)
-                    {
-                        queueSearchContext.FailedMessageCount++;
-                    }
+                    queueSearchContext.IncrementFailureCount();
 
                     throw new Exception("Simulated exception");
                 }
-
-                QueueSearchContext queueSearchContext;
-                static readonly object lockObj = new object();
             }
         }
 
@@ -456,22 +438,25 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         {
             public string MessageId { get; set; }
             public string EndpointNameOfReceivingEndpoint { get; set; }
-
             public string UniqueMessageId => DeterministicGuid.MakeId(MessageId, EndpointNameOfReceivingEndpoint).ToString();
-
-            public Func<HttpMessageHandler> Handler { get; set; }
             public bool SignalrEventReceived { get; set; }
             public string SignalrData { get; set; }
             public string LocalAddress { get; set; }
+            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
         }
 
         public class QueueSearchContext : ScenarioContext
         {
-            public int FailedMessageCount { get; set; }
+            long failedMessageCount;
+
+            public int FailedMessageCount => (int)Interlocked.Read(ref failedMessageCount);
+
+            public void IncrementFailureCount() => Interlocked.Increment(ref failedMessageCount);
         }
     }
 }
 
+// This class is deliberately outside the namespace to make the type visible for the custom Xml serializer logic in this test
 public class MyMessage : ICommand
 {
     public string Content { get; set; }

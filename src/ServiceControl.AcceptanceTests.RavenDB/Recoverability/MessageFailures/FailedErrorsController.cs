@@ -1,11 +1,9 @@
 ﻿namespace ServiceControl.AcceptanceTests.RavenDB.Recoverability.MessageFailures
 {
-    using System.Net;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Mvc;
     using Operations;
     using Raven.Client.Documents;
 
@@ -14,43 +12,32 @@
         public int Count { get; set; }
     }
 
-    class FailedErrorsController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class FailedErrorsController(IDocumentStore store, ImportFailedErrors failedErrors)
+        : ControllerBase
     {
-        public FailedErrorsController(IDocumentStore store, ImportFailedErrors importFailedErrors)
-        {
-            this.store = store;
-            this.importFailedErrors = importFailedErrors;
-        }
-
         [Route("failederrors/count")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetFailedErrorsCount()
+        public async Task<FailedErrorsCountReponse> GetFailedErrorsCount()
         {
-            using (var session = store.OpenAsyncSession())
-            {
-                var query =
-                    session.Query<FailedErrorImport, FailedErrorImportIndex>().Statistics(out var stats);
+            using var session = store.OpenAsyncSession();
+            var query =
+                session.Query<FailedErrorImport, FailedErrorImportIndex>().Statistics(out var stats);
 
-                var count = await query.CountAsync();
+            var count = await query.CountAsync();
 
-                return Request.CreateResponse(HttpStatusCode.OK, new FailedErrorsCountReponse
-                {
-                    Count = count
-                })
-                    .WithEtag(stats.ResultEtag.ToString());
-            }
+            Response.WithEtag(stats.ResultEtag.ToString());
+
+            return new FailedErrorsCountReponse { Count = count };
         }
 
         [Route("failederrors/import")]
         [HttpPost]
-        public async Task<HttpResponseMessage> ImportFailedErrors(CancellationToken cancellationToken = default)
+        public async Task ImportFailedErrors(CancellationToken cancellationToken = default)
         {
             var tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            await importFailedErrors.Run(tokenSource.Token);
-            return Request.CreateResponse(HttpStatusCode.OK);
+            await failedErrors.Run(tokenSource.Token);
         }
-
-        readonly IDocumentStore store;
-        readonly ImportFailedErrors importFailedErrors;
     }
 }

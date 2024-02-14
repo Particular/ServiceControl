@@ -7,13 +7,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
 
-    class InterceptMessagesDestinedToServiceControl : Behavior<IOutgoingLogicalMessageContext>
+    class InterceptMessagesDestinedToServiceControl(ScenarioContext scenarioContext) : Behavior<IOutgoingLogicalMessageContext>
     {
-        public InterceptMessagesDestinedToServiceControl(ScenarioContext context)
-        {
-            scenarioContext = context;
-        }
-
         public override Task Invoke(IOutgoingLogicalMessageContext context, Func<Task> next)
         {
             var interceptingContext = scenarioContext as InterceptedMessagesScenarioContext;
@@ -29,7 +24,5 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     return next();
             }
         }
-
-        readonly ScenarioContext scenarioContext;
     }
 }

@@ -3,19 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net.Http;
     using System.Reflection;
     using System.Text;
-    using System.Web.Http.Controllers;
-    using System.Web.Http.Hosting;
-    using System.Web.Http.Routing;
     using Audit;
-    using Audit.Infrastructure;
     using Audit.Infrastructure.Settings;
     using Audit.Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Controllers;
+    using Microsoft.AspNetCore.Mvc.Routing;
+    using Microsoft.AspNetCore.Routing;
     using NUnit.Framework;
     using Particular.Approvals;
-    using PublicApiGenerator;
     using ServiceControl.Audit.Persistence.InMemory;
     using ServiceControl.Transports.Learning;
 
@@ -23,31 +22,26 @@
     class APIApprovals
     {
         [Test]
-        public void PublicClr()
-        {
-            var publicApi = typeof(Bootstrapper).Assembly.GeneratePublicApi(new ApiGeneratorOptions
-            {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
-            });
-            Approver.Verify(publicApi);
-        }
-
-        [Test]
         public void RootPathValue()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost");
-            request.Properties.Add(HttpPropertyKeys.RequestContextKey, new HttpRequestContext { VirtualPathRoot = "/" });
+            var httpContext = new DefaultHttpContext { Request = { Scheme = "http", Host = new HostString("localhost") } };
+            var actionContext = new ActionContext { HttpContext = httpContext, RouteData = new RouteData(), ActionDescriptor = new ControllerActionDescriptor() };
+            var controllerContext = new ControllerContext(actionContext);
 
             var settings = CreateTestSettings();
 
-            var controller = new RootController(new LoggingSettings("testEndpoint"), settings)
+            var controller = new RootController(
+                new LoggingSettings("testEndpoint"),
+                settings
+            )
             {
-                Url = new UrlHelper(request)
+                ControllerContext = controllerContext,
+                Url = new UrlHelper(actionContext)
             };
 
             var result = controller.Urls();
 
-            Approver.Verify(result.Content);
+            Approver.Verify(result.Value);
         }
 
         [Test]
@@ -56,26 +50,28 @@
             var httpApiMethods = GetControllerRoutes()
                 .Select(pair =>
                 {
-                    var type = pair.Method.DeclaringType;
-                    var httpMethods = pair.Method.GetCustomAttributes(true)
+                    (MethodInfo method, RouteAttribute route) = pair;
+                    var type = method.DeclaringType;
+                    var httpMethods = method.GetCustomAttributes(true)
                         .OfType<IActionHttpMethodProvider>()
-                           .SelectMany(att => att.HttpMethods.Select(m => m.Method))
+                           .SelectMany(att => att.HttpMethods.Select(m => m))
                            .Distinct()
-                           .OrderBy(httpMethod => httpMethod);
+                           .OrderBy(httpMethod => httpMethod)
+                        .ToArray();
 
                     if (!httpMethods.Any())
                     {
-                        throw new Exception($"Method {type.FullName}:{pair.Method.Name} has Route attribute but no method attribute like HttpGet.");
+                        throw new Exception($"Method {type.FullName}:{method.Name} has Route attribute but no method attribute like HttpGet.");
                     }
 
-                    var parametersString = string.Join(", ", pair.Method.GetParameters().Select(p => $"{PrettyTypeName(p.ParameterType)} {p.Name}"));
-                    var methodSignature = $"{type.FullName}:{pair.Method.Name}({parametersString})";
+                    var parametersString = string.Join(", ", method.GetParameters().Select(p => $"{PrettyTypeName(p.ParameterType)} {p.Name}"));
+                    var methodSignature = $"{type.FullName}:{method.Name}({parametersString})";
 
                     return new
                     {
                         MethodSignature = methodSignature,
                         HttpMethods = string.Join("/", httpMethods),
-                        Route = pair.Route.Template
+                        Route = route.Template
                     };
                 })
                 .OrderBy(x => x.Route).ThenBy(x => x.HttpMethods)
@@ -92,19 +88,19 @@
             Approver.Verify(httpApi);
         }
 
-        IEnumerable<(MethodInfo Method, IHttpRouteInfoProvider Route)> GetControllerRoutes()
+        IEnumerable<(MethodInfo Method, RouteAttribute Route)> GetControllerRoutes()
         {
             var controllers = typeof(Program).Assembly.GetTypes()
-                .Where(t => typeof(IHttpController).IsAssignableFrom(t));
+                .Where(t => typeof(ControllerBase).IsAssignableFrom(t));
 
             foreach (var type in controllers)
             {
-                foreach (var methodInfo in type.GetMethods())
+                foreach (var method in type.GetMethods())
                 {
-                    var routeAtts = methodInfo.GetCustomAttributes(true).OfType<IHttpRouteInfoProvider>();
+                    var routeAtts = method.GetCustomAttributes(true).OfType<RouteAttribute>();
                     foreach (var routeAtt in routeAtts)
                     {
-                        yield return (methodInfo, routeAtt);
+                        yield return (method, routeAtt);
                     }
                 }
             }
@@ -139,12 +135,10 @@
             Approver.Verify(settings);
         }
 
-        static Settings CreateTestSettings()
-        {
-            return new Settings(
+        static Settings CreateTestSettings() =>
+            new(
                 Settings.DEFAULT_SERVICE_NAME,
                 typeof(LearningTransportCustomization).AssemblyQualifiedName,
                 typeof(InMemoryPersistence).AssemblyQualifiedName);
-        }
     }
 }

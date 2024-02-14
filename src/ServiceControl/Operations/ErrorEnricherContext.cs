@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    class ErrorEnricherContext
+    public class ErrorEnricherContext
     {
         List<EndpointDetails> newEndpoints;
 
@@ -21,10 +21,7 @@
 
         public void Add(EndpointDetails endpointDetails)
         {
-            if (newEndpoints == null)
-            {
-                newEndpoints = new List<EndpointDetails>();
-            }
+            newEndpoints ??= [];
 
             newEndpoints.Add(endpointDetails);
         }

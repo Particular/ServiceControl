@@ -21,7 +21,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> { typeof(RunCommand) };
+            Commands = [typeof(RunCommand)];
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
@@ -38,10 +38,10 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     @"Run RavenDB only - use for DB maintenance",
                     s =>
                     {
-                        Commands = new List<Type>
-                        {
+                        Commands =
+                        [
                             typeof(MaintCommand)
-                        };
+                        ];
                         executionMode = ExecutionMode.Maintenance;
                     }
                 },
@@ -58,7 +58,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     "s|setup",
                     @"Internal use - for new installer", s =>
                     {
-                        Commands = new List<Type> {typeof(SetupCommand)};
+                        Commands = [typeof(SetupCommand)];
                         executionMode = ExecutionMode.RunInstallers;
                     }
                 },
@@ -98,7 +98,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     "Import failed audit messages",
                     s =>
                     {
-                        Commands = new List<Type> {typeof(ImportFailedAuditsCommand)};
+                        Commands = [typeof(ImportFailedAuditsCommand)];
                         executionMode = ExecutionMode.ImportFailedAudits;
                     }
                 }
@@ -141,7 +141,6 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
         public string Username { get; set; }
         public bool Portable { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public bool RunAsWindowsService => !Portable && !Environment.UserInteractive;
 
         public void PrintUsage()
         {

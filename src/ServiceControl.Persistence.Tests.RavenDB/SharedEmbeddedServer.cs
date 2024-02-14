@@ -1,45 +1,79 @@
-﻿using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Raven.Client.ServerWide.Operations;
-using ServiceControl.Persistence.RavenDB;
-using TestHelper;
-
-static class SharedEmbeddedServer
+﻿namespace ServiceControl.Persistence.Tests
 {
-    public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using NUnit.Framework;
+    using Raven.Client.ServerWide.Operations;
+    using ServiceControl.Persistence.RavenDB;
+    using TestHelper;
+
+    static class SharedEmbeddedServer
     {
-        var basePath = Path.Combine(Path.GetTempPath(), "ServiceControlTests", "Primary.RavenPersistence");
-        var dbPath = Path.Combine(basePath, "DB");
-        var databasesPath = Path.Combine(dbPath, "Databases");
-
-        var settings = new RavenPersisterSettings
+        public static async Task<EmbeddedDatabase> GetInstance(CancellationToken cancellationToken = default)
         {
-            DatabasePath = dbPath,
-            LogPath = Path.Combine(basePath, "Logs"),
-            LogsMode = "Operations",
-            DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
-        };
-
-        var instance = EmbeddedDatabase.Start(settings);
-
-        // Make sure that the database is up - this blocks until the cancellation token times out
-        using (var docStore = await instance.Connect(cancellationToken))
-        {
-            var cleanupDatabases = new DirectoryInfo(databasesPath)
-                .GetDirectories()
-                .Select(di => di.Name)
-                .Where(name => name.Length == 32)
-                .ToArray();
-
-            if (cleanupDatabases.Any())
+            if (embeddedDatabase != null)
             {
-                var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
-                await docStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                return embeddedDatabase;
+            }
+
+            await semaphoreSlim.WaitAsync(cancellationToken);
+
+            try
+            {
+                var dbPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Tests", "PrimaryData");
+                var logPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs", "Primary");
+                var logsMode = "Operations";
+
+                var settings = new RavenPersisterSettings
+                {
+                    DatabasePath = dbPath,
+                    LogPath = logPath,
+                    LogsMode = logsMode,
+                    DatabaseMaintenancePort = PortUtility.FindAvailablePort(RavenPersisterSettings.DatabaseMaintenancePortDefault)
+                };
+
+                embeddedDatabase = EmbeddedDatabase.Start(settings);
+
+                //make sure that the database is up
+                using var documentStore = await embeddedDatabase.Connect(cancellationToken);
+
+                var cleanupDatabases = new DirectoryInfo(dbPath)
+                    .GetDirectories()
+                    .Select(di => di.Name)
+                    .Where(name => name.Length == 32)
+                    .ToArray();
+
+                if (cleanupDatabases.Length > 0)
+                {
+                    var cleanupOperation = new DeleteDatabasesOperation(new DeleteDatabasesOperation.Parameters { DatabaseNames = cleanupDatabases, HardDelete = true });
+                    await documentStore.Maintenance.Server.SendAsync(cleanupOperation, CancellationToken.None);
+                }
+
+                return embeddedDatabase;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
             }
         }
 
-        return instance;
+        public static async Task Stop(CancellationToken cancellationToken = default)
+        {
+            await semaphoreSlim.WaitAsync(cancellationToken);
+            try
+            {
+                embeddedDatabase?.Dispose();
+                embeddedDatabase = null;
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
+        }
+
+        static EmbeddedDatabase embeddedDatabase;
+        static readonly SemaphoreSlim semaphoreSlim = new(1, 1);
     }
 }

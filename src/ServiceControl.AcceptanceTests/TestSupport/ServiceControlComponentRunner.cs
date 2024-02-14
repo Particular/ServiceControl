@@ -3,28 +3,28 @@
     using System;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting.Server;
+    using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.Owin.Builder;
-    using Newtonsoft.Json;
     using NLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using ServiceBus.Management.Infrastructure.OWIN;
+    using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestHelper;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostBuilder> hostBuilderCustomization)
+        public ServiceControlComponentRunner(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
         {
             this.transportToUse = transportToUse;
             this.persistenceToUse = persistenceToUse;
@@ -34,26 +34,19 @@
         }
 
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
-        public Settings Settings { get; set; }
-        public OwinHttpMessageHandler Handler { get; set; }
-        public HttpClient HttpClient { get; set; }
-        public JsonSerializerSettings SerializerSettings { get; } = JsonNetSerializerSettings.CreateDefault();
-        public string Port => Settings.Port.ToString();
-        public IDomainEvents DomainEvents { get; set; }
+        public Settings Settings { get; private set; }
+        public HttpClient HttpClient { get; private set; }
+        public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
+        public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; private set; }
+        public IDomainEvents DomainEvents { get; private set; }
 
-        public Task Initialize(RunDescriptor run)
-        {
-            return InitializeServiceControl(run.ScenarioContext);
-        }
+        public Task Initialize(RunDescriptor run) => InitializeServiceControl(run.ScenarioContext);
 
         async Task InitializeServiceControl(ScenarioContext context)
         {
-            var instancePort = PortUtility.FindAvailablePort(33333);
-
             var settings = new Settings(instanceName, transportToUse.TypeName, persistenceToUse.PersistenceType, forwardErrorMessages: false, errorRetentionPeriod: TimeSpan.FromDays(10))
             {
                 AllowMessageEditing = true,
-                Port = instancePort,
                 ForwardErrorMessages = false,
                 TransportConnectionString = transportToUse.ConnectionString,
                 ProcessRetryBatchesFrequency = TimeSpan.FromSeconds(2),
@@ -95,14 +88,13 @@
                 },
             };
 
-            persistenceToUse.CustomizeSettings(settings);
+            await persistenceToUse.CustomizeSettings(settings);
 
             setSettings(settings);
             Settings = settings;
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-
                 var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run();
             }
@@ -123,56 +115,60 @@
             configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
             configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
 
-            configuration.AssemblyScanner().ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
+            var assemblyScanner = configuration.AssemblyScanner();
+            assemblyScanner.ExcludeAssemblies(Path.GetFileName(typeof(ServiceControlComponentRunner).Assembly.Location));
 
             customConfiguration(configuration);
 
+            // TODO Do we really need to setup the infrastructure twice? It is also like this on master
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
                 var setupBootstrapper = new SetupBootstrapper(settings);
                 await setupBootstrapper.Run();
             }
 
-            using (new DiagnosticTimer($"Creating and starting Bus for {instanceName}"))
+            using (new DiagnosticTimer($"Starting ServiceControl {instanceName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
 
                 var loggingSettings = new LoggingSettings(settings.ServiceName, defaultLevel: LogLevel.Debug, logPath: logPath);
-                bootstrapper = new Bootstrapper(settings, configuration, loggingSettings)
+                var hostBuilder = WebApplication.CreateBuilder(new WebApplicationOptions
                 {
-                    HttpClientFactory = HttpClientFactory
-                };
+                    // Force the DI container to run the dependency resolution check to verify all dependencies can be resolved
+                    EnvironmentName = Environments.Development
+                });
+                hostBuilder.AddServiceControl(settings, configuration, loggingSettings);
 
                 // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
                 // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-                bootstrapper.HostBuilder
-                    .ConfigureLogging((c, b) => b.AddScenarioContextLogging());
+                hostBuilder.Logging.AddScenarioContextLogging();
 
-                hostBuilderCustomization(bootstrapper.HostBuilder);
+                // TODO: the following four lines could go into a AddServiceControlTesting() extension
+                hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
+                hostBuilder.Services.AddSingleton<IHostLifetime, TestServerHostLifetime>();
 
-                host = bootstrapper.HostBuilder.Build();
-                await host.Services.GetRequiredService<Persistence.IPersistenceLifecycle>().Initialize();
-                await host.StartAsync();
-                DomainEvents = host.Services.GetService<IDomainEvents>();
-            }
+                // This facilitates receiving the test server anywhere where DI is available
+                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
 
-            using (new DiagnosticTimer($"Initializing WebApi for {instanceName}"))
-            {
-                var app = new AppBuilder();
-                var startup = new Startup(host.Services, bootstrapper.ApiAssemblies);
-                startup.Configuration(app, typeof(AcceptanceTest).Assembly);
-                var appFunc = app.Build();
+                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
+                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
+                // so we are explicitly registering all necessary application parts.
+                var addControllers = hostBuilder.Services.AddControllers();
+                addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
+                addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
 
-                Handler = new OwinHttpMessageHandler(appFunc)
-                {
-                    UseCookies = false,
-                    AllowAutoRedirect = false
-                };
+                hostBuilder.Services.OverrideHttpClientDefaults(settings);
 
-                var httpClient = new HttpClient(Handler);
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpClient = httpClient;
+                hostBuilderCustomization(hostBuilder);
+
+                host = hostBuilder.Build();
+                host.UseServiceControl();
+                await host.StartServiceControl();
+                DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
+                // Bring this back and look into the base address of the client
+                HttpClient = host.GetTestServer().CreateClient();
+                HttpMessageHandlerFactory = () => host.GetTestServer().CreateHandler();
             }
         }
 
@@ -182,34 +178,17 @@
             {
                 await host.StopAsync();
                 HttpClient.Dispose();
-                Handler.Dispose();
-                host.Dispose();
-                DirectoryDeleter.Delete(Settings.PersisterSpecificSettings.DatabasePath);
+                await host.DisposeAsync();
+                await persistenceToUse.Cleanup();
             }
-
-            bootstrapper = null;
-            HttpClient = null;
-            Handler = null;
         }
 
-        HttpClient HttpClientFactory()
-        {
-            if (Handler == null)
-            {
-                throw new InvalidOperationException("Handler field not yet initialized");
-            }
-            var httpClient = new HttpClient(Handler);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return httpClient;
-        }
-
-        IHost host;
-        Bootstrapper bootstrapper;
+        WebApplication host;
         readonly ITransportIntegration transportToUse;
         readonly AcceptanceTestStorageConfiguration persistenceToUse;
         readonly Action<Settings> setSettings;
         readonly Action<EndpointConfiguration> customConfiguration;
-        readonly Action<IHostBuilder> hostBuilderCustomization;
+        readonly Action<IHostApplicationBuilder> hostBuilderCustomization;
         readonly string instanceName = Settings.DEFAULT_SERVICE_NAME;
     }
 }

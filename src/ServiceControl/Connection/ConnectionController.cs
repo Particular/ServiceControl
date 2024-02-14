@@ -1,30 +1,23 @@
 ﻿namespace ServiceControl.Connection
 {
+    using System.Text.Json;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Mvc;
 
-    class ConnectionController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class ConnectionController(IPlatformConnectionBuilder builder) : ControllerBase
     {
-        readonly IPlatformConnectionBuilder connectionBuilder;
-        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-
-        public ConnectionController(IPlatformConnectionBuilder connectionBuilder) => this.connectionBuilder = connectionBuilder;
-
         [Route("connection")]
         [HttpGet]
-        public async Task<IHttpActionResult> GetConnectionDetails()
+        public async Task<IActionResult> GetConnectionDetails()
         {
-            var connectionDetails = await connectionBuilder.BuildPlatformConnection();
-
-            return Json(
-                new
-                {
-                    settings = connectionDetails.ToDictionary(),
-                    errors = connectionDetails.Errors
-                },
-                jsonSerializerSettings
-            );
+            var platformConnectionDetails = await builder.BuildPlatformConnection();
+            // TODO why do these properties need to be lower cased?
+            var connectionDetails = new { settings = platformConnectionDetails.ToDictionary(), errors = platformConnectionDetails.Errors };
+            // by default snake case is used for serialization so we take care of explicitly serializing here
+            var content = JsonSerializer.Serialize(connectionDetails);
+            return Content(content, "application/json");
         }
     }
 }

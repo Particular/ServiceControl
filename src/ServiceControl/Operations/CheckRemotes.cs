@@ -11,7 +11,7 @@
 
     class CheckRemotes : CustomCheck
     {
-        public CheckRemotes(Settings settings, Func<HttpClient> httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
+        public CheckRemotes(Settings settings, IHttpClientFactory httpClientFactory) : base("ServiceControl Remotes", "Health", TimeSpan.FromSeconds(30))
         {
             this.httpClientFactory = httpClientFactory;
             remoteInstanceSetting = settings.RemoteInstances;
@@ -20,41 +20,37 @@
 
         public override async Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
-            var httpClient = httpClientFactory();
-
             try
             {
                 var queryTimeout = TimeSpan.FromSeconds(10);
-                using (var cancellationTokenSource = new CancellationTokenSource(queryTimeout))
+                using var cancellationTokenSource = new CancellationTokenSource(queryTimeout);
+                foreach (var remote in remoteInstanceSetting)
                 {
-                    foreach (var remote in remoteInstanceSetting)
-                    {
-                        remoteQueryTasks.Add(CheckSuccessStatusCode(httpClient, remote, queryTimeout, cancellationTokenSource.Token));
-                    }
+                    remoteQueryTasks.Add(CheckSuccessStatusCode(httpClientFactory, remote, queryTimeout, cancellationTokenSource.Token));
+                }
 
-                    try
-                    {
-                        await Task.WhenAll(remoteQueryTasks);
-                        return CheckResult.Pass;
-                    }
-                    catch (Exception)
-                    {
-                        var builder = new StringBuilder();
+                try
+                {
+                    await Task.WhenAll(remoteQueryTasks);
+                    return CheckResult.Pass;
+                }
+                catch (Exception)
+                {
+                    var builder = new StringBuilder();
 
-                        foreach (var task in remoteQueryTasks)
+                    foreach (var task in remoteQueryTasks)
+                    {
+                        try
                         {
-                            try
-                            {
-                                await task;
-                            }
-                            catch (TimeoutException e)
-                            {
-                                builder.AppendLine(e.Message);
-                            }
+                            await task;
                         }
-
-                        return CheckResult.Failed(builder.ToString());
+                        catch (TimeoutException e)
+                        {
+                            builder.AppendLine(e.Message);
+                        }
                     }
+
+                    return CheckResult.Failed(builder.ToString());
                 }
             }
             finally
@@ -63,27 +59,28 @@
             }
         }
 
-        static async Task CheckSuccessStatusCode(HttpClient client, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
+        static async Task CheckSuccessStatusCode(IHttpClientFactory httpClientFactory, RemoteInstanceSetting remoteSettings, TimeSpan queryTimeout, CancellationToken cancellationToken)
         {
             try
             {
-                var response = await client.GetAsync(remoteSettings.ApiUri, cancellationToken);
+                var client = httpClientFactory.CreateClient(remoteSettings.InstanceId);
+                var response = await client.GetAsync("/api", cancellationToken);
                 response.EnsureSuccessStatusCode();
                 remoteSettings.TemporarilyUnavailable = false;
             }
             catch (HttpRequestException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"The remote instance at '{remoteSettings.ApiUri}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
+                throw new TimeoutException($"The remote instance at '{remoteSettings.BaseAddress}' doesn't seem to be available. It will be temporarily disabled. Reason: {e.Message}", e);
             }
             catch (OperationCanceledException e)
             {
                 remoteSettings.TemporarilyUnavailable = true;
-                throw new TimeoutException($"The remote at '{remoteSettings.ApiUri}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
+                throw new TimeoutException($"The remote at '{remoteSettings.BaseAddress}' did not respond within the allotted time of '{queryTimeout}'. It will be temporarily disabled.", e);
             }
         }
 
-        readonly Func<HttpClient> httpClientFactory;
+        readonly IHttpClientFactory httpClientFactory;
         RemoteInstanceSetting[] remoteInstanceSetting;
         List<Task> remoteQueryTasks;
     }

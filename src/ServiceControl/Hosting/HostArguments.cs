@@ -22,7 +22,7 @@ namespace Particular.ServiceControl.Hosting
             }
 
             var executionMode = ExecutionMode.Run;
-            Commands = new List<Type> { typeof(RunCommand) };
+            Commands = [typeof(RunCommand)];
             ServiceName = Settings.DEFAULT_SERVICE_NAME;
 
             var defaultOptions = new OptionSet
@@ -39,10 +39,10 @@ namespace Particular.ServiceControl.Hosting
                     @"Run RavenDB only - use for DB maintenance",
                     s =>
                     {
-                        Commands = new List<Type>
-                        {
+                        Commands =
+                        [
                             typeof(MaintenanceModeCommand)
-                        };
+                        ];
                         executionMode = ExecutionMode.Maintenance;
                     }
                 },
@@ -59,7 +59,7 @@ namespace Particular.ServiceControl.Hosting
                     "s|setup",
                     @"Internal use - for new installer", s =>
                     {
-                        Commands = new List<Type> {typeof(SetupCommand)};
+                        Commands = [typeof(SetupCommand)];
                         executionMode = ExecutionMode.RunInstallers;
                     }
                 },
@@ -99,7 +99,7 @@ namespace Particular.ServiceControl.Hosting
                     "Import failed error messages",
                     s =>
                     {
-                        Commands = new List<Type> {typeof(ImportFailedErrorsCommand)};
+                        Commands = [typeof(ImportFailedErrorsCommand)];
                         executionMode = ExecutionMode.ImportFailedErrors;
                     }
                 }
@@ -142,7 +142,6 @@ namespace Particular.ServiceControl.Hosting
         public string Username { get; set; }
         public bool Portable { get; set; }
         public bool SkipQueueCreation { get; set; }
-        public bool RunAsWindowsService => !Portable && !Environment.UserInteractive;
 
         public void PrintUsage()
         {

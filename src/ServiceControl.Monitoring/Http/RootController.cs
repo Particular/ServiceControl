@@ -1,14 +1,14 @@
 ﻿namespace ServiceControl.Monitoring.Http
 {
-    using System.Net;
-    using System.Net.Http;
-    using System.Web.Http;
-    using System.Web.Http.Results;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Primitives;
 
-    public class RootController : ApiController
+    [ApiController]
+    public class RootController : ControllerBase
     {
         [Route("")]
-        public OkNegotiatedContentResult<MonitoringInstanceModel> Get()
+        [HttpGet]
+        public ActionResult<MonitoringInstanceModel> Get()
         {
             var model = new MonitoringInstanceModel
             {
@@ -21,19 +21,10 @@
 
         [Route("")]
         [HttpOptions]
-        public HttpResponseMessage GetSupportedOperations()
+        public void GetSupportedOperations()
         {
-            var response = new HttpResponseMessage(HttpStatusCode.NoContent)
-            {
-                Content = new ByteArrayContent(new byte[] { }) //need to force empty content to avoid null reference when adding headers below :(
-            };
-
-            response.Content.Headers.Allow.Add("GET");
-            response.Content.Headers.Allow.Add("DELETE");
-            response.Content.Headers.Allow.Add("PATCH");
-            response.Content.Headers.Add("Access-Control-Expose-Headers", "Allow");
-
-            return response;
+            Response.Headers.Allow = new StringValues(["GET", "DELETE", "PATCH"]);
+            Response.Headers.AccessControlExposeHeaders = "Allow";
         }
 
         public class MonitoringInstanceModel

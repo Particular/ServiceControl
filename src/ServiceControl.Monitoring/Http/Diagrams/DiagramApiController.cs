@@ -3,33 +3,24 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Web.Http;
     using Infrastructure;
+    using Microsoft.AspNetCore.Mvc;
     using QueueLength;
     using Timings;
 
-    public class DiagramApiController : ApiController
+    [ApiController]
+    public class DiagramApiController(IEnumerable<IProvideBreakdown> breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry) : ControllerBase
     {
-        public DiagramApiController(IEnumerable<IProvideBreakdown> breakdownProviders, EndpointRegistry endpointRegistry, EndpointInstanceActivityTracker activityTracker, MessageTypeRegistry messageTypeRegistry)
-        {
-            this.breakdownProviders = breakdownProviders;
-            this.endpointRegistry = endpointRegistry;
-            this.activityTracker = activityTracker;
-            this.messageTypeRegistry = messageTypeRegistry;
-        }
-
         [Route("monitored-endpoints")]
         [HttpGet]
-        public IHttpActionResult GetAllEndpointsMetrics()
+        public MonitoredEndpoint[] GetAllEndpointsMetrics([FromQuery] int? history = null)
         {
             var metricByInstanceLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInstanceId>>().ToDictionary(i => i.GetType());
 
             var metricByQueueLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInputQueue>>().ToDictionary(i => i.GetType());
 
             var endpoints = GetMonitoredEndpoints(endpointRegistry, activityTracker);
-            var period = ExtractHistoryPeriod();
+            var period = HistoryPeriod.FromMinutes(history ?? DefaultHistory);
 
             foreach (var metric in InstanceMetrics)
             {
@@ -57,12 +48,12 @@
                 }
             }
 
-            return Ok(endpoints);
+            return endpoints;
         }
 
         [Route("monitored-endpoints/{endpointName}")]
         [HttpGet]
-        public IHttpActionResult GetSingleEndpointMetrics(string endpointName)
+        public ActionResult<MonitoredEndpointDetails> GetSingleEndpointMetrics(string endpointName, [FromQuery] int? history = null)
         {
             var metricByInstanceLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointInstanceId>>().ToDictionary(i => i.GetType());
 
@@ -70,7 +61,7 @@
 
             var metricByMessageTypeLookup = breakdownProviders.OfType<IProvideBreakdownBy<EndpointMessageType>>().ToDictionary(i => i.GetType());
 
-            var period = ExtractHistoryPeriod();
+            var period = HistoryPeriod.FromMinutes(history ?? DefaultHistory);
 
             var instances = GetMonitoredEndpointInstances(endpointRegistry, endpointName, activityTracker);
 
@@ -171,32 +162,28 @@
                 MetricDetails = metricDetails
             };
 
-            return Ok(data);
+            return data;
         }
 
         [Route("monitored-instance/{endpointName}/{instanceId}")]
         [HttpDelete]
-        public HttpResponseMessage DeleteEndpointInstance(string endpointName, string instanceId)
+        public IActionResult DeleteEndpointInstance(string endpointName, string instanceId)
         {
             endpointRegistry.RemoveEndpointInstance(endpointName, instanceId);
             activityTracker.Remove(new EndpointInstanceId(endpointName, instanceId));
 
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(Array.Empty<byte>()) //need to force empty content to avoid null reference when adding headers below :(
-            };
-
-            return response;
+            return Ok();
         }
 
         [Route("monitored-endpoints/disconnected")]
         [HttpGet]
-        public IHttpActionResult DisconnectedEndpointCount()
+        public ActionResult<int> DisconnectedEndpointCount()
         {
             var disconnectedEndpointCount = endpointRegistry
                 .GetGroupedByEndpointName()
                 .Count(endpoint => endpoint.Value.All(activityTracker.IsStale));
-            return Ok(disconnectedEndpointCount);
+
+            return disconnectedEndpointCount;
         }
 
         static DateTime[] GetTimeAxisValues<T>(IEnumerable<IntervalsStore<T>.IntervalsBreakdown> intervals)
@@ -233,13 +220,6 @@
                 .ToArray();
         }
 
-        HistoryPeriod ExtractHistoryPeriod()
-        {
-            var query = Request.RequestUri.ParseQueryString();
-
-            return HistoryPeriod.FromMinutes(query["history"] == null || query["history"] == "undefined" ? DefaultHistory : int.Parse(query["history"]));
-        }
-
         static MonitoredMetric<BreakdownT> CreateMetric<BreakdownT, StoreT>(string name, Aggregation<BreakdownT> aggregation)
             where StoreT : IProvideBreakdownBy<BreakdownT>
         {
@@ -257,21 +237,16 @@
                 .ToArray();
         }
 
-        readonly IEnumerable<IProvideBreakdown> breakdownProviders;
-        readonly EndpointRegistry endpointRegistry;
-        readonly EndpointInstanceActivityTracker activityTracker;
-        readonly MessageTypeRegistry messageTypeRegistry;
-
         public const int DefaultHistory = 5;
 
-        static HashSet<string> DetailedMetrics = new HashSet<string>
-        {
+        static HashSet<string> DetailedMetrics =
+        [
             "Throughput",
             "QueueLength",
             "ProcessingTime",
             "CriticalTime",
             "Retries"
-        };
+        ];
 
         static MonitoredMetric<EndpointInstanceId>[] InstanceMetrics =
         {

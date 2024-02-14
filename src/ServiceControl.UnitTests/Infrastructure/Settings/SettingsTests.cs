@@ -10,19 +10,13 @@
         [Test]
         public void Should_read_RemoteInstances_from_serialized_json()
         {
-            var configValue = "[{'api_uri':'http://instance1'},{'api_uri':'http://instance2'}]'";
+            var configValue = """[{"api_uri":"http://instance1"},{"api_uri":"http://instance2"}]""";
             var remoteInstances = Settings.ParseRemoteInstances(configValue);
 
             CollectionAssert.AreEqual(remoteInstances, new[]
             {
-                new RemoteInstanceSetting
-                {
-                    ApiUri = "http://instance1"
-                },
-                new RemoteInstanceSetting
-                {
-                    ApiUri = "http://instance2"
-                }
+                new RemoteInstanceSetting("http://instance1"),
+                new RemoteInstanceSetting("http://instance2")
             }, new RemoteInstanceSettingComparer());
         }
 
@@ -30,7 +24,7 @@
         {
             public override int Compare(RemoteInstanceSetting x, RemoteInstanceSetting y)
             {
-                return x.ApiUri.Equals(y.ApiUri) ? 0 : 1;
+                return x.BaseAddress.Equals(y.BaseAddress) ? 0 : 1;
             }
         }
     }

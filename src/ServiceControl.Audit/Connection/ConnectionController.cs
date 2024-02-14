@@ -1,20 +1,18 @@
 namespace ServiceControl.Audit.Connection
 {
-    using System.Web.Http;
+    using System.Text.Json;
     using Infrastructure.Settings;
-    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Mvc;
 
-    class ConnectionController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class ConnectionController(Settings settings) : ControllerBase
     {
-        readonly Settings settings;
-        readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings();
-
-        public ConnectionController(Settings settings) => this.settings = settings;
-
         [Route("connection")]
         [HttpGet]
-        public IHttpActionResult GetConnectionDetails() =>
-            Json(new
+        public IActionResult GetConnectionDetails()
+        {
+            var connectionDetails = new ConnectionDetails
             {
                 MessageAudit = new MessageAuditConnectionDetails
                 {
@@ -24,21 +22,31 @@ namespace ServiceControl.Audit.Connection
                 SagaAudit = new SagaAuditConnectionDetails
                 {
                     Enabled = true,
-                    SagaAuditQueue = settings.AuditQueue
+                    SagaAuditQueue = settings.AuditQueue,
                 }
-            },
-            jsonSerializerSettings);
+            };
+            // by default snake case is used for serialization so we take care of explicitly serializing here
+            var content = JsonSerializer.Serialize(connectionDetails);
+            return Content(content, "application/json");
+        }
+    }
+
+    public class ConnectionDetails
+    {
+        public MessageAuditConnectionDetails MessageAudit { get; set; }
+        public SagaAuditConnectionDetails SagaAudit { get; set; }
+
     }
 
     // HINT: This should match the type in the PlatformConnector package
-    class MessageAuditConnectionDetails
+    public class MessageAuditConnectionDetails
     {
         public bool Enabled { get; set; }
         public string AuditQueue { get; set; }
     }
 
     // HINT: This should match the type in the PlatformConnector package
-    class SagaAuditConnectionDetails
+    public class SagaAuditConnectionDetails
     {
         public bool Enabled { get; set; }
         public string SagaAuditQueue { get; set; }

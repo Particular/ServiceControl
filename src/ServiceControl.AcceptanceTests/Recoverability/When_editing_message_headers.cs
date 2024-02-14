@@ -2,11 +2,11 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using AcceptanceTests;
     using Infrastructure;
-    using Newtonsoft.Json;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
@@ -40,11 +40,11 @@
                         }
 
                         ctx.EditedMessage = true;
-                        var newHeaders = EditMessageHelper.TryRestoreOriginalHeaderKeys(failedMessage.Item.ProcessingAttempts.Last().Headers);
-                        newHeaders.Add(new KeyValuePair<string, string>("AcceptanceTest.NewHeader", "42"));
+                        var newHeaders = failedMessage.Item.ProcessingAttempts.Last().Headers.ToDictionary();
+                        newHeaders.Add("AcceptanceTest.NewHeader", "42");
                         var editModel = new EditMessageModel
                         {
-                            MessageBody = JsonConvert.SerializeObject(new EditMessage()),
+                            MessageBody = JsonSerializer.Serialize(new EditMessage()),
                             MessageHeaders = newHeaders
                         };
 
@@ -76,14 +76,9 @@
                     c.NoRetries();
                 });
 
-            class EditedMessageHandler : IHandleMessages<EditMessage>
+            class EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<EditMessage>
             {
-                public EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(EditMessage message, IMessageHandlerContext context)
                 {
                     if (!testContext.EditedMessage)
@@ -98,9 +93,6 @@
                     testContext.EditedMessageId = context.MessageId;
                     return Task.CompletedTask;
                 }
-
-                readonly EditMessageContext testContext;
-                readonly IReadOnlySettings settings;
             }
         }
 

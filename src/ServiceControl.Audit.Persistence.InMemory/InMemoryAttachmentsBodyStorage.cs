@@ -12,7 +12,7 @@
 
         public InMemoryAttachmentsBodyStorage()
         {
-            messageBodies = new List<MessageBody>();
+            messageBodies = [];
         }
 
         public Task Store(string bodyId, string contentType, int bodySize, Stream bodyStream)

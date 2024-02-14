@@ -2,12 +2,10 @@
 {
     using System;
     using System.Net.Http;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
-    using AcceptanceTesting;
-    using Infrastructure.SignalR;
-    using Microsoft.AspNet.SignalR.Client;
-    using Microsoft.AspNet.SignalR.Client.Transports;
+    using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -16,7 +14,6 @@
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using TestSupport.EndpointTemplates;
-    using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
     [TestFixture]
     class When_reporting_custom_check_with_signalr : AcceptanceTest
@@ -24,19 +21,22 @@
         [Test]
         public async Task Should_result_in_a_custom_check_failed_event()
         {
-            var context = await Define<MyContext>(ctx => { ctx.Handler = () => Handler; })
+            var context = await Define<MyContext>(ctx =>
+                {
+                    ctx.HttpMessageHandlerFactory = () => HttpMessageHandlerFactory();
+                })
                 .WithEndpoint<EndpointWithCustomCheck>()
                 .WithEndpoint<EndpointThatUsesSignalR>()
                 .Done(c => c.SignalrEventReceived)
                 .Run(TimeSpan.FromMinutes(2));
 
-            Assert.True(context.SignalrData.IndexOf("\"severity\": \"error\",") > 0);
+            Assert.True(context.SignalrData.IndexOf("\"severity\":\"error\",") > 0, "Couldn't find severity error in signalr data");
         }
 
         public class MyContext : ScenarioContext
         {
             public bool SignalrEventReceived { get; set; }
-            public Func<HttpMessageHandler> Handler { get; set; }
+            public Func<HttpMessageHandler> HttpMessageHandlerFactory { get; set; }
             public string SignalrData { get; set; }
         }
 
@@ -61,14 +61,15 @@
                 public SignalrStarter(MyContext context)
                 {
                     this.context = context;
-                    connection = new Connection("http://localhost/api/messagestream")
-                    {
-                        JsonSerializer = JsonSerializer.Create(SerializationSettingsFactoryForSignalR.CreateDefault())
-                    };
+                    connection = new HubConnectionBuilder()
+                        .WithUrl("http://localhost/api/messagestream", o => o.HttpMessageHandlerFactory = _ => context.HttpMessageHandlerFactory())
+                        .Build();
                 }
 
-                void ConnectionOnReceived(string s)
+                // TODO rename to better match what this is actually doing
+                void ConnectionOnReceived(JsonElement jElement)
                 {
+                    var s = jElement.ToString();
                     if (s.IndexOf("\"EventLogItemAdded\"") > 0)
                     {
                         if (s.IndexOf("EventLogItem/CustomChecks/CustomCheckFailed") > 0)
@@ -81,19 +82,20 @@
 
                 protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                 {
-                    connection.Received += ConnectionOnReceived;
+                    // TODO Align this name with the one chosen for GlobalEventHandler
+                    // We might also be able to strongly type this to match instead of just getting a string?
+                    connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
 
-                    return connection.Start(new ServerSentEventsTransport(new SignalRHttpClient(context.Handler())));
+                    return connection.StartAsync(cancellationToken);
                 }
 
                 protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
                 {
-                    connection.Stop();
-                    return Task.CompletedTask;
+                    return connection.StopAsync(cancellationToken);
                 }
 
                 readonly MyContext context;
-                readonly Connection connection;
+                readonly HubConnection connection;
             }
         }
 

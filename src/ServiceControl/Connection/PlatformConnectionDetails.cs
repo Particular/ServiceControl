@@ -2,6 +2,7 @@
 {
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Text.Json;
 
     public class PlatformConnectionDetails
     {
@@ -24,6 +25,6 @@
 
         public IDictionary<string, object> ToDictionary() => values;
 
-        public ConcurrentBag<string> Errors { get; } = new ConcurrentBag<string>();
+        public ConcurrentBag<string> Errors { get; } = [];
     }
 }

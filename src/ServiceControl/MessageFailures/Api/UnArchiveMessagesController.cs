@@ -4,39 +4,34 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
-    using System.Web.Http;
-    using System.Web.Http.Results;
     using InternalMessages;
+    using Microsoft.AspNetCore.Mvc;
     using NServiceBus;
 
-    class UnArchiveMessagesController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class UnArchiveMessagesController(IMessageSession session) : ControllerBase
     {
-        public UnArchiveMessagesController(IMessageSession messageSession)
-        {
-            this.messageSession = messageSession;
-        }
-
         [Route("errors/unarchive")]
         [HttpPatch]
-        public async Task<StatusCodeResult> Unarchive(List<string> ids)
+        public async Task<IActionResult> Unarchive(List<string> ids)
         {
             if (ids.Any(string.IsNullOrEmpty))
             {
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
             var request = new UnArchiveMessages { FailedMessageIds = ids };
 
-            await messageSession.SendLocal(request);
+            await session.SendLocal(request);
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
 
         [Route("errors/{from}...{to}/unarchive")]
         [HttpPatch]
-        public async Task<StatusCodeResult> Unarchive(string from, string to)
+        public async Task<IActionResult> Unarchive(string from, string to)
         {
             DateTime fromDateTime, toDateTime;
 
@@ -47,18 +42,12 @@
             }
             catch (Exception)
             {
-                return StatusCode(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
 
-            await messageSession.SendLocal(new UnArchiveMessagesByRange
-            {
-                From = fromDateTime,
-                To = toDateTime
-            });
+            await session.SendLocal(new UnArchiveMessagesByRange { From = fromDateTime, To = toDateTime });
 
-            return StatusCode(HttpStatusCode.Accepted);
+            return Accepted();
         }
-
-        readonly IMessageSession messageSession;
     }
 }

@@ -321,7 +321,7 @@
         /// </summary>
         public WeakValueDictionary()
         {
-            inner = new Dictionary<TKey, WeakReference>();
+            inner = [];
         }
 
         /// <summary>
@@ -335,7 +335,7 @@
         /// </param>
         public WeakValueDictionary(IDictionary<TKey, TValue> dictionary)
         {
-            inner = new Dictionary<TKey, WeakReference>();
+            inner = [];
             dictionary.Apply(item => inner.Add(item.Key, new WeakReference(item.Value)));
         }
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,12 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.SignalR.Client" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" />
     <PackageReference Include="NServiceBus.Extensions.Logging" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" />
     <PackageReference Include="NServiceBus.Persistence.NonDurable" />
-    <PackageReference Include="OwinHttpMessageHandler" />
   </ItemGroup>
 
 </Project>

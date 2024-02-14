@@ -1,22 +1,18 @@
 ﻿namespace ServiceControl.Licensing
 {
-    using System.Web.Http;
+    using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class LicenseController : ApiController
+    [ApiController]
+    [Route("api")]
+    public class LicenseController(ActiveLicense activeLicense, Settings settings) : ControllerBase
     {
-        public LicenseController(ActiveLicense activeLicense, Settings settings)
-        {
-            this.settings = settings;
-            this.activeLicense = activeLicense;
-        }
-
-        [Route("license")]
         [HttpGet]
-        public IHttpActionResult License(bool? refresh = null)
+        [Route("license")]
+        public ActionResult<LicenseInfo> License(bool refresh)
         {
-            if (refresh == true)
+            if (refresh)
             {
                 activeLicense.Refresh();
             }
@@ -34,22 +30,27 @@
                 LicenseStatus = activeLicense.Details.GetLicenseStatus().ToString()
             };
 
-            return Ok(licenseInfo);
+            return licenseInfo;
         }
-
-        ActiveLicense activeLicense;
-        Settings settings;
 
         public class LicenseInfo
         {
             public bool TrialLicense { get; set; }
+
             public string Edition { get; set; }
+
             public string RegisteredTo { get; set; }
+
             public string UpgradeProtectionExpiration { get; set; }
+
             public string ExpirationDate { get; set; }
+
             public string Status { get; set; }
+
             public string LicenseType { get; set; }
+
             public string InstanceName { get; set; }
+
             public string LicenseStatus { get; set; }
         }
     }

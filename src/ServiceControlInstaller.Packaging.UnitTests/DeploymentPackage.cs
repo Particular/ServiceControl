@@ -16,7 +16,7 @@ namespace Tests
             var instanceDirectory = directory.EnumerateDirectories(ServiceName)
                 .Single();
 
-            DeploymentUnits = new List<DeploymentUnit> { new DeploymentUnit(instanceDirectory, "Instance") };
+            DeploymentUnits = [new DeploymentUnit(instanceDirectory, "Instance")];
 
             foreach (var componentCategoryDirectory in Directory.EnumerateDirectories().Where(d => d.Name != ServiceName))
             {
@@ -37,7 +37,7 @@ namespace Tests
 
         public static IEnumerable<DeploymentPackage> All => GetDeployDirectory()
                 .EnumerateDirectories()
-                .Where(d => d.Name != "PowerShellModules" && d.Name != "Transports" && d.Name != "RavenDBServer")
+                .Where(d => d.Name is not "PowerShellModules" and not "Transports" and not "RavenDBServer")
                 .Select(d => new DeploymentPackage(d));
 
         public static DirectoryInfo GetDeployDirectory()
