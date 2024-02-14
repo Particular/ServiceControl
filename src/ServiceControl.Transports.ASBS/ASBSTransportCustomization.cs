@@ -27,6 +27,8 @@
                 transport.Topology = TopicTopology.Single(connectionSettings.TopicName);
             }
 
+            transport.EnablePartitioning = connectionSettings.EnablePartitioning;
+
             transport.ConfigureNameShorteners();
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
