@@ -62,6 +62,16 @@
                 clientIdString = (string)clientId;
             }
 
+            var enablePartitioning = false;
+            if (builder.TryGetValue("EnablePartitioning", out var enablePartitioningString))
+            {
+                if (!bool.TryParse((string)enablePartitioningString, out enablePartitioning))
+                {
+                    throw new Exception(
+                        $"Cannot enable partitioning, the specified value '{enablePartitioningString}' cannot be converted to a bool.");
+                }
+            }
+
             var shouldUseManagedIdentity = builder.TryGetValue("Authentication", out var authType) && (string)authType == "Managed Identity";
 
             if (shouldUseManagedIdentity)
@@ -72,6 +82,7 @@
                   new TokenCredentialAuthentication(fullyQualifiedNamespace, clientIdString),
                   topicNameString,
                   useWebSockets,
+                  enablePartitioning,
                   queryDelayInterval);
             }
 
@@ -84,6 +95,7 @@
                 new SharedAccessSignatureAuthentication(connectionString),
                 topicNameString,
                 useWebSockets,
+                enablePartitioning,
                 queryDelayInterval);
         }
     }

@@ -69,6 +69,11 @@
                 transport.UseWebSockets();
             }
 
+            if (connectionSettings.EnablePartitioning)
+            {
+                transport.EnablePartitioning();
+            }
+
             transport.ConfigureNameShorteners();
             transport.Transactions(transportTransactionMode);
 
