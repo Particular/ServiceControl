@@ -160,15 +160,15 @@
                 {
                     try
                     {
-                        throw new Exception("Boom");
-                        //var values = metric.Aggregate(intervals[new EndpointMessageType(endpointName, messageType.Id)].ToList(), period);
+                        var values = metric.Aggregate(intervals[new EndpointMessageType(endpointName, messageType.Id)].ToList(), period);
 
-                        //messageType.Metrics.Add(metric.ReturnName, values);
+                        messageType.Metrics.Add(metric.ReturnName, values);
                     }
                     catch (Exception ex)
                     {
                         Logger.DebugFormat(ex.ToString());
                         Logger.DebugFormat("EndpointName: {0}", endpointName);
+                        Logger.DebugFormat("MessageTypeID: {0}", messageType.Id ?? "null");
                         Logger.DebugFormat("MessageTypeName: {0}", messageType.TypeName);
                         Logger.DebugFormat("MessageTypeAssemblyName: {0}", messageType.AssemblyName);
                         Logger.DebugFormat("MessageTypeAssemblyVersion: {0}", messageType.AssemblyVersion);
