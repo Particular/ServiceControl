@@ -7,6 +7,7 @@
     using System.Net.Http;
     using System.Web.Http;
     using Infrastructure;
+    using NServiceBus.Logging;
     using QueueLength;
     using Timings;
 
@@ -157,9 +158,23 @@
 
                 foreach (var messageType in messageTypes)
                 {
-                    var values = metric.Aggregate(intervals[new EndpointMessageType(endpointName, messageType.Id)].ToList(), period);
+                    try
+                    {
+                        throw new Exception("Boom");
+                        //var values = metric.Aggregate(intervals[new EndpointMessageType(endpointName, messageType.Id)].ToList(), period);
 
-                    messageType.Metrics.Add(metric.ReturnName, values);
+                        //messageType.Metrics.Add(metric.ReturnName, values);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.DebugFormat(ex.ToString());
+                        Logger.DebugFormat("EndpointName: {0}", endpointName);
+                        Logger.DebugFormat("MessageTypeName: {0}", messageType.TypeName);
+                        Logger.DebugFormat("MessageTypeAssemblyName: {0}", messageType.AssemblyName);
+                        Logger.DebugFormat("MessageTypeAssemblyVersion: {0}", messageType.AssemblyVersion);
+                        Logger.DebugFormat("MessageTypes: {0}", string.Join(", ", messageTypes.Select(x => x.TypeName).ToArray()));
+                        throw;
+                    }
                 }
             }
 
@@ -295,6 +310,7 @@
         };
 
         delegate MonitoredValues Aggregation<T>(List<IntervalsStore<T>.IntervalsBreakdown> intervals, HistoryPeriod period);
+        readonly ILog Logger = LogManager.GetLogger(typeof(DiagramApiController));
 
         class MonitoredMetric<T>
         {
