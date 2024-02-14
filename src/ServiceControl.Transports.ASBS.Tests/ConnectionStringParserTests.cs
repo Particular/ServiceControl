@@ -34,6 +34,9 @@
                 //Custom query delay interval
                 yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000",
                     new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;QueueLengthQueryDelayInterval=15000"), queryDelayInterval: TimeSpan.FromSeconds(15)));
+                //EnablePartitioning
+                yield return new TestCaseData("Endpoint=sb://some.endpoint.name/;EnablePartitioning=True",
+                    new ConnectionSettings(new SharedAccessSignatureAuthentication("Endpoint=sb://some.endpoint.name/;EnablePartitioning=True"), enablePartitioning: true));
             }
         }
 
@@ -61,13 +64,13 @@
 
             Assert.AreEqual(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual));
 
-            //needed since System..Text.Json doesn't handle polymorphic properties
+            //needed since System.Text.Json doesn't handle polymorphic properties
             Assert.AreEqual(
                 JsonSerializer.Serialize(expected.AuthenticationMethod, expected.AuthenticationMethod.GetType()),
                 JsonSerializer.Serialize(actual.AuthenticationMethod, actual.AuthenticationMethod.GetType()));
 
 
-            //needed since System..Text.Json doesn't handle polymorphic properties
+            //needed since System.Text.Json doesn't handle polymorphic properties
             if (expected.AuthenticationMethod is TokenCredentialAuthentication expectedAuthentication)
             {
                 var actualAuthentication = actual.AuthenticationMethod as TokenCredentialAuthentication;
