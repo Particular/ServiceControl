@@ -6,19 +6,6 @@
 
     public class HistoryPeriod
     {
-        static HistoryPeriod()
-        {
-            All =
-            [
-                new HistoryPeriod(TimeSpan.FromMinutes(1), numberOfIntervals: 60, delayedIntervals: 2),
-                new HistoryPeriod(TimeSpan.FromMinutes(5), numberOfIntervals: 60, delayedIntervals: 1),
-                new HistoryPeriod(TimeSpan.FromMinutes(10), numberOfIntervals: 60, delayedIntervals: 1),
-                new HistoryPeriod(TimeSpan.FromMinutes(15), numberOfIntervals: 60, delayedIntervals: 1),
-                new HistoryPeriod(TimeSpan.FromMinutes(30), numberOfIntervals: 60, delayedIntervals: 1),
-                new HistoryPeriod(TimeSpan.FromMinutes(60), numberOfIntervals: 60, delayedIntervals: 1)
-            ];
-        }
-
         HistoryPeriod(TimeSpan value, short numberOfIntervals, short delayedIntervals)
         {
             Value = value;
@@ -45,10 +32,7 @@
             throw new Exception("Unknown history period.");
         }
 
-        protected bool Equals(HistoryPeriod other)
-        {
-            return Value.Equals(other.Value);
-        }
+        protected bool Equals(HistoryPeriod other) => Value.Equals(other.Value);
 
         public override bool Equals(object obj)
         {
@@ -70,11 +54,16 @@
             return Equals((HistoryPeriod)obj);
         }
 
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode();
-        }
+        public override int GetHashCode() => Value.GetHashCode();
 
-        public static IReadOnlyCollection<HistoryPeriod> All;
+        public static IReadOnlyCollection<HistoryPeriod> All =
+        [
+            new(TimeSpan.FromMinutes(1), numberOfIntervals: 60, delayedIntervals: 2),
+            new(TimeSpan.FromMinutes(5), numberOfIntervals: 60, delayedIntervals: 1),
+            new(TimeSpan.FromMinutes(10), numberOfIntervals: 60, delayedIntervals: 1),
+            new(TimeSpan.FromMinutes(15), numberOfIntervals: 60, delayedIntervals: 1),
+            new(TimeSpan.FromMinutes(30), numberOfIntervals: 60, delayedIntervals: 1),
+            new(TimeSpan.FromMinutes(60), numberOfIntervals: 60, delayedIntervals: 1)
+        ];
     }
 }
