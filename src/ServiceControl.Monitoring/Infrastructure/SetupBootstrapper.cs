@@ -38,7 +38,7 @@ namespace ServiceControl.Monitoring.Infrastructure
             };
 
             return transportCustomization.ProvisionQueues(transportSettings,
-                new List<string>());
+                []);
         }
 
         bool ValidateLicense(Monitoring.Settings settings)

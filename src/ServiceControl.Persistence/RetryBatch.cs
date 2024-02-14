@@ -7,7 +7,7 @@ namespace ServiceControl.Persistence
     {
         public RetryBatch()
         {
-            FailureRetries = new List<string>();
+            FailureRetries = [];
         }
 
         public string Id { get; set; }

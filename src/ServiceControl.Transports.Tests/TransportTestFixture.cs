@@ -151,7 +151,7 @@
                 MaxConcurrency = 1
             };
 
-            return configuration.TransportCustomization.ProvisionQueues(transportSettings, new List<string>());
+            return configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
         }
 
         protected static TimeSpan TestTimeout = TimeSpan.FromSeconds(60);

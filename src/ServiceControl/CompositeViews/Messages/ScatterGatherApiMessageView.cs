@@ -26,7 +26,7 @@ namespace ServiceControl.CompositeViews.Messages
             var deduplicated = new Dictionary<string, MessagesView>();
             foreach (var queryResult in results)
             {
-                var messagesViews = queryResult?.Results ?? new List<MessagesView>();
+                var messagesViews = queryResult?.Results ?? [];
                 foreach (var result in messagesViews)
                 {
                     result.InstanceId ??= queryResult.InstanceId;

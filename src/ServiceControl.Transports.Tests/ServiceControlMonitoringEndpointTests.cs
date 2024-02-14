@@ -21,7 +21,7 @@
                 EndpointName = endpointName
             };
 
-            await configuration.TransportCustomization.ProvisionQueues(transportSettings, new List<string>());
+            await configuration.TransportCustomization.ProvisionQueues(transportSettings, []);
 
             var ctx = await Scenario.Define<Context>()
                 .WithEndpoint<ServiceControlEndpoint>(c => c.CustomConfig(ec =>

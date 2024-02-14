@@ -75,7 +75,7 @@
     {
         public string Name => "FakePersister";
 
-        public IEnumerable<string> ConfigurationKeys => new List<string>();
+        public IEnumerable<string> ConfigurationKeys => [];
 
         public IPersistence Create(PersistenceSettings settings) => new FakePersistence();
 

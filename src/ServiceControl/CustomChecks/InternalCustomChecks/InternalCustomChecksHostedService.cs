@@ -45,6 +45,6 @@
             HostId = hostInfo.HostId,
             Name = endpointName
         };
-        IList<InternalCustomCheckManager> managers = new List<InternalCustomCheckManager>();
+        IList<InternalCustomCheckManager> managers = [];
     }
 }

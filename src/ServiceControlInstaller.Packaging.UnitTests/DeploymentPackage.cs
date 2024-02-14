@@ -16,7 +16,7 @@ namespace Tests
             var instanceDirectory = directory.EnumerateDirectories(ServiceName)
                 .Single();
 
-            DeploymentUnits = new List<DeploymentUnit> { new DeploymentUnit(instanceDirectory, "Instance") };
+            DeploymentUnits = [new DeploymentUnit(instanceDirectory, "Instance")];
 
             foreach (var componentCategoryDirectory in Directory.EnumerateDirectories().Where(d => d.Name != ServiceName))
             {

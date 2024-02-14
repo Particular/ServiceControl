@@ -68,7 +68,7 @@
             }
         }
 
-        IList<Action<Settings>> overrides = new List<Action<Settings>>();
+        IList<Action<Settings>> overrides = [];
 
         enum ExecutionMode
         {

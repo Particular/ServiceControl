@@ -15,7 +15,7 @@
             var additionalQueue1 = queueName + ".extra1";
             var additionalQueue2 = queueName + ".extra2";
 
-            await ProvisionQueues(queueName, errorQueue, new List<string> { additionalQueue1, additionalQueue2 });
+            await ProvisionQueues(queueName, errorQueue, [additionalQueue1, additionalQueue2]);
 
             Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(queueName, "some content"));
             Assert.DoesNotThrowAsync(async () => await Dispatcher.SendTestMessage(errorQueue, "some content"));
