@@ -18,4 +18,10 @@
     <PackageReference Include="PublicApiGenerator" />
   </ItemGroup>
 
+  <Target Name="WorkaroundForSqlClientWindowsFormsReference" BeforeTargets="AddTransitiveFrameworkReferences">
+    <ItemGroup>
+      <TransitiveFrameworkReference Remove="@(TransitiveFrameworkReference)" Condition="'%(TransitiveFrameworkReference.Identity)' == 'Microsoft.WindowsDesktop.App.WindowsForms'" />
+    </ItemGroup>
+  </Target>
+
 </Project>
