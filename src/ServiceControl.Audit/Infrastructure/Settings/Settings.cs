@@ -196,7 +196,7 @@
 
         static bool GetForwardAuditMessages()
         {
-            var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
+            var forwardAuditMessages = SettingsReader<bool?>.Read("ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
             {
                 return forwardAuditMessages.Value;
