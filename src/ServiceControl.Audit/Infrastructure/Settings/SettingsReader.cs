@@ -1,11 +1,10 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.Settings
 {
+    using System.Runtime.InteropServices;
+
     class SettingsReader<T>
     {
-        public static T Read(string name, T defaultValue = default)
-        {
-            return Read("ServiceControl.Audit", name, defaultValue);
-        }
+        public static T Read(string name, T defaultValue = default) => Read("ServiceControl.Audit", name, defaultValue);
 
         public static T Read(string root, string name, T defaultValue = default)
         {
@@ -19,7 +18,12 @@
                 return value;
             }
 
-            return RegistryReader<T>.Read(root, name, defaultValue);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return RegistryReader<T>.Read(root, name, defaultValue);
+            }
+
+            return defaultValue;
         }
     }
 }
