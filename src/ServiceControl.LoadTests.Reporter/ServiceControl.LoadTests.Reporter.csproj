@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Audit\ServiceControl.Audit.csproj" />
+    <ProjectReference Include="..\ServiceControl.LoadTests.Messages\ServiceControl.LoadTests.Messages.csproj" />
+    <ProjectReference Include="..\ServiceControl.Transports\ServiceControl.Transports.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TODO: Replace Metrics.NET with a package that is being maintained -->
+    <!-- Or consider if we even need these load test projects anymore? -->
+    <PackageReference Include="Metrics.NET" NoWarn="NU1701" />
+  </ItemGroup>
+
+</Project>
