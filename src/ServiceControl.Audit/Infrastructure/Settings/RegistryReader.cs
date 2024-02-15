@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
+    using System.Runtime.InteropServices;
     using Microsoft.Win32;
     using NServiceBus.Logging;
 
@@ -22,6 +23,11 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         /// </returns>
         public static T Read(string subKey, string name, T defaultValue = default)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                throw new PlatformNotSupportedException("Reading the registry is only supported on Windows");
+            }
+
             var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
             {

@@ -1,6 +1,7 @@
 namespace ServiceBus.Management.Infrastructure.Settings
 {
     using System;
+    using System.Runtime.InteropServices;
     using Microsoft.Win32;
     using NServiceBus.Logging;
 
@@ -21,6 +22,11 @@ namespace ServiceBus.Management.Infrastructure.Settings
         /// </returns>
         public object Read(string subKey, string name, Type type, object defaultValue = default)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                throw new PlatformNotSupportedException("Reading the registry is only supported on Windows");
+            }
+
             var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
             try
             {
