@@ -3,7 +3,6 @@ namespace ServiceControl.Configuration;
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using NServiceBus.Logging;
 using static ValueConverter;
 
 static class RegistrySettingsReader
@@ -66,15 +65,12 @@ static class RegistrySettingsReader
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // TODO check if we really want to keep NServiceBus logging around or have another way to deal with this
-            Logger.Warn($"Couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
+            // intentionally swallow the exception so that we can fallback to the default value
         }
 
         value = default;
         return false;
     }
-
-    static readonly ILog Logger = LogManager.GetLogger(typeof(RegistrySettingsReader));
 }
