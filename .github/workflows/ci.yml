@@ -42,7 +42,6 @@ jobs:
             8.0.x
             7.0.x
       - name: Download RavenDB Server
-        if: matrix.os-name == 'Windows'
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
       - name: Restore

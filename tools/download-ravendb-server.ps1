@@ -12,12 +12,13 @@ $version = (Select-Xml -Path src/Directory.Packages.props -XPath "/Project/ItemG
 Write-Output "In Directory.Packages.props, RavenDB.Embedded is using version '$version'"
 
 $downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-windows-x64.zip"
-$zipPath = Join-Path $Env:TEMP "ravendb.zip"
+$tempPath = [System.IO.Path]::GetTempPath()
+$zipPath = Join-Path $tempPath "ravendb.zip"
 Write-Output "Downloading RavenDB binaries from $downloadUrl to $zipPath"
 Invoke-WebRequest $downloadUrl -OutFile $zipPath
 
 Write-Output "Unzipping archive..."
-$unzipPath = Join-Path $Env:TEMP "ravendb-extracted"
+$unzipPath = Join-Path $tempPath "ravendb-extracted"
 if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
 Expand-Archive $zipPath $unzipPath
 
