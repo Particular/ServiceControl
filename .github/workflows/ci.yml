@@ -61,6 +61,7 @@ jobs:
             assets/
           retention-days: 1
       - name: Smoke test PowerShell module import
+        if: matrix.os-name == 'Windows'
         shell: pwsh
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
