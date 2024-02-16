@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using Configuration;
     using ServiceControl.Operations;
 
     class RavenPersistenceConfiguration : IPersistenceConfiguration
@@ -12,54 +13,38 @@
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
 
-        public PersistenceSettings CreateSettings(Func<string, Type, (bool exists, object value)> tryReadSetting)
+        public PersistenceSettings CreateSettings(string settingsRootNamespace)
         {
-            T GetRequiredSetting<T>(string key)
+            static T GetRequiredSetting<T>(string settingsRootNamespace, string key)
             {
-                var (exists, value) = tryReadSetting(key, typeof(T));
-
-                if (exists)
+                if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
                 {
-                    return (T)value;
+                    return value;
                 }
 
                 throw new Exception($"Setting {key} of type {typeof(T)} is required");
             }
 
-            T GetSetting<T>(string key, T defaultValue)
-            {
-                var (exists, value) = tryReadSetting(key, typeof(T));
-
-                if (exists)
-                {
-                    return (T)value;
-                }
-                else
-                {
-                    return defaultValue;
-                }
-            }
-
-            var ravenDbLogLevel = GetSetting(RavenBootstrapper.RavenDbLogLevelKey, "Warn");
+            var ravenDbLogLevel = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.RavenDbLogLevelKey, "Warn");
             var logsMode = RavenDbLogLevelToLogsModeMapper.Map(ravenDbLogLevel);
 
             var settings = new RavenPersisterSettings
             {
-                ConnectionString = GetSetting<string>(RavenBootstrapper.ConnectionStringKey, default),
-                DatabaseName = GetSetting(RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
-                DatabasePath = GetSetting<string>(RavenBootstrapper.DatabasePathKey, default),
-                DatabaseMaintenancePort = GetSetting(RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
-                ExpirationProcessTimerInSeconds = GetSetting(RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
-                MinimumStorageLeftRequiredForIngestion = GetSetting(RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
-                DataSpaceRemainingThreshold = GetSetting(DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
-                ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(ErrorRetentionPeriodKey),
-                EventsRetentionPeriod = GetSetting(EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
-                AuditRetentionPeriod = GetSetting(AuditRetentionPeriodKey, TimeSpan.Zero),
-                ExternalIntegrationsDispatchingBatchSize = GetSetting(ExternalIntegrationsDispatchingBatchSizeKey, 100),
-                MaintenanceMode = GetSetting(MaintenanceModeKey, false),
-                LogPath = GetRequiredSetting<string>(RavenBootstrapper.LogsPathKey),
+                ConnectionString = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.ConnectionStringKey),
+                DatabaseName = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseNameKey, RavenPersisterSettings.DatabaseNameDefault),
+                DatabasePath = SettingsReader.Read<string>(settingsRootNamespace, RavenBootstrapper.DatabasePathKey),
+                DatabaseMaintenancePort = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.DatabaseMaintenancePortKey, RavenPersisterSettings.DatabaseMaintenancePortDefault),
+                ExpirationProcessTimerInSeconds = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.ExpirationProcessTimerInSecondsKey, 600),
+                MinimumStorageLeftRequiredForIngestion = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.MinimumStorageLeftRequiredForIngestionKey, CheckMinimumStorageRequiredForIngestion.MinimumStorageLeftRequiredForIngestionDefault),
+                DataSpaceRemainingThreshold = SettingsReader.Read(settingsRootNamespace, DataSpaceRemainingThresholdKey, CheckFreeDiskSpace.DataSpaceRemainingThresholdDefault),
+                ErrorRetentionPeriod = GetRequiredSetting<TimeSpan>(settingsRootNamespace, ErrorRetentionPeriodKey),
+                EventsRetentionPeriod = SettingsReader.Read(settingsRootNamespace, EventsRetentionPeriodKey, TimeSpan.FromDays(14)),
+                AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
+                ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100),
+                MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
+                LogPath = GetRequiredSetting<string>(settingsRootNamespace, RavenBootstrapper.LogsPathKey),
                 LogsMode = logsMode,
-                EnableFullTextSearchOnBodies = GetSetting("EnableFullTextSearchOnBodies", true)
+                EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true)
             };
 
             CheckFreeDiskSpace.Validate(settings);
@@ -70,12 +55,6 @@
         public IPersistence Create(PersistenceSettings settings)
         {
             var specificSettings = (RavenPersisterSettings)settings;
-
-            //var documentStore = new EmbeddableDocumentStore();
-            //RavenBootstrapper.Configure(documentStore, specificSettings);
-
-            //var ravenStartup = new RavenStartup();
-
             return new RavenPersistence(specificSettings);
         }
     }

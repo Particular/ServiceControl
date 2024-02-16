@@ -4,6 +4,7 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using Configuration;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
     using ServiceControl.Audit.Infrastructure.Settings;
@@ -12,7 +13,7 @@
     {
         public CheckFreeDiskSpace(Settings.Settings settings) : base("ServiceControl.Audit database", "Storage space", TimeSpan.FromMinutes(5))
         {
-            dataPath = SettingsReader<string>.Read("DbPath", null);
+            dataPath = SettingsReader.Read<string>(Settings.Settings.SettingsRootNamespace, "DbPath");
             percentageThreshold = settings.DataSpaceRemainingThreshold / 100m;
             Logger.Debug($"Check ServiceControl data drive space remaining custom check starting. Threshold {percentageThreshold:P0}");
         }

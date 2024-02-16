@@ -3,6 +3,7 @@ namespace ServiceControl.Persistence
     using System;
     using System.IO;
     using System.Linq;
+    using Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
 
     static class PersistenceFactory
@@ -12,16 +13,7 @@ namespace ServiceControl.Persistence
             var persistenceConfiguration = CreatePersistenceConfiguration(settings.PersistenceType);
 
             //HINT: This is false when executed from acceptance tests
-            if (settings.PersisterSpecificSettings == null)
-            {
-                (bool, object) TryRead(string name, Type type)
-                {
-                    var exists = SettingsReader.TryRead(name, type: type, out object value);
-                    return (exists, value);
-                };
-
-                settings.PersisterSpecificSettings = persistenceConfiguration.CreateSettings(TryRead);
-            }
+            settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
 
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
             settings.PersisterSpecificSettings.DatabasePath = BuildDataBasePath(settings);
@@ -62,7 +54,7 @@ namespace ServiceControl.Persistence
 
             var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
 
-            return SettingsReader.Read("DbPath", defaultPath);
+            return SettingsReader.Read(Settings.SettingsRootNamespace, "DbPath", defaultPath);
         }
 
         static string SanitiseFolderName(string folderName)

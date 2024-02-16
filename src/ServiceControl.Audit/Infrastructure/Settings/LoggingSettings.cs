@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
     using System.IO;
+    using Configuration;
     using NLog;
     using NLog.Common;
 
@@ -10,7 +11,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
-            LogPath = Environment.ExpandEnvironmentVariables(SettingsReader<string>.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
+            LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogPathForInstance(serviceName)));
             LogToConsole = logToConsole;
         }
 
@@ -22,7 +23,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            var levelText = SettingsReader<string>.Read(key);
+            var levelText = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key);
             if (string.IsNullOrWhiteSpace(levelText))
             {
                 return defaultLevel;

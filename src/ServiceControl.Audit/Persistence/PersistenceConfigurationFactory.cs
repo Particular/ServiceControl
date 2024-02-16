@@ -1,6 +1,7 @@
 namespace ServiceControl.Audit.Persistence
 {
     using System;
+    using Configuration;
     using ServiceControl.Audit.Infrastructure.Settings;
 
     static class PersistenceConfigurationFactory
@@ -28,7 +29,7 @@ namespace ServiceControl.Audit.Persistence
 
             foreach (var key in persistenceConfiguration.ConfigurationKeys)
             {
-                var value = SettingsReader<string>.Read("ServiceControl.Audit", key, null);
+                var value = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key, null);
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     persistenceSettings.PersisterSpecificSettings[key] = value;

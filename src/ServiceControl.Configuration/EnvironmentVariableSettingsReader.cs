@@ -1,50 +1,47 @@
-namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceControl.Configuration;
+
+using System;
+
+static class EnvironmentVariableSettingsReader
 {
-    using System;
+    public static T Read<T>(string root, string name, T defaultValue = default) =>
+        TryRead<T>(root, name, out var value)
+            ? value
+            : defaultValue;
 
-    class EnvironmentVariableSettingsReader : ISettingsReader
+    public static bool TryRead<T>(string root, string name, out T value)
     {
-        public object Read(string root, string name, Type type, object defaultValue = default)
+        if (TryReadVariable(out value, $"{root}/{name}"))
         {
-            return TryRead(root, name, type, out var value)
-                ? value
-                : defaultValue;
+            return true;
+        }
+        // Azure container instance compatibility:
+        if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_')))
+        {
+            return true;
+        }
+        // container images and env files compatibility:
+        if (TryReadVariable(out value, $"{root}_{name}".Replace('.', '_').Replace('/', '_')))
+        {
+            return true;
         }
 
-        public bool TryRead(string root, string name, Type type, out object value)
-        {
-            if (TryReadVariable(type, out value, $"{root}/{name}"))
-            {
-                return true;
-            }
-            // Azure container instance compatibility:
-            if (TryReadVariable(type, out value, $"{root}_{name}".Replace('.', '_')))
-            {
-                return true;
-            }
-            // container images and env files compatibility:
-            if (TryReadVariable(type, out value, $"{root}_{name}".Replace('.', '_').Replace('/', '_')))
-            {
-                return true;
-            }
+        value = default;
+        return false;
+    }
 
-            value = default;
-            return false;
+    static bool TryReadVariable<T>(out T value, string fullKey)
+    {
+        var environmentValue = Environment.GetEnvironmentVariable(fullKey);
+
+        if (environmentValue != null)
+        {
+            environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
+            value = (T)Convert.ChangeType(environmentValue, typeof(T));
+            return true;
         }
 
-        static bool TryReadVariable(Type type, out object value, string fullKey)
-        {
-            var environmentValue = Environment.GetEnvironmentVariable(fullKey);
-
-            if (environmentValue != null)
-            {
-                environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-                value = SettingsReader.ConvertFrom(environmentValue, type);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        value = default;
+        return false;
     }
 }

@@ -6,13 +6,14 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
     using System.Linq;
     using System.Reflection;
     using Commands;
+    using Configuration;
     using Settings;
 
     class HostArguments
     {
         public HostArguments(string[] args)
         {
-            if (ConfigFileSettingsReader<bool>.Read("MaintenanceMode"))
+            if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
                 args = args.Concat(new[]
                 {
