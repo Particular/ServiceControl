@@ -109,7 +109,7 @@ jobs:
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
           echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Run tests
-        uses: Particular/run-tests-action@v1.6.0
+        uses: Particular/run-tests-action@v1.7.0
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
           ServiceControl_LicenseText: ${{ secrets.LICENSETEXT }}
