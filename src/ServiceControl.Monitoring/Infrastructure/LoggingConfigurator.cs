@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using Configuration;
     using NLog;
     using NLog.Common;
     using NLog.Config;
@@ -11,7 +12,6 @@
     using NLog.Layouts;
     using NLog.Targets;
     using NServiceBus.Extensions.Logging;
-    using ServiceControl.Monitoring.Infrastructure.Settings;
     using LogManager = NServiceBus.Logging.LogManager;
 
     static class LoggingConfigurator
@@ -94,7 +94,7 @@ Selected Transport:					{settings.TransportType}
             var level = LogLevel.Warn;
             try
             {
-                level = LogLevel.FromString(SettingsReader<string>.Read(LogLevelKey, LogLevel.Warn.Name));
+                level = LogLevel.FromString(SettingsReader.Read(Settings.SettingsRootNamespace, LogLevelKey, LogLevel.Warn.Name));
             }
             catch
             {
