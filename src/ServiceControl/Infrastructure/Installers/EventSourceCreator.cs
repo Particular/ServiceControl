@@ -1,14 +1,14 @@
 ﻿namespace ServiceBus.Management.Infrastructure.Installers
 {
-    using System.Runtime.InteropServices;
     using System.Diagnostics;
+    using System.Runtime.Versioning;
 
     public static class EventSourceCreator
     {
+        [SupportedOSPlatform("windows")]
         public static void Create()
         {
-            // TODO: Figure a way to achieve something but in the linux way
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !EventLog.SourceExists(SourceName))
+            if (!EventLog.SourceExists(SourceName))
             {
                 EventLog.CreateEventSource(SourceName, null);
             }

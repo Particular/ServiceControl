@@ -4,6 +4,7 @@ namespace Particular.ServiceControl
     using System.Diagnostics;
     using System.Net;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using global::ServiceControl.CustomChecks;
     using global::ServiceControl.ExternalIntegrations;
     using global::ServiceControl.Hosting;
@@ -44,7 +45,7 @@ namespace Particular.ServiceControl
                 configuration.License(settings.LicenseFileText);
             }
 
-            if (Environment.UserInteractive && Debugger.IsAttached)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.UserInteractive && Debugger.IsAttached)
             {
                 EventSourceCreator.Create();
             }

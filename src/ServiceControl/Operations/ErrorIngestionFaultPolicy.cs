@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
+    using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
@@ -67,9 +68,7 @@
             }
         }
 
-#pragma warning disable IDE0060
         async Task DoLogging(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
-#pragma warning restore IDE0060
         {
             failure.Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid());
 
@@ -78,36 +77,22 @@
 
             // Write to Log Path
             var filePath = Path.Combine(logPath, failure.Id + ".txt");
-            File.WriteAllText(filePath, exception.ToFriendlyString());
+            await File.WriteAllTextAsync(filePath, exception.ToFriendlyString(), cancellationToken);
 
-            // Write to Event Log
-            WriteEvent("A message import has failed. A log file has been written to " + filePath);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                WriteToEventLog("A message import has failed. A log file has been written to " + filePath);
+            }
         }
 
+        [SupportedOSPlatform("windows")]
+        static void WriteToEventLog(string message)
+        {
 #if DEBUG
-        void WriteEvent(string message)
-        {
-            // TODO: Figure a way to achieve something but in the linux way
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
             EventSourceCreator.Create();
-
-            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
-        }
-#else
-        void WriteEvent(string message)
-        {
-            // TODO: Figure a way to achieve something but in the linux way
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return;
-            }
-
-            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
-        }
 #endif
+
+            EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
+        }
     }
 }

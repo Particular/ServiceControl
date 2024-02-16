@@ -1,5 +1,6 @@
 namespace Particular.ServiceControl
 {
+    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Persistence;
@@ -41,7 +42,10 @@ namespace Particular.ServiceControl
 
             await installer.Install();
 
-            EventSourceCreator.Create();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                EventSourceCreator.Create();
+            }
 
             if (settings.SkipQueueCreation)
             {
