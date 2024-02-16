@@ -1,6 +1,7 @@
 namespace ServiceControl.Configuration;
 
 using System;
+using static ValueConverter;
 
 static class EnvironmentVariableSettingsReader
 {
@@ -37,7 +38,7 @@ static class EnvironmentVariableSettingsReader
         if (environmentValue != null)
         {
             environmentValue = Environment.ExpandEnvironmentVariables(environmentValue);
-            value = (T)Convert.ChangeType(environmentValue, typeof(T));
+            value = Convert<T>(environmentValue);
             return true;
         }
 

@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using NServiceBus.Logging;
+using static ValueConverter;
 
 static class RegistrySettingsReader
 {
@@ -20,6 +21,7 @@ static class RegistrySettingsReader
         }
 
         var regPath = @"SOFTWARE\ParticularSoftware\" + settingsNamespace.ToString().Replace("/", "\\");
+
         try
         {
             if (Environment.Is64BitOperatingSystem)
@@ -32,7 +34,7 @@ static class RegistrySettingsReader
 
                     if (keyValue != null)
                     {
-                        value = (T)Convert.ChangeType(keyValue, typeof(T));
+                        value = Convert<T>(keyValue);
                         return true;
                     }
                 }
@@ -45,7 +47,7 @@ static class RegistrySettingsReader
 
                     if (keyValue != null)
                     {
-                        value = (T)Convert.ChangeType(keyValue, typeof(T));
+                        value = Convert<T>(keyValue);
                         return true;
                     }
                 }
@@ -59,7 +61,7 @@ static class RegistrySettingsReader
 
                 if (keyValue != null)
                 {
-                    value = (T)Convert.ChangeType(keyValue, typeof(T));
+                    value = Convert<T>(keyValue);
                     return true;
                 }
             }

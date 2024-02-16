@@ -2,6 +2,7 @@ namespace ServiceControl.Configuration;
 
 using System;
 using System.Configuration;
+using static ValueConverter;
 
 static class ConfigFileSettingsReader
 {
@@ -18,7 +19,7 @@ static class ConfigFileSettingsReader
         if (appSettingValue != null)
         {
             appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
-            value = (T)Convert.ChangeType(appSettingValue, typeof(T));
+            value = Convert<T>(appSettingValue);
             return true;
         }
 
