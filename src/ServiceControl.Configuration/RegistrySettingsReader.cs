@@ -7,14 +7,19 @@ using NServiceBus.Logging;
 
 static class RegistrySettingsReader
 {
-    public static T Read<T>(string subKey, string name, T defaultValue = default)
+    public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default) =>
+        TryRead<T>(settingsNamespace, name, out var value)
+            ? value
+            : defaultValue;
+
+    public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             throw new PlatformNotSupportedException("Reading the registry is only supported on Windows");
         }
 
-        var regPath = @"SOFTWARE\ParticularSoftware\" + subKey.Replace("/", "\\");
+        var regPath = @"SOFTWARE\ParticularSoftware\" + settingsNamespace.ToString().Replace("/", "\\");
         try
         {
             if (Environment.Is64BitOperatingSystem)
@@ -23,11 +28,12 @@ static class RegistrySettingsReader
 
                 using (var registryKey = rootKey.OpenSubKey(regPath))
                 {
-                    var value = registryKey?.GetValue(name);
+                    var keyValue = registryKey?.GetValue(name);
 
-                    if (value != null)
+                    if (keyValue != null)
                     {
-                        return (T)Convert.ChangeType(value, typeof(T));
+                        value = (T)Convert.ChangeType(keyValue, typeof(T));
+                        return true;
                     }
                 }
 
@@ -35,9 +41,12 @@ static class RegistrySettingsReader
 
                 using (var registryKey = rootKey.OpenSubKey(regPath))
                 {
-                    if (registryKey != null)
+                    var keyValue = registryKey?.GetValue(name);
+
+                    if (keyValue != null)
                     {
-                        return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                        value = (T)Convert.ChangeType(keyValue, typeof(T));
+                        return true;
                     }
                 }
             }
@@ -46,9 +55,12 @@ static class RegistrySettingsReader
                 var rootKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Default);
 
                 using var registryKey = rootKey.OpenSubKey(regPath);
-                if (registryKey != null)
+                var keyValue = registryKey?.GetValue(name);
+
+                if (keyValue != null)
                 {
-                    return (T)Convert.ChangeType(registryKey.GetValue(name, defaultValue), typeof(T));
+                    value = (T)Convert.ChangeType(keyValue, typeof(T));
+                    return true;
                 }
             }
         }
@@ -58,13 +70,8 @@ static class RegistrySettingsReader
             Logger.Warn($"Couldn't read the registry to retrieve the {name}, from '{regPath}'.", ex);
         }
 
-        return defaultValue;
-    }
-
-    public static bool TryRead<T>(string root, string name, out T value)
-    {
-        value = Read<T>(root, name);
-        return value != null;
+        value = default;
+        return false;
     }
 
     static readonly ILog Logger = LogManager.GetLogger(typeof(RegistrySettingsReader));

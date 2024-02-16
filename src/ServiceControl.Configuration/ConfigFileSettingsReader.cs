@@ -5,14 +5,14 @@ using System.Configuration;
 
 static class ConfigFileSettingsReader
 {
-    public static T Read<T>(string root, string name, T defaultValue = default) =>
-        TryRead<T>(root, name, out var value)
+    public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default) =>
+        TryRead<T>(settingsNamespace, name, out var value)
             ? value
             : defaultValue;
 
-    public static bool TryRead<T>(string root, string name, out T value)
+    public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
-        var fullKey = $"{root}/{name}";
+        var fullKey = $"{settingsNamespace}/{name}";
 
         var appSettingValue = ConfigurationManager.AppSettings[fullKey];
         if (appSettingValue != null)

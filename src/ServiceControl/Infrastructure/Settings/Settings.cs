@@ -397,7 +397,8 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         void LoadErrorIngestionSettings()
         {
-            ErrorQueue = SettingsReader.Read("ServiceBus", "ErrorQueue", "error");
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
+            ErrorQueue = SettingsReader.Read(serviceBusRootNamespace, "ErrorQueue", "error");
 
             if (string.IsNullOrEmpty(ErrorQueue))
             {
@@ -411,7 +412,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
                 logger.Info("Error ingestion disabled.");
             }
 
-            ErrorLogQueue = SettingsReader.Read<string>("ServiceBus", "ErrorLogQueue", null);
+            ErrorLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "ErrorLogQueue", null);
 
             if (ErrorLogQueue == null)
             {
@@ -424,7 +425,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         static readonly ILog logger = LogManager.GetLogger(typeof(Settings));
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl";
-        public const string SettingsRootNamespace = "ServiceControl";
+        public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl");
 
         const int DataSpaceRemainingThresholdDefault = 20;
     }

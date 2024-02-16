@@ -44,21 +44,22 @@
 
         void LoadAuditQueueInformation()
         {
-            AuditQueue = SettingsReader.Read("ServiceBus", "AuditQueue", "audit");
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
+            AuditQueue = SettingsReader.Read(serviceBusRootNamespace, "AuditQueue", "audit");
 
             if (string.IsNullOrEmpty(AuditQueue))
             {
                 throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
             }
 
-            IngestAuditMessages = SettingsReader.Read("ServiceControl", "IngestAuditMessages", true);
+            IngestAuditMessages = SettingsReader.Read(new SettingsRootNamespace("ServiceControl"), "IngestAuditMessages", true);
 
             if (IngestAuditMessages == false)
             {
                 logger.Info("Audit ingestion disabled.");
             }
 
-            AuditLogQueue = SettingsReader.Read<string>("ServiceBus", "AuditLogQueue", null);
+            AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);
 
             if (AuditLogQueue == null)
             {
@@ -292,7 +293,7 @@
         ILog logger = LogManager.GetLogger(typeof(Settings));
         int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
-        public const string SettingsRootNamespace = "ServiceControl.Audit";
+        public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;

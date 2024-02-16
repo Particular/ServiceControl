@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.DomainEvents\ServiceControl.DomainEvents.csproj" />
     <ProjectReference Include="..\ServiceControl.SagaAudit\ServiceControl.SagaAudit.csproj" />
   </ItemGroup>

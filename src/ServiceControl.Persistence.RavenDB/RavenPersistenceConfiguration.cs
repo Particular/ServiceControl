@@ -13,9 +13,9 @@
         const string ExternalIntegrationsDispatchingBatchSizeKey = "ExternalIntegrationsDispatchingBatchSize";
         const string MaintenanceModeKey = "MaintenanceMode";
 
-        public PersistenceSettings CreateSettings(string settingsRootNamespace)
+        public PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace)
         {
-            static T GetRequiredSetting<T>(string settingsRootNamespace, string key)
+            static T GetRequiredSetting<T>(SettingsRootNamespace settingsRootNamespace, string key)
             {
                 if (SettingsReader.TryRead<T>(settingsRootNamespace, key, out var value))
                 {
