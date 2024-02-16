@@ -123,7 +123,6 @@ namespace Particular.ServiceControl
 
             if (WindowsServiceHelpers.IsWindowsService())
             {
-                // IsWindowsService has a platform guard for Windows, so we can safely use it here
                 hostBuilder.Services.AddSingleton<IHostLifetime, PersisterInitializingWindowsServiceLifetime>();
             }
             else

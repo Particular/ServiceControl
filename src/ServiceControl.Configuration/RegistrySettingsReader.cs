@@ -2,16 +2,19 @@ namespace ServiceControl.Configuration;
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 using static ValueConverter;
 
 static class RegistrySettingsReader
 {
+    [SupportedOSPlatform("windows")]
     public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default) =>
         TryRead<T>(settingsNamespace, name, out var value)
             ? value
             : defaultValue;
 
+    [SupportedOSPlatform("windows")]
     public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
