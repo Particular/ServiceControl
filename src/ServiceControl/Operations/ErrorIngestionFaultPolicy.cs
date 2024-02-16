@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.IO;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Transport;
@@ -86,6 +87,12 @@
 #if DEBUG
         void WriteEvent(string message)
         {
+            // TODO: Figure a way to achieve something but in the linux way
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
             EventSourceCreator.Create();
 
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
@@ -93,6 +100,12 @@
 #else
         void WriteEvent(string message)
         {
+            // TODO: Figure a way to achieve something but in the linux way
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
             EventLog.WriteEntry(EventSourceCreator.SourceName, message, EventLogEntryType.Error);
         }
 #endif
