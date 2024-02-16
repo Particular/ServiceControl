@@ -26,6 +26,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        static string ConnectionStringKey = "ServiceControl.TransportTests.RabbitMQ.ConnectionString";
+        static string ConnectionStringKey = "ServiceControl_TransportTests_RabbitMQ_ConnectionString";
     }
 }

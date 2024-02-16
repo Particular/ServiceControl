@@ -26,6 +26,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        static string ConnectionStringKey = "ServiceControl.TransportTests.SQL.ConnectionString";
+        static string ConnectionStringKey = "ServiceControl_TransportTests_SQL_ConnectionString";
     }
 }
