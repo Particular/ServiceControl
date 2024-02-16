@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Hosting
+﻿#pragma warning disable CA1416
+
+namespace ServiceControl.Hosting
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -20,3 +22,4 @@
         }
     }
 }
+#pragma warning restore CA1416
