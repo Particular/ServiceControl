@@ -46,6 +46,7 @@ jobs:
       - name: Build
         run: dotnet build src --configuration Release -graph --no-restore
       - name: Zip PowerShell module
+        shell: pwsh
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
