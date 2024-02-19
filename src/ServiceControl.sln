@@ -177,6 +177,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.Tests", "Particular.ThroughputCollector.Persistence.Tests\Particular.ThroughputCollector.Persistence.Tests.csproj", "{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence.RavenDb", "Throughput.Persistence.RavenDb\Throughput.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
