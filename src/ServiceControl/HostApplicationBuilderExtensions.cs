@@ -115,6 +115,8 @@ namespace Particular.ServiceControl
             }
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
+
+            hostBuilder.AddThroughputCollector();
         }
 
         static TransportSettings MapSettings(Settings settings)
