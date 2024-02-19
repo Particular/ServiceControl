@@ -103,7 +103,9 @@ namespace Particular.ServiceControl
 
             hostBuilder.Services.AddWindowsService();
 
-            hostBuilder.AddServiceControlComponents(settings, transportCustomization, ServiceControlMainInstance.Components);
+            hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
+
+            hostBuilder.AddThroughputCollector();
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
