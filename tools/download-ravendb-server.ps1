@@ -8,40 +8,40 @@
 # artifact during development, but has a condition to skip that step on a CI server so that the
 # self-contained version is used instead.
 
-$runnerOs = $Env:RUNNER_OS ?? "Windows"
 $version = (Select-Xml -Path src/Directory.Packages.props -XPath "/Project/ItemGroup/PackageVersion[@Include='RavenDB.Embedded']/@Version" | Select-Object -ExpandProperty Node).Value
 Write-Output "In Directory.Packages.props, RavenDB.Embedded is using version '$version'"
-$tempPath = [System.IO.Path]::GetTempPath()
 
-# Default values assume windows
-$zipPath = Join-Path $tempPath "ravendb.zip"
-$unzipPath = Join-Path $tempPath "ravendb-extracted"
-$downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-windows-x64.zip"
-$serverPath = Join-Path $unzipPath "Server"
-
-if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
-New-Item -ItemType Directory -Path $unzipPath
-
-if ($runnerOs -eq "Linux") {
-  $downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-linux-x64.tar.bz2"
-  $zipPath = Join-Path $tempPath "ravendb.tar.bz2"
-  $serverPath = Join-Path $unzipPath "RavenDB/Server"
+$runningOnLinux = $PSVersionTable.Platform -eq 'Unix'
+if ($runningOnLinux) {
+  $os = "linux"
+  $extension = "tar.bz2"
 }
+else {
+  $os = "windows"
+  $extension = "zip"
+}
+
+$downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-$($os)-x64.$($extension)"
+$tempPath = [System.IO.Path]::GetTempPath()
+$zipPath = Join-Path $tempPath "ravendb.$($extension)"
 
 Write-Output "Downloading RavenDB binaries from $downloadUrl to $zipPath"
 Invoke-WebRequest $downloadUrl -OutFile $zipPath
 
-Write-Output "Extracting archive..."
-if ($runnerOs -eq "Linux") {
+$unzipPath = Join-Path $tempPath "ravendb-extracted"
+
+Write-Output "Unzipping archive to $unzipPath"
+if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
+New-Item -ItemType Directory -Path $unzipPath
+
+if ($runningOnLinux) {
   tar -jxf $zipPath -C $unzipPath
+  $serverPath = Join-Path $unzipPath "RavenDB/Server"
 }
 else {
   Expand-Archive $zipPath $unzipPath
+  $serverPath = Join-Path $unzipPath "Server"
 }
-$deployPath = Join-Path $PWD.Path deploy RavenDBServer
-if (Test-Path $deployPath ) { Remove-Item $deployPath -Force -Recurse }
-Write-Output "Copying '$serverPath' to '$deployPath'"
-Copy-Item -Path $serverPath -Destination $deployPath -Recurse
 
 Write-Output "Deleting temporary files"
 Remove-Item $zipPath -Force
