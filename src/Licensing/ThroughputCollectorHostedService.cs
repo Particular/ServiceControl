@@ -4,13 +4,15 @@
     using Microsoft.Extensions.Logging;
     using Particular.License.Contracts;
 
-    public class ThroughputCollectorHostedService : IHostedService
+    class ThroughputCollectorHostedService : IHostedService
     {
         public ThroughputCollectorHostedService(ILogger logger, LicenseData licenseData)
         {
             this.logger = logger; //TODO not being passed in
             auditThroughputCollector = new AuditThroughputCollector(licenseData.ServiceControlAPI, logger);
             brokerThroughputCollector = new BrokerThroughputCollector(licenseData.Broker, logger);
+
+            //TODO initialise persistence
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

@@ -1,6 +1,6 @@
 ﻿namespace Particular.License.Contracts
 {
-    public class LicenseData
+    class LicenseData
     {
         public required string ServiceControlAPI { get; set; }
         public required string Broker { get; set; }
