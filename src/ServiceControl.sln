@@ -154,6 +154,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq", "ServiceControl.Transports.Msmq\ServiceControl.Transports.Msmq.csproj", "{F04B9D2C-7E31-4697-BAE3-D3FFC5FBBDFE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq.Tests", "ServiceControl.Transports.Msmq.Tests\ServiceControl.Transports.Msmq.Tests.csproj", "{5F8E6C64-B505-4FF7-81CC-9161FBC198A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence", "Throughput.Persistence\Throughput.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.RavenDB", "ServiceControl.RavenDB\ServiceControl.RavenDB.csproj", "{D8610AB6-EB24-4617-8089-F11732D3E033}"
 EndProject
