@@ -6,7 +6,7 @@ namespace ServiceControl.Monitoring
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Infrastructure.Settings;
+    using Configuration;
     using NLog;
     using Transports;
 
@@ -16,17 +16,17 @@ namespace ServiceControl.Monitoring
         {
             TryLoadLicenseFromConfig();
 
-            TransportType = SettingsReader<string>.Read("TransportType");
+            TransportType = SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
             ConnectionString = GetConnectionString();
             LogLevel = LoggingConfigurator.InitializeLevel();
-            LogPath = SettingsReader<string>.Read("LogPath", DefaultLogLocation());
-            ErrorQueue = SettingsReader<string>.Read("ErrorQueue", "error");
-            HttpHostName = SettingsReader<string>.Read("HttpHostname");
-            HttpPort = SettingsReader<string>.Read("HttpPort");
-            EndpointName = SettingsReader<string>.Read("EndpointName");
-            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader<string>.Read("EndpointUptimeGracePeriod", "00:00:40"));
-            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
+            LogPath = SettingsReader.Read(SettingsRootNamespace, "LogPath", DefaultLogLocation());
+            ErrorQueue = SettingsReader.Read(SettingsRootNamespace, "ErrorQueue", "error");
+            HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
+            HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
+            EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
+            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read<string>(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
+            MaximumConcurrencyLevel = SettingsReader.Read<int>(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
         }
 
         public string EndpointName
@@ -61,10 +61,7 @@ namespace ServiceControl.Monitoring
             return Path.GetDirectoryName(assemblyLocation);
         }
 
-        void TryLoadLicenseFromConfig()
-        {
-            LicenseFileText = SettingsReader<string>.Read("LicenseText");
-        }
+        void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         public ITransportCustomization LoadTransportCustomization()
         {
@@ -84,7 +81,7 @@ namespace ServiceControl.Monitoring
 
         static string GetConnectionString()
         {
-            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            var settingsValue = SettingsReader.Read<string>(SettingsRootNamespace, "ConnectionString");
             if (settingsValue != null)
             {
                 return settingsValue;
@@ -99,5 +96,6 @@ namespace ServiceControl.Monitoring
         internal Func<string, Dictionary<string, string>, byte[], Func<Task>, Task> OnMessage { get; set; } = (messageId, headers, body, next) => next();
 
         public const string DEFAULT_ENDPOINT_NAME = "Particular.Monitoring";
+        public static readonly SettingsRootNamespace SettingsRootNamespace = new("Monitoring");
     }
 }

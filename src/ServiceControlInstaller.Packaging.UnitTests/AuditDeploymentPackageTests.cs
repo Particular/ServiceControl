@@ -37,6 +37,7 @@ namespace Tests
         {
             var inPersisterPath = Path.Combine(deploymentPackage.Directory.FullName, "Persisters", "RavenDB", "RavenDBServer");
             var separateAssetPath = Path.GetFullPath(Path.Combine(deploymentPackage.Directory.FullName, "..", "RavenDBServer"));
+
             DirectoryAssert.DoesNotExist(inPersisterPath, "RavenDBServer should not be bundled inside the persister");
             DirectoryAssert.Exists(separateAssetPath, "RavenDBServer should be bundled as its own resource");
         }

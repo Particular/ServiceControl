@@ -2,6 +2,7 @@
 {
     using System;
     using System.Configuration;
+    using Configuration;
     using NLog.Common;
     using NServiceBus.Logging;
     using NServiceBus.Transport;
@@ -11,20 +12,18 @@
     {
         // Service name is what the user chose when installing the instance or is passing on the command line.
         // We use this as the default endpoint name.
-        public static Settings FromConfiguration(string serviceName)
-        {
-            return new Settings(
-                 SettingsReader<string>.Read("InternalQueueName", serviceName) // endpoint name can also be overriden via config
+        public static Settings FromConfiguration(string serviceName) =>
+            new(
+                SettingsReader.Read(SettingsRootNamespace, "InternalQueueName", serviceName) // endpoint name can also be overriden via config
             );
-        }
 
         public Settings(string serviceName, string transportType = null, string persisterType = null)
         {
             ServiceName = serviceName;
 
-            TransportType = transportType ?? SettingsReader<string>.Read("TransportType");
+            TransportType = transportType ?? SettingsReader.Read<string>(SettingsRootNamespace, "TransportType");
 
-            PersistenceType = persisterType ?? SettingsReader<string>.Read("PersistenceType", null);
+            PersistenceType = persisterType ?? SettingsReader.Read<string>(SettingsRootNamespace, "PersistenceType");
 
             TransportConnectionString = GetConnectionString();
 
@@ -34,32 +33,33 @@
 
             ForwardAuditMessages = GetForwardAuditMessages();
             AuditRetentionPeriod = GetAuditRetentionPeriod();
-            Port = SettingsReader<int>.Read("Port", 44444);
-            MaximumConcurrencyLevel = SettingsReader<int>.Read("MaximumConcurrencyLevel", 32);
-            HttpDefaultConnectionLimit = SettingsReader<int>.Read("HttpDefaultConnectionLimit", 100);
+            Port = SettingsReader.Read(SettingsRootNamespace, "Port", 44444);
+            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
+            HttpDefaultConnectionLimit = SettingsReader.Read(SettingsRootNamespace, "HttpDefaultConnectionLimit", 100);
             DataSpaceRemainingThreshold = GetDataSpaceRemainingThreshold();
-            ServiceControlQueueAddress = SettingsReader<string>.Read("ServiceControlQueueAddress");
+            ServiceControlQueueAddress = SettingsReader.Read<string>(SettingsRootNamespace, "ServiceControlQueueAddress");
             TimeToRestartAuditIngestionAfterFailure = GetTimeToRestartAuditIngestionAfterFailure();
-            EnableFullTextSearchOnBodies = SettingsReader<bool>.Read("EnableFullTextSearchOnBodies", true);
+            EnableFullTextSearchOnBodies = SettingsReader.Read(SettingsRootNamespace, "EnableFullTextSearchOnBodies", true);
         }
 
         void LoadAuditQueueInformation()
         {
-            AuditQueue = SettingsReader<string>.Read("ServiceBus", "AuditQueue", "audit");
+            var serviceBusRootNamespace = new SettingsRootNamespace("ServiceBus");
+            AuditQueue = SettingsReader.Read(serviceBusRootNamespace, "AuditQueue", "audit");
 
             if (string.IsNullOrEmpty(AuditQueue))
             {
                 throw new Exception("ServiceBus/AuditQueue value is required to start the instance");
             }
 
-            IngestAuditMessages = SettingsReader<bool>.Read("ServiceControl", "IngestAuditMessages", true);
+            IngestAuditMessages = SettingsReader.Read(new SettingsRootNamespace("ServiceControl"), "IngestAuditMessages", true);
 
             if (IngestAuditMessages == false)
             {
                 logger.Info("Audit ingestion disabled.");
             }
 
-            AuditLogQueue = SettingsReader<string>.Read("ServiceBus", "AuditLogQueue", null);
+            AuditLogQueue = SettingsReader.Read<string>(serviceBusRootNamespace, "AuditLogQueue", null);
 
             if (AuditLogQueue == null)
             {
@@ -71,7 +71,7 @@
         //HINT: acceptance tests only
         public Func<MessageContext, bool> MessageFilter { get; set; }
 
-        public bool ValidateConfiguration => SettingsReader<bool>.Read("ValidateConfig", true);
+        public bool ValidateConfiguration => SettingsReader.Read(SettingsRootNamespace, "ValidateConfig", true);
 
         public bool SkipQueueCreation { get; set; }
 
@@ -94,9 +94,9 @@
 
         public int Port { get; set; }
 
-        public bool PrintMetrics => SettingsReader<bool>.Read("PrintMetrics");
-        public string Hostname => SettingsReader<string>.Read("Hostname", "localhost");
-        public string VirtualDirectory => SettingsReader<string>.Read("VirtualDirectory", string.Empty);
+        public bool PrintMetrics => SettingsReader.Read<bool>(SettingsRootNamespace, "PrintMetrics");
+        public string Hostname => SettingsReader.Read(SettingsRootNamespace, "Hostname", "localhost");
+        public string VirtualDirectory => SettingsReader.Read(SettingsRootNamespace, "VirtualDirectory", string.Empty);
 
         public string TransportType { get; private set; }
 
@@ -162,7 +162,7 @@
         TimeSpan GetTimeToRestartAuditIngestionAfterFailure()
         {
             string message;
-            var valueRead = SettingsReader<string>.Read("TimeToRestartAuditIngestionAfterFailure");
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "TimeToRestartAuditIngestionAfterFailure");
             if (valueRead == null)
             {
                 return TimeSpan.FromSeconds(60);
@@ -196,7 +196,7 @@
 
         static bool GetForwardAuditMessages()
         {
-            var forwardAuditMessages = NullableSettingsReader<bool>.Read("ForwardAuditMessages");
+            var forwardAuditMessages = SettingsReader.Read<bool?>(SettingsRootNamespace, "ForwardAuditMessages");
             if (forwardAuditMessages.HasValue)
             {
                 return forwardAuditMessages.Value;
@@ -207,7 +207,7 @@
 
         static string GetConnectionString()
         {
-            var settingsValue = SettingsReader<string>.Read("ConnectionString");
+            var settingsValue = SettingsReader.Read<string>(SettingsRootNamespace, "ConnectionString");
             if (settingsValue != null)
             {
                 return settingsValue;
@@ -220,7 +220,7 @@
         TimeSpan GetAuditRetentionPeriod()
         {
             string message;
-            var valueRead = SettingsReader<string>.Read("AuditRetentionPeriod");
+            var valueRead = SettingsReader.Read<string>(SettingsRootNamespace, "AuditRetentionPeriod");
             if (valueRead == null)
             {
                 //same default as SCMU
@@ -270,7 +270,7 @@
         int GetDataSpaceRemainingThreshold()
         {
             string message;
-            var threshold = SettingsReader<int>.Read("DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
+            var threshold = SettingsReader.Read(SettingsRootNamespace, "DataSpaceRemainingThreshold", DataSpaceRemainingThresholdDefault);
             if (threshold < 0)
             {
                 message = $"{nameof(DataSpaceRemainingThreshold)} is invalid, minimum value is 0.";
@@ -288,14 +288,12 @@
             return threshold;
         }
 
-        void TryLoadLicenseFromConfig()
-        {
-            LicenseFileText = SettingsReader<string>.Read("LicenseText");
-        }
+        void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");
 
         ILog logger = LogManager.GetLogger(typeof(Settings));
-        int maxBodySizeToStore = SettingsReader<int>.Read("MaxBodySizeToStore", MaxBodySizeToStoreDefault);
+        int maxBodySizeToStore = SettingsReader.Read(SettingsRootNamespace, "MaxBodySizeToStore", MaxBodySizeToStoreDefault);
         public const string DEFAULT_SERVICE_NAME = "Particular.ServiceControl.Audit";
+        public static readonly SettingsRootNamespace SettingsRootNamespace = new("ServiceControl.Audit");
 
         const int MaxBodySizeToStoreDefault = 102400; //100 kb
         const int DataSpaceRemainingThresholdDefault = 20;

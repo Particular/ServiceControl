@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Hosting
 {
+    using System.Runtime.Versioning;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
@@ -8,6 +9,7 @@
     using Microsoft.Extensions.Options;
     using ServiceControl.Persistence;
 
+    [SupportedOSPlatform("windows")]
     sealed class PersisterInitializingWindowsServiceLifetime(IHostEnvironment environment, IHostApplicationLifetime applicationLifetime, ILoggerFactory loggerFactory, IOptions<HostOptions> optionsAccessor, IOptions<WindowsServiceLifetimeOptions> windowsServiceOptionsAccessor, IPersistenceLifecycle persistenceLifecycle)
         : WindowsServiceLifetime(environment, applicationLifetime, loggerFactory, optionsAccessor, windowsServiceOptionsAccessor), IHostLifetime
     {

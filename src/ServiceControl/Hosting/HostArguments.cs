@@ -6,6 +6,7 @@ namespace Particular.ServiceControl.Hosting
     using System.Linq;
     using System.Reflection;
     using Commands;
+    using global::ServiceControl.Configuration;
     using global::ServiceControl.Hosting.Commands;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -13,7 +14,7 @@ namespace Particular.ServiceControl.Hosting
     {
         public HostArguments(string[] args)
         {
-            if (SettingsReader.ConfigFile.Read<bool>("MaintenanceMode"))
+            if (SettingsReader.Read<bool>(Settings.SettingsRootNamespace, "MaintenanceMode"))
             {
                 args = args.Concat(new[]
                 {

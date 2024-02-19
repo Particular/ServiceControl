@@ -1,37 +1,29 @@
-namespace ServiceBus.Management.Infrastructure.Settings
+namespace ServiceControl.Configuration;
+
+using System;
+using System.Configuration;
+using static ValueConverter;
+
+static class ConfigFileSettingsReader
 {
-    using System;
-    using System.Configuration;
+    public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default) =>
+        TryRead<T>(settingsNamespace, name, out var value)
+            ? value
+            : defaultValue;
 
-    class ConfigFileSettingsReader : ISettingsReader
+    public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, out T value)
     {
-        public object Read(string root, string name, Type type, object defaultValue = default)
+        var fullKey = $"{settingsNamespace}/{name}";
+
+        var appSettingValue = ConfigurationManager.AppSettings[fullKey];
+        if (appSettingValue != null)
         {
-            return TryRead(root, name, type, out var value)
-                ? value
-                : defaultValue;
+            appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
+            value = Convert<T>(appSettingValue);
+            return true;
         }
 
-        public bool TryRead(string root, string name, Type type, out object value)
-        {
-            var fullKey = $"{root}/{name}";
-
-            var appSettingValue = ConfigurationManager.AppSettings[fullKey];
-            if (appSettingValue != null)
-            {
-                appSettingValue = Environment.ExpandEnvironmentVariables(appSettingValue);
-
-                var underlyingType = Nullable.GetUnderlyingType(type);
-
-                var destinationType = underlyingType ?? type;
-
-                value = SettingsReader.ConvertFrom(appSettingValue, destinationType);
-
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        value = default;
+        return false;
     }
 }

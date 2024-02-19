@@ -14,11 +14,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-2022 ]
+        os: [windows-2022, ubuntu-22.04]
         test-category: [ Default, SqlServer, AzureServiceBus, RabbitMQ, AzureStorageQueues, MSMQ, SQS, PrimaryRavenAcceptance, PrimaryRavenPersistence ]
         include:
           - os: windows-2022
             os-name: Windows
+          - os: ubuntu-22.04
+            os-name: Linux
+        exclude:
+          - os: ubuntu-22.04
+            test-category: MSMQ
       fail-fast: false
     steps:
       - name: Check for secrets
@@ -44,20 +49,22 @@ jobs:
       - name: Build
         run: dotnet build src --configuration Release -graph --no-restore
       - name: Zip PowerShell module
+        shell: pwsh
         run: |
           New-Item assets\PowerShellModules -ItemType Directory
           Compress-Archive -Path deploy\PowerShellModules\Particular.ServiceControl.Management\* -DestinationPath assets\PowerShellModules\Particular.ServiceControl.Management.zip
       - name: Upload assets
         uses: actions/upload-artifact@v4.3.1
-        if: matrix.test-category == 'MSMQ' && matrix.os-name == 'Windows'
+        if: matrix.test-category == 'Default'
         with:
-          name: assets
+          name: ${{ matrix.os-name }}-assets
           path: |
             nugets/
             zip/
             assets/
           retention-days: 1
       - name: Smoke test PowerShell module import
+        if: matrix.os-name == 'Windows'
         shell: pwsh
         run: Import-Module ./deploy/PowerShellModules/Particular.ServiceControl.Management
       - name: Azure login
@@ -69,25 +76,25 @@ jobs:
         uses: Particular/install-sql-server-action@v1.0.2
         if: matrix.test-category == 'SqlServer'
         with:
-          connection-string-env-var: ServiceControl.TransportTests.SQL.ConnectionString
+          connection-string-env-var: ServiceControl_TransportTests_SQL_ConnectionString
           catalog: nservicebus
       - name: Setup RabbitMQ
         uses: Particular/setup-rabbitmq-action@v1.4.0
         if: matrix.test-category == 'RabbitMQ'
         with:
-          connection-string-name: ServiceControl.TransportTests.RabbitMQ.ConnectionString
+          connection-string-name: ServiceControl_TransportTests_RabbitMQ_ConnectionString
           tag: ServiceControl
       - name: Setup Azure Service Bus
         uses: Particular/setup-azureservicebus-action@v1.2.0
         if: matrix.test-category == 'AzureServiceBus'
         with:
-          connection-string-name: ServiceControl.TransportTests.ASBS.ConnectionString
+          connection-string-name: ServiceControl_TransportTests_ASBS_ConnectionString
           tag: ServiceControl
       - name: Setup Azure Storage Queues
         uses: Particular/setup-azurestorage-action@v1.1.0
         if: matrix.test-category == 'AzureStorageQueues'
         with:
-          connection-string-name: ServiceControl.TransportTests.ASQ.ConnectionString
+          connection-string-name: ServiceControl_TransportTests_ASQ_ConnectionString
           tag: ServiceControl
       - name: Setup SQS environment variables
         if: matrix.test-category == 'SQS'
@@ -99,11 +106,11 @@ jobs:
 
           # Cleanup of queues starting with `GHA-` handled by https://github.com/Particular/NServiceBus.AmazonSQS/blob/master/.github/workflows/tests-cleanup.yml
           $connectString = "AccessKeyId=${{ secrets.AWS_ACCESS_KEY_ID }};SecretAccessKey=${{ secrets.AWS_SECRET_ACCESS_KEY }};Region=${{ secrets.AWS_REGION }};QueueNamePrefix=GHA-${{ github.run_id }}"
-          echo "ServiceControl.TransportTests.SQS.ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ServiceControl_TransportTests_SQS_ConnectionString=$connectString" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       - name: Run tests
         uses: Particular/run-tests-action@v1.7.0
         env:
           ServiceControl_TESTS_FILTER: ${{ matrix.test-category }}
-          ServiceControl/LicenseText: ${{ secrets.LICENSETEXT }}
-          ServiceControl.Audit/LicenseText: ${{ secrets.LICENSETEXT }}
-          Monitoring/LicenseText: ${{ secrets.LICENSETEXT }}
+          ServiceControl_LicenseText: ${{ secrets.LICENSETEXT }}
+          ServiceControl_Audit_LicenseText: ${{ secrets.LICENSETEXT }}
+          Monitoring_LicenseText: ${{ secrets.LICENSETEXT }}

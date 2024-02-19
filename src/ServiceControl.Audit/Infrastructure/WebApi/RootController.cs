@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Infrastructure.WebApi
 {
     using System;
+    using Configuration;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
 
@@ -31,8 +32,8 @@
                 EndpointsMessagesUrl =
                     baseUrl + "endpoints/{name}/messages/{?page,per_page,direction,sort}",
                 AuditCountUrl = baseUrl + "endpoints/{name}/audit-count",
-                Name = SettingsReader<string>.Read("Name", "ServiceControl.Audit"),
-                Description = SettingsReader<string>.Read("Description", "The audit backend for the Particular Service Platform"),
+                Name = SettingsReader.Read(Settings.SettingsRootNamespace, "Name", "ServiceControl.Audit"),
+                Description = SettingsReader.Read(Settings.SettingsRootNamespace, "Description", "The audit backend for the Particular Service Platform"),
                 Configuration = baseUrl + "configuration"
             };
 

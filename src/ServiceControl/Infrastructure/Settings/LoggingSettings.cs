@@ -4,13 +4,14 @@ namespace ServiceBus.Management.Infrastructure.Settings
     using System.IO;
     using NLog;
     using NLog.Common;
+    using ServiceControl.Configuration;
 
     public class LoggingSettings
     {
         public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
-            LogPath = Environment.ExpandEnvironmentVariables(SettingsReader.Read("LogPath", logPath ?? DefaultLogPathForInstance(serviceName)));
+            LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogPathForInstance(serviceName)));
             LogToConsole = logToConsole;
         }
 
@@ -22,7 +23,7 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         LogLevel InitializeLevel(string key, LogLevel defaultLevel)
         {
-            var levelText = SettingsReader.Read<string>(key);
+            var levelText = SettingsReader.Read<string>(Settings.SettingsRootNamespace, key);
             if (string.IsNullOrWhiteSpace(levelText))
             {
                 return defaultLevel;

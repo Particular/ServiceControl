@@ -26,6 +26,6 @@
 
         public Task Cleanup() => Task.CompletedTask;
 
-        static string ConnectionStringKey = "ServiceControl.TransportTests.ASBS.ConnectionString";
+        static string ConnectionStringKey = "ServiceControl_TransportTests_ASBS_ConnectionString";
     }
 }

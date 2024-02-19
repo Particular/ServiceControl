@@ -11,17 +11,38 @@
 $version = (Select-Xml -Path src/Directory.Packages.props -XPath "/Project/ItemGroup/PackageVersion[@Include='RavenDB.Embedded']/@Version" | Select-Object -ExpandProperty Node).Value
 Write-Output "In Directory.Packages.props, RavenDB.Embedded is using version '$version'"
 
-$downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-windows-x64.zip"
-$zipPath = Join-Path $Env:TEMP "ravendb.zip"
+$runningOnLinux = $PSVersionTable.Platform -eq 'Unix'
+if ($runningOnLinux) {
+  $os = "linux"
+  $extension = "tar.bz2"
+}
+else {
+  $os = "windows"
+  $extension = "zip"
+}
+
+$downloadUrl = "https://daily-builds.s3.amazonaws.com/RavenDB-$($version)-$($os)-x64.$($extension)"
+$tempPath = [System.IO.Path]::GetTempPath()
+$zipPath = Join-Path $tempPath "ravendb.$($extension)"
+
 Write-Output "Downloading RavenDB binaries from $downloadUrl to $zipPath"
 Invoke-WebRequest $downloadUrl -OutFile $zipPath
 
-Write-Output "Unzipping archive..."
-$unzipPath = Join-Path $Env:TEMP "ravendb-extracted"
-if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
-Expand-Archive $zipPath $unzipPath
+$unzipPath = Join-Path $tempPath "ravendb-extracted"
 
-$serverPath = Join-Path $unzipPath "Server"
+Write-Output "Unzipping archive to $unzipPath"
+if (Test-Path $unzipPath) { Remove-Item $unzipPath -Force -Recurse }
+New-Item -ItemType Directory -Path $unzipPath
+
+if ($runningOnLinux) {
+  tar -jxf $zipPath -C $unzipPath
+  $serverPath = Join-Path $unzipPath "RavenDB/Server"
+}
+else {
+  Expand-Archive $zipPath $unzipPath
+  $serverPath = Join-Path $unzipPath "Server"
+}
+
 $deployPath = Join-Path $PWD.Path deploy RavenDBServer
 if (Test-Path $deployPath ) { Remove-Item $deployPath -Force -Recurse }
 Write-Output "Copying '$serverPath' to '$deployPath'"

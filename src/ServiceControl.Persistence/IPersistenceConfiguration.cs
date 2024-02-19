@@ -1,10 +1,10 @@
 ﻿namespace ServiceControl.Persistence
 {
-    using System;
+    using Configuration;
 
     public interface IPersistenceConfiguration
     {
-        PersistenceSettings CreateSettings(Func<string, Type, (bool exists, object value)> tryReadSetting);
+        PersistenceSettings CreateSettings(SettingsRootNamespace settingsRootNamespace);
         IPersistence Create(PersistenceSettings settings);
     }
 }

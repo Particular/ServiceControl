@@ -1,77 +1,34 @@
-﻿namespace ServiceBus.Management.Infrastructure.Settings
+﻿namespace ServiceControl.Configuration;
+
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+
+public static class SettingsReader
 {
-    using System;
-    using System.ComponentModel;
+    public static T Read<T>(SettingsRootNamespace settingsNamespace, string name, T defaultValue = default)
+        => TryRead<T>(settingsNamespace, name, out var value) ? value : defaultValue;
 
-    static class SettingsReader
+    public static bool TryRead<T>(SettingsRootNamespace settingsNamespace, string name, [NotNullWhen(true)] out T value)
     {
-        const string Namespace = "ServiceControl";
-        static readonly ISettingsReader EnvironmentVariable = new EnvironmentVariableSettingsReader();
-        static readonly ISettingsReader Registry = new RegistryReader();
-        public static readonly ISettingsReader ConfigFile = new ConfigFileSettingsReader();
-
-        public static T Read<T>(string name, T defaultValue = default)
+        if (EnvironmentVariableSettingsReader.TryRead<T>(settingsNamespace, name, out var envValue))
         {
-            return Read(Namespace, name, defaultValue);
+            value = envValue;
+            return true;
         }
 
-        public static T Read<T>(string root, string name, T defaultValue = default)
+        if (ConfigFileSettingsReader.TryRead<T>(settingsNamespace, name, out var configValue))
         {
-            return (T)Read(root, name, typeof(T), defaultValue);
+            value = configValue;
+            return true;
         }
 
-        static object Read(string root, string name, Type type, object defaultValue = default)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RegistrySettingsReader.TryRead<T>(settingsNamespace, name, out var regValue))
         {
-            if (EnvironmentVariable.TryRead(root, name, type, out var envValue))
-            {
-                return envValue;
-            }
-
-            if (ConfigFile.TryRead(root, name, type, out var value))
-            {
-                return value;
-            }
-
-            return Registry.Read(root, name, type, defaultValue);
+            value = regValue;
+            return true;
         }
 
-        public static bool TryRead(string name, Type type, out object value)
-        {
-            var root = Namespace;
-
-            if (EnvironmentVariable.TryRead(root, name, type, out var envValue))
-            {
-                value = envValue;
-                return true;
-            }
-
-            if (ConfigFile.TryRead(root, name, type, out var configValue))
-            {
-                value = configValue;
-                return true;
-            }
-
-            if (Registry.TryRead(root, name, type, out var regValue))
-            {
-                value = regValue;
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        public static T Read<T>(this ISettingsReader instance, string name, T defaultValue = default)
-        {
-            return (T)instance.Read(Namespace, name, typeof(T), defaultValue);
-        }
-
-        public static object ConvertFrom(object sourceValue, Type destinationType)
-        {
-            var converter = TypeDescriptor.GetConverter(destinationType);
-            object value = converter.ConvertFrom(sourceValue);
-            return value;
-        }
-
+        value = default;
+        return false;
     }
 }
