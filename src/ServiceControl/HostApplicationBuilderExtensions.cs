@@ -26,6 +26,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
+    using Particular.License;
 
     static class HostApplicationBuilderExtensions
     {
@@ -105,7 +106,7 @@ namespace Particular.ServiceControl
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
 
-            hostBuilder.AddThroughputCollector();
+            hostBuilder.AddThroughputCollector("TODO", "TODO", "TODO", "TODO");
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
