@@ -43,6 +43,11 @@ else {
   $serverPath = Join-Path $unzipPath "Server"
 }
 
+$deployPath = Join-Path $PWD.Path deploy RavenDBServer
+if (Test-Path $deployPath ) { Remove-Item $deployPath -Force -Recurse }
+Write-Output "Copying '$serverPath' to '$deployPath'"
+Copy-Item -Path $serverPath -Destination $deployPath -Recurse
+
 Write-Output "Deleting temporary files"
 Remove-Item $zipPath -Force
 Remove-Item $unzipPath -Force -Recurse
