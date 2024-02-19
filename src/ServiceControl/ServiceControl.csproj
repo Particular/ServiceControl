@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <ApplicationIcon>Operations.ico</ApplicationIcon>
+    <SelfContained>true</SelfContained>
     <WriteMinVerProperties>true</WriteMinVerProperties>
   </PropertyGroup>
 
