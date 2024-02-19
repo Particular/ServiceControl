@@ -155,6 +155,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{E067
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence", "Throughput.Persistence\Throughput.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence.RavenDb", "Throughput.Persistence.RavenDb\Throughput.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -847,6 +849,18 @@ Global
 		{D45F51F6-10E5-4976-9E7D-C15A9012B84F}.Release|x64.Build.0 = Release|Any CPU
 		{D45F51F6-10E5-4976-9E7D-C15A9012B84F}.Release|x86.ActiveCfg = Release|Any CPU
 		{D45F51F6-10E5-4976-9E7D-C15A9012B84F}.Release|x86.Build.0 = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|x64.Build.0 = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Debug|x86.Build.0 = Debug|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|x64.ActiveCfg = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|x64.Build.0 = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|x86.ActiveCfg = Release|Any CPU
+		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
