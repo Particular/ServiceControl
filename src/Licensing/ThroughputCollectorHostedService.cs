@@ -6,11 +6,10 @@
 
     class ThroughputCollectorHostedService : IHostedService
     {
-        public ThroughputCollectorHostedService(PlatformData platformData)
+        public ThroughputCollectorHostedService(ILoggerFactory loggerFactory, PlatformData platformData)
         {
-            using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-            logger = factory.CreateLogger(typeof(ThroughputCollectorHostedService));
-
+            logger = loggerFactory.CreateLogger(typeof(ThroughputCollectorHostedService));
+            this.platformData = platformData;
             auditThroughputCollector = new AuditThroughputCollector(platformData.ServiceControlAPI, logger);
             brokerThroughputCollector = new BrokerThroughputCollector(platformData.Broker, logger);
 
@@ -32,7 +31,7 @@
 
         void GatherThroughput()
         {
-            //logger.LogInformation($"Gathering throughput from {serviceControlAPI}");
+            logger.LogInformation($"Gathering throughput");
             auditThroughputCollector.GatherThroughput();
             brokerThroughputCollector.GatherThroughput();
         }
@@ -41,6 +40,7 @@
         BrokerThroughputCollector brokerThroughputCollector;
         readonly ILogger logger;
 #pragma warning disable IDE0052 // Remove unread private members
+        PlatformData platformData;
         Timer? throughputGatherTimer;
 #pragma warning restore IDE0052 // Remove unread private members
     }
