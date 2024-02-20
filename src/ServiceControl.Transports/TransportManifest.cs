@@ -131,6 +131,20 @@
             return transportFolder;
         }
 
+        public static string GetName(string transportType)
+        {
+            if (transportType == null)
+            {
+                throw new Exception("No transport has been configured. Either provide a Type or Name in the TransportType setting.");
+            }
+
+            var transportManifestDefinition = TransportManifests
+                .SelectMany(t => t.Definitions)
+                .FirstOrDefault(w => w.IsMatch(transportType));
+
+            return transportManifestDefinition?.Name ?? transportType;
+        }
+
         static readonly ILog logger = LogManager.GetLogger(typeof(TransportManifestLibrary));
     }
 }
