@@ -6,20 +6,21 @@
 
     class ThroughputCollectorHostedService : IHostedService
     {
-        public ThroughputCollectorHostedService(ILogger logger, LicenseData licenseData)
+        public ThroughputCollectorHostedService(PlatformData platformData)
         {
-            this.logger = logger; //TODO not being passed in
-            auditThroughputCollector = new AuditThroughputCollector(licenseData.ServiceControlAPI, logger);
-            brokerThroughputCollector = new BrokerThroughputCollector(licenseData.Broker, logger);
+            using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+            logger = factory.CreateLogger(typeof(ThroughputCollectorHostedService));
 
-            //TODO initialise persistence
+            auditThroughputCollector = new AuditThroughputCollector(platformData.ServiceControlAPI, logger);
+            brokerThroughputCollector = new BrokerThroughputCollector(platformData.Broker, logger);
+
+            //TODO initialise any persistence here, however it will need a separate method that is run during setup like in the Primary instance: PersistenceFactory.Create(settings);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("Starting ThroughputCalculator Service");
-            //return Task.Run(() => throughputGatherTimer = new Timer(objectstate => { GatherThrouput(); }, null, TimeSpan.Zero, TimeSpan.FromMinutes(1)));
-            throughputGatherTimer = new Timer(objectstate => { GatherThroughput(); }, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+            throughputGatherTimer = new Timer(objectstate => { GatherThroughput(); }, null, TimeSpan.Zero, TimeSpan.FromMinutes(1)); //TODO this will change to less often
             return Task.CompletedTask;
         }
 
