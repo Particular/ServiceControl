@@ -90,6 +90,18 @@
             return persistenceManifest;
         }
 
+        public static string GetName(string persistenceType)
+        {
+            if (persistenceType == null)
+            {
+                throw new Exception("No persistenceType has been configured. Either provide a Type or Name in the PersistenceType setting.");
+            }
+
+            var persistenceManifestDefinition = PersistenceManifests.FirstOrDefault(w => w.IsMatch(persistenceType));
+
+            return persistenceManifestDefinition?.Name ?? persistenceType;
+
+        }
         static readonly ILog logger = LogManager.GetLogger(typeof(PersistenceManifestLibrary));
     }
 }
