@@ -38,10 +38,7 @@
             var supportedConstructorArguments = new List<object>()
             {
                 new Settings(),
-                new RavenPersisterSettings
-                {
-                    DatabasePath = "%TEMP%"
-                }
+                new RavenPersisterSettings()
             };
 
             object MapConstructorParameter(ParameterInfo pi)
@@ -56,7 +53,6 @@
 
                 return null;
             }
-
 
             foreach (var customCheckType in customCheckTypes)
             {
