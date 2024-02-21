@@ -1,4 +1,4 @@
-﻿namespace Particular.License
+﻿namespace Particular.License.Throughput.Monitoring
 {
     using Microsoft.Extensions.Logging;
 
