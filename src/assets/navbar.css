@@ -169,7 +169,7 @@ a.btn-feedback:focus {
   }
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1500px) {
   .navbar-label {
     display: none;
   }
