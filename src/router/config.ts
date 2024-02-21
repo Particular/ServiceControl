@@ -7,6 +7,7 @@ import ConfigurationView from "@/views/ConfigurationView.vue";
 import routeLinks from "@/router/routeLinks";
 import CustomChecksView from "@/views/CustomChecksView.vue";
 import HeartbeatsView from "@/views/HeartbeatsView.vue";
+import ThroughputReportView from "@/views/ThroughputReportView.vue";
 
 export interface RouteItem {
   path: string;
@@ -113,6 +114,28 @@ const config: RouteItem[] = [
     path: routeLinks.events,
     component: EventsView,
     title: "Events",
+  },
+  {
+    path: routeLinks.throughputReport.root,
+    component: ThroughputReportView,
+    title: "Throughput Report",
+    children: [
+      {
+        title: "Endpoints",
+        path: routeLinks.throughputReport.endpoints.template,
+        component: () => import("@/views/throughputreport/EndpointsView.vue"),
+      },
+      {
+        title: "Setup",
+        path: routeLinks.throughputReport.setup.template,
+        component: () => import("@/views/throughputreport/SetupView.vue"),
+      },
+      {
+        title: "Report",
+        path: routeLinks.throughputReport.report.template,
+        component: () => import("@/views/throughputreport/ReportView.vue"),
+      },
+    ],
   },
   {
     path: routeLinks.configuration.root,
