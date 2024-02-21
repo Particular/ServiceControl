@@ -8,7 +8,7 @@
     {
         public ThroughputCollectorHostedService(ILoggerFactory loggerFactory, PlatformData platformData)
         {
-            logger = loggerFactory.CreateLogger(typeof(ThroughputCollectorHostedService));
+            logger = loggerFactory.CreateLogger<ThroughputCollectorHostedService>();
             this.platformData = platformData;
             auditThroughputCollector = new AuditThroughputCollector(platformData.ServiceControlAPI, logger);
             brokerThroughputCollector = new BrokerThroughputCollector(platformData.Broker, logger);
