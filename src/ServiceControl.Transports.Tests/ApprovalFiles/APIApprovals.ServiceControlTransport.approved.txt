@@ -69,6 +69,7 @@ namespace ServiceControl.Transports
     {
         public static System.Collections.Generic.List<ServiceControl.Transports.TransportManifest> TransportManifests { get; }
         public static string Find(string transportType) { }
+        public static string GetName(string transportType) { }
         public static string GetTransportFolder(string transportType) { }
     }
     public class TransportSettings : NServiceBus.Settings.SettingsHolder
