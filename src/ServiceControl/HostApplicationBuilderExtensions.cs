@@ -29,7 +29,7 @@ namespace Particular.ServiceControl
     using ServiceBus.Management.Infrastructure;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
-    using Particular.License;
+    using Particular.ThroughputCollector;
 
     static class HostApplicationBuilderExtensions
     {
