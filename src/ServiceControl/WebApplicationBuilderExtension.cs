@@ -89,8 +89,7 @@ namespace Particular.ServiceControl
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-            // TODO: rename these to be Add* instead of Use*
-            hostBuilder.UseLicenseCheck();
+            hostBuilder.AddLicenseCheck();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
             hostBuilder.Host.UseNServiceBus(_ =>
@@ -101,16 +100,14 @@ namespace Particular.ServiceControl
 
             if (!settings.DisableExternalIntegrationsPublishing)
             {
-                // TODO: rename these to be Add* instead of Use*
-                hostBuilder.UseExternalIntegrationEvents();
+                hostBuilder.AddExternalIntegrationEvents();
             }
 
             hostBuilder.AddWebApi([Assembly.GetExecutingAssembly()], settings.RootUrl);
 
-            // TODO: rename these to be Add* instead of Use*
-            hostBuilder.UseServicePulseSignalRNotifier();
-            hostBuilder.UseEmailNotifications();
-            hostBuilder.UseAsyncTimer();
+            hostBuilder.AddServicePulseSignalRNotifier();
+            hostBuilder.AddEmailNotifications();
+            hostBuilder.AddAsyncTimer();
 
             if (!settings.DisableHealthChecks)
             {

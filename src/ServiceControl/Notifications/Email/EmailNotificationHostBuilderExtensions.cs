@@ -6,7 +6,7 @@
 
     static class EmailNotificationHostBuilderExtensions
     {
-        public static IHostApplicationBuilder UseEmailNotifications(this IHostApplicationBuilder hostBuilder)
+        public static IHostApplicationBuilder AddEmailNotifications(this IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddSingleton<EmailThrottlingState>();
