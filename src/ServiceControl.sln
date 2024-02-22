@@ -157,7 +157,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{9AD43637-E038-4C46-B509-43F45CD4BC31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.License", "Licensing\Particular.License.csproj", "{42A337B3-4D58-4F83-BADD-95F93A255A52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector", "Licensing\Particular.ThroughputCollector.csproj", "{42A337B3-4D58-4F83-BADD-95F93A255A52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,6 +1,6 @@
-﻿namespace Particular.License.Contracts
+﻿namespace Particular.ThroughputCollector.Contracts
 {
-    class PlatformData
+    class ThroughputSettings
     {
         public required string ServiceControlAPI { get; set; }
         public required string Broker { get; set; }
