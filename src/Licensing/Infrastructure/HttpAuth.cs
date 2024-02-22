@@ -1,4 +1,4 @@
-﻿namespace Particular.License.Infrastructure
+﻿namespace Particular.ThroughputCollector.Infrastructure
 {
     using System;
     using System.Linq;

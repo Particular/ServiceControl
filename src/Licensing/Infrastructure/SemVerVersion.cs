@@ -1,4 +1,4 @@
-﻿namespace Particular.License.Infrastructure
+﻿namespace Particular.ThroughputCollector.Infrastructure
 {
     using System;
     using System.Text.RegularExpressions;
@@ -14,7 +14,7 @@
             PrereleaseLabel = prereleaseLabel;
         }
 
-        public static bool TryParse(string value, out SemVerVersion? version)
+        public static bool TryParse(string? value, out SemVerVersion? version)
         {
             version = null;
 
