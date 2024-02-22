@@ -16,7 +16,7 @@
   <Import Project="..\ProjectReferences.Transports.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Licensing\Particular.License.csproj" />
+    <ProjectReference Include="..\Licensing\Particular.ThroughputCollector.csproj" />
     <ProjectReference Include="..\ServiceControl.Api\ServiceControl.Api.csproj"/>
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
     <ProjectReference Include="..\ServiceControl.Infrastructure.Metrics\ServiceControl.Infrastructure.Metrics.csproj" />
