@@ -139,12 +139,7 @@
 
             httpContext.Response.WithPagingLinks(new PagingInfo(currentPage, resultsPerPage), highestTotalCountOfAllInstances ?? totalResults, totalResults);
 
-            if (httpContext.Response.Headers.TryGetValue("Link", out var links))
-            {
-                return links.Single().Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
-            }
-
-            return Array.Empty<string>();
+            return httpContext.Response.Headers.TryGetValue("Link", out var links) ? links.ToArray() : Array.Empty<string>();
         }
     }
 }
