@@ -77,7 +77,6 @@ namespace Particular.ServiceControl
                 options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
             });
 
-            // TODO Maybe after we have touched scatter gather this isn't required anymore?
             services.AddHttpContextAccessor();
 
             services.AddHttpForwarding();
