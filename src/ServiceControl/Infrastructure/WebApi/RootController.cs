@@ -6,6 +6,8 @@
     using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Configuration;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Particular.ServiceControl.Licensing;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -23,8 +25,7 @@
         [HttpGet]
         public RootUrls Urls()
         {
-            var baseUrl = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1).Uri.AbsoluteUri;
-
+            var baseUrl = Request.GetDisplayUrl() + "/";
             var model = new RootUrls
             {
                 EndpointsUrl = baseUrl + "endpoints",

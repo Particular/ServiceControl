@@ -2,6 +2,7 @@
 {
     using System;
     using Configuration;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
     using Settings;
 
@@ -19,8 +20,7 @@
         [HttpGet]
         public OkObjectResult Urls()
         {
-            var baseUrl = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1).Uri.AbsoluteUri;
-
+            var baseUrl = Request.GetDisplayUrl() + "/";
             var model = new RootUrls
             {
                 KnownEndpointsUrl = "/endpoints/known", // relative URI to allow proxying
