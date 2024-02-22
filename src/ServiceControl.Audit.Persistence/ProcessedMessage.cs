@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus;
     using ServiceControl.Audit.Persistence.Infrastructure;
 
     public class ProcessedMessage
@@ -20,21 +21,15 @@
 
             var processingStartedTicks =
                 headers.TryGetValue(NServiceBus.Headers.ProcessingStarted, out var processingStartedValue)
-                    ? DateTimeExtensions.ToUtcDateTime(processingStartedValue).Ticks.ToString()
+                    ? DateTimeOffsetHelper.ToDateTimeOffset(processingStartedValue).UtcDateTime.Ticks.ToString()
                     : DateTime.UtcNow.Ticks.ToString();
 
             var documentId = $"{processingStartedTicks}-{headers.ProcessingId()}";
 
             Id = $"ProcessedMessages-{documentId}";
 
-            if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt))
-            {
-                ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
-            }
-            else
-            {
-                ProcessedAt = DateTime.UtcNow; // best guess
-            }
+            ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt) ?
+                DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
         }
 
         public string Id { get; set; }

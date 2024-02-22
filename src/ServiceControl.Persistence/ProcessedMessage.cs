@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using NServiceBus;
     using ServiceControl.Persistence;
     using ServiceControl.Persistence.Infrastructure;
 
@@ -19,14 +20,8 @@
             MessageMetadata = metadata;
             Headers = headers;
 
-            if (Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt))
-            {
-                ProcessedAt = DateTimeExtensions.ToUtcDateTime(processedAt);
-            }
-            else
-            {
-                ProcessedAt = DateTime.UtcNow; // best guess
-            }
+            ProcessedAt = Headers.TryGetValue(NServiceBus.Headers.ProcessingEnded, out var processedAt) ?
+                DateTimeOffsetHelper.ToDateTimeOffset(processedAt).UtcDateTime : DateTime.UtcNow; // best guess
         }
 
         public string Id { get; set; }

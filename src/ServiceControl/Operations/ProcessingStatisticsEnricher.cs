@@ -7,11 +7,13 @@
     {
         public void Enrich(ErrorEnricherContext context)
         {
-            if (context.Headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
+            if (!context.Headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
             {
-                var timeSent = ServiceControl.DateTimeExtensions.ToUtcDateTime(timeSentValue);
-                context.Metadata.Add("TimeSent", timeSent);
+                return;
             }
+
+            var timeSent = DateTimeOffsetHelper.ToDateTimeOffset(timeSentValue).UtcDateTime;
+            context.Metadata.Add("TimeSent", timeSent);
         }
     }
 }
