@@ -25,8 +25,8 @@ namespace ServiceControl.Monitoring
             HttpHostName = SettingsReader.Read<string>(SettingsRootNamespace, "HttpHostname");
             HttpPort = SettingsReader.Read<string>(SettingsRootNamespace, "HttpPort");
             EndpointName = SettingsReader.Read<string>(SettingsRootNamespace, "EndpointName");
-            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read<string>(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
-            MaximumConcurrencyLevel = SettingsReader.Read<int>(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
+            EndpointUptimeGracePeriod = TimeSpan.Parse(SettingsReader.Read(SettingsRootNamespace, "EndpointUptimeGracePeriod", "00:00:40"));
+            MaximumConcurrencyLevel = SettingsReader.Read(SettingsRootNamespace, "MaximumConcurrencyLevel", 32);
         }
 
         public string EndpointName
@@ -55,10 +55,10 @@ namespace ServiceControl.Monitoring
 
         // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
         // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
-        internal static string DefaultLogLocation()
+        static string DefaultLogLocation()
         {
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            return Path.GetDirectoryName(assemblyLocation);
+            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
         }
 
         void TryLoadLicenseFromConfig() => LicenseFileText = SettingsReader.Read<string>(SettingsRootNamespace, "LicenseText");

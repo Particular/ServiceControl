@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
 {
     using System;
     using System.IO;
+    using System.Reflection;
     using Configuration;
     using NLog;
     using NLog.Common;
@@ -11,7 +12,7 @@ namespace ServiceControl.Audit.Infrastructure.Settings
         public LoggingSettings(string serviceName, LogLevel defaultLevel = null, string logPath = null, bool logToConsole = true)
         {
             LoggingLevel = InitializeLevel("LogLevel", defaultLevel ?? LogLevel.Info);
-            LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogPathForInstance(serviceName)));
+            LogPath = SettingsReader.Read(Settings.SettingsRootNamespace, "LogPath", Environment.ExpandEnvironmentVariables(logPath ?? DefaultLogLocation()));
             LogToConsole = logToConsole;
         }
 
@@ -40,14 +41,12 @@ namespace ServiceControl.Audit.Infrastructure.Settings
             }
         }
 
-        static string DefaultLogPathForInstance(string serviceName)
+        // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
+        // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+        static string DefaultLogLocation()
         {
-            if (serviceName.Equals(Settings.DEFAULT_SERVICE_NAME, StringComparison.OrdinalIgnoreCase))
-            {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Particular\\ServiceControl.Audit\\logs");
-            }
-
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), $"Particular\\{serviceName}\\logs");
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
         }
 
         public Microsoft.Extensions.Logging.LogLevel ToHostLogLevel()

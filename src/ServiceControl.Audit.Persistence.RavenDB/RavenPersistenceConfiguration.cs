@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
     using NServiceBus.Logging;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
@@ -63,10 +65,7 @@
 
                 var serverUrl = $"http://localhost:{databaseMaintenancePort}";
 
-                if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
-                {
-                    throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
-                }
+                var logPath = GetLogPath(settings);
 
                 var logsMode = "Operations";
 
@@ -130,6 +129,19 @@
             }
 
             return expirationProcessTimerInSeconds;
+        }
+
+        static string GetLogPath(PersistenceSettings settings)
+        {
+            if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
+            {
+                // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
+                // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                logPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
+            }
+
+            return logPath;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));
