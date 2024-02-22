@@ -19,7 +19,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> GetAllMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages)
         {
             var result = await dataStore.GetMessages(includeSystemMessages, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -28,7 +28,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> GetEndpointMessages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string endpoint)
         {
             var result = await dataStore.QueryMessagesByReceivingEndpoint(includeSystemMessages, endpoint, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -37,7 +37,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<AuditCount>> GetEndpointAuditCounts([FromQuery] PagingInfo pagingInfo, string endpoint)
         {
             var result = await dataStore.QueryAuditCounts(endpoint);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -91,7 +91,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q)
         {
             var result = await dataStore.QueryMessages(q, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -100,7 +100,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword)
         {
             var result = await dataStore.QueryMessages(keyword?.Replace("/", @"\"), pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -109,7 +109,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string q)
         {
             var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, q, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
 
@@ -118,7 +118,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword)
         {
             var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
     }

@@ -70,7 +70,7 @@
         {
             var results = await store.GetGroupErrors(groupId, status, modified, sortInfo, pagingInfo);
 
-            Response.WithQueryResults(results.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
             return results.Results;
         }
 

@@ -65,7 +65,7 @@ namespace ServiceControl.CompositeViews.Messages
             var results = await Task.WhenAll(tasks);
             var response = AggregateResults(input, results);
 
-            httpContextAccessor.HttpContext!.Response.WithQueryResults(response.QueryStats, input.PagingInfo);
+            httpContextAccessor.HttpContext!.Response.WithQueryStatsAndPagingInfo(response.QueryStats, input.PagingInfo);
 
             return response.Results;
         }

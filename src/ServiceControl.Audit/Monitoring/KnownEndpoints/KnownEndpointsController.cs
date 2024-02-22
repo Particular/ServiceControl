@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Monitoring
         public async Task<IList<KnownEndpointsView>> GetAll([FromQuery] PagingInfo pagingInfo)
         {
             var result = await dataStore.QueryKnownEndpoints();
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
     }

@@ -17,7 +17,7 @@ namespace ServiceControl.Audit.SagaAudit
         public async Task<SagaHistory> Sagas([FromQuery] PagingInfo pagingInfo, Guid id)
         {
             var result = await dataStore.QuerySagaHistoryById(id);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
     }

@@ -88,8 +88,7 @@ namespace ServiceControl.Infrastructure.WebApi
             links.Add($"<{pathWithQuery}>; rel=\"{rel}\"");
         }
 
-        // TODO This name might need to change to better reflect what it does
-        public static void WithQueryResults(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
+        public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
             response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
             response.WithDeterministicEtag(queryStats.ETag);

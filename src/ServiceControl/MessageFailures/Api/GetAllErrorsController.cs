@@ -23,7 +23,7 @@
                     sortInfo
                     );
 
-            Response.WithQueryResults(results.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
 
             return results.Results;
         }
@@ -53,7 +53,7 @@
                 sortInfo
                 );
 
-            Response.WithQueryResults(results.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(results.QueryStats, pagingInfo);
 
             return results.Results;
         }
