@@ -105,14 +105,6 @@ namespace Particular.ServiceControl
             hostBuilder.Services.AddWindowsService();
 
             hostBuilder.AddServiceControlComponents(settings, ServiceControlMainInstance.Components);
-
-            hostBuilder.AddThroughputCollector(broker: TransportManifestLibrary.GetName(settings.TransportType),
-               serviceControlAPI: settings.ApiUrl,
-               errorQueue: settings.ErrorQueue,
-               auditQueue: "?",
-               transportConnectionString: settings.TransportConnectionString,
-               persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType)
-               );
         }
 
         public static void AddServiceControlInstallers(this IHostApplicationBuilder hostApplicationBuilder, Settings settings)
