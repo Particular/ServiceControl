@@ -74,9 +74,7 @@ namespace Particular.ServiceControl
 
             services.AddHttpLogging(options =>
             {
-                // TODO Do we need to expose the host?
-                // we could also include the time it took to process the request
-                options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+                options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
             });
 
             // TODO Maybe after we have touched scatter gather this isn't required anymore?
