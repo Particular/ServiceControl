@@ -1,15 +1,15 @@
-﻿namespace Particular.License.Throughput.Broker
+﻿namespace Particular.ThroughputCollector.Broker
 {
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.License.Contracts;
+    using Particular.ThroughputCollector.Contracts;
 
     class BrokerThroughputCollectorHostedService : IHostedService
     {
-        public BrokerThroughputCollectorHostedService(ILoggerFactory loggerFactory, PlatformData platformData)
+        public BrokerThroughputCollectorHostedService(ILoggerFactory loggerFactory, ThroughputSettings throughputSettings)
         {
             logger = loggerFactory.CreateLogger<BrokerThroughputCollectorHostedService>();
-            this.platformData = platformData;
+            this.throughputSettings = throughputSettings;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -33,7 +33,7 @@
 
         readonly ILogger logger;
 #pragma warning disable IDE0052 // Remove unread private members
-        PlatformData platformData;
+        ThroughputSettings throughputSettings;
         Timer? brokerThroughputGatherTimer;
 #pragma warning restore IDE0052 // Remove unread private members
     }
