@@ -1,15 +1,15 @@
-﻿namespace Particular.License.Throughput.Audit
+﻿namespace Particular.ThroughputCollector.Audit
 {
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.License.Contracts;
+    using Particular.ThroughputCollector.Contracts;
 
     class AuditThroughputCollectorHostedService : IHostedService
     {
-        public AuditThroughputCollectorHostedService(ILoggerFactory loggerFactory, PlatformData platformData)
+        public AuditThroughputCollectorHostedService(ILoggerFactory loggerFactory, ThroughputSettings throughputSettings)
         {
             logger = loggerFactory.CreateLogger<AuditThroughputCollectorHostedService>();
-            this.platformData = platformData;
+            this.throughputSettings = throughputSettings;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -33,7 +33,7 @@
 
         readonly ILogger logger;
 #pragma warning disable IDE0052 // Remove unread private members
-        PlatformData platformData;
+        ThroughputSettings throughputSettings;
         Timer? auditThroughputGatherTimer;
 #pragma warning restore IDE0052 // Remove unread private members
     }
