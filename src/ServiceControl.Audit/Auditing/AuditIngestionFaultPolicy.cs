@@ -86,7 +86,6 @@
 #if DEBUG
         void WriteEvent(string message)
         {
-            // TODO: Figure a way to achieve something but in the linux way
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return;
@@ -99,7 +98,6 @@
 #else
         void WriteEvent(string message)
         {
-            // TODO: Figure a way to achieve something but in the linux way
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return;
