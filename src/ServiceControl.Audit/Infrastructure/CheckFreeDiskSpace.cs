@@ -4,10 +4,9 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Configuration;
     using NServiceBus.CustomChecks;
     using NServiceBus.Logging;
-    using ServiceControl.Audit.Infrastructure.Settings;
+    using ServiceControl.Configuration;
 
     class CheckFreeDiskSpace : CustomCheck
     {
@@ -20,17 +19,19 @@
 
         public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
         {
+            // TODO This custom check is problematic:
+            // This could be null for the following reasons:
+            // 1. DbPath is empty because using in-memory
+            // 2. DbPath is empty because using external RavenDB
+            // 3. DbPath is empty because using default location
+            // This should only passing automatically for the first two cases.
+            // However, there isn't a good way to determine which case we're in with the info this check currently has access to.
             if (string.IsNullOrEmpty(dataPath))
             {
                 return CheckResult.Pass;
             }
 
-            var dataPathRoot = Path.GetPathRoot(dataPath);
-
-            if (dataPathRoot == null)
-            {
-                throw new Exception($"Unable to find the root of the data path {dataPath}");
-            }
+            var dataPathRoot = Path.GetPathRoot(dataPath) ?? throw new Exception($"Unable to find the root of the data path {dataPath}");
 
             var dataDriveInfo = new DriveInfo(dataPathRoot);
             var availableFreeSpace = (decimal)dataDriveInfo.AvailableFreeSpace;

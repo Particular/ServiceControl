@@ -46,11 +46,23 @@
 
             ServerConfiguration serverConfiguration;
 
-            if (settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out var dbPath))
+            if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
             {
-                if (settings.PersisterSpecificSettings.ContainsKey(ConnectionStringKey))
+                if (settings.PersisterSpecificSettings.ContainsKey(DatabasePathKey))
                 {
-                    throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time.");
+                    throw new InvalidOperationException($"{ConnectionStringKey} and {DatabasePathKey} cannot be specified at the same time.");
+                }
+
+                serverConfiguration = new ServerConfiguration(connectionString);
+            }
+            else
+            {
+                if (!settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out var dbPath))
+                {
+                    // SC installer always populates DBPath in app.config on installation/change/upgrade so this will only be used when
+                    // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+                    var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                    dbPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), ".db");
                 }
 
                 if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePortString))
@@ -75,14 +87,6 @@
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
-            }
-            else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
-            {
-                serverConfiguration = new ServerConfiguration(connectionString);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified.");
             }
 
             if (!settings.PersisterSpecificSettings.TryGetValue(MinimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestionKey))
