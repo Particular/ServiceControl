@@ -1,8 +1,11 @@
 ﻿namespace Particular.ThroughputCollector.Audit
 {
+    using System.Threading;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Particular.ThroughputCollector.Contracts;
+    using Particular.ThroughputCollector.Infrastructure;
+    using Particular.ThroughputCollector.Shared;
 
     class AuditThroughputCollectorHostedService : IHostedService
     {
@@ -15,7 +18,7 @@
         public Task StartAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
-            auditThroughputGatherTimer = new Timer(_ => GatherThroughput(), null, TimeSpan.Zero, TimeSpan.FromMinutes(1)); //TODO this will change to less often
+            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken).ConfigureAwait(false), null, TimeSpan.Zero, TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
             return Task.CompletedTask;
         }
 
@@ -26,15 +29,44 @@
             return Task.CompletedTask;
         }
 
-        void GatherThroughput()
+        async Task GatherThroughput(CancellationToken cancellationToken)
         {
             logger.LogInformation($"Gathering throughput from audit");
+
+            try
+            {
+                if (!ThroughputRecordedForYesterday())
+                {
+                    var httpFactory = await HttpAuth.CreateHttpClientFactory(throughputSettings.ServiceControlAPI, logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var primary = new ServiceControlClient("ServiceControl", throughputSettings.ServiceControlAPI, httpFactory, logger);
+                    await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken).ConfigureAwait(false); //TODO do we need this since we know the SC url?
+                    var knownEndpoints = await Commands.GetKnownEndpoints(primary, logger, cancellationToken).ConfigureAwait(false);
+
+                    if (!knownEndpoints.Any())
+                    {
+                        throw new HaltException(HaltReason.InvalidEnvironment, "Successfully connected to ServiceControl API but no known endpoints could be found.");
+                    }
+
+                    foreach (var endpoint in knownEndpoints)
+                    {
+                        //TODO for each endpoint record the audit count for the day we are currently doing
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "There was a problem getting data from ServiceControl");
+            }
+        }
+
+        bool ThroughputRecordedForYesterday()
+        {
+            //TODO
+            return false;
         }
 
         readonly ILogger logger;
-#pragma warning disable IDE0052 // Remove unread private members
         ThroughputSettings throughputSettings;
         Timer? auditThroughputGatherTimer;
-#pragma warning restore IDE0052 // Remove unread private members
     }
 }
