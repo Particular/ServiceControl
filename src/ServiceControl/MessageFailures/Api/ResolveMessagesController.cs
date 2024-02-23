@@ -1,12 +1,15 @@
-﻿namespace ServiceControl.MessageFailures.Api
+﻿#nullable enable
+
+namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using InternalMessages;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using NServiceBus;
 
     [ApiController]
@@ -15,16 +18,17 @@
     {
         [Route("pendingretries/resolve")]
         [HttpPatch]
-        public async Task<IActionResult> ResolveBy(ResolveRequest request)
+        public async Task<IActionResult> ResolveBy(UniqueMessageIdsModel request)
         {
-            if (request.uniquemessageids != null)
+            if (request.UniqueMessageIds != null)
             {
-                if (request.uniquemessageids.Any(string.IsNullOrEmpty))
+                if (request.UniqueMessageIds.Any(string.IsNullOrEmpty))
                 {
-                    return BadRequest();
+                    ModelState.AddModelError<UniqueMessageIdsModel>(model => model.UniqueMessageIds, "Cannot contain null or empty message IDs.");
+                    return UnprocessableEntity(ModelState);
                 }
 
-                foreach (var id in request.uniquemessageids)
+                foreach (var id in request.UniqueMessageIds)
                 {
                     await session.SendLocal(new MarkPendingRetryAsResolved { FailedMessageId = id });
                 }
@@ -32,24 +36,25 @@
                 return Accepted();
             }
 
-            DateTime from, to;
-
-            try
+            if (!request.From.HasValue)
             {
-                from = DateTime.Parse(request.from, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-                to = DateTime.Parse(request.to, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+                ModelState.AddModelError<UniqueMessageIdsModel>(model => model.From, "Cannot be null when 'UniqueMessageIds' are not provided.");
             }
-            catch (Exception)
+
+            if (!request.To.HasValue)
             {
-                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "From/To") which might be returning a complex object
-                // Let's verify
-                return BadRequest("From/To");
+                ModelState.AddModelError<UniqueMessageIdsModel>(model => model.To, "Cannot be null when 'UniqueMessageIds' are not provided.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return UnprocessableEntity(ModelState);
             }
 
             await session.SendLocal<MarkPendingRetriesAsResolved>(m =>
             {
-                m.PeriodFrom = from;
-                m.PeriodTo = to;
+                m.PeriodFrom = request.From!.Value;
+                m.PeriodTo = request.To!.Value;
             });
 
             return Accepted();
@@ -57,47 +62,40 @@
 
         [Route("pendingretries/queues/resolve")]
         [HttpPatch]
-        public async Task<IActionResult> ResolveByQueue(ResolveRequest request)
+        public async Task<IActionResult> ResolveBy(QueueModel queueModel)
         {
-            if (string.IsNullOrWhiteSpace(request.queueaddress))
-            {
-                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, QueueAddress") which might be returning a complex object
-                // Let's verify
-                return BadRequest("QueueAddress");
-            }
-
-            DateTime from, to;
-
-            try
-            {
-                from = DateTime.Parse(request.from, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-                to = DateTime.Parse(request.to, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-            }
-            catch (Exception)
-            {
-                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, From/To") which might be returning a complex object
-                // Let's verify
-                return BadRequest("From/To");
-            }
-
             await session.SendLocal<MarkPendingRetriesAsResolved>(m =>
             {
-                m.QueueAddress = request.queueaddress;
-                m.PeriodFrom = from;
-                m.PeriodTo = to;
+                m.QueueAddress = queueModel.QueueAddress;
+                m.PeriodFrom = queueModel.From;
+                m.PeriodTo = queueModel.To;
             });
 
             return Accepted();
         }
 
-        public class ResolveRequest
+        public class UniqueMessageIdsModel
         {
-#pragma warning disable IDE1006 // Naming Styles
-            public string queueaddress { get; set; }
-            public List<string> uniquemessageids { get; set; }
-            public string from { get; set; }
-            public string to { get; set; }
-#pragma warning restore IDE1006 // Naming Styles
+            [JsonPropertyName("uniquemessageids")]
+            public List<string>? UniqueMessageIds { get; set; }
+
+            [JsonPropertyName("from")]
+            public DateTime? From { get; set; }
+
+            [JsonPropertyName("to")]
+            public DateTime? To { get; set; }
+        }
+
+        public class QueueModel
+        {
+            [JsonPropertyName("queueaddress")]
+            public required string QueueAddress { get; set; }
+
+            [JsonPropertyName("from")]
+            public DateTime From { get; set; }
+
+            [JsonPropertyName("to")]
+            public DateTime To { get; set; }
         }
     }
 }
