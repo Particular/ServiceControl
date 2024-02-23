@@ -50,6 +50,7 @@
                     foreach (var endpoint in knownEndpoints)
                     {
                         //TODO for each endpoint record the audit count for the day we are currently doing
+                        //TODO can we assume that everyone is using the new version of audits hence they have audit counts?
                     }
                 }
             }
