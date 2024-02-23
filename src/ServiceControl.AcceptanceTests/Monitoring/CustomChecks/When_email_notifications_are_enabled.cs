@@ -24,7 +24,7 @@
         {
             var emailDropPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(emailDropPath);
-            string[] emails = Array.Empty<string>();
+            string[] emails = [];
 
             SetSettings = settings =>
             {
@@ -48,7 +48,7 @@
 
             CollectionAssert.IsNotEmpty(emails);
 
-            var emailText = File.ReadAllLines(emails[0]);
+            var emailText = await File.ReadAllLinesAsync(emails[0]);
 
             Assert.AreEqual("X-Sender: YouServiceControl@particular.net", emailText[0]);
             Assert.AreEqual("X-Receiver: WhoeverMightBeConcerned@particular.net", emailText[1]);
@@ -57,18 +57,11 @@
             Assert.AreEqual("Subject: [Particular.ServiceControl] health check failed", emailText[6]);
         }
 
-        class SetupNotificationSettings : IHostedService
+        class SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore) : IHostedService
         {
-            readonly IErrorMessageDataStore errorMessageDataStore;
-
-            public SetupNotificationSettings(IErrorMessageDataStore errorMessageDataStore)
-            {
-                this.errorMessageDataStore = errorMessageDataStore;
-            }
-
             public async Task StartAsync(CancellationToken cancellationToken)
             {
-                var notificationsManager = await errorMessageDataStore.CreateNotificationsManager();
+                using var notificationsManager = await errorMessageDataStore.CreateNotificationsManager();
 
                 var settings = await notificationsManager.LoadSettings();
                 settings.Email = new EmailNotifications
@@ -91,22 +84,12 @@
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
-            class FailingCustomCheck : CustomCheck
+            class FailingCustomCheck() : CustomCheck("MyCustomCheckId", "MyCategory")
             {
-                public FailingCustomCheck()
-                    : base("MyCustomCheckId", "MyCategory")
-                {
-                }
-
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
-                {
-                    return Task.FromResult(CheckResult.Failed("Some reason"));
-                }
+                    => Task.FromResult(CheckResult.Failed("Some reason"));
             }
         }
     }
