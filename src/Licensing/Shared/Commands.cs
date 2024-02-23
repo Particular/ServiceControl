@@ -74,13 +74,13 @@
                 {
                     var path = $"/endpoints/{endpoint.UrlName}/audit-count";
                     endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken).ConfigureAwait(false);
-                    endpoint.CheckHourlyAuditDataIfNoMonitoringData = false;
+                    endpoint.CheckHourlyAuditData = false;
                 }
                 else
                 {
                     var path = $"/endpoints/{endpoint.UrlName}/messages/?per_page=1";
                     var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken).ConfigureAwait(false);
-                    endpoint.CheckHourlyAuditDataIfNoMonitoringData = recentMessages.Any();
+                    endpoint.CheckHourlyAuditData = recentMessages.Any();
                 }
             }
 
