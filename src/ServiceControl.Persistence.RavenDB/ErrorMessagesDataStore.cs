@@ -342,17 +342,13 @@
             }
         }
 
-        public Task<FailedMessage> ErrorBy(Guid failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
-
         public Task<FailedMessage> ErrorBy(string failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
 
         async Task<FailedMessage> ErrorByDocumentId(string documentId)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var message = await session.LoadAsync<FailedMessage>(documentId);
-                return message;
-            }
+            using var session = documentStore.OpenAsyncSession();
+            var message = await session.LoadAsync<FailedMessage>(documentId);
+            return message;
         }
 
         public Task<INotificationsManager> CreateNotificationsManager()
@@ -363,18 +359,16 @@
             return Task.FromResult<INotificationsManager>(manager);
         }
 
-        public async Task<FailedMessageView> ErrorLastBy(Guid failedMessageId)
+        public async Task<FailedMessageView> ErrorLastBy(string failedMessageId)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+            if (message == null)
             {
-                var message = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId.ToString()));
-                if (message == null)
-                {
-                    return null;
-                }
-                var result = Map(message, session);
-                return result;
+                return null;
             }
+            var result = Map(message, session);
+            return result;
         }
 
         static FailedMessageView Map(FailedMessage message, IAsyncDocumentSession session)

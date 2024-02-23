@@ -24,7 +24,7 @@
         [HttpGet]
         public EditConfigurationModel Config() => GetEditConfiguration();
 
-        [Route("edit/{failedmessageid}")]
+        [Route("edit/{failedMessageId:required:minlength(1)}")]
         [HttpPost]
         public async Task<IActionResult> Edit(string failedMessageId, [FromBody] EditMessageModel edit)
         {
@@ -32,11 +32,6 @@
             {
                 Log.Info("Message edit-retry has not been enabled.");
                 return NotFound();
-            }
-
-            if (string.IsNullOrEmpty(failedMessageId))
-            {
-                return BadRequest();
             }
 
             var failedMessage = await store.ErrorBy(failedMessageId);

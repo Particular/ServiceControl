@@ -31,10 +31,10 @@
         Task<IDictionary<string, object>> ErrorsSummary();
 
         // GetErrorByIdController
-        Task<FailedMessage> ErrorBy(Guid failedMessageId);
-        Task<FailedMessageView> ErrorLastBy(Guid failedMessageId);
+        Task<FailedMessageView> ErrorLastBy(string failedMessageId);
 
         //EditFailedMessagesController
+        // GetErrorByIdController
         Task<FailedMessage> ErrorBy(string failedMessageId);
 
         //NotificationsController
