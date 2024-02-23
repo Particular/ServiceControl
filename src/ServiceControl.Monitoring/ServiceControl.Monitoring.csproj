@@ -32,6 +32,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="App.config" />
+    <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt;*-configuration.txt" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
   </ItemGroup>
 
