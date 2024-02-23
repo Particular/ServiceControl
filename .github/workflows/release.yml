@@ -35,7 +35,7 @@ jobs:
       - name: Restore
         run: dotnet restore src
       - name: Build
-        run: dotnet build src --configuration Release -graph --no-restore
+        run: dotnet build src --configuration Release -graph --no-restore --property:WindowsSelfContained=true
       - name: Build ServiceControl Management
         run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets
       - name: Sign NuGet packages
