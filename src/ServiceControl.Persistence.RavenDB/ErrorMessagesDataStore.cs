@@ -24,39 +24,30 @@
     using ServiceControl.Persistence.Infrastructure;
     using ServiceControl.Recoverability;
 
-    class ErrorMessagesDataStore : IErrorMessageDataStore
+    class ErrorMessagesDataStore(
+        IDocumentStore documentStore,
+        IBodyStorage bodyStorage,
+        ExpirationManager expirationManager)
+        : IErrorMessageDataStore
     {
-        readonly IDocumentStore documentStore;
-        readonly IBodyStorage bodyStorage;
-        readonly ExpirationManager expirationManager;
-
-        public ErrorMessagesDataStore(IDocumentStore documentStore, IBodyStorage bodyStorage, ExpirationManager expirationManager)
-        {
-            this.documentStore = documentStore;
-            this.bodyStorage = bodyStorage;
-            this.expirationManager = expirationManager;
-        }
-
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessages(
             PagingInfo pagingInfo,
             SortInfo sortInfo,
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Statistics(out var stats)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .OfType<FailedMessage>()
-                    .TransformToMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .IncludeSystemMessagesWhere(includeSystemMessages)
+                .Statistics(out var stats)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .OfType<FailedMessage>()
+                .TransformToMessageView();
 
-                var results = await query.ToListAsync();
+            var results = await query.ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForEndpoint(
@@ -66,22 +57,20 @@
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .IncludeSystemMessagesWhere(includeSystemMessages)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .Statistics(out var stats)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .OfType<FailedMessage>()
-                    .TransformToMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .IncludeSystemMessagesWhere(includeSystemMessages)
+                .Where(m => m.ReceivingEndpointName == endpointName)
+                .Statistics(out var stats)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .OfType<FailedMessage>()
+                .TransformToMessageView();
 
-                var results = await query.ToListAsync();
+            var results = await query.ToListAsync();
 
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> SearchEndpointMessages(
@@ -91,21 +80,19 @@
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchKeyword)
-                    .Where(m => m.ReceivingEndpointName == endpointName)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .OfType<FailedMessage>()
-                    .TransformToMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .Statistics(out var stats)
+                .Search(x => x.Query, searchKeyword)
+                .Where(m => m.ReceivingEndpointName == endpointName)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .OfType<FailedMessage>()
+                .TransformToMessageView();
 
-                var results = await query.ToListAsync();
+            var results = await query.ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesByConversation(
@@ -115,20 +102,18 @@
             bool includeSystemMessages
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Where(m => m.ConversationId == conversationId)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .OfType<FailedMessage>()
-                    .TransformToMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .Statistics(out var stats)
+                .Where(m => m.ConversationId == conversationId)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .OfType<FailedMessage>()
+                .TransformToMessageView();
 
-                var results = await query.ToListAsync();
+            var results = await query.ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryResult<IList<MessagesView>>> GetAllMessagesForSearch(
@@ -137,57 +122,49 @@
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
-                    .Statistics(out var stats)
-                    .Search(x => x.Query, searchTerms)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .OfType<FailedMessage>()
-                    .TransformToMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Query<MessagesViewIndex.SortAndFilterOptions, MessagesViewIndex>()
+                .Statistics(out var stats)
+                .Search(x => x.Query, searchTerms)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .OfType<FailedMessage>()
+                .TransformToMessageView();
 
-                var results = await query.ToListAsync();
+            var results = await query.ToListAsync();
 
-                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task FailedMessageMarkAsArchived(string failedMessageId)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+
+            if (failedMessage.Status != FailedMessageStatus.Archived)
             {
-                var failedMessage = await session.LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
+                failedMessage.Status = FailedMessageStatus.Archived;
 
-                if (failedMessage.Status != FailedMessageStatus.Archived)
-                {
-                    failedMessage.Status = FailedMessageStatus.Archived;
-
-                    expirationManager.EnableExpiration(session, failedMessage);
-                }
-
-                await session.SaveChangesAsync();
+                expirationManager.EnableExpiration(session, failedMessage);
             }
+
+            await session.SaveChangesAsync();
         }
 
         public async Task<FailedMessage[]> FailedMessagesFetch(Guid[] ids)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
-                var results = await session.LoadAsync<FailedMessage>(docIds);
-                return results.Values.Where(x => x != null).ToArray();
-            }
+            using var session = documentStore.OpenAsyncSession();
+            var docIds = ids.Select(g => FailedMessageIdGenerator.MakeDocumentId(g.ToString()));
+            var results = await session.LoadAsync<FailedMessage>(docIds);
+            return results.Values.Where(x => x != null).ToArray();
         }
 
         public async Task StoreFailedErrorImport(FailedErrorImport failure)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                await session.StoreAsync(failure);
+            using var session = documentStore.OpenAsyncSession();
+            await session.StoreAsync(failure);
 
-                await session.SaveChangesAsync();
-            }
+            await session.SaveChangesAsync();
         }
 
         public Task<IEditFailedMessagesManager> CreateEditFailedMessageManager()
@@ -199,35 +176,31 @@
 
         public async Task<QueryResult<FailureGroupView>> GetFailureGroupView(string groupId, string status, string modified)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var document = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
-                    .Statistics(out var stats)
-                    .WhereEquals(group => group.Id, groupId)
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .FirstOrDefaultAsync();
+            using var session = documentStore.OpenAsyncSession();
+            var document = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupView, ArchivedGroupsViewIndex>()
+                .Statistics(out var stats)
+                .WhereEquals(group => group.Id, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .FirstOrDefaultAsync();
 
-                return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<FailureGroupView>(document, stats.ToQueryStatsInfo());
         }
 
         public async Task<IList<FailureGroupView>> GetFailureGroupsByClassifier(string classifier)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var groups = session
-                    .Query<FailureGroupView, ArchivedGroupsViewIndex>()
-                    .Where(v => v.Type == classifier);
+            using var session = documentStore.OpenAsyncSession();
+            var groups = session
+                .Query<FailureGroupView, ArchivedGroupsViewIndex>()
+                .Where(v => v.Type == classifier);
 
-                var results = await groups
-                    .OrderByDescending(x => x.Last)
-                    .Take(200) // only show 200 groups
-                    .ToListAsync();
+            var results = await groups
+                .OrderByDescending(x => x.Last)
+                .Take(200) // only show 200 groups
+                .ToListAsync();
 
-                return results;
-            }
+            return results;
         }
 
         public async Task<QueryResult<IList<FailedMessageView>>> ErrorGet(
@@ -238,25 +211,23 @@
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .Statistics(out var stats)
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .FilterByQueueAddress(queueAddress)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .SelectFields<FailedMessage>()
-                    .ToQueryable()
-                    .TransformToFailedMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Advanced
+                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .Statistics(out var stats)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .FilterByQueueAddress(queueAddress)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
 
-                var results = await query
-                    .ToListAsync();
+            var results = await query
+                .ToListAsync();
 
-                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<QueryStatsInfo> ErrorsHead(
@@ -265,17 +236,15 @@
             string queueAddress
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var stats = await session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .FilterByQueueAddress(queueAddress)
-                    .GetQueryResultAsync();
+            using var session = documentStore.OpenAsyncSession();
+            var stats = await session.Advanced
+                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .FilterByQueueAddress(queueAddress)
+                .GetQueryResultAsync();
 
-                return stats.ToQueryStatsInfo();
-            }
+            return stats.ToQueryStatsInfo();
         }
 
         public async Task<QueryResult<IList<FailedMessageView>>> ErrorsByEndpointName(
@@ -286,60 +255,56 @@
             SortInfo sortInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .Statistics(out var stats)
-                    .FilterByStatusWhere(status)
-                    .AndAlso()
-                    .WhereEquals("ReceivingEndpointName", endpointName)
-                    .FilterByLastModifiedRange(modified)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .SelectFields<FailedMessage>()
-                    .ToQueryable()
-                    .TransformToFailedMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Advanced
+                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .Statistics(out var stats)
+                .FilterByStatusWhere(status)
+                .AndAlso()
+                .WhereEquals("ReceivingEndpointName", endpointName)
+                .FilterByLastModifiedRange(modified)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
 
-                var results = await query
-                    .ToListAsync();
+            var results = await query
+                .ToListAsync();
 
-                return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
-            }
+            return new QueryResult<IList<FailedMessageView>>(results, stats.ToQueryStatsInfo());
         }
 
         public async Task<IDictionary<string, object>> ErrorsSummary()
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
-                    .AggregateBy(new List<Facet>
+            using var session = documentStore.OpenAsyncSession();
+            var facetResults = await session.Query<FailedMessage, FailedMessageFacetsIndex>()
+                .AggregateBy(new List<Facet>
+                {
+                    new Facet
                     {
-                        new Facet
-                        {
-                            FieldName = "Name",
-                            DisplayFieldName = "Endpoints"
-                        },
-                        new Facet
-                        {
-                            FieldName = "Host",
-                            DisplayFieldName = "Hosts"
-                        },
-                        new Facet
-                        {
-                            FieldName = "MessageType",
-                            DisplayFieldName = "Message types"
-                        }
-                    }).ExecuteAsync();
+                        FieldName = "Name",
+                        DisplayFieldName = "Endpoints"
+                    },
+                    new Facet
+                    {
+                        FieldName = "Host",
+                        DisplayFieldName = "Hosts"
+                    },
+                    new Facet
+                    {
+                        FieldName = "MessageType",
+                        DisplayFieldName = "Message types"
+                    }
+                }).ExecuteAsync();
 
-                var results = facetResults
-                    .ToDictionary(
-                        x => x.Key,
-                        x => (object)x.Value
-                        );
+            var results = facetResults
+                .ToDictionary(
+                    x => x.Key,
+                    x => (object)x.Value
+                );
 
-                return results;
-            }
+            return results;
         }
 
         public Task<FailedMessage> ErrorBy(string failedMessageId) => ErrorByDocumentId(FailedMessageIdGenerator.MakeDocumentId(failedMessageId));
@@ -353,7 +318,7 @@
 
         public Task<INotificationsManager> CreateNotificationsManager()
         {
-            var session = documentStore.OpenAsyncSession();
+            using var session = documentStore.OpenAsyncSession();
             var manager = new NotificationsManager(session);
 
             return Task.FromResult<INotificationsManager>(manager);
@@ -422,26 +387,22 @@
 
         public async Task EditComment(string groupId, string comment)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var groupComment =
-                    await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId))
-                    ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
+            using var session = documentStore.OpenAsyncSession();
+            var groupComment =
+                await session.LoadAsync<GroupComment>(GroupComment.MakeId(groupId))
+                ?? new GroupComment { Id = GroupComment.MakeId(groupId) };
 
-                groupComment.Comment = comment;
+            groupComment.Comment = comment;
 
-                await session.StoreAsync(groupComment);
-                await session.SaveChangesAsync();
-            }
+            await session.StoreAsync(groupComment);
+            await session.SaveChangesAsync();
         }
 
         public async Task DeleteComment(string groupId)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                session.Delete(GroupComment.MakeId(groupId));
-                await session.SaveChangesAsync();
-            }
+            using var session = documentStore.OpenAsyncSession();
+            session.Delete(GroupComment.MakeId(groupId));
+            await session.SaveChangesAsync();
         }
 
         public async Task<QueryResult<IList<FailedMessageView>>> GetGroupErrors(
@@ -452,111 +413,99 @@
             PagingInfo pagingInfo
             )
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Advanced
-                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .Statistics(out var stats)
-                    .WhereEquals(view => view.FailureGroupId, groupId)
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .Sort(sortInfo)
-                    .Paging(pagingInfo)
-                    .SelectFields<FailedMessage>()
-                    .ToQueryable()
-                    .TransformToFailedMessageView();
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Advanced
+                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                .Statistics(out var stats)
+                .WhereEquals(view => view.FailureGroupId, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .Sort(sortInfo)
+                .Paging(pagingInfo)
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
 
-                var results = await query
-                    .ToListAsync();
+            var results = await query
+                .ToListAsync();
 
-                return results.ToQueryResult(stats);
-            }
+            return results.ToQueryResult(stats);
         }
 
         public async Task<QueryStatsInfo> GetGroupErrorsCount(string groupId, string status, string modified)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
-                    .WhereEquals(view => view.FailureGroupId, groupId)
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .GetQueryResultAsync();
+            using var session = documentStore.OpenAsyncSession();
+            var queryResult = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupMessageView, FailedMessages_ByGroup>()
+                .WhereEquals(view => view.FailureGroupId, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .GetQueryResultAsync();
 
-                return queryResult.ToQueryStatsInfo();
-            }
+            return queryResult.ToQueryStatsInfo();
         }
 
         public async Task<QueryResult<IList<FailureGroupView>>> GetGroup(string groupId, string status, string modified)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var queryResult = await session.Advanced
-                    .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
-                    .Statistics(out var stats)
-                    .WhereEquals(group => group.Id, groupId)
-                    .FilterByStatusWhere(status)
-                    .FilterByLastModifiedRange(modified)
-                    .ToListAsync();
+            using var session = documentStore.OpenAsyncSession();
+            var queryResult = await session.Advanced
+                .AsyncDocumentQuery<FailureGroupView, FailureGroupsViewIndex>()
+                .Statistics(out var stats)
+                .WhereEquals(group => group.Id, groupId)
+                .FilterByStatusWhere(status)
+                .FilterByLastModifiedRange(modified)
+                .ToListAsync();
 
-                return queryResult.ToQueryResult(stats);
-            }
+            return queryResult.ToQueryResult(stats);
         }
 
         public async Task<bool> MarkMessageAsResolved(string failedMessageId)
         {
             var documentId = FailedMessageIdGenerator.MakeDocumentId(failedMessageId);
 
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            session.Advanced.UseOptimisticConcurrency = true;
+
+            var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
+
+            if (failedMessage == null)
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var failedMessage = await session.LoadAsync<FailedMessage>(documentId);
-
-                if (failedMessage == null)
-                {
-                    return false;
-                }
-
-                failedMessage.Status = FailedMessageStatus.Resolved;
-
-                expirationManager.EnableExpiration(session, failedMessage);
-
-                await session.SaveChangesAsync();
-
-                return true;
+                return false;
             }
+
+            failedMessage.Status = FailedMessageStatus.Resolved;
+
+            expirationManager.EnableExpiration(session, failedMessage);
+
+            await session.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task ProcessPendingRetries(DateTime periodFrom, DateTime periodTo, string queueAddress, Func<string, Task> processCallback)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            var prequery = session.Advanced
+                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+                .AndAlso()
+                .WhereBetween("LastModified", periodFrom.Ticks, periodTo.Ticks);
+
+            if (!string.IsNullOrWhiteSpace(queueAddress))
             {
-                var prequery = session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
-                    .AndAlso()
-                    .WhereBetween("LastModified", periodFrom.Ticks, periodTo.Ticks);
+                prequery = prequery.AndAlso()
+                    .WhereEquals(options => options.QueueAddress, queueAddress);
+            }
 
-                if (!string.IsNullOrWhiteSpace(queueAddress))
-                {
-                    prequery = prequery.AndAlso()
-                        .WhereEquals(options => options.QueueAddress, queueAddress);
-                }
+            var query = prequery
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
 
-                var query = prequery
-                    .SelectFields<FailedMessage>()
-                    .ToQueryable()
-                    .TransformToFailedMessageView();
-
-                await using (var ie = await session.Advanced.StreamAsync(query))
-                {
-                    while (await ie.MoveNextAsync())
-                    {
-                        await processCallback(ie.Current.Document.Id);
-                    }
-                }
+            await using var ie = await session.Advanced.StreamAsync(query);
+            while (await ie.MoveNextAsync())
+            {
+                await processCallback(ie.Current.Document.Id);
             }
         }
 
@@ -612,25 +561,23 @@
         {
             Dictionary<string, FailedMessage> failedMessages;
 
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            session.Advanced.UseOptimisticConcurrency = true;
+
+            var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
+
+            failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
+
+            foreach (var failedMessage in failedMessages.Values)
             {
-                session.Advanced.UseOptimisticConcurrency = true;
-
-                var documentIds = failedMessageIds.Select(FailedMessageIdGenerator.MakeDocumentId);
-
-                failedMessages = await session.LoadAsync<FailedMessage>(documentIds);
-
-                foreach (var failedMessage in failedMessages.Values)
+                if (failedMessage.Status == FailedMessageStatus.Archived)
                 {
-                    if (failedMessage.Status == FailedMessageStatus.Archived)
-                    {
-                        failedMessage.Status = FailedMessageStatus.Unresolved;
-                        session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
-                    }
+                    failedMessage.Status = FailedMessageStatus.Unresolved;
+                    session.Advanced.GetMetadataFor(failedMessage).Remove(Constants.Documents.Metadata.Expires);
                 }
-
-                await session.SaveChangesAsync();
             }
+
+            await session.SaveChangesAsync();
 
             // Return the unique IDs - the dictionary keys are document ids with a prefix
             return failedMessages.Values.Select(x => x.UniqueMessageId).ToArray();
@@ -638,24 +585,22 @@
 
         public async Task RevertRetry(string messageUniqueId)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            var failedMessage = await session
+                .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
+            if (failedMessage != null)
             {
-                var failedMessage = await session
-                    .LoadAsync<FailedMessage>(FailedMessageIdGenerator.MakeDocumentId(messageUniqueId));
-                if (failedMessage != null)
-                {
-                    failedMessage.Status = FailedMessageStatus.Unresolved;
-                }
-
-                var failedMessageRetry = await session
-                    .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
-                if (failedMessageRetry != null)
-                {
-                    session.Delete(failedMessageRetry);
-                }
-
-                await session.SaveChangesAsync();
+                failedMessage.Status = FailedMessageStatus.Unresolved;
             }
+
+            var failedMessageRetry = await session
+                .LoadAsync<FailedMessageRetry>(FailedMessageRetry.MakeDocumentId(messageUniqueId));
+            if (failedMessageRetry != null)
+            {
+                session.Delete(failedMessageRetry);
+            }
+
+            await session.SaveChangesAsync();
         }
 
         public async Task RemoveFailedMessageRetryDocument(string uniqueMessageId)
@@ -669,27 +614,26 @@
         {
             var ids = new List<string>();
 
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                var query = session.Advanced
-                    .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
-                    .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
+            using var session = documentStore.OpenAsyncSession();
+            var query = session.Advanced
+                .AsyncDocumentQuery<FailedMessageViewIndex.SortAndFilterOptions, FailedMessageViewIndex>()
+                .WhereEquals("Status", (int)FailedMessageStatus.RetryIssued)
                 .AndAlso()
                 .WhereBetween(options => options.LastModified, from.Ticks, to.Ticks)
                 .AndAlso()
-                    .WhereEquals(o => o.QueueAddress, queueAddress)
-                    .SelectFields<FailedMessage>()
-                    .ToQueryable()
-                    .TransformToFailedMessageView();
+                .WhereEquals(o => o.QueueAddress, queueAddress)
+                .SelectFields<FailedMessage>()
+                .ToQueryable()
+                .TransformToFailedMessageView();
 
-                await using (var ie = await session.Advanced.StreamAsync(query))
+            await using (var ie = await session.Advanced.StreamAsync(query))
+            {
+                while (await ie.MoveNextAsync())
                 {
-                    while (await ie.MoveNextAsync())
-                    {
-                        ids.Add(ie.Current.Document.Id);
-                    }
+                    ids.Add(ie.Current.Document.Id);
                 }
             }
+
             return ids.ToArray();
         }
 
@@ -705,19 +649,17 @@
 
             if (result.HasResult)
             {
-                using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
+                await using (result.Stream) // Not strictly required for MemoryStream but might be different behavior in future .NET versions
                 {
                     // Unfortunately we can't use the buffer manager here yet because core doesn't allow to set the length property so usage of GetBuffer is not possible
                     // furthermore call ToArray would neglect many of the benefits of the recyclable stream
                     // RavenDB always returns a memory stream in ver. 3.5 so there is no need to pretend we need to do buffered reads since the memory is anyway fully allocated already
                     // this assumption might change when we stop supporting RavenDB 3.5 but right now this is the most memory efficient way to do things
                     // https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#getbuffer-and-toarray
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        await result.Stream.CopyToAsync(memoryStream);
+                    using var memoryStream = new MemoryStream();
+                    await result.Stream.CopyToAsync(memoryStream);
 
-                        body = memoryStream.ToArray();
-                    }
+                    body = memoryStream.ToArray();
                 }
             }
             return body;
@@ -725,27 +667,23 @@
 
         public async Task StoreEventLogItem(EventLogItem logItem)
         {
-            using (var session = documentStore.OpenAsyncSession())
-            {
-                await session.StoreAsync(logItem);
+            using var session = documentStore.OpenAsyncSession();
+            await session.StoreAsync(logItem);
 
-                expirationManager.EnableExpiration(session, logItem);
+            expirationManager.EnableExpiration(session, logItem);
 
-                await session.SaveChangesAsync();
-            }
+            await session.SaveChangesAsync();
         }
 
         public async Task StoreFailedMessagesForTestsOnly(params FailedMessage[] failedMessages)
         {
-            using (var session = documentStore.OpenAsyncSession())
+            using var session = documentStore.OpenAsyncSession();
+            foreach (var message in failedMessages)
             {
-                foreach (var message in failedMessages)
-                {
-                    await session.StoreAsync(message);
-                }
-
-                await session.SaveChangesAsync();
+                await session.StoreAsync(message);
             }
+
+            await session.SaveChangesAsync();
         }
 
         static readonly ILog Logger = LogManager.GetLogger<ErrorMessagesDataStore>();
