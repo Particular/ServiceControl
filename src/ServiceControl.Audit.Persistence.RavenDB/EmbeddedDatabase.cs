@@ -161,6 +161,7 @@
 
             var startupMessage = $@"
 -------------------------------------------------------------
+Database Path:                      {configuration.ServerConfiguration.DbPath}
 Database Size:                      {ByteSize.FromBytes(dataSize).ToString("#.##", CultureInfo.InvariantCulture)}
 Database Folder Size:               {ByteSize.FromBytes(folderSize).ToString("#.##", CultureInfo.InvariantCulture)}
 RavenDB Logging Level:              {configuration.ServerConfiguration.LogsMode}
