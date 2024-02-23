@@ -318,8 +318,8 @@
 
         public Task<INotificationsManager> CreateNotificationsManager()
         {
-            using var session = documentStore.OpenAsyncSession();
-            var manager = new NotificationsManager(session);
+            // the session manager manages the lifetime of the session
+            var manager = new NotificationsManager(documentStore.OpenAsyncSession());
 
             return Task.FromResult<INotificationsManager>(manager);
         }
