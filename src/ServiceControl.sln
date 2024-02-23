@@ -151,17 +151,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.AcceptanceTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LegacyArtifacts", "LegacyArtifacts\LegacyArtifacts.csproj", "{38147B68-13EE-48DC-BB38-4217889978AE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Particular.License", "Particular.License", "{0274815F-D3CD-41B6-B1F8-B1CA53FAA575}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Particular.ThroughputCollector", "Particular.ThroughputCollector", "{0274815F-D3CD-41B6-B1F8-B1CA53FAA575}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{628A483F-345F-4BE8-85F1-0AC0AE8DA241}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{9AD43637-E038-4C46-B509-43F45CD4BC31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector", "Licensing\Particular.ThroughputCollector.csproj", "{42A337B3-4D58-4F83-BADD-95F93A255A52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector", "Particular.ThroughputCollector\Particular.ThroughputCollector.csproj", "{42A337B3-4D58-4F83-BADD-95F93A255A52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence", "Throughput.Persistence\Throughput.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence", "Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence.RavenDb", "Throughput.Persistence.RavenDb\Throughput.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.RavenDb", "Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
