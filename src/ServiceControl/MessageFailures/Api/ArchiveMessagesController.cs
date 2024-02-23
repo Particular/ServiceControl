@@ -60,7 +60,7 @@ namespace ServiceControl.MessageFailures.Api
             return Accepted();
         }
 
-        [Route("archive/groups/id/{groupId}")]
+        [Route("archive/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
         {

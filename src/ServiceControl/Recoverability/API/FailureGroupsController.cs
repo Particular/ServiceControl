@@ -32,7 +32,7 @@
             return result;
         }
 
-        [Route("recoverability/groups/{groupid}/comment")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/comment")]
         [HttpPost]
         public async Task<IActionResult> EditComment(string groupId, string comment)
         {
@@ -41,7 +41,7 @@
             return Accepted();
         }
 
-        [Route("recoverability/groups/{groupid}/comment")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/comment")]
         [HttpDelete]
         public async Task<IActionResult> DeleteComment(string groupId)
         {
@@ -64,7 +64,7 @@
             return results;
         }
 
-        [Route("recoverability/groups/{groupId}/errors")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/errors")]
         [HttpGet]
         public async Task<IList<FailedMessageView>> GetGroupErrors(string groupId, [FromQuery] SortInfo sortInfo, [FromQuery] PagingInfo pagingInfo, string status = default, string modified = default)
         {
@@ -75,7 +75,7 @@
         }
 
 
-        [Route("recoverability/groups/{groupId}/errors")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/errors")]
         [HttpHead]
         public async Task GetGroupErrorsCount(string groupId, string status = default, string modified = default)
         {
@@ -95,7 +95,7 @@
             return retryHistory;
         }
 
-        [Route("recoverability/groups/id/{groupId}")]
+        [Route("recoverability/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
         public async Task<FailureGroupView> GetGroup(string groupId, string status = default, string modified = default)
         {
