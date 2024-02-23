@@ -1,6 +1,5 @@
 namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
@@ -46,16 +45,11 @@ namespace ServiceControl.MessageFailures.Api
             return Ok(results);
         }
 
-        [Route("errors/{messageId}/archive")]
+        [Route("errors/{messageId:required:minlength(1)}/archive")]
         [HttpPost]
         [HttpPatch]
         public async Task<IActionResult> Archive(string messageId)
         {
-            if (string.IsNullOrEmpty(messageId))
-            {
-                return BadRequest();
-            }
-
             await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = messageId);
 
             return Accepted();
