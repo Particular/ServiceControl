@@ -64,16 +64,10 @@
             return Accepted();
         }
 
-        [Route("errors/queues/{queueaddress}/retry")]
+        [Route("errors/queues/{queueaddress:required}/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(string queueAddress)
         {
-            if (string.IsNullOrWhiteSpace(queueAddress))
-            {
-                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress") which might be returning a complex object
-                return BadRequest("queueaddress URL parameter must be provided");
-            }
-
             await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
             {
                 m.QueueAddress = queueAddress;
