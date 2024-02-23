@@ -4,6 +4,7 @@ namespace ServiceControl.MessageFailures.Api
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -89,6 +90,7 @@ namespace ServiceControl.MessageFailures.Api
         public class QueueModel
         {
             [JsonPropertyName("queueaddress")]
+            [MinLength(1)]
             public required string QueueAddress { get; set; }
 
             [JsonPropertyName("from")]

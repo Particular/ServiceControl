@@ -9,7 +9,7 @@
     [Route("api")]
     public class FailureGroupsArchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
     {
-        [Route("recoverability/groups/{groupId:required}/errors/archive")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/archive")]
         [HttpPost]
         public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {

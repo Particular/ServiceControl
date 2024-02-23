@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.MessageFailures.Api
 {
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text.Json.Serialization;
     using System.Threading.Tasks;
@@ -44,6 +45,7 @@
         public class PendingRetryRequest
         {
             [JsonPropertyName("queueaddress")]
+            [MinLength(1)]
             public required string QueueAddress { get; set; }
 
             [JsonPropertyName("from")]
