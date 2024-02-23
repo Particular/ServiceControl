@@ -17,11 +17,12 @@ namespace ServiceControl.MessageFailures.Api
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<IActionResult> ArchiveBatch(List<string> messageIds)
+        public async Task<IActionResult> ArchiveBatch(string[] messageIds)
         {
             if (messageIds.Any(string.IsNullOrEmpty))
             {
-                return BadRequest();
+                ModelState.AddModelError(nameof(messageIds), "Cannot contain null or empty message IDs.");
+                return UnprocessableEntity(ModelState);
             }
 
             foreach (var id in messageIds)

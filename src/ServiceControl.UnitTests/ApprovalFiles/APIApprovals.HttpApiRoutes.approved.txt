@@ -26,6 +26,7 @@ POST /errors/{failedMessageId:required:minlength(1)}/retry => ServiceControl.Mes
 PATCH /errors/{from}...{to}/unarchive => ServiceControl.MessageFailures.Api.UnArchiveMessagesController:Unarchive(String from, String to)
 PATCH/POST /errors/{messageId}/archive => ServiceControl.MessageFailures.Api.ArchiveMessagesController:Archive(String messageId)
 PATCH/POST /errors/archive => ServiceControl.MessageFailures.Api.ArchiveMessagesController:ArchiveBatch(List<String> messageIds)
+PATCH/POST /errors/archive => ServiceControl.MessageFailures.Api.ArchiveMessagesController:ArchiveBatch(String[] messageIds)
 GET /errors/groups/{classifier?} => ServiceControl.MessageFailures.Api.ArchiveMessagesController:GetArchiveMessageGroups(String classifier)
 GET /errors/last/{failedMessageId:required:minlength(1)} => ServiceControl.MessageFailures.Api.GetErrorByIdController:ErrorLastBy(String failedMessageId)
 POST /errors/queues/{queueAddress:required:minlength(1)}/retry => ServiceControl.MessageFailures.Api.RetryMessagesController:RetryAllBy(String queueAddress)
