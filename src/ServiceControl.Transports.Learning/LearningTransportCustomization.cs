@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Transports.Learning
 {
     using System;
+    using System.IO;
     using System.Linq;
     using LearningTransport;
     using NServiceBus;
@@ -22,13 +23,37 @@
         {
             var transport = new LearningTransport
             {
-                StorageDirectory = Environment.ExpandEnvironmentVariables(transportSettings.ConnectionString),
+                StorageDirectory = FindStoragePath(transportSettings.ConnectionString),
                 RestrictPayloadSize = false,
             };
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
+        }
+
+        internal static string FindStoragePath(string connectionString)
+        {
+            var storagePath = Environment.ExpandEnvironmentVariables(connectionString);
+
+            if (!string.IsNullOrWhiteSpace(storagePath))
+            {
+                return storagePath;
+            }
+
+            var directory = AppDomain.CurrentDomain.BaseDirectory;
+
+            while (true)
+            {
+                if (Directory.EnumerateFiles(directory).Any(file => file.EndsWith(".sln")))
+                {
+                    return Path.Combine(directory, ".learningtransport");
+                }
+
+                var parent = Directory.GetParent(directory) ?? throw new Exception($"Unable to determine the storage directory path for the learning transport due to the absence of a solution file. Specify the path explicitly in the app.config connection string.");
+
+                directory = parent.FullName;
+            }
         }
     }
 }

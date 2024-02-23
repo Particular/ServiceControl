@@ -2,7 +2,7 @@ namespace ServiceControl.Persistence
 {
     using System;
     using System.IO;
-    using System.Linq;
+    using System.Reflection;
     using Configuration;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -16,7 +16,7 @@ namespace ServiceControl.Persistence
             settings.PersisterSpecificSettings ??= persistenceConfiguration.CreateSettings(Settings.SettingsRootNamespace);
 
             settings.PersisterSpecificSettings.MaintenanceMode = maintenanceMode;
-            settings.PersisterSpecificSettings.DatabasePath = BuildDataBasePath(settings);
+            settings.PersisterSpecificSettings.DatabasePath = BuildDataBasePath();
 
             var persistence = persistenceConfiguration.Create(settings.PersisterSpecificSettings);
             return persistence;
@@ -37,30 +37,14 @@ namespace ServiceControl.Persistence
             }
         }
 
-        static string BuildDataBasePath(Settings settings)
+        static string BuildDataBasePath()
         {
-            var host = settings.Hostname;
-            if (host == "*")
-            {
-                host = "%";
-            }
-
-            var dbFolder = $"{host}-{settings.Port}";
-
-            if (!string.IsNullOrEmpty(settings.VirtualDirectory))
-            {
-                dbFolder += $"-{SanitiseFolderName(settings.VirtualDirectory)}";
-            }
-
-            var defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Particular", "ServiceControl", dbFolder);
+            // SC installer always populates DBPath in app.config on installation/change/upgrade so this will only be used when
+            // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var defaultPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), ".db");
 
             return SettingsReader.Read(Settings.SettingsRootNamespace, "DbPath", defaultPath);
         }
-
-        static string SanitiseFolderName(string folderName)
-        {
-            return Path.GetInvalidPathChars().Aggregate(folderName, (current, c) => current.Replace(c, '-'));
-        }
-
     }
 }

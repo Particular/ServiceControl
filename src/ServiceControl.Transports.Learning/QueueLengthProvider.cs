@@ -8,12 +8,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
+    using ServiceControl.Transports.Learning;
 
     class QueueLengthProvider : IProvideQueueLength
     {
         public void Initialize(string connectionString, Action<QueueLengthEntry[], EndpointToQueueMapping> store)
         {
-            rootFolder = Environment.ExpandEnvironmentVariables(connectionString);
+            rootFolder = LearningTransportCustomization.FindStoragePath(connectionString);
             this.store = store;
         }
 

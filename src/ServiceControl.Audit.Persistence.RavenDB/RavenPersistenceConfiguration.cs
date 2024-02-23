@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
     using NServiceBus.Logging;
 
     public class RavenPersistenceConfiguration : IPersistenceConfiguration
@@ -44,11 +46,23 @@
 
             ServerConfiguration serverConfiguration;
 
-            if (settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out var dbPath))
+            if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
             {
-                if (settings.PersisterSpecificSettings.ContainsKey(ConnectionStringKey))
+                if (settings.PersisterSpecificSettings.ContainsKey(DatabasePathKey))
                 {
-                    throw new InvalidOperationException($"{DatabasePathKey} and {ConnectionStringKey} cannot be specified at the same time.");
+                    throw new InvalidOperationException($"{ConnectionStringKey} and {DatabasePathKey} cannot be specified at the same time.");
+                }
+
+                serverConfiguration = new ServerConfiguration(connectionString);
+            }
+            else
+            {
+                if (!settings.PersisterSpecificSettings.TryGetValue(DatabasePathKey, out var dbPath))
+                {
+                    // SC installer always populates DBPath in app.config on installation/change/upgrade so this will only be used when
+                    // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+                    var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                    dbPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), ".db");
                 }
 
                 if (!settings.PersisterSpecificSettings.TryGetValue(DatabaseMaintenancePortKey, out var databaseMaintenancePortString))
@@ -63,10 +77,7 @@
 
                 var serverUrl = $"http://localhost:{databaseMaintenancePort}";
 
-                if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
-                {
-                    throw new InvalidOperationException($"{LogPathKey}  must be specified when using embedded server.");
-                }
+                var logPath = GetLogPath(settings);
 
                 var logsMode = "Operations";
 
@@ -76,14 +87,6 @@
                 }
 
                 serverConfiguration = new ServerConfiguration(dbPath, serverUrl, logPath, logsMode);
-            }
-            else if (settings.PersisterSpecificSettings.TryGetValue(ConnectionStringKey, out var connectionString))
-            {
-                serverConfiguration = new ServerConfiguration(connectionString);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Either {DatabasePathKey} or {ConnectionStringKey} must be specified.");
             }
 
             if (!settings.PersisterSpecificSettings.TryGetValue(MinimumStorageLeftRequiredForIngestionKey, out var minimumStorageLeftRequiredForIngestionKey))
@@ -130,6 +133,19 @@
             }
 
             return expirationProcessTimerInSeconds;
+        }
+
+        static string GetLogPath(PersistenceSettings settings)
+        {
+            if (!settings.PersisterSpecificSettings.TryGetValue(LogPathKey, out var logPath))
+            {
+                // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
+                // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                logPath = Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
+            }
+
+            return logPath;
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(RavenPersistenceConfiguration));

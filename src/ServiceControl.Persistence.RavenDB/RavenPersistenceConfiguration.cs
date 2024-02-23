@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.Persistence.RavenDB
 {
     using System;
+    using System.IO;
+    using System.Reflection;
     using Configuration;
     using ServiceControl.Operations;
 
@@ -42,7 +44,7 @@
                 AuditRetentionPeriod = SettingsReader.Read(settingsRootNamespace, AuditRetentionPeriodKey, TimeSpan.Zero),
                 ExternalIntegrationsDispatchingBatchSize = SettingsReader.Read(settingsRootNamespace, ExternalIntegrationsDispatchingBatchSizeKey, 100),
                 MaintenanceMode = SettingsReader.Read(settingsRootNamespace, MaintenanceModeKey, false),
-                LogPath = GetRequiredSetting<string>(settingsRootNamespace, RavenBootstrapper.LogsPathKey),
+                LogPath = SettingsReader.Read(settingsRootNamespace, RavenBootstrapper.LogsPathKey, DefaultLogLocation()),
                 LogsMode = logsMode,
                 EnableFullTextSearchOnBodies = SettingsReader.Read(settingsRootNamespace, "EnableFullTextSearchOnBodies", true)
             };
@@ -50,6 +52,14 @@
             CheckFreeDiskSpace.Validate(settings);
             CheckMinimumStorageRequiredForIngestion.Validate(settings);
             return settings;
+        }
+
+        // SC installer always populates LogPath in app.config on installation/change/upgrade so this will only be used when
+        // debugging or if the entry is removed manually. In those circumstances default to the folder containing the exe
+        static string DefaultLogLocation()
+        {
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            return Path.Combine(Path.GetDirectoryName(assemblyLocation), ".logs");
         }
 
         public IPersistence Create(PersistenceSettings settings)
