@@ -74,12 +74,9 @@ namespace Particular.ServiceControl
 
             services.AddHttpLogging(options =>
             {
-                // TODO Do we need to expose the host?
-                // we could also include the time it took to process the request
-                options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode;
+                options.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.RequestMethod | HttpLoggingFields.ResponseStatusCode | HttpLoggingFields.Duration;
             });
 
-            // TODO Maybe after we have touched scatter gather this isn't required anymore?
             services.AddHttpContextAccessor();
 
             services.AddHttpForwarding();
@@ -92,8 +89,7 @@ namespace Particular.ServiceControl
             // directly and to make things more complex of course the order of registration still matters ;)
             services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-            // TODO: rename these to be Add* instead of Use*
-            hostBuilder.UseLicenseCheck();
+            hostBuilder.AddLicenseCheck();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
             hostBuilder.Host.UseNServiceBus(_ =>
@@ -104,16 +100,14 @@ namespace Particular.ServiceControl
 
             if (!settings.DisableExternalIntegrationsPublishing)
             {
-                // TODO: rename these to be Add* instead of Use*
-                hostBuilder.UseExternalIntegrationEvents();
+                hostBuilder.AddExternalIntegrationEvents();
             }
 
             hostBuilder.AddWebApi([Assembly.GetExecutingAssembly()], settings.RootUrl);
 
-            // TODO: rename these to be Add* instead of Use*
-            hostBuilder.UseServicePulseSignalRNotifier();
-            hostBuilder.UseEmailNotifications();
-            hostBuilder.UseAsyncTimer();
+            hostBuilder.AddServicePulseSignalRNotifier();
+            hostBuilder.AddEmailNotifications();
+            hostBuilder.AddAsyncTimer();
 
             if (!settings.DisableHealthChecks)
             {

@@ -16,7 +16,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         public async Task<IList<MessagesView>> Get([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string conversationId)
         {
             var result = await dataStore.QueryMessagesByConversationId(conversationId, pagingInfo, sortInfo);
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
     }

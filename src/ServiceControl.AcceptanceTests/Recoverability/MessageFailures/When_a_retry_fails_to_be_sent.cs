@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -147,21 +148,18 @@
         {
         }
 
-        public class FakeReturnToSender : ReturnToSender
+        public class FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext)
+            : ReturnToSender(errorMessageStore)
         {
-            public FakeReturnToSender(IErrorMessageDataStore errorMessageStore, MyContext myContext) : base(errorMessageStore) => this.myContext = myContext;
-
-            public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
+            public override Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
             {
                 if (message.Headers[Headers.MessageId] == myContext.DecommissionedEndpointMessageId)
                 {
                     throw new Exception("This endpoint is unreachable");
                 }
 
-                return base.HandleMessage(message, sender, "error");
+                return base.HandleMessage(message, sender, "error", cancellationToken);
             }
-
-            readonly MyContext myContext;
         }
     }
 }

@@ -47,7 +47,6 @@ namespace ServiceControl.Recoverability
 
         bool IsCounting => targetMessageCount.HasValue;
 
-        // TODO Forward cancellation token
         async Task Handle(MessageContext message, CancellationToken cancellationToken)
         {
             if (Log.IsDebugEnabled)
@@ -58,7 +57,7 @@ namespace ServiceControl.Recoverability
 
             if (shouldProcess(message))
             {
-                await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress);
+                await returnToSender.HandleMessage(message, messageDispatcher, errorQueueTransportAddress, cancellationToken);
                 IncrementCounterOrProlongTimer();
             }
             else

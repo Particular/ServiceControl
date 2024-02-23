@@ -7,7 +7,6 @@
     {
         public static void Create()
         {
-            // TODO: Figure a way to achieve something but in the linux way
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !EventLog.SourceExists(SourceName))
             {
                 EventLog.CreateEventSource(SourceName, null);

@@ -17,7 +17,7 @@
         {
             var result = await store.GetAddresses(pagingInfo);
 
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
 
             return result.Results;
         }
@@ -33,7 +33,7 @@
 
             var result = await store.GetAddressesBySearchTerm(search, pagingInfo);
 
-            Response.WithQueryResults(result.QueryStats, pagingInfo);
+            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
 
             return Ok(result.Results);
         }

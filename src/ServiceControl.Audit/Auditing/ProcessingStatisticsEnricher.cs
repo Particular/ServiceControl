@@ -14,23 +14,23 @@
 
             if (headers.TryGetValue(Headers.TimeSent, out var timeSentValue))
             {
-                startTime = DateTimeExtensions.ToUtcDateTime(timeSentValue);
+                startTime = DateTimeOffsetHelper.ToDateTimeOffset(timeSentValue).UtcDateTime;
                 metadata.Add("TimeSent", startTime);
             }
 
             if (headers.TryGetValue(Headers.DeliverAt, out var deliverAtValue))
             {
-                startTime = DateTimeExtensions.ToUtcDateTime(deliverAtValue);
+                startTime = DateTimeOffsetHelper.ToDateTimeOffset(deliverAtValue).UtcDateTime;
             }
 
             if (headers.TryGetValue(Headers.ProcessingStarted, out var processingStartedValue))
             {
-                processingStarted = DateTimeExtensions.ToUtcDateTime(processingStartedValue);
+                processingStarted = DateTimeOffsetHelper.ToDateTimeOffset(processingStartedValue).UtcDateTime;
             }
 
             if (headers.TryGetValue(Headers.ProcessingEnded, out var processingEndedValue))
             {
-                processingEnded = DateTimeExtensions.ToUtcDateTime(processingEndedValue);
+                processingEnded = DateTimeOffsetHelper.ToDateTimeOffset(processingEndedValue).UtcDateTime;
             }
 
             var criticalTime = TimeSpan.Zero;

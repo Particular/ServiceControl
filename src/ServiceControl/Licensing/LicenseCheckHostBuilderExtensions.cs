@@ -5,7 +5,7 @@
 
     static class LicenseCheckHostBuilderExtensions
     {
-        public static IHostApplicationBuilder UseLicenseCheck(this IHostApplicationBuilder hostBuilder)
+        public static IHostApplicationBuilder AddLicenseCheck(this IHostApplicationBuilder hostBuilder)
         {
             var services = hostBuilder.Services;
             services.AddSingleton<ActiveLicense>();

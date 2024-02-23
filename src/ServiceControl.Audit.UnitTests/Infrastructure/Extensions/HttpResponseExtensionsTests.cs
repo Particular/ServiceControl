@@ -1,13 +1,13 @@
-﻿namespace ServiceControl.UnitTests.Infrastructure.Extensions
+﻿namespace ServiceControl.Audit.UnitTests.Infrastructure.Extensions
 {
     using System;
     using System.Linq;
+    using Audit.Infrastructure;
+    using Audit.Infrastructure.WebApi;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Primitives;
     using NUnit.Framework;
-    using Persistence.Infrastructure;
-    using ServiceControl.Infrastructure.WebApi;
 
     [TestFixture]
     public class HttpResponseExtensionsTests

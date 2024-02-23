@@ -79,9 +79,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
                 AddLink(links, pageInfo.Page + 1, "next", path, originalQueryCollection);
             }
 
-            // TODO can this be new StringValues(links.ToArray())) ? we don't know what the separator will be
-            // https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Primitives/src/StringValues.cs#L235
-            response.WithHeader("Link", new StringValues(string.Join(", ", links)));
+            response.WithHeader("Link", new StringValues(links.ToArray()));
         }
 
         static void AddLink(ICollection<string> links, int page, string rel, string uriPath, Dictionary<string, StringValues> queryParams)
@@ -91,8 +89,7 @@ namespace ServiceControl.Audit.Infrastructure.WebApi
             links.Add($"<{pathWithQuery}>; rel=\"{rel}\"");
         }
 
-        // TODO This name might need to change to better reflect what it does
-        public static void WithQueryResults(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
+        public static void WithQueryStatsAndPagingInfo(this HttpResponse response, QueryStatsInfo queryStats, PagingInfo pagingInfo)
         {
             response.WithPagingLinksAndTotalCount(pagingInfo, queryStats.TotalCount, queryStats.HighestTotalCountOfAllTheInstances);
             response.WithDeterministicEtag(queryStats.ETag);

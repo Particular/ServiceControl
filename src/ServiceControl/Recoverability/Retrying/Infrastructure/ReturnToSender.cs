@@ -2,20 +2,16 @@ namespace ServiceControl.Recoverability
 {
     using System;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using NServiceBus.Logging;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using ServiceControl.Persistence;
 
-    class ReturnToSender
+    class ReturnToSender(IErrorMessageDataStore errorMessageStore)
     {
-        public ReturnToSender(IErrorMessageDataStore errorMessageStore)
-        {
-            this.errorMessageStore = errorMessageStore;
-        }
-
-        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress)
+        public virtual async Task HandleMessage(MessageContext message, IMessageDispatcher sender, string errorQueueTransportAddress, CancellationToken cancellationToken = default)
         {
             var outgoingHeaders = new Dictionary<string, string>(message.Headers);
 
@@ -62,7 +58,7 @@ namespace ServiceControl.Recoverability
 
             var transportOp = new TransportOperation(outgoingMessage, new UnicastAddressTag(retryTo));
 
-            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction);
+            await sender.Dispatch(new TransportOperations(transportOp), message.TransportTransaction, cancellationToken);
 
             if (Log.IsDebugEnabled)
             {
@@ -89,6 +85,5 @@ namespace ServiceControl.Recoverability
 
         static readonly byte[] EmptyBody = Array.Empty<byte>();
         static readonly ILog Log = LogManager.GetLogger(typeof(ReturnToSender));
-        readonly IErrorMessageDataStore errorMessageStore;
     }
 }
