@@ -10,7 +10,7 @@
     public class GetMessagesByConversationController(MessagesByConversationApi byConversationApi)
         : ControllerBase
     {
-        [Route("conversations/{conversationid}")]
+        [Route("conversations/{conversationId:required:minlength(1)}")]
         [HttpGet]
         public Task<IList<MessagesView>> Messages([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo,
             [FromQuery(Name = "include_system_messages")] bool includeSystemMessages, string conversationId) =>
