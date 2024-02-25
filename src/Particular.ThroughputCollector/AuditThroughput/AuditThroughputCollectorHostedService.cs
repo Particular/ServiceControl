@@ -18,7 +18,7 @@
         public Task StartAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
-            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken).ConfigureAwait(false), null, TimeSpan.Zero, TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
+            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
             return Task.CompletedTask;
         }
 
