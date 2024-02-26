@@ -1,0 +1,7 @@
+﻿{
+  "Version": "1.0.0",
+  "Name": "InMemory",
+  "DisplayName": "In-memory",
+  "Description": "RavenDB ThroughputCollector persister",
+  "TypeName": "Particular.ThroughputCollector.Persistence.RavenDb.InMemoryPersistenceConfiguration, Particular.ThroughputCollector.Persistence.RavenDb"
+}
