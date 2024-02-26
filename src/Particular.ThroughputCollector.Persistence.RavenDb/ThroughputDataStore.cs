@@ -1,45 +1,27 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
-//using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-//using Auditing.MessagesView;
-//using Extensions;
-//using Indexes;
-//using Monitoring;
-//using Raven.Client.Documents;
-//using ServiceControl.Audit.Auditing;
-//using ServiceControl.Audit.Infrastructure;
-//using ServiceControl.Audit.Monitoring;
-//using ServiceControl.Audit.Persistence.Infrastructure;
-//using ServiceControl.SagaAudit;
-//using Transformers;
+using Raven.Client.Documents;
 
-class ThroughputDataStore(IRavenSessionProvider sessionProvider
-    //, DatabaseConfiguration databaseConfiguration
-    ) : IThroughputDataStore
+class ThroughputDataStore : IThroughputDataStore
 {
-    public async Task<QueryResult<IList<KnownEndpoint>>> QueryKnownEndpoints()
+    public ThroughputDataStore(IDocumentStore store)
     {
-        using var session = sessionProvider.OpenSession();
-
-        var endpoints = await session.Advanced.LoadStartingWithAsync<KnownEndpoint>(KnownEndpoint.CollectionName, pageSize: 1024).ConfigureAwait(false);
-
-        var knownEndpoints = endpoints
-            .Select(x => new KnownEndpoint
-            {
-                //Id = DeterministicGuid.MakeId(x.Name, x.HostId.ToString()),
-                //EndpointDetails = new EndpointDetails
-                //{
-                //    Host = x.Host,
-                //    HostId = x.HostId,
-                //    Name = x.Name
-                //},
-                //HostDisplayName = x.Host
-            })
-            .ToList();
-
-        return new QueryResult<IList<KnownEndpoint>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
+        this.store = store;
     }
+
+    public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
+    {
+        using var session = store.OpenAsyncSession();
+
+        var endpoints = await session.Query<Endpoint, EndpointIndex>().ToListAsync().ConfigureAwait(false);
+
+        return endpoints.ToArray();
+    }
+
+    public Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue) => throw new NotImplementedException();
+    public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
+
+    readonly IDocumentStore store;
 }
