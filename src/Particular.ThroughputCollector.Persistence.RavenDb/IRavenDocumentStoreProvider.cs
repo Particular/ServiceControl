@@ -2,7 +2,7 @@
 
 using Raven.Client.Documents;
 
-interface IRavenDocumentStoreProvider
+public interface IRavenDocumentStoreProvider
 {
     IDocumentStore GetDocumentStore();
 }
