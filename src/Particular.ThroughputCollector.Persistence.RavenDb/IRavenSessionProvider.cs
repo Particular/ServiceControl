@@ -2,7 +2,7 @@
 
 using Raven.Client.Documents.Session;
 
-interface IRavenSessionProvider
+public interface IRavenSessionProvider
 {
     IAsyncDocumentSession OpenSession();
 }
