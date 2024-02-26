@@ -20,10 +20,10 @@
     <PackageReference Include="Particular.Approvals" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <Compile Include="..Particular.ThroughputCollector.Persistence.Tests\*.cs" LinkBase="Shared" />
     <Compile Remove="..Particular.ThroughputCollector.Persistence.Tests\PersistenceManifestLibraryTests.cs" />
     <Compile Remove="..\Particular.ThroughputCollector.Persistence.Tests\TestsFilter.cs" />
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>
