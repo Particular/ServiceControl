@@ -1,8 +1,7 @@
-﻿namespace ServiceControl.Audit
+﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Persistence.Tests;
 
     [SetUpFixture]
     public class StopSharedDatabase
