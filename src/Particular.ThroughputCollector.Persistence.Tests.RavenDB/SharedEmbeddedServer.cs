@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
     using System;
     using System.IO;
@@ -6,7 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Persistence.RavenDB;
+    using Particular.ThroughputCollector.Persistence.RavenDb;
     using Raven.Client.ServerWide.Operations;
     using TestHelper;
 

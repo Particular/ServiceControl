@@ -1,55 +1,49 @@
-﻿namespace ServiceControl.Audit.Persistence.Tests
+﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
     using System;
-    using System.IO;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using NUnit.Framework;
+    using Particular.ThroughputCollector.Persistence;
+    using Particular.ThroughputCollector.Persistence.RavenDb;
     using Raven.Client.Documents;
-    using Raven.Client.Documents.BulkInsert;
     using Raven.Client.ServerWide.Operations;
-    using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Persistence.RavenDB;
-    using UnitOfWork;
 
     partial class PersistenceTestsConfiguration
     {
-        public IAuditDataStore AuditDataStore { get; protected set; }
-        public IFailedAuditStorage FailedAuditStorage { get; protected set; }
-        public IBodyStorage BodyStorage { get; set; }
-        public IAuditIngestionUnitOfWorkFactory AuditIngestionUnitOfWorkFactory { get; protected set; }
+        public IThroughputDataStore ThroughputDataStore { get; protected set; }
 
         public async Task Configure(Action<PersistenceSettings> setSettings)
         {
             var config = new RavenPersistenceConfiguration();
             var serviceCollection = new ServiceCollection();
 
-            var settings = new PersistenceSettings(TimeSpan.FromHours(1), true, 100000);
+            var settings = new PersistenceSettings();
 
             setSettings(settings);
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
-            {
-                var instance = await SharedEmbeddedServer.GetInstance();
+            databaseName = string.Empty;
+            //if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.DatabasePathKey))
+            //{
+            //    var instance = await SharedEmbeddedServer.GetInstance();
 
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
-            }
+            //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.ConnectionStringKey] = instance.ServerUrl;
+            //}
 
-            if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
-            {
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
-            }
+            //if (!settings.PersisterSpecificSettings.ContainsKey(RavenPersistenceConfiguration.LogPathKey))
+            //{
+            //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.LogPathKey] = Path.Combine(TestContext.CurrentContext.WorkDirectory, "Logs");
+            //}
 
-            if (settings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
-            {
-                databaseName = configuredDatabaseName;
-            }
-            else
-            {
-                databaseName = Guid.NewGuid().ToString();
+            //if (settings.PersisterSpecificSettings.TryGetValue(RavenPersistenceConfiguration.DatabaseNameKey, out var configuredDatabaseName))
+            //{
+            //    databaseName = configuredDatabaseName;
+            //}
+            //else
+            //{
+            //    databaseName = Guid.NewGuid().ToString();
 
-                settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
-            }
+            //    settings.PersisterSpecificSettings[RavenPersistenceConfiguration.DatabaseNameKey] = databaseName;
+            //}
 
             var persistence = config.Create(settings);
             await persistence.CreateInstaller().Install();
@@ -58,18 +52,14 @@
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            AuditDataStore = serviceProvider.GetRequiredService<IAuditDataStore>();
-            FailedAuditStorage = serviceProvider.GetRequiredService<IFailedAuditStorage>();
+            ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
 
             var documentStoreProvider = serviceProvider.GetRequiredService<IRavenDocumentStoreProvider>();
             DocumentStore = documentStoreProvider.GetDocumentStore();
-            var bulkInsert = DocumentStore.BulkInsert(
-                options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
+            //var bulkInsert = DocumentStore.BulkInsert(
+            //    options: new BulkInsertOptions { SkipOverwriteIfUnchanged = true, });
 
-            var sessionProvider = serviceProvider.GetRequiredService<IRavenSessionProvider>();
-
-            BodyStorage = new RavenAttachmentsBodyStorage(sessionProvider, bulkInsert, settings.MaxBodySizeToStore);
-            AuditIngestionUnitOfWorkFactory = serviceProvider.GetRequiredService<IAuditIngestionUnitOfWorkFactory>();
+            //var sessionProvider = serviceProvider.GetRequiredService<IRavenSessionProvider>();
         }
 
         public Task CompleteDBOperation()
