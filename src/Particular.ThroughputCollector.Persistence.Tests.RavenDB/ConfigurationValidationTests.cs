@@ -1,4 +1,4 @@
-﻿namespace Particular.ThroughputCollector.UnitTests
+﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
     //using System;
     //using NUnit.Framework;
