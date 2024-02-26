@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SpDropDown, { type Item } from "@/views/throughputreport/sp-DropDown.vue";
+import DropDown, { type Item } from "@/components/DropDown.vue";
 import { computed, reactive } from "vue";
 import { data } from "@/views/throughputreport/randomData";
 
@@ -128,10 +128,10 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
         </div>
       </div>
       <div class="col">
-        <sp-drop-down label="Display" :select-item="displayFilterData.find((v) => v.value === filterData.display)" :callback="displayFilterChanged" :items="displayFilterData" />
+        <drop-down label="Display" :select-item="displayFilterData.find((v) => v.value === filterData.display)" :callback="displayFilterChanged" :items="displayFilterData" />
       </div>
       <div class="col">
-        <sp-drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
+        <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
     </div>
     <div class="row results">
