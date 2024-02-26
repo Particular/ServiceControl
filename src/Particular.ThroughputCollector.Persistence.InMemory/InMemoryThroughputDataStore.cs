@@ -19,15 +19,15 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         return new QueryResult<IList<KnownEndpoint>>(knownEndpoints, new QueryStatsInfo(string.Empty, knownEndpoints.Count));
     }
 
-    object TryGet(Dictionary<string, object> metadata, string key)
-    {
-        if (metadata.TryGetValue(key, out var value))
-        {
-            return value;
-        }
+    //object TryGet(Dictionary<string, object> metadata, string key)
+    //{
+    //    if (metadata.TryGetValue(key, out var value))
+    //    {
+    //        return value;
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
     public Task Setup() => Task.CompletedTask;
 }
