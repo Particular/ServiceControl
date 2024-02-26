@@ -174,9 +174,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.Tests.RavenDB", "Particular.ThroughputCollector.Persistence.Tests.RavenDB\Particular.ThroughputCollector.Persistence.Tests.RavenDB.csproj", "{F0B1E5C1-E505-44BA-9F01-08531063B586}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.Tests", "Particular.ThroughputCollector.Persistence.Tests\Particular.ThroughputCollector.Persistence.Tests.csproj", "{A6CAC642-98D9-47B6-85FC-4B51B4A195BF}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence", "Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.RavenDb", "Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
