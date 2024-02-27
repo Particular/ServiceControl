@@ -11,7 +11,7 @@ public class PersistenceManifest
 {
     public required string Version { get; set; }
 
-    public required string Location { get; set; }
+    public string? Location { get; set; }
 
     public required string Name { get; set; }
 
@@ -43,7 +43,7 @@ public static class PersistenceManifestLibrary
         {
             if (assemblyDirectory != null)
             {
-                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "persistence.manifest", SearchOption.AllDirectories))
+                foreach (var manifestFile in Directory.EnumerateFiles(assemblyDirectory, "throughput.persistence.manifest", SearchOption.AllDirectories))
                 {
                     AddManifest(manifestFile);
                 }
@@ -105,7 +105,7 @@ public static class PersistenceManifestLibrary
         return persistenceManifestDefinition?.TypeName ?? persistenceType;
     }
 
-    public static string GetPersistenceFolder(string persistenceType)
+    public static string? GetPersistenceFolder(string persistenceType)
     {
         // TODO: Need to add assembly resolver for persistences
         if (persistenceType == null)
