@@ -88,8 +88,8 @@
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, string.Empty);
-            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
         }
 
         public void WriteConfigurationFile()
