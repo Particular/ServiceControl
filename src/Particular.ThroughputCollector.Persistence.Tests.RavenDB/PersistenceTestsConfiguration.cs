@@ -47,8 +47,8 @@
 
             var persistence = config.Create(settings);
             await persistence.CreateInstaller().Install();
-            persistenceLifecycle = persistence.Configure(serviceCollection);
-            await persistenceLifecycle.Start();
+            persistenceService = persistence.Configure(serviceCollection);
+            await persistenceService.StartAsync(default);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -76,9 +76,9 @@
                     new DeleteDatabasesOperation.Parameters() { DatabaseNames = new[] { databaseName }, HardDelete = true }));
             }
 
-            if (persistenceLifecycle != null)
+            if (persistenceService != null)
             {
-                await persistenceLifecycle.Stop();
+                await persistenceService.StopAsync(default);
             }
         }
 
@@ -86,7 +86,7 @@
 
         public IDocumentStore DocumentStore { get; private set; }
 
-        IPersistenceLifecycle persistenceLifecycle;
+        PersistenceService persistenceService;
 
         string databaseName;
     }
