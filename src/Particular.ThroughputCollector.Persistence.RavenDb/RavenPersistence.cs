@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersistence
 {
-    public IPersistenceLifecycle Configure(IServiceCollection serviceCollection)
+    public PersistenceService Configure(IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton(databaseConfiguration);
         serviceCollection.AddSingleton<IRavenSessionProvider, RavenSessionProvider>();
@@ -16,16 +16,19 @@ class RavenPersistence(DatabaseConfiguration databaseConfiguration) : IPersisten
         //serviceCollection.AddSingleton<IFailedAuditStorage, RavenFailedAuditStorage>();
         //serviceCollection.AddSingleton<CheckMinimumStorageRequiredForAuditIngestion.State>();
 
-        var lifecycle = CreateLifecycle();
+        var persistenceService = CreateService();
 
-        serviceCollection.AddSingleton<IRavenDocumentStoreProvider>(_ => lifecycle);
+        if (persistenceService is IRavenDocumentStoreProvider provider)
+        {
+            serviceCollection.AddSingleton(_ => provider);
+        }
 
-        return lifecycle;
+        return persistenceService;
     }
 
-    public IPersistenceInstaller CreateInstaller() => new RavenInstaller(CreateLifecycle());
+    public IPersistenceInstaller CreateInstaller() => new RavenInstaller(CreateService());
 
-    IRavenPersistenceLifecycle CreateLifecycle()
+    PersistenceService CreateService()
     {
         var serverConfiguration = databaseConfiguration.ServerConfiguration;
 

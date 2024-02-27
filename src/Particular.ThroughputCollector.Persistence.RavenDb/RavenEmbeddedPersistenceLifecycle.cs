@@ -7,7 +7,7 @@ using NServiceBus.Logging;
 using Raven.Client.Documents;
 using Raven.Client.Exceptions.Database;
 
-class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration) : IRavenPersistenceLifecycle
+class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfiguration) : PersistenceService, IRavenDocumentStoreProvider
 {
     public IDocumentStore GetDocumentStore()
     {
@@ -19,7 +19,7 @@ class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfigurat
         return documentStore;
     }
 
-    public async Task Start(CancellationToken cancellationToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
         database = EmbeddedDatabase.Start(databaseConfiguration);
 
@@ -40,7 +40,7 @@ class RavenEmbeddedPersistenceLifecycle(DatabaseConfiguration databaseConfigurat
         }
     }
 
-    public Task Stop(CancellationToken cancellationToken)
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         documentStore?.Dispose();
         database?.Dispose();

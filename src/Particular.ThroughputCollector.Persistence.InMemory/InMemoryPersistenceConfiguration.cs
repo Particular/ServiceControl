@@ -6,8 +6,8 @@ public class InMemoryPersistenceConfiguration : IPersistenceConfiguration
 {
     public string Name => "InMemory";
 
-    public IEnumerable<string> ConfigurationKeys => new string[0];
+    public IEnumerable<string> ConfigurationKeys => System.Array.Empty<string>();
 
-    public IPersistence Create(PersistenceSettings settings) => new InMemoryPersistence(settings);
+    public IPersistence Create(PersistenceSettings settings) => new InMemoryPersistence();
 }
 

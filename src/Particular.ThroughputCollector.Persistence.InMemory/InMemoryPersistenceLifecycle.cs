@@ -3,14 +3,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-class InMemoryPersistenceLifecycle : IPersistenceLifecycle
+class InMemoryPersistenceLifecycle : PersistenceService
 {
-    public Task Start(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
-    public Task Stop(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    public override Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public override Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

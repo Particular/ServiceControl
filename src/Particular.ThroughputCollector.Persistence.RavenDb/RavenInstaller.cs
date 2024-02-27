@@ -2,12 +2,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 
-class RavenInstaller(IRavenPersistenceLifecycle lifecycle) : IPersistenceInstaller
+class RavenInstaller(IHostedService persistenceService) : IPersistenceInstaller
 {
     public async Task Install(CancellationToken cancellationToken)
     {
-        await lifecycle.Start(cancellationToken).ConfigureAwait(false);
-        await lifecycle.Stop(cancellationToken).ConfigureAwait(false);
+        await persistenceService.StartAsync(cancellationToken).ConfigureAwait(false);
+        await persistenceService.StopAsync(cancellationToken).ConfigureAwait(false);
     }
 }

@@ -4,6 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 public interface IPersistence
 {
-    IPersistenceLifecycle Configure(IServiceCollection serviceCollection);
+    PersistenceService Configure(IServiceCollection serviceCollection);
     IPersistenceInstaller CreateInstaller();
 }
