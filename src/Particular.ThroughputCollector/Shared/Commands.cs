@@ -29,8 +29,6 @@
             })
             .ToArray();
 
-            var useAuditCounts = false;
-
             // Verify audit instances also have audit counts
             var remotesInfoJson = await primary.GetData<JArray>("/configuration/remotes", cancellationToken).ConfigureAwait(false);
             var remoteInfo = remotesInfoJson.Select(remote =>
@@ -65,23 +63,37 @@
                 }
             }
 
-            // Want 2d audit retention so we get one complete UTC day no matter what time it is
-            useAuditCounts = remoteInfo.All(r => r.SemVer?.Version >= MinAuditCountsVersion && r.Retention >= TimeSpan.FromDays(2));
+            // Want 2d audit retention so we get one complete UTC day no matter what time it is.
+            // Customers are expected to run at least version 4.29 for their Audit instances
+            var allHaveAuditCounts = remoteInfo.All(r => r.SemVer?.Version >= MinAuditCountsVersion && r.Retention >= TimeSpan.FromDays(2));
+            if (!allHaveAuditCounts)
+            {
+                logger.LogWarning($"At least one ServiceControl Audit instance is either not running the required version ({MinAuditCountsVersion}) or is not configured for at least 2 days of retention. Audit throughput will not be available.");
+            }
 
             foreach (var endpoint in endpoints)
             {
-                if (useAuditCounts)
+                var path = $"/endpoints/{endpoint.UrlName}/audit-count";
+                try
                 {
-                    var path = $"/endpoints/{endpoint.UrlName}/audit-count";
                     endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken).ConfigureAwait(false);
-                    endpoint.CheckHourlyAuditData = false;
                 }
-                else
+                catch (Exception ex)
                 {
-                    var path = $"/endpoints/{endpoint.UrlName}/messages/?per_page=1";
-                    var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken).ConfigureAwait(false);
-                    endpoint.CheckHourlyAuditData = recentMessages.Any();
+                    logger.LogWarning(ex, $"Audit count not available on endpoint {endpoint.Name} at {path}");
                 }
+
+                //if (useAuditCounts)
+                //{
+                //    var path = $"/endpoints/{endpoint.UrlName}/audit-count";
+                //    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken).ConfigureAwait(false);
+                //}
+                //else
+                //{
+                //    var path = $"/endpoints/{endpoint.UrlName}/messages/?per_page=1";
+                //    var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken).ConfigureAwait(false);
+                //    endpoint.NoAuditCounts = recentMessages.Any();
+                //}
             }
 
             return endpoints;

@@ -7,7 +7,7 @@
 
     partial class PersistenceTestsConfiguration
     {
-        public IThroughputDataStore AuditDataStore { get; protected set; }
+        public IThroughputDataStore ThroughputDataStore { get; protected set; }
 
         public Task Configure(Action<PersistenceSettings> setSettings)
         {
@@ -20,7 +20,7 @@
             persistence.Configure(serviceCollection);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            AuditDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
+            ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
             return Task.CompletedTask;
         }
 

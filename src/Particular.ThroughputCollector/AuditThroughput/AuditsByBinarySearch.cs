@@ -1,4 +1,7 @@
-﻿//namespace Particular.ThroughputCollector.Audit
+﻿//NOTE keeping it around for now - should not be required
+
+
+//namespace Particular.ThroughputCollector.Audit
 //{
 //    using System;
 //    using System.Diagnostics;
