@@ -19,15 +19,15 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         return await Task.FromResult(endpoints);
     }
 
-    public async Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue)
+    public async Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue, ThroughputSource throughputSource)
     {
-        var endpoint = endpoints.FirstOrDefault(w => w.Name == nameOrQueue || w.Queue == nameOrQueue);
+        var endpoint = endpoints.FirstOrDefault(w => w.ThroughputSource == throughputSource && (w.Name == nameOrQueue || w.Queue == nameOrQueue));
 
         return await Task.FromResult(endpoint);
     }
     public async Task RecordEndpointThroughput(Endpoint endpoint)
     {
-        var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name);
+        var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name && w.ThroughputSource == endpoint.ThroughputSource);
 
         if (existingEndpoint == null)
         {
@@ -35,31 +35,18 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         }
         else
         {
-            existingEndpoint.ThroughputSource = endpoint.ThroughputSource;
-            //TODO should anything else be updated here or only the daily throughput?
-
             if (existingEndpoint.DailyThroughput == null)
             {
                 existingEndpoint.DailyThroughput = endpoint.DailyThroughput;
             }
             else if (endpoint.DailyThroughput != null)
             {
-                existingEndpoint.DailyThroughput.Concat(endpoint.DailyThroughput);
+                existingEndpoint.DailyThroughput = existingEndpoint.DailyThroughput.Concat(endpoint.DailyThroughput).ToList();
             }
         }
 
         await Task.CompletedTask;
     }
-
-    //object TryGet(Dictionary<string, object> metadata, string key)
-    //{
-    //    if (metadata.TryGetValue(key, out var value))
-    //    {
-    //        return value;
-    //    }
-
-    //    return null;
-    //}
 
     public Task Setup() => Task.CompletedTask;
 }

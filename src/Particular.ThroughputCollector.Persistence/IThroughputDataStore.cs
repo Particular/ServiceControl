@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 public interface IThroughputDataStore
 {
     Task<IReadOnlyList<Endpoint>> GetAllEndpoints();
-    Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue);
+    Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue, ThroughputSource throughputSource);
     Task RecordEndpointThroughput(Endpoint endpoint);
 }
