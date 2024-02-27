@@ -6,11 +6,11 @@ public record Endpoint
 {
     public string Name { get; set; }
     public string Queue { get; set; }
-    public string ThroughputSource { get; set; }
+    public ThroughputSource ThroughputSource { get; set; }
     public string Scope { get; set; } //used for SQLServer endpoints, perhaps for others too
     public string[] EndpointIndicators { get; set; }
-    public bool UserIndicatedSendOnly { get; set; }
-    public bool UserIndicatedToIgnore { get; set; }
+    public bool? UserIndicatedSendOnly { get; set; }
+    public bool? UserIndicatedToIgnore { get; set; }
 
     public List<EndpointThroughput> DailyThroughput { get; set; }
 
