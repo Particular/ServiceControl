@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.Persistence
+namespace ServiceControl.Persistence
 {
     using System;
     using System.Collections.Generic;
