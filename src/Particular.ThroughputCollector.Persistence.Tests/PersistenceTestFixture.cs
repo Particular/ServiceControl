@@ -47,7 +47,7 @@
 
         protected string PersisterName => configuration.Name;
 
-        protected IThroughputDataStore DataStore => configuration.AuditDataStore;
+        protected IThroughputDataStore DataStore => configuration.ThroughputDataStore;
 
         protected PersistenceTestsConfiguration configuration;
     }
