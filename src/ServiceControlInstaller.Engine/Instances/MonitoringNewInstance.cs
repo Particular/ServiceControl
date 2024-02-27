@@ -88,7 +88,8 @@
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, "ServiceControl.Monitoring");
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, string.Empty);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
             FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
         }
 

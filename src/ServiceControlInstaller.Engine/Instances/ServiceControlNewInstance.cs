@@ -7,7 +7,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
-    using FileSystem;
     using Queues;
     using Services;
     using Validation;
@@ -40,6 +39,7 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         public PersistenceManifest PersistenceManifest { get; }
+
         public override string DirectoryName => "ServiceControl";
 
         public List<RemoteInstanceSetting> RemoteInstances { get; set; } = new List<RemoteInstanceSetting>();
@@ -108,13 +108,6 @@ namespace ServiceControlInstaller.Engine.Instances
         protected override void ValidateConnectionString()
         {
             ConnectionStringValidator.Validate(this);
-        }
-
-        public override void CopyFiles(string zipFilePath)
-        {
-            base.CopyFiles(zipFilePath);
-
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
 
         public static ServiceControlNewInstance Load(string path)

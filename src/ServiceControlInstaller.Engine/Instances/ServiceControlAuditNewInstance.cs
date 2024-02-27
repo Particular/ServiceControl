@@ -5,7 +5,6 @@
     using System.Xml;
     using System.Xml.Serialization;
     using Configuration.ServiceControl;
-    using FileSystem;
     using Queues;
     using Services;
     using Validation;
@@ -25,7 +24,6 @@
             return new ServiceControlAuditNewInstance(persistenceManifest);
         }
 
-
         public ServiceControlAuditNewInstance(PersistenceManifest persistenceManifest)
         {
             Version = Constants.CurrentVersion;
@@ -33,6 +31,7 @@
         }
 
         public string ServiceControlQueueAddress { get; set; }
+
         public PersistenceManifest PersistenceManifest { get; }
 
         public override void WriteConfigurationFile()
@@ -82,13 +81,6 @@
         protected override void ValidateConnectionString()
         {
             ConnectionStringValidator.Validate(this);
-        }
-
-        public override void CopyFiles(string zipResourceName)
-        {
-            base.CopyFiles(zipResourceName);
-
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
         }
     }
 }

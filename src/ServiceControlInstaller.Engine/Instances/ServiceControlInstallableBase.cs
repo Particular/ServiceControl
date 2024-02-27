@@ -140,9 +140,10 @@
             AddFlagFiles();
 
             // Copy the binaries from a zip
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, DirectoryName);
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, string.Empty);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
             FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"), string.Empty);
         }
 
         public virtual void WriteConfigurationFile()

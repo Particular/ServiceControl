@@ -19,7 +19,9 @@ namespace ServiceControlInstaller.Engine.Instances
         }
 
         public TimeSpan AuditRetentionPeriod { get; set; }
+
         public string ServiceControlQueueAddress { get; set; }
+
         public PersistenceManifest PersistenceManifest { get; set; }
 
         protected override void ApplySettingsChanges(KeyValueConfigurationCollection settings)
@@ -94,13 +96,14 @@ namespace ServiceControlInstaller.Engine.Instances
         {
             QueueCreation.RunQueueCreation(this);
         }
+
         public override void UpgradeFiles(string zipResourceName)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlAuditExe}.config");
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, BaseServiceName);
+            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, string.Empty);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
             FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
-            FileUtils.UnzipToSubdirectory(zipResourceName, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"), string.Empty);
         }
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()
@@ -113,10 +116,10 @@ namespace ServiceControlInstaller.Engine.Instances
                     continue;
                 }
 
-                var folderpath = settings[key].Value;
-                yield return folderpath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
-                    ? Path.Combine(InstallPath, folderpath.Remove(0, 1))
-                    : folderpath;
+                var folderPath = settings[key].Value;
+                yield return folderPath.StartsWith("~") //Raven uses ~ to indicate path is relative to bin folder e.g. ~/Data/Logs
+                    ? Path.Combine(InstallPath, folderPath.Remove(0, 1))
+                    : folderPath;
             }
         }
     }
