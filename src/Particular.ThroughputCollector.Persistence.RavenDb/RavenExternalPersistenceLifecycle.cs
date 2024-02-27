@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Conventions;
 
-class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : IRavenPersistenceLifecycle
+class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : PersistenceService, IRavenDocumentStoreProvider
 {
     public IDocumentStore GetDocumentStore()
     {
@@ -18,7 +18,7 @@ class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : I
         return documentStore;
     }
 
-    public async Task Start(CancellationToken cancellationToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
         var store = new DocumentStore
         {
@@ -36,7 +36,7 @@ class RavenExternalPersistenceLifecycle(DatabaseConfiguration configuration) : I
         await databaseSetup.Execute(store, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task Stop(CancellationToken cancellationToken)
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         documentStore?.Dispose();
 
