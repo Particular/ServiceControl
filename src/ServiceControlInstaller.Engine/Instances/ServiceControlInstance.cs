@@ -190,7 +190,6 @@ namespace ServiceControlInstaller.Engine.Instances
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, string.Empty);
             FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
-            FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
             FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"), string.Empty);
         }
 

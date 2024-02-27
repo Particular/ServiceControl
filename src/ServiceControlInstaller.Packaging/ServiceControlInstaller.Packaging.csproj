@@ -45,7 +45,6 @@
       <AuditFilesToZip Include="$(ArtifactsPath)$(Audit)\**\*" />
       <MonitoringFilesToZip Include="$(ArtifactsPath)$(Monitoring)\**\*" />
       <InstanceSharedFilesToZip Include="@(DuplicateInstanceFiles->'$(ArtifactsPath)$(Primary)\%(Identity)')" />
-      <TransportsFilesToZip Include="$(ArtifactsPath)$(Transports)\**\*" />
       <RavenDBServerFilesToZip Include="$(ArtifactsPath)$(RavenDBServer)\**\*" />
     </ItemGroup>
   </Target>
@@ -68,11 +67,6 @@
   <Target Name="CreateInstanceSharedZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(InstanceSharedFilesToZip)" Outputs="$(ZipFolder)$(InstanceShared).zip">
     <MakeDir Directories="$(ZipFolder)" />
     <ZipFiles BasePath="$(ArtifactsPath)$(Primary)" Files="@(InstanceSharedFilesToZip)" DestinationFile="$(ZipFolder)$(InstanceShared).zip" />
-  </Target>
-
-  <Target Name="CreateTransportsZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(TransportsFilesToZip)" Outputs="$(ZipFolder)$(Transports).zip">
-    <MakeDir Directories="$(ZipFolder)" />
-    <ZipFiles BasePath="$(ArtifactsPath)$(Transports)" Files="@(TransportsFilesToZip)" DestinationFile="$(ZipFolder)$(Transports).zip" />
   </Target>
 
   <Target Name="CreateRavenDBServerZipFile" AfterTargets="CopyArtifacts" DependsOnTargets="PrepareCreateZipFiles" Inputs="@(RavenDBServerFilesToZip)" Outputs="$(ZipFolder)$(RavenDBServer).zip">

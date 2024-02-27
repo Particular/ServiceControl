@@ -251,7 +251,6 @@
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.MonitoringExe}.config");
             FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, string.Empty);
             FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath, string.Empty);
-            FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
         }
 
         public void RestoreAppConfig(string sourcePath)

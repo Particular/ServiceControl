@@ -22,6 +22,12 @@
     <WriteMinVerProperties>false</WriteMinVerProperties>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InstanceName Include="Particular.ServiceControl" />
+    <InstanceName Include="Particular.ServiceControl.Audit" />
+    <InstanceName Include="Particular.ServiceControl.Monitoring" />
+  </ItemGroup>
+
   <!-- workaround for https://github.com/microsoft/MSBuildSdks/issues/477 -->
   <PropertyGroup>
     <UseArtifactsOutput>false</UseArtifactsOutput>
