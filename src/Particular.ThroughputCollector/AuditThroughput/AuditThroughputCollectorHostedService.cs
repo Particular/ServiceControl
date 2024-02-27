@@ -33,8 +33,8 @@
 
         async Task GatherThroughput(CancellationToken cancellationToken)
         {
-            DateTime utcDateTime = DateTime.UtcNow.Date;
-            logger.LogInformation($"Gathering throughput from audit for ");
+            DateTime utcYesterday = DateTime.UtcNow.Date.AddDays(-1);
+            logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
             try
             {
@@ -50,10 +50,10 @@
 
                 foreach (var endpoint in knownEndpoints)
                 {
-                    if (!await ThroughputRecordedForYesterday(endpoint.Name, utcDateTime.AddDays(-1)).ConfigureAwait(false))
+                    if (endpoint.AuditCounts.Any() && !await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday).ConfigureAwait(false))
                     {
-                        //TODO for each endpoint record the audit count for the day we are currently doing
-                        //TODO can we assume that everyone is using the new version of audits hence they have audit counts?
+                        //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
+                        await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint)).ConfigureAwait(false);
                     }
                 }
             }
@@ -65,9 +65,21 @@
 
         async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateTime utcDateTime)
         {
-            var endpoint = await dataStore.GetEndpointByNameOrQueue(endpointName).ConfigureAwait(false);
+            var endpoint = await dataStore.GetEndpointByNameOrQueue(endpointName, ThroughputSource.Audit).ConfigureAwait(false);
 
             return endpoint?.DailyThroughput?.Any(a => a.DateUTC == utcDateTime) ?? false;
+        }
+
+        Endpoint SCEndpointToEndpoint(ServiceControlEndpoint scEndpoint)
+        {
+            return new Endpoint
+            {
+                Name = scEndpoint.Name,
+                Queue = scEndpoint.Name,
+                ThroughputSource = ThroughputSource.Audit,
+                EndpointIndicators = new string[] { EndpointIndicator.KnownEndpoint.ToString() },
+                DailyThroughput = scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
+            };
         }
 
         readonly ILogger logger;
