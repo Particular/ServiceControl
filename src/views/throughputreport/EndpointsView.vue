@@ -133,6 +133,9 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
       <div class="col">
         <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
+      <div class="col-1">
+        <button class="btn btn-primary" type="button">Save</button>
+      </div>
     </div>
     <div class="row results">
       <div class="col format-showing-results">
@@ -150,13 +153,13 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
           </ul>
         </div>
       </div>
+      <div class="col-1"></div>
     </div>
   </div>
 
   <table class="table">
     <thead>
       <tr>
-        <th scope="col">Source</th>
         <th scope="col">Endpoint (Queue)</th>
         <th scope="col">Max daily throughput<br />this month</th>
         <th scope="col">Is Send only <i class="fa fa-info-circle info" title="Queues with 0 throughput are candidates to be send only endpoint." /></th>
@@ -165,8 +168,13 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
     </thead>
     <tbody>
       <tr v-for="row in filteredData" :key="row.name">
-        <td class="col">{{ row.source }}</td>
-        <td class="col">{{ row.name }}</td>
+        <td class="col">
+          <template v-if="row.source === DataSource.broker"><i class="fa fa-cloud-download" aria-hidden="true" title="Discovered from querying broker directly" /></template>
+          <template v-else>
+            <i class="fa fa-check knownEndpoint" aria-hidden="true" title="Service Control known endpoint" />
+          </template>
+          {{ row.name }}
+        </td>
         <td class="col">{{ row.throughputValue }}</td>
         <td class="col">
           <div v-if="row.throughputValue === 0" class="form-check">
@@ -213,5 +221,8 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
 }
 .info {
   color: dodgerblue;
+}
+.knownEndpoint {
+  color: #00c468;
 }
 </style>
