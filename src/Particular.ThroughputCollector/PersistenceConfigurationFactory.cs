@@ -9,26 +9,20 @@ static class PersistenceConfigurationFactory
 {
     public static IPersistenceConfiguration LoadPersistenceConfiguration(string persistenceType)
     {
-        try
+        var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
+        var customizationType = Type.GetType(foundPersistenceType);
+
+        if (customizationType != null &&
+            Activator.CreateInstance(customizationType) is IPersistenceConfiguration config)
         {
-            var foundPersistenceType = PersistenceManifestLibrary.Find(persistenceType);
-            var customizationType = Type.GetType(foundPersistenceType, true);
-
-            var config = (IPersistenceConfiguration?)Activator.CreateInstance(customizationType!);
-
-            if (config == null)
-            {
-                var e = new InvalidOperationException("Could not instantiate persistence configuration");
-                e.Data.Add("foundPersistenceType", foundPersistenceType);
-                throw new Exception();
-            }
-
             return config;
         }
-        catch (Exception e)
-        {
-            throw new Exception($"Could not load persistence customization type {persistenceType}.", e);
-        }
+
+        var e = new InvalidOperationException("Could not load configured persistence type");
+        e.Data.Add(nameof(persistenceType), persistenceType);
+        e.Data.Add(nameof(foundPersistenceType), foundPersistenceType);
+
+        throw e;
     }
 
     public static PersistenceSettings BuildPersistenceSettings(this IPersistenceConfiguration persistenceConfiguration)
