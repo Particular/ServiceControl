@@ -17,13 +17,12 @@ static class DevelopmentPersistenceLocations
 
         if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
         {
-            // TODO: will there be an in memory persistence?
             ManifestFiles.Add(BuildManifestPath(srcFolder, "Particular.ThroughputCollector.Persistence.InMemory"));
             ManifestFiles.Add(BuildManifestPath(srcFolder, "Particular.ThroughputCollector.Persistence.RavenDB"));
         }
     }
 
-    static string BuildManifestPath(string srcFolder, string projectName) => Path.Combine(srcFolder, projectName, "bin", configuration, framework, "persistence.manifest");
+    static string BuildManifestPath(string srcFolder, string projectName) => Path.Combine(srcFolder, projectName, "bin", configuration, framework, "throughput.persistence.manifest");
 
 #if DEBUG
     const string configuration = "Debug";
