@@ -17,6 +17,7 @@
 
             //TODO add relevant persistence here, based on passed in persistenceType.
             //Will probably also need to initialize it as part of the setup/install process of the instance
+            services.AddPersistence(persistenceType);
 
             return hostBuilder;
         }
