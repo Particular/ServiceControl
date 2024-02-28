@@ -157,14 +157,7 @@
         }
 
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
-        {
-            if (!headers.TryGetValue(Headers.ContentType, out var contentType))
-            {
-                contentType = defaultContentType;
-            }
-
-            return contentType;
-        }
+            => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
         static int MaxProcessingAttempts = 10;
         // large object heap starts above 85000 bytes and not above 85 KB!
