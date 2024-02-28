@@ -23,7 +23,7 @@
 
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body)
         {
-            if (body.Length > 0)
+            if (!body.IsEmpty)
             {
                 await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage);
             }

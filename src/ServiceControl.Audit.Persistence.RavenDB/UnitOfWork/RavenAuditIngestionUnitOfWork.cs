@@ -25,14 +25,14 @@
         public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body)
         {
             processedMessage.MessageMetadata["ContentLength"] = body.Length;
-            if (body.Length > 0)
+            if (!body.IsEmpty)
             {
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
             }
 
             await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata());
 
-            if (body.Length > 0)
+            if (!body.IsEmpty)
             {
                 await using var stream = new ReadOnlyStream(body);
                 var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/xml");
