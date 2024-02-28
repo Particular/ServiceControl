@@ -2,6 +2,7 @@
 import DropDown, { type Item } from "@/components/DropDown.vue";
 import { computed, reactive } from "vue";
 import { data } from "@/views/throughputreport/randomData";
+import { onBeforeRouteLeave } from "vue-router";
 
 enum DataSource {
   "wellKnownEndpoint" = "ServiceControl",
@@ -39,9 +40,17 @@ const sortData: SortData[] = [
   ];
 });
 
+let copyOfOriginalDataChanges: Map<string, { sendOnly: boolean; doNotInclude: true }>;
+
 const dataChanges = reactive(new Map(data.map((item) => [item.name, { sendOnly: item.sendOnly, doNotInclude: item.doNotInclude }])));
 const filterData = reactive({ display: "", name: "", nameFilterType: NameFilterType.beginsWith, sort: "" });
 
+updateCopyOfOriginalDataChanges();
+
+function updateCopyOfOriginalDataChanges() {
+  // We need to do a deep copy, see https://stackoverflow.com/a/56853666
+  copyOfOriginalDataChanges = new Map(JSON.parse(JSON.stringify(Array.from(dataChanges))));
+}
 function displayFilterChanged(item: Item) {
   filterData.display = item.value;
 }
@@ -110,6 +119,40 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
     action(item);
   }
 }
+
+onBeforeRouteLeave(() => {
+  function anyChanges() {
+    if (copyOfOriginalDataChanges.size !== dataChanges.size) {
+      return true;
+    }
+    for (const [key, { sendOnly, doNotInclude }] of copyOfOriginalDataChanges) {
+      const a = dataChanges.get(key);
+
+      if (a === undefined) {
+        return true;
+      }
+
+      if (a.sendOnly !== sendOnly || a.doNotInclude !== doNotInclude) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  if (anyChanges()) {
+    const answer = window.confirm("You have unsaved changes! Do you want to proceed and lose changes?");
+    // cancel the navigation and stay on the same page
+    if (!answer) {
+      return false;
+    }
+  }
+});
+
+function save() {
+  //TODO: Save data to backend
+  updateCopyOfOriginalDataChanges();
+}
 </script>
 
 <template>
@@ -134,7 +177,7 @@ function updateDataChanged(name: string, action: (item: { doNotInclude: boolean;
         <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
       <div class="col-1">
-        <button class="btn btn-primary" type="button">Save</button>
+        <button class="btn btn-primary" type="button" @click="save">Save</button>
       </div>
     </div>
     <div class="row results">
