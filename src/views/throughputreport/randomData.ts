@@ -700,3 +700,26 @@ export const data = [
     doNotInclude: false,
   },
 ];
+
+export const setupData = [
+  {
+    description: "The grace period that faulted messages are kept before they are deleted.",
+    name: "ServiceControl/SqlServer/ConnectionString",
+  },
+  {
+    description: "The grace period that faulted messages are kept before they are deleted.",
+    name: "ServiceControl/SqlServer/ConnectionString",
+  },
+  {
+    description: "The grace period that faulted messages are kept before they are deleted.",
+    name: "ServiceControl/SqlServer/ConnectionString",
+  },
+  {
+    description: "The grace period that faulted messages are kept before they are deleted.",
+    name: "ServiceControl/SqlServer/ConnectionString",
+  },
+  {
+    description: "The grace period that faulted messages are kept before they are deleted.",
+    name: "ServiceControl/SqlServer/ConnectionString",
+  },
+];
