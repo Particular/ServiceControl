@@ -10,6 +10,9 @@
     {
         public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string broker, string serviceControlAPI, string errorQueue, string auditQueue, string transportConnectionString, string persistenceType)
         {
+            //For testing only until RavenDB Persistence is working
+            persistenceType = "InMemory";
+
             var services = hostBuilder.Services;
             services.AddSingleton(new ThroughputSettings { Broker = broker, ServiceControlAPI = serviceControlAPI, AuditQueue = auditQueue, ErrorQueue = errorQueue, TransportConnectionString = transportConnectionString, PersistenceType = persistenceType });
             services.AddHostedService<AuditThroughputCollectorHostedService>();
