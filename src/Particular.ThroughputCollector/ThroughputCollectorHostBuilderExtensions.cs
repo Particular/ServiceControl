@@ -5,6 +5,7 @@
     using Particular.ThroughputCollector.Audit;
     using Particular.ThroughputCollector.Broker;
     using Particular.ThroughputCollector.Contracts;
+    using Particular.ThroughputCollector.WebApi;
 
     public static class ThroughputCollectorHostBuilderExtensions
     {
@@ -17,6 +18,8 @@
             services.AddSingleton(new ThroughputSettings { Broker = broker, ServiceControlAPI = serviceControlAPI, AuditQueue = auditQueue, ErrorQueue = errorQueue, TransportConnectionString = transportConnectionString, PersistenceType = persistenceType });
             services.AddHostedService<AuditThroughputCollectorHostedService>();
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
+            services.AddSingleton<IThroughputCollector, ThroughputCollector>();
+            services.AddSingleton<ThroughputController>();
 
             //TODO add relevant persistence here, based on passed in persistenceType.
             //Will probably also need to initialize it as part of the setup/install process of the instance
