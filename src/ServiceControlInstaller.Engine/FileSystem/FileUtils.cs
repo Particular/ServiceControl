@@ -38,7 +38,7 @@ namespace ServiceControlInstaller.Engine.FileSystem
             var files = Directory.GetFiles(path);
             foreach (var f in files)
             {
-                if (excludes.Any(p => string.Equals(p, Path.GetDirectoryName(f), StringComparison.OrdinalIgnoreCase)))
+                if (excludes.Any(p => string.Equals(p, Path.GetFileName(f), StringComparison.OrdinalIgnoreCase)))
                 {
                     continue;
                 }

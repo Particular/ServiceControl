@@ -26,7 +26,6 @@
             newInstance.CopyFiles(zipResourceName);
             newInstance.WriteConfigurationFile();
 
-            FileAssert.Exists(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll"));
             var configFile = File.ReadAllText(Path.Combine(InstallPath, "ServiceControl.Audit.exe.config"));
 
             Approver.Verify(configFile, input => input.Replace(DbPath, "value-not-asserted").Replace(LogPath, "value-not-asserted"));

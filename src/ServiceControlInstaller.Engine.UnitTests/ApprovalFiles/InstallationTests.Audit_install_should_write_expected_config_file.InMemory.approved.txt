@@ -11,7 +11,4 @@
         <add key="ServiceControl.Audit/EnableFullTextSearchOnBodies"
             value="false" />
     </appSettings>
-    <runtime>
-        <gcServer enabled="true" />
-    </runtime>
 </configuration>

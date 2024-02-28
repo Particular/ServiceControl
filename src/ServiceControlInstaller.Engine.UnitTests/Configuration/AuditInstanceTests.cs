@@ -3,9 +3,7 @@
     using System;
     using System.IO;
     using System.ServiceProcess;
-    using System.Xml;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Configuration.ServiceControl;
     using ServiceControlInstaller.Engine.Instances;
     using ServiceControlInstaller.Engine.Services;
 
@@ -13,44 +11,6 @@
     class AuditInstanceTests : InstallationFixture
     {
         const string zipResourceName = "Particular.ServiceControl.Audit.zip";
-
-        [Test]
-        public void Should_default_to_raven35_when_no_config_entry_exists()
-        {
-            var newInstance = ServiceControlAuditNewInstance.CreateWithPersistence("RavenDB35");
-
-            newInstance.InstallPath = InstallPath;
-            newInstance.TransportPackage = ServiceControlCoreTransports.Find("LearningTransport");
-            newInstance.DBPath = DbPath;
-            newInstance.LogPath = LogPath;
-            newInstance.HostName = "localhost";
-            newInstance.DatabaseMaintenancePort = 33333;
-
-            newInstance.CopyFiles(zipResourceName);
-            newInstance.WriteConfigurationFile();
-
-            //delete the setting to simulate an existing older instance
-            var configPath = Path.Combine(InstallPath, "ServiceControl.Audit.exe.config");
-            var existingConfigFile = new XmlDocument();
-            existingConfigFile.Load(configPath);
-            var entry = existingConfigFile.SelectSingleNode($"//add[@key='{AuditInstanceSettingsList.PersistenceType.Name}']");
-            entry.ParentNode.RemoveChild(entry);
-            existingConfigFile.Save(configPath);
-
-            var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
-
-            instance.Reload();
-
-            instance.UpgradeFiles(zipResourceName);
-            // Don't want any persistence DLL, bit awkward but serves the purpose of the test
-            FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb.dll"));
-            FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll"));
-            FileAssert.DoesNotExist(Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDb5.dll"));
-
-            var manifestFilePath = Path.Combine(InstallPath, "persistence.manifest");
-            var manifestText = File.ReadAllText(manifestFilePath);
-            StringAssert.Contains("RavenDB 3.5", manifestText);
-        }
 
         [Test]
         public void Should_update_existing_persister()
@@ -69,16 +29,16 @@
             newInstance.WriteConfigurationFile();
 
             var instance = new ServiceControlAuditInstance(new FakeWindowsServiceController(Path.Combine(InstallPath, "ServiceControl.Audit.exe")));
-
-            instance.Reload();
-
-            var persisterFilePath = Path.Combine(InstallPath, "ServiceControl.Audit.Persistence.RavenDB.dll");
-
-            //delete the persistence dll to make sure it gets re-installed
-            File.Delete(persisterFilePath);
+            var configFile = Path.Combine(InstallPath, "ServiceControl.Audit.exe.config");
+            var originalConfigContents = File.ReadAllText(configFile);
 
             instance.UpgradeFiles(zipResourceName);
-            FileAssert.Exists(persisterFilePath);
+
+            FileAssert.Exists(configFile);
+
+            var upgradedConfigContents = File.ReadAllText(configFile);
+
+            Assert.That(upgradedConfigContents, Is.EqualTo(originalConfigContents));
         }
 
         [Test]
