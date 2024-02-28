@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
