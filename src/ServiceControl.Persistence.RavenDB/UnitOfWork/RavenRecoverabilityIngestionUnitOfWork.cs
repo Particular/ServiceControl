@@ -48,8 +48,7 @@
                 {
                     try
                     {
-                        // TODO NSB8 Fix this as soon as we target NET8
-                        var bodyString = utf8.GetString(context.Body.ToArray());
+                        var bodyString = utf8.GetString(context.Body.Span);
                         processingAttempt.MessageMetadata.Add("MsgFullText", bodyString);
                     }
                     catch (ArgumentException)
