@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Needed for build ordering -->
+  <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
+  
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <PackageReference Include="Newtonsoft.Json" />
