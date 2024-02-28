@@ -150,9 +150,7 @@
             var uniqueId = context.Headers.UniqueId();
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
-            // TODO NSB8 Fix this as soon as we target NET8. We might also need to rethink body access a bit and potentially
-            // remove the memory manager
-            var stream = Memory.Manager.GetStream(context.Body.ToArray());
+            var stream = new ReadOnlyStream(context.Body);
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
             parentUnitOfWork.AddCommand(putAttachmentCmd);
