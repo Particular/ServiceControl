@@ -29,8 +29,6 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
     static long ThrowArgumentExceptionSeekMode(string paramName)
         => throw new ArgumentException("The input seek mode is not valid.", paramName);
 
-    public override void SetLength(long value) => throw new NotSupportedException();
-
     public override void CopyTo(Stream destination, int bufferSize)
     {
         ReadOnlySpan<byte> source = memory.Span[position..];
@@ -161,6 +159,8 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
     public override Task FlushAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
 
     public override void Flush() => throw new NotSupportedException();
+
+    public override void SetLength(long value) => throw new NotSupportedException();
 
     public override bool CanRead => true;
     public override bool CanSeek => true;
