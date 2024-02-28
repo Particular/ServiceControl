@@ -2,16 +2,71 @@
 
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
 {
     int position = 0;
 
-    public override void Flush() => throw new NotSupportedException();
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        long index = origin switch
+        {
+            SeekOrigin.Begin => offset,
+            SeekOrigin.Current => position + offset,
+            SeekOrigin.End => memory.Length + offset,
+            _ => throw new ArgumentException("The input seek mode is not valid.", nameof(origin))
+        };
 
-    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        position = unchecked((int)index);
+
+        return index;
+    }
 
     public override void SetLength(long value) => throw new NotSupportedException();
+
+    public override void CopyTo(Stream destination, int bufferSize)
+    {
+        ReadOnlySpan<byte> source = memory.Span[position..];
+
+        position += source.Length;
+
+        destination.Write(source);
+    }
+
+    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromCanceled(cancellationToken);
+        }
+
+        try
+        {
+            CopyTo(destination, bufferSize);
+
+            return Task.CompletedTask;
+        }
+        catch (OperationCanceledException e)
+        {
+            return Task.FromCanceled(e.CancellationToken);
+        }
+        catch (Exception e)
+        {
+            return Task.FromException(e);
+        }
+    }
+
+    public override int ReadByte()
+    {
+        if (position == memory.Length)
+        {
+            return -1;
+        }
+
+        return memory.Span[position++];
+    }
 
     public override int Read(byte[] buffer, int offset, int count)
     {
@@ -42,11 +97,69 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
         return bytesToCopy;
     }
 
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromCanceled<int>(cancellationToken);
+        }
+
+        try
+        {
+            int result = Read(buffer.AsSpan());
+
+            return Task.FromResult(result);
+        }
+        catch (OperationCanceledException e)
+        {
+            return Task.FromCanceled<int>(e.CancellationToken);
+        }
+        catch (Exception e)
+        {
+            return Task.FromException<int>(e);
+        }
+    }
+
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return new ValueTask<int>(Task.FromCanceled<int>(cancellationToken));
+        }
+
+        try
+        {
+            int result = Read(buffer.Span);
+
+            return new ValueTask<int>(result);
+        }
+        catch (OperationCanceledException e)
+        {
+            return new ValueTask<int>(Task.FromCanceled<int>(e.CancellationToken));
+        }
+        catch (Exception e)
+        {
+            return new ValueTask<int>(Task.FromException<int>(e));
+        }
+    }
+
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
+    public override void WriteByte(byte value) => throw new NotSupportedException();
+
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+    public override void Write(ReadOnlySpan<byte> buffer) => throw new NotSupportedException();
+
+    public override Task FlushAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+
+    public override void Flush() => throw new NotSupportedException();
+
     public override bool CanRead => true;
-    public override bool CanSeek => false;
+    public override bool CanSeek => true;
     public override bool CanWrite => false;
     public override long Length => memory.Length;
-    public override long Position { get => position; set => position = (int)value; }
+    public override long Position { get => position; set => position = unchecked((int)value); }
 }
