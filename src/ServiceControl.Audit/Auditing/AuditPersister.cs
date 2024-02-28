@@ -87,7 +87,7 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body.ToArray()); //TODO ROM<byte> to array
+                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
                         }
 
                         storedContexts.Add(context);

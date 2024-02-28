@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Audit.Persistence.RavenDB.UnitOfWork
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Auditing;
@@ -11,59 +12,40 @@
     using Raven.Client;
     using Raven.Client.Documents.BulkInsert;
     using Raven.Client.Json;
+    using ServiceControl.Infrastructure;
     using ServiceControl.SagaAudit;
 
-    class RavenAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
+    class RavenAuditIngestionUnitOfWork(
+        BulkInsertOperation bulkInsert,
+        CancellationTokenSource timedCancellationSource,
+        TimeSpan auditRetentionPeriod,
+        IBodyStorage bodyStorage)
+        : IAuditIngestionUnitOfWork
     {
-        BulkInsertOperation bulkInsert;
-        CancellationTokenSource timedCancellationSource;
-        TimeSpan auditRetentionPeriod;
-        IBodyStorage bodyStorage;
-
-        public RavenAuditIngestionUnitOfWork(BulkInsertOperation bulkInsert, CancellationTokenSource timedCancellationSource, TimeSpan auditRetentionPeriod, IBodyStorage bodyStorage)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body)
         {
-            this.bulkInsert = bulkInsert;
-            this.timedCancellationSource = timedCancellationSource;
-            this.auditRetentionPeriod = auditRetentionPeriod;
-            this.bodyStorage = bodyStorage;
-        }
-
-        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
-        {
-
-            if (body != null)
+            processedMessage.MessageMetadata["ContentLength"] = body.Length;
+            if (body.Length > 0)
             {
-                processedMessage.MessageMetadata["ContentLength"] = body.Length;
                 processedMessage.MessageMetadata["BodyUrl"] = $"/messages/{processedMessage.Id}/body";
-            }
-            else
-            {
-                processedMessage.MessageMetadata["ContentLength"] = 0;
             }
 
             await bulkInsert.StoreAsync(processedMessage, GetExpirationMetadata());
 
-            if (body != null)
+            if (body.Length > 0)
             {
-                using (var stream = ServiceControl.Infrastructure.Memory.Manager.GetStream(Guid.NewGuid(), processedMessage.Id, body, 0, body.Length))
-                {
-                    if (!processedMessage.Headers.TryGetValue(Headers.ContentType, out var contentType))
-                    {
-                        contentType = "text/xml";
-                    }
+                await using var stream = new ReadOnlyStream(body);
+                var contentType = processedMessage.Headers.GetValueOrDefault(Headers.ContentType, "text/xml");
 
-                    await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream);
-                }
+                await bodyStorage.Store(processedMessage.Id, contentType, body.Length, stream);
             }
         }
 
-        MetadataAsDictionary GetExpirationMetadata()
-        {
-            return new MetadataAsDictionary
+        MetadataAsDictionary GetExpirationMetadata() =>
+            new()
             {
                 [Constants.Documents.Metadata.Expires] = DateTime.UtcNow.Add(auditRetentionPeriod)
             };
-        }
 
         public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
             => bulkInsert.StoreAsync(sagaSnapshot, GetExpirationMetadata());
