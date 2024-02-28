@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.Infrastructure;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +17,17 @@ public sealed class ReadOnlyStream(ReadOnlyMemory<byte> memory) : Stream
             SeekOrigin.Begin => offset,
             SeekOrigin.Current => position + offset,
             SeekOrigin.End => memory.Length + offset,
-            _ => throw new ArgumentException("The input seek mode is not valid.", nameof(origin))
+            _ => ThrowArgumentExceptionSeekMode(nameof(origin))
         };
 
         position = unchecked((int)index);
 
         return index;
     }
+
+    [DoesNotReturn]
+    static long ThrowArgumentExceptionSeekMode(string paramName)
+        => throw new ArgumentException("The input seek mode is not valid.", paramName);
 
     public override void SetLength(long value) => throw new NotSupportedException();
 
