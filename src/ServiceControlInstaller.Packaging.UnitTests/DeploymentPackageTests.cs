@@ -2,6 +2,7 @@ namespace Tests
 {
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using NUnit.Framework;
 
@@ -18,9 +19,8 @@ namespace Tests
         {
             var rootDirectory = deploymentPackage.Directory;
 
-            DirectoryAssert.Exists($"{rootDirectory.FullName}/{deploymentPackage.ServiceName}", $"Expected a {deploymentPackage.ServiceName} folder");
-            DirectoryAssert.DoesNotExist($"{rootDirectory.FullName}/Transports", $"Transports folder should be a separate asset");
-            DirectoryAssert.Exists($"{rootDirectory.FullName}/../Transports", $"Transports folder should be a separate asset");
+            DirectoryAssert.Exists($"{rootDirectory.FullName}", $"Expected a {rootDirectory.Name} folder");
+            DirectoryAssert.Exists($"{rootDirectory.FullName}/Transports", $"Expected a Transports subfolder in the {rootDirectory.Name} folder");
 
             foreach (var deploymentUnit in deploymentPackage.DeploymentUnits)
             {
@@ -32,14 +32,6 @@ namespace Tests
         [Test]
         public void DuplicateAssemblyShouldHaveMatchingVersions()
         {
-            var rootDirectory = deploymentPackage.Directory;
-
-            var serviceDirectory = rootDirectory.GetDirectories(deploymentPackage.ServiceName).Single();
-            var serviceAssemblies = serviceDirectory.EnumerateFiles();
-
-            var componentCategoryDirectories = rootDirectory.GetDirectories()
-                .Where(d => d.Name != serviceDirectory.Name);
-
             var detectedMismatches = new List<string>();
 
             foreach (var leftDeploymentUnit in deploymentPackage.DeploymentUnits)
@@ -60,7 +52,8 @@ namespace Tests
 
             foreach (var leftAssembly in leftDeploymentUnit.Files)
             {
-                var rightAssembly = rightDeploymentUnit.Files.SingleOrDefault(sa => sa.Name == leftAssembly.Name);
+                var leftAssemblyRelativePath = Path.GetRelativePath(leftDeploymentUnit.Directory.FullName, leftAssembly.FullName);
+                var rightAssembly = rightDeploymentUnit.Files.SingleOrDefault(sa => Path.GetRelativePath(rightDeploymentUnit.Directory.FullName, sa.FullName) == leftAssemblyRelativePath);
 
                 if (rightAssembly == null)
                 {
@@ -77,9 +70,6 @@ namespace Tests
 
                 var mismatch = $"{leftAssembly.Name} has a different version in {leftDeploymentUnit.FullName} compared to {rightDeploymentUnit.FullName}. Add the package to Directory.Packages.props to ensure the same version is used everywhere: {leftVersion} | {rightVersion}";
 
-                var leftAssemblyFullname = $"{leftDeploymentUnit.FullName}/{leftAssembly.Name}";
-                var rightAssemblyFullname = $"{rightDeploymentUnit.FullName}/{rightAssembly.Name}";
-
                 detectedMismatches.Add(mismatch);
             }
 
@@ -87,7 +77,7 @@ namespace Tests
         }
 
         [Test]
-        public void Should_package_transports_individually()
+        public void Should_package_all_transports()
         {
             var allTransports = new string[] {
                 "SQLServer",
@@ -99,21 +89,11 @@ namespace Tests
                 "AmazonSQS",
                 "LearningTransport"};
 
-
-            var transportsIfBundledInAppZips = deploymentPackage.DeploymentUnits
+            var bundledTransports = deploymentPackage.DeploymentUnits
                 .Where(u => u.Category == "Transports")
                 .Select(u => u.Name);
 
-            CollectionAssert.IsEmpty(transportsIfBundledInAppZips, "Transports should not be bundled inside app zips to conserve space");
-
-            var trueTransportDirectories = deploymentPackage.Directory
-                .Parent
-                .GetDirectories("Transports")
-                .Single()
-                .GetDirectories()
-                .Select(di => di.Name);
-
-            CollectionAssert.AreEquivalent(allTransports, trueTransportDirectories, $"Expected transports folder to contain {string.Join(",", allTransports)}");
+            CollectionAssert.AreEquivalent(allTransports, bundledTransports, $"Expected transports folder to contain {string.Join(",", allTransports)}");
         }
 
         readonly DeploymentPackage deploymentPackage;
