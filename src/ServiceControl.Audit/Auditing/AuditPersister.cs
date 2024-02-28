@@ -210,7 +210,7 @@
             try
             {
                 SagaUpdatedMessage message;
-                using (var memoryStream = Memory.Manager.GetStream(context.NativeMessageId, context.Body.ToArray(), 0, context.Body.Length)) //TODO More ROM<byte> to array here
+                using (var memoryStream = new ReadOnlyStream(context.Body))
                 using (var streamReader = new StreamReader(memoryStream))
                 using (var reader = new JsonTextReader(streamReader))
                 {
