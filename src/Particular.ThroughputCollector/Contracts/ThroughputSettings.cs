@@ -1,9 +1,9 @@
 ﻿namespace Particular.ThroughputCollector.Contracts
 {
-    class ThroughputSettings
+    public class ThroughputSettings
     {
         public required string ServiceControlAPI { get; set; }
-        public required string Broker { get; set; }
+        public Broker Broker { get; set; }
         public required string ErrorQueue { get; set; }
         public required string AuditQueue { get; set; } //NOTE can we get this?
         public required string TransportConnectionString { get; set; }
