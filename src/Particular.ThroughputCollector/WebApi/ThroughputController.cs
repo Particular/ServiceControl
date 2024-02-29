@@ -33,12 +33,13 @@
             return await Task.FromResult("OK").ConfigureAwait(false);
         }
 
-        //[Route("throughput/endpoints/update")]
-        //[HttpPost]
-        //public async Task<IActionResult> ToggleEmailNotifications(List<EndpointThroughputSummary> endpointThroughputs)
-        //{
-        //    return Ok(boo);
-        //}
+        [Route("throughput/endpoints/update")]
+        [HttpPost]
+        public async Task<IActionResult> UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs)
+        {
+            await throughputCollector.UpdateUserSelectionOnEndpointThroughput(endpointThroughputs).ConfigureAwait(false);
+            return Ok();
+        }
 
         [Route("throughput/settings/test")]
         [HttpGet]
@@ -47,8 +48,6 @@
             return await Task.FromResult("OK").ConfigureAwait(false);
         }
 
-#pragma warning disable IDE0052 // Remove unread private members
         readonly IThroughputCollector throughputCollector;
-#pragma warning restore IDE0052 // Remove unread private members
     }
 }
