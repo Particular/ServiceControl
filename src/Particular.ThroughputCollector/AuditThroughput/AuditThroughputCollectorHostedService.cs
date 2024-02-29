@@ -50,7 +50,7 @@
 
                 foreach (var endpoint in knownEndpoints)
                 {
-                    if (endpoint.AuditCounts.Any() && !await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday).ConfigureAwait(false))
+                    if (!await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday).ConfigureAwait(false))
                     {
                         //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
                         await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint)).ConfigureAwait(false);
@@ -78,7 +78,7 @@
                 Queue = scEndpoint.Name,
                 ThroughputSource = ThroughputSource.Audit,
                 EndpointIndicators = new string[] { EndpointIndicator.KnownEndpoint.ToString() },
-                DailyThroughput = scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList()
+                DailyThroughput = scEndpoint.AuditCounts.Any() ? scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList() : []
             };
         }
 
