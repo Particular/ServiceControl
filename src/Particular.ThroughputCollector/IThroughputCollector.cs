@@ -4,6 +4,7 @@
 
     public interface IThroughputCollector
     {
-        List<EndpointThroughputSummary> GetThroughputSummary();
+        Task<List<EndpointThroughputSummary>> GetThroughputSummary();
+        Task UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointsThroughputSummary);
     }
 }
