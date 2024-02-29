@@ -11,7 +11,7 @@ class ThroughputComponent : ServiceControlComponent
 {
     public override void Configure(Settings settings, IHostApplicationBuilder hostBuilder) =>
         hostBuilder.AddThroughputCollector(
-            broker: TransportManifestLibrary.GetName(settings.TransportType),
+            transportType: TransportManifestLibrary.GetName(settings.TransportType),
             serviceControlAPI: settings.ApiUrl,
             errorQueue: settings.ErrorQueue,
             auditQueue: "?",

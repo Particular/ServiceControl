@@ -48,5 +48,21 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
+    public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpoints)
+    {
+        endpoints.ForEach(e =>
+        {
+            var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == e.Name && w.ThroughputSource == e.ThroughputSource);
+
+            if (existingEndpoint != null)
+            {
+                existingEndpoint.UserIndicatedSendOnly = e.UserIndicatedSendOnly;
+                existingEndpoint.UserIndicatedToIgnore = e.UserIndicatedToIgnore;
+            }
+        });
+
+        await Task.CompletedTask;
+    }
+
     public Task Setup() => Task.CompletedTask;
 }
