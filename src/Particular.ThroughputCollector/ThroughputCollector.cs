@@ -14,7 +14,7 @@
 
         public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
-            //var endpoints = await SanitizeEndpoints(await dataStore.GetAllEndpoints().ToList().ConfigureAwait(false), throughputSettings.Broker).ConfigureAwait(false);
+            //var endpoints = await SanitizeEndpoints(await dataStore.GetAllEndpoints().ConfigureAwait(false), throughputSettings.Broker).ConfigureAwait(false);
 
             //from all remove error and audit queues
 
@@ -38,11 +38,24 @@
             await Task.CompletedTask.ConfigureAwait(false);
         }
 
+        public async Task<BrokerSettings> GetBrokerSettings()
+        {
+            var brokerSettings = BrokerManifestLibrary.Find(throughputSettings.Broker);
+
+            brokerSettings ??= new BrokerSettings { Broker = throughputSettings.Broker };
+
+            return await Task.FromResult(brokerSettings).ConfigureAwait(false);
+        }
+
         async Task<List<Endpoint>> SanitizeEndpoints(List<Endpoint> endpoints, Contracts.Broker broker)
         {
             //if looking at broker transport - get all and mark as known if exists in audit or monitoring - also grab max throughput from all
 
             //if looking at non broker transport - get all from monitoring and audit - all marked as known - grab max throughput from all
+
+            //do we only grab endpoints that have a recorded throughput for "this month"? or "last 30 days"?
+
+            return await Task.FromResult<List<Endpoint>>([]).ConfigureAwait(false);
         }
 
         readonly IThroughputDataStore dataStore;
