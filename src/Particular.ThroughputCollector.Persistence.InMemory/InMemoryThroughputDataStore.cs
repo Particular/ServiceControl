@@ -48,9 +48,9 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpoints)
+    public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
     {
-        endpoints.ForEach(e =>
+        endpointsWithUserIndicator.ForEach(e =>
         {
             var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == e.Name && w.ThroughputSource == e.ThroughputSource);
 
