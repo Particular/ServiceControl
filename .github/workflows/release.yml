@@ -35,7 +35,7 @@ jobs:
       - name: Build
         run: dotnet build src --configuration Release -graph --property:WindowsSelfContained=true
       - name: Build ServiceControl Management
-        run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets
+        run: dotnet publish src\ServiceControl.Config\ServiceControl.Config.csproj --no-build --output assets --property:WindowsSelfContained=true
       - name: Sign NuGet packages
         uses: Particular/sign-nuget-packages-action@v1.0.0
         with:

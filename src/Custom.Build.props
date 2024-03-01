@@ -28,6 +28,10 @@
     <InstanceName Include="Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(WindowsSelfContained)' == 'true'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
   <!-- workaround for https://github.com/microsoft/MSBuildSdks/issues/477 -->
   <PropertyGroup>
     <UseArtifactsOutput>false</UseArtifactsOutput>

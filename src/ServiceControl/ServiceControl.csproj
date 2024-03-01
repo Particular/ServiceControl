@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WindowsSelfContained)' == 'true'">
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
   </PropertyGroup>
 
