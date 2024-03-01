@@ -1,5 +1,6 @@
 ﻿namespace ServiceControl.Audit.Persistence.InMemory
 {
+    using System;
     using System.Threading.Tasks;
     using Auditing.BodyStorage;
     using ServiceControl.Audit.Auditing;
@@ -7,19 +8,12 @@
     using ServiceControl.Audit.Persistence.UnitOfWork;
     using ServiceControl.SagaAudit;
 
-    class InMemoryAuditIngestionUnitOfWork : IAuditIngestionUnitOfWork
+    class InMemoryAuditIngestionUnitOfWork(
+        InMemoryAuditDataStore dataStore,
+        BodyStorageEnricher bodyStorageEnricher)
+        : IAuditIngestionUnitOfWork
     {
-        public InMemoryAuditIngestionUnitOfWork(InMemoryAuditDataStore dataStore,
-            BodyStorageEnricher bodyStorageEnricher)
-        {
-            this.dataStore = dataStore;
-            this.bodyStorageEnricher = bodyStorageEnricher;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return new ValueTask();
-        }
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         public Task RecordKnownEndpoint(KnownEndpoint knownEndpoint)
         {
@@ -27,21 +21,15 @@
             return Task.CompletedTask;
         }
 
-        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body)
+        public async Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body)
         {
-            if (body != null)
+            if (!body.IsEmpty)
             {
                 await bodyStorageEnricher.StoreAuditMessageBody(body, processedMessage);
             }
             await dataStore.SaveProcessedMessage(processedMessage);
         }
 
-        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot)
-        {
-            return dataStore.SaveSagaSnapshot(sagaSnapshot);
-        }
-
-        InMemoryAuditDataStore dataStore;
-        BodyStorageEnricher bodyStorageEnricher;
+        public Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot) => dataStore.SaveSagaSnapshot(sagaSnapshot);
     }
 }

@@ -137,8 +137,14 @@
             {
                 if (queueIngestor != null)
                 {
-                    // TODO NSB8 can raise cancellation exception
-                    await queueIngestor.StopReceive(cancellationToken);
+                    try
+                    {
+                        await queueIngestor.StopReceive(cancellationToken);
+                    }
+                    catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+                    {
+                        // ignored
+                    }
                 }
 
                 queueIngestor = null; // Setting to null so that it doesn't exit when it retries in line 185
@@ -172,7 +178,10 @@
                 await stoppable.StopReceive(cancellationToken);
                 logger.Info("Shutting down. Infrastructure shut down completed");
             }
-            // TODO NSB8 catch cancellation?
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+            {
+                // ignored
+            }
             finally
             {
                 logger.Info("Shutting down. Start/stop semaphore releasing");

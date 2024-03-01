@@ -1,24 +1,19 @@
 ﻿namespace ServiceControl.Audit.Auditing.BodyStorage
 {
+    using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.IO;
     using NServiceBus;
     using NServiceBus.Logging;
     using ServiceControl.Audit.Persistence;
+    using ServiceControl.Infrastructure;
 
-    public class BodyStorageEnricher
+    public class BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
     {
-        public BodyStorageEnricher(IBodyStorage bodyStorage, PersistenceSettings settings)
+        public async ValueTask StoreAuditMessageBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage)
         {
-            this.bodyStorage = bodyStorage;
-            this.settings = settings;
-        }
-
-        public async ValueTask StoreAuditMessageBody(byte[] body, ProcessedMessage processedMessage)
-        {
-            var bodySize = body?.Length ?? 0;
+            var bodySize = body.Length;
             processedMessage.MessageMetadata.Add("ContentLength", bodySize);
             if (bodySize == 0)
             {
@@ -36,16 +31,9 @@
         }
 
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
-        {
-            if (!headers.TryGetValue(Headers.ContentType, out var contentType))
-            {
-                contentType = defaultContentType;
-            }
+            => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
-            return contentType;
-        }
-
-        async ValueTask<bool> TryStoreBody(byte[] body, ProcessedMessage processedMessage, int bodySize, string contentType)
+        async ValueTask<bool> TryStoreBody(ReadOnlyMemory<byte> body, ProcessedMessage processedMessage, int bodySize, string contentType)
         {
             var bodyId = MessageId(processedMessage.Headers);
             var bodyUrl = string.Format(BodyUrlFormatString, bodyId);
@@ -67,11 +55,11 @@
                     {
                         if (settings.EnableFullTextSearchOnBodies)
                         {
-                            processedMessage.MessageMetadata.Add("Body", enc.GetString(body));
+                            processedMessage.MessageMetadata.Add("Body", enc.GetString(body.Span));
                         }
                         else
                         {
-                            processedMessage.Body = enc.GetString(body);
+                            processedMessage.Body = enc.GetString(body.Span);
                         }
                     }
                     catch (DecoderFallbackException e)
@@ -92,18 +80,14 @@
             return storedInBodyStorage;
         }
 
-        async Task StoreBodyInBodyStorage(byte[] body, string bodyId, string contentType, int bodySize)
+        async Task StoreBodyInBodyStorage(ReadOnlyMemory<byte> body, string bodyId, string contentType, int bodySize)
         {
-            using (var bodyStream = Manager.GetStream(bodyId, body, 0, bodySize))
-            {
-                await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
-            }
+            await using var bodyStream = new ReadOnlyStream(body);
+            await bodyStorage.Store(bodyId, contentType, bodySize, bodyStream);
         }
 
         static string MessageId(IReadOnlyDictionary<string, string> headers)
-        {
-            return headers.TryGetValue(Headers.MessageId, out var str) ? str : default;
-        }
+            => headers.GetValueOrDefault(Headers.MessageId);
 
         static bool IsBinary(IReadOnlyDictionary<string, string> headers)
         {
@@ -125,16 +109,11 @@
             return true;
         }
 
-        readonly IBodyStorage bodyStorage;
-        readonly PersistenceSettings settings;
-
         static readonly Encoding enc = new UTF8Encoding(true, true);
         static readonly ILog log = LogManager.GetLogger<BodyStorageEnricher>();
 
         // large object heap starts above 85000 bytes and not above 85 KB!
         public const int LargeObjectHeapThreshold = 85 * 1000;
         public const string BodyUrlFormatString = "/messages/{0}/body";
-
-        public static readonly RecyclableMemoryStreamManager Manager = new RecyclableMemoryStreamManager();
     }
 }

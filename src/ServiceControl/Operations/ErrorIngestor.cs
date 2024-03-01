@@ -84,7 +84,7 @@
                 {
                     if (Logger.IsDebugEnabled)
                     {
-                        Logger.Debug($"Forwarding {contexts.Count} messages");
+                        Logger.Debug($"Forwarding {storedFailed.Count} messages");
                     }
                     await Forward(storedFailed);
                     if (Logger.IsDebugEnabled)
@@ -93,7 +93,7 @@
                     }
                 }
 
-                foreach (var context in storedFailed.Concat(retriedMessages))
+                foreach (var context in contexts)
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
@@ -121,17 +121,15 @@
 
             try
             {
-                using (var unitOfWork = await unitOfWorkFactory.StartNew())
-                {
-                    var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork);
-                    await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
+                using var unitOfWork = await unitOfWorkFactory.StartNew();
+                var storedFailedMessageContexts = await errorProcessor.Process(failedMessageContexts, unitOfWork);
+                await retryConfirmationProcessor.Process(retriedMessageContexts, unitOfWork);
 
-                    using (bulkInsertDurationMeter.Measure())
-                    {
-                        await unitOfWork.Complete();
-                    }
-                    return storedFailedMessageContexts;
+                using (bulkInsertDurationMeter.Measure())
+                {
+                    await unitOfWork.Complete();
                 }
+                return storedFailedMessageContexts;
             }
             catch (Exception e)
             {

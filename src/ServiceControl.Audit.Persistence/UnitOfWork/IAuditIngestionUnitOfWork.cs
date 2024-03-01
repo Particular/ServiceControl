@@ -8,7 +8,7 @@
 
     public interface IAuditIngestionUnitOfWork : IAsyncDisposable
     {
-        Task RecordProcessedMessage(ProcessedMessage processedMessage, byte[] body = null);
+        Task RecordProcessedMessage(ProcessedMessage processedMessage, ReadOnlyMemory<byte> body = default);
         Task RecordSagaSnapshot(SagaSnapshot sagaSnapshot);
         Task RecordKnownEndpoint(KnownEndpoint knownEndpoint);
     }

@@ -49,8 +49,9 @@
                 {
                     Id = errorContext.Message.MessageId,
                     Headers = errorContext.Message.Headers,
-                    Body = errorContext.Message.Body.ToArray() // TODO NSB8 Can this be adjusted?
-                }
+                    Body = errorContext.Message.Body.ToArray()
+                },
+                Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid())
             };
 
             return Handle(errorContext.Exception, failure, cancellationToken);
@@ -70,13 +71,11 @@
 
         async Task DoLogging(Exception exception, FailedErrorImport failure, CancellationToken cancellationToken)
         {
-            failure.Id = FailedErrorImport.MakeDocumentId(Guid.NewGuid());
-
             // Write to data store
             await store.StoreFailedErrorImport(failure);
 
             // Write to Log Path
-            var filePath = Path.Combine(logPath, failure.Id + ".txt");
+            var filePath = Path.Combine(logPath, $"{failure.Id}.txt");
             await File.WriteAllTextAsync(filePath, exception.ToFriendlyString(), cancellationToken);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

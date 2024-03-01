@@ -18,15 +18,9 @@
 
         public IDictionary<string, object> Metadata { get; }
 
-        public void AddForSend(ICommand command)
-        {
-            outgoingCommands.Add(command);
-        }
+        public void AddForSend(ICommand command) => outgoingCommands.Add(command);
 
-        public void AddForSend(TransportOperation transportOperation)
-        {
-            outgoingSends.Add(transportOperation);
-        }
+        public void AddForSend(TransportOperation transportOperation) => outgoingSends.Add(transportOperation);
 
         readonly IList<ICommand> outgoingCommands;
         readonly IList<TransportOperation> outgoingSends;

@@ -84,7 +84,7 @@
             var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
 
             var body = new byte[100];
-            new Random().NextBytes(body);
+            Random.Shared.NextBytes(body);
             var processedMessage = MakeMessage();
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);
@@ -116,7 +116,7 @@
             var unitOfWork = AuditIngestionUnitOfWorkFactory.StartNew(1);
 
             var body = new byte[MAX_BODY_SIZE + 1000];
-            new Random().NextBytes(body);
+            Random.Shared.NextBytes(body);
             var processedMessage = MakeMessage();
 
             await unitOfWork.RecordProcessedMessage(processedMessage, body);

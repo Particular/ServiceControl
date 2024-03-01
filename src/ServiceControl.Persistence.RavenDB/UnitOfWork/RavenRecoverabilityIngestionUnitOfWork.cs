@@ -48,8 +48,7 @@
                 {
                     try
                     {
-                        // TODO NSB8 Fix this as soon as we target NET8
-                        var bodyString = utf8.GetString(context.Body.ToArray());
+                        var bodyString = utf8.GetString(context.Body.Span);
                         processingAttempt.MessageMetadata.Add("MsgFullText", bodyString);
                     }
                     catch (ArgumentException)
@@ -151,23 +150,14 @@
             var uniqueId = context.Headers.UniqueId();
             var documentId = FailedMessageIdGenerator.MakeDocumentId(uniqueId);
 
-            // TODO NSB8 Fix this as soon as we target NET8. We might also need to rethink body access a bit and potentially
-            // remove the memory manager
-            var stream = Memory.Manager.GetStream(context.Body.ToArray());
+            var stream = new ReadOnlyStream(context.Body);
             var putAttachmentCmd = new PutAttachmentCommandData(documentId, "body", stream, contentType, changeVector: null);
 
             parentUnitOfWork.AddCommand(putAttachmentCmd);
         }
 
         static string GetContentType(IReadOnlyDictionary<string, string> headers, string defaultContentType)
-        {
-            if (!headers.TryGetValue(Headers.ContentType, out var contentType))
-            {
-                contentType = defaultContentType;
-            }
-
-            return contentType;
-        }
+            => headers.GetValueOrDefault(Headers.ContentType, defaultContentType);
 
         static int MaxProcessingAttempts = 10;
         // large object heap starts above 85000 bytes and not above 85 KB!

@@ -40,7 +40,7 @@
             this.messageDispatcher = messageDispatcher;
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Persist(List<MessageContext> contexts)
+        public async Task<IReadOnlyList<MessageContext>> Persist(IReadOnlyList<MessageContext> contexts)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -68,6 +68,12 @@
 
                 foreach (var context in contexts)
                 {
+                    // Any message context that failed during processing will have a faulted task and should be skipped
+                    if (context.GetTaskCompletionSource().Task.IsFaulted)
+                    {
+                        continue;
+                    }
+
                     if (context.Extensions.TryGet(out ProcessedMessage processedMessage)) //Message was an audit message
                     {
                         if (context.Extensions.TryGet("SendingEndpoint", out EndpointDetails sendingEndpoint))
@@ -87,10 +93,9 @@
 
                         using (auditBulkInsertDurationMeter.Measure())
                         {
-                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body.ToArray()); //TODO ROM<byte> to array
+                            await unitOfWork.RecordProcessedMessage(processedMessage, context.Body);
                         }
 
-                        storedContexts.Add(context);
                         ingestedAuditMeter.Mark();
                     }
                     else if (context.Extensions.TryGet(out SagaSnapshot sagaSnapshot))
@@ -105,9 +110,10 @@
                             await unitOfWork.RecordSagaSnapshot(sagaSnapshot);
                         }
 
-                        storedContexts.Add(context);
                         ingestedSagaAuditMeter.Mark();
                     }
+
+                    storedContexts.Add(context);
                 }
 
                 foreach (var endpoint in knownEndpoints.Values)
@@ -210,7 +216,7 @@
             try
             {
                 SagaUpdatedMessage message;
-                using (var memoryStream = Memory.Manager.GetStream(context.NativeMessageId, context.Body.ToArray(), 0, context.Body.Length)) //TODO More ROM<byte> to array here
+                using (var memoryStream = new ReadOnlyStream(context.Body))
                 using (var streamReader = new StreamReader(memoryStream))
                 using (var reader = new JsonTextReader(streamReader))
                 {
@@ -229,6 +235,7 @@
                     Logger.Warn($"Processing of saga audit message '{context.NativeMessageId}' failed.", e);
                 }
 
+                // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
@@ -296,6 +303,7 @@
                     Logger.Warn($"Processing of message '{messageId}' failed.", e);
                 }
 
+                // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }

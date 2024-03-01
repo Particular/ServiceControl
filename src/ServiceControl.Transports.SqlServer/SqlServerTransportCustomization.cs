@@ -2,6 +2,7 @@
 {
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using NServiceBus;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
@@ -54,13 +55,15 @@
                 Logger.Error("The EnableDtc setting is no longer supported natively within ServiceControl. If you require distributed transactions, you will have to use a Transport Adapter (https://docs.particular.net/servicecontrol/transport-adapter/)");
             }
 
-            // TODO NSB8 replace with UnsafeAccessor?
-            transport.GetType().GetProperty("DisableDelayedDelivery", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(transport, true);
+            DisableDelayedDelivery(transport) = true;
 
             transport.TransportTransactionMode = transport.GetSupportedTransactionModes().Contains(preferredTransactionMode) ? preferredTransactionMode : TransportTransactionMode.ReceiveOnly;
 
             return transport;
         }
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<DisableDelayedDelivery>k__BackingField")]
+        static extern ref bool DisableDelayedDelivery(SqlServerTransport transport);
 
         const string defaultSubscriptionTableName = "SubscriptionRouting";
 
