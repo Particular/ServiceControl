@@ -6,5 +6,6 @@
     {
         Task<List<EndpointThroughputSummary>> GetThroughputSummary();
         Task UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointsThroughputSummary);
+        Task<BrokerSettings> GetBrokerSettings();
     }
 }
