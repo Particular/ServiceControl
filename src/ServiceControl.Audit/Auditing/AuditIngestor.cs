@@ -67,7 +67,7 @@
                 {
                     if (log.IsDebugEnabled)
                     {
-                        log.Debug($"Forwarding {contexts.Count} messages");
+                        log.Debug($"Forwarding {stored.Count} messages");
                     }
                     await Forward(stored, settings.AuditLogQueue);
                     if (log.IsDebugEnabled)
@@ -76,7 +76,7 @@
                     }
                 }
 
-                foreach (var context in stored)
+                foreach (var context in contexts)
                 {
                     context.GetTaskCompletionSource().TrySetResult(true);
                 }
