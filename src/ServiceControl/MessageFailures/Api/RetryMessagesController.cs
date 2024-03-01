@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Infrastructure;
     using InternalMessages;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
@@ -19,15 +18,10 @@
     [Route("api")]
     public class RetryMessagesController(Settings settings, HttpMessageInvoker httpMessageInvoker, IHttpForwarder forwarder, IMessageSession messageSession) : ControllerBase
     {
-        [Route("errors/{failedmessageid}/retry")]
+        [Route("errors/{failedMessageId:required:minlength(1)}/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryMessageBy([FromQuery(Name = "instance_id")] string instanceId, string failedMessageId)
         {
-            if (string.IsNullOrEmpty(failedMessageId))
-            {
-                return BadRequest();
-            }
-
             if (string.IsNullOrWhiteSpace(instanceId) || instanceId == settings.InstanceId)
             {
                 await messageSession.SendLocal<RetryMessage>(m => m.FailedMessageId = failedMessageId);
@@ -64,16 +58,10 @@
             return Accepted();
         }
 
-        [Route("errors/queues/{queueaddress}/retry")]
+        [Route("errors/queues/{queueAddress:required:minlength(1)}/retry")]
         [HttpPost]
         public async Task<IActionResult> RetryAllBy(string queueAddress)
         {
-            if (string.IsNullOrWhiteSpace(queueAddress))
-            {
-                // TODO previously it was using Request.CreateErrorResponse(HttpStatusCode.BadRequest, "QueueAddress") which might be returning a complex object
-                return BadRequest("queueaddress URL parameter must be provided");
-            }
-
             await messageSession.SendLocal<RetryMessagesByQueueAddress>(m =>
             {
                 m.QueueAddress = queueAddress;
@@ -92,7 +80,7 @@
             return Accepted();
         }
 
-        [Route("errors/{endpointname}/retry/all")]
+        [Route("errors/{endpointName:required:minlength(1)}/retry/all")]
         [HttpPost]
         public async Task<IActionResult> RetryAllByEndpoint(string endpointName)
         {

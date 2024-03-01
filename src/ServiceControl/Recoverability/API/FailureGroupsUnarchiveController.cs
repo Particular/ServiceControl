@@ -9,16 +9,10 @@
     [Route("api")]
     class FailureGroupsUnarchiveController(IMessageSession bus, IArchiveMessages archiver) : ControllerBase
     {
-        [Route("recoverability/groups/{groupId}/errors/unarchive")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/unarchive")]
         [HttpPost]
         public async Task<IActionResult> UnarchiveGroupErrors(string groupId)
         {
-            if (string.IsNullOrWhiteSpace(groupId))
-            {
-                //TODO compare to CreateErrorResponse that as here before
-                return BadRequest("missing groupId");
-            }
-
             if (!archiver.IsOperationInProgressFor(groupId, ArchiveType.FailureGroup))
             {
                 await archiver.StartUnarchiving(groupId, ArchiveType.FailureGroup);

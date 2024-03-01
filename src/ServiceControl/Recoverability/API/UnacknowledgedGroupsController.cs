@@ -9,7 +9,7 @@
     [Route("api")]
     class UnacknowledgedGroupsController(IRetryHistoryDataStore retryStore, IArchiveMessages archiver) : ControllerBase
     {
-        [Route("recoverability/unacknowledgedgroups/{groupId}")]
+        [Route("recoverability/unacknowledgedgroups/{groupId:required:minlength(1)}")]
         [HttpDelete]
         public async Task<IActionResult> AcknowledgeOperation(string groupId)
         {

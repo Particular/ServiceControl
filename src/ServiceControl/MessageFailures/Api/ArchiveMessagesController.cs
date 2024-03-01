@@ -1,6 +1,5 @@
 namespace ServiceControl.MessageFailures.Api
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Infrastructure.WebApi;
@@ -17,11 +16,12 @@ namespace ServiceControl.MessageFailures.Api
         [Route("errors/archive")]
         [HttpPost]
         [HttpPatch]
-        public async Task<IActionResult> ArchiveBatch(List<string> messageIds)
+        public async Task<IActionResult> ArchiveBatch(string[] messageIds)
         {
             if (messageIds.Any(string.IsNullOrEmpty))
             {
-                return BadRequest();
+                ModelState.AddModelError(nameof(messageIds), "Cannot contain null or empty message IDs.");
+                return UnprocessableEntity(ModelState);
             }
 
             foreach (var id in messageIds)
@@ -45,22 +45,17 @@ namespace ServiceControl.MessageFailures.Api
             return Ok(results);
         }
 
-        [Route("errors/{messageId}/archive")]
+        [Route("errors/{messageId:required:minlength(1)}/archive")]
         [HttpPost]
         [HttpPatch]
         public async Task<IActionResult> Archive(string messageId)
         {
-            if (string.IsNullOrEmpty(messageId))
-            {
-                return BadRequest();
-            }
-
             await messageSession.SendLocal<ArchiveMessage>(m => m.FailedMessageId = messageId);
 
             return Accepted();
         }
 
-        [Route("archive/groups/id/{groupId}")]
+        [Route("archive/groups/id/{groupId:required:minlength(1)}")]
         [HttpGet]
         public async Task<ActionResult<FailureGroupView>> GetGroup(string groupId, string status = default, string modified = default)
         {

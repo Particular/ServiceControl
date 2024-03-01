@@ -8,24 +8,12 @@ namespace ServiceControl.Recoverability.API
 
     [ApiController]
     [Route("api")]
-    public class FailureGroupsRetryController : ControllerBase
+    public class FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager) : ControllerBase
     {
-        public FailureGroupsRetryController(IMessageSession bus, RetryingManager retryingManager)
-        {
-            this.bus = bus;
-            this.retryingManager = retryingManager;
-        }
-
-
-        [Route("recoverability/groups/{groupId}/errors/retry")]
+        [Route("recoverability/groups/{groupId:required:minlength(1)}/errors/retry")]
         [HttpPost]
         public async Task<IActionResult> ArchiveGroupErrors(string groupId)
         {
-            if (string.IsNullOrWhiteSpace(groupId))
-            {
-                return BadRequest("missing groupId");
-            }
-
             var started = DateTime.UtcNow;
 
             if (!retryingManager.IsOperationInProgressFor(groupId, RetryType.FailureGroup))
@@ -41,8 +29,5 @@ namespace ServiceControl.Recoverability.API
 
             return Accepted();
         }
-
-        readonly IMessageSession bus;
-        readonly RetryingManager retryingManager;
     }
 }

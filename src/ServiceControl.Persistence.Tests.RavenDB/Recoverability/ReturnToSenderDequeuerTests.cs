@@ -197,9 +197,7 @@
 
             public Task<IDictionary<string, object>> ErrorsSummary() => throw new NotImplementedException();
 
-            public Task<FailedMessage> ErrorBy(Guid failedMessageId) => throw new NotImplementedException();
-
-            public Task<FailedMessageView> ErrorLastBy(Guid failedMessageId) => throw new NotImplementedException();
+            public Task<FailedMessageView> ErrorLastBy(string failedMessageId) => throw new NotImplementedException();
 
             public Task<FailedMessage> ErrorBy(string failedMessageId) => throw new NotImplementedException();
 
