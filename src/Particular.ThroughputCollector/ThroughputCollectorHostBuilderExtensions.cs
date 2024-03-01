@@ -22,9 +22,6 @@
                 case "NetStandardAzureServiceBus":
                     broker = Contracts.Broker.AzureServiceBus;
                     break;
-                case "AzureStorageQueue":
-                    broker = Contracts.Broker.AzureStorageQueues;
-                    break;
                 case "RabbitMQ.ClassicConventionalRouting":
                 case "RabbitMQ.ClassicDirectRouting":
                 case "RabbitMQ.QuorumConventionalRouting":
