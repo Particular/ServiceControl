@@ -26,7 +26,7 @@
             failedMessageFactory = new FailedMessageFactory(failedMessageEnrichers);
         }
 
-        public async Task<IReadOnlyList<MessageContext>> Process(List<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
+        public async Task<IReadOnlyList<MessageContext>> Process(IReadOnlyList<MessageContext> contexts, IIngestionUnitOfWork unitOfWork)
         {
             var storedContexts = new List<MessageContext>(contexts.Count);
             var tasks = new List<Task>(contexts.Count);
@@ -40,7 +40,9 @@
             var knownEndpoints = new Dictionary<string, KnownEndpoint>();
             foreach (var context in contexts)
             {
-                if (!context.Extensions.TryGet<FailureDetails>(out _))
+                if (!context.Extensions.TryGet<FailureDetails>(out _) ||
+                    // Any message context that failed during processing will have a faulted task and should be skipped
+                    context.GetTaskCompletionSource().Task.IsFaulted)
                 {
                     continue;
                 }
@@ -132,6 +134,7 @@
                     Logger.WarnFormat("Processing of message '{0}' failed.\n{1}", context.NativeMessageId, e);
                 }
 
+                // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
             }
         }
