@@ -69,7 +69,7 @@
                 foreach (var context in contexts)
                 {
                     // Any message context that failed during processing will have a faulted task and should be skipped
-                    if(context.GetTaskCompletionSource().Task.IsFaulted)
+                    if (context.GetTaskCompletionSource().Task.IsFaulted)
                     {
                         continue;
                     }
@@ -112,7 +112,7 @@
 
                         ingestedSagaAuditMeter.Mark();
                     }
-                    
+
                     storedContexts.Add(context);
                 }
 
@@ -234,7 +234,7 @@
                 {
                     Logger.Warn($"Processing of saga audit message '{context.NativeMessageId}' failed.", e);
                 }
-                
+
                 // releasing the failed message context early so that they can be retried outside the current batch
                 context.GetTaskCompletionSource().TrySetException(e);
             }
