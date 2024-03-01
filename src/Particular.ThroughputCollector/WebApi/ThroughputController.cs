@@ -16,7 +16,7 @@
         [HttpGet]
         public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput()
         {
-            return await Task.FromResult(new List<EndpointThroughputSummary>()).ConfigureAwait(false);
+            return await throughputCollector.GetThroughputSummary().ConfigureAwait(false);
         }
 
         [Route("throughput/report")]
@@ -28,9 +28,9 @@
 
         [Route("throughput/settings")]
         [HttpGet]
-        public async Task<string> GetThroughputBrokerSettings()
+        public async Task<BrokerSettings> GetThroughputBrokerSettings()
         {
-            return await Task.FromResult("OK").ConfigureAwait(false);
+            return await throughputCollector.GetBrokerSettings().ConfigureAwait(false);
         }
 
         [Route("throughput/endpoints/update")]
