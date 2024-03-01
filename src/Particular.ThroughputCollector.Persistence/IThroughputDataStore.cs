@@ -10,5 +10,5 @@ public interface IThroughputDataStore
     //Task<IReadOnlyList<Endpoint>> GetAllNonBrokerEndpoints();
     Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue, ThroughputSource throughputSource);
     Task RecordEndpointThroughput(Endpoint endpoint);
-    Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpoints);
+    Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator);
 }
