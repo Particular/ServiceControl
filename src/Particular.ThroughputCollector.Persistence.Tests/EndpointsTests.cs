@@ -153,5 +153,44 @@
 
             Assert.That(foundEndpoint, Is.Null);
         }
+
+        [Test]
+        public async Task Should_update_user_indicators_and_nothing_else()
+        {
+            var endpoint = new Endpoint
+            {
+                Name = "Endpoint",
+                Queue = "Queue",
+                ThroughputSource = ThroughputSource.Audit,
+                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+            };
+
+            await DataStore.RecordEndpointThroughput(endpoint);
+
+            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            Assert.That(foundEndpoint, Is.Not.Null);
+            Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.Null);
+            Assert.That(foundEndpoint.UserIndicatedToIgnore, Is.Null);
+            ;
+
+            var endpointWithUserIndicators = new Endpoint
+            {
+                Name = "Endpoint",
+                Queue = "Queue",
+                ThroughputSource = ThroughputSource.Audit,
+                UserIndicatedSendOnly = true,
+                UserIndicatedToIgnore = true,
+            };
+
+            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+
+            foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+
+            Assert.That(foundEndpoint, Is.Not.Null);
+            Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.EqualTo(true));
+            Assert.That(foundEndpoint.UserIndicatedToIgnore, Is.EqualTo(true));
+        }
     }
 }
