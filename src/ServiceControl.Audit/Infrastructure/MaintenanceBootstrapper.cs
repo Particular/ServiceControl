@@ -18,15 +18,17 @@ namespace ServiceControl.Audit.Infrastructure
             var hostBuilder = Host.CreateApplicationBuilder();
             hostBuilder.Services.AddPersistence(persistenceSettings, persistenceConfiguration);
 
+            using var host = hostBuilder.Build();
+
             if (WindowsServiceHelpers.IsWindowsService())
             {
-                await hostBuilder.Build().RunAsync();
+                await host.RunAsync();
             }
             else
             {
                 await Console.Out.WriteLineAsync("Running in Maintenance Mode - Press CTRL+C to exit");
 
-                await hostBuilder.Build().RunAsync();
+                await host.RunAsync();
 
                 await Console.Out.WriteLineAsync("Disposing persister (this might take a while)...");
             }

@@ -13,7 +13,7 @@ namespace ServiceControl.Monitoring
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControlMonitoring((_, __) => Task.CompletedTask, settings, endpointConfiguration);
-            var app = hostBuilder.Build();
+            using var app = hostBuilder.Build();
 
             app.UseServiceControlMonitoring();
             await app.RunAsync();

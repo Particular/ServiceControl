@@ -28,7 +28,7 @@
                 tokenSource.Cancel();
                 return Task.CompletedTask;
             }, settings, endpointConfiguration, loggingSettings);
-            var app = hostBuilder.Build();
+            using var app = hostBuilder.Build();
 
             app.UseServiceControlAudit();
 

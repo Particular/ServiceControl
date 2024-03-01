@@ -22,7 +22,7 @@
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
-            var app = hostBuilder.Build();
+            using var app = hostBuilder.Build();
 
             app.UseServiceControl();
             await app.StartServiceControl();
