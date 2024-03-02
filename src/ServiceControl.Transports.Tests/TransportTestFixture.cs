@@ -6,7 +6,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.Transport;
     using NUnit.Framework;
@@ -16,8 +15,8 @@
     [TestFixture]
     class TransportTestFixture
     {
-        [OneTimeSetUp]
-        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
+        //[OneTimeSetUp]
+        //public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public virtual async Task Setup()

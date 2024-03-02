@@ -36,8 +36,8 @@ namespace ServiceControl.Audit.AcceptanceTests
         // TODO Check why this is necessary and if it can be removed
         protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
 
-        [OneTimeSetUp]
-        public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
+        //[OneTimeSetUp]
+        //public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public void Setup()

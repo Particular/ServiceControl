@@ -6,6 +6,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using System.IO;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Auditing;
@@ -179,11 +180,11 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
         }
 
-        public override async Task Stop()
+        public override async Task Stop(CancellationToken cancellationToken = default)
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync();
+                await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
             }

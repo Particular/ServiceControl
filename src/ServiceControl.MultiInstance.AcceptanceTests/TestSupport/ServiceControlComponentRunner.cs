@@ -6,6 +6,7 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using System.Net.Http;
     using System.Reflection;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Audit.AcceptanceTests;
@@ -16,11 +17,11 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceBus.Management.Infrastructure.Settings;
-    using EndpointConfiguration = NServiceBus.EndpointConfiguration;
-    using AuditInstanceTestsSupport = ServiceControl.Audit.AcceptanceTests.TestSupport;
-    using PrimaryInstanceTestsSupport = ServiceControl.AcceptanceTests.TestSupport;
-    using PrimaryInstanceSettings = ServiceBus.Management.Infrastructure.Settings.Settings;
     using AuditInstanceSettings = ServiceControl.Audit.Infrastructure.Settings.Settings;
+    using AuditInstanceTestsSupport = ServiceControl.Audit.AcceptanceTests.TestSupport;
+    using EndpointConfiguration = NServiceBus.EndpointConfiguration;
+    using PrimaryInstanceSettings = ServiceBus.Management.Infrastructure.Settings.Settings;
+    using PrimaryInstanceTestsSupport = ServiceControl.AcceptanceTests.TestSupport;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProviderMultiInstance
     {
@@ -140,10 +141,10 @@ namespace ServiceControl.MultiInstance.AcceptanceTests.TestSupport
             SerializerOptions[PrimaryInstanceSettings.DEFAULT_SERVICE_NAME] = primaryInstanceComponentRunner.SerializerOptions;
         }
 
-        public override async Task Stop()
+        public override async Task Stop(CancellationToken cancellationToken = default)
         {
-            await auditInstanceComponentRunner.Stop();
-            await primaryInstanceComponentRunner.Stop();
+            await auditInstanceComponentRunner.Stop(cancellationToken);
+            await primaryInstanceComponentRunner.Stop(cancellationToken);
         }
 
         ITransportIntegration transportToUse;

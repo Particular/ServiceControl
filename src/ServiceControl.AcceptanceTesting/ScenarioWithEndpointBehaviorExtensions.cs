@@ -64,7 +64,7 @@
                 // If sequence is done but test is not finished, small delay to avoid tight loop check
                 await Task.Delay(250);
 
-                // If sequence is not finished immediately return false, since each step will enforce delays 
+                // If sequence is not finished immediately return false, since each step will enforce delays
                 return false;
             });
         }
@@ -127,7 +127,7 @@
                 return Task.CompletedTask;
             }
 
-            public override async Task Stop()
+            public override async Task Stop(CancellationToken cancellationToken = default)
             {
                 if (checkTask == null)
                 {

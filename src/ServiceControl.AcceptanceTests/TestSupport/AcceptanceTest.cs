@@ -38,11 +38,8 @@ namespace ServiceControl.AcceptanceTests
         public Settings Settings => serviceControlRunnerBehavior.Settings;
         public Func<HttpMessageHandler> HttpMessageHandlerFactory => serviceControlRunnerBehavior.HttpMessageHandlerFactory;
 
-        [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
+        //[OneTimeSetUp]
+        //public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
 
         [SetUp]
         public void Setup()
