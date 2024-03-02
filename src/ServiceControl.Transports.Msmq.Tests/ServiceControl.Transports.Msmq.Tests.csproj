@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,13 +23,13 @@
 
   <ItemGroup>
     <Compile Include="..\ServiceControl.Transports.Tests\*.cs" LinkBase="Shared" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
+    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- MSMQ can't be queried across machines and uses https://github.com/Particular/NServiceBus.Metrics.ServiceControl.Msmq installed into each endpoint to collect metrics instead-->
     <Compile Remove="..\ServiceControl.Transports.Tests\QueueLengthMonitoringTests.cs" />
-    <Compile Remove="..\ServiceControl.Transports.Tests\TransportManifestLibraryTests.cs" />
-    <Compile Remove="..\ServiceControl.Transports.Tests\TestsFilter.cs" />
   </ItemGroup>
 
 </Project>

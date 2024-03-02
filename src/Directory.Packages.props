@@ -36,7 +36,6 @@
     <PackageVersion Include="NServiceBus.Heartbeat" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Metrics" Version="5.0.0" />
     <PackageVersion Include="NServiceBus.Metrics.ServiceControl" Version="5.0.0" />
-    <PackageVersion Include="NServiceBus.Metrics.ServiceControl.Msmq" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Newtonsoft.Json" Version="4.0.0" />
     <PackageVersion Include="NServiceBus.Persistence.NonDurable" Version="2.0.0" />
     <PackageVersion Include="NServiceBus.RabbitMQ" Version="9.0.0" />
@@ -58,6 +57,7 @@
     <PackageVersion Include="ReactiveUI.WPF" Version="19.5.1" />
     <PackageVersion Include="ServiceControl.Contracts" Version="4.0.0" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
     <PackageVersion Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
     <PackageVersion Include="System.Management" Version="8.0.0" />
     <PackageVersion Include="System.Management.Automation" Version="7.2.18" />
