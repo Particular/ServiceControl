@@ -111,7 +111,13 @@ public static class WebApplicationBuilderExtensions
 
         config.UseSerialization<NewtonsoftJsonSerializer>();
         config.UsePersistence<NonDurablePersistence>();
+
+        var recoverability = config.Recoverability();
+        recoverability.Immediate(c => c.NumberOfRetries(3));
+        recoverability.Delayed(c => c.NumberOfRetries(0));
+
         config.SendFailedMessagesTo(settings.ErrorQueue);
+
         config.DisableFeature<AutoSubscribe>();
 
         config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();
