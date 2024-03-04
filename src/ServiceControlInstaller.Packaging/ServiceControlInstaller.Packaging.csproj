@@ -40,6 +40,7 @@
   </Target>
 
   <Target Name="PrepareCreateZipFiles" DependsOnTargets="GetDuplicateInstanceFiles">
+    <Error Condition="!Exists('$(ArtifactsPath)$(RavenDBServer)')" Text="The 'download-ravendb-server.ps1' PowerShell script needs to be run before building when running a CI or WindowsSelfContained build." />
     <ItemGroup>
       <PrimaryFilesToZip Include="$(ArtifactsPath)$(Primary)\**\*" />
       <AuditFilesToZip Include="$(ArtifactsPath)$(Audit)\**\*" />
