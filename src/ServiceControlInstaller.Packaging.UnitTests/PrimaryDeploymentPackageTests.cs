@@ -21,7 +21,7 @@ namespace Tests
 
             var persisters = deploymentPackage.DeploymentUnits.Where(u => u.Category == "Persisters");
 
-            CollectionAssert.AreEquivalent(expectedPersisters, persisters.Select(d => d.Name), $"Expected persisters folder to contain {string.Join(",", expectedPersisters)}");
+            CollectionAssert.AreEquivalent(expectedPersisters, persisters.Select(d => d.Name), $"Expected Persisters folder to contain {string.Join(",", expectedPersisters)}");
 
             foreach (var persister in persisters)
             {

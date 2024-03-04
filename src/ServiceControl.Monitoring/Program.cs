@@ -7,6 +7,7 @@ namespace ServiceControl.Monitoring
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
+    using ServiceControl.Configuration;
     using ServiceControl.Transports;
 
     static class Program
@@ -17,6 +18,8 @@ namespace ServiceControl.Monitoring
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
             AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+
+            ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
             var arguments = new HostArguments(args);
 

@@ -32,7 +32,7 @@
     <ItemGroup>
       <Zip Include="..\..\zip\*.zip" />
       <Manifest Include="..\..\deploy\**\persistence.manifest" />
-      <Manifest Include="..\..\deploy\Transports\**\transport.manifest" />
+      <Manifest Include="..\..\deploy\Particular.ServiceControl\Transports\**\transport.manifest" />
       <EmbeddedResource Include="@(Zip)" LogicalName="%(Filename)%(Extension)" />
       <EmbeddedResource Include="@(Manifest)" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>

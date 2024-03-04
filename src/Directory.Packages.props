@@ -69,13 +69,16 @@
   </ItemGroup>
 
   <ItemGroup Label="Versions to pin transitive references">
-    <PackageVersion Include="Microsoft.AspNetCore.JsonPatch " Version="8.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageVersion Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <GlobalPackageReference Include="Microsoft.Build.Artifacts" Version="6.1.10" />
     <GlobalPackageReference Include="Microsoft.Build.CopyOnWrite" Version="1.0.302" />
-    <GlobalPackageReference Include="Particular.Packaging" Version="4.0.0" />
+    <GlobalPackageReference Include="Particular.Packaging" Version="4.1.0" />
   </ItemGroup>
 
 </Project>

@@ -3,23 +3,10 @@
     using System;
     using System.IO;
     using NUnit.Framework;
-    using ServiceControlInstaller.Engine.Validation;
 
     [TestFixture]
-    class RuntimeNetVersionTest
+    class SelfContainedRavenDBTest
     {
-        [Test]
-        public void TestValidatorLogic()
-        {
-            // Should always pass on CI because we download the latest available dotnet SDK
-            var isMissing = DotnetVersionValidator.FrameworkRequirementsAreMissing(out var message);
-
-            if (isMissing)
-            {
-                throw new Exception(message);
-            }
-        }
-
         [Test]
         public void CheckForSelfContainedRavenDB()
         {

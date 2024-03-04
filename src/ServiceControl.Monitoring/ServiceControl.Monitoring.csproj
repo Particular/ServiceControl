@@ -6,6 +6,10 @@
     <ApplicationIcon>Operations.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(WindowsSelfContained)' == 'true'">
+    <SelfContained>true</SelfContained>
+  </PropertyGroup>
+
   <!-- Needed for build ordering -->
   <Import Project="..\ProjectReferences.Transports.props" />
 
@@ -27,7 +31,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.exe.config;logfile.*.txt;nsb_log_*.txt;*-configuration.txt" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring\ServiceControl.Monitoring" />
+    <Content Remove="App.config" />
+    <None Include="App.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Artifact Include="$(OutputPath)" FileExclude="ServiceControl.Monitoring.dll.config;nsb*.txt" DirExclude=".logs" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl.Monitoring" />
   </ItemGroup>
 
 </Project>

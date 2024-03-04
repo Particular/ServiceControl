@@ -44,10 +44,8 @@ jobs:
       - name: Download RavenDB Server
         shell: pwsh
         run: ./tools/download-ravendb-server.ps1
-      - name: Restore
-        run: dotnet restore src
       - name: Build
-        run: dotnet build src --configuration Release -graph --no-restore
+        run: dotnet build src --configuration Release -graph
       - name: Zip PowerShell module
         shell: pwsh
         run: |

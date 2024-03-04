@@ -1,0 +1,34 @@
+﻿{
+  "Version": "1.0.0",
+  "Definitions": [
+    {
+      "Name": "AzureServiceBus.EndpointOriented",
+      "DisplayName": "Azure Service Bus - Endpoint-oriented topology (Legacy)",
+      "TypeName": "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
+      "SampleConnectionString": "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
+      "AvailableInSCMU": false,
+      "Removed": true,
+      "Aliases": [
+        "AzureServiceBus",
+        "Azure Service Bus - Endpoint-oriented topology (Old)",
+        "ServiceControl.Transports.LegacyAzureServiceBus.EndpointOrientedTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus",
+        "ServiceControl.Transports.ASB.ASBEndpointTopologyTransportCustomization, ServiceControl.Transports.ASB",
+        "NServiceBus.AzureServiceBusTransport, NServiceBus.Azure.Transports.WindowsAzureServiceBus"
+      ]
+    },
+    {
+      "Name": "AzureServiceBus.Forwarding",
+      "DisplayName": "Azure Service Bus - Forwarding topology (Legacy)",
+      "TypeName": "ServiceControl.Transports.ASB.ASBForwardingTopologyTransportCustomization, ServiceControl.Transports.ASB",
+      "SampleConnectionString": "Endpoint=sb://[namespace].servicebus.windows.net; SharedSecretIssuer=<owner>;SharedSecretValue=<someSecret>;QueueLengthQueryDelayInterval=<IntervalInMilliseconds(Default=500ms)>",
+      "AvailableInSCMU": false,
+      "Removed": true,
+      "AutoMigrateTo": "NetStandardAzureServiceBus",
+      "Aliases": [
+        "Azure Service Bus - Forwarding topology (Legacy)",
+        "Azure Service Bus - Forwarding topology (Old)",
+        "ServiceControl.Transports.LegacyAzureServiceBus.ForwardingTopologyAzureServiceBusTransport, ServiceControl.Transports.LegacyAzureServiceBus"
+      ]
+    }
+  ]
+}

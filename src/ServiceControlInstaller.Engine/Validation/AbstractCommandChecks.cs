@@ -30,11 +30,6 @@
                 return false;
             }
 
-            if (await FrameworkRequirementsAreMissing().ConfigureAwait(false))
-            {
-                return false;
-            }
-
             if (await OldVersionOfServiceControlInstalled().ConfigureAwait(false))
             {
                 return false;
@@ -130,12 +125,6 @@
                 return false;
             }
 
-            // Validate .NET Framework requirements
-            if (await FrameworkRequirementsAreMissing().ConfigureAwait(false))
-            {
-                return false;
-            }
-
             // RavenDB 5+ check
             if (instance is IServiceControlBaseInstance baseInstance)
             {
@@ -183,17 +172,6 @@
             }
 
             return true;
-        }
-
-        async Task<bool> FrameworkRequirementsAreMissing()
-        {
-            if (DotnetVersionValidator.FrameworkRequirementsAreMissing(out var missingMessage))
-            {
-                await NotifyForMissingSystemPrerequisites(missingMessage).ConfigureAwait(false);
-                return true;
-            }
-
-            return false;
         }
 
         async Task<bool> OldVersionOfServiceControlInstalled()

@@ -25,14 +25,15 @@
 
   <ItemGroup>
     <!-- Artifact does not include RavenDBServer directory. -->
-    <Artifact Include="$(OutputPath)" DirExclude="RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB" />
+    <Artifact Include="$(OutputPath)" DirExclude=".logs;RavenDBServer" DestinationFolder="$(ArtifactsPath)Particular.ServiceControl\Persisters\RavenDB" />
 
     <!--
     This instance copies RavenDBServer directory to artifacts for both Primary and Audit instances during development, but during
     a CI build, this is skipped because the CI and Release workflows have already downloaded a self-contained version of RavenDB
     to that location already.
     -->
-    <Artifact Condition="'$(CI)' != 'true'" Include="$(OutputPath)\RavenDBServer" DestinationFolder="$(ArtifactsPath)RavenDBServer" />
+    <!-- This is also skipped when WindowsSelfContained is true to ensure a self-contained RavenDB is embedded. -->
+    <Artifact Condition="'$(CI)' != 'true' And '$(WindowsSelfContained)' != 'true'" Include="$(OutputPath)\RavenDBServer" DestinationFolder="$(ArtifactsPath)RavenDBServer" />
   </ItemGroup>
 
 </Project>

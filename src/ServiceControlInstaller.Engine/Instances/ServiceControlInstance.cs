@@ -188,10 +188,9 @@ namespace ServiceControlInstaller.Engine.Instances
         public override void UpgradeFiles(string zipFilePath)
         {
             FileUtils.DeleteDirectory(InstallPath, true, true, "license", $"{Constants.ServiceControlExe}.config");
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, "ServiceControl");
-            FileUtils.UnzipToSubdirectory("Transports.zip", InstallPath, TransportPackage.ZipName);
-            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "RavenDBServer"), string.Empty);
-            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath, $@"Persisters\{PersistenceManifest.Name}");
+            FileUtils.UnzipToSubdirectory(zipFilePath, InstallPath);
+            FileUtils.UnzipToSubdirectory("InstanceShared.zip", InstallPath);
+            FileUtils.UnzipToSubdirectory("RavenDBServer.zip", Path.Combine(InstallPath, "Persisters", "RavenDB", "RavenDBServer"));
         }
 
         protected override IEnumerable<string> GetPersistencePathsToCleanUp()

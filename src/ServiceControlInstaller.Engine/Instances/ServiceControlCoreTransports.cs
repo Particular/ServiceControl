@@ -1,7 +1,6 @@
 ﻿namespace ServiceControlInstaller.Engine.Instances
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -23,7 +22,6 @@
         static ServiceControlCoreTransports()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var list = new List<PersistenceManifest>();
 
             var resourceNames = assembly.GetManifestResourceNames()
                 .Where(name => name.EndsWith("transport.manifest"))

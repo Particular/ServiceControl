@@ -12,6 +12,7 @@
     using Microsoft.Extensions.Hosting.WindowsServices;
     using NServiceBus.Logging;
     using ServiceControl.Audit.Persistence;
+    using ServiceControl.Configuration;
     using ServiceControl.Transports;
 
     class Program
@@ -22,6 +23,8 @@
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
             AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+
+            ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
             var arguments = new HostArguments(args);
 

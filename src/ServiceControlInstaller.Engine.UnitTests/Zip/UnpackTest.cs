@@ -48,32 +48,13 @@
         }
 
         [Test]
-        public void FilterUnzipTest()
+        public void UnzipTest()
         {
             workingFolder.Delete(true);
             Directory.CreateDirectory(workingFolder.FullName);
             using (var zipStream = File.OpenRead(zipFilePath))
             {
-                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, "B");
-            }
-            using (var zipStream = File.OpenRead(zipFilePath))
-            {
-                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, @"A\AA");
-            }
-            Assert.True(workingFolder.GetFiles().Count() == 2, "Should only be two file asub and broot");
-            Assert.True(workingFolder.GetFiles("asub*.txt").Count() == 1, "subfolder did not unpack to root");
-            Assert.True(workingFolder.GetDirectories().Count() == 1, "Should only be one directory after unpack");
-        }
-
-        [TestCase("")]
-        [TestCase(null)]
-        public void UnzipAllTest(string filter)
-        {
-            workingFolder.Delete(true);
-            Directory.CreateDirectory(workingFolder.FullName);
-            using (var zipStream = File.OpenRead(zipFilePath))
-            {
-                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName, filter);
+                FileUtils.UnzipToSubdirectory(zipStream, workingFolder.FullName);
             }
             Assert.True(workingFolder.GetDirectories().Count() == 3, "Should include all directories");
             Assert.True(workingFolder.GetFiles("*.txt", SearchOption.TopDirectoryOnly).Count() == 0, "Should have no files extracted to the root install path");

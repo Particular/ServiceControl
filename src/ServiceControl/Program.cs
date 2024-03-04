@@ -6,6 +6,7 @@
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Commands;
+    using global::ServiceControl.Configuration;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;
@@ -21,6 +22,8 @@
         {
             AssemblyLoadContext.Default.Resolving += ResolveAssembly;
             AppDomain.CurrentDomain.UnhandledException += (s, e) => Logger.Error("Unhandled exception was caught.", e.ExceptionObject as Exception);
+
+            ExeConfiguration.PopulateAppSettings(Assembly.GetExecutingAssembly());
 
             var arguments = new HostArguments(args);
 
