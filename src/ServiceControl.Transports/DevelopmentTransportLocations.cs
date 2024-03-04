@@ -20,14 +20,14 @@
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASBS"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.ASQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Learning"));
-                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq"));
+                ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.Msmq", "net8.0-windows"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.RabbitMQ"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SqlServer"));
                 ManifestFiles.Add(BuildManifestPath(srcFolder, "ServiceControl.Transports.SQS"));
             }
         }
 
-        static string BuildManifestPath(string srcFolder, string projectName) => Path.Combine(srcFolder, projectName, "bin", configuration, framework, "transport.manifest");
+        static string BuildManifestPath(string srcFolder, string projectName, string frameworkOverride = null) => Path.Combine(srcFolder, projectName, "bin", configuration, frameworkOverride ?? framework, "transport.manifest");
 
 #if DEBUG
         const string configuration = "Debug";

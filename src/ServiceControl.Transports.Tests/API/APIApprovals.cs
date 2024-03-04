@@ -13,7 +13,7 @@
         {
             var serviceControlTransportApi = typeof(TransportSettings).Assembly.GeneratePublicApi(new ApiGeneratorOptions
             {
-                ExcludeAttributes = new[] { "System.Reflection.AssemblyMetadataAttribute" }
+                ExcludeAttributes = ["System.Reflection.AssemblyMetadataAttribute"]
             });
 
             Approver.Verify(serviceControlTransportApi);

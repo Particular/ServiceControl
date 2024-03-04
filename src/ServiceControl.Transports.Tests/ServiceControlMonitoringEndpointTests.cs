@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.Transport.Tests
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
