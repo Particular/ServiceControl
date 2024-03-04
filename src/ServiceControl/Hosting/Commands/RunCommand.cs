@@ -4,7 +4,6 @@
     using global::ServiceControl;
     using Hosting;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -22,11 +21,10 @@
 
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
-            using var app = hostBuilder.Build();
 
+            var app = hostBuilder.Build();
             app.UseServiceControl();
-            await app.StartServiceControl();
-            await app.WaitForShutdownAsync();
+            await app.RunAsync();
         }
     }
 }

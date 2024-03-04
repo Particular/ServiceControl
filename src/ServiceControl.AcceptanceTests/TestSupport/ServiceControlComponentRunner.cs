@@ -158,7 +158,7 @@
 
                 host = hostBuilder.Build();
                 host.UseServiceControl();
-                await host.StartServiceControl();
+                await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
                 HttpClient = host.GetTestServer().CreateClient();

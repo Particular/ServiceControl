@@ -22,8 +22,7 @@
                 return Task.CompletedTask;
             }, settings, endpointConfiguration, loggingSettings);
 
-            using var app = hostBuilder.Build();
-
+            var app = hostBuilder.Build();
             app.UseServiceControlAudit();
             await app.RunAsync();
         }

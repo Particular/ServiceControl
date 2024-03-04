@@ -28,10 +28,10 @@
             // TODO: Ideally we would never want to actually bootstrap the web api. Figure out how
             var hostBuilder = WebApplication.CreateBuilder();
             hostBuilder.AddServiceControl(settings, endpointConfiguration, loggingSettings);
-            using var app = hostBuilder.Build();
 
+            using var app = hostBuilder.Build();
             app.UseServiceControl();
-            await app.StartServiceControl();
+            await app.StartAsync();
 
             var importFailedErrors = app.Services.GetRequiredService<ImportFailedErrors>();
 
