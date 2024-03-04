@@ -98,5 +98,43 @@
 
             return endpoints;
         }
+
+        public static async Task<Dictionary<string,string>> GetBrokerSettingValues(BrokerSettings brokerSettings, string transportConnectionString, ILogger logger)
+        {
+            var brokerSettingValues = new Dictionary<string, string>();
+
+            brokerSettings.Settings.ForEach(s => brokerSettingValues.Add(s.Name, ""));
+
+            //TODO for each broker try and grab the required settings from config/env, and if they don't exist try to get thrm from the transportConnectionString
+            switch (brokerSettings.Broker)
+            {
+                case Broker.None:
+                    logger.LogInformation("Not using a broker.");
+                    break;
+                case Broker.AmazonSQS:
+                    break;
+                case Broker.RabbitMQ:
+                    break;
+                case Broker.AzureServiceBus:
+                    break;
+                case Broker.SqlServer:
+                    brokerSettingValues[brokerSettings.Settings[0].Name] = GetConfigSetting(brokerSettings.Settings[0].Name);
+                    if (brokerSettingValues[brokerSettings.Settings[0].Name] == null)
+                    {
+                        brokerSettingValues[brokerSettings.Settings[0].Name] = transportConnectionString;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return await Task.FromResult(brokerSettingValues).ConfigureAwait(false);
+        }
+
+        static string GetConfigSetting(string name)
+        {
+            //TODO
+            return name;
+        }
     }
 }
