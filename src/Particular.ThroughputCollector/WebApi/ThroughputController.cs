@@ -14,16 +14,16 @@
 
         [Route("throughput/endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput()
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput([FromQuery(Name = "month")] int? month)
         {
-            return await throughputCollector.GetThroughputSummary().ConfigureAwait(false);
+            return await throughputCollector.GetThroughputSummary(month ?? DateTime.UtcNow.Month).ConfigureAwait(false);
         }
 
         [Route("throughput/report")]
         [HttpGet]
-        public async Task<string> GetThroughputReport()
+        public async Task<ThroughputReport> GetThroughputReport([FromQuery(Name = "month")] int? month)
         {
-            return await Task.FromResult("OK").ConfigureAwait(false);
+            return await throughputCollector.GenerateThroughputReport(month ?? DateTime.UtcNow.Month).ConfigureAwait(false);
         }
 
         [Route("throughput/settings")]
@@ -43,9 +43,9 @@
 
         [Route("throughput/settings/test")]
         [HttpGet]
-        public async Task<string> TestThroughputBrokerSettings()
+        public async Task<BrokerSettingsTestResult> TestThroughputBrokerSettings()
         {
-            return await Task.FromResult("OK").ConfigureAwait(false);
+            return await throughputCollector.TestBrokerSettings().ConfigureAwait(false);
         }
 
         readonly IThroughputCollector throughputCollector;
