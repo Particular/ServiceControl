@@ -192,5 +192,26 @@
             Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.EqualTo(true));
             Assert.That(foundEndpoint.UserIndicatedToIgnore, Is.EqualTo(true));
         }
+
+        [Test]
+        public async Task Should_not_add_endpoint_when_updating_user_indication()
+        {
+            var endpointWithUserIndicators = new Endpoint
+            {
+                Name = "Endpoint",
+                Queue = "Queue",
+                ThroughputSource = ThroughputSource.Audit,
+                UserIndicatedSendOnly = true,
+                UserIndicatedToIgnore = true,
+            };
+
+            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+
+            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            var allEndpoints = await DataStore.GetAllEndpoints();
+
+            Assert.That(foundEndpoint, Is.Null);
+            Assert.That(allEndpoints.Count, Is.EqualTo(0));
+        }
     }
 }

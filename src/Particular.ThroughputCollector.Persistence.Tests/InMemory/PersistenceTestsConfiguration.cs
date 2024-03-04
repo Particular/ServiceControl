@@ -24,11 +24,6 @@
             return Task.CompletedTask;
         }
 
-        public Task CompleteDBOperation()
-        {
-            return Task.CompletedTask;
-        }
-
         public Task Cleanup()
         {
             return Task.CompletedTask;
