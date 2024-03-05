@@ -8,8 +8,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
 
-    // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
-    // from `messages/{*catchAll}` if they're in separate controllers.
     [ApiController]
     [Route("api")]
     public class GetMessagesController(IAuditDataStore dataStore) : ControllerBase
@@ -65,22 +63,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
             Response.Headers.ETag = result.ETag;
             var contentType = result.ContentType ?? "text/*";
             return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
-        }
-
-        // TODO: Verify if this catch all approach is still relevant today with Kestrel
-        // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
-        // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
-        [Route("messages/{*catchAll}")]
-        [HttpGet]
-        public async Task<IActionResult> CatchAll(string catchAll)
-        {
-            if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
-            {
-                var id = catchAll.Substring(0, catchAll.Length - 5);
-                return await Get(id);
-            }
-
-            return NotFound();
         }
 
         [Route("messages/search")]

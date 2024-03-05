@@ -40,7 +40,6 @@ GET /heartbeats/stats => ServiceControl.Monitoring.EndpointsMonitoringController
 GET /instance-info => ServiceControl.Infrastructure.WebApi.RootController:Config()
 GET /license => ServiceControl.Licensing.LicenseController:License(Boolean refresh)
 GET /messages => ServiceControl.CompositeViews.Messages.GetMessagesController:Messages(PagingInfo pagingInfo, SortInfo sortInfo, Boolean includeSystemMessages)
-GET /messages/{*catchAll} => ServiceControl.CompositeViews.Messages.GetMessagesController:CatchAll(String catchAll, String instanceId)
 GET /messages/{id}/body => ServiceControl.CompositeViews.Messages.GetMessagesController:Get(String id, String instanceId)
 GET /messages/search => ServiceControl.CompositeViews.Messages.GetMessagesController:Search(PagingInfo pagingInfo, SortInfo sortInfo, String q)
 GET /messages/search/{keyword} => ServiceControl.CompositeViews.Messages.GetMessagesController:SearchByKeyWord(PagingInfo pagingInfo, SortInfo sortInfo, String keyword)
