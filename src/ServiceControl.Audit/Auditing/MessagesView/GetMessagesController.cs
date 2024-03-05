@@ -78,7 +78,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword)
         {
-            var result = await dataStore.QueryMessages(keyword?.Replace("/", @"\"), pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
