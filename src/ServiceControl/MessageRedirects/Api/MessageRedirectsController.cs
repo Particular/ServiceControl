@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Text.Json.Serialization;
     using System.Threading.Tasks;
     using Contracts.MessageRedirects;
     using Infrastructure.DomainEvents;
@@ -16,7 +17,6 @@
 
     using DeterministicGuid = Infrastructure.DeterministicGuid;
 
-    // TODO Re-evaluate the use of status codes in this controller
     [ApiController]
     [Route("api")]
     public class MessageRedirectsController(
@@ -29,15 +29,15 @@
         [HttpPost]
         public async Task<IActionResult> NewRedirects(MessageRedirectRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.fromphysicaladdress) || string.IsNullOrWhiteSpace(request.tophysicaladdress))
+            if (string.IsNullOrWhiteSpace(request.FromPhysicalAddress) || string.IsNullOrWhiteSpace(request.ToPhysicalAddress))
             {
                 return BadRequest();
             }
 
             var messageRedirect = new MessageRedirect
             {
-                FromPhysicalAddress = request.fromphysicaladdress,
-                ToPhysicalAddress = request.tophysicaladdress,
+                FromPhysicalAddress = request.FromPhysicalAddress,
+                ToPhysicalAddress = request.ToPhysicalAddress,
                 LastModifiedTicks = DateTime.UtcNow.Ticks
             };
 
@@ -47,18 +47,16 @@
 
             if (existing != null)
             {
-                //TODO verify both of these return the same as the previous code
                 return existing.ToPhysicalAddress == messageRedirect.ToPhysicalAddress
                     // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
                     ? StatusCode((int)HttpStatusCode.Created)
                     : Conflict("Duplicate");
             }
 
-            var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.fromphysicaladdress).ToList();
+            var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
 
             if (dependents.Any())
             {
-                //TODO verify this returns the same as the previous code
                 return Conflict("Dependents");
             }
 
@@ -73,7 +71,7 @@
                 ToPhysicalAddress = messageRedirect.ToPhysicalAddress
             });
 
-            if (request.retryexisting)
+            if (request.RetryExisting)
             {
                 await session.SendLocal(new RetryPendingMessages
                 {
@@ -87,11 +85,11 @@
             return StatusCode((int)HttpStatusCode.Created);
         }
 
-        [Route("redirects/{messageredirectid:guid}")]
+        [Route("redirects/{messageRedirectId:guid}")]
         [HttpPut]
         public async Task<IActionResult> UpdateRedirect(Guid messageRedirectId, MessageRedirectRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.tophysicaladdress))
+            if (string.IsNullOrWhiteSpace(request.ToPhysicalAddress))
             {
                 return BadRequest();
             }
@@ -105,7 +103,7 @@
                 return NotFound();
             }
 
-            var toMessageRedirectId = DeterministicGuid.MakeId(request.tophysicaladdress);
+            var toMessageRedirectId = DeterministicGuid.MakeId(request.ToPhysicalAddress);
 
             if (redirects[toMessageRedirectId] != null)
             {
@@ -117,7 +115,7 @@
                 MessageRedirectId = messageRedirectId,
                 PreviousToPhysicalAddress = messageRedirect.ToPhysicalAddress,
                 FromPhysicalAddress = messageRedirect.FromPhysicalAddress,
-                ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.tophysicaladdress
+                ToPhysicalAddress = messageRedirect.ToPhysicalAddress = request.ToPhysicalAddress
             };
 
             messageRedirect.LastModifiedTicks = DateTime.UtcNow.Ticks;
@@ -129,7 +127,7 @@
             return NoContent();
         }
 
-        [Route("redirects/{messageredirectid:guid}")]
+        [Route("redirects/{messageRedirectId:guid}")]
         [HttpDelete]
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
         {
@@ -189,15 +187,19 @@
             return queryResult;
         }
 
-        public record class RedirectsQueryResult(Guid MessageRedirectId, string FromPhysicalAddress, string ToPhysicalAddress, DateTime LastModified);
+        public record RedirectsQueryResult(Guid MessageRedirectId, string FromPhysicalAddress, string ToPhysicalAddress, DateTime LastModified);
 
+        // Input models from the API are for some odd reasons not snake cased
         public class MessageRedirectRequest
         {
-#pragma warning disable IDE1006 // Naming Styles
-            public string fromphysicaladdress { get; set; }
-            public string tophysicaladdress { get; set; }
-            public bool retryexisting { get; set; }
-#pragma warning restore IDE1006 // Naming Styles
+            [JsonPropertyName("fromphysicaladdress")]
+            public string FromPhysicalAddress { get; set; }
+
+            [JsonPropertyName("tophysicaladdress")]
+            public string ToPhysicalAddress { get; set; }
+
+            [JsonPropertyName("retryexisting")]
+            public bool RetryExisting { get; set; }
         }
     }
 }
