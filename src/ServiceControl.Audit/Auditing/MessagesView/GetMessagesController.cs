@@ -45,10 +45,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
-            var messageId = id;
-            messageId = messageId?.Replace("/", @"\");
-
-            var result = await dataStore.GetMessageBody(messageId);
+            var result = await dataStore.GetMessageBody(id);
 
             if (result.Found == false)
             {
@@ -62,7 +59,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
             if (result.StringContent == null && result.StreamContent == null)
             {
-                throw new Exception($"Metadata for message '{messageId}' indicated that a body was present but no content could be found in storage");
+                throw new Exception($"Metadata for message '{id}' indicated that a body was present but no content could be found in storage");
             }
 
             Response.Headers.ETag = result.ETag;
