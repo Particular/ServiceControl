@@ -36,9 +36,6 @@ namespace ServiceControl.MultiInstance.AcceptanceTests
         public Dictionary<string, JsonSerializerOptions> SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
         public Dictionary<string, dynamic> SettingsPerInstance => serviceControlRunnerBehavior.SettingsPerInstance;
 
-        //[OneTimeSetUp]
-        //public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-
         [SetUp]
         public void Setup()
         {

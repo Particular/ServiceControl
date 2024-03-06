@@ -15,9 +15,6 @@
     [TestFixture]
     class TransportTestFixture
     {
-        //[OneTimeSetUp]
-        //public static void OneTimeSetup() => Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-
         [SetUp]
         public virtual async Task Setup()
         {
