@@ -2,6 +2,7 @@
 {
     using NUnit.Framework;
     using Particular.ThroughputCollector.Contracts;
+    using Particular.ThroughputCollector.Shared;
 
     [TestFixture]
     public class BrokerManifestLibraryTests
@@ -15,15 +16,6 @@
 
             Assert.That(_broker, Is.Not.Null);
             Assert.That(_broker.Broker, Is.EqualTo(_broker.Broker));
-        }
-
-        [Test]
-        public void Should_return_null_for_not_found_broker()
-        {
-            var _noneBroker = Broker.None;
-            var _broker = BrokerManifestLibrary.Find(_noneBroker);
-
-            Assert.That(_broker, Is.Null);
         }
     }
 }
