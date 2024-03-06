@@ -89,30 +89,29 @@
                             .Build();
                     }
 
-                    void ConnectionOnReceived(JsonElement jElement)
+                    void EnvelopeReceived(JsonElement jElement)
                     {
                         var s = jElement.ToString();
-                        if (s.IndexOf("\"CustomCheckFailed\"") > 0)
+                        if (s.IndexOf("\"CustomCheckFailed\"", StringComparison.Ordinal) <= 0)
                         {
-                            context.SignalrData = s;
-                            context.SignalrEventReceived = true;
+                            return;
                         }
+
+                        context.SignalrData = s;
+                        context.SignalrEventReceived = true;
                     }
 
                     protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
                         // We might also be able to strongly type this to match instead of just getting a string?
-                        connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
+                        connection.On<JsonElement>("PushEnvelope", EnvelopeReceived);
 
                         await connection.StartAsync(cancellationToken);
 
                         context.SignalrStarted = connection.State == HubConnectionState.Connected;
                     }
 
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return connection.StopAsync(cancellationToken);
-                    }
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => connection.StopAsync(cancellationToken);
 
                     readonly MyContext context;
                     readonly HubConnection connection;
