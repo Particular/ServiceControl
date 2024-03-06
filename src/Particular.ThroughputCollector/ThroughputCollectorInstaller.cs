@@ -11,6 +11,6 @@ public static class ThroughputCollectorInstaller
         var persistence = persistenceConfiguration.Create(persistenceSettings);
         var installer = persistence.CreateInstaller();
 
-        await installer.Install().ConfigureAwait(false);
+        await installer.Install();
     }
 }
