@@ -4,16 +4,17 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Audit.Infrastructure;
+    using Audit.Monitoring;
+    using Auditing;
     using Auditing.MessagesView;
     using Extensions;
     using Indexes;
+    using Infrastructure;
     using Monitoring;
     using Raven.Client.Documents;
-    using ServiceControl.Audit.Auditing;
-    using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
-    using ServiceControl.SagaAudit;
+    using Raven.Client.Documents.Session;
+    using SagaAudit;
     using Transformers;
 
     class RavenAuditDataStore : IAuditDataStore
@@ -81,6 +82,28 @@
                 var results = await session.Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
                     .Statistics(out var stats)
                     .Search(x => x.Query, keyword)
+                    .Where(m => m.ReceivingEndpointName == endpoint)
+                    .Sort(sortInfo)
+                    .Paging(pagingInfo)
+                    .ToMessagesView()
+                    .ToListAsync();
+
+                return new QueryResult<IList<MessagesView>>(results, stats.ToQueryStatsInfo());
+            }
+        }
+
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndProcessedAt(
+            string endpoint,
+            DateTime startDate, DateTime endDate, PagingInfo pagingInfo,
+            SortInfo sortInfo)
+        {
+            using (IAsyncDocumentSession session = sessionProvider.OpenSession())
+            {
+                List<MessagesView> results = await session
+                    .Query<MessagesViewIndex.SortAndFilterOptions>(GetIndexName(isFullTextSearchEnabled))
+                    .Statistics(out QueryStatistics stats)
+                    .Where(m => m.ProcessedAt < endDate)
+                    .Where(m => m.ProcessedAt >= startDate)
                     .Where(m => m.ReceivingEndpointName == endpoint)
                     .Sort(sortInfo)
                     .Paging(pagingInfo)

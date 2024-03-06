@@ -4,14 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using ServiceControl.Audit.Auditing;
-    using ServiceControl.Audit.Auditing.BodyStorage;
-    using ServiceControl.Audit.Auditing.MessagesView;
-    using ServiceControl.Audit.Infrastructure;
-    using ServiceControl.Audit.Monitoring;
-    using ServiceControl.Audit.Persistence.Infrastructure;
-    using ServiceControl.Audit.Persistence.Monitoring;
-    using ServiceControl.SagaAudit;
+    using Audit.Infrastructure;
+    using Audit.Monitoring;
+    using Auditing;
+    using Auditing.BodyStorage;
+    using Auditing.MessagesView;
+    using Infrastructure;
+    using Monitoring;
+    using SagaAudit;
 
     class InMemoryAuditDataStore : IAuditDataStore
     {
@@ -66,6 +66,17 @@
 
             var matched = messageViews.Where(w => w.ReceivingEndpoint.Name == endpoint && messages.Contains(w.MessageId)).ToList();
             return await Task.FromResult(new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
+        }
+
+        public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpointAndProcessedAt(
+            string endpoint,
+            DateTime startDate, DateTime endDate, PagingInfo pagingInfo,
+            SortInfo sortInfo)
+        {
+            var matched = messageViews.Where(w =>
+                w.ReceivingEndpoint.Name == endpoint && w.ProcessedAt >= startDate && w.ProcessedAt < endDate).ToList();
+            return await Task.FromResult(
+                new QueryResult<IList<MessagesView>>(matched, new QueryStatsInfo(string.Empty, matched.Count)));
         }
 
         public async Task<QueryResult<IList<MessagesView>>> QueryMessagesByReceivingEndpoint(bool includeSystemMessages, string endpointName, PagingInfo pagingInfo, SortInfo sortInfo)

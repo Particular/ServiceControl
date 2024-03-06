@@ -2,6 +2,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading.Tasks;
     using Infrastructure;
     using Infrastructure.WebApi;
@@ -97,12 +98,8 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         [Route("messages/search/{keyword}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword)
-        {
-            var result = await dataStore.QueryMessages(keyword?.Replace("/", @"\"), pagingInfo, sortInfo);
-            Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
-            return result.Results;
-        }
+        public Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo, string keyword) => Search(pagingInfo, sortInfo, keyword?.Replace("/", @"\"));
 
         [Route("endpoints/{endpoint}/messages/search")]
         [HttpGet]
@@ -115,9 +112,20 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
         [Route("endpoints/{endpoint}/messages/search/{keyword}")]
         [HttpGet]
-        public async Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string endpoint, string keyword)
+        public Task<IList<MessagesView>> SearchByKeyword([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo, string endpoint, string keyword) =>
+            Search(pagingInfo, sortInfo, endpoint, keyword);
+
+        [Route("endpoints/{endpoint}/messages/processed-at/{date}")]
+        [HttpGet]
+        public async Task<IList<MessagesView>> SearchByDate([FromQuery] PagingInfo pagingInfo,
+            [FromQuery] SortInfo sortInfo, string endpoint, string date)
         {
-            var result = await dataStore.QueryMessagesByReceivingEndpointAndKeyword(endpoint, keyword, pagingInfo, sortInfo);
+            var startDate = DateTime.ParseExact(date, "yyyyMMddHHmm", null, DateTimeStyles.AssumeUniversal);
+            QueryResult<IList<MessagesView>> result =
+                await dataStore.QueryMessagesByReceivingEndpointAndProcessedAt(endpoint,
+                    startDate, startDate.AddHours(1), pagingInfo,
+                    sortInfo);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }
