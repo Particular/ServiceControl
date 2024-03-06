@@ -12,6 +12,7 @@
     {
         public IThroughputDataStore ThroughputDataStore { get; protected set; }
         public IThroughputCollector ThroughputCollector { get; protected set; }
+        public ThroughputSettings ThroughputSettings { get; protected set; }
 
         public Task Configure(Action<ThroughputSettings> setThroughputSettings, List<Endpoint> endpointsWithThroughput)
         {
@@ -22,7 +23,7 @@
             var persistence = config.Create(settings);
             persistence.Configure(serviceCollection);
 
-            var throughputSettings = new ThroughputSettings { AuditQueue = "audit", ErrorQueue = "error", PersistenceType = "InMemory", ServiceControlAPI = "http://localhost:33333/api", TransportConnectionString = "", Broker = Broker.None };
+            var throughputSettings = new ThroughputSettings { AuditQueue = "audit", ErrorQueue = "error", ServiceControlQueue = "Particular.ServiceControl", PersistenceType = "InMemory", ServiceControlAPI = "http://localhost:33333/api", TransportConnectionString = "", Broker = Broker.ServiceControl };
             setThroughputSettings(throughputSettings);
             serviceCollection.AddSingleton(throughputSettings);
             serviceCollection.AddSingleton<IThroughputCollector, ThroughputCollector>();
@@ -33,6 +34,7 @@
 
             ThroughputDataStore = serviceProvider.GetRequiredService<IThroughputDataStore>();
             ThroughputCollector = serviceProvider.GetRequiredService<IThroughputCollector>();
+            ThroughputSettings = serviceProvider.GetRequiredService<ThroughputSettings>();
 
             endpointsWithThroughput.ForEach(async e =>
             {

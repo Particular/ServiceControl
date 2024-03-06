@@ -5,11 +5,10 @@
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Broker
     {
-        None,
+        ServiceControl,
         AmazonSQS,
         RabbitMQ,
         AzureServiceBus,
-        //AzureStorageQueues,
         SqlServer
     }
 }

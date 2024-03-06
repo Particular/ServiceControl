@@ -99,30 +99,48 @@
             return endpoints;
         }
 
-        public static async Task<Dictionary<string,string>> GetBrokerSettingValues(BrokerSettings brokerSettings, string transportConnectionString, ILogger logger)
+        public static async Task<Dictionary<string, string>> GetBrokerSettingValues(BrokerSettings brokerSettings, string transportConnectionString, string serviceControlAPI, ILogger logger)
         {
             var brokerSettingValues = new Dictionary<string, string>();
 
             brokerSettings.Settings.ForEach(s => brokerSettingValues.Add(s.Name, ""));
 
-            //TODO for each broker try and grab the required settings from config/env, and if they don't exist try to get thrm from the transportConnectionString
+            //for each broker try and grab the required settings from config/env, and if they don't exist try to get them from the transportConnectionString
             switch (brokerSettings.Broker)
             {
-                case Broker.None:
-                    logger.LogInformation("Not using a broker.");
+                case Broker.ServiceControl:
+                    logger.LogInformation("Not using a broker - throughput data will come from ServiceControl.");
+                    brokerSettingValues[ServiceControlSettings.API] = GetConfigSetting(ServiceControlSettings.API, logger);
+                    if (string.IsNullOrEmpty(brokerSettingValues[ServiceControlSettings.API]))
+                    {
+                        brokerSettingValues[ServiceControlSettings.API] = serviceControlAPI;
+                    }
                     break;
                 case Broker.AmazonSQS:
+                    brokerSettingValues[AmazonSQSSettings.Profile] = GetConfigSetting(AmazonSQSSettings.Profile, logger);
+                    brokerSettingValues[AmazonSQSSettings.Region] = GetConfigSetting(AmazonSQSSettings.Region, logger);
+                    brokerSettingValues[AmazonSQSSettings.Prefix] = GetConfigSetting(AmazonSQSSettings.Prefix, logger);
+                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.RabbitMQ:
+                    brokerSettingValues[RabbitMQSettings.API] = GetConfigSetting(RabbitMQSettings.API, logger);
+                    brokerSettingValues[RabbitMQSettings.UserName] = GetConfigSetting(RabbitMQSettings.UserName, logger);
+                    brokerSettingValues[RabbitMQSettings.Password] = GetConfigSetting(RabbitMQSettings.Password, logger);
+                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.AzureServiceBus:
+                    brokerSettingValues[AzureServiceBusSettings.ResourceId] = GetConfigSetting(AzureServiceBusSettings.ResourceId, logger);
+                    brokerSettingValues[AzureServiceBusSettings.ClientId] = GetConfigSetting(AzureServiceBusSettings.ClientId, logger);
+                    brokerSettingValues[AzureServiceBusSettings.ClientSecret] = GetConfigSetting(AzureServiceBusSettings.ClientSecret, logger);
+                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.SqlServer:
-                    brokerSettingValues[brokerSettings.Settings[0].Name] = GetConfigSetting(brokerSettings.Settings[0].Name);
-                    if (brokerSettingValues[brokerSettings.Settings[0].Name] == null)
+                    brokerSettingValues[SqlServerSettings.ConnectionString] = GetConfigSetting(SqlServerSettings.ConnectionString, logger);
+                    if (string.IsNullOrEmpty(brokerSettingValues[SqlServerSettings.ConnectionString]))
                     {
-                        brokerSettingValues[brokerSettings.Settings[0].Name] = transportConnectionString;
+                        brokerSettingValues[SqlServerSettings.ConnectionString] = transportConnectionString;
                     }
+                    brokerSettingValues[SqlServerSettings.AdditionalCatalogs] = GetConfigSetting(SqlServerSettings.AdditionalCatalogs, logger);
                     break;
                 default:
                     break;
@@ -131,10 +149,12 @@
             return await Task.FromResult(brokerSettingValues).ConfigureAwait(false);
         }
 
-        static string GetConfigSetting(string name)
+        static string GetConfigSetting(string name, ILogger logger)
         {
-            //TODO
-            return name;
+            logger.LogInformation($"Finding setting for {name}");
+
+            //TODO - how are we handling getting settings?
+            return string.Empty;
         }
     }
 }
