@@ -17,15 +17,15 @@
             logger.LogInformation("Starting BrokerThroughputCollector Service");
 
             // When the timer should have no due-time, then do the work once now.
-            await GatherThroughput(stoppingToken).ConfigureAwait(false);
+            await GatherThroughput(stoppingToken);
 
             using PeriodicTimer timer = new(TimeSpan.FromHours(1));
 
             try
             {
-                while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+                while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
-                    await GatherThroughput(stoppingToken).ConfigureAwait(false);
+                    await GatherThroughput(stoppingToken);
                 }
             }
             catch (OperationCanceledException)

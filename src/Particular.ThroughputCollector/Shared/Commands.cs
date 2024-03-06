@@ -12,7 +12,7 @@
         public static async Task<ServiceControlEndpoint[]> GetKnownEndpoints(ServiceControlClient primary, ILogger logger, CancellationToken cancellationToken)
         {
             // Tool can't proceed without this data, try 5 times
-            var arr = await primary.GetData<JArray>("/endpoints", 5, cancellationToken).ConfigureAwait(false);
+            var arr = await primary.GetData<JArray>("/endpoints", 5, cancellationToken);
 
             var endpoints = arr.Select(endpointToken => new
             {
@@ -30,7 +30,7 @@
             .ToArray();
 
             // Verify audit instances also have audit counts
-            var remotesInfoJson = await primary.GetData<JArray>("/configuration/remotes", cancellationToken).ConfigureAwait(false);
+            var remotesInfoJson = await primary.GetData<JArray>("/configuration/remotes", cancellationToken);
             var remoteInfo = remotesInfoJson.Select(remote =>
             {
                 var uri = remote["api_uri"]?.Value<string>();
@@ -76,7 +76,7 @@
                 var path = $"/endpoints/{endpoint.UrlName}/audit-count";
                 try
                 {
-                    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken).ConfigureAwait(false);
+                    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -86,12 +86,12 @@
                 //if (useAuditCounts)
                 //{
                 //    var path = $"/endpoints/{endpoint.UrlName}/audit-count";
-                //    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken).ConfigureAwait(false);
+                //    endpoint.AuditCounts = await primary.GetData<AuditCount[]>(path, 2, cancellationToken);
                 //}
                 //else
                 //{
                 //    var path = $"/endpoints/{endpoint.UrlName}/messages/?per_page=1";
-                //    var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken).ConfigureAwait(false);
+                //    var recentMessages = await primary.GetData<JArray>(path, 2, cancellationToken);
                 //    endpoint.NoAuditCounts = recentMessages.Any();
                 //}
             }
@@ -146,7 +146,7 @@
                     break;
             }
 
-            return await Task.FromResult(brokerSettingValues).ConfigureAwait(false);
+            return await Task.FromResult(brokerSettingValues);
         }
 
         static string GetConfigSetting(string name, ILogger logger)
