@@ -47,17 +47,25 @@
 
             if (existing != null)
             {
-                return existing.ToPhysicalAddress == messageRedirect.ToPhysicalAddress
-                    // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
-                    ? StatusCode((int)HttpStatusCode.Created)
-                    : Conflict("Duplicate");
+                if (existing.ToPhysicalAddress == messageRedirect.ToPhysicalAddress)
+                {
+                    return StatusCode((int)HttpStatusCode.Created, messageRedirect);
+                }
+
+                // Setting the ReasonPhrase is no longer supported in HTTP/2. We could be using application/problem+json instead
+                // but that would require a lot of changes in the client code. For now, we are using the X-Particular-Reason header
+                Response.Headers["X-Particular-Reason"] = "Duplicate";
+                return StatusCode((int)HttpStatusCode.Conflict, existing);
             }
 
             var dependents = collection.Redirects.Where(r => r.ToPhysicalAddress == request.FromPhysicalAddress).ToList();
 
             if (dependents.Any())
             {
-                return Conflict("Dependents");
+                // Setting the ReasonPhrase is no longer supported in HTTP/2. We could be using application/problem+json instead
+                // but that would require a lot of changes in the client code. For now, we are using the X-Particular-Reason header
+                Response.Headers["X-Particular-Reason"] = "Dependents";
+                return StatusCode((int)HttpStatusCode.Conflict, dependents);
             }
 
             collection.Redirects.Add(messageRedirect);
@@ -132,7 +140,7 @@
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
         {
             var redirects = await store.GetOrCreate();
-
+            
             var messageRedirect = redirects[messageRedirectId];
 
             if (messageRedirect == null)
