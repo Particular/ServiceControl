@@ -6,6 +6,9 @@
 
     static class ThroughputCollectorTestData
     {
+        public const string EndpointNameWithNoThroughput = "EndpointNoThroughput";
+        public const string EndpointNameWithMultiIndicators = "EndpointMultiIndicators";
+
         public static List<Endpoint> GetEndpointsThroughput(Broker broker)
         {
             var endpoints = new List<Endpoint>();
@@ -26,14 +29,13 @@
                 endpoints.Add(new Endpoint
                 {
                     Name = $"Endpoint{e}",
-                    Queue = $"Queue{e}",
                     ThroughputSource = ThroughputSource.Audit,
                     DailyThroughput = endpointThroughput,
                 });
             }
 
             //monitoring
-            for (var e = 10; e < 20; e++)
+            for (var e = 5; e < 25; e++)
             {
                 var endpointThroughput = new List<EndpointThroughput>();
 
@@ -48,16 +50,15 @@
                 endpoints.Add(new Endpoint
                 {
                     Name = $"Endpoint{e}",
-                    Queue = $"Queue{e}",
                     ThroughputSource = ThroughputSource.Monitoring,
                     DailyThroughput = endpointThroughput,
                 });
             }
 
             //broker
-            if (broker != Broker.None)
+            if (broker != Broker.ServiceControl)
             {
-                for (var e = 20; e < 40; e++)
+                for (var e = 10; e < 50; e++)
                 {
                     var endpointThroughput = new List<EndpointThroughput>();
 
@@ -72,7 +73,6 @@
                     endpoints.Add(new Endpoint
                     {
                         Name = $"Endpoint{e}",
-                        Queue = $"Queue{e}",
                         ThroughputSource = ThroughputSource.Broker,
                         DailyThroughput = endpointThroughput,
                     });
@@ -81,18 +81,66 @@
 
             endpoints.Add(new Endpoint
             {
-                Name = $"error",
-                Queue = $"error",
+                Name = "error",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 10 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 10 }],
             });
 
             endpoints.Add(new Endpoint
             {
-                Name = $"audit",
-                Queue = $"audit",
+                Name = "audit",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 1000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = "audit",
+                ThroughputSource = ThroughputSource.Broker,
+                DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 1000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = "Particular.ServiceControl",
+                ThroughputSource = ThroughputSource.Audit,
+                DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 5000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = "Particular.ServiceControl",
+                ThroughputSource = ThroughputSource.Broker,
+                DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 5000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = EndpointNameWithNoThroughput,
+                ThroughputSource = ThroughputSource.Audit
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = EndpointNameWithNoThroughput,
+                ThroughputSource = ThroughputSource.Broker
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = EndpointNameWithMultiIndicators,
+                ThroughputSource = ThroughputSource.Broker,
+                UserIndicatedSendOnly = true,
+                UserIndicatedToIgnore = true,
+            });
+
+            endpoints.Add(new Endpoint
+            {
+                Name = EndpointNameWithMultiIndicators,
+                ThroughputSource = ThroughputSource.Audit,
+                UserIndicatedSendOnly = false,
+                UserIndicatedToIgnore = false,
+                EndpointIndicators = [EndpointIndicator.KnownEndpoint.ToString()]
             });
 
             return endpoints;
