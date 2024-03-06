@@ -4,10 +4,10 @@
 
     public interface IThroughputCollector
     {
-        Task<List<EndpointThroughputSummary>> GetThroughputSummary(int month);
+        Task<List<EndpointThroughputSummary>> GetThroughputSummary(int? days);
         Task UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointsThroughputSummary);
-        Task<BrokerSettings> GetBrokerSettings();
+        Task<BrokerSettings> GetBrokerSettingsInformation();
         Task<BrokerSettingsTestResult> TestBrokerSettings();
-        Task<ThroughputReport> GenerateThroughputReport(int month);
+        Task<ThroughputReport> GenerateThroughputReport(int? days);
     }
 }
