@@ -6,6 +6,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Hosting.Commands;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -19,7 +20,6 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;

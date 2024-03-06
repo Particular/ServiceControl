@@ -1,7 +1,6 @@
 namespace ServiceControl.Monitoring
 {
     using System.Threading.Tasks;
-    using Infrastructure;
     using LicenseManagement;
     using NServiceBus.Logging;
     using Transports;

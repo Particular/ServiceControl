@@ -5,8 +5,8 @@
     using System.Reflection;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Commands;
     using global::ServiceControl.Configuration;
+    using global::ServiceControl.Hosting.Commands;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
     using Hosting;

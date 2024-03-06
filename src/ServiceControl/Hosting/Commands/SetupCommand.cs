@@ -1,14 +1,15 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
-    using global::ServiceControl.LicenseManagement;
-    using global::ServiceControl.Persistence;
-    using global::ServiceControl.Transports;
-    using Hosting;
     using NServiceBus.Logging;
+    using Particular.ServiceControl;
+    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
+    using LicenseManagement;
+    using Persistence;
+    using Transports;
 
     class SetupCommand : AbstractCommand
     {

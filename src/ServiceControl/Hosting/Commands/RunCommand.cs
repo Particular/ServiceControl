@@ -1,12 +1,13 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Hosting.Commands
 {
     using System.Threading.Tasks;
-    using global::ServiceControl;
-    using Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.Hosting;
     using NServiceBus;
+    using Particular.ServiceControl;
+    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
+    using ServiceControl;
 
     class RunCommand : AbstractCommand
     {

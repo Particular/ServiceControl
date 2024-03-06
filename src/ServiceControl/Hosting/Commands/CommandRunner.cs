@@ -1,18 +1,13 @@
-﻿namespace Particular.ServiceControl.Commands
+﻿namespace ServiceControl.Hosting.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Hosting;
+    using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 
-    class CommandRunner
+    class CommandRunner(List<Type> commands)
     {
-        public CommandRunner(List<Type> commands)
-        {
-            this.commands = commands;
-        }
-
         public async Task Execute(HostArguments args, Settings settings)
         {
             foreach (var commandType in commands)
@@ -21,7 +16,5 @@
                 await command.Execute(args, settings);
             }
         }
-
-        readonly List<Type> commands;
     }
 }

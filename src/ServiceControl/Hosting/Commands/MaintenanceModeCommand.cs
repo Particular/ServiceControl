@@ -5,7 +5,6 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
     using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;

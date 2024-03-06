@@ -9,7 +9,6 @@
     using NServiceBus;
     using Operations;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
     using ServiceBus.Management.Infrastructure.Settings;
 

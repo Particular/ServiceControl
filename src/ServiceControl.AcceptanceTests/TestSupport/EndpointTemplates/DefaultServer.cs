@@ -3,11 +3,11 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting.EndpointTemplates;
+    using Hosting.Commands;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Features;
     using Particular.ServiceControl;
-    using Particular.ServiceControl.Commands;
 
     public class DefaultServer : IEndpointSetupTemplate
     {
