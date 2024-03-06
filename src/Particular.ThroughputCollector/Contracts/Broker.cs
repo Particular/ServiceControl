@@ -3,10 +3,12 @@
     using System.Text.Json.Serialization;
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum EndpointIndicator
+    public enum Broker
     {
-        ConventionalTopologyBinding,
-        DelayBinding,
-        KnownEndpoint
+        ServiceControl,
+        AmazonSQS,
+        RabbitMQ,
+        AzureServiceBus,
+        SqlServer
     }
 }
