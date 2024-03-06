@@ -140,7 +140,7 @@
         public async Task<IActionResult> DeleteRedirect(Guid messageRedirectId)
         {
             var redirects = await store.GetOrCreate();
-            
+
             var messageRedirect = redirects[messageRedirectId];
 
             if (messageRedirect == null)
