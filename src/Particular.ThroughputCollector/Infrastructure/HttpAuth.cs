@@ -65,7 +65,7 @@
 
                 try
                 {
-                    using var response = await http.GetAsync(authUri, cancellationToken).ConfigureAwait(false);
+                    using var response = await http.GetAsync(authUri, cancellationToken);
 
                     try
                     {

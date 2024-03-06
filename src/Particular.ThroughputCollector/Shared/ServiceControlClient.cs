@@ -56,7 +56,7 @@
             {
                 try
                 {
-                    using (var stream = await http.GetStreamAsync(url, cancellationToken).ConfigureAwait(false))
+                    using (var stream = await http.GetStreamAsync(url, cancellationToken))
                     using (var reader = new StreamReader(stream))
                     using (var jsonReader = new JsonTextReader(reader))
                     {
@@ -88,7 +88,7 @@
             HttpResponseMessage? res = null;
             try
             {
-                res = await http.SendAsync(new HttpRequestMessage(HttpMethod.Get, rootUrl), cancellationToken).ConfigureAwait(false);
+                res = await http.SendAsync(new HttpRequestMessage(HttpMethod.Get, rootUrl), cancellationToken);
             }
             catch (HttpRequestException hx)
             {
@@ -117,7 +117,7 @@
             Version = versionHeaders.Select(header => SemVerVersion.ParseOrDefault(header)).FirstOrDefault();
             logger.LogInformation($"{instanceType} instance at {rootUrl} detected running version {Version}");
 
-            var content = await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            var content = await res.Content.ReadAsStringAsync(cancellationToken);
             if (!contentTest(content))
             {
                 throw new HaltException(HaltReason.InvalidConfig, $"The server at {rootUrl}  does not appear to be a {instanceType} instance.");
