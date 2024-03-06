@@ -90,7 +90,7 @@
             }
 
             // not using Created here because that would be turned by the HttpNoContentOutputFormatter into a 204
-            return StatusCode((int)HttpStatusCode.Created);
+            return StatusCode((int)HttpStatusCode.Created, messageRedirect);
         }
 
         [Route("redirects/{messageRedirectId:guid}")]
