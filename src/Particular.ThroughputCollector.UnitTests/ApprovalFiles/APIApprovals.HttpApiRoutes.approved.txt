@@ -1,5 +1,5 @@
-GET /throughput/endpoints => Particular.ThroughputCollector.WebApi.ThroughputController:GetEndpointThroughput(Nullable<Int32> month)
+GET /throughput/endpoints => Particular.ThroughputCollector.WebApi.ThroughputController:GetEndpointThroughput(Nullable<Int32> days)
 POST /throughput/endpoints/update => Particular.ThroughputCollector.WebApi.ThroughputController:UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointThroughputs)
-GET /throughput/report => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputReport(Nullable<Int32> month)
-GET /throughput/settings => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputBrokerSettings()
+GET /throughput/report => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputReport(Nullable<Int32> days)
+GET /throughput/settings/info => Particular.ThroughputCollector.WebApi.ThroughputController:GetThroughputBrokerSettingsInformation()
 GET /throughput/settings/test => Particular.ThroughputCollector.WebApi.ThroughputController:TestThroughputBrokerSettings()
