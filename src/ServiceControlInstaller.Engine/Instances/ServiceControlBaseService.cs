@@ -10,7 +10,6 @@ namespace ServiceControlInstaller.Engine.Instances
     using System.Threading.Tasks;
     using Accounts;
     using Configuration;
-    using Configuration.ServiceControl;
     using FileSystem;
     using NuGet.Versioning;
     using Queues;
@@ -18,6 +17,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using Services;
     using UrlAcl;
     using Validation;
+
+    using AppConfig = Configuration.ServiceControl.AppConfig;
 
     public abstract class ServiceControlBaseService : BaseService
     {
@@ -140,19 +141,7 @@ namespace ServiceControlInstaller.Engine.Instances
             return null;
         }
 
-        protected abstract string GetTransportTypeSetting();
-
-        protected TransportInfo DetermineTransportPackage()
-        {
-            var transportAppSetting = GetTransportTypeSetting();
-            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
-            if (transport != null)
-            {
-                return transport;
-            }
-
-            return ServiceControlCoreTransports.GetDefaultTransport();
-        }
+        protected abstract TransportInfo DetermineTransportPackage();
 
         protected void RecreateUrlAcl(ServiceControlBaseService oldSettings)
         {

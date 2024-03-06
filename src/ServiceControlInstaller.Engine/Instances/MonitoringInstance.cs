@@ -96,14 +96,12 @@
 
         TransportInfo DetermineTransportPackage()
         {
-            var transportAppSetting = AppConfig.Read<string>(SettingsList.TransportType, null)?.Trim();
-            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
-            if (transport != null)
-            {
-                return transport;
-            }
+            var transportAppSetting = (AppConfig.Read<string>(SettingsList.TransportType, null)?.Trim())
+                ?? throw new Exception($"{SettingsList.TransportType.Name} setting not found in app.config.");
 
-            return ServiceControlCoreTransports.GetDefaultTransport();
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+
+            return transport ?? throw new Exception($"{SettingsList.TransportType.Name} value of '{transportAppSetting}' in app.config is invalid.");
         }
 
         public async Task ValidateChanges()

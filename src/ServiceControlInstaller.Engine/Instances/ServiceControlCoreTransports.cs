@@ -10,11 +10,8 @@
     {
         static readonly TransportInfo[] all;
         static readonly TransportInfo[] supported;
-        static readonly TransportInfo defaultTransport;
 
         public static TransportInfo[] GetSupportedTransports() => supported;
-
-        public static TransportInfo GetDefaultTransport() => defaultTransport;
 
         // Only tests should use this
         internal static TransportInfo[] GetAllTransports() => all;
@@ -36,9 +33,6 @@
             all.First(t => t.Name == "LearningTransport").AvailableInSCMU = IncludeLearningTransport();
 
             supported = all.Where(t => t.AvailableInSCMU).ToArray();
-
-            // TODO Changed this to SingleOrDefault and made LearningTransport default for now since MSMQ is default currently. Seems like we'll need to choose a new default also?
-            defaultTransport = all.SingleOrDefault(t => t.Default) ?? all.First(t => t.Name == "LearningTransport");
         }
 
         static TransportInfo[] Load(Assembly assembly, string resourceName)
