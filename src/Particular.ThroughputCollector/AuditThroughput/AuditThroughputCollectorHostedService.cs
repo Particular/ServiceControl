@@ -20,7 +20,7 @@
         public Task StartAsync(CancellationToken cancellationToken)
         {
             logger.LogInformation("Starting AuditThroughputCollector Service");
-            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken).ConfigureAwait(false), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
+            auditThroughputGatherTimer = new Timer(async _ => await GatherThroughput(cancellationToken), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)); //TODO this will change to every hour (or every few hours?)
             return Task.CompletedTask;
         }
 
@@ -38,11 +38,11 @@
 
             try
             {
-                var brokerSettings = await Commands.GetBrokerSettingValues(BrokerManifestLibrary.Find(throughputSettings.Broker)!, throughputSettings.TransportConnectionString, throughputSettings.ServiceControlAPI, logger).ConfigureAwait(false);
-                var httpFactory = await HttpAuth.CreateHttpClientFactory(brokerSettings[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken).ConfigureAwait(false);
+                var brokerSettings = await Commands.GetBrokerSettingValues(BrokerManifestLibrary.Find(throughputSettings.Broker)!, throughputSettings.TransportConnectionString, throughputSettings.ServiceControlAPI, logger);
+                var httpFactory = await HttpAuth.CreateHttpClientFactory(brokerSettings[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
                 var primary = new ServiceControlClient("ServiceControl", brokerSettings[ServiceControlSettings.API], httpFactory, logger);
-                await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken).ConfigureAwait(false); //TODO do we need this since we know the SC url?
-                var knownEndpoints = await Commands.GetKnownEndpoints(primary, logger, cancellationToken).ConfigureAwait(false);
+                await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken); //TODO do we need this since we know the SC url?
+                var knownEndpoints = await Commands.GetKnownEndpoints(primary, logger, cancellationToken);
 
                 if (!knownEndpoints.Any())
                 {
@@ -51,10 +51,10 @@
 
                 foreach (var endpoint in knownEndpoints)
                 {
-                    if (!await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday).ConfigureAwait(false))
+                    if (!await ThroughputRecordedForYesterday(endpoint.Name, utcYesterday))
                     {
                         //for each endpoint record the audit count for the day we are currently doing as well as any others that are available
-                        await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint)).ConfigureAwait(false);
+                        await dataStore.RecordEndpointThroughput(SCEndpointToEndpoint(endpoint));
                     }
                 }
             }
@@ -66,7 +66,7 @@
 
         async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateTime utcDateTime)
         {
-            var endpoint = await dataStore.GetEndpointByName(endpointName, ThroughputSource.Audit).ConfigureAwait(false);
+            var endpoint = await dataStore.GetEndpointByName(endpointName, ThroughputSource.Audit);
 
             return endpoint?.DailyThroughput?.Any(a => a.DateUTC == utcDateTime) ?? false;
         }

@@ -39,7 +39,7 @@
 
 //            try
 //            {
-//                return await GetThroughputFromAuditsInternal(endpointName, cancellationToken).ConfigureAwait(false);
+//                return await GetThroughputFromAuditsInternal(endpointName, cancellationToken);
 //            }
 //            catch (ServiceControlDataException x)
 //            {
@@ -55,10 +55,10 @@
 //            async Task<AuditBatch> GetPage(int page)
 //            {
 //                Debug($"  * Getting page {page}");
-//                return await GetAuditBatch(endpointName, page, AuditSamplingPageSize, cancellationToken).ConfigureAwait(false);
+//                return await GetAuditBatch(endpointName, page, AuditSamplingPageSize, cancellationToken);
 //            }
 
-//            var firstPage = await GetPage(1).ConfigureAwait(false);
+//            var firstPage = await GetPage(1);
 
 //            if (!firstPage.IsValid)
 //            {
@@ -93,7 +93,7 @@
 //            for (var factor = 1; maxPage == -1; factor++)
 //            {
 //                var attemptPageNum = (int)(factor * estimatedPages);
-//                var page = await GetPage(attemptPageNum).ConfigureAwait(false);
+//                var page = await GetPage(attemptPageNum);
 
 //                if (page.ContainsTime(collectionPeriodStartTime))
 //                {
@@ -123,7 +123,7 @@
 //            while (minPage != maxPage)
 //            {
 //                var middlePageNum = (minPage + maxPage) / 2;
-//                var pageData = await GetPage(middlePageNum).ConfigureAwait(false);
+//                var pageData = await GetPage(middlePageNum);
 
 //                // If we've backtracked to a page we've hit before, or the page actually contains the time we seek, we're done
 //                if (middlePageNum == minPage || middlePageNum == maxPage || pageData.ContainsTime(collectionPeriodStartTime))
@@ -149,7 +149,7 @@
 //            }
 
 //            // Likely we don't get here, but for completeness
-//            var finalPage = await GetPage(minPage).ConfigureAwait(false);
+//            var finalPage = await GetPage(minPage);
 //            Debug($"  * Catch-All => {(AuditSamplingPageSize * (minPage - 1)) + finalPage.MessagesProcessedAfter(collectionPeriodStartTime)} messages");
 //            return new Throughput
 //            {
@@ -162,7 +162,7 @@
 //        {
 //            var pathAndQuery = $"/endpoints/{endpointName}/messages/?page={page}&per_page={pageSize}&sort=processed_at&direction=desc";
 
-//            var arr = await primary.GetData<JArray>(pathAndQuery, cancellationToken).ConfigureAwait(false);
+//            var arr = await primary.GetData<JArray>(pathAndQuery, cancellationToken);
 
 //            var processedAtValues = arr.Select(token => token["processed_at"].Value<DateTime>()).ToArray();
 
