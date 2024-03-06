@@ -176,7 +176,7 @@ function save() {
       <div class="col">
         <drop-down label="Sort" :select-item="sortData.find((v) => v.value === filterData.sort)" :callback="sortChanged" :items="sortData" />
       </div>
-      <div class="col-1">
+      <div class="col-1 text-end">
         <button class="btn btn-primary" type="button" @click="save">Save</button>
       </div>
     </div>
