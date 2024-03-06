@@ -5,11 +5,11 @@
     public class EndpointThroughputSummary
     {
         public string Name { get; set; }
-        public string Queue { get; set; }
-        public string ThroughputSource { get; set; }
+        //public string ThroughputSource { get; set; }
         public bool IsKnownEndpoint { get; set; }
+        public bool ThroughputExistsForThisPeriod { get; set; }
         public bool? UserIndicatedSendOnly { get; set; }
         public bool? UserIndicatedToIgnore { get; set; }
-        public long? MaxDailyThroughputForThisMonth { get; set; }
+        public long MaxDailyThroughput { get; set; }
     }
 }

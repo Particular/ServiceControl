@@ -9,14 +9,14 @@
 
     public static class ThroughputCollectorHostBuilderExtensions
     {
-        public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string serviceControlAPI, string errorQueue, string auditQueue, string transportConnectionString, string persistenceType)
+        public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string serviceControlAPI, string errorQueue, string serviceControlQueue, string auditQueue, string transportConnectionString, string persistenceType)
         {
             //For testing only until RavenDB Persistence is working
             persistenceType = "InMemory";
 
             var services = hostBuilder.Services;
 
-            var broker = Contracts.Broker.None;
+            var broker = Contracts.Broker.ServiceControl;
             switch (transportType)
             {
                 case "NetStandardAzureServiceBus":
@@ -40,7 +40,17 @@
                     break;
             }
 
-            services.AddSingleton(new ThroughputSettings { Broker = broker, ServiceControlAPI = serviceControlAPI, AuditQueue = auditQueue, ErrorQueue = errorQueue, TransportConnectionString = transportConnectionString, PersistenceType = persistenceType });
+            //try to ensure the serviceControlAPI is correct (https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0#url-formats)
+            if (serviceControlAPI.StartsWith("http://*"))
+            {
+                serviceControlAPI = serviceControlAPI.Replace("http://*", "http://localhost");
+            }
+            else if (serviceControlAPI.StartsWith("http://0.0.0.0"))
+            {
+                serviceControlAPI = serviceControlAPI.Replace("http://0.0.0.0", "http://localhost");
+            }
+
+            services.AddSingleton(new ThroughputSettings { Broker = broker, ServiceControlAPI = serviceControlAPI, ServiceControlQueue = serviceControlQueue, AuditQueue = auditQueue, ErrorQueue = errorQueue, TransportConnectionString = transportConnectionString, PersistenceType = persistenceType });
             //TODO could get ILoggerFactory loggerFactory here and create the one for throughput collector and inject the ilogger into the services - that way won't have to create it every time.
             services.AddHostedService<AuditThroughputCollectorHostedService>();
             services.AddHostedService<BrokerThroughputCollectorHostedService>();

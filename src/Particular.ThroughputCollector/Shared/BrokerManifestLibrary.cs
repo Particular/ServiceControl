@@ -1,4 +1,4 @@
-﻿namespace Particular.ThroughputCollector;
+﻿namespace Particular.ThroughputCollector.Shared;
 
 using System;
 using System.Collections.Generic;
@@ -43,7 +43,7 @@ public static class BrokerManifestLibrary
         return Path.GetDirectoryName(assemblyLocation);
     }
 
-    public static BrokerSettings? Find(Contracts.Broker broker)
+    public static BrokerSettings? Find(Broker broker)
     {
         return BrokerSettings.FirstOrDefault(w => w.Broker == broker);
     }

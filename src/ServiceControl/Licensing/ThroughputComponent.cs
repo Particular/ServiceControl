@@ -13,6 +13,7 @@ class ThroughputComponent : ServiceControlComponent
         hostBuilder.AddThroughputCollector(
             transportType: TransportManifestLibrary.GetName(settings.TransportType),
             serviceControlAPI: settings.ApiUrl,
+            serviceControlQueue: settings.ServiceName,
             errorQueue: settings.ErrorQueue,
             auditQueue: "?",
             transportConnectionString: settings.TransportConnectionString,

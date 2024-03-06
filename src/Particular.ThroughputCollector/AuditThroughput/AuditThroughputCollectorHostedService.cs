@@ -38,8 +38,9 @@
 
             try
             {
-                var httpFactory = await HttpAuth.CreateHttpClientFactory(throughputSettings.ServiceControlAPI, logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken).ConfigureAwait(false);
-                var primary = new ServiceControlClient("ServiceControl", throughputSettings.ServiceControlAPI, httpFactory, logger);
+                var brokerSettings = await Commands.GetBrokerSettingValues(BrokerManifestLibrary.Find(throughputSettings.Broker)!, throughputSettings.TransportConnectionString, throughputSettings.ServiceControlAPI, logger).ConfigureAwait(false);
+                var httpFactory = await HttpAuth.CreateHttpClientFactory(brokerSettings[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken).ConfigureAwait(false);
+                var primary = new ServiceControlClient("ServiceControl", brokerSettings[ServiceControlSettings.API], httpFactory, logger);
                 await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken).ConfigureAwait(false); //TODO do we need this since we know the SC url?
                 var knownEndpoints = await Commands.GetKnownEndpoints(primary, logger, cancellationToken).ConfigureAwait(false);
 
@@ -65,7 +66,7 @@
 
         async Task<bool> ThroughputRecordedForYesterday(string endpointName, DateTime utcDateTime)
         {
-            var endpoint = await dataStore.GetEndpointByNameOrQueue(endpointName, ThroughputSource.Audit).ConfigureAwait(false);
+            var endpoint = await dataStore.GetEndpointByName(endpointName, ThroughputSource.Audit).ConfigureAwait(false);
 
             return endpoint?.DailyThroughput?.Any(a => a.DateUTC == utcDateTime) ?? false;
         }
@@ -75,7 +76,6 @@
             return new Endpoint
             {
                 Name = scEndpoint.Name,
-                Queue = scEndpoint.Name,
                 ThroughputSource = ThroughputSource.Audit,
                 EndpointIndicators = new string[] { EndpointIndicator.KnownEndpoint.ToString() },
                 DailyThroughput = scEndpoint.AuditCounts.Any() ? scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList() : []

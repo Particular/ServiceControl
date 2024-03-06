@@ -20,12 +20,15 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />  
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
 	  <ContentWithTargetPath Include="BrokerThroughput\throughput.broker.manifest">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		<TargetPath>throughput.broker.manifest</TargetPath>
 	  </ContentWithTargetPath>
-	  <None Include="BrokerThroughput\throughput.broker.manifest" />
+  </ItemGroup>-->
+
+  <ItemGroup>
+    <None Update="throughput.broker.manifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   
 </Project>

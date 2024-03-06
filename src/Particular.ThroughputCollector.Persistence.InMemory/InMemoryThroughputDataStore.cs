@@ -19,12 +19,13 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         return await Task.FromResult(endpoints);
     }
 
-    public async Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue, ThroughputSource throughputSource)
+    public async Task<Endpoint> GetEndpointByName(string name, ThroughputSource throughputSource)
     {
-        var endpoint = endpoints.FirstOrDefault(w => w.ThroughputSource == throughputSource && (w.Name == nameOrQueue || w.Queue == nameOrQueue));
+        var endpoint = endpoints.FirstOrDefault(w => w.ThroughputSource == throughputSource && w.Name == name);
 
         return await Task.FromResult(endpoint);
     }
+
     public async Task RecordEndpointThroughput(Endpoint endpoint)
     {
         var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name && w.ThroughputSource == endpoint.ThroughputSource);
@@ -50,18 +51,24 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
     {
-        endpointsWithUserIndicator.ForEach(e =>
+        endpointsWithUserIndicator.DistinctBy(b => b.Name).ToList().ForEach(async e =>
         {
-            var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == e.Name && w.ThroughputSource == e.ThroughputSource);
+            //if there are multiple sources of throughput for the endpoint, update them all
+            var existingEndpoints = await GetAllEndpointThroughput(e.Name).ConfigureAwait(false);
 
-            if (existingEndpoint != null)
+            existingEndpoints.ForEach(u =>
             {
-                existingEndpoint.UserIndicatedSendOnly = e.UserIndicatedSendOnly;
-                existingEndpoint.UserIndicatedToIgnore = e.UserIndicatedToIgnore;
-            }
+                u.UserIndicatedSendOnly = e.UserIndicatedSendOnly;
+                u.UserIndicatedToIgnore = e.UserIndicatedToIgnore;
+            });
         });
 
         await Task.CompletedTask;
+    }
+
+    async Task<List<Endpoint>> GetAllEndpointThroughput(string name)
+    {
+        return await Task.FromResult(endpoints.Where(w => w.Name == name).ToList());
     }
 
     public Task Setup() => Task.CompletedTask;
