@@ -5,6 +5,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Audit.Infrastructure;
+    using Audit.Infrastructure.Hosting;
+    using Audit.Infrastructure.Hosting.Commands;
     using Audit.Infrastructure.Settings;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -25,9 +27,8 @@
                 ForwardAuditMessages = true,
             };
 
-            var setupBootstrapper = new SetupBootstrapper(settings);
-
-            await setupBootstrapper.Run();
+            var setupCommand = new SetupCommand();
+            await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
 
             CollectionAssert.AreEquivalent(new[]
             {

@@ -7,16 +7,16 @@
     using Particular.ServiceControl;
     using Particular.ServiceControl.Commands;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using ServiceBus.Management.Infrastructure.Settings;
 
     class MaintenanceModeCommand : AbstractCommand
     {
         public override async Task Execute(HostArguments args, Settings settings)
         {
-            var bootstrapper = new MaintenanceBootstrapper(settings);
-            var hostBuilder = bootstrapper.HostBuilder;
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
 
-            // TODO: Move into the bootstrapper
             hostBuilder.Services.AddWindowsService();
 
             if (WindowsServiceHelpers.IsWindowsService())

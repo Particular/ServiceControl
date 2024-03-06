@@ -3,10 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using Hosting.Commands;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus;
     using NUnit.Framework;
     using Particular.ServiceControl;
     using Particular.ServiceControl.Hosting;
+    using Persistence;
     using Persistence.RavenDB;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
@@ -41,10 +43,12 @@
         [Test]
         public async Task CanRunMaintenanceMode()
         {
-            var bootstrapper = new MaintenanceBootstrapper(settings);
+            // ideally we'd be using the MaintenanceModeCommand here but that indefinitely blocks due to the RunAsync
+            // not terminating.
+            var hostBuilder = Host.CreateApplicationBuilder();
+            hostBuilder.Services.AddPersistence(settings, maintenanceMode: true);
 
-            var host = bootstrapper.HostBuilder.Build();
-
+            using var host = hostBuilder.Build();
             await host.StartAsync();
             await host.StopAsync();
         }

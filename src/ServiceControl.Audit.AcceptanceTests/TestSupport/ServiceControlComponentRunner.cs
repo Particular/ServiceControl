@@ -10,6 +10,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using AcceptanceTesting;
     using Auditing;
     using Infrastructure;
+    using Infrastructure.Hosting;
+    using Infrastructure.Hosting.Commands;
     using Infrastructure.Settings;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -101,9 +103,8 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-
-                var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
+                var setupCommand = new SetupCommand();
+                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);

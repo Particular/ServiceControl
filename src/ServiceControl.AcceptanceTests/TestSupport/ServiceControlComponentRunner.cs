@@ -19,6 +19,8 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
+    using Particular.ServiceControl.Commands;
+    using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -95,8 +97,8 @@
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
+                var setupCommand = new SetupCommand();
+                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);
