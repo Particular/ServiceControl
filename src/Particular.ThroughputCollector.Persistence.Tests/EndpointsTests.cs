@@ -13,7 +13,6 @@
             var endpoint = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
@@ -25,7 +24,6 @@
             Assert.That(endpoints.Count, Is.EqualTo(1));
             var foundEndpoint = endpoints[0];
             Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint.Name));
-            Assert.That(foundEndpoint.Queue, Is.EqualTo(endpoint.Queue));
             Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(endpoint.DailyThroughput.Count));
         }
@@ -36,7 +34,6 @@
             var endpoint1 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
@@ -45,7 +42,6 @@
             var endpoint2 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Broker,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 600 }]
             };
@@ -63,7 +59,6 @@
             var endpoint1 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
@@ -72,7 +67,6 @@
             var endpoint2 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 100 }]
             };
@@ -83,7 +77,6 @@
             Assert.That(endpoints.Count, Is.EqualTo(1));
             var foundEndpoint = endpoints[0];
             Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint1.Name));
-            Assert.That(foundEndpoint.Queue, Is.EqualTo(endpoint1.Queue));
             Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint1.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(2));
         }
@@ -94,7 +87,6 @@
             var endpoint1 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 100 }]
             };
@@ -103,7 +95,6 @@
             var endpoint2 = new Endpoint
             {
                 Name = "Endpoint1",
-                Queue = "Queue1",
                 ThroughputSource = ThroughputSource.Audit,
             };
             await DataStore.RecordEndpointThroughput(endpoint2);
@@ -113,7 +104,6 @@
             Assert.That(endpoints.Count, Is.EqualTo(1));
             var foundEndpoint = endpoints[0];
             Assert.That(foundEndpoint.Name, Is.EqualTo(endpoint1.Name));
-            Assert.That(foundEndpoint.Queue, Is.EqualTo(endpoint1.Queue));
             Assert.That(foundEndpoint.ThroughputSource, Is.EqualTo(endpoint1.ThroughputSource));
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
         }
@@ -124,14 +114,13 @@
             var endpoint = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
 
             Assert.That(foundEndpoint, Is.Not.Null);
         }
@@ -142,14 +131,13 @@
             var endpoint = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Broker);
+            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Broker);
 
             Assert.That(foundEndpoint, Is.Null);
         }
@@ -160,14 +148,13 @@
             var endpoint = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
             };
 
             await DataStore.RecordEndpointThroughput(endpoint);
 
-            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
             Assert.That(foundEndpoint.UserIndicatedSendOnly, Is.Null);
@@ -177,7 +164,6 @@
             var endpointWithUserIndicators = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 UserIndicatedSendOnly = true,
                 UserIndicatedToIgnore = true,
@@ -185,7 +171,7 @@
 
             await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
 
-            foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
 
             Assert.That(foundEndpoint, Is.Not.Null);
             Assert.That(foundEndpoint.DailyThroughput.Count, Is.EqualTo(1));
@@ -199,7 +185,6 @@
             var endpointWithUserIndicators = new Endpoint
             {
                 Name = "Endpoint",
-                Queue = "Queue",
                 ThroughputSource = ThroughputSource.Audit,
                 UserIndicatedSendOnly = true,
                 UserIndicatedToIgnore = true,
@@ -207,11 +192,64 @@
 
             await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
 
-            var foundEndpoint = await DataStore.GetEndpointByNameOrQueue("Endpoint", ThroughputSource.Audit);
+            var foundEndpoint = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
             var allEndpoints = await DataStore.GetAllEndpoints();
 
             Assert.That(foundEndpoint, Is.Null);
             Assert.That(allEndpoints.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public async Task Should_update_indicators_on_all_endpoint_sources()
+        {
+            var endpointAudit = new Endpoint
+            {
+                Name = "Endpoint",
+                ThroughputSource = ThroughputSource.Audit,
+                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 50 }]
+            };
+            await DataStore.RecordEndpointThroughput(endpointAudit);
+
+            var endpointMonitoring = new Endpoint
+            {
+                Name = "Endpoint",
+                ThroughputSource = ThroughputSource.Monitoring,
+                DailyThroughput = [new EndpointThroughput() { DateUTC = DateTime.UtcNow.Date, TotalThroughput = 70 }]
+            };
+            await DataStore.RecordEndpointThroughput(endpointMonitoring);
+
+            var foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            Assert.That(foundEndpointAudit, Is.Not.Null);
+            Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpointAudit.UserIndicatedSendOnly, Is.Null);
+            Assert.That(foundEndpointAudit.UserIndicatedToIgnore, Is.Null);
+
+            var foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
+            Assert.That(foundEndpointMonitoring, Is.Not.Null);
+            Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpointMonitoring.UserIndicatedSendOnly, Is.Null);
+            Assert.That(foundEndpointMonitoring.UserIndicatedToIgnore, Is.Null);
+
+
+            var endpointWithUserIndicators = new Endpoint
+            {
+                Name = "Endpoint",
+                UserIndicatedSendOnly = true,
+                UserIndicatedToIgnore = true,
+            };
+            await DataStore.UpdateUserIndicationOnEndpoints([endpointWithUserIndicators]);
+
+            foundEndpointAudit = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Audit);
+            Assert.That(foundEndpointAudit, Is.Not.Null);
+            Assert.That(foundEndpointAudit.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpointAudit.UserIndicatedSendOnly, Is.EqualTo(true));
+            Assert.That(foundEndpointAudit.UserIndicatedToIgnore, Is.EqualTo(true));
+
+            foundEndpointMonitoring = await DataStore.GetEndpointByName("Endpoint", ThroughputSource.Monitoring);
+            Assert.That(foundEndpointMonitoring, Is.Not.Null);
+            Assert.That(foundEndpointMonitoring.DailyThroughput.Count, Is.EqualTo(1));
+            Assert.That(foundEndpointMonitoring.UserIndicatedSendOnly, Is.EqualTo(true));
+            Assert.That(foundEndpointMonitoring.UserIndicatedToIgnore, Is.EqualTo(true));
         }
     }
 }

@@ -14,23 +14,9 @@
 
         [Route("throughput/endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput([FromQuery(Name = "month")] int? month)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput([FromQuery(Name = "days")] int? days)
         {
-            return await throughputCollector.GetThroughputSummary(month ?? DateTime.UtcNow.Month).ConfigureAwait(false);
-        }
-
-        [Route("throughput/report")]
-        [HttpGet]
-        public async Task<ThroughputReport> GetThroughputReport([FromQuery(Name = "month")] int? month)
-        {
-            return await throughputCollector.GenerateThroughputReport(month ?? DateTime.UtcNow.Month).ConfigureAwait(false);
-        }
-
-        [Route("throughput/settings")]
-        [HttpGet]
-        public async Task<BrokerSettings> GetThroughputBrokerSettings()
-        {
-            return await throughputCollector.GetBrokerSettings().ConfigureAwait(false);
+            return await throughputCollector.GetThroughputSummary(days).ConfigureAwait(false);
         }
 
         [Route("throughput/endpoints/update")]
@@ -39,6 +25,20 @@
         {
             await throughputCollector.UpdateUserSelectionOnEndpointThroughput(endpointThroughputs).ConfigureAwait(false);
             return Ok();
+        }
+
+        [Route("throughput/report")]
+        [HttpGet]
+        public async Task<ThroughputReport> GetThroughputReport([FromQuery(Name = "days")] int? days)
+        {
+            return await throughputCollector.GenerateThroughputReport(days).ConfigureAwait(false);
+        }
+
+        [Route("throughput/settings/info")]
+        [HttpGet]
+        public async Task<BrokerSettings> GetThroughputBrokerSettingsInformation()
+        {
+            return await throughputCollector.GetBrokerSettingsInformation().ConfigureAwait(false);
         }
 
         [Route("throughput/settings/test")]
