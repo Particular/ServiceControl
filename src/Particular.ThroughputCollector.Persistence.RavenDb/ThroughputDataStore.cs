@@ -20,7 +20,7 @@ class ThroughputDataStore : IThroughputDataStore
         return endpoints.ToArray();
     }
 
-    public Task<Endpoint> GetEndpointByNameOrQueue(string nameOrQueue, ThroughputSource throughputSource) => throw new NotImplementedException();
+    public Task<Endpoint> GetEndpointByName(string name, ThroughputSource throughputSource) => throw new NotImplementedException();
     public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
 
