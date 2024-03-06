@@ -14,7 +14,6 @@ class EndpointIndex : AbstractIndexCreationTask<Endpoint>
             {
                 message.ThroughputSource,
                 message.Name,
-                message.Queue
             };
     }
 }
