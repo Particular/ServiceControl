@@ -9,7 +9,6 @@
 //    using System.Threading;
 //    using System.Threading.Tasks;
 //    using Microsoft.Extensions.Logging;
-//    using Newtonsoft.Json.Linq;
 //    using Particular.ThroughputCollector.Contracts;
 //    using Particular.ThroughputCollector.Exceptions;
 //    using Particular.ThroughputCollector.Shared;
