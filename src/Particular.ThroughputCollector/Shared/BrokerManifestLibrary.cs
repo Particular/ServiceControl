@@ -1,11 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Shared;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using Particular.ThroughputCollector.Contracts;
+using Contracts;
 
 public static class BrokerManifestLibrary
 {
@@ -43,10 +39,7 @@ public static class BrokerManifestLibrary
         return Path.GetDirectoryName(assemblyLocation);
     }
 
-    public static BrokerSettings? Find(Broker broker)
-    {
-        return BrokerSettings.FirstOrDefault(w => w.Broker == broker);
-    }
+    public static BrokerSettings Find(Broker broker) => BrokerSettings.First(w => w.Broker == broker);
 }
 
 
