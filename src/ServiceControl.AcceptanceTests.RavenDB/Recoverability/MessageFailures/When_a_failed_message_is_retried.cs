@@ -202,9 +202,7 @@
                     c.EnableFeature<Outbox>();
                     c.ReportSuccessfulRetriesToServiceControl();
 
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(0));
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                    c.NoRetries();
                 });
 
             class StartFeature : Feature
@@ -256,9 +254,7 @@
                         TransportTransactionMode.ReceiveOnly;
                     c.EnableFeature<Outbox>();
 
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(0));
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                    c.NoRetries();
                 });
 
             class StartFeature : Feature

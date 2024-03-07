@@ -92,12 +92,7 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServerWithoutAudit>(c =>
-                {
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(0));
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
-                });
+                EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
             public class MyMessageHandler(MyContext scenarioContext) : IHandleMessages<MyMessage>
             {
