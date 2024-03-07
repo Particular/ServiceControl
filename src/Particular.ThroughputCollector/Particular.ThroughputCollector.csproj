@@ -16,6 +16,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="Azure.Identity"/>
+    <PackageReference Include="Azure.Monitor.Query"/>
+    <PackageReference Include="Azure.ResourceManager.ServiceBus"/>
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <ProjectReference Include="..\Particular.ThroughputCollector.Contracts\Particular.ThroughputCollector.Contracts.csproj" />
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" />
