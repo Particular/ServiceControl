@@ -1,12 +1,11 @@
 ﻿namespace Particular.ThroughputCollector.Audit
 {
-    using System.Threading;
+    using Contracts;
+    using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Contracts;
-    using Particular.ThroughputCollector.Infrastructure;
-    using Particular.ThroughputCollector.Persistence;
-    using Particular.ThroughputCollector.Shared;
+    using Persistence;
+    using Shared;
 
     class AuditThroughputCollectorHostedService : IHostedService
     {
@@ -33,7 +32,7 @@
 
         async Task GatherThroughput(CancellationToken cancellationToken)
         {
-            DateTime utcYesterday = DateTime.UtcNow.Date.AddDays(-1);
+            var utcYesterday = DateTime.UtcNow.Date.AddDays(-1);
             logger.LogInformation($"Gathering throughput from audit for {utcYesterday.ToShortDateString}");
 
             try
