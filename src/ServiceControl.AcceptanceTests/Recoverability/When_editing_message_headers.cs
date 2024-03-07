@@ -5,6 +5,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
     using Infrastructure;
     using NServiceBus;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
 
     class When_editing_message_headers : AcceptanceTest
     {
@@ -71,7 +71,7 @@
         class EditedMessageReceiver : EndpointConfigurationBuilder
         {
             public EditedMessageReceiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                 });
@@ -106,8 +106,6 @@
             public FailedMessage OriginalMessageFailure { get; set; }
         }
 
-        class EditMessage : IMessage
-        {
-        }
+        class EditMessage : IMessage;
     }
 }

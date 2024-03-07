@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing;
     using Audit.Auditing.MessagesView;
     using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,6 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_single_message_fails_in_batch : AcceptanceTest
@@ -52,10 +52,8 @@
                 .Run();
         }
 
-        class FailOnceEnricher : IEnrichImportedAuditMessages
+        class FailOnceEnricher(MyContext testContext) : IEnrichImportedAuditMessages
         {
-            public FailOnceEnricher(MyContext context) => testContext = context;
-
             public void Enrich(AuditEnricherContext context)
             {
                 if (context.Headers[Headers.MessageId] == testContext.MessageId && Interlocked.Increment(ref attempt) == 1)
@@ -67,7 +65,6 @@
                 TestContext.WriteLine("Message processed correctly");
             }
 
-            MyContext testContext;
             int attempt;
         }
 

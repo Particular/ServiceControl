@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts.EndpointControl;
     using EventLog;
     using NServiceBus;
@@ -11,7 +12,6 @@
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_an_endpoint_starts_up : AcceptanceTest
@@ -40,7 +40,7 @@
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
             public StartingEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME);
 

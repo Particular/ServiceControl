@@ -11,6 +11,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using CompositeViews.Messages;
     using EventLog;
     using Infrastructure;
@@ -29,7 +30,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
     using ServiceControl.MessageFailures.Api;
     using ServiceControl.Persistence;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_message_has_failed : AcceptanceTest
     {
@@ -272,7 +272,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
             public EndpointThatUsesSignalR() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MyMessage), typeof(Receiver));
@@ -331,7 +331,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
@@ -356,7 +356,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         public class ReceiverWithCustomSerializer : EndpointConfigurationBuilder
         {
             public ReceiverWithCustomSerializer() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
@@ -412,11 +412,9 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
             public FailingEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(x => x.NumberOfRetries(0));
-                    recoverability.Delayed(x => x.NumberOfRetries(0));
+                    c.NoRetries();
                 });
 
             public class MyMessageHandler(QueueSearchContext queueSearchContext) : IHandleMessages<MyMessage>

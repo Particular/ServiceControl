@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.MessageMutator;
@@ -11,7 +12,6 @@
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 
@@ -48,7 +48,7 @@
         class VerifyHeader : EndpointConfigurationBuilder
         {
             public VerifyHeader() =>
-                EndpointSetup<DefaultServer>(
+                EndpointSetup<DefaultServerWithoutAudit>(
                     (c, r) => c.RegisterMessageMutator(new VerifyHeaderIsUnchanged((TestContext)r.ScenarioContext))
                 );
 
@@ -69,10 +69,8 @@
                 }
             }
 
-            class VerifyHeaderIsUnchanged : IMutateIncomingTransportMessages
+            class VerifyHeaderIsUnchanged(TestContext testContext) : IMutateIncomingTransportMessages
             {
-                public VerifyHeaderIsUnchanged(TestContext context) => testContext = context;
-
                 public Task MutateIncoming(MutateIncomingTransportMessageContext context)
                 {
                     testContext.Headers = context.Headers;
@@ -80,8 +78,6 @@
                     testContext.Done = true;
                     return Task.CompletedTask;
                 }
-
-                readonly TestContext testContext;
             }
         }
     }

@@ -5,12 +5,12 @@ namespace ServiceControl.AcceptanceTests.Monitoring
     using System.Net.Http;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Persistence;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_an_endpoint_is_removed : AcceptanceTest
@@ -57,13 +57,11 @@ namespace ServiceControl.AcceptanceTests.Monitoring
             Assert.AreEqual(0, endpointsAfterDelete.Count);
         }
 
-        class Context : ScenarioContext
-        {
-        }
+        class Context : ScenarioContext;
 
         public class StartingEndpoint : EndpointConfigurationBuilder
         {
-            public StartingEndpoint() => EndpointSetup<DefaultServer>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromHours(1)));
+            public StartingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.SendHeartbeatTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromHours(1)));
         }
     }
 }

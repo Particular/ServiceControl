@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using TestSupport.EndpointTemplates;
 
     class When_two_similar_messages_have_failed : AcceptanceTest
     {
@@ -91,19 +91,11 @@
 
         public class Receiver : EndpointConfigurationBuilder
         {
-            public Receiver() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
+            public Receiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");

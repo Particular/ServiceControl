@@ -4,13 +4,13 @@
     using System.Net;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_is_retried_with_a_redirect : AcceptanceTest
@@ -52,21 +52,14 @@
 
         public class FromEndpoint : EndpointConfigurationBuilder
         {
-            public FromEndpoint() => EndpointSetup<DefaultServer>(c => { c.NoRetries(); });
+            public FromEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoRetries(); });
 
-            public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
+            public class MessageToRetryHandler(
+                Context testContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MessageToRetry>
             {
-                readonly Context testContext;
-                readonly ReceiveAddresses receiveAddresses;
-                readonly IReadOnlySettings settings;
-
-                public MessageToRetryHandler(Context testContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.testContext = testContext;
-                    this.receiveAddresses = receiveAddresses;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
                     testContext.FromAddress = receiveAddresses.MainReceiveAddress;
@@ -78,14 +71,10 @@
 
         public class ToNewEndpoint : EndpointConfigurationBuilder
         {
-            public ToNewEndpoint() => EndpointSetup<DefaultServer>();
+            public ToNewEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
-            public class MessageToRetryHandler : IHandleMessages<MessageToRetry>
+            public class MessageToRetryHandler(Context testContext) : IHandleMessages<MessageToRetry>
             {
-                readonly Context testContext;
-
-                public MessageToRetryHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageToRetry message, IMessageHandlerContext context)
                 {
                     testContext.Received = true;
@@ -102,8 +91,6 @@
             public bool Received { get; set; }
         }
 
-        public class MessageToRetry : ICommand
-        {
-        }
+        public class MessageToRetry : ICommand;
     }
 }

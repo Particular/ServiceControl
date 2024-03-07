@@ -4,13 +4,13 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
 
     class When_a_message_has_failed_from_send_only_endpoint : AcceptanceTest
     {
@@ -58,7 +58,7 @@
 
         public class SendOnlyEndpoint : EndpointConfigurationBuilder
         {
-            public SendOnlyEndpoint() => EndpointSetup<DefaultServer>();
+            public SendOnlyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class Foo : DispatchRawMessages<MyContext>
             {
@@ -97,9 +97,7 @@
             }
         }
 
-        public class MyMessage : IMessage
-        {
-        }
+        public class MyMessage : IMessage;
 
         public class MyContext : ScenarioContext
         {

@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -12,7 +13,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
-    using TestSupport.EndpointTemplates;
 
     class When_a_message_fails_twice_with_different_exceptions : AcceptanceTest
     {
@@ -77,19 +77,11 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
 
         public class MeowReceiver : EndpointConfigurationBuilder
         {
-            public MeowReceiver() => EndpointSetup<DefaultServer>(c => { c.NoDelayedRetries(); });
+            public MeowReceiver() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.NoDelayedRetries(); });
 
-            public class FailingMessageHandler : IHandleMessages<Meow>
+            public class FailingMessageHandler(MeowContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<Meow>
             {
-                public FailingMessageHandler(MeowContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
-                readonly MeowContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
                 public Task Handle(Meow message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");
@@ -107,9 +99,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.Groups
             }
         }
 
-        public class Meow : ICommand
-        {
-        }
+        public class Meow : ICommand;
 
         public class MeowContext : ScenarioContext
         {

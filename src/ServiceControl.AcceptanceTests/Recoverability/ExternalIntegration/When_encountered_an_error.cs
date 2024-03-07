@@ -5,6 +5,7 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using ExternalIntegrations;
@@ -15,7 +16,6 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
-    using TestSupport.EndpointTemplates;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
@@ -70,12 +70,8 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
             Assert.IsTrue(context.Failed);
         }
 
-        class FaultyPublisher : IEventPublisher
+        class FaultyPublisher(MyContext context) : IEventPublisher
         {
-            public FaultyPublisher(MyContext context) => this.context = context;
-
-            readonly MyContext context;
-
             public bool Handles(IDomainEvent @event) => false;
 
             public object CreateDispatchContext(IDomainEvent @event) => null;
@@ -98,18 +94,14 @@ namespace ServiceControl.AcceptanceTests.Recoverability.ExternalIntegration
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<HeartbeatStopped>
+            public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatStopped>
             {
-                readonly MyContext testContext;
-
-                public FailureHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     testContext.NotificationDelivered = true;

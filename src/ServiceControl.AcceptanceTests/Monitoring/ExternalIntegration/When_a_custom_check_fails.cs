@@ -4,13 +4,13 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_a_custom_check_fails : AcceptanceTest
@@ -66,7 +66,7 @@
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
@@ -75,12 +75,8 @@
                     publisherMetadata.RegisterPublisherFor<CustomCheckFailed>(Settings.DEFAULT_SERVICE_NAME);
                 });
 
-            public class CustomCheckFailedHandler : IHandleMessages<CustomCheckFailed>
+            public class CustomCheckFailedHandler(MyContext testContext) : IHandleMessages<CustomCheckFailed>
             {
-                readonly MyContext testContext;
-
-                public CustomCheckFailedHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(CustomCheckFailed message, IMessageHandlerContext context)
                 {
                     testContext.CustomCheckFailedReceived = true;

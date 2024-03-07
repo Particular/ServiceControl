@@ -1,24 +1,21 @@
 ﻿namespace ServiceControl.AcceptanceTesting.EndpointTemplates
 {
     using System;
-    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Features;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
-    public class DefaultServerBase<TBootstrapper> : IEndpointSetupTemplate
+    public class DefaultServer(IConfigureEndpointTestExecution endpointTestExecutionConfiguration)
+        : IEndpointSetupTemplate
     {
-        public DefaultServerBase() : this(new ConfigureEndpointLearningTransport())
+        public DefaultServer() : this(new ConfigureEndpointLearningTransport())
         {
         }
-
-        public DefaultServerBase(IConfigureEndpointTestExecution endpointTestExecutionConfiguration) => this.endpointTestExecutionConfiguration = endpointTestExecutionConfiguration;
 
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
@@ -53,20 +50,13 @@
             await configurationBuilderCustomization(endpointConfiguration);
 
             // scan types at the end so that all types used by the configuration have been loaded into the AppDomain
-            endpointConfiguration.TypesToIncludeInScan(endpointCustomizations.GetTypesScopedByTestClass<TBootstrapper>().Concat(new[]
-            {
-                typeof(TraceIncomingBehavior), typeof(TraceOutgoingBehavior)
-            }).ToList());
+            endpointConfiguration.ScanTypesForTest(endpointCustomizations);
 
             return endpointConfiguration;
         }
 
-        static bool IsExternalContract(Type t)
-        {
-            return t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts")
-                                       && t.Assembly.GetName().Name == "ServiceControl.Contracts";
-        }
-
-        IConfigureEndpointTestExecution endpointTestExecutionConfiguration;
+        static bool IsExternalContract(Type t) =>
+            t.Namespace != null && t.Namespace.StartsWith("ServiceControl.Contracts")
+                                && t.Assembly.GetName().Name == "ServiceControl.Contracts";
     }
 }

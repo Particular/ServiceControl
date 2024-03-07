@@ -2,12 +2,12 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Metrics;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_sending_legacy_metric_report : AcceptanceTest
     {
@@ -29,12 +29,9 @@
 
         class EndpointSendingLegacyMetricReport : EndpointConfigurationBuilder
         {
-            public EndpointSendingLegacyMetricReport() => EndpointSetup<DefaultServer>();
+            public EndpointSendingLegacyMetricReport() => EndpointSetup<DefaultServerWithoutAudit>();
         }
 
-        class SomeContext : ScenarioContext
-        {
-
-        }
+        class SomeContext : ScenarioContext;
     }
 }

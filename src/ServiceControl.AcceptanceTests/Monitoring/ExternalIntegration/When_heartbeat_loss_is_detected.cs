@@ -3,6 +3,7 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts;
     using Contracts.HeartbeatMonitoring;
     using NServiceBus;
@@ -10,7 +11,6 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
     using ServiceControl.Operations;
-    using TestSupport.EndpointTemplates;
 
     /// <summary>
     /// The test simulates the heartbeat subsystem by publishing EndpointFailedToHeartbeat event.
@@ -63,18 +63,14 @@ namespace ServiceControl.AcceptanceTests.Monitoring.ExternalIntegration
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);
                 }, publisherMetadata => { publisherMetadata.RegisterPublisherFor<HeartbeatStopped>(Settings.DEFAULT_SERVICE_NAME); });
 
-            public class FailureHandler : IHandleMessages<HeartbeatStopped>
+            public class FailureHandler(MyContext testContext) : IHandleMessages<HeartbeatStopped>
             {
-                readonly MyContext testContext;
-
-                public FailureHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
                 {
                     testContext.NotificationDelivered = true;

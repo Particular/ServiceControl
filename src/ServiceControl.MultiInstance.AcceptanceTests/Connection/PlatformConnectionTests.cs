@@ -2,12 +2,12 @@
 {
     using System.Text.Json;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using Particular.Approvals;
     using ServiceControl.AcceptanceTesting;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
 
     class PlatformConnectionTests : AcceptanceTest

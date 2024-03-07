@@ -5,13 +5,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_messages_are_marked_as_system_messages : AcceptanceTest
     {
@@ -161,12 +161,8 @@
                 }
             }
 
-            class MyHandler : IHandleMessages<DoQueryAllowed>
+            class MyHandler(SystemMessageTestContext testContext) : IHandleMessages<DoQueryAllowed>
             {
-                SystemMessageTestContext testContext;
-
-                public MyHandler(SystemMessageTestContext context) => testContext = context;
-
                 public Task Handle(DoQueryAllowed message, IMessageHandlerContext context)
                 {
                     testContext.QueryForMessages = true;
@@ -175,9 +171,7 @@
             }
         }
 
-        public class DoQueryAllowed : IMessage
-        {
-        }
+        public class DoQueryAllowed : IMessage;
 
         public class SystemMessageTestContext : ScenarioContext
         {

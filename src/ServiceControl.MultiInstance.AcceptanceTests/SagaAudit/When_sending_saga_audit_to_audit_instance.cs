@@ -5,12 +5,12 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.SagaAudit;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
 
     class When_sending_saga_audit_to_audit_instance : AcceptanceTest

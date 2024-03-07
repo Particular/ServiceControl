@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
     using NServiceBus;
@@ -14,7 +15,6 @@
     using NServiceBus.Settings;
     using NUnit.Framework;
     using ServiceControl.Audit.Auditing;
-    using TestSupport.EndpointTemplates;
 
     class When_processed_message_is_imported : AcceptanceTest
     {
@@ -130,17 +130,8 @@
         {
             public Receiver() => EndpointSetup<DefaultServerWithAudit>();
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext testContext, IReadOnlySettings settings) : IHandleMessages<MyMessage>
             {
-                MyContext testContext;
-                IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext context, IReadOnlySettings settings)
-                {
-                    testContext = context;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     testContext.EndpointNameOfReceivingEndpoint = settings.EndpointName();

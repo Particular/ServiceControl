@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -17,7 +18,6 @@
     using ServiceControl.MessageFailures;
     using ServiceControl.Recoverability;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_failed_message_is_retried : AcceptanceTest
     {
@@ -194,9 +194,8 @@
 
         public class FailingEndpoint : EndpointConfigurationBuilder
         {
-            public FailingEndpoint()
-            {
-                EndpointSetup<DefaultServer>(c =>
+            public FailingEndpoint() =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
                         TransportTransactionMode.ReceiveOnly;
@@ -207,14 +206,10 @@
                     recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             class StartFeature : Feature
             {
-                public StartFeature()
-                {
-                    EnableByDefault();
-                }
+                public StartFeature() => EnableByDefault();
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
@@ -224,28 +219,16 @@
                 class SendMessageAtStart : FeatureStartupTask
                 {
                     protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return session.SendLocal(new MyMessage(), cancellationToken);
-                    }
+                        => session.SendLocal(new MyMessage(), cancellationToken);
 
                     protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return Task.CompletedTask;
-                    }
+                        => Task.CompletedTask;
                 }
             }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly Context scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
@@ -266,9 +249,8 @@
 
         public class FailingEndpointWithoutAudit : EndpointConfigurationBuilder
         {
-            public FailingEndpointWithoutAudit()
-            {
-                EndpointSetup<DefaultServer>(c =>
+            public FailingEndpointWithoutAudit() =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.GetSettings().Get<TransportDefinition>().TransportTransactionMode =
                         TransportTransactionMode.ReceiveOnly;
@@ -278,14 +260,10 @@
                     recoverability.Immediate(s => s.NumberOfRetries(0));
                     recoverability.Delayed(s => s.NumberOfRetries(0));
                 });
-            }
 
             class StartFeature : Feature
             {
-                public StartFeature()
-                {
-                    EnableByDefault();
-                }
+                public StartFeature() => EnableByDefault();
 
                 protected override void Setup(FeatureConfigurationContext context)
                 {
@@ -306,17 +284,9 @@
                 }
             }
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly Context scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(Context scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Message Handled");
@@ -343,8 +313,6 @@
             public bool AboutToSendRetry { get; set; }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

@@ -4,13 +4,12 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
-
 
     class When_a_message_has_failed_detected : AcceptanceTest
     {
@@ -58,7 +57,7 @@
         {
             public FailingReceiver()
             {
-                EndpointSetup<DefaultServer>(c => { c.Recoverability().Immediate(s => s.NumberOfRetries(2)).Delayed(s => s.NumberOfRetries(0)); });
+                EndpointSetup<DefaultServerWithoutAudit>(c => { c.Recoverability().Immediate(s => s.NumberOfRetries(2)).Delayed(s => s.NumberOfRetries(0)); });
             }
 
             public class MyMessageHandler : IHandleMessages<MyMessage>
@@ -70,7 +69,7 @@
         public class ExternalProcessor : EndpointConfigurationBuilder
         {
             public ExternalProcessor() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     var routing = c.ConfigureRouting();
                     routing.RouteToEndpoint(typeof(MessageFailed).Assembly, Settings.DEFAULT_SERVICE_NAME);

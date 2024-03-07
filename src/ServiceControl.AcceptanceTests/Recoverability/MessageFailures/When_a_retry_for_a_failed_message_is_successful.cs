@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using EventLog;
     using Infrastructure;
     using NServiceBus;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_retry_for_a_failed_message_is_successful : AcceptanceTest
     {
@@ -193,25 +193,18 @@
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(
+                MyContext scenarioContext,
+                IReadOnlySettings settings,
+                ReceiveAddresses receiveAddresses)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-                readonly ReceiveAddresses receiveAddresses;
-
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings, ReceiveAddresses receiveAddresses)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                    this.receiveAddresses = receiveAddresses;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.Out.WriteLine("Handling message");
@@ -230,9 +223,7 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext
         {

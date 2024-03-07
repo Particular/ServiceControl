@@ -5,13 +5,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using EventLog;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.CustomChecks;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -37,21 +37,14 @@
             Assert.IsTrue(entry.RelatedTo.Any(item => item.StartsWith($"/endpoint/{Conventions.EndpointNamingConvention(typeof(EndpointWithFailingCustomCheck))}")));
         }
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
 
         public class EndpointWithFailingCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
+            public EndpointWithFailingCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
-            class FailingCustomCheck : CustomCheck
+            class FailingCustomCheck() : CustomCheck("MyCustomCheckId", "MyCategory")
             {
-                public FailingCustomCheck()
-                    : base("MyCustomCheckId", "MyCategory")
-                {
-                }
-
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default) => Task.FromResult(CheckResult.Failed("Some reason"));
             }
         }

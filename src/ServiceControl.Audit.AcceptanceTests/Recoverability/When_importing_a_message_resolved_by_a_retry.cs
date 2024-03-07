@@ -3,13 +3,13 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using Audit.Monitoring;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_importing_a_message_resolved_by_a_retry : AcceptanceTest
     {
@@ -58,8 +58,6 @@
             }
         }
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
     }
 }

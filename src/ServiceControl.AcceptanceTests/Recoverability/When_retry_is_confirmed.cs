@@ -5,13 +5,12 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
-
 
     class When_retry_is_confirmed : AcceptanceTest
     {
@@ -69,14 +68,10 @@
 
         class RetryingEndpoint : EndpointConfigurationBuilder
         {
-            public RetryingEndpoint() => EndpointSetup<DefaultServer>(c => c.NoRetries());
+            public RetryingEndpoint() => EndpointSetup<DefaultServerWithoutAudit>(c => c.NoRetries());
 
-            class RetryMessageHandler : IHandleMessages<RetryMessage>
+            class RetryMessageHandler(Context testContext) : IHandleMessages<RetryMessage>
             {
-                readonly Context testContext;
-
-                public RetryMessageHandler(Context testContext) => this.testContext = testContext;
-
                 public Task Handle(RetryMessage message, IMessageHandlerContext context)
                 {
                     if (testContext.ThrowOnHandler)
@@ -91,8 +86,6 @@
             }
         }
 
-        class RetryMessage : IMessage
-        {
-        }
+        class RetryMessage : IMessage;
     }
 }

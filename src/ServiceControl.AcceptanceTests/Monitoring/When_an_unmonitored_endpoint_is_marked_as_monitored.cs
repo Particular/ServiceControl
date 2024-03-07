@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Contracts.EndpointControl;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -13,7 +14,6 @@
     using ServiceControl.Monitoring;
     using ServiceControl.Operations;
     using ServiceControl.Persistence;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     [TestFixture]
@@ -85,13 +85,11 @@
             WaitingForHeartbeatFailure
         }
 
-        public class MyContext : ScenarioContext
-        {
-        }
+        public class MyContext : ScenarioContext;
 
         public class MyEndpoint : EndpointConfigurationBuilder
         {
-            public MyEndpoint() => EndpointSetup<DefaultServer>();
+            public MyEndpoint() => EndpointSetup<DefaultServerWithoutAudit>();
         }
     }
 }

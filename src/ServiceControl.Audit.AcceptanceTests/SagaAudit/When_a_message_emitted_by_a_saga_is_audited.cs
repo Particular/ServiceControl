@@ -3,11 +3,11 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_a_message_emitted_by_a_saga_is_audited : AcceptanceTest
     {
@@ -34,17 +34,10 @@
 
         public class SagaEndpoint : EndpointConfigurationBuilder
         {
-            public SagaEndpoint()
+            public SagaEndpoint() => EndpointSetup<DefaultServerWithAudit>();
+
+            public class MySaga(MyContext testContext) : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                EndpointSetup<DefaultServerWithAudit>();
-            }
-
-            public class MySaga : Saga<MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
-            {
-                MyContext testContext;
-
-                public MySaga(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     testContext.SagaId = Data.Id;
@@ -63,12 +56,8 @@
                 public string MessageId { get; set; }
             }
 
-            class MessageSentBySagaHandler : IHandleMessages<MessageSentBySaga>
+            class MessageSentBySagaHandler(MyContext testContext) : IHandleMessages<MessageSentBySaga>
             {
-                MyContext testContext;
-
-                public MessageSentBySagaHandler(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageSentBySaga message, IMessageHandlerContext context)
                 {
                     testContext.MessageId = context.MessageId;
@@ -82,9 +71,7 @@
             public string Id { get; set; }
         }
 
-        public class MessageSentBySaga : ICommand
-        {
-        }
+        public class MessageSentBySaga : ICommand;
 
         public class MyContext : ScenarioContext
         {

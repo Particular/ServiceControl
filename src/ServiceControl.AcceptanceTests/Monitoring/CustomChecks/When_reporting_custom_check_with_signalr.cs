@@ -5,6 +5,7 @@
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using AcceptanceTesting.EndpointTemplates;
     using Microsoft.AspNetCore.SignalR.Client;
     using Microsoft.Extensions.DependencyInjection;
     using NServiceBus;
@@ -13,7 +14,6 @@
     using NServiceBus.Features;
     using NUnit.Framework;
     using ServiceBus.Management.Infrastructure.Settings;
-    using TestSupport.EndpointTemplates;
 
     [TestFixture]
     class When_reporting_custom_check_with_signalr : AcceptanceTest
@@ -42,7 +42,7 @@
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
+            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServerWithoutAudit>(c => c.EnableFeature<EnableSignalR>());
 
             class EnableSignalR : Feature
             {
@@ -93,18 +93,11 @@
 
         class EndpointWithCustomCheck : EndpointConfigurationBuilder
         {
-            public EndpointWithCustomCheck()
-            {
-                EndpointSetup<DefaultServer>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
-            }
+            public EndpointWithCustomCheck() => EndpointSetup<DefaultServerWithoutAudit>(c => { c.ReportCustomChecksTo(Settings.DEFAULT_SERVICE_NAME, TimeSpan.FromSeconds(1)); });
 
-            public class EventuallyFailingCustomCheck : CustomCheck
+            public class EventuallyFailingCustomCheck()
+                : CustomCheck("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
             {
-                public EventuallyFailingCustomCheck()
-                    : base("EventuallyFailingCustomCheck", "Testing", TimeSpan.FromSeconds(1))
-                {
-                }
-
                 public override Task<CheckResult> PerformCheck(CancellationToken cancellationToken = default)
                 {
 #pragma warning disable IDE0047 // Remove unnecessary parentheses

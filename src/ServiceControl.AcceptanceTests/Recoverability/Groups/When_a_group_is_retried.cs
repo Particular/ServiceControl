@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_group_is_retried : AcceptanceTest
     {
@@ -88,23 +88,15 @@
         public class Receiver : EndpointConfigurationBuilder
         {
             public Receiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.Recoverability().Delayed(x => x.NumberOfRetries(0));
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     var messageId = context.MessageId.Replace(@"\", "-");

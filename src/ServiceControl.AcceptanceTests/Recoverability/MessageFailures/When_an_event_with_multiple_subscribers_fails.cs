@@ -5,13 +5,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Routing;
     using NServiceBus.Transport;
     using NUnit.Framework;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
 
     class When_an_event_with_multiple_subscribers_fails : AcceptanceTest
     {
@@ -40,7 +40,7 @@
 
         public class FakeFailedSubscribers : EndpointConfigurationBuilder
         {
-            public FakeFailedSubscribers() => EndpointSetup<DefaultServer>();
+            public FakeFailedSubscribers() => EndpointSetup<DefaultServerWithoutAudit>();
 
             class SendDuplicateMessages : DispatchRawMessages<FailingEventContext>
             {
@@ -73,8 +73,6 @@
             }
         }
 
-        public class FailingEventContext : ScenarioContext
-        {
-        }
+        public class FailingEventContext : ScenarioContext;
     }
 }

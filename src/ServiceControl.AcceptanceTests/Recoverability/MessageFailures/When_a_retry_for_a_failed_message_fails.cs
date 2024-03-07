@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +11,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using TestSupport;
-    using TestSupport.EndpointTemplates;
 
     class When_a_retry_for_a_failed_message_fails : AcceptanceTest
     {
@@ -98,23 +98,15 @@
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                     c.ReportSuccessfulRetriesToServiceControl();
                 });
 
-            public class MyMessageHandler : IHandleMessages<MyMessage>
+            public class MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MyMessage>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MyMessageHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MyMessage message, IMessageHandlerContext context)
                 {
                     Console.WriteLine("Attempting to process message");
@@ -135,9 +127,7 @@
         }
 
 
-        public class MyMessage : ICommand
-        {
-        }
+        public class MyMessage : ICommand;
 
         public class MyContext : ScenarioContext, ISequenceContext
         {

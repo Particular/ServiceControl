@@ -5,6 +5,7 @@
     using System.Text.Json;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using AcceptanceTests;
     using Infrastructure;
     using NServiceBus;
@@ -13,7 +14,6 @@
     using NUnit.Framework;
     using ServiceControl.MessageFailures;
     using ServiceControl.MessageFailures.Api;
-    using TestSupport.EndpointTemplates;
 
     class When_editing_message_body : AcceptanceTest
     {
@@ -72,19 +72,14 @@
         class EditedMessageReceiver : EndpointConfigurationBuilder
         {
             public EditedMessageReceiver() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
                     c.NoRetries();
                 });
 
-            class EditedMessageHandler : IHandleMessages<EditMessage>
+            class EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
+                : IHandleMessages<EditMessage>
             {
-                public EditedMessageHandler(EditMessageContext testContext, IReadOnlySettings settings)
-                {
-                    this.testContext = testContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(EditMessage message, IMessageHandlerContext context)
                 {
                     if (!testContext.EditedMessage)
@@ -100,9 +95,6 @@
                     testContext.EditedMessageHeaders = context.MessageHeaders.Keys.ToHashSet();
                     return Task.CompletedTask;
                 }
-
-                readonly EditMessageContext testContext;
-                readonly IReadOnlySettings settings;
             }
         }
 

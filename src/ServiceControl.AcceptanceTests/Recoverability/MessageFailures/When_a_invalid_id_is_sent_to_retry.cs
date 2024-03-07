@@ -3,12 +3,12 @@
     using System;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Infrastructure;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Settings;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
 
     class When_a_invalid_id_is_sent_to_retry : AcceptanceTest
     {
@@ -44,24 +44,14 @@
         public class FailureEndpoint : EndpointConfigurationBuilder
         {
             public FailureEndpoint() =>
-                EndpointSetup<DefaultServer>(c =>
+                EndpointSetup<DefaultServerWithoutAudit>(c =>
                 {
-                    var recoverability = c.Recoverability();
-                    recoverability.Immediate(s => s.NumberOfRetries(0));
-                    recoverability.Delayed(s => s.NumberOfRetries(0));
+                    c.NoRetries();
                 });
 
-            public class MessageThatWillFailHandler : IHandleMessages<MessageThatWillFail>
+            public class MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
+                : IHandleMessages<MessageThatWillFail>
             {
-                readonly MyContext scenarioContext;
-                readonly IReadOnlySettings settings;
-
-                public MessageThatWillFailHandler(MyContext scenarioContext, IReadOnlySettings settings)
-                {
-                    this.scenarioContext = scenarioContext;
-                    this.settings = settings;
-                }
-
                 public Task Handle(MessageThatWillFail message, IMessageHandlerContext context)
                 {
                     if (!scenarioContext.ExceptionThrown) //simulate that the exception will be resolved with the retry

@@ -4,12 +4,12 @@
     using System.Linq;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using AcceptanceTesting.EndpointTemplates;
     using Audit.Auditing.MessagesView;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.Pipeline;
     using NUnit.Framework;
-    using TestSupport.EndpointTemplates;
     using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
     class When_a_message_hitting_multiple_sagas_is_audited : AcceptanceTest
@@ -63,12 +63,9 @@
                 //we need to enable the plugin for it to enrich the audited messages, state changes will go to input queue and just be discarded
                 EndpointSetup<DefaultServerWithAudit>(c => c.AuditSagaStateChanges(Conventions.EndpointNamingConvention(typeof(SagaAuditProcessorFake))));
 
-            public class MySaga : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
+            public class MySaga(MyContext testContext)
+                : Saga<MySaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                MyContext testContext;
-
-                public MySaga(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     testContext.SagaId = Data.Id;
@@ -84,12 +81,9 @@
                 }
             }
 
-            public class MyOtherSaga : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
+            public class MyOtherSaga(MyContext testContext)
+                : Saga<MyOtherSaga.MySagaData>, IAmStartedByMessages<MessageInitiatingSaga>
             {
-                MyContext testContext;
-
-                public MyOtherSaga(MyContext testContext) => this.testContext = testContext;
-
                 public Task Handle(MessageInitiatingSaga message, IMessageHandlerContext context)
                 {
                     testContext.OtherSagaId = Data.Id;
