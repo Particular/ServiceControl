@@ -1,13 +1,102 @@
 ﻿namespace Particular.ThroughputCollector.Contracts
 {
+    using System.Collections.Frozen;
+    using Particular.ThroughputCollector.Shared;
+    using ServiceControl.Configuration;
+
     public class ThroughputSettings
     {
-        public required string ServiceControlAPI { get; set; }
+        public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string auditQueue = "audit")
+        {
+            Broker = broker;
+            TransportConnectionString = transportConnectionString;
+            ServiceControlAPI = serviceControlAPI;
+            ServiceControlQueue = serviceControlQueue;
+            ErrorQueue = errorQueue;
+            PersistenceType = persistenceType;
+            AuditQueue = auditQueue;
+
+            BrokerSettingValues = LoadBrokerSettingValues().ToFrozenDictionary();
+        }
+
+        public string ServiceControlAPI { get; set; }
         public Broker Broker { get; set; }
-        public required string ErrorQueue { get; set; }
-        public required string ServiceControlQueue { get; set; }
-        public required string AuditQueue { get; set; } //NOTE can we get this?
-        public required string TransportConnectionString { get; set; }
-        public required string PersistenceType { get; set; }
+        public string ErrorQueue { get; set; }
+        public string ServiceControlQueue { get; set; }
+        public string AuditQueue { get; set; } //NOTE can we get this?
+        public string TransportConnectionString { get; set; }
+        public string PersistenceType { get; set; }
+        public FrozenDictionary<string, string> BrokerSettingValues { get; set; }
+
+        private Dictionary<string, string> LoadBrokerSettingValues()
+        {
+            var brokerSettingValues = new Dictionary<string, string>();
+            BrokerSettings brokerSettings = BrokerSettingsLibrary.Find(Broker);
+            brokerSettings.Settings.ForEach(s => brokerSettingValues.Add(s.Name, string.Empty));
+
+            //for each broker try and grab the required settings from config/env, and if they don't exist try to get them from the transportConnectionString
+            switch (brokerSettings.Broker)
+            {
+                case Broker.ServiceControl:
+                    brokerSettingValues[ServiceControlSettings.API] = GetConfigSetting(ServiceControlSettings.API);
+                    if (string.IsNullOrEmpty(brokerSettingValues[ServiceControlSettings.API]))
+                    {
+                        brokerSettingValues[ServiceControlSettings.API] = ServiceControlAPI;
+                    }
+                    brokerSettingValues[ServiceControlSettings.Queue] = GetConfigSetting(ServiceControlSettings.Queue);
+                    if (string.IsNullOrEmpty(brokerSettingValues[ServiceControlSettings.Queue]))
+                    {
+                        brokerSettingValues[ServiceControlSettings.Queue] = ServiceControlQueue;
+                    }
+                    break;
+                case Broker.AmazonSQS:
+                    brokerSettingValues[AmazonSQSSettings.Profile] = GetConfigSetting(AmazonSQSSettings.Profile);
+                    brokerSettingValues[AmazonSQSSettings.Region] = GetConfigSetting(AmazonSQSSettings.Region);
+                    brokerSettingValues[AmazonSQSSettings.Prefix] = GetConfigSetting(AmazonSQSSettings.Prefix);
+                    //TODO if those settings don't exist - try and get them from transportConnectionString 
+                    break;
+                case Broker.RabbitMQ:
+                    brokerSettingValues[RabbitMQSettings.API] = GetConfigSetting(RabbitMQSettings.API);
+                    brokerSettingValues[RabbitMQSettings.UserName] = GetConfigSetting(RabbitMQSettings.UserName);
+                    brokerSettingValues[RabbitMQSettings.Password] = GetConfigSetting(RabbitMQSettings.Password);
+                    //TODO if those settings don't exist - try and get them from transportConnectionString 
+                    break;
+                case Broker.AzureServiceBus:
+                    brokerSettingValues[AzureServiceBusSettings.ServiceBusName] =
+                        GetConfigSetting(AzureServiceBusSettings.ServiceBusName);
+                    brokerSettingValues[AzureServiceBusSettings.ClientId] =
+                        GetConfigSetting(AzureServiceBusSettings.ClientId);
+                    brokerSettingValues[AzureServiceBusSettings.ClientSecret] =
+                        GetConfigSetting(AzureServiceBusSettings.ClientSecret);
+                    brokerSettingValues[AzureServiceBusSettings.SubscriptionId] =
+                        GetConfigSetting(AzureServiceBusSettings.SubscriptionId);
+                    brokerSettingValues[AzureServiceBusSettings.TenantId] =
+                        GetConfigSetting(AzureServiceBusSettings.TenantId);
+                    brokerSettingValues[AzureServiceBusSettings.ManagementUrl] =
+                        GetConfigSetting(AzureServiceBusSettings.ManagementUrl);
+                    break;
+                case Broker.SqlServer:
+                    brokerSettingValues[SqlServerSettings.ConnectionString] =
+                        GetConfigSetting(SqlServerSettings.ConnectionString);
+                    if (string.IsNullOrEmpty(brokerSettingValues[SqlServerSettings.ConnectionString]))
+                    {
+                        brokerSettingValues[SqlServerSettings.ConnectionString] = TransportConnectionString;
+                    }
+
+                    brokerSettingValues[SqlServerSettings.AdditionalCatalogs] =
+                        GetConfigSetting(SqlServerSettings.AdditionalCatalogs);
+                    break;
+            }
+
+            return brokerSettingValues;
+        }
+
+        string GetConfigSetting(string name)
+        {
+            //logger.LogDebug($"Reading setting for {name}");
+
+            name = name.Replace($"{BrokerSettingsLibrary.SettingsNamespace}/", "");
+            return SettingsReader.Read<string>(new SettingsRootNamespace(BrokerSettingsLibrary.SettingsNamespace), name);
+        }
     }
 }
