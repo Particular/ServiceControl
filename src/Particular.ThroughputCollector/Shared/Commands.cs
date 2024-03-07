@@ -1,9 +1,10 @@
-﻿namespace Particular.ThroughputCollector.Shared
+namespace Particular.ThroughputCollector.Shared
 {
     using System.Text.Json.Nodes;
+    using Contracts;
+    using Infrastructure;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Contracts;
-    using Particular.ThroughputCollector.Infrastructure;
+    using ServiceControl.Configuration;
 
     class Commands
     {
@@ -145,8 +146,6 @@
                     }
                     brokerSettingValues[SqlServerSettings.AdditionalCatalogs] = GetConfigSetting(SqlServerSettings.AdditionalCatalogs, logger);
                     break;
-                default:
-                    break;
             }
 
             return await Task.FromResult(brokerSettingValues);
@@ -154,10 +153,9 @@
 
         static string GetConfigSetting(string name, ILogger logger)
         {
-            logger.LogInformation($"Finding setting for {name}");
+            logger.LogDebug($"Reading setting for {name}");
 
-            //TODO - how are we handling getting settings?
-            return string.Empty;
+            return SettingsReader.Read<string>(new SettingsRootNamespace("ThroughputCollector"), name);
         }
     }
 }
