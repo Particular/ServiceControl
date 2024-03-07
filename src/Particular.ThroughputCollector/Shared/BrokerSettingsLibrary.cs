@@ -47,7 +47,7 @@ public static class BrokerSettingsLibrary
             ]
         });
 
-        //Amazon SQS
+        //Azure Service Bus
         AllBrokerSettings.Add(new BrokerSettings
         {
             Broker = Broker.AzureServiceBus,
