@@ -36,8 +36,6 @@
                 case "AmazonSQS":
                     broker = Contracts.Broker.AmazonSQS;
                     break;
-                default:
-                    break;
             }
 
             //try to ensure the serviceControlAPI is correct (https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0#url-formats)
