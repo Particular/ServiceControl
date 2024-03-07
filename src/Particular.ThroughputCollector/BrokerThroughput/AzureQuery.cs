@@ -1,37 +1,27 @@
 namespace Particular.ThroughputCollector.Broker;
 
+using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using Azure.Identity;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
+using Contracts;
+using Microsoft.Extensions.Logging;
 
-public record QueueThroughput
+public class AzureQuery(ILogger<AzureQuery> logger)
 {
-    public QueueThroughput(string queueName, long throughput)
-    {
-        QueueName = queueName;
-        Throughput = throughput;
-    }
-
-    public string QueueName { get; }
-
-    public long Throughput { get; }
-}
-
-public class AzureQuery
-{
-    private readonly string serviceBusName;
-    private readonly string subscriptionId;
-    private readonly ArmEnvironment environment;
-    private readonly ClientSecretCredential clientCredentials;
+    private string serviceBusName = "";
+    private string subscriptionId = "";
+    private ArmEnvironment environment;
+    private ClientSecretCredential? clientCredentials;
 
     private string? resourceId;
 
-    public AzureQuery(string serviceBusName, string clientId, string clientSecret, string tenantId,
-        string subscriptionId, string? managementUrl)
+    public void Initialise(FrozenDictionary<string, string> settings)
     {
+        settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl);
         ArmEnvironment GetEnvironment()
         {
             if (managementUrl == null)
@@ -60,18 +50,24 @@ public class AzureQuery
             return ArmEnvironment.AzurePublicCloud;
         }
 
-        this.serviceBusName = serviceBusName;
-        this.subscriptionId = subscriptionId;
+        serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
+        subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
         environment = GetEnvironment();
 
-        clientCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+        clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
+            settings[AzureServiceBusSettings.ClientId], settings[AzureServiceBusSettings.ClientSecret]);
     }
 
     public async IAsyncEnumerable<QueueThroughput> Execute(DateTime startTime, DateTime endTime,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("Connecting to Azure Metrics to get throughput data...");
+
+
         await foreach (var queueName in GetQueueNames(cancellationToken))
         {
+            logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
+
             var metrics = await GetMetrics(queueName, startTime, endTime, cancellationToken);
 
             var maxThroughput = metrics.Select(timeEntry => timeEntry.Total ?? 0).Max();
