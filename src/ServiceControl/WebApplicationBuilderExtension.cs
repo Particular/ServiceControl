@@ -92,11 +92,9 @@ namespace Particular.ServiceControl
             hostBuilder.AddLicenseCheck();
             services.AddPersistence(settings);
             services.AddMetrics(settings.PrintMetrics);
-            hostBuilder.Host.UseNServiceBus(_ =>
-            {
-                NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
-                return configuration;
-            });
+
+            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, configuration);
+            hostBuilder.UseNServiceBus(configuration);
 
             if (!settings.DisableExternalIntegrationsPublishing)
             {

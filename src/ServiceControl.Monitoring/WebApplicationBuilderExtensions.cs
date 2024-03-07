@@ -65,14 +65,10 @@ public static class WebApplicationBuilderExtensions
         // is only available though after the NServiceBus hosted service has started. Any hosted service
         // or component injected into a hosted service can only depend on this lazy instead of the dispatcher
         // directly and to make things more complex of course the order of registration still matters ;)
-        services.AddSingleton(provider =>
-            new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
+        services.AddSingleton(provider => new Lazy<IMessageDispatcher>(provider.GetRequiredService<IMessageDispatcher>));
 
-        hostBuilder.Host.UseNServiceBus(builder =>
-        {
-            ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
-            return endpointConfiguration;
-        });
+        ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
+        hostBuilder.UseNServiceBus(endpointConfiguration);
 
         // TODO Verify if that we need to check the expose API flag
         // We also don't do this in the primary instance
@@ -115,7 +111,13 @@ public static class WebApplicationBuilderExtensions
 
         config.UseSerialization<NewtonsoftJsonSerializer>();
         config.UsePersistence<NonDurablePersistence>();
+
+        var recoverability = config.Recoverability();
+        recoverability.Immediate(c => c.NumberOfRetries(3));
+        recoverability.Delayed(c => c.NumberOfRetries(0));
+
         config.SendFailedMessagesTo(settings.ErrorQueue);
+
         config.DisableFeature<AutoSubscribe>();
 
         config.AddDeserializer<TaggedLongValueWriterOccurrenceSerializerDefinition>();

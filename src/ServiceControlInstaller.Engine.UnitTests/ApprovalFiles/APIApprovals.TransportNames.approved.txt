@@ -41,6 +41,14 @@
     "Aliases": []
   },
   {
+    "Name": "MSMQ",
+    "DisplayName": "MSMQ",
+    "Aliases": [
+      "NServiceBus.MsmqTransport, NServiceBus.Transport.Msmq",
+      "NServiceBus.MsmqTransport, NServiceBus.Core"
+    ]
+  },
+  {
     "Name": "NetStandardAzureServiceBus",
     "DisplayName": "Azure Service Bus",
     "Aliases": [

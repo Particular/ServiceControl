@@ -39,6 +39,7 @@ namespace ServiceBus.Management.Infrastructure
             recoverability.Immediate(c => c.NumberOfRetries(3));
             recoverability.Delayed(c => c.NumberOfRetries(0));
             recoverability.AddUnrecoverableException<UnrecoverableException>();
+
             configuration.SendFailedMessagesTo(transportSettings.ErrorQueue);
 
             recoverability.CustomPolicy(SendEmailNotificationHandler.RecoverabilityPolicy);

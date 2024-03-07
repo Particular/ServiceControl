@@ -13,6 +13,8 @@ namespace ServiceControlInstaller.Engine.Instances
     using Services;
     using Validation;
 
+    using AppConfig = Configuration.ServiceControl.AppConfig;
+
     public class ServiceControlInstance : ServiceControlBaseService, IServiceControlInstance
     {
         public ServiceControlInstance(IWindowsServiceController service) : base(service)
@@ -39,9 +41,14 @@ namespace ServiceControlInstaller.Engine.Instances
             }
         }
 
-        protected override string GetTransportTypeSetting()
+        protected override TransportInfo DetermineTransportPackage()
         {
-            return AppConfig.Read<string>(ServiceControlSettings.TransportType, null)?.Trim();
+            var transportAppSetting = (AppConfig.Read<string>(ServiceControlSettings.TransportType, null)?.Trim())
+                ?? throw new Exception($"{ServiceControlSettings.TransportType.Name} setting not found in app.config.");
+
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+
+            return transport ?? throw new Exception($"{ServiceControlSettings.TransportType.Name} value of '{transportAppSetting}' in app.config is invalid.");
         }
 
         protected override AppConfig CreateAppConfig()

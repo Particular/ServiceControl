@@ -85,7 +85,7 @@ namespace Tests
                 "AzureServiceBus",
                 "NetStandardAzureServiceBus",
                 "RabbitMQ",
-                //"MSMQ", TODO Uncomment when we add MSMQ back in
+                "MSMQ",
                 "AmazonSQS",
                 "LearningTransport"};
 

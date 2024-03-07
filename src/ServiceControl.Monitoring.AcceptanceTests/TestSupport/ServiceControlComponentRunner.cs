@@ -1,10 +1,10 @@
 namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 {
     using System;
-    using System.Configuration;
     using System.IO;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure;
@@ -19,7 +19,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
-    using TestHelper;
 
     class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
@@ -148,11 +147,11 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             }
         }
 
-        public override async Task Stop()
+        public override async Task Stop(CancellationToken cancellationToken = default)
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync();
+                await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
             }

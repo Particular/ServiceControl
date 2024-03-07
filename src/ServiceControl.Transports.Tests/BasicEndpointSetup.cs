@@ -19,6 +19,10 @@
             endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
+            var recoverability = endpointConfiguration.Recoverability();
+            recoverability.Immediate(c => c.NumberOfRetries(3));
+            recoverability.Delayed(c => c.NumberOfRetries(0));
+
             await configurationBuilderCustomization(endpointConfiguration);
 
             // scan types at the end so that all types used by the configuration have been loaded into the AppDomain

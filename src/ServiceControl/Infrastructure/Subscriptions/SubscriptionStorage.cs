@@ -17,7 +17,7 @@
 
         protected override void Setup(FeatureConfigurationContext context)
         {
-            context.RegisterStartupTask(b => b.GetRequiredService<PrimeSubscriptions>());
+            context.RegisterStartupTask(b => new PrimeSubscriptions(b.GetRequiredService<IServiceControlSubscriptionStorage>()));
         }
 
         class PrimeSubscriptions : FeatureStartupTask

@@ -45,7 +45,6 @@
                 Password = connectionConfiguration.Password,
                 RequestedHeartbeat = heartbeatInterval ?? connectionConfiguration.RequestedHeartbeat,
                 NetworkRecoveryInterval = networkRecoveryInterval ?? connectionConfiguration.RetryDelay,
-                UseBackgroundThreadsForIO = true
             };
 
             connectionFactory.Ssl.ServerName = connectionConfiguration.Host;

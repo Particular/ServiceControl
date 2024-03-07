@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.Monitoring.AcceptanceTests.Tests
 {
     using System;
-    using System.Configuration;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.AcceptanceTesting;
@@ -25,17 +24,17 @@
             await Define<TestContext>(ctx => context = ctx)
                 .WithEndpoint<MonitoredEndpoint>(b =>
                 b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromMilliseconds(200), "First"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async startableEndpoint =>
+                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
                 {
-                    context.FirstInstance = await startableEndpoint.Start();
+                    context.FirstInstance = await startableEndpoint.Start(cancellationToken);
 
                     return context.FirstInstance;
                 }))
                 .WithEndpoint<MonitoredEndpoint>(b =>
                 b.CustomConfig(endpointConfig => endpointConfig.EnableMetrics().SendMetricDataToServiceControl(Settings.DEFAULT_ENDPOINT_NAME, TimeSpan.FromMilliseconds(200), "Second"))
-                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async startableEndpoint =>
+                .ToCreateInstance(endpointConfig => Endpoint.Create(endpointConfig), async (startableEndpoint, cancellationToken) =>
                 {
-                    context.SecondInstance = await startableEndpoint.Start();
+                    context.SecondInstance = await startableEndpoint.Start(cancellationToken);
 
                     return context.SecondInstance;
                 }))

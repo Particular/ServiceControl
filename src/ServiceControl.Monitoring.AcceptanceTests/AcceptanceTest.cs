@@ -31,12 +31,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
 
-        [OneTimeSetUp]
-        public static void OneTimeSetup()
-        {
-            Scenario.GetLoggerFactory = ctx => new StaticLoggerFactory(ctx);
-        }
-
         [SetUp]
         public void Setup()
         {

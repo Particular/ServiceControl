@@ -82,13 +82,9 @@ static class WebApplicationBuilderExtension
         services.AddMetrics(settings.PrintMetrics);
 
         services.AddPersistence(persistenceSettings, persistenceConfiguration);
-        builder.Host.UseNServiceBus(_ =>
-        {
-            NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings,
-                onCriticalError, configuration);
 
-            return configuration;
-        });
+        NServiceBusFactory.Configure(settings, transportCustomization, transportSettings, loggingSettings, onCriticalError, configuration);
+        builder.UseNServiceBus(configuration);
 
         // Configure after the NServiceBus hosted service to ensure NServiceBus is already started
         if (settings.IngestAuditMessages)

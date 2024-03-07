@@ -4,6 +4,7 @@
     using System.IO;
     using System.Net.Http;
     using System.Text.Json;
+    using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using Infrastructure.DomainEvents;
@@ -157,7 +158,7 @@
 
                 host = hostBuilder.Build();
                 host.UseServiceControl();
-                await host.StartServiceControl();
+                await host.StartAsync();
                 DomainEvents = host.Services.GetRequiredService<IDomainEvents>();
                 // Bring this back and look into the base address of the client
                 HttpClient = host.GetTestServer().CreateClient();
@@ -165,11 +166,11 @@
             }
         }
 
-        public override async Task Stop()
+        public override async Task Stop(CancellationToken cancellationToken = default)
         {
             using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
             {
-                await host.StopAsync();
+                await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
                 await host.DisposeAsync();
                 await persistenceToUse.Cleanup();

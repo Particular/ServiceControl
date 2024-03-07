@@ -53,9 +53,14 @@ namespace ServiceControlInstaller.Engine.Instances
             return new ServiceControlAuditAppConfig(this);
         }
 
-        protected override string GetTransportTypeSetting()
+        protected override TransportInfo DetermineTransportPackage()
         {
-            return AppConfig.Read<string>(AuditInstanceSettingsList.TransportType, null)?.Trim();
+            var transportAppSetting = (AppConfig.Read<string>(AuditInstanceSettingsList.TransportType, null)?.Trim())
+                ?? throw new Exception($"{AuditInstanceSettingsList.TransportType.Name} setting not found in app.config.");
+
+            var transport = ServiceControlCoreTransports.Find(transportAppSetting);
+
+            return transport ?? throw new Exception($"{AuditInstanceSettingsList.TransportType.Name} value of '{transportAppSetting}' in app.config is invalid.");
         }
 
         protected override string BaseServiceName => "ServiceControl.Audit";

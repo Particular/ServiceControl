@@ -28,10 +28,9 @@
                 tokenSource.Cancel();
                 return Task.CompletedTask;
             }, settings, endpointConfiguration, loggingSettings);
+
             using var app = hostBuilder.Build();
-
             app.UseServiceControlAudit();
-
             await app.StartAsync(tokenSource.Token);
 
             var importer = app.Services.GetRequiredService<ImportFailedAudits>();

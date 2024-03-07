@@ -6,14 +6,21 @@
     public class TransportInfo
     {
         public string Name { get; set; }
+
         public string DisplayName { get; set; }
+
         public string TypeName { get; set; }
+
         public string SampleConnectionString { get; set; }
+
         public string Help { get; set; }
-        public bool Default { get; set; }
+
         public bool AvailableInSCMU { get; set; } = true;
+
         public bool Removed { get; set; }
+
         public string AutoMigrateTo { get; set; }
+
         public string[] Aliases { get; set; } = Array.Empty<string>();
 
         public string ZipName
