@@ -133,10 +133,9 @@
                     //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.AzureServiceBus:
-                    brokerSettingValues[AzureServiceBusSettings.ResourceId] = GetConfigSetting(AzureServiceBusSettings.ResourceId, logger);
+                    brokerSettingValues[AzureServiceBusSettings.ServiceBusName] = GetConfigSetting(AzureServiceBusSettings.ServiceBusName, logger);
                     brokerSettingValues[AzureServiceBusSettings.ClientId] = GetConfigSetting(AzureServiceBusSettings.ClientId, logger);
                     brokerSettingValues[AzureServiceBusSettings.ClientSecret] = GetConfigSetting(AzureServiceBusSettings.ClientSecret, logger);
-                    //TODO if those settings don't exist - try and get them from transportConnectionString 
                     break;
                 case Broker.SqlServer:
                     brokerSettingValues[SqlServerSettings.ConnectionString] = GetConfigSetting(SqlServerSettings.ConnectionString, logger);

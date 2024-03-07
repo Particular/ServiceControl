@@ -1,12 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Infrastructure
 {
-    using System;
-    using System.Linq;
     using System.Net;
-    using System.Net.Http;
     using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
 
     static class HttpAuth
@@ -29,7 +24,7 @@
 
             var credentials = new CredentialCache();
 
-            NetworkCredential? credential = defaultCredential;
+            var credential = defaultCredential;
             var schemes = Array.Empty<string>();
             string? currentUser = null;
 
