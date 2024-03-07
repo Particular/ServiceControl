@@ -6,13 +6,12 @@ using Particular.ThroughputCollector.Persistence;
 
 public class InMemoryPersistence() : IPersistence
 {
-    public PersistenceService Configure(IServiceCollection serviceCollection)
+    public IServiceCollection Configure(IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<InMemoryThroughputDataStore>();
         serviceCollection.AddSingleton<IThroughputDataStore>(sp => sp.GetRequiredService<InMemoryThroughputDataStore>());
+        serviceCollection.AddSingleton<IPersistenceInstaller, InMemoryPersistenceInstaller>();
 
-        return new InMemoryPersistenceLifecycle();
+        return serviceCollection;
     }
-
-    public IPersistenceInstaller CreateInstaller() => new InMemoryPersistenceInstaller();
 }
