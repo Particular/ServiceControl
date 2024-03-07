@@ -71,7 +71,7 @@
 
         public async Task<BrokerSettings> GetBrokerSettingsInformation()
         {
-            var brokerSettings = BrokerManifestLibrary.Find(throughputSettings.Broker);
+            var brokerSettings = BrokerSettingsLibrary.Find(throughputSettings.Broker);
 
             brokerSettings ??= new BrokerSettings { Broker = throughputSettings.Broker };
 
