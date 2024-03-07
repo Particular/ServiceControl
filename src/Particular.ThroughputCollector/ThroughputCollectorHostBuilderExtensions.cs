@@ -5,7 +5,6 @@
     using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Shared;
     using WebApi;
 
     public static class ThroughputCollectorHostBuilderExtensions
@@ -49,14 +48,13 @@
                 serviceControlAPI = serviceControlAPI.Replace("http://0.0.0.0", "http://localhost");
             }
 
-            services.AddSingleton(new ThroughputSettings { Broker = broker, ServiceControlAPI = serviceControlAPI, ServiceControlQueue = serviceControlQueue, AuditQueue = auditQueue, ErrorQueue = errorQueue, TransportConnectionString = transportConnectionString, PersistenceType = persistenceType });
             //TODO could get ILoggerFactory loggerFactory here and create the one for throughput collector and inject the ilogger into the services - that way won't have to create it every time.
+            services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, auditQueue: auditQueue));
             services.AddHostedService<AuditThroughputCollectorHostedService>();
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
             services.AddSingleton<IThroughputCollector, ThroughputCollector>();
             services.AddSingleton<ThroughputController>();
             services.AddSingleton<AzureQuery>();
-            services.AddSingleton<BrokerSettingValues>();
             services.AddPersistence(persistenceType);
 
             return hostBuilder;

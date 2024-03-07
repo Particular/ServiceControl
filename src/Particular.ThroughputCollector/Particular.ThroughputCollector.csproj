@@ -10,9 +10,9 @@
   <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
   
   <ItemGroup>
-    <PackageReference Include="Azure.Identity"/>
-    <PackageReference Include="Azure.Monitor.Query"/>
-    <PackageReference Include="Azure.ResourceManager.ServiceBus"/>
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.ResourceManager.ServiceBus" />
     <PackageReference Include="System.Configuration.ConfigurationManager" />
     <ProjectReference Include="..\Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj" />
     <ProjectReference Include="..\ServiceControl.Configuration\ServiceControl.Configuration.csproj" />
@@ -21,16 +21,5 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />  
   </ItemGroup>
-
-  <!--<ItemGroup>
-	  <ContentWithTargetPath Include="BrokerThroughput\throughput.broker.manifest">
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<TargetPath>throughput.broker.manifest</TargetPath>
-	  </ContentWithTargetPath>
-  </ItemGroup>-->
-
-  <ItemGroup>
-    <None Update="throughput.broker.manifest" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  
+ 
 </Project>
