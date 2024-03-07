@@ -1,15 +1,11 @@
-﻿namespace Particular.ThroughputCollector.Shared
+namespace Particular.ThroughputCollector.Shared
 {
-    using System;
-    using System.Linq;
     using System.Net.Http;
     using System.Text;
-    using System.Text.Json;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Exceptions;
+    using Infrastructure;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Exceptions;
-    using Particular.ThroughputCollector.Infrastructure;
+    using Newtonsoft.Json;
 
     class ServiceControlClient
     {
@@ -49,7 +45,7 @@
 
             using var http = httpFactory();
 
-            for (int i = 0; i < tryCount; i++)
+            for (var i = 0; i < tryCount; i++)
             {
                 try
                 {
