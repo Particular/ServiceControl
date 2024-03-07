@@ -36,9 +36,11 @@
 
     public static class AzureServiceBusSettings
     {
-        public static string ResourceId = "ThroughputCollector/ASB/ResourceId";
+        public static string ServiceBusName = "ThroughputCollector/ASB/ServiceBusName";
         public static string ClientId = "ThroughputCollector/ASB/ClientId";
         public static string ClientSecret = "ThroughputCollector/ASB/ClientSecret";
+        public static string TenantId = "ThroughputCollector/ASB/TenantId";
+        public static string SubscriptionId = "ThroughputCollector/ASB/SubscriptionId";
     }
 
     public static class AmazonSQSSettings
