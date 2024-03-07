@@ -1,11 +1,12 @@
 ﻿namespace Particular.ThroughputCollector
 {
+    using Audit;
+    using Broker;
+    using Contracts;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
-    using Particular.ThroughputCollector.Audit;
-    using Particular.ThroughputCollector.Broker;
-    using Particular.ThroughputCollector.Contracts;
-    using Particular.ThroughputCollector.WebApi;
+    using Shared;
+    using WebApi;
 
     public static class ThroughputCollectorHostBuilderExtensions
     {
@@ -54,7 +55,8 @@
             services.AddHostedService<BrokerThroughputCollectorHostedService>();
             services.AddSingleton<IThroughputCollector, ThroughputCollector>();
             services.AddSingleton<ThroughputController>();
-
+            services.AddSingleton<AzureQuery>();
+            services.AddSingleton<BrokerSettingValues>();
             services.AddPersistence(persistenceType);
 
             return hostBuilder;

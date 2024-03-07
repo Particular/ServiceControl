@@ -37,7 +37,9 @@
 
             try
             {
-                var brokerSettings = await Commands.GetBrokerSettingValues(BrokerManifestLibrary.Find(throughputSettings.Broker)!, throughputSettings.TransportConnectionString, throughputSettings.ServiceControlAPI, logger);
+                Dictionary<string, string> brokerSettings = await Commands.GetBrokerSettingValues(
+                    BrokerManifestLibrary.Find(throughputSettings.Broker), throughputSettings.TransportConnectionString,
+                    throughputSettings.ServiceControlAPI, logger);
                 var httpFactory = await HttpAuth.CreateHttpClientFactory(brokerSettings[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
                 var primary = new ServiceControlClient("ServiceControl", brokerSettings[ServiceControlSettings.API], httpFactory, logger);
                 await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken); //TODO do we need this since we know the SC url?

@@ -2,20 +2,19 @@
 {
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Particular.ThroughputCollector.Contracts;
+    using Shared;
 
-    class BrokerThroughputCollectorHostedService : BackgroundService
+    internal class BrokerThroughputCollectorHostedService(
+        ILogger<BrokerThroughputCollectorHostedService> logger,
+        AzureQuery azureQuery,
+        BrokerSettingValues brokerSettingValues)
+        : BackgroundService
     {
-        public BrokerThroughputCollectorHostedService(ILogger<BrokerThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings)
-        {
-            this.logger = logger;
-            this.throughputSettings = throughputSettings;
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Starting BrokerThroughputCollector Service");
 
+            azureQuery.Initialise(brokerSettingValues.SettingValues);
             // When the timer should have no due-time, then do the work once now.
             await GatherThroughput(stoppingToken);
 
@@ -34,13 +33,16 @@
             }
         }
 
-        Task GatherThroughput(CancellationToken _)
+        private async Task GatherThroughput(CancellationToken stoppingToken)
         {
-            logger.LogInformation($"Gathering throughput from broker");
-            return Task.CompletedTask;
+            logger.LogInformation("Gathering throughput from broker");
+            await foreach (QueueThroughput queueThroughput in azureQuery.Execute(DateTime.UtcNow, DateTime.UtcNow,
+                               stoppingToken))
+            {
+                logger.LogInformation(queueThroughput.QueueName);
+            }
         }
 
-        readonly ILogger logger;
-        ThroughputSettings throughputSettings;
+        private readonly ILogger logger = logger;
     }
 }
