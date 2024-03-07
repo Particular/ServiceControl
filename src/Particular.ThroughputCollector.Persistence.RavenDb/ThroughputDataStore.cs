@@ -2,16 +2,11 @@
 
 using Raven.Client.Documents;
 
-class ThroughputDataStore : IThroughputDataStore
+class ThroughputDataStore(IDocumentStore store, DatabaseConfiguration databaseConfiguration) : IThroughputDataStore
 {
-    public ThroughputDataStore(IDocumentStore store)
-    {
-        this.store = store;
-    }
-
     public async Task<IReadOnlyList<Endpoint>> GetAllEndpoints()
     {
-        using var session = store.OpenAsyncSession();
+        using var session = store.OpenAsyncSession(databaseConfiguration.Name);
 
         var endpoints = await session.Query<Endpoint, EndpointIndex>().ToListAsync().ConfigureAwait(false);
 
@@ -23,6 +18,4 @@ class ThroughputDataStore : IThroughputDataStore
     public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
     public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
-
-    readonly IDocumentStore store;
 }
