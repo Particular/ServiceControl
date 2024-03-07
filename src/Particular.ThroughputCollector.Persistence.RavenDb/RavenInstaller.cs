@@ -2,13 +2,26 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Raven.Client.Documents;
+using Raven.Client.ServerWide;
+using Raven.Client.ServerWide.Operations;
 
-class RavenInstaller(IHostedService persistenceService) : IPersistenceInstaller
+class RavenInstaller(IServiceProvider provider, DatabaseConfiguration databaseConfiguration) : IPersistenceInstaller
 {
     public async Task Install(CancellationToken cancellationToken)
     {
-        await persistenceService.StartAsync(cancellationToken).ConfigureAwait(false);
-        await persistenceService.StopAsync(cancellationToken).ConfigureAwait(false);
+        var store = provider.GetRequiredService<IDocumentStore>();
+
+        var record = await store.Maintenance.Server
+            .SendAsync(new GetDatabaseRecordOperation(databaseConfiguration.Name), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (record == null)
+        {
+            await store.Maintenance.Server
+                .SendAsync(new CreateDatabaseOperation(new DatabaseRecord(databaseConfiguration.Name)), cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 }
