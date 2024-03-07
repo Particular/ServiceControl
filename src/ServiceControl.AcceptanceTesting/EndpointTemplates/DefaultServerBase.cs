@@ -10,14 +10,14 @@
     using NServiceBus.Features;
     using ServiceControl.AcceptanceTesting.InfrastructureConfig;
 
-    public class DefaultServer(IConfigureEndpointTestExecution endpointTestExecutionConfiguration)
+    public abstract class DefaultServerBase(IConfigureEndpointTestExecution endpointTestExecutionConfiguration)
         : IEndpointSetupTemplate
     {
-        public DefaultServer() : this(new ConfigureEndpointLearningTransport())
+        protected DefaultServerBase() : this(new ConfigureEndpointLearningTransport())
         {
         }
 
-        public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
+        public virtual async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizations, Func<EndpointConfiguration, Task> configurationBuilderCustomization)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 

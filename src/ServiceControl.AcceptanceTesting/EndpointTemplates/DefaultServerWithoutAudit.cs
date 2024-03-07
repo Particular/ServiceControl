@@ -6,10 +6,10 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Features;
 
-    public class DefaultServerWithoutAudit : IEndpointSetupTemplate
+    public class DefaultServerWithoutAudit : DefaultServerBase
     {
-        public Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
-            new DefaultServer().GetConfiguration(runDescriptor, endpointConfiguration, async b =>
+        public override Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Func<EndpointConfiguration, Task> configurationBuilderCustomization) =>
+            base.GetConfiguration(runDescriptor, endpointConfiguration, async b =>
             {
                 b.DisableFeature<Audit>();
 
