@@ -5,6 +5,8 @@ namespace Particular.ServiceControl
     using global::ServiceControl.LicenseManagement;
     using global::ServiceControl.Persistence;
     using global::ServiceControl.Transports;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using NServiceBus.Logging;
     using ServiceBus.Management.Infrastructure.Installers;
     using ServiceBus.Management.Infrastructure.Settings;
@@ -24,23 +26,29 @@ namespace Particular.ServiceControl
                 return;
             }
 
+            var hostBuilder = Host.CreateApplicationBuilder();
+
             var componentSetupContext = new ComponentInstallationContext();
 
             foreach (ServiceControlComponent component in ServiceControlMainInstance.Components)
             {
+                component.ConfigureInstallation(settings, hostBuilder);
                 component.Setup(settings, componentSetupContext);
             }
 
+            var persistence = PersistenceFactory.Create(settings);
+            persistence.ConfigureInstaller(hostBuilder.Services);
+
+            var host = hostBuilder.Build();
+
+            await host.Services
+                .GetRequiredService<IPersistenceInstaller>()
+                .Install();
+
             foreach (var installationTask in componentSetupContext.InstallationTasks)
             {
-                await installationTask();
+                await installationTask(host.Services);
             }
-
-            var persistence = PersistenceFactory.Create(settings);
-
-            var installer = persistence.CreateInstaller();
-
-            await installer.Install();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
