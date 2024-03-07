@@ -7,8 +7,8 @@ using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
-using Contracts;
 using Microsoft.Extensions.Logging;
+using Particular.ThroughputCollector.Shared;
 
 public class AzureQuery(ILogger<AzureQuery> logger)
 {
