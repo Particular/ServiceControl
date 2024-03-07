@@ -1,11 +1,10 @@
 namespace Particular.ThroughputCollector.Shared
 {
-    using System.Net.Http;
     using System.Text;
+    using System.Text.Json;
     using Exceptions;
     using Infrastructure;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
 
     class ServiceControlClient
     {
