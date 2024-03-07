@@ -1,12 +1,12 @@
 ﻿namespace Particular.ThroughputCollector.Contracts
 {
-    using Newtonsoft.Json;
+    using System.Text.Json.Serialization;
 
     class AuditCount
     {
-        [JsonProperty("utc_date")]
+        [JsonPropertyName("utc_date")]
         public DateTime UtcDate { get; set; }
-        [JsonProperty("count")]
+        [JsonPropertyName("count")]
         public long Count { get; set; }
     }
 }
