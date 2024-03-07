@@ -2,3 +2,7 @@
 
 # Justification: ServiceControl app has no synchronization context
 dotnet_diagnostic.CA2007.severity = none
+# Justification: Rider displays an error to do with "Accessibility modifiers required (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0040)"
+dotnet_diagnostic.IDE0040.severity = none
+# Justification: Allow switch statements with missing default
+dotnet_diagnostic.IDE0010.severity = suggestion
