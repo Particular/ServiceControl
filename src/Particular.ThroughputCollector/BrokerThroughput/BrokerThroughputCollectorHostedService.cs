@@ -2,19 +2,23 @@
 {
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
-    using Shared;
+    using Particular.ThroughputCollector.Contracts;
 
     internal class BrokerThroughputCollectorHostedService(
         ILogger<BrokerThroughputCollectorHostedService> logger,
         AzureQuery azureQuery,
-        BrokerSettingValues brokerSettingValues)
+        ThroughputSettings throughputSettings)
         : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("Starting BrokerThroughputCollector Service");
 
-            azureQuery.Initialise(brokerSettingValues.SettingValues);
+            if (throughputSettings.Broker == Broker.AzureServiceBus)
+            {
+                azureQuery.Initialise(throughputSettings.BrokerSettingValues);
+            }
+
             // When the timer should have no due-time, then do the work once now.
             await GatherThroughput(stoppingToken);
 
@@ -36,10 +40,13 @@
         private async Task GatherThroughput(CancellationToken stoppingToken)
         {
             logger.LogInformation("Gathering throughput from broker");
-            await foreach (QueueThroughput queueThroughput in azureQuery.Execute(DateTime.UtcNow, DateTime.UtcNow,
-                               stoppingToken))
+            if (throughputSettings.Broker == Broker.AzureServiceBus)
             {
-                logger.LogInformation(queueThroughput.QueueName);
+                await foreach (QueueThroughput queueThroughput in azureQuery.Execute(DateTime.UtcNow, DateTime.UtcNow,
+                               stoppingToken))
+                {
+                    logger.LogInformation(queueThroughput.QueueName);
+                }
             }
         }
 
