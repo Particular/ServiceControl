@@ -42,10 +42,7 @@
 
         public class EndpointThatUsesSignalR : EndpointConfigurationBuilder
         {
-            public EndpointThatUsesSignalR()
-            {
-                EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
-            }
+            public EndpointThatUsesSignalR() => EndpointSetup<DefaultServer>(c => c.EnableFeature<EnableSignalR>());
 
             class EnableSignalR : Feature
             {
@@ -66,33 +63,28 @@
                         .Build();
                 }
 
-                // TODO rename to better match what this is actually doing
-                void ConnectionOnReceived(JsonElement jElement)
+                void EnvelopeReceived(JsonElement jElement)
                 {
                     var s = jElement.ToString();
-                    if (s.IndexOf("\"EventLogItemAdded\"") > 0)
+                    if (s.IndexOf("\"EventLogItemAdded\"", StringComparison.Ordinal) <= 0 ||
+                        s.IndexOf("EventLogItem/CustomChecks/CustomCheckFailed", StringComparison.Ordinal) <= 0)
                     {
-                        if (s.IndexOf("EventLogItem/CustomChecks/CustomCheckFailed") > 0)
-                        {
-                            context.SignalrData = s;
-                            context.SignalrEventReceived = true;
-                        }
+                        return;
                     }
+
+                    context.SignalrData = s;
+                    context.SignalrEventReceived = true;
                 }
 
                 protected override Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                 {
-                    // TODO Align this name with the one chosen for GlobalEventHandler
                     // We might also be able to strongly type this to match instead of just getting a string?
-                    connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
+                    connection.On<JsonElement>("PushEnvelope", EnvelopeReceived);
 
                     return connection.StartAsync(cancellationToken);
                 }
 
-                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                {
-                    return connection.StopAsync(cancellationToken);
-                }
+                protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => connection.StopAsync(cancellationToken);
 
                 readonly MyContext context;
                 readonly HubConnection connection;

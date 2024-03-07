@@ -300,29 +300,26 @@ namespace ServiceControl.AcceptanceTests.Recoverability.MessageFailures
 
                     protected override async Task OnStart(IMessageSession session, CancellationToken cancellationToken = default)
                     {
-                        // TODO Align this name with the one chosen for GlobalEventHandler
                         // We might also be able to strongly type this to match instead of just getting a string?
-                        connection.On<JsonElement>("PushEnvelope", ConnectionOnReceived);
+                        connection.On<JsonElement>("PushEnvelope", EnvelopeReceived);
 
                         await connection.StartAsync(cancellationToken);
 
                         await session.Send(new MyMessage(), cancellationToken);
                     }
 
-                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default)
-                    {
-                        return connection.StopAsync(cancellationToken);
-                    }
+                    protected override Task OnStop(IMessageSession session, CancellationToken cancellationToken = default) => connection.StopAsync(cancellationToken);
 
-                    // TODO rename to better match what this is actually doing
-                    void ConnectionOnReceived(JsonElement jElement)
+                    void EnvelopeReceived(JsonElement jElement)
                     {
                         var s = jElement.ToString();
-                        if (s.IndexOf("\"MessageFailuresUpdated\"") > 0)
+                        if (s.IndexOf("\"MessageFailuresUpdated\"", StringComparison.Ordinal) <= 0)
                         {
-                            context.SignalrData = s;
-                            context.SignalrEventReceived = true;
+                            return;
                         }
+
+                        context.SignalrData = s;
+                        context.SignalrEventReceived = true;
                     }
 
                     readonly MyContext context;
