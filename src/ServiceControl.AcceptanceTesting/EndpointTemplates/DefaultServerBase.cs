@@ -3,11 +3,9 @@
     using System;
     using System.Linq;
     using System.Net;
-    using System.Reflection;
     using System.Threading.Tasks;
     using AcceptanceTesting;
     using NServiceBus;
-    using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTesting.Customization;
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
@@ -40,8 +38,6 @@
 
             endpointConfiguration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
             await endpointConfiguration.DefinePersistence(runDescriptor, endpointCustomizations);
-
-            typeof(ScenarioContext).GetProperty("CurrentEndpoint", BindingFlags.Static | BindingFlags.NonPublic).SetValue(runDescriptor.ScenarioContext, endpointCustomizations.EndpointName);
 
             endpointConfiguration.UseSerialization<NewtonsoftJsonSerializer>();
 
