@@ -9,7 +9,7 @@ static class ServiceCollectionExtensions
 {
     static string? registeredPersistence = null;
 
-    public static void AddPersistence(this IServiceCollection services, string persistenceType)
+    public static IServiceCollection AddPersistence(this IServiceCollection services, string persistenceType)
     {
         if (!string.IsNullOrEmpty(registeredPersistence))
         {
@@ -23,10 +23,11 @@ static class ServiceCollectionExtensions
         var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(persistenceType);
         var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings();
         var persistence = persistenceConfiguration.Create(persistenceSettings);
-        var persistenceService = persistence.Configure(services);
+        persistence.Configure(services);
 
-        services.AddSingleton(persistenceService);
-        services.AddHostedService(sp => sp.GetRequiredService<PersistenceService>());
+        services.AddSingleton(persistence);
+
+        return services;
     }
 
     static Assembly? ResolvePersistenceAssembly(AssemblyLoadContext loadContext, AssemblyName assemblyName)
