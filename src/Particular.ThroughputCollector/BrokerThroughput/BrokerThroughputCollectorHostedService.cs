@@ -6,9 +6,9 @@
 
     class BrokerThroughputCollectorHostedService : BackgroundService
     {
-        public BrokerThroughputCollectorHostedService(ILoggerFactory loggerFactory, ThroughputSettings throughputSettings)
+        public BrokerThroughputCollectorHostedService(ILogger<BrokerThroughputCollectorHostedService> logger, ThroughputSettings throughputSettings)
         {
-            logger = loggerFactory.CreateLogger<BrokerThroughputCollectorHostedService>();
+            this.logger = logger;
             this.throughputSettings = throughputSettings;
         }
 
@@ -41,8 +41,6 @@
         }
 
         readonly ILogger logger;
-#pragma warning disable IDE0052 // Remove unread private members
         ThroughputSettings throughputSettings;
-#pragma warning restore IDE0052 // Remove unread private members
     }
 }
