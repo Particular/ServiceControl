@@ -1,11 +1,13 @@
 
 namespace Particular.ServiceControl;
 
-using global::ServiceControl.Persistence;
 using global::ServiceControl.Transports;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Particular.ThroughputCollector;
 using ServiceBus.Management.Infrastructure.Settings;
+using ServiceControlPersistence = global::ServiceControl.Persistence;
+using ThroughputPersistence = ThroughputCollector.Persistence;
 
 class ThroughputComponent : ServiceControlComponent
 {
@@ -17,8 +19,10 @@ class ThroughputComponent : ServiceControlComponent
             errorQueue: settings.ErrorQueue,
             auditQueue: "?",
             transportConnectionString: settings.TransportConnectionString,
-            persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType));
+            persistenceType: ServiceControlPersistence.PersistenceManifestLibrary.GetName(settings.PersistenceType));
+
+    public override void ConfigureInstallation(Settings settings, IHostApplicationBuilder hostBuilder) => Configure(settings, hostBuilder);
 
     public override void Setup(Settings settings, IComponentInstallationContext context) =>
-        context.RegisterInstallationTask(() => ThroughputCollectorInstaller.Install(PersistenceManifestLibrary.GetName(settings.PersistenceType)));
+        context.RegisterInstallationTask(serviceProvider => serviceProvider.GetRequiredService<ThroughputPersistence.IPersistenceInstaller>().Install());
 }
