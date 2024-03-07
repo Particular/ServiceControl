@@ -1,21 +1,18 @@
 ﻿namespace Particular.ThroughputCollector.Shared
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
     using Particular.ThroughputCollector.Exceptions;
     using Particular.ThroughputCollector.Infrastructure;
 
     class ServiceControlClient
     {
-        static readonly JsonSerializer serializer = new JsonSerializer();
-
         readonly Func<HttpClient> httpFactory;
         readonly string rootUrl;
         readonly string instanceType;
@@ -57,11 +54,9 @@
                 try
                 {
                     using (var stream = await http.GetStreamAsync(url, cancellationToken))
-                    using (var reader = new StreamReader(stream))
-                    using (var jsonReader = new JsonTextReader(reader))
                     {
 #pragma warning disable CS8603 // Possible null reference return.
-                        return serializer.Deserialize<TJsonType>(jsonReader);
+                        return JsonSerializer.Deserialize<TJsonType>(stream);
 #pragma warning restore CS8603 // Possible null reference return.
                     }
                 }
