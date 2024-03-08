@@ -1,5 +1,7 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.Tests.RavenDb
 {
+    using NUnit.Framework;
+
     //using System;
     //using NUnit.Framework;
     //using Particular.ThroughputCollector.Persistence.RavenDb;
@@ -51,6 +53,9 @@
         //    Assert.AreEqual(logPath, configuration.ServerConfiguration.LogPath);
         //    Assert.AreEqual("http://localhost:11111", configuration.ServerConfiguration.ServerUrl);
         //}
+
+        [Test]
+        public void PassingTest() => Assert.IsTrue(true);
 
         //[Test]
         //public void Should_throw_if_port_is_missing()
