@@ -1,7 +1,5 @@
 ﻿namespace Particular.ThroughputCollector.Persistence.RavenDb;
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Raven.Client.Documents;
 
 class ThroughputDataStore : IThroughputDataStore
@@ -20,7 +18,8 @@ class ThroughputDataStore : IThroughputDataStore
         return endpoints.ToArray();
     }
 
-    public Task<Endpoint> GetEndpointByName(string name, ThroughputSource throughputSource) => throw new NotImplementedException();
+    public Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource) =>
+        throw new NotImplementedException();
     public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
 
