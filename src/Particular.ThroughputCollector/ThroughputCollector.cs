@@ -27,12 +27,12 @@
 
             var endpointSummaries = new List<EndpointThroughputSummary>();
 
-            //group endpoints by name - so to group throughput recorded from broker, audit and monitoring
-            foreach (var endpoint in endpoints.GroupBy(g => g.Name))
+            //group endpoints by sanitized name - so to group throughput recorded from broker, audit and monitoring
+            foreach (var endpoint in endpoints.GroupBy(g => g.SanitizedName))
             {
                 var endpointSummary = new EndpointThroughputSummary
                 {
-                    Name = endpoint.Key,
+                    Name = endpoint.Key, //TODO figure out what name should be passed in here
                     UserIndicatedSendOnly = UserIndicatedSendOnly(endpoint),
                     UserIndicatedToIgnore = UserIndicatedToIgnore(endpoint),
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
