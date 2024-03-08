@@ -5,6 +5,7 @@
 public record Endpoint
 {
     public string Name { get; set; }
+    public string SanitizedName { get; set; }
     public ThroughputSource ThroughputSource { get; set; }
     public string Scope { get; set; } //used for SQLServer endpoints, perhaps for others too
     public string[] EndpointIndicators { get; set; }
