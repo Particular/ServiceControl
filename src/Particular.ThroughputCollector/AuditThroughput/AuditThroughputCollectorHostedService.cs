@@ -74,6 +74,7 @@
             return new Endpoint
             {
                 Name = scEndpoint.Name,
+                SanitizedName = EndpointNameSanitizer.SanitizeEndpointName(scEndpoint.Name, throughputSettings.Broker),
                 ThroughputSource = ThroughputSource.Audit,
                 EndpointIndicators = new string[] { EndpointIndicator.KnownEndpoint.ToString() },
                 DailyThroughput = scEndpoint.AuditCounts.Any() ? scEndpoint.AuditCounts.Select(c => new EndpointThroughput { DateUTC = c.UtcDate, TotalThroughput = c.Count }).ToList() : []
