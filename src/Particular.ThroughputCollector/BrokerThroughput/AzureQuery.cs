@@ -8,9 +8,10 @@ using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Particular.ThroughputCollector.Shared;
+using Persistence;
+using Shared;
 
-public class AzureQuery(ILogger<AzureQuery> logger)
+public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
 {
     private string serviceBusName = "";
     private string subscriptionId = "";
@@ -22,6 +23,15 @@ public class AzureQuery(ILogger<AzureQuery> logger)
     public void Initialise(FrozenDictionary<string, string> settings)
     {
         settings.TryGetValue(AzureServiceBusSettings.ManagementUrl, out string? managementUrl);
+
+        serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
+        subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
+        environment = GetEnvironment();
+
+        clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
+            settings[AzureServiceBusSettings.ClientId], settings[AzureServiceBusSettings.ClientSecret]);
+        return;
+
         ArmEnvironment GetEnvironment()
         {
             if (managementUrl == null)
@@ -49,30 +59,29 @@ public class AzureQuery(ILogger<AzureQuery> logger)
 
             return ArmEnvironment.AzurePublicCloud;
         }
-
-        serviceBusName = settings[AzureServiceBusSettings.ServiceBusName];
-        subscriptionId = settings[AzureServiceBusSettings.SubscriptionId];
-        environment = GetEnvironment();
-
-        clientCredentials = new ClientSecretCredential(settings[AzureServiceBusSettings.TenantId],
-            settings[AzureServiceBusSettings.ClientId], settings[AzureServiceBusSettings.ClientSecret]);
     }
 
-    public async IAsyncEnumerable<QueueThroughput> Execute(DateTime startTime, DateTime endTime,
+    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(string queueName, DateTime startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Connecting to Azure Metrics to get throughput data...");
+        logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
-
-        await foreach (var queueName in GetQueueNames(cancellationToken))
+        while (startDate < DateTime.UtcNow.Date.AddDays(-1))
         {
-            logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
+            IReadOnlyList<MetricValue> metrics = await GetMetrics(queueName, startDate,
+                DateTime.UtcNow.Date.AddDays(-1), cancellationToken);
 
-            var metrics = await GetMetrics(queueName, startTime, endTime, cancellationToken);
+            foreach (MetricValue metricValue in metrics)
+            {
+                yield return new EndpointThroughput
+                {
+                    TotalThroughput = (long)(metricValue.Total ?? 0),
+                    // Force next line
+                    DateUTC = startDate
+                };
+            }
 
-            var maxThroughput = metrics.Select(timeEntry => timeEntry.Total ?? 0).Max();
-
-            yield return new QueueThroughput(queueName, (long)maxThroughput);
+            startDate = startDate.AddDays(1);
         }
     }
 
@@ -87,7 +96,7 @@ public class AzureQuery(ILogger<AzureQuery> logger)
             {
                 Filter = $"EntityName eq '{queueName}'",
                 TimeRange = new QueryTimeRange(startTime, endTime),
-                Granularity = TimeSpan.FromHours(1)
+                Granularity = TimeSpan.FromDays(1)
             },
             cancellationToken);
 
@@ -97,7 +106,7 @@ public class AzureQuery(ILogger<AzureQuery> logger)
         return metricValues;
     }
 
-    private async IAsyncEnumerable<string> GetQueueNames(
+    public async IAsyncEnumerable<string> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var armClient = new ArmClient(clientCredentials, subscriptionId,
