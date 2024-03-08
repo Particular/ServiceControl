@@ -51,10 +51,28 @@
             //TODO could get ILoggerFactory loggerFactory here and create the one for throughput collector and inject the ilogger into the services - that way won't have to create it every time.
             services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, auditQueue: auditQueue));
             services.AddHostedService<AuditThroughputCollectorHostedService>();
-            services.AddHostedService<BrokerThroughputCollectorHostedService>();
             services.AddSingleton<IThroughputCollector, ThroughputCollector>();
             services.AddSingleton<ThroughputController>();
-            services.AddSingleton<AzureQuery>();
+            switch (broker)
+            {
+                case Contracts.Broker.AmazonSQS:
+                    services.AddSingleton<IThroughputQuery, AmazonSQSQuery>();
+                    services.AddHostedService<BrokerThroughputCollectorHostedService>();
+                    break;
+                case Contracts.Broker.RabbitMQ:
+                    services.AddSingleton<IThroughputQuery, RabbitMQQuery>();
+                    services.AddHostedService<BrokerThroughputCollectorHostedService>();
+                    break;
+                case Contracts.Broker.AzureServiceBus:
+                    services.AddSingleton<IThroughputQuery, AzureQuery>();
+                    services.AddHostedService<BrokerThroughputCollectorHostedService>();
+                    break;
+                case Contracts.Broker.SqlServer:
+                    services.AddSingleton<IThroughputQuery, SqlServerQuery>();
+                    services.AddHostedService<BrokerThroughputCollectorHostedService>();
+                    break;
+            }
+
             services.AddPersistence(persistenceType);
 
             return hostBuilder;
