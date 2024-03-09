@@ -29,6 +29,7 @@
                 endpoints.Add(new Endpoint
                 {
                     Name = $"Endpoint{e}",
+                    SanitizedName = $"Endpoint{e}",
                     ThroughputSource = ThroughputSource.Audit,
                     DailyThroughput = endpointThroughput,
                 });
@@ -50,6 +51,7 @@
                 endpoints.Add(new Endpoint
                 {
                     Name = $"Endpoint{e}",
+                    SanitizedName = $"Endpoint{e}",
                     ThroughputSource = ThroughputSource.Monitoring,
                     DailyThroughput = endpointThroughput,
                 });
@@ -73,6 +75,7 @@
                     endpoints.Add(new Endpoint
                     {
                         Name = $"Endpoint{e}",
+                        SanitizedName = $"Endpoint{e}",
                         ThroughputSource = ThroughputSource.Broker,
                         DailyThroughput = endpointThroughput,
                     });
@@ -82,6 +85,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = "error",
+                SanitizedName = "error",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 10 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 10 }],
             });
@@ -89,6 +93,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = "audit",
+                SanitizedName = "audit",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 1000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
             });
@@ -96,6 +101,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = "audit",
+                SanitizedName = "audit",
                 ThroughputSource = ThroughputSource.Broker,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 1000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
             });
@@ -103,6 +109,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = "Particular.ServiceControl",
+                SanitizedName = "Particular.ServiceControl",
                 ThroughputSource = ThroughputSource.Audit,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 5000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
             });
@@ -110,6 +117,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = "Particular.ServiceControl",
+                SanitizedName = "Particular.ServiceControl",
                 ThroughputSource = ThroughputSource.Broker,
                 DailyThroughput = [new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddDays(-1), TotalThroughput = 5000 }, new EndpointThroughput { DateUTC = System.DateTime.UtcNow.Date.AddMonths(-1), TotalThroughput = 1000 }],
             });
@@ -117,18 +125,21 @@
             endpoints.Add(new Endpoint
             {
                 Name = EndpointNameWithNoThroughput,
+                SanitizedName = EndpointNameWithNoThroughput,
                 ThroughputSource = ThroughputSource.Audit
             });
 
             endpoints.Add(new Endpoint
             {
                 Name = EndpointNameWithNoThroughput,
+                SanitizedName = EndpointNameWithNoThroughput,
                 ThroughputSource = ThroughputSource.Broker
             });
 
             endpoints.Add(new Endpoint
             {
                 Name = EndpointNameWithMultiIndicators,
+                SanitizedName = EndpointNameWithMultiIndicators,
                 ThroughputSource = ThroughputSource.Broker,
                 UserIndicatedSendOnly = true,
                 UserIndicatedToIgnore = true,
@@ -137,6 +148,7 @@
             endpoints.Add(new Endpoint
             {
                 Name = EndpointNameWithMultiIndicators,
+                SanitizedName = EndpointNameWithMultiIndicators,
                 ThroughputSource = ThroughputSource.Audit,
                 UserIndicatedSendOnly = false,
                 UserIndicatedToIgnore = false,
