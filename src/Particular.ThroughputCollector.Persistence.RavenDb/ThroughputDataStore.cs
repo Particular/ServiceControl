@@ -22,6 +22,7 @@ class ThroughputDataStore : IThroughputDataStore
         throw new NotImplementedException();
     public Task RecordEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
     public Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator) => throw new NotImplementedException();
+    public Task AppendEndpointThroughput(Endpoint endpoint) => throw new NotImplementedException();
 
     readonly IDocumentStore store;
 }
