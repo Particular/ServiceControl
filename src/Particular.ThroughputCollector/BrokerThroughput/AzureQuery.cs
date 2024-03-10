@@ -61,17 +61,17 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
         }
     }
 
-    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(string queueName, DateTime startDate,
+    public async IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
         while (startDate < DateTime.UtcNow.Date.AddDays(-1))
         {
-            IReadOnlyList<MetricValue> metrics = await GetMetrics(queueName, startDate,
+            var metrics = await GetMetrics(queueName.QueueName, startDate,
                 DateTime.UtcNow.Date.AddDays(-1), cancellationToken);
 
-            foreach (MetricValue metricValue in metrics)
+            foreach (var metricValue in metrics)
             {
                 yield return new EndpointThroughput
                 {
@@ -106,7 +106,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
         return metricValues;
     }
 
-    public async IAsyncEnumerable<string> GetQueueNames(
+    public async IAsyncEnumerable<IQueueName> GetQueueNames(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var armClient = new ArmClient(clientCredentials, subscriptionId,
@@ -125,7 +125,7 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
                 await foreach (var queue in serviceBusNamespaceResource.GetServiceBusQueues()
                                    .WithCancellation(cancellationToken))
                 {
-                    yield return queue.Data.Name;
+                    yield return new DefaultQueueName(queue.Data.Name);
                 }
 
                 yield break;
