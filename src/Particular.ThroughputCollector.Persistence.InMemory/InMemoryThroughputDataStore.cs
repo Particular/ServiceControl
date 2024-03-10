@@ -3,11 +3,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Particular.ThroughputCollector.Persistence;
 
 class InMemoryThroughputDataStore : IThroughputDataStore
 {
-    public List<Endpoint> endpoints;
+    private readonly List<Endpoint> endpoints;
 
     public InMemoryThroughputDataStore()
     {
@@ -19,7 +18,7 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         return await Task.FromResult(endpoints);
     }
 
-    public async Task<Endpoint> GetEndpointByName(string name, ThroughputSource throughputSource)
+    public async Task<Endpoint?> GetEndpointByName(string name, ThroughputSource throughputSource)
     {
         var endpoint = endpoints.FirstOrDefault(w => w.ThroughputSource == throughputSource && w.Name == name);
 
@@ -36,13 +35,34 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         }
         else
         {
-            if (existingEndpoint.DailyThroughput == null)
+            existingEndpoint.DailyThroughput.AddRange(endpoint.DailyThroughput);
+        }
+
+        await Task.CompletedTask;
+    }
+
+    public async Task AppendEndpointThroughput(Endpoint endpoint)
+    {
+        var existingEndpoint = endpoints.FirstOrDefault(w => w.Name == endpoint.Name && w.ThroughputSource == endpoint.ThroughputSource);
+
+        if (existingEndpoint == null)
+        {
+            endpoints.Add(endpoint);
+        }
+        else
+        {
+            foreach (var endpointThroughput in endpoint.DailyThroughput)
             {
-                existingEndpoint.DailyThroughput = endpoint.DailyThroughput;
-            }
-            else if (endpoint.DailyThroughput != null)
-            {
-                existingEndpoint.DailyThroughput = existingEndpoint.DailyThroughput.Concat(endpoint.DailyThroughput).ToList();
+                var existingDailyThroughput = existingEndpoint.DailyThroughput.Find(
+                    throughput => throughput.DateUTC == endpointThroughput.DateUTC);
+                if (existingDailyThroughput == null)
+                {
+                    existingEndpoint.DailyThroughput.Add(endpointThroughput);
+                }
+                else
+                {
+                    existingDailyThroughput.TotalThroughput += endpointThroughput.TotalThroughput;
+                }
             }
         }
 
@@ -51,10 +71,10 @@ class InMemoryThroughputDataStore : IThroughputDataStore
 
     public async Task UpdateUserIndicationOnEndpoints(List<Endpoint> endpointsWithUserIndicator)
     {
-        endpointsWithUserIndicator.DistinctBy(b => b.Name).ToList().ForEach(async e =>
+        endpointsWithUserIndicator.DistinctBy(b => b.Name).ToList().ForEach(e =>
         {
             //if there are multiple sources of throughput for the endpoint, update them all
-            var existingEndpoints = await GetAllEndpointThroughput(e.Name).ConfigureAwait(false);
+            var existingEndpoints = GetAllEndpointThroughput(e.Name);
 
             existingEndpoints.ForEach(u =>
             {
@@ -66,10 +86,7 @@ class InMemoryThroughputDataStore : IThroughputDataStore
         await Task.CompletedTask;
     }
 
-    async Task<List<Endpoint>> GetAllEndpointThroughput(string name)
-    {
-        return await Task.FromResult(endpoints.Where(w => w.Name == name).ToList());
-    }
+    private List<Endpoint> GetAllEndpointThroughput(string name) => endpoints.Where(w => w.Name == name).ToList();
 
     public Task Setup() => Task.CompletedTask;
 }

@@ -7,8 +7,13 @@ public interface IThroughputQuery
 {
     void Initialise(FrozenDictionary<string, string> settings);
 
-    IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(string queueName, DateTime startDate,
+    IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         CancellationToken cancellationToken = default);
 
-    IAsyncEnumerable<string> GetQueueNames(CancellationToken cancellationToken = default);
+    IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default);
+}
+
+public interface IQueueName
+{
+    public string QueueName { get; }
 }
