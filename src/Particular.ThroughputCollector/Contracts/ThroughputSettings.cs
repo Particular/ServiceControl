@@ -1,8 +1,8 @@
 ﻿namespace Particular.ThroughputCollector.Contracts
 {
     using System.Collections.Frozen;
-    using Particular.ThroughputCollector.Shared;
     using ServiceControl.Configuration;
+    using Shared;
 
     public class ThroughputSettings
     {
@@ -31,7 +31,7 @@
         private Dictionary<string, string> LoadBrokerSettingValues()
         {
             var brokerSettingValues = new Dictionary<string, string>();
-            BrokerSettings brokerSettings = BrokerSettingsLibrary.Find(Broker);
+            var brokerSettings = BrokerSettingsLibrary.Find(Broker);
             brokerSettings.Settings.ForEach(s => brokerSettingValues.Add(s.Name, string.Empty));
 
             //for each broker try and grab the required settings from config/env, and if they don't exist try to get them from the transportConnectionString

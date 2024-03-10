@@ -7,10 +7,10 @@ public class RabbitMQQuery : IThroughputQuery
 {
     public void Initialise(FrozenDictionary<string, string> settings) => throw new NotImplementedException();
 
-    public IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(string queueName, DateTime startDate,
+    public IAsyncEnumerable<EndpointThroughput> GetThroughputPerDay(IQueueName queueName, DateTime startDate,
         CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
 
-    public IAsyncEnumerable<string> GetQueueNames(CancellationToken cancellationToken = default) =>
+    public IAsyncEnumerable<IQueueName> GetQueueNames(CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();
 }
