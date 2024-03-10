@@ -156,8 +156,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.Transports.Msmq.Tests", "ServiceControl.Transports.Msmq.Tests\ServiceControl.Transports.Msmq.Tests.csproj", "{5F8E6C64-B505-4FF7-81CC-9161FBC198A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Throughput.Persistence", "Throughput.Persistence\Throughput.Persistence.csproj", "{D45F51F6-10E5-4976-9E7D-C15A9012B84F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence", "Particular.ThroughputCollector.Persistence\Particular.ThroughputCollector.Persistence.csproj", "{0EBBFE57-5760-43FC-A646-FE4C49F4BF59}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Particular.ThroughputCollector.Persistence.RavenDb", "Particular.ThroughputCollector.Persistence.RavenDb\Particular.ThroughputCollector.Persistence.RavenDb.csproj", "{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E}"
@@ -1054,6 +1052,7 @@ Global
 		{D8610AB6-EB24-4617-8089-F11732D3E033} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{9682F7C5-C631-4924-A698-4C355BB14540} = {9AF9D3C7-E859-451B-BA4D-B954D289213A}
 		{D45F51F6-10E5-4976-9E7D-C15A9012B84F} = {C22BFC89-851E-4D42-A878-C13B3F206908}
+		{0EBBFE57-5760-43FC-A646-FE4C49F4BF59} = {C22BFC89-851E-4D42-A878-C13B3F206908}
 		{CD5CCAD6-4ED4-4555-803E-3E4C9DBB8A3E} = {C22BFC89-851E-4D42-A878-C13B3F206908}
 		{C22BFC89-851E-4D42-A878-C13B3F206908} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
 		{94BDFE10-0672-4299-A7D8-2283789F4549} = {2D732554-9C3D-4509-8D0B-5595266A4D92}
