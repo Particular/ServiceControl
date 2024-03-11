@@ -21,10 +21,10 @@
         public string ToolVersion { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public string Prefix { get; init; }
+        public string? Prefix { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public string ScopeType { get; init; }
+        public string? ScopeType { get; init; }
 
         public DateTimeOffset StartTime { get; init; }
 
@@ -43,7 +43,7 @@
         public int TotalQueues { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public string[] IgnoredQueues { get; init; }
+        public string[]? IgnoredQueues { get; init; }
     }
 
     public class QueueThroughput
@@ -54,12 +54,25 @@
         public long? Throughput { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public bool NoDataOrSendOnly { get; init; }
+        public bool? NoDataOrSendOnly { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public string[] EndpointIndicators { get; init; }
+        public string[]? EndpointIndicators { get; init; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public string Scope { get; init; }
+        public string? Scope { get; init; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public DailyThroughput[] DailyThroughputFromBroker { get; init; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public DailyThroughput[] DailyThroughputFromAudit { get; init; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public DailyThroughput[] DailyThroughputFromMonitoring { get; init; }
+    }
+
+    public class DailyThroughput
+    {
+        public DateTime DateUTC { get; set; }
+        public long Throughput { get; set; }
     }
 }

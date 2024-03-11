@@ -6,7 +6,7 @@
 
     public class ThroughputSettings
     {
-        public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string auditQueue = "audit")
+        public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string customerName, string auditQueue = "audit")
         {
             Broker = broker;
             TransportConnectionString = transportConnectionString;
@@ -15,6 +15,7 @@
             ErrorQueue = errorQueue;
             PersistenceType = persistenceType;
             AuditQueue = auditQueue;
+            CustomerName = customerName;
 
             BrokerSettingValues = LoadBrokerSettingValues().ToFrozenDictionary();
         }
@@ -26,6 +27,7 @@
         public string AuditQueue { get; set; } //NOTE can we get this?
         public string TransportConnectionString { get; set; }
         public string PersistenceType { get; set; }
+        public string CustomerName { get; set; }
         public FrozenDictionary<string, string> BrokerSettingValues { get; set; }
 
         private Dictionary<string, string> LoadBrokerSettingValues()
