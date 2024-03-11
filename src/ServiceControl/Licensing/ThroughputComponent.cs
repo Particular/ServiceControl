@@ -1,6 +1,7 @@
 
 namespace Particular.ServiceControl;
 
+using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Persistence;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.Hosting;
@@ -17,7 +18,8 @@ class ThroughputComponent : ServiceControlComponent
             errorQueue: settings.ErrorQueue,
             auditQueue: "?",
             transportConnectionString: settings.TransportConnectionString,
-            persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType));
+            persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType),
+            customerName: LicenseManager.FindLicense().Details.RegisteredTo);
 
     public override void Setup(Settings settings, IComponentInstallationContext context) =>
         context.RegisterInstallationTask(() => ThroughputCollectorInstaller.Install(PersistenceManifestLibrary.GetName(settings.PersistenceType)));
