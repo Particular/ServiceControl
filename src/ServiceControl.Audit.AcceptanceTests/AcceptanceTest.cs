@@ -32,8 +32,6 @@ namespace ServiceControl.Audit.AcceptanceTests
 
         public HttpClient HttpClient => serviceControlRunnerBehavior.HttpClient;
         public JsonSerializerOptions SerializerOptions => serviceControlRunnerBehavior.SerializerOptions;
-
-        // TODO Check why this is necessary and if it can be removed
         protected IServiceProvider ServiceProvider => serviceControlRunnerBehavior.ServiceProvider;
 
         [SetUp]

@@ -174,7 +174,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                 host = hostBuilder.Build();
                 host.UseServiceControlAudit();
                 await host.StartAsync();
-                // TODO We can probably remove this by switching over to the hostBuilderCustomization
                 ServiceProvider = host.Services;
                 InstanceTestServer = host.GetTestServer();
                 HttpClient = InstanceTestServer.CreateClient();
