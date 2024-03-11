@@ -1,6 +1,7 @@
 ﻿namespace Particular.ThroughputCollector
 {
     using System.Linq;
+    using System.Net.WebSockets;
     using Particular.ThroughputCollector.Contracts;
     using Particular.ThroughputCollector.Persistence;
     using Particular.ThroughputCollector.Shared;
@@ -32,7 +33,8 @@
             {
                 var endpointSummary = new EndpointThroughputSummary
                 {
-                    Name = endpoint.Key, //TODO figure out what name should be passed in here
+                    //want to display the endpoint name to the user if it's different to the sanitized endpoint name
+                    Name = endpoint.Any(w => w.Name != w.SanitizedName) ? endpoint.First(w => w.Name != w.SanitizedName).Name : endpoint.Key,
                     UserIndicatedSendOnly = UserIndicatedSendOnly(endpoint),
                     UserIndicatedToIgnore = UserIndicatedToIgnore(endpoint),
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
