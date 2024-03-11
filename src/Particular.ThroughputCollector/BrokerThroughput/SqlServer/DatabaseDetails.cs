@@ -1,53 +1,12 @@
 ﻿namespace Particular.ThroughputQuery.SqlTransport
 {
     using Microsoft.Data.SqlClient;
-    using ThroughputCollector.Broker;
 
-    public class QueueTableName : IQueueName
-    {
-        public DatabaseDetails DatabaseDetails { get; }
-        public string Schema { get; }
-        public string Name { get; }
-
-        public QueueTableName(DatabaseDetails databaseDetails, string tableSchema, string tableName)
-        {
-            DatabaseDetails = databaseDetails;
-            Schema = tableSchema;
-            Name = tableName;
-        }
-
-        public string FullName => $"[{Schema}].[{Name}]";
-
-        public string DisplayName => $"[{DatabaseDetails.DatabaseName}].{FullName}";
-
-        public string DatabaseNameAndSchema => $"[{DatabaseDetails.DatabaseName}].[{Schema}]";
-        public string QueueName => DisplayName;
-    }
-
-    public class QueueTableSnapshot : QueueTableName
-    {
-        public QueueTableSnapshot(QueueTableName details)
-            : base(details.DatabaseDetails, details.Schema, details.Name)
-        {
-        }
-
-        public long RowVersion { get; set; }
-    }
-
-    public class QueueTableThroughput : QueueTableName
-    {
-        public QueueTableThroughput(QueueTableName table, long throughput)
-            : base(table.DatabaseDetails, table.Schema, table.Name) =>
-            Throughput = throughput;
-
-        public long Throughput { get; }
-    }
     public class DatabaseDetails
     {
-        string connectionString;
+        private readonly string connectionString;
 
         public string DatabaseName { get; }
-        //public List<QueueTableName> Tables { get; private set; }
 
         public DatabaseDetails(string connectionString)
         {
