@@ -8,6 +8,6 @@
         Task UpdateUserSelectionOnEndpointThroughput(List<EndpointThroughputSummary> endpointsThroughputSummary);
         Task<BrokerSettings> GetBrokerSettingsInformation();
         Task<BrokerSettingsTestResult> TestBrokerSettings();
-        Task<ThroughputReport> GenerateThroughputReport(int? days);
+        Task<SignedReport> GenerateThroughputReport(int? days);
     }
 }
