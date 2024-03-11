@@ -16,9 +16,18 @@ namespace Particular.ThroughputCollector.Shared
 
             var endpoints = arr?.Select(endpoint => new
             {
-                Name = endpoint?.AsObject().TryGetPropertyValue("name", out JsonNode? name) == true ? name?.GetValue<string>() : "",
-                HeartbeatsEnabled = endpoint?.AsObject().TryGetPropertyValue("monitored", out JsonNode? monitored) == true ? monitored?.GetValue<bool>() : false,
-                ReceivingHeartbeats = endpoint?.AsObject().TryGetPropertyValue("heartbeat_information", out JsonNode? heartbeats) == true && heartbeats?.AsObject().TryGetPropertyValue("reported_status", out JsonNode? reportStatus) == true && reportStatus!.GetValue<string>() == "beating",
+                Name =
+                    endpoint?.AsObject().TryGetPropertyValue("name", out var name) == true
+                        ? name?.GetValue<string>()
+                        : "",
+                HeartbeatsEnabled =
+                    endpoint?.AsObject().TryGetPropertyValue("monitored", out var monitored) == true
+                        ? monitored?.GetValue<bool>()
+                        : false,
+                ReceivingHeartbeats =
+                    endpoint?.AsObject().TryGetPropertyValue("heartbeat_information", out var heartbeats) == true &&
+                    heartbeats?.AsObject().TryGetPropertyValue("reported_status", out var reportStatus) == true &&
+                    reportStatus!.GetValue<string>() == "beating"
             })
             .GroupBy(x => x.Name)
             .Select(g => new ServiceControlEndpoint
@@ -33,12 +42,22 @@ namespace Particular.ThroughputCollector.Shared
             var remotesInfoJson = await primary.GetData<JsonArray>("/configuration/remotes", cancellationToken);
             var remoteInfo = remotesInfoJson.Select(remote =>
             {
-                var uri = remote?.AsObject().TryGetPropertyValue("api_uri", out JsonNode? apiUrl) == true ? apiUrl?.GetValue<string>() : null;
-                var status = remote?.AsObject().TryGetPropertyValue("status", out JsonNode? statusVal) == true ? statusVal?.GetValue<string>() : null;
-                var versionString = remote?.AsObject().TryGetPropertyValue("version", out JsonNode? version) == true ? version?.GetValue<string>() : null;
-                var retentionString = remote?.AsObject().TryGetPropertyValue("configuration", out JsonNode? configuration) == true &&
-                                      configuration?.AsObject().TryGetPropertyValue("data_retention", out JsonNode? data_retention) == true &&
-                                      configuration?.AsObject().TryGetPropertyValue("audit_retention_period", out JsonNode? audit_retention_period) == true ? audit_retention_period!.GetValue<string>() : null;
+                string? uri = remote?.AsObject().TryGetPropertyValue("api_uri", out var apiUrl) == true
+                    ? apiUrl?.GetValue<string>()
+                    : null;
+                string? status = remote?.AsObject().TryGetPropertyValue("status", out var statusVal) == true
+                    ? statusVal?.GetValue<string>()
+                    : null;
+                string? versionString = remote?.AsObject().TryGetPropertyValue("version", out var version) == true
+                    ? version?.GetValue<string>()
+                    : null;
+                string? retentionString =
+                    remote?.AsObject().TryGetPropertyValue("configuration", out var configuration) == true &&
+                    configuration?.AsObject().TryGetPropertyValue("data_retention", out _) == true &&
+                    configuration?.AsObject()
+                        .TryGetPropertyValue("audit_retention_period", out var auditRetentionPeriod) == true
+                        ? auditRetentionPeriod!.GetValue<string>()
+                        : null;
                 return new
                 {
                     Uri = uri,
