@@ -10,6 +10,8 @@
   <Import Project="..\ProjectReferences.Persisters.ThroughputCollector.props" />
   
   <ItemGroup>
+    <PackageReference Include="AWSSDK.CloudWatch"/>
+    <PackageReference Include="AWSSDK.SQS"/>
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Monitor.Query" />
     <PackageReference Include="Azure.ResourceManager.ServiceBus" />
