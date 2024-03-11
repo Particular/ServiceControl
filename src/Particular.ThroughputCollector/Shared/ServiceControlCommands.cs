@@ -5,7 +5,7 @@ namespace Particular.ThroughputCollector.Shared
     using Infrastructure;
     using Microsoft.Extensions.Logging;
 
-    class Commands
+    class ServiceControlCommands
     {
         static readonly Version MinAuditCountsVersion = new Version(4, 29);
 
