@@ -27,6 +27,9 @@
     <Compile Include="..\ServiceControl.AcceptanceTests\**\*.cs" LinkBase="Shared" />
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\SharedEmbeddedServer.cs" />
     <Compile Include="..\ServiceControl.Persistence.Tests.RavenDB\StopSharedDatabase.cs" />
+    <Compile Update="..\ServiceControl.AcceptanceTests\TestSupport\WebApplicationBuilderExtensions.cs">
+      <Link>Shared\TestSupport\WebApplicationBuilderExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -24,7 +24,6 @@
             MonitoredEndpointInstance instance1 = null;
             MonitoredEndpointInstance instance2 = null;
 
-
             await Define<TestContext>()
                  .WithEndpoint<SendingEndpoint>(c =>
                  {

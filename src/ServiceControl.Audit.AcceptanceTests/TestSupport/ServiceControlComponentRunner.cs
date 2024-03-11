@@ -25,22 +25,15 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
 
-    public class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    public class ServiceControlComponentRunner(
+        ITransportIntegration transportToUse,
+        AcceptanceTestStorageConfiguration persistenceToUse,
+        Action<Settings> setSettings,
+        Action<EndpointConfiguration> customConfiguration,
+        Action<IDictionary<string, string>> setStorageConfiguration,
+        Action<IHostApplicationBuilder> hostBuilderCustomization)
+        : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse,
-            AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings,
-            Action<EndpointConfiguration> customConfiguration,
-            Action<IDictionary<string, string>> setStorageConfiguration,
-            Action<IHostApplicationBuilder> hostBuilderCustomization)
-        {
-            this.transportToUse = transportToUse;
-            this.persistenceToUse = persistenceToUse;
-            this.customConfiguration = customConfiguration;
-            this.setStorageConfiguration = setStorageConfiguration;
-            this.setSettings = setSettings;
-            this.hostBuilderCustomization = hostBuilderCustomization;
-        }
-
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.WebApi.SerializerOptions.Default;
@@ -153,21 +146,7 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration, loggingSettings);
 
-                // Do not register additional test controllers or hosted services here. Instead, in the test that needs them, use (for example):
-                // CustomizeHostBuilder = builder => builder.ConfigureServices((hostContext, services) => services.AddHostedService<SetupNotificationSettings>());
-                hostBuilder.Logging.AddScenarioContextLogging();
-
-                // TODO: the following four lines could go into a AddServiceControlAuditTesting() extension
-                hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
-                // This facilitates receiving the test server anywhere where DI is available
-                hostBuilder.Services.AddSingleton(provider => (TestServer)provider.GetRequiredService<IServer>());
-
-                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
-                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
-                // so we are explicitly registering all necessary application parts.
-                var addControllers = hostBuilder.Services.AddControllers();
-                addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
-                addControllers.AddApplicationPart(typeof(FailedAuditsController).Assembly);
+                hostBuilder.AddServiceControlAuditTesting(settings);
 
                 hostBuilderCustomization(hostBuilder);
 
@@ -190,12 +169,6 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
             }
         }
 
-        ITransportIntegration transportToUse;
-        AcceptanceTestStorageConfiguration persistenceToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
-        Action<IDictionary<string, string>> setStorageConfiguration;
-        Action<IHostApplicationBuilder> hostBuilderCustomization;
         string instanceName = Settings.DEFAULT_SERVICE_NAME;
         WebApplication host;
         Settings settings;

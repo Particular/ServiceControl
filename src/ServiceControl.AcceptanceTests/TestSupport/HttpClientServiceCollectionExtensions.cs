@@ -8,7 +8,7 @@ using ServiceBus.Management.Infrastructure.Settings;
 
 static class HttpClientServiceCollectionExtensions
 {
-    public static void OverrideHttpClientDefaults(this IServiceCollection services, Settings settings)
+    public static void AddHttpClientDefaultsOverrides(this IServiceCollection services, Settings settings)
     {
         services.AddKeyedSingleton<Func<HttpMessageHandler>>("Forwarding", (provider, _) => () => provider.GetRequiredService<TestServer>().CreateHandler());
         services.AddSingleton(p => new HttpMessageInvoker(p.GetRequiredKeyedService<Func<HttpMessageHandler>>("Forwarding")()));

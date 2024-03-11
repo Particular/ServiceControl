@@ -39,7 +39,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         {
             settings = new Settings
             {
-                EndpointName = instanceName,
+                EndpointName = Settings.DEFAULT_ENDPOINT_NAME,
                 TransportType = transportToUse.TypeName,
                 ConnectionString = transportToUse.ConnectionString,
                 HttpHostName = "localhost",
@@ -77,13 +77,13 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             setSettings(settings);
 
-            using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
+            using (new DiagnosticTimer($"Creating infrastructure for {settings.EndpointName}"))
             {
                 var setupCommand = new SetupCommand();
                 await setupCommand.Execute(settings);
             }
 
-            var configuration = new EndpointConfiguration(instanceName);
+            var configuration = new EndpointConfiguration(settings.EndpointName);
 
             configuration.GetSettings().Set("SC.ScenarioContext", context);
             configuration.GetSettings().Set(context);
@@ -103,7 +103,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             customConfiguration(configuration);
 
-            using (new DiagnosticTimer($"Starting host for {instanceName}"))
+            using (new DiagnosticTimer($"Starting host for {settings.EndpointName}"))
             {
                 var logPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
                 Directory.CreateDirectory(logPath);
@@ -126,30 +126,19 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
                     return criticalErrorContext.Stop(cancellationToken);
                 }, settings, configuration);
 
-                hostBuilder.Logging.AddScenarioContextLogging();
-
-                hostBuilder.WebHost.UseTestServer(options => options.BaseAddress = new Uri(settings.RootUrl));
-                // This facilitates receiving the test server anywhere where DI is available
-                hostBuilder.Services.AddKeyedSingleton(instanceName,
-                    (provider, _) => (TestServer)provider.GetRequiredService<IServer>());
-
-                // By default ASP.NET Core uses entry point assembly to discover controllers from. When running
-                // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
-                // so we are explicitly registering all necessary application parts.
-                var addControllers = hostBuilder.Services.AddControllers();
-                addControllers.AddApplicationPart(typeof(WebApplicationBuilderExtensions).Assembly);
+                hostBuilder.AddServiceControlMonitoringTesting(settings);
 
                 host = hostBuilder.Build();
                 host.UseServiceControlMonitoring();
                 await host.StartAsync();
 
-                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(instanceName).CreateClient();
+                HttpClient = host.Services.GetRequiredKeyedService<TestServer>(settings.EndpointName).CreateClient();
             }
         }
 
         public override async Task Stop(CancellationToken cancellationToken = default)
         {
-            using (new DiagnosticTimer($"Test TearDown for {instanceName}"))
+            using (new DiagnosticTimer($"Test TearDown for {settings.EndpointName}"))
             {
                 await host.StopAsync(cancellationToken);
                 HttpClient.Dispose();
@@ -160,7 +149,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
         ITransportIntegration transportToUse;
         Action<Settings> setSettings;
         Action<EndpointConfiguration> customConfiguration;
-        string instanceName = Settings.DEFAULT_ENDPOINT_NAME;
         WebApplication host;
         Settings settings;
     }
