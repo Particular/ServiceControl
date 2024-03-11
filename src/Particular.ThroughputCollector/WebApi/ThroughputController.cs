@@ -27,11 +27,18 @@
             return Ok();
         }
 
+        [Route("throughput/report/available")]
+        [HttpGet]
+        public async Task<ReportGenerationState> CanThroughputReportBeGenerated()
+        {
+            return await throughputCollector.GetReportGenerationState();
+        }
+
         [Route("throughput/report")]
         [HttpGet]
-        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "days")] int? days)
+        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "days")] int? days, [FromQuery(Name = "prefix")] string? prefix, [FromQuery(Name = "masks")] string[]? masks)
         {
-            return await throughputCollector.GenerateThroughputReport(days);
+            return await throughputCollector.GenerateThroughputReport(days, prefix, masks);
         }
 
         [Route("throughput/settings/info")]

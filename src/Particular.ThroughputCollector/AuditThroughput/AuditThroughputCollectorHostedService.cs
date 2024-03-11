@@ -4,8 +4,8 @@
     using Infrastructure;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Particular.ThroughputCollector.Shared;
     using Persistence;
-    using Shared;
 
     class AuditThroughputCollectorHostedService : IHostedService
     {
@@ -40,7 +40,7 @@
                 var httpFactory = await HttpAuth.CreateHttpClientFactory(throughputSettings.BrokerSettingValues[ServiceControlSettings.API], logger, configureNewClient: c => c.Timeout = TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
                 var primary = new ServiceControlClient("ServiceControl", throughputSettings.BrokerSettingValues[ServiceControlSettings.API], httpFactory, logger);
                 await primary.CheckEndpoint(content => content.Contains("\"known_endpoints_url\"") && content.Contains("\"endpoints_messages_url\""), cancellationToken); //TODO do we need this since we know the SC url?
-                var knownEndpoints = await Commands.GetKnownEndpoints(primary, logger, cancellationToken);
+                var knownEndpoints = await ServiceControlCommands.GetKnownEndpoints(primary, logger, cancellationToken);
 
                 if (!knownEndpoints.Any())
                 {
