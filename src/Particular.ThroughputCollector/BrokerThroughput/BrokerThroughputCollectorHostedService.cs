@@ -95,17 +95,17 @@ internal class BrokerThroughputCollectorHostedService(
             return true;
         }
 
+        if (queueName.Equals(throughputSettings.ServiceControlQueue, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         if (queueName.EndsWith(".Timeouts", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
         if (queueName.EndsWith(".TimeoutsDispatcher", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (queueName.StartsWith("Particular.", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
