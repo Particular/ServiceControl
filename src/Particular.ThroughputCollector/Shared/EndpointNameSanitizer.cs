@@ -2,7 +2,7 @@
 {
     using System.Text;
 
-    static class EndpointNameSanitizer
+    public static class EndpointNameSanitizer
     {
         public static string SanitizeEndpointName(string endpointName, Contracts.Broker broker)
         {
