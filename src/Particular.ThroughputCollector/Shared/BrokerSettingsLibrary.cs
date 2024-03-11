@@ -41,7 +41,10 @@ public static class BrokerSettingsLibrary
         AllBrokerSettings.Add(new BrokerSettings
         {
             Broker = Broker.AmazonSQS,
-            Settings = [new BrokerSetting { Name = AmazonSQSSettings.Profile, Description = AmazonSQSSettings.ProfileDescription },
+            Settings = [
+                new BrokerSetting { Name = AmazonSQSSettings.AccessKey, Description = AmazonSQSSettings.AccessKeyDescription },
+                new BrokerSetting { Name = AmazonSQSSettings.SecretKey, Description = AmazonSQSSettings.SecretKeyDescription },
+                new BrokerSetting { Name = AmazonSQSSettings.Profile, Description = AmazonSQSSettings.ProfileDescription },
                 new BrokerSetting { Name = AmazonSQSSettings.Region, Description = AmazonSQSSettings.RegionDescription },
                 new BrokerSetting { Name = AmazonSQSSettings.Prefix, Description = AmazonSQSSettings.PrefixDescription }
             ]
@@ -108,6 +111,10 @@ public static class AzureServiceBusSettings
 
 public static class AmazonSQSSettings
 {
+    public static string AccessKey = "ThroughputCollector/AmazonSQS/AccessKey";
+    public static string AccessKeyDescription = "The AWS Access Key ID to use to discover queue names and gather per-queue metrics.";
+    public static string SecretKey = "ThroughputCollector/AmazonSQS/SecretKey";
+    public static string SecretKeyDescription = "The AWS Secret Access Key to use to discover queue names and gather per-queue metrics.";
     public static string Profile = "ThroughputCollector/AmazonSQS/Profile";
     public static string ProfileDescription = "The name of a local AWS credentials profile to use to discover queue names and gather per-queue metrics.";
     public static string Region = "ThroughputCollector/AmazonSQS/Region";
