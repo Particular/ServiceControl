@@ -11,35 +11,26 @@ namespace ServiceControl.Audit.AcceptanceTests.TestSupport
     using NServiceBus.AcceptanceTesting.Support;
     using ServiceControl.Audit.Infrastructure.Settings;
 
-    class ServiceControlComponentBehavior : IComponentBehavior, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentBehavior(
+        ITransportIntegration transportToUse,
+        AcceptanceTestStorageConfiguration persistenceToUse,
+        Action<Settings> setSettings,
+        Action<EndpointConfiguration> customConfiguration,
+        Action<IDictionary<string, string>> setStorageConfiguration,
+        Action<IHostApplicationBuilder> hostBuilderCustomization)
+        : IComponentBehavior, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentBehavior(ITransportIntegration transportToUse, AcceptanceTestStorageConfiguration persistenceToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration, Action<IDictionary<string, string>> setStorageConfiguration, Action<IHostApplicationBuilder> hostBuilderCustomization)
-        {
-            this.customConfiguration = customConfiguration;
-            this.persistenceToUse = persistenceToUse;
-            this.setSettings = setSettings;
-            this.setStorageConfiguration = setStorageConfiguration;
-            this.hostBuilderCustomization = hostBuilderCustomization;
-            transportIntegration = transportToUse;
-        }
-
         public HttpClient HttpClient => runner.HttpClient;
         public JsonSerializerOptions SerializerOptions => runner.SerializerOptions;
         public IServiceProvider ServiceProvider => runner.ServiceProvider;
 
         public async Task<ComponentRunner> CreateRunner(RunDescriptor run)
         {
-            runner = new ServiceControlComponentRunner(transportIntegration, persistenceToUse, setSettings, customConfiguration, setStorageConfiguration, hostBuilderCustomization);
+            runner = new ServiceControlComponentRunner(transportToUse, persistenceToUse, setSettings, customConfiguration, setStorageConfiguration, hostBuilderCustomization);
             await runner.Initialize(run);
             return runner;
         }
 
-        ITransportIntegration transportIntegration;
-        AcceptanceTestStorageConfiguration persistenceToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
         ServiceControlComponentRunner runner;
-        Action<IDictionary<string, string>> setStorageConfiguration;
-        Action<IHostApplicationBuilder> hostBuilderCustomization;
     }
 }

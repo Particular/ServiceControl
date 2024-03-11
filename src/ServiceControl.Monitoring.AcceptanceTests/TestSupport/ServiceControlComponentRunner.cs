@@ -20,15 +20,12 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
     using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Logging;
 
-    class ServiceControlComponentRunner : ComponentRunner, IAcceptanceTestInfrastructureProvider
+    class ServiceControlComponentRunner(
+        ITransportIntegration transportToUse,
+        Action<Settings> setSettings,
+        Action<EndpointConfiguration> customConfiguration)
+        : ComponentRunner, IAcceptanceTestInfrastructureProvider
     {
-        public ServiceControlComponentRunner(ITransportIntegration transportToUse, Action<Settings> setSettings, Action<EndpointConfiguration> customConfiguration)
-        {
-            this.transportToUse = transportToUse;
-            this.customConfiguration = customConfiguration;
-            this.setSettings = setSettings;
-        }
-
         public override string Name { get; } = $"{nameof(ServiceControlComponentRunner)}";
         public HttpClient HttpClient { get; private set; }
         public JsonSerializerOptions SerializerOptions => Infrastructure.SerializerOptions.Default;
@@ -84,22 +81,7 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             }
 
             var configuration = new EndpointConfiguration(settings.EndpointName);
-
-            configuration.GetSettings().Set("SC.ScenarioContext", context);
-            configuration.GetSettings().Set(context);
-
-            configuration.RegisterComponents(r =>
-            {
-                r.AddSingleton(context.GetType(), context);
-                r.AddSingleton(typeof(ScenarioContext), context);
-            });
-
-            configuration.Pipeline.Register<TraceIncomingBehavior.Registration>();
-            configuration.Pipeline.Register<TraceOutgoingBehavior.Registration>();
-            configuration.Pipeline.Register(new StampDispatchBehavior(context), "Stamps outgoing messages with session ID");
-            configuration.Pipeline.Register(new DiscardMessagesBehavior(context), "Discards messages based on session ID");
-
-            configuration.AssemblyScanner().ExcludeAssemblies(typeof(ServiceControlComponentRunner).Assembly.GetName().Name);
+            configuration.CustomizeServiceControlMonitoringEndpointTesting(context);
 
             customConfiguration(configuration);
 
@@ -146,9 +128,6 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
             }
         }
 
-        ITransportIntegration transportToUse;
-        Action<Settings> setSettings;
-        Action<EndpointConfiguration> customConfiguration;
         WebApplication host;
         Settings settings;
     }
