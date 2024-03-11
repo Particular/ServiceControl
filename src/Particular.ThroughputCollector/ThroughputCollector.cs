@@ -61,11 +61,11 @@
             await Task.CompletedTask;
         }
 
-        public async Task<ThroughputReport> GenerateThroughputReport(int? days)
+        public async Task<SignedReport> GenerateThroughputReport(int? days)
         {
             //TODO
 
-            var throughputReport = new ThroughputReport();
+            var throughputReport = new SignedReport();
             return await Task.FromResult(throughputReport);
         }
 
