@@ -18,7 +18,7 @@ static class DevelopmentPersistenceLocations
         if (!string.IsNullOrWhiteSpace(srcFolder) && srcFolder.EndsWith("src"))
         {
             ManifestFiles.Add(BuildManifestPath(srcFolder, "Particular.ThroughputCollector.Persistence.InMemory"));
-            ManifestFiles.Add(BuildManifestPath(srcFolder, "Particular.ThroughputCollector.Persistence.RavenDB"));
+            ManifestFiles.Add(BuildManifestPath(srcFolder, "Particular.ThroughputCollector.Persistence.RavenDb"));
         }
     }
 
