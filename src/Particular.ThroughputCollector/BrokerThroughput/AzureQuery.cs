@@ -66,22 +66,17 @@ public class AzureQuery(ILogger<AzureQuery> logger) : IThroughputQuery
     {
         logger.LogInformation($"Gathering metrics for \"{queueName}\" queue");
 
-        while (startDate < DateTime.UtcNow.Date.AddDays(-1))
+        var endDate = DateTime.UtcNow.Date.AddDays(-1);
+        var metrics = await GetMetrics(queueName.QueueName, startDate,
+            endDate, cancellationToken);
+
+        foreach (var metricValue in metrics)
         {
-            var metrics = await GetMetrics(queueName.QueueName, startDate,
-                DateTime.UtcNow.Date.AddDays(-1), cancellationToken);
-
-            foreach (var metricValue in metrics)
+            yield return new EndpointThroughput
             {
-                yield return new EndpointThroughput
-                {
-                    TotalThroughput = (long)(metricValue.Total ?? 0),
-                    // Force next line
-                    DateUTC = startDate
-                };
-            }
-
-            startDate = startDate.AddDays(1);
+                TotalThroughput = (long)(metricValue.Total ?? 0),
+                DateUTC = metricValue.TimeStamp.UtcDateTime.Date
+            };
         }
     }
 
