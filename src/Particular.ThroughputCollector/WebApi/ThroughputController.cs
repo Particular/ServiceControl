@@ -29,7 +29,7 @@
 
         [Route("throughput/report")]
         [HttpGet]
-        public async Task<ThroughputReport> GetThroughputReport([FromQuery(Name = "days")] int? days)
+        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "days")] int? days)
         {
             return await throughputCollector.GenerateThroughputReport(days);
         }
