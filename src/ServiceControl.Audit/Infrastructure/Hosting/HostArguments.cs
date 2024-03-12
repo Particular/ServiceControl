@@ -41,7 +41,7 @@ namespace ServiceControl.Audit.Infrastructure.Hosting
                     {
                         Commands =
                         [
-                            typeof(MaintCommand)
+                            typeof(MaintenanceModeCommand)
                         ];
                         executionMode = ExecutionMode.Maintenance;
                     }

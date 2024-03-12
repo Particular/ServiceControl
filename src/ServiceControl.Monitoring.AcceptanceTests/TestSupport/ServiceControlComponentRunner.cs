@@ -79,8 +79,8 @@ namespace ServiceControl.Monitoring.AcceptanceTests.TestSupport
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
+                var setupCommand = new SetupCommand();
+                await setupCommand.Execute(settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);

@@ -1,14 +1,14 @@
-namespace ServiceControl.Audit.Infrastructure
+﻿namespace ServiceControl.Audit.Infrastructure.Hosting.Commands
 {
     using System;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Hosting.WindowsServices;
-    using ServiceControl.Audit.Persistence;
+    using Persistence;
 
-    static class MaintenanceBootstrapper
+    class MaintenanceModeCommand : AbstractCommand
     {
-        public static async Task Run(Settings.Settings settings)
+        public override async Task Execute(HostArguments args, Settings.Settings settings)
         {
             var persistenceConfiguration = PersistenceConfigurationFactory.LoadPersistenceConfiguration(settings.PersistenceType);
             var persistenceSettings = persistenceConfiguration.BuildPersistenceSettings(settings);

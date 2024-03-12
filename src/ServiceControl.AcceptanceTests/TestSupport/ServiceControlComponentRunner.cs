@@ -7,6 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using AcceptanceTesting;
+    using Hosting.Commands;
     using Infrastructure.DomainEvents;
     using Infrastructure.WebApi;
     using Microsoft.AspNetCore.Builder;
@@ -20,6 +21,7 @@
     using NServiceBus.AcceptanceTesting.Support;
     using NServiceBus.Configuration.AdvancedExtensibility;
     using Particular.ServiceControl;
+    using Particular.ServiceControl.Hosting;
     using RavenDB.Shared;
     using ServiceBus.Management.Infrastructure.Settings;
 
@@ -96,8 +98,8 @@
 
             using (new DiagnosticTimer($"Creating infrastructure for {instanceName}"))
             {
-                var setupBootstrapper = new SetupBootstrapper(settings);
-                await setupBootstrapper.Run();
+                var setupCommand = new SetupCommand();
+                await setupCommand.Execute(new HostArguments(Array.Empty<string>()), settings);
             }
 
             var configuration = new EndpointConfiguration(instanceName);

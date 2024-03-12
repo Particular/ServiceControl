@@ -4,13 +4,8 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    class CommandRunner
+    class CommandRunner(List<Type> commands)
     {
-        public CommandRunner(List<Type> commands)
-        {
-            this.commands = commands;
-        }
-
         public async Task Execute(HostArguments args, Settings.Settings settings)
         {
             foreach (var commandType in commands)
@@ -19,7 +14,5 @@
                 await command.Execute(args, settings);
             }
         }
-
-        readonly List<Type> commands;
     }
 }
