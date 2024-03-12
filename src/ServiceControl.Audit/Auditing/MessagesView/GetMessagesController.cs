@@ -8,8 +8,6 @@ namespace ServiceControl.Audit.Auditing.MessagesView
     using Microsoft.AspNetCore.Mvc;
     using Persistence;
 
-    // All routes matching `messages/*` must be in this controller as WebAPI cannot figure out the overlapping routes
-    // from `messages/{*catchAll}` if they're in separate controllers.
     [ApiController]
     [Route("api")]
     public class GetMessagesController(IAuditDataStore dataStore) : ControllerBase
@@ -45,10 +43,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
-            var messageId = id;
-            messageId = messageId?.Replace("/", @"\");
-
-            var result = await dataStore.GetMessageBody(messageId);
+            var result = await dataStore.GetMessageBody(id);
 
             if (result.Found == false)
             {
@@ -62,28 +57,12 @@ namespace ServiceControl.Audit.Auditing.MessagesView
 
             if (result.StringContent == null && result.StreamContent == null)
             {
-                throw new Exception($"Metadata for message '{messageId}' indicated that a body was present but no content could be found in storage");
+                throw new Exception($"Metadata for message '{id}' indicated that a body was present but no content could be found in storage");
             }
 
             Response.Headers.ETag = result.ETag;
             var contentType = result.ContentType ?? "text/*";
             return result.StringContent != null ? Content(result.StringContent, contentType) : File(result.StreamContent, contentType);
-        }
-
-        // TODO: Verify if this catch all approach is still relevant today with Kestrel
-        // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
-        // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
-        [Route("messages/{*catchAll}")]
-        [HttpGet]
-        public async Task<IActionResult> CatchAll(string catchAll)
-        {
-            if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
-            {
-                var id = catchAll.Substring(0, catchAll.Length - 5);
-                return await Get(id);
-            }
-
-            return NotFound();
         }
 
         [Route("messages/search")]
@@ -99,7 +78,7 @@ namespace ServiceControl.Audit.Auditing.MessagesView
         [HttpGet]
         public async Task<IList<MessagesView>> SearchByKeyWord([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string keyword)
         {
-            var result = await dataStore.QueryMessages(keyword?.Replace("/", @"\"), pagingInfo, sortInfo);
+            var result = await dataStore.QueryMessages(keyword, pagingInfo, sortInfo);
             Response.WithQueryStatsAndPagingInfo(result.QueryStats, pagingInfo);
             return result.Results;
         }

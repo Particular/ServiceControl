@@ -87,22 +87,6 @@ namespace ServiceControl.CompositeViews.Messages
             return Empty;
         }
 
-        // TODO Is this still needed?
-        // Possible a message may contain a slash or backslash, either way http.sys will rewrite it to forward slash,
-        // and then the "normal" route above will not activate, resulting in 404 if this route is not present.
-        [Route("messages/{*catchAll}")]
-        [HttpGet]
-        public async Task<IActionResult> CatchAll(string catchAll, [FromQuery(Name = "instance_id")] string instanceId)
-        {
-            if (!string.IsNullOrEmpty(catchAll) && catchAll.EndsWith("/body"))
-            {
-                var id = catchAll[..^5];
-                return await Get(id, instanceId);
-            }
-
-            return NotFound();
-        }
-
         [Route("messages/search")]
         [HttpGet]
         public Task<IList<MessagesView>> Search([FromQuery] PagingInfo pagingInfo, [FromQuery] SortInfo sortInfo, string q) => api.Execute(new(pagingInfo, sortInfo, q));
