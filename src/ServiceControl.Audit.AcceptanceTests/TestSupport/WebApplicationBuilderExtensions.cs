@@ -25,7 +25,7 @@ static class WebApplicationBuilderExtensions
         // inside a test runner the runner exe becomes the entry point which obviously has no controllers in it ;)
         // so we are explicitly registering all necessary application parts.
         var addControllers = hostBuilder.Services.AddControllers();
-        addControllers.AddApplicationPart(typeof(WebApiHostBuilderExtensions).Assembly);
-        addControllers.AddApplicationPart(typeof(FailedAuditsController).Assembly);
+        addControllers.AddApplicationPart(typeof(Settings).Assembly);
+        addControllers.AddApplicationPart(typeof(AcceptanceTest).Assembly);
     }
 }

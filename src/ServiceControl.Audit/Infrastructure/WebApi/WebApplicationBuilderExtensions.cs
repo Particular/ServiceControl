@@ -4,7 +4,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
 
-    static class WebApiHostBuilderExtensions
+    static class WebApplicationBuilderExtensions
     {
         public static void AddWebApi(this WebApplicationBuilder builder, string rootUrl)
         {
