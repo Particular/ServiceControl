@@ -14,9 +14,9 @@
 
         [Route("throughput/endpoints")]
         [HttpGet]
-        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput([FromQuery(Name = "days")] int? days)
+        public async Task<List<EndpointThroughputSummary>> GetEndpointThroughput()
         {
-            return await throughputCollector.GetThroughputSummary(days);
+            return await throughputCollector.GetThroughputSummary();
         }
 
         [Route("throughput/endpoints/update")]
@@ -36,9 +36,9 @@
 
         [Route("throughput/report")]
         [HttpGet]
-        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "days")] int? days, [FromQuery(Name = "prefix")] string? prefix, [FromQuery(Name = "masks")] string[]? masks)
+        public async Task<SignedReport> GetThroughputReport([FromQuery(Name = "prefix")] string? prefix, [FromQuery(Name = "masks")] string[]? masks, [FromQuery(Name = "spVersion")] string? spVersion)
         {
-            return await throughputCollector.GenerateThroughputReport(days, prefix, masks);
+            return await throughputCollector.GenerateThroughputReport(prefix, masks, spVersion);
         }
 
         [Route("throughput/settings/info")]
