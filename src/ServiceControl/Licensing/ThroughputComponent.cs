@@ -1,6 +1,7 @@
 
 namespace Particular.ServiceControl;
 
+using global::ServiceControl.Infrastructure;
 using global::ServiceControl.LicenseManagement;
 using global::ServiceControl.Transports;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,8 @@ class ThroughputComponent : ServiceControlComponent
             auditQueue: "?",
             transportConnectionString: settings.TransportConnectionString,
             persistenceType: ServiceControlPersistence.PersistenceManifestLibrary.GetName(settings.PersistenceType),
-            customerName: LicenseManager.FindLicense().Details.RegisteredTo);
+            customerName: LicenseManager.FindLicense().Details.RegisteredTo,
+            serviceControlVersion: ServiceControlVersion.GetFileVersion());
 
     public override void ConfigureInstallation(Settings settings, IHostApplicationBuilder hostBuilder) => Configure(settings, hostBuilder);
 

@@ -34,7 +34,7 @@
         [Test]
         public async Task Should_return_correct_number_of_endpoints_in_summary()
         {
-            var summary = await ThroughputCollector.GetThroughputSummary(30);
+            var summary = await ThroughputCollector.GetThroughputSummary();
 
             Assert.That(summary, Is.Not.Null);
             Assert.That(summary.Count, Is.AtLeast(1));
@@ -47,7 +47,7 @@
         [Test]
         public async Task Should_return_correct_max_throughput_in_summary()
         {
-            var summary = await ThroughputCollector.GetThroughputSummary(30);
+            var summary = await ThroughputCollector.GetThroughputSummary();
 
             Assert.That(summary, Is.Not.Null);
             Assert.That(summary.Count, Is.AtLeast(1));
@@ -60,7 +60,7 @@
         [Test]
         public async Task Should_return_correct_no_throughput_indicator()
         {
-            var summary = await ThroughputCollector.GetThroughputSummary(30);
+            var summary = await ThroughputCollector.GetThroughputSummary();
 
             Assert.That(summary, Is.Not.Null);
             Assert.That(summary.Count, Is.AtLeast(1));
@@ -69,13 +69,12 @@
             Assert.That(endpointWithNoThroughputs, Is.Not.Null);
 
             Assert.That(endpointWithNoThroughputs.MaxDailyThroughput, Is.EqualTo(0), $"Incorrect MaxDailyThroughput recorded for {ThroughputCollectorTestData.EndpointNameWithNoThroughput}");
-            Assert.That(endpointWithNoThroughputs.ThroughputExistsForThisPeriod, Is.EqualTo(false), $"Incorrect ThroughputExistsForThisPeriod recorded for {ThroughputCollectorTestData.EndpointNameWithNoThroughput}");
         }
 
         [Test]
         public async Task Should_return_correct_user_indicators_when_multiple_throughput_sources()
         {
-            var summary = await ThroughputCollector.GetThroughputSummary(30);
+            var summary = await ThroughputCollector.GetThroughputSummary();
 
             Assert.That(summary, Is.Not.Null);
             Assert.That(summary.Count, Is.AtLeast(1));

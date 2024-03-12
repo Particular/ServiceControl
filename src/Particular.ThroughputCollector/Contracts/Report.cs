@@ -20,6 +20,8 @@
 
         public string ToolVersion { get; init; }
 
+        public string ServiceControlVersion { get; set; }
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public string? Prefix { get; init; }
 
