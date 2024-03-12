@@ -7,6 +7,7 @@
     using NServiceBus.MessageInterfaces;
     using NServiceBus.Serialization;
     using NServiceBus.Settings;
+    using ServiceControl.Infrastructure;
 
     class TaggedLongValueWriterOccurrenceSerializerDefinition : SerializationDefinition
     {
@@ -36,8 +37,7 @@
         //+-------+---------------+-------+---------------+-------+-------+
         public object[] Deserialize(ReadOnlyMemory<byte> body, IList<Type> messageTypes = null)
         {
-            //TODO clean up ReadOnlyMemory conversion
-            var reader = new BinaryReader(new MemoryStream(body.ToArray(), 0, body.Length));
+            var reader = new BinaryReader(new ReadOnlyStream(body));
 
             var version = reader.ReadInt64();
 
@@ -53,10 +53,10 @@
 
                 if (count == 0)
                 {
-                    return NoMessages;
+                    return Array.Empty<object>();
                 }
 
-                var tagKeyToMessage = new Dictionary<int, TaggedLongValueOccurrence>();
+                var tagKeyToMessage = new Dictionary<int, TaggedLongValueOccurrence>(tagsCount);
 
                 foreach (var keyToValue in tagKeyToValue)
                 {
@@ -125,8 +125,6 @@
             return tagKeyToValue;
         }
 
-        static readonly object[] NoMessages = new object[0];
-
-        static UTF8Encoding TagDecoder = new UTF8Encoding(false);
+        static UTF8Encoding TagDecoder = new(false);
     }
 }
