@@ -46,7 +46,7 @@
             await Task.CompletedTask;
         }
 
-        public async Task<List<EndpointThroughputSummary>> GetThroughputSummary(int? days)
+        public async Task<List<EndpointThroughputSummary>> GetThroughputSummary()
         {
             var endpoints = await GetRelevantEndpoints();
 
@@ -62,8 +62,7 @@
                     UserIndicatedSendOnly = UserIndicatedSendOnly(endpoint),
                     UserIndicatedToIgnore = UserIndicatedToIgnore(endpoint),
                     IsKnownEndpoint = IsKnownEndpoint(endpoint),
-                    MaxDailyThroughput = MaxDailyThroughput(endpoint) ?? 0,
-                    ThroughputExistsForThisPeriod = ThroughputExistsForThisPeriod(endpoint, days ?? daysToReportOn)
+                    MaxDailyThroughput = MaxDailyThroughput(endpoint) ?? 0
                 };
 
                 endpointSummaries.Add(endpointSummary);
@@ -75,16 +74,21 @@
         public async Task<ReportGenerationState> GetReportGenerationState()
         {
             //TODO
-            return await Task.FromResult(new ReportGenerationState { Broker = throughputSettings.Broker, ConnectionToBrokerWorking = true, EnoughDataToReportOn = true, ReportCanBeGenerated = true });
+            var reportGenerationState = new ReportGenerationState
+            {
+                Broker = throughputSettings.Broker,
+                ConnectionToBrokerWorking = (await TestBrokerSettings()).ConnectionSuccessful,
+                EnoughDataToReportOn = true //todo 
+            };
+
+            return await Task.FromResult(reportGenerationState);
         }
 
-        public async Task<SignedReport> GenerateThroughputReport(int? days, string? prefix, string[]? masks)
+        public async Task<SignedReport> GenerateThroughputReport(string? prefix, string[]? masks, string? spVersion)
         {
             //TODO
 
-            days ??= daysToReportOn;
-
-            //get ones with prefix only
+            //get ones with prefix only - add ones without the prefix into IgnoredQueues
 
             //generate masks and mask the names
 
@@ -92,8 +96,7 @@
 
             var report = new Report
             {
-                StartTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-(int)days), TimeSpan.Zero),
-                EndTime = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero),
+                EndTime = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-1), TimeSpan.Zero),
                 ReportDuration = TimeSpan.FromDays(1),
                 CustomerName = throughputSettings.CustomerName, //who the license is registeredTo
                 ReportMethod = Mask("TODO"),
@@ -101,9 +104,11 @@
                 Prefix = prefix,
                 MessageTransport = throughputSettings.Broker.ToString(),// "TODO",
                 ToolVersion = "1",
+                ServiceControlVersion = throughputSettings.ServiceControlVersion
             };
 
-
+            //TODO this will be the date of the first throughput that we have received
+            //report.StartTime = 
 
             var throughputReport = new SignedReport() { ReportData = report, Signature = GetSignature() };
             return await Task.FromResult(throughputReport);
@@ -131,7 +136,7 @@
 
         //get the max throughput recorded for the endpoints - shouldn't matter where it comes from (ie broker or service control)
         long? MaxDailyThroughput(IGrouping<string, Endpoint> endpoint) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).MaxBy(m => m.TotalThroughput)?.TotalThroughput;
-        bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
+        //bool ThroughputExistsForThisPeriod(IGrouping<string, Endpoint> endpoint, int days) => endpoint.Where(w => w.DailyThroughput != null).SelectMany(s => s.DailyThroughput).Any(m => m.DateUTC <= DateTime.UtcNow && m.DateUTC >= DateTime.UtcNow.AddDays(-days));
 
         async Task<List<Endpoint>> GetRelevantEndpoints()
         {
@@ -143,7 +148,6 @@
 
         readonly IThroughputDataStore dataStore;
         readonly ThroughputSettings throughputSettings;
-        readonly int daysToReportOn = 30;
         (string Mask, string Replacement)[] masks = [];
     }
 }
