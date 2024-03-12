@@ -1,4 +1,6 @@
-﻿namespace ServiceControl.Infrastructure.BackgroundTasks
+﻿#nullable enable
+
+namespace ServiceControl.Infrastructure.BackgroundTasks
 {
     using System;
     using System.Threading;
@@ -18,69 +20,56 @@
             tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
-            task = Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(due, token).ConfigureAwait(false);
+            timerBody = TimerBody(callback, due, interval, errorCallback, token);
+        }
 
-                    while (!token.IsCancellationRequested)
+        async Task TimerBody(Func<CancellationToken, Task<TimerJobExecutionResult>> callback, TimeSpan due, TimeSpan interval, Action<Exception> errorCallback, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.Delay(due, cancellationToken).ConfigureAwait(false);
+
+                using var timer = new PeriodicTimer(interval);
+                while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    try
                     {
-                        try
+                        TimerJobExecutionResult result;
+                        do
                         {
-                            var result = await callback(token).ConfigureAwait(false);
+                            result = await callback(cancellationToken).ConfigureAwait(false);
+
                             if (result == TimerJobExecutionResult.DoNotContinueExecuting)
                             {
-                                tokenSource.Cancel();
+                                return;
                             }
-                            else if (result == TimerJobExecutionResult.ScheduleNextExecution)
-                            {
-                                await Task.Delay(interval, token).ConfigureAwait(false);
-                            }
-
-                            //Otherwise execute immediately
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            // no-op
-                        }
-                        catch (Exception ex)
-                        {
-                            errorCallback(ex);
-                        }
+                        } while (result == TimerJobExecutionResult.ExecuteImmediately);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // no-op
+                    }
+                    catch (Exception ex)
+                    {
+                        errorCallback(ex);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    // no-op
-                }
-            }, CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                // no-op
+            }
         }
 
         public async Task Stop()
         {
-            if (tokenSource == null)
-            {
-                return;
-            }
-
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync().ConfigureAwait(false);
             tokenSource.Dispose();
 
-            if (task != null)
-            {
-                try
-                {
-                    await task.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    //NOOP
-                }
-            }
+            await timerBody.ConfigureAwait(false);
         }
 
-        Task task;
+        Task timerBody;
         CancellationTokenSource tokenSource;
     }
 
