@@ -9,7 +9,7 @@
 
     public static class ThroughputCollectorHostBuilderExtensions
     {
-        public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string serviceControlAPI, string errorQueue, string serviceControlQueue, string auditQueue, string transportConnectionString, string persistenceType, string customerName)
+        public static IHostApplicationBuilder AddThroughputCollector(this IHostApplicationBuilder hostBuilder, string transportType, string serviceControlAPI, string errorQueue, string serviceControlQueue, string auditQueue, string transportConnectionString, string persistenceType, string customerName, string serviceControlVersion)
         {
             //For testing only until RavenDB Persistence is working
             persistenceType = "InMemory";
@@ -49,7 +49,7 @@
             }
 
             //TODO could get ILoggerFactory loggerFactory here and create the one for throughput collector and inject the ilogger into the services - that way won't have to create it every time.
-            services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, customerName: customerName, auditQueue: auditQueue));
+            services.AddSingleton(new ThroughputSettings(broker: broker, transportConnectionString: transportConnectionString, serviceControlAPI: serviceControlAPI, serviceControlQueue: serviceControlQueue, errorQueue: errorQueue, persistenceType: persistenceType, customerName: customerName, serviceControlVersion: serviceControlVersion, auditQueue: auditQueue));
             services.AddHostedService<AuditThroughputCollectorHostedService>();
             services.AddSingleton<IThroughputCollector, ThroughputCollector>();
             services.AddSingleton<ThroughputController>();
