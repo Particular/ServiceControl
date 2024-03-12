@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Particular.ThroughputCollector;
 using ServiceBus.Management.Infrastructure.Settings;
-using System.ComponentModel;
+
 using ServiceControlPersistence = global::ServiceControl.Persistence;
 using ThroughputPersistence = ThroughputCollector.Persistence;
 
