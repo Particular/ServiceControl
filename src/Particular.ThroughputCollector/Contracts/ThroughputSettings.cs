@@ -6,7 +6,7 @@
 
     public class ThroughputSettings
     {
-        public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string customerName, string auditQueue = "audit")
+        public ThroughputSettings(Broker broker, string transportConnectionString, string serviceControlAPI, string serviceControlQueue, string errorQueue, string persistenceType, string customerName, string serviceControlVersion, string auditQueue = "audit")
         {
             Broker = broker;
             TransportConnectionString = transportConnectionString;
@@ -16,6 +16,7 @@
             PersistenceType = persistenceType;
             AuditQueue = auditQueue;
             CustomerName = customerName;
+            ServiceControlVersion = serviceControlVersion;
 
             BrokerSettingValues = LoadBrokerSettingValues().ToFrozenDictionary();
         }
@@ -28,6 +29,7 @@
         public string TransportConnectionString { get; set; }
         public string PersistenceType { get; set; }
         public string CustomerName { get; set; }
+        public string ServiceControlVersion { get; set; }
         public FrozenDictionary<string, string> BrokerSettingValues { get; set; }
 
         private Dictionary<string, string> LoadBrokerSettingValues()
