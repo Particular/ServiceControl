@@ -62,16 +62,11 @@ namespace ServiceControl.Monitoring.AcceptanceTests
             Trace.Listeners.Remove(textWriterTraceListener);
         }
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new()
-        {
-            return Define<T>(c => { });
-        }
+        protected IScenarioWithEndpointBehavior<T> Define<T>() where T : ScenarioContext, new() => Define<T>(c => { });
 
-        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new()
-        {
-            return Scenario.Define(contextInitializer)
+        protected IScenarioWithEndpointBehavior<T> Define<T>(Action<T> contextInitializer) where T : ScenarioContext, new() =>
+            Scenario.Define(contextInitializer)
                 .WithComponent(serviceControlRunnerBehavior);
-        }
 
         protected Action<EndpointConfiguration> CustomConfiguration = _ => { };
         protected Action<Settings> SetSettings = _ => { };
