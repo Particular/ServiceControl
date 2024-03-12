@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Particular.ThroughputCollector;
 using ServiceBus.Management.Infrastructure.Settings;
-using ServiceControlPersistence = global::ServiceControl.Persistence;
+//using ServiceControlPersistence = global::ServiceControl.Persistence;
 using ThroughputPersistence = ThroughputCollector.Persistence;
 
 class ThroughputComponent : ServiceControlComponent
@@ -21,7 +21,8 @@ class ThroughputComponent : ServiceControlComponent
             errorQueue: settings.ErrorQueue,
             auditQueue: "?",
             transportConnectionString: settings.TransportConnectionString,
-            persistenceType: ServiceControlPersistence.PersistenceManifestLibrary.GetName(settings.PersistenceType));
+            persistenceType: PersistenceManifestLibrary.GetName(settings.PersistenceType),
+            customerName: LicenseManager.FindLicense().Details.RegisteredTo);
 
     public override void ConfigureInstallation(Settings settings, IHostApplicationBuilder hostBuilder) => Configure(settings, hostBuilder);
 
