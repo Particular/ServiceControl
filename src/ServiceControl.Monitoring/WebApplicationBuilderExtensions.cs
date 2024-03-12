@@ -68,7 +68,6 @@ public static class WebApplicationBuilderExtensions
         ConfigureEndpoint(endpointConfiguration, onCriticalError, transportCustomization, settings);
         hostBuilder.UseNServiceBus(endpointConfiguration);
 
-        // TODO Verify if that we need to check the expose API flag
         // We also don't do this in the primary instance
         hostBuilder.WebHost.UseUrls(settings.RootUrl);
         var controllers = hostBuilder.Services.AddControllers(options =>
