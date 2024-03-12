@@ -4,7 +4,6 @@
 
     public class UpdateEmailNotificationsSettingsRequest
     {
-        // TODO In theory this is not needed because we are using the snake case converter (rest the same)
         [JsonPropertyName("smtp_server")]
         public string SmtpServer { get; set; }
 
