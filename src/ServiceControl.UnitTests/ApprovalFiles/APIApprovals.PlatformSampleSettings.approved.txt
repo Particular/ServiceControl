@@ -38,6 +38,5 @@
   "RetryHistoryDepth": 10,
   "RemoteInstances": [],
   "DataSpaceRemainingThreshold": 20,
-  "DisableHealthChecks": false,
-  "ExposeApi": true
+  "DisableHealthChecks": false
 }

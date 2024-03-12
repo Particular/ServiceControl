@@ -170,8 +170,6 @@ namespace ServiceBus.Management.Infrastructure.Settings
 
         public bool DisableHealthChecks { get; set; }
 
-        public bool ExposeApi { get; set; } = true;
-
         public ITransportCustomization LoadTransportCustomization()
         {
             try

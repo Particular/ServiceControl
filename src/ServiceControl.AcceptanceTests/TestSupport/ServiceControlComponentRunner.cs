@@ -57,7 +57,6 @@
                 MaximumConcurrencyLevel = 2,
                 HttpDefaultConnectionLimit = int.MaxValue,
                 DisableHealthChecks = true,
-                ExposeApi = true,
                 MessageFilter = messageContext =>
                 {
                     var headers = messageContext.Headers;
