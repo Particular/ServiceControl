@@ -25,7 +25,7 @@
                 })
                 .Run();
 
-            Approver.Verify(JsonSerializer.Deserialize<dynamic>(config.Connection));
+            Approver.Verify(JsonSerializer.Deserialize<object>(config.Connection));
         }
 
         class MyEndpoint : EndpointConfigurationBuilder
